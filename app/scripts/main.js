@@ -80,4 +80,49 @@
   }
 
   // Your custom JavaScript goes here
+  var LineupTracker = window.LineupTracker || {};
+
+  var app = {
+    isLoading: true,
+    hasRequestPending: false,
+    visibleGameCards: {},
+    currentGames: [],
+    spinner: document.querySelector('.loader'),
+    gameCardTemplate: document.querySelector('.gameCardTemplate'),
+    container: document.querySelector('.game-container'),
+    addDialog: document.querySelector('.dialog-container')
+  };
+
+  // Updates a game card with the data. If the card
+  // doesn't already exist, it's cloned from the template.
+  app.updateGameCard = function(game) {
+    var card = app.visibleGameCards[game.id];
+    if (!card) {
+      card = app.gameCardTemplate.cloneNode(true);
+      card.classList.remove('gameCardTemplate');
+      card.querySelector('.gameId').textContent = game.id;
+      card.removeAttribute('hidden');
+      app.container.appendChild(card);
+      app.visibleGameCards[game.id] = card;
+    }
+    card.querySelector('.opponent').textContent = game.opponent;
+    card.querySelector('.gameDate').textContent = game.date;
+    card.querySelector('.liveLink').href = 'live-game.html?game=' + game.id;
+    if (app.isLoading) {
+      //app.spinner.setAttribute('hidden', true);
+      app.container.removeAttribute('hidden');
+      app.isLoading = false;
+    }
+  };
+
+  app.currentGames = localStorage.currentGames;
+  if (app.currentGames) {
+    app.currentGames = JSON.parse(app.currentGames);
+  } else {
+    app.currentGames = LineupTracker.retrieveGames();
+//    app.saveSelectedCities();
+  }
+  app.currentGames.forEach(function(game) {
+    app.updateGameCard(game);
+  });
 })();
