@@ -20,17 +20,20 @@
 (function() {
   'use strict';
 
+  var LineupTracker = window.LineupTracker || {};
+
   // Your custom JavaScript goes here
   var liveGame = {
     isLoading: true,
     gameId: null,
+    game: null
 //    spinner: document.querySelector('.loader'),
 //    cardTemplate: document.querySelector('.cardTemplate'),
 //    container: document.querySelector('.main'),
 //    addDialog: document.querySelector('.dialog-container'),
   };
 
-  liveGame.gameId = window.localStorage.liveGameId;
+  liveGame.gameId = window.localStorage.getItem('liveGameId');
 
   if (!liveGame.gameId) {
     var pos = window.location.search.indexOf('?game=');
@@ -40,8 +43,16 @@
     }
   }
 
+  if (!liveGame.gameId) {
+    // Error
+  }
+
   console.log('Starting game: ', liveGame.gameId);
 
+  var games = LineupTracker.retrieveGames();
+  var currentGame = games[0];
+
+  liveGame.game = currentGame;
   /*****************************************************************************
    *
    * Event listeners for UI elements

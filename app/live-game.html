@@ -47,21 +47,26 @@
   <body>
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
       <header class="mdl-layout__header mdl-layout__header--scroll mdl-color--primary">
-        <div class="mdl-layout--large-screen-only mdl-layout__header-row">
+        <div class="mdl-layout-icon">
+          <i class="material-icons" role="presentation">arrow_back</i>
         </div>
         <div class="mdl-layout--large-screen-only mdl-layout__header-row">
-          <h3>Live Game</h3>
-        </div>
-        <div class="mdl-layout--large-screen-only mdl-layout__header-row">
-        </div>
-        <div class="mdl-layout__tab-bar mdl-js-ripple-effect mdl-color--primary-dark">
-          <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored mdl-shadow--4dp mdl-color--accent" id="start">
+          <span class="mdl-layout-title">Live Game</span>
+          <div class="mdl-layout-spacer"></div>
+          <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--colored mdl-shadow--4dp mdl-color--accent" id="buttonStartClock">
             <i class="material-icons" role="presentation">play</i>
             <span class="visuallyhidden">Start</span>
           </button>
-          <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored mdl-shadow--4dp mdl-color--accent" id="stop">
+          <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--colored mdl-shadow--4dp mdl-color--accent" id="buttonStopClock">
             <i class="material-icons" role="presentation">stop</i>
             <span class="visuallyhidden">Stop</span>
+          </button>
+          <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon mdl-color--accent" id="buttonNextPeriod">
+            <i class="material-icons" role="presentation">next</i>
+            <span class="visuallyhidden">2nd Half</span>
+          </button>
+          <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="hdrbtn">
+            <i class="material-icons">more_vert</i>
           </button>
         </div>
       </header>
@@ -99,9 +104,12 @@
     </div>
 
     <script src="https://storage.googleapis.com/code.getmdl.io/1.0.6/material.min.js"></script>
+    <!-- build:js(app/) ../../scripts/game.min.js -->
+    <script src="scripts/game.js"></script>
+    <!-- endbuild -->
     <!-- build:js(app/) ../../scripts/live-game.min.js -->
     <script src="scripts/live-game.js"></script>
-    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
+    <!-- endbuild -->
 
     <!-- Built with love using Web Starter Kit -->
   </body>
