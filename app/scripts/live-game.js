@@ -98,7 +98,7 @@
   document.getElementById('buttonSub').addEventListener('click', function() {
     var selected = liveGame.getSelectedPlayers(liveGame.containers.next);
     liveGame.substitute(selected.ids);
-    liveGame.movePlayers(selected.nodes,
+    liveGame.movePlayers(selected,
       liveGame.containers.next,
       liveGame.containers.on);
   });
@@ -106,7 +106,7 @@
   document.getElementById('buttonCancelSub').addEventListener('click', function() {
     var selected = liveGame.getSelectedPlayers(liveGame.containers.next);
     liveGame.cancelNextSubs(selected.ids);
-    liveGame.movePlayers(selected.nodes,
+    liveGame.movePlayers(selected,
       liveGame.containers.next,
       liveGame.containers.off);
   });
@@ -114,7 +114,7 @@
   document.getElementById('buttonNext').addEventListener('click', function() {
     var selected = liveGame.getSelectedPlayers(liveGame.containers.off);
     liveGame.setupNextSubs(selected.ids);
-    liveGame.movePlayers(selected.nodes,
+    liveGame.movePlayers(selected,
       liveGame.containers.off,
       liveGame.containers.next);
   });
@@ -152,11 +152,15 @@
     return {ids: selectedIds, nodes: selected};
   };
 
-  liveGame.movePlayers = function(playerNodes, from, to) {
-    playerNodes.forEach(node => {
+  liveGame.movePlayers = function(players, from, to) {
+    players.nodes.forEach(node => {
       from.removeChild(node);
       to.appendChild(node);
       // TODO: Need to deselect the node after moving
+    });
+    players.ids.forEach(id => {
+      var player = liveGame.getPlayer(id);
+      liveGame.updatePlayerCard(player);
     });
   };
 
@@ -206,10 +210,18 @@
 
   liveGame.cancelNextSubs = function(players) {
     console.log('next cancel', players);
+    players.forEach(id => {
+      var player = liveGame.getPlayer(id);
+      player.replaces = null;
+    });
   };
 
   liveGame.substitute = function(players, positionChanges) {
     console.log('do subs', players, positionChanges);
+    players.forEach(id => {
+      var player = liveGame.getPlayer(id);
+      player.replaces = null;
+    });
   };
 
   liveGame.updateGame = function() {
