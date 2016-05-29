@@ -26,11 +26,13 @@
   var liveGame = {
     isLoading: true,
     gameId: null,
-    game: null
-//    spinner: document.querySelector('.loader'),
-//    cardTemplate: document.querySelector('.cardTemplate'),
-//    container: document.querySelector('.main'),
-//    addDialog: document.querySelector('.dialog-container'),
+    game: null,
+    roster: null,
+    visiblePlayerCards: [],
+    playerTemplate: document.querySelector('.playerTemplate'),
+    container: document.querySelector('.live-container'),
+    subsContainer: document.querySelector('#live-off'),
+    titleContainer: document.querySelector('.mdl-layout-title')
   };
 
   liveGame.gameId = window.localStorage.getItem('liveGameId');
@@ -53,19 +55,49 @@
   var currentGame = games[0];
 
   liveGame.game = currentGame;
-  /*****************************************************************************
-   *
-   * Event listeners for UI elements
-   *
-   ****************************************************************************/
+  liveGame.roster = [
+    {name: 'Abby', positions: ['AM', 'OM', 'S']},
+    {name: 'Anne', positions: ['CB', 'FB', 'HM']},
+    {name: 'Brianna', positions: ['CB']},
+    {name: 'Brooke', positions: ['AM', 'OM', 'S']},
+    {name: 'Cassidy', positions: ['OM']},
+    {name: 'Ella', positions: ['AM', 'HM', 'S']},
+    {name: 'Emma', positions: ['FB', 'CB']},
+    {name: 'Grace', positions: ['GK']},
+    {name: 'Jordan', positions: ['OM', 'S']},
+    {name: 'Lauren', positions: ['S']},
+    {name: 'Lucy', positions: ['FB']},
+    {name: 'Michaela', positions: ['FB', 'OM']},
+    {name: 'Milla', positions: ['AM', 'HM']},
+    {name: 'Natasha', positions: ['HM']},
+    {name: 'Naomi', positions: ['CB']},
+    {name: 'Payton', positions: ['AM', 'OM', 'HM']},
+    {name: 'Sisi', positions: ['AM', 'OM']},
+    {name: 'Taty', positions: ['AM', 'OM', 'S']}
+  ];
 
-  document.getElementById('start').addEventListener('click', function() {
-    // Refresh all of the forecasts
-    liveGame.updateForecasts();
-  });
+  liveGame.updatePlayerCard = function(player) {
+    var card = liveGame.visiblePlayerCards[player.name];
+    if (!card) {
+      card = liveGame.playerTemplate.cloneNode(true);
+      card.classList.remove('playerTemplate');
+      card.querySelector('.playerName').textContent = player.name;
+      card.removeAttribute('hidden');
+      liveGame.subsContainer.appendChild(card);
+      liveGame.visiblePlayerCards[player.name] = card;
+    }
+    card.querySelector('.playerName').textContent = player.name;
+    card.querySelector('.playerPosition').textContent =
+      player.positions.join(' ');
+  };
 
-  document.getElementById('butAdd').addEventListener('click', function() {
-    // Open/show the add new city dialog
-    liveGame.toggleAddDialog(true);
+  liveGame.updateGame = function(game) {
+    var title = liveGame.titleContainer;
+    title.textContent = 'Live: ' + liveGame.game.name();
+  };
+
+  liveGame.updateGame(liveGame.game);
+  liveGame.roster.forEach(function(player) {
+    liveGame.updatePlayerCard(player);
   });
 })();
