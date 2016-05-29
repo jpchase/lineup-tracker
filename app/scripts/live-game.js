@@ -29,6 +29,14 @@
     game: null,
     roster: null,
     visiblePlayerCards: [],
+    on: {
+      players: [],
+      container: document.querySelector('#live-on')
+    },
+    next: {
+      players: [],
+      container: document.querySelector('#live-next')
+    },
     playerTemplate: document.querySelector('.playerTemplate'),
     container: document.querySelector('.live-container'),
     containers: {
@@ -87,28 +95,6 @@
    * Event listeners for UI elements
    *
    ****************************************************************************/
-  liveGame.getSelectedPlayers = function(container) {
-    var playerSelects = container.querySelectorAll(':scope .player > .playerSelect');
-    var selectedIds = [];
-    var selected = [];
-    for (var i = 0; i < playerSelects.length; ++i) {
-      var item = playerSelects[i];
-      if (item.checked) {
-        selectedIds.push(item.value);
-        selected.push(item.parentNode);
-      }
-    }
-    return {ids: selectedIds, nodes: selected};
-  };
-
-  liveGame.movePlayers = function(playerNodes, from, to) {
-    playerNodes.forEach(node => {
-      from.removeChild(node);
-      to.appendChild(node);
-      // TODO: Need to deselect the node after moving
-    });
-  };
-
   document.getElementById('buttonSub').addEventListener('click', function() {
     var selected = liveGame.getSelectedPlayers(liveGame.containers.next);
     liveGame.substitute(selected.ids);
@@ -152,6 +138,28 @@
     });
   });
 
+  liveGame.getSelectedPlayers = function(container) {
+    var playerSelects = container.querySelectorAll(':scope .player > .playerSelect');
+    var selectedIds = [];
+    var selected = [];
+    for (var i = 0; i < playerSelects.length; ++i) {
+      var item = playerSelects[i];
+      if (item.checked) {
+        selectedIds.push(item.value);
+        selected.push(item.parentNode);
+      }
+    }
+    return {ids: selectedIds, nodes: selected};
+  };
+
+  liveGame.movePlayers = function(playerNodes, from, to) {
+    playerNodes.forEach(node => {
+      from.removeChild(node);
+      to.appendChild(node);
+      // TODO: Need to deselect the node after moving
+    });
+  };
+
   liveGame.updatePlayerCard = function(player) {
     var card = liveGame.visiblePlayerCards[player.name];
     if (!card) {
@@ -163,18 +171,37 @@
       liveGame.containers.off.appendChild(card);
       liveGame.visiblePlayerCards[player.name] = card;
     }
-    card.querySelector('.playerName').textContent = player.name;
+    card.querySelector('.subFor').textContent = player.replaces;
     card.querySelector('.playerPosition').textContent =
       player.positions.join(' ');
   };
 
   liveGame.addStarters = function(players) {
     console.log('starters', players);
-    // TODO: Record starters for game
+    players.forEach(id => {
+      var player = liveGame.getPlayer(id);
+      liveGame.on.players.push(player);
+      // TODO: Record starters for game
+    });
+  };
+
+  liveGame.getPlayer = function(id) {
+    return liveGame.roster.find(player => player.name === id);
   };
 
   liveGame.setupNextSubs = function(players) {
     console.log('next', players);
+    players.forEach(id => {
+      var player = liveGame.getPlayer(id);
+      // Figure out/prompt for the position they will take
+      var position = player.positions[0];
+      console.log('Find player for position: ' + position, liveGame.on.players);
+      // Figure out/prompt for the player to be replaced
+      var replaced = liveGame.on.players.find(subFor => subFor.positions[0] === position);
+      console.log('to be replaced', replaced);
+      player.replaces = replaced.name;
+    });
+    // Figure out/prompt for any position changes for players remaining on the field
   };
 
   liveGame.cancelNextSubs = function(players) {
