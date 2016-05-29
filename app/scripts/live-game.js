@@ -80,12 +80,58 @@
     {name: 'Sisi', positions: ['AM', 'OM']},
     {name: 'Taty', positions: ['AM', 'OM', 'S']}
   ];
+  // TODO: Set the formation for the game
 
   /*****************************************************************************
    *
    * Event listeners for UI elements
    *
    ****************************************************************************/
+  liveGame.getSelectedPlayers = function(container) {
+    var playerSelects = container.querySelectorAll(':scope .player > .playerSelect');
+    var selectedIds = [];
+    var selected = [];
+    for (var i = 0; i < playerSelects.length; ++i) {
+      var item = playerSelects[i];
+      if (item.checked) {
+        selectedIds.push(item.value);
+        selected.push(item.parentNode);
+      }
+    }
+    return {ids: selectedIds, nodes: selected};
+  };
+
+  liveGame.movePlayers = function(playerNodes, from, to) {
+    playerNodes.forEach(node => {
+      from.removeChild(node);
+      to.appendChild(node);
+      // TODO: Need to deselect the node after moving
+    });
+  };
+
+  document.getElementById('buttonSub').addEventListener('click', function() {
+    var selected = liveGame.getSelectedPlayers(liveGame.containers.next);
+    liveGame.substitute(selected.ids);
+    liveGame.movePlayers(selected.nodes,
+      liveGame.containers.next,
+      liveGame.containers.on);
+  });
+
+  document.getElementById('buttonCancelSub').addEventListener('click', function() {
+    var selected = liveGame.getSelectedPlayers(liveGame.containers.next);
+    liveGame.cancelNextSubs(selected.ids);
+    liveGame.movePlayers(selected.nodes,
+      liveGame.containers.next,
+      liveGame.containers.off);
+  });
+
+  document.getElementById('buttonNext').addEventListener('click', function() {
+    var selected = liveGame.getSelectedPlayers(liveGame.containers.off);
+    liveGame.setupNextSubs(selected.ids);
+    liveGame.movePlayers(selected.nodes,
+      liveGame.containers.off,
+      liveGame.containers.next);
+  });
 
   document.getElementById('buttonStarter').addEventListener('click', function() {
     var playerSelects = liveGame.containers.off.querySelectorAll(':scope .player > .playerSelect');
@@ -123,10 +169,20 @@
   };
 
   liveGame.addStarters = function(players) {
-    console.log('Players', players);
+    console.log('starters', players);
+    // TODO: Record starters for game
   };
 
-  liveGame.selectPlayer = function(container) {
+  liveGame.setupNextSubs = function(players) {
+    console.log('next', players);
+  };
+
+  liveGame.cancelNextSubs = function(players) {
+    console.log('next cancel', players);
+  };
+
+  liveGame.substitute = function(players, positionChanges) {
+    console.log('do subs', players, positionChanges);
   };
 
   liveGame.updateGame = function() {
