@@ -52,7 +52,7 @@
   console.log('Starting game: ', liveGame.gameId);
 
   var games = LineupTracker.retrieveGames();
-  var currentGame = games[0];
+  var currentGame = games.find(game => game.id === liveGame.gameId);
 
   liveGame.game = currentGame;
   liveGame.roster = [
@@ -91,12 +91,12 @@
       player.positions.join(' ');
   };
 
-  liveGame.updateGame = function(game) {
+  liveGame.updateGame = function() {
     var title = liveGame.titleContainer;
-    title.textContent = 'Live: ' + liveGame.game.name();
+    title.textContent = 'Live: ' + this.game.name();
   };
 
-  liveGame.updateGame(liveGame.game);
+  liveGame.updateGame();
   liveGame.roster.forEach(function(player) {
     liveGame.updatePlayerCard(player);
   });
