@@ -31,7 +31,12 @@
     visiblePlayerCards: [],
     playerTemplate: document.querySelector('.playerTemplate'),
     container: document.querySelector('.live-container'),
-    subsContainer: document.querySelector('#live-off'),
+    containers: {
+      on: document.querySelector('#live-on'),
+      next: document.querySelector('#live-next'),
+      off: document.querySelector('#live-off'),
+      out: document.querySelector('#live-out')
+    },
     titleContainer: document.querySelector('.mdl-layout-title')
   };
 
@@ -76,14 +81,40 @@
     {name: 'Taty', positions: ['AM', 'OM', 'S']}
   ];
 
+  /*****************************************************************************
+   *
+   * Event listeners for UI elements
+   *
+   ****************************************************************************/
+
+  document.getElementById('buttonStarter').addEventListener('click', function() {
+    var playerSelects = liveGame.containers.off.querySelectorAll(':scope .player > .playerSelect');
+    var selectedIds = [];
+    var selected = [];
+    for (var i = 0; i < playerSelects.length; ++i) {
+      var item = playerSelects[i];
+      if (item.checked) {
+        selectedIds.push(item.value);
+        selected.push(item.parentNode);
+      }
+    }
+    liveGame.addStarters(selectedIds);
+    // Move selected players
+    selected.forEach(node => {
+      liveGame.containers.off.removeChild(node);
+      liveGame.containers.on.appendChild(node);
+    });
+  });
+
   liveGame.updatePlayerCard = function(player) {
     var card = liveGame.visiblePlayerCards[player.name];
     if (!card) {
       card = liveGame.playerTemplate.cloneNode(true);
       card.classList.remove('playerTemplate');
       card.querySelector('.playerName').textContent = player.name;
+      card.querySelector('.playerSelect').value = player.name;
       card.removeAttribute('hidden');
-      liveGame.subsContainer.appendChild(card);
+      liveGame.containers.off.appendChild(card);
       liveGame.visiblePlayerCards[player.name] = card;
     }
     card.querySelector('.playerName').textContent = player.name;
@@ -91,11 +122,19 @@
       player.positions.join(' ');
   };
 
+  liveGame.addStarters = function(players) {
+    console.log('Players', players);
+  };
+
+  liveGame.selectPlayer = function(container) {
+  };
+
   liveGame.updateGame = function() {
     var title = liveGame.titleContainer;
     title.textContent = 'Live: ' + this.game.name();
   };
 
+  // Initialization
   liveGame.updateGame();
   liveGame.roster.forEach(function(player) {
     liveGame.updatePlayerCard(player);
