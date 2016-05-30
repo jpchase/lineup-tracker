@@ -186,65 +186,64 @@
   };
 
   liveGame.toggleClock = function() {
-    var game = liveGame.game;
+    var game = this.game;
     var clockRunning = game.toggleClock();
     if (clockRunning) {
-      if (!liveGame.stopwatch) {
-        liveGame.stopwatch = new Stopwatch(document.querySelector('#gameClock'), null);
+      if (!this.stopwatch) {
+        this.stopwatch = new Stopwatch(document.querySelector('#gameClock'), null);
       }
-      liveGame.stopwatch.start();
+      this.stopwatch.start();
     } else {
-      liveGame.stopwatch.stop();
+      this.stopwatch.stop();
     }
   };
 
   liveGame.completeGame = function() {
-    var game = liveGame.game;
-    var clockRunning = game.completeGame();
+    var clockRunning = this.game.completeGame();
   };
 
   liveGame.movePlayers = function(players, from, to, useFormation) {
     if (useFormation) {
     }
     players.pairs.forEach(pair => {
-      var player = liveGame.getPlayer(pair.id);
+      var player = this.getPlayer(pair.id);
       var node = pair.node;
       from.removeChild(node);
       if (useFormation) {
-        liveGame.getFormationContainer(player).appendChild(node);
+        this.getFormationContainer(player).appendChild(node);
       } else {
         to.appendChild(node);
       }
       // TODO: Need to deselect the node after moving
-      liveGame.updatePlayerCard(player);
+      this.updatePlayerCard(player);
     });
   };
 
   liveGame.getFormationContainer = function(player) {
     if (player.currentPosition === 'GK') {
-      return liveGame.containers.formation.gk;
+      return this.containers.formation.gk;
     }
-    var lines = Object.keys(liveGame.formation);
+    var lines = Object.keys(this.formation);
     const arrayLength = lines.length;
     for (var i = 0; i < arrayLength; i++) {
       var lineName = lines[i];
-      if (liveGame.formation[lineName].positions.includes(player.currentPosition)){
-        return liveGame.containers.formation[lineName];
+      if (this.formation[lineName].positions.includes(player.currentPosition)) {
+        return this.containers.formation[lineName];
       }
-    };
+    }
     throw new Error('No container found for position: ' + player.currentPosition);
   };
 
   liveGame.updatePlayerCard = function(player) {
-    var card = liveGame.visiblePlayerCards[player.name];
+    var card = this.visiblePlayerCards[player.name];
     if (!card) {
-      card = liveGame.playerTemplate.cloneNode(true);
+      card = this.playerTemplate.cloneNode(true);
       card.classList.remove('playerTemplate');
       card.querySelector('.playerName').textContent = player.name;
       card.querySelector('.playerSelect').value = player.name;
       card.removeAttribute('hidden');
-      liveGame.containers.off.appendChild(card);
-      liveGame.visiblePlayerCards[player.name] = card;
+      this.containers.off.appendChild(card);
+      this.visiblePlayerCards[player.name] = card;
     }
     card.querySelector('.subFor').textContent = player.replaces;
     card.querySelector('.playerPositions').textContent =
@@ -254,25 +253,25 @@
   liveGame.addStarters = function(players) {
     console.log('starters', players);
     players.forEach(id => {
-      var player = liveGame.getPlayer(id);
-      liveGame.on.players.push(player);
+      var player = this.getPlayer(id);
+      this.on.players.push(player);
       // TODO: Record starters for game
     });
   };
 
   liveGame.getPlayer = function(id) {
-    return liveGame.roster.find(player => player.name === id);
+    return this.roster.find(player => player.name === id);
   };
 
   liveGame.setupNextSubs = function(players) {
     console.log('next', players);
     players.forEach(id => {
-      var player = liveGame.getPlayer(id);
+      var player = this.getPlayer(id);
       // Figure out/prompt for the position they will take
       player.currentPosition = player.positions[0];
-      console.log('Find player for position: ' + player.currentPosition, liveGame.on.players);
+      console.log('Find player for position: ' + player.currentPosition, this.on.players);
       // Figure out/prompt for the player to be replaced
-      var replaced = liveGame.on.players.find(subFor => subFor.positions[0] === player.currentPosition);
+      var replaced = this.on.players.find(subFor => subFor.positions[0] === player.currentPosition);
       console.log('to be replaced', replaced);
       player.replaces = replaced.name;
     });
@@ -282,7 +281,7 @@
   liveGame.cancelNextSubs = function(players) {
     console.log('next cancel', players);
     players.forEach(id => {
-      var player = liveGame.getPlayer(id);
+      var player = this.getPlayer(id);
       player.replaces = null;
     });
   };
@@ -290,13 +289,13 @@
   liveGame.substitute = function(players, positionChanges) {
     console.log('do subs', players, positionChanges);
     players.forEach(id => {
-      var player = liveGame.getPlayer(id);
+      var player = this.getPlayer(id);
       player.replaces = null;
     });
   };
 
   liveGame.updateGame = function() {
-    var title = liveGame.titleContainer;
+    var title = this.titleContainer;
     title.textContent = 'Live: ' + this.game.name();
   };
 
