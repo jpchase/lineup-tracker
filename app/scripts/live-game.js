@@ -53,6 +53,11 @@
         gk: document.querySelector('#players-gk')
       }
     },
+    subs: {
+      template: document.querySelector('.subTemplate'),
+      container: document.getElementById('subsList'),
+      dialog: document.getElementById('dialogSubs')
+    },
     titleContainer: document.querySelector('.mdl-layout-title')
   };
 
@@ -108,6 +113,21 @@
     },
     back: {
       positions: ['FB', 'CB', 'CB', 'FB']
+    },
+    gk: {
+      positions: ['GK']
+    },
+    uniquePositions: function() {
+      return this.forward.positions.concat(
+        this.mid1.positions,
+        this.mid2.positions,
+        this.back.positions,
+        this.gk.positions).reduce((prevArray, currentValue) => {
+          if (prevArray.indexOf(currentValue) < 0) {
+            prevArray.push(currentValue);
+          }
+          return prevArray;
+        }, []);
     }
   };
 
@@ -137,24 +157,26 @@
   });
 
   document.getElementById('buttonNext').addEventListener('click', function() {
-    var selected = liveGame.getSelectedPlayers(liveGame.containers.off);
-    liveGame.setupNextSubs(selected.ids, (player) => {
-      return player.positions[0];
-    });
-    liveGame.movePlayers(selected,
-      liveGame.containers.off,
-      liveGame.containers.next);
+    liveGame.setupNextPlayers();
   });
 
   document.getElementById('buttonStarter').addEventListener('click', function() {
     var selected = liveGame.getSelectedPlayers(liveGame.containers.off);
-    liveGame.addStarters(selected.ids, (player) => {
+    liveGame.addStarters(selected.ids, player => {
       return player.positions[0];
     });
     liveGame.movePlayers(selected,
       liveGame.containers.off,
       liveGame.containers.on,
       true);
+  });
+
+  document.getElementById('buttonSaveSubs').addEventListener('click', function() {
+    liveGame.saveSubs();
+  });
+
+  document.getElementById('buttonCloseSubs').addEventListener('click', function() {
+    liveGame.closeSubs();
   });
 
   /*****************************************************************************
@@ -199,6 +221,57 @@
     });
   };
 
+  liveGame.setupNextPlayers = function() {
+    var selected = this.getSelectedPlayers(liveGame.containers.off);
+
+    clearChildren(this.subs.container);
+
+    selected.tuples.forEach(tuple => {
+      var player = tuple.player;
+
+      if (!player.currentPosition) {
+        player.currentPosition = player.positions[0];
+      }
+
+      // Create new list item to add to list
+      var listItem = this.subs.template.cloneNode(true);
+      listItem.classList.remove('subTemplate');
+      listItem.querySelector('.playerName').textContent = player.name;
+      listItem.querySelector('.currentPosition').textContent = player.currentPosition;
+
+      // Populate the positions
+      //  - First, the common positions for the player
+      //  - Second, the remaining positions from the formation
+      var selectPosition = listItem.querySelector('.selectPosition');
+      var orderedPositions = player.positions.concat(
+        this.formation.uniquePositions().filter(position => !player.positions.includes(position))
+        );
+
+      orderedPositions.forEach(position => {
+        var optionPosition = document.createElement('option');
+        optionPosition.value = position;
+        optionPosition.textContent = position;
+        selectPosition.appendChild(optionPosition);
+      });
+
+      // Populate players to be replaced
+      var selectPlayer = listItem.querySelector('.selectPlayer');
+      this.on.players.forEach(player => {
+        var optionReplace = document.createElement('option');
+        optionReplace.value = player.name;
+        optionReplace.textContent = player.name + ' - ' + player.currentPosition;
+        selectPlayer.appendChild(optionReplace);
+      });
+
+      // Add fully initialized item to list
+      listItem.removeAttribute('hidden');
+      this.subs.container.appendChild(listItem);
+    });
+
+    // Show the dialog, now that it's populated with the selected players
+    this.subs.dialog.showModal();
+  };
+
   liveGame.substitutePlayers = function() {
     var subs = this.getSelectedPlayers(liveGame.containers.next);
 
@@ -219,8 +292,7 @@
         subContainer.replaceChild(cardIn, cardOut);
       } else {
         subContainer.removeChild(cardOut);
-        newContainer = this.getFormationContainer(playerIn.currentPosition);
-        newContainer.appendChild(cardIn);
+        this.getFormationContainer(playerIn.currentPosition).appendChild(cardIn);
       }
       this.containers.off.appendChild(cardOut);
       // TODO: Need to deselect the node after moving
@@ -283,6 +355,39 @@
   liveGame.updateGame = function() {
     var title = this.titleContainer;
     title.textContent = 'Live: ' + this.game.name();
+  };
+
+  liveGame.saveSubs = function() {
+
+    // Extract updated position/replacement from dialog
+    var items = this.subs.container.querySelectorAll('.sub');
+    for (var i = 0; i < items.length; ++i) {
+      var listItem = items[i];
+      var id = listItem.querySelector('.playerName').textContent;
+      var player = this.getPlayer(id);
+
+      // Get the position
+      var selectPosition = listItem.querySelector('.selectPosition');
+      player.currentPosition = selectPosition.options[selectPosition.selectedIndex].value;
+
+      // Get the player to be replaced
+      var selectPlayer = listItem.querySelector('.selectPlayer');
+      player.replaces = selectPlayer.options[selectPlayer.selectedIndex].value;
+    }
+
+    // TODO: Figure out/prompt for any position changes for players remaining on the field
+
+    // Get the selected players (again), to move them and update the UI
+    var selected = this.getSelectedPlayers(this.containers.off);
+    this.movePlayers(selected,
+      this.containers.off,
+      this.containers.next);
+
+    this.subs.dialog.close();
+  };
+
+  liveGame.closeSubs = function() {
+    this.subs.dialog.close();
   };
 
   /*****************************************************************************
