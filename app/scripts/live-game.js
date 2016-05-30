@@ -28,6 +28,7 @@
     gameId: null,
     game: null,
     roster: null,
+    stopwatch: null,
     visiblePlayerCards: [],
     on: {
       players: [],
@@ -163,6 +164,14 @@
   liveGame.toggleClock = function() {
     var game = liveGame.game;
     var clockRunning = game.toggleClock();
+    if (clockRunning) {
+      if (!liveGame.stopwatch) {
+        liveGame.stopwatch = new Stopwatch(document.querySelector('#gameClock'), null);
+      }
+      liveGame.stopwatch.start();
+    } else {
+      liveGame.stopwatch.stop();
+    }
   };
 
   liveGame.completeGame = function() {
