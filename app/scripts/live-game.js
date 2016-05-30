@@ -44,7 +44,14 @@
       on: document.querySelector('#live-on'),
       next: document.querySelector('#live-next'),
       off: document.querySelector('#live-off'),
-      out: document.querySelector('#live-out')
+      out: document.querySelector('#live-out'),
+      formation: {
+        forward: document.querySelector('#players-forward'),
+        mid1: document.querySelector('#players-mid1'),
+        mid2: document.querySelector('#players-mid2'),
+        back: document.querySelector('#players-back'),
+        gk: document.querySelector('#players-gk')
+      }
     },
     titleContainer: document.querySelector('.mdl-layout-title')
   };
@@ -89,7 +96,20 @@
     {name: 'Sisi', positions: ['AM', 'OM']},
     {name: 'Taty', positions: ['AM', 'OM', 'S']}
   ];
-  // TODO: Set the formation for the game
+  liveGame.formation = {
+    forward: {
+      positions: ['S']
+    },
+    mid1: {
+      positions: ['OM', 'AM', 'AM', 'OM']
+    },
+    mid2: {
+      positions: ['HM']
+    },
+    back: {
+      positions: ['FB', 'CB', 'CB', 'FB']
+    }
+  };
 
   /*****************************************************************************
    *
@@ -109,7 +129,8 @@
     liveGame.substitute(selected.ids);
     liveGame.movePlayers(selected,
       liveGame.containers.next,
-      liveGame.containers.on);
+      liveGame.containers.on,
+      true);
   });
 
   document.getElementById('buttonCancelSub').addEventListener('click', function() {
@@ -150,15 +171,18 @@
   liveGame.getSelectedPlayers = function(container) {
     var playerSelects = container.querySelectorAll(':scope .player > .playerSelect');
     var selectedIds = [];
-    var selected = [];
+    var pairs = [];
     for (var i = 0; i < playerSelects.length; ++i) {
       var item = playerSelects[i];
       if (item.checked) {
         selectedIds.push(item.value);
-        selected.push(item.parentNode);
+        pairs.push({
+          id: item.value,
+          node: item.parentNode
+        });
       }
     }
-    return {ids: selectedIds, nodes: selected};
+    return {ids: selectedIds, pairs: pairs};
   };
 
   liveGame.toggleClock = function() {
@@ -179,16 +203,36 @@
     var clockRunning = game.completeGame();
   };
 
-  liveGame.movePlayers = function(players, from, to) {
-    players.nodes.forEach(node => {
+  liveGame.movePlayers = function(players, from, to, useFormation) {
+    if (useFormation) {
+    }
+    players.pairs.forEach(pair => {
+      var player = liveGame.getPlayer(pair.id);
+      var node = pair.node;
       from.removeChild(node);
-      to.appendChild(node);
+      if (useFormation) {
+        liveGame.getFormationContainer(player).appendChild(node);
+      } else {
+        to.appendChild(node);
+      }
       // TODO: Need to deselect the node after moving
-    });
-    players.ids.forEach(id => {
-      var player = liveGame.getPlayer(id);
       liveGame.updatePlayerCard(player);
     });
+  };
+
+  liveGame.getFormationContainer = function(player) {
+    if (player.currentPosition === 'GK') {
+      return liveGame.containers.formation.gk;
+    }
+    var lines = Object.keys(liveGame.formation);
+    const arrayLength = lines.length;
+    for (var i = 0; i < arrayLength; i++) {
+      var lineName = lines[i];
+      if (liveGame.formation[lineName].positions.includes(player.currentPosition)){
+        return liveGame.containers.formation[lineName];
+      }
+    };
+    throw new Error('No container found for position: ' + player.currentPosition);
   };
 
   liveGame.updatePlayerCard = function(player) {
@@ -203,7 +247,7 @@
       liveGame.visiblePlayerCards[player.name] = card;
     }
     card.querySelector('.subFor').textContent = player.replaces;
-    card.querySelector('.playerPosition').textContent =
+    card.querySelector('.playerPositions').textContent =
       player.positions.join(' ');
   };
 
@@ -225,10 +269,10 @@
     players.forEach(id => {
       var player = liveGame.getPlayer(id);
       // Figure out/prompt for the position they will take
-      var position = player.positions[0];
-      console.log('Find player for position: ' + position, liveGame.on.players);
+      player.currentPosition = player.positions[0];
+      console.log('Find player for position: ' + player.currentPosition, liveGame.on.players);
       // Figure out/prompt for the player to be replaced
-      var replaced = liveGame.on.players.find(subFor => subFor.positions[0] === position);
+      var replaced = liveGame.on.players.find(subFor => subFor.positions[0] === player.currentPosition);
       console.log('to be replaced', replaced);
       player.replaces = replaced.name;
     });
