@@ -24,6 +24,20 @@ html, body {
   margin: 0;
   padding: 0;
 }
+
+.player {
+  display: block;
+}
+
+.live-formation-line {
+  border: 1px;
+  border-style: solid;
+}
+
+.live-formation-line > .player {
+  display: inline;
+}
+
 .mdl-demo .mdl-layout__header-row {
   padding-left: 40px;
 }

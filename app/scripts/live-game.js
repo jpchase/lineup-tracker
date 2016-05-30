@@ -143,30 +143,30 @@
 
   document.getElementById('buttonNext').addEventListener('click', function() {
     var selected = liveGame.getSelectedPlayers(liveGame.containers.off);
-    liveGame.setupNextSubs(selected.ids);
+    liveGame.setupNextSubs(selected.ids, (player) => {
+      return player.positions[0];
+    });
     liveGame.movePlayers(selected,
       liveGame.containers.off,
       liveGame.containers.next);
   });
 
   document.getElementById('buttonStarter').addEventListener('click', function() {
-    var playerSelects = liveGame.containers.off.querySelectorAll(':scope .player > .playerSelect');
-    var selectedIds = [];
-    var selected = [];
-    for (var i = 0; i < playerSelects.length; ++i) {
-      var item = playerSelects[i];
-      if (item.checked) {
-        selectedIds.push(item.value);
-        selected.push(item.parentNode);
-      }
-    }
-    liveGame.addStarters(selectedIds);
-    // Move selected players
-    selected.forEach(node => {
-      liveGame.containers.off.removeChild(node);
-      liveGame.containers.on.appendChild(node);
+    var selected = liveGame.getSelectedPlayers(liveGame.containers.off);
+    liveGame.addStarters(selected.ids, (player) => {
+      return player.positions[0];
     });
+    liveGame.movePlayers(selected,
+      liveGame.containers.off,
+      liveGame.containers.on,
+      true);
   });
+
+  /*****************************************************************************
+   *
+   * Methods to update/refresh the UI
+   *
+   ****************************************************************************/
 
   liveGame.getSelectedPlayers = function(container) {
     var playerSelects = container.querySelectorAll(':scope .player > .playerSelect');
@@ -245,15 +245,23 @@
       this.containers.off.appendChild(card);
       this.visiblePlayerCards[player.name] = card;
     }
+    card.querySelector('.currentPosition').textContent = player.currentPosition;
     card.querySelector('.subFor').textContent = player.replaces;
     card.querySelector('.playerPositions').textContent =
       player.positions.join(' ');
   };
 
-  liveGame.addStarters = function(players) {
+  /*****************************************************************************
+   *
+   * Methods for dealing with the model
+   *
+   ****************************************************************************/
+
+  liveGame.addStarters = function(players, getPositionCallback) {
     console.log('starters', players);
     players.forEach(id => {
       var player = this.getPlayer(id);
+      player.currentPosition = getPositionCallback(player);
       this.on.players.push(player);
       // TODO: Record starters for game
     });
@@ -263,12 +271,12 @@
     return this.roster.find(player => player.name === id);
   };
 
-  liveGame.setupNextSubs = function(players) {
+  liveGame.setupNextSubs = function(players, getPositionCallback) {
     console.log('next', players);
     players.forEach(id => {
       var player = this.getPlayer(id);
       // Figure out/prompt for the position they will take
-      player.currentPosition = player.positions[0];
+      player.currentPosition = getPositionCallback(player);
       console.log('Find player for position: ' + player.currentPosition, this.on.players);
       // Figure out/prompt for the player to be replaced
       var replaced = this.on.players.find(subFor => subFor.positions[0] === player.currentPosition);
@@ -299,7 +307,12 @@
     title.textContent = 'Live: ' + this.game.name();
   };
 
-  // Initialization
+ /*****************************************************************************
+  *
+  * Code required to start the app
+  *
+  ****************************************************************************/
+
   liveGame.updateGame();
   liveGame.roster.forEach(function(player) {
     liveGame.updatePlayerCard(player);
