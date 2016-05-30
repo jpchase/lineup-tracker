@@ -185,23 +185,6 @@
     return {ids: selectedIds, pairs: pairs};
   };
 
-  liveGame.toggleClock = function() {
-    var game = this.game;
-    var clockRunning = game.toggleClock();
-    if (clockRunning) {
-      if (!this.stopwatch) {
-        this.stopwatch = new Stopwatch(document.querySelector('#gameClock'), null);
-      }
-      this.stopwatch.start();
-    } else {
-      this.stopwatch.stop();
-    }
-  };
-
-  liveGame.completeGame = function() {
-    var clockRunning = this.game.completeGame();
-  };
-
   liveGame.movePlayers = function(players, from, to, useFormation) {
     if (useFormation) {
     }
@@ -251,11 +234,33 @@
       player.positions.join(' ');
   };
 
+  liveGame.updateGame = function() {
+    var title = this.titleContainer;
+    title.textContent = 'Live: ' + this.game.name();
+  };
+
   /*****************************************************************************
    *
    * Methods for dealing with the model
    *
    ****************************************************************************/
+
+  liveGame.toggleClock = function() {
+    var game = this.game;
+    var clockRunning = game.toggleClock();
+    if (clockRunning) {
+      if (!this.stopwatch) {
+        this.stopwatch = new Stopwatch(document.querySelector('#gameClock'), null);
+      }
+      this.stopwatch.start();
+    } else {
+      this.stopwatch.stop();
+    }
+  };
+
+  liveGame.completeGame = function() {
+    var clockRunning = this.game.completeGame();
+  };
 
   liveGame.addStarters = function(players, getPositionCallback) {
     console.log('starters', players);
@@ -300,11 +305,6 @@
       var player = this.getPlayer(id);
       player.replaces = null;
     });
-  };
-
-  liveGame.updateGame = function() {
-    var title = this.titleContainer;
-    title.textContent = 'Live: ' + this.game.name();
   };
 
  /*****************************************************************************
