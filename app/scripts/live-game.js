@@ -95,6 +95,14 @@
    * Event listeners for UI elements
    *
    ****************************************************************************/
+  document.getElementById('buttonToggleClock').addEventListener('click', function() {
+    liveGame.toggleClock();
+  });
+
+  document.getElementById('buttonComplete').addEventListener('click', function() {
+    liveGame.completeGame();
+  });
+
   document.getElementById('buttonSub').addEventListener('click', function() {
     var selected = liveGame.getSelectedPlayers(liveGame.containers.next);
     liveGame.substitute(selected.ids);
@@ -150,6 +158,16 @@
       }
     }
     return {ids: selectedIds, nodes: selected};
+  };
+
+  liveGame.toggleClock = function() {
+    var game = liveGame.game;
+    var clockRunning = game.toggleClock();
+  };
+
+  liveGame.completeGame = function() {
+    var game = liveGame.game;
+    var clockRunning = game.completeGame();
   };
 
   liveGame.movePlayers = function(players, from, to) {

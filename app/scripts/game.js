@@ -9,6 +9,9 @@
     this.date = date;
     this.opponent = opponent;
     this.duration = duration;
+    this.status = 'NEW'; // LIVE, DONE
+    this.clockRunning = false;
+    this.elapsed = null;
   };
 
   LineupTracker.Game.prototype.name = function() {
@@ -17,6 +20,38 @@
     ];
     return this.opponent + ' ' + monthNames[this.date.getMonth()] + ' ' +
            this.date.getDate();
+  };
+
+  LineupTracker.Game.prototype.toggleClock = function() {
+    if (this.status === 'DONE' ||
+        (this.status === 'NEW' && this.clockRunning)) {
+      throw 'Invalid status to toggle clock';
+    }
+    if (this.status === 'NEW') {
+      // Starting the clock for the first time
+      console.log('Changing to live.');
+      this.status = 'LIVE';
+    }
+
+    if (this.clockRunning) {
+      console.log('Stop the clock');
+      // TODO: Close current timer
+    }
+    else {
+      console.log('Start the clock');
+      // TODO: Start new timer
+      // if (!this.gameStartTime) { this.gameStartTime = Date.now(); }
+    }
+    this.clockRunning = !this.clockRunning;
+    return this.clockRunning;
+  };
+
+  LineupTracker.Game.prototype.completeGame = function() {
+    if (this.status !== 'LIVE') {
+      throw 'Invalid status to complete game';
+    }
+    console.log('Changing to done.');
+    this.status = 'DONE';
   };
 
   LineupTracker.retrieveGames = function() {
