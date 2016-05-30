@@ -125,12 +125,7 @@
   });
 
   document.getElementById('buttonSub').addEventListener('click', function() {
-    var selected = liveGame.getSelectedPlayers(liveGame.containers.next);
-    liveGame.substitute(selected.ids);
-    liveGame.movePlayers(selected,
-      liveGame.containers.next,
-      liveGame.containers.on,
-      true);
+    liveGame.substitutePlayers();
   });
 
   document.getElementById('buttonCancelSub').addEventListener('click', function() {
@@ -171,50 +166,101 @@
   liveGame.getSelectedPlayers = function(container) {
     var playerSelects = container.querySelectorAll(':scope .player > .playerSelect');
     var selectedIds = [];
-    var pairs = [];
+    var tuples = [];
     for (var i = 0; i < playerSelects.length; ++i) {
       var item = playerSelects[i];
       if (item.checked) {
         selectedIds.push(item.value);
-        pairs.push({
+        tuples.push({
           id: item.value,
+          player: this.getPlayer(item.value),
+          card: item.parentNode,
           node: item.parentNode
         });
       }
     }
-    return {ids: selectedIds, pairs: pairs};
+    return {ids: selectedIds, pairs: tuples, tuples: tuples};
   };
 
   liveGame.movePlayers = function(players, from, to, useFormation) {
     if (useFormation) {
     }
-    players.pairs.forEach(pair => {
-      var player = this.getPlayer(pair.id);
-      var node = pair.node;
-      from.removeChild(node);
+    players.tuples.forEach(tuple => {
+      var player = tuple.player;
+      var card = tuple.card;
+      from.removeChild(card);
       if (useFormation) {
-        this.getFormationContainer(player).appendChild(node);
+        this.getFormationContainer(player.currentPosition).appendChild(card);
       } else {
-        to.appendChild(node);
+        to.appendChild(card);
       }
       // TODO: Need to deselect the node after moving
       this.updatePlayerCard(player);
     });
   };
 
-  liveGame.getFormationContainer = function(player) {
-    if (player.currentPosition === 'GK') {
+  liveGame.substitutePlayers = function() {
+    var subs = this.getSelectedPlayers(liveGame.containers.next);
+
+    subs.tuples.forEach(tuple => {
+      var playerIn = tuple.player;
+      var cardIn = tuple.card;
+      var playerOut = this.getPlayer(playerIn.replaces);
+
+      // Find the card for the player to be substituted
+      var subContainer = this.getFormationContainer(playerOut.currentPosition);
+      var cardOut = this.getOnPlayerCard(subContainer, playerOut);
+
+      // Swap the player cards for the in/out players
+      //  - If same position, can replace directly in same container
+      //  - Otherwise, need to find container for player going on
+      if (playerIn.currentPosition === playerOut.currentPosition) {
+        // This will also remove the in card from its current container
+        subContainer.replaceChild(cardIn, cardOut);
+      } else {
+        subContainer.removeChild(cardOut);
+        newContainer = this.getFormationContainer(playerIn.currentPosition);
+        newContainer.appendChild(cardIn);
+      }
+      this.containers.off.appendChild(cardOut);
+      // TODO: Need to deselect the node after moving
+      //this.updatePlayerCard(player);
+    });
+
+    this.substitute(subs.ids);
+  };
+
+  liveGame.getFormationContainer = function(position) {
+    if (position === 'GK') {
       return this.containers.formation.gk;
     }
     var lines = Object.keys(this.formation);
     const arrayLength = lines.length;
     for (var i = 0; i < arrayLength; i++) {
       var lineName = lines[i];
-      if (this.formation[lineName].positions.includes(player.currentPosition)) {
+      if (this.formation[lineName].positions.includes(position)) {
         return this.containers.formation[lineName];
       }
     }
-    throw new Error('No container found for position: ' + player.currentPosition);
+    throw new Error('No container found for position: ' + position);
+  };
+
+  liveGame.getOnPlayerCard = function(container, player) {
+    var playerSelects = container.querySelectorAll(':scope .player > .playerSelect');
+    for (var i = 0; i < playerSelects.length; ++i) {
+      var select = playerSelects[i];
+      if (select.value === player.name) {
+        return select.parentNode;
+      }
+    }
+    throw new Error('No card found for player: ' + player.name);
+  };
+
+  liveGame.movePlayerCard = function(player, card, from, to) {
+    from.removeChild(card);
+    to.appendChild(card);
+    // TODO: Need to deselect the node after moving
+    //this.updatePlayerCard(player);
   };
 
   liveGame.updatePlayerCard = function(player) {
@@ -302,8 +348,8 @@
   liveGame.substitute = function(players, positionChanges) {
     console.log('do subs', players, positionChanges);
     players.forEach(id => {
-      var player = this.getPlayer(id);
-      player.replaces = null;
+      var playerIn = this.getPlayer(id);
+      playerIn.replaces = null;
     });
   };
 

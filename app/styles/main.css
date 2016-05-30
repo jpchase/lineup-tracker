@@ -34,8 +34,16 @@ html, body {
   border-style: solid;
 }
 
-.live-formation-line > .player {
+.live-formation-line .player {
   display: inline;
+}
+
+.live-formation-line .player .playerPositions,
+.live-formation-line .player .subFor,
+#live-next .player .playerPositions,
+#live-off .player .currentPosition,
+#live-off .player .subFor {
+  display: none;
 }
 
 .mdl-demo .mdl-layout__header-row {
