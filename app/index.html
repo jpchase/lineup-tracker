@@ -57,7 +57,7 @@
       <header class="mdl-layout__header mdl-layout__header--scroll mdl-color--primary">
         <div class="mdl-layout--large-screen-only mdl-layout__header-row">
         </div>
-        <div class="mdl-layout--large-screen-only mdl-layout__header-row">
+        <div class="mdl-layout__header-row">
           <h3>Lineup Tracker</h3>
         </div>
         <div class="mdl-layout--large-screen-only mdl-layout__header-row">
@@ -65,7 +65,7 @@
         <div class="mdl-layout__tab-bar mdl-js-ripple-effect mdl-color--primary-dark">
           <a href="#overview" class="mdl-layout__tab is-active">Overview</a>
           <a href="#games" class="mdl-layout__tab">Games</a>
-          <a href="#roster" class="mdl-layout__tab">Roster</a>
+          <a id="tabRoster" href="#roster" class="mdl-layout__tab">Roster</a>
         </div>
       </header>
       <main class="mdl-layout__content">
@@ -109,6 +109,26 @@
                 <a href="#lorem5">Lorem ipsum</a>
               </ul>
 
+            </div>
+          </section>
+        </div>
+        <div class="mdl-layout__tab-panel" id="roster">
+          <section class="section--center mdl-grid mdl-grid--no-spacing">
+            <div class="mdl-cell mdl-cell--12-col">
+              <ul class="rosterList mdl-list">
+              </ul>
+              <ul hidden>
+                <li class="playerCardTemplate mdl-list__item mdl-list__item--two-line" hidden>
+                  <span class="mdl-list__item-primary-content">
+                    <span class="playerName"></span>
+                    <span class="playerPositions mdl-list__item-sub-title"></span>
+                  </span>
+                  <span class="mdl-list__item-secondary-content">
+                    <span class="playerGameCount mdl-list__item-secondary-info"></span>
+                    <a class="mdl-list__item-secondary-action" href="#"><i class="material-icons">star</i></a>
+                  </span>
+                </li>
+              </ul>
             </div>
           </section>
         </div>

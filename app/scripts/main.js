@@ -87,11 +87,29 @@
     hasRequestPending: false,
     visibleGameCards: {},
     currentGames: [],
+    visiblePlayerCards: {},
     spinner: document.querySelector('.loader'),
     gameCardTemplate: document.querySelector('.gameCardTemplate'),
+    playerCardTemplate: document.querySelector('.playerCardTemplate'),
     container: document.querySelector('.game-container'),
+    rosterContainer: document.querySelector('.rosterList'),
     addDialog: document.querySelector('.dialog-container')
   };
+
+  /*****************************************************************************
+   *
+   * Event listeners for UI elements
+   *
+   ****************************************************************************/
+  document.getElementById('tabRoster').addEventListener('click', function() {
+    app.showRoster();
+  });
+
+  /*****************************************************************************
+   *
+   * Methods to update/refresh the UI
+   *
+   ****************************************************************************/
 
   // Updates a game card with the data. If the card
   // doesn't already exist, it's cloned from the template.
@@ -114,6 +132,40 @@
       app.isLoading = false;
     }
   };
+
+  app.showRoster = function() {
+    var list = document.querySelector('.rosterList');
+    var roster = LineupTracker.retrieveRoster();
+
+    roster.forEach(player => {
+      this.updatePlayerCard(player);
+    });
+  };
+
+  // Updates a player card with the data. If the card
+  // doesn't already exist, it's cloned from the template.
+  app.updatePlayerCard = function(player) {
+    var card = app.visiblePlayerCards[player.name];
+    if (!card) {
+      card = app.playerCardTemplate.cloneNode(true);
+      card.classList.remove('playerCardTemplate');
+      card.querySelector('.playerName').textContent = player.name;
+      card.removeAttribute('hidden');
+      app.rosterContainer.appendChild(card);
+      app.visiblePlayerCards[player.name] = card;
+    }
+    card.querySelector('.playerPositions').textContent =
+    player.positions.join(' ');
+
+    card.querySelector('.playerGameCount').textContent = player.name.length + ' games';
+    //card.querySelector('.liveLink').href = 'live-game.html?game=' + player.name;
+  };
+
+ /*****************************************************************************
+  *
+  * Code required to start the app
+  *
+  ****************************************************************************/
 
   app.currentGames = localStorage.currentGames;
   if (app.currentGames) {

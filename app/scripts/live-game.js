@@ -81,26 +81,8 @@
   var currentGame = games.find(game => game.id === liveGame.gameId);
 
   liveGame.game = currentGame;
-  liveGame.roster = [
-    {name: 'Abby', positions: ['AM', 'OM', 'S']},
-    {name: 'Anne', positions: ['CB', 'FB', 'HM']},
-    {name: 'Brianna', positions: ['CB']},
-    {name: 'Brooke', positions: ['AM', 'OM', 'S']},
-    {name: 'Cassidy', positions: ['OM']},
-    {name: 'Ella', positions: ['AM', 'HM', 'S']},
-    {name: 'Emma', positions: ['FB', 'CB']},
-    {name: 'Grace', positions: ['GK']},
-    {name: 'Jordan', positions: ['OM', 'S']},
-    {name: 'Lauren', positions: ['S']},
-    {name: 'Lucy', positions: ['FB']},
-    {name: 'Michaela', positions: ['FB', 'OM']},
-    {name: 'Milla', positions: ['AM', 'HM']},
-    {name: 'Natasha', positions: ['HM']},
-    {name: 'Naomi', positions: ['CB']},
-    {name: 'Payton', positions: ['AM', 'OM', 'HM']},
-    {name: 'Sisi', positions: ['AM', 'OM']},
-    {name: 'Taty', positions: ['AM', 'OM', 'S']}
-  ];
+  liveGame.roster = LineupTracker.retrieveRoster();
+
   liveGame.formation = {
     forward: {
       positions: ['S']

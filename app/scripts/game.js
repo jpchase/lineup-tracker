@@ -65,6 +65,30 @@
     return games;
   };
 
+  LineupTracker.retrieveRoster = function() {
+    var roster = [
+      {name: 'Abby', positions: ['AM', 'OM', 'S']},
+      {name: 'Anne', positions: ['CB', 'FB', 'HM']},
+      {name: 'Brianna', positions: ['CB', 'HM']},
+      {name: 'Brooke', positions: ['AM', 'OM', 'S']},
+      {name: 'Cassidy', positions: ['OM']},
+      {name: 'Ella', positions: ['AM', 'HM', 'S']},
+      {name: 'Emma', positions: ['FB', 'CB']},
+      {name: 'Grace', positions: ['GK']},
+      {name: 'Jordan', positions: ['OM', 'S']},
+      {name: 'Lauren', positions: ['S']},
+      {name: 'Lucy', positions: ['FB']},
+      {name: 'Michaela', positions: ['FB']},
+      {name: 'Milla', positions: ['AM', 'HM']},
+      {name: 'Natasha', positions: ['HM']},
+      {name: 'Naomi', positions: ['CB']},
+      {name: 'Payton', positions: ['HM', 'AM', 'OM']},
+      {name: 'Sisi', positions: ['OM', 'AM']},
+      {name: 'Taty', positions: ['AM', 'OM', 'S']}
+    ];
+    return roster;
+  };
+
   window.LineupTracker = LineupTracker;
   console.log('Setup LineupTracker in game.js');
 })();
