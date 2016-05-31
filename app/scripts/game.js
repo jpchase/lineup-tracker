@@ -1,15 +1,15 @@
+var LineupTracker = LineupTracker || {};
 
 (function() {
   'use strict';
-
-  var LineupTracker = window.LineupTracker || {};
 
   LineupTracker.Game = function(id, date, opponent, duration) {
     this.id = id;
     this.date = date;
     this.opponent = opponent;
     this.duration = duration;
-    this.status = 'NEW'; // LIVE, DONE
+     // Other statuses: LIVE, DONE
+    this.status = 'NEW';
     this.clockRunning = false;
     this.elapsed = null;
   };
@@ -25,7 +25,7 @@
   LineupTracker.Game.prototype.toggleClock = function() {
     if (this.status === 'DONE' ||
         (this.status === 'NEW' && this.clockRunning)) {
-      throw 'Invalid status to toggle clock';
+      throw new Error('Invalid status to toggle clock');
     }
     if (this.status === 'NEW') {
       // Starting the clock for the first time
@@ -47,7 +47,7 @@
 
   LineupTracker.Game.prototype.completeGame = function() {
     if (this.status !== 'LIVE') {
-      throw 'Invalid status to complete game';
+      throw new Error('Invalid status to complete game');
     }
     console.log('Changing to done.');
     this.status = 'DONE';
@@ -89,7 +89,6 @@
     return roster;
   };
 
-  window.LineupTracker = LineupTracker;
   console.log('Setup LineupTracker in game.js');
 })();
 
