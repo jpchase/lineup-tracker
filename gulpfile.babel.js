@@ -33,6 +33,7 @@ import swPrecache from 'sw-precache';
 import gulpLoadPlugins from 'gulp-load-plugins';
 import {output as pagespeed} from 'psi';
 import pkg from './package.json';
+import merge from 'merge-stream';
 
 const $ = gulpLoadPlugins();
 const reload = browserSync.reload;
@@ -104,26 +105,54 @@ gulp.task('styles', () => {
 // Concatenate and minify JavaScript. Optionally transpiles ES2015 code to ES5.
 // to enables ES2015 support remove the line `"only": "gulpfile.babel.js",` in the
 // `.babelrc` file.
-gulp.task('scripts', () =>
-    gulp.src([
-      // Note: Since we are not using useref in the scripts build pipeline,
-      //       you need to explicitly list your scripts here in the right order
-      //       to be correctly concatenated
-      './app/scripts/main.js'
-      // Other scripts
-    ])
-      .pipe($.newer('.tmp/scripts'))
-      .pipe($.sourcemaps.init())
-      .pipe($.babel())
-      .pipe($.sourcemaps.write())
-      .pipe(gulp.dest('.tmp/scripts'))
-      .pipe($.concat('main.min.js'))
-      .pipe($.uglify({preserveComments: 'some'}))
-      // Output files
-      .pipe($.size({title: 'scripts'}))
-      .pipe($.sourcemaps.write('.'))
-      .pipe(gulp.dest('dist/scripts'))
-);
+gulp.task('scripts', () => {
+  // Note: Since we are not using useref in the scripts build pipeline,
+  //       you need to explicitly list your scripts here in the right order
+  //       to be correctly concatenated
+  var scriptGroups = [
+    // Common file(s) included by multiple pages
+    {
+      name: 'game',
+      src: [
+        './app/scripts/game.js',
+        // Other scripts
+      ]
+    },
+    // For index.html
+    {
+      name: 'main',
+      src: [
+        './app/scripts/main.js',
+        // Other scripts
+      ]
+    },
+    // For live-game.html
+    {
+      name: 'live',
+      src: [
+        './app/scripts/live-game.js'
+        // Other scripts
+      ]
+    },
+  ];
+
+  var tasks = scriptGroups.map(group => {
+      return gulp.src(group.src)
+        .pipe($.newer('.tmp/scripts'))
+        .pipe($.sourcemaps.init())
+        .pipe($.babel())
+        .pipe($.sourcemaps.write())
+        .pipe(gulp.dest('.tmp/scripts'))
+        .pipe($.concat(group.name + '.min.js'))
+  //      .pipe($.uglify({preserveComments: 'license'}))
+        // Output files
+        .pipe($.size({title: 'scripts'}))
+        .pipe($.sourcemaps.write('.'))
+        .pipe(gulp.dest('dist/scripts'));
+  });
+
+  return merge(tasks);
+});
 
 // Scan your HTML for assets & optimize them
 gulp.task('html', () => {
