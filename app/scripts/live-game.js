@@ -80,38 +80,17 @@
   var games = LineupTracker.retrieveGames();
   var currentGame = games.find(game => game.id === liveGame.gameId);
 
-  liveGame.game = currentGame;
-  liveGame.roster = LineupTracker.retrieveRoster();
+  if (!currentGame.formation) {
+    currentGame.formation = new LineupTracker.Formation();
+  }
+  if (!currentGame.formation.complete) {
+    // Eventually should support editing formation instead
+    currentGame.formation.setDefault();
+  }
 
-  liveGame.formation = {
-    forward: {
-      positions: ['S']
-    },
-    mid1: {
-      positions: ['OM', 'AM', 'AM', 'OM']
-    },
-    mid2: {
-      positions: ['HM']
-    },
-    back: {
-      positions: ['FB', 'CB', 'CB', 'FB']
-    },
-    gk: {
-      positions: ['GK']
-    },
-    uniquePositions: function() {
-      return this.forward.positions.concat(
-        this.mid1.positions,
-        this.mid2.positions,
-        this.back.positions,
-        this.gk.positions).reduce((prevArray, currentValue) => {
-          if (prevArray.indexOf(currentValue) < 0) {
-            prevArray.push(currentValue);
-          }
-          return prevArray;
-        }, []);
-    }
-  };
+  liveGame.game = currentGame;
+  liveGame.formation = currentGame.formation;
+  liveGame.roster = LineupTracker.retrieveRoster();
 
   /*****************************************************************************
    *
@@ -285,18 +264,7 @@
   };
 
   liveGame.getFormationContainer = function(position) {
-    if (position === 'GK') {
-      return this.containers.formation.gk;
-    }
-    var lines = Object.keys(this.formation);
-    const arrayLength = lines.length;
-    for (var i = 0; i < arrayLength; i++) {
-      var lineName = lines[i];
-      if (this.formation[lineName].positions.includes(position)) {
-        return this.containers.formation[lineName];
-      }
-    }
-    throw new Error('No container found for position: ' + position);
+    return this.containers.formation[this.formation.getLineForPosition(position)];
   };
 
   liveGame.getOnPlayerCard = function(container, player) {

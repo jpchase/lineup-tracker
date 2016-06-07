@@ -3,6 +3,12 @@ var LineupTracker = LineupTracker || {};
 (function() {
   'use strict';
 
+  /*****************************************************************************
+   *
+   * Game class
+   *
+   ****************************************************************************/
+
   LineupTracker.Game = function(id, date, opponent, duration) {
     this.id = id;
     this.date = date;
@@ -53,6 +59,70 @@ var LineupTracker = LineupTracker || {};
     this.status = 'DONE';
   };
 
+  /*****************************************************************************
+   *
+   * Formation class
+   *
+   ****************************************************************************/
+
+  LineupTracker.Formation = function() {
+    this.complete = false;
+    this.forward = {
+      positions: []
+    };
+    this.mid1 = {
+      positions: []
+    };
+    this.mid2 = {
+      positions: []
+    };
+    this.back = {
+      positions: []
+    };
+    this.gk = {
+      positions: []
+    };
+  };
+
+  LineupTracker.Formation.prototype.uniquePositions = function() {
+    return this.forward.positions.concat(
+      this.mid1.positions,
+      this.mid2.positions,
+      this.back.positions,
+      this.gk.positions).reduce((prevArray, currentValue) => {
+        if (prevArray.indexOf(currentValue) < 0) {
+          prevArray.push(currentValue);
+        }
+        return prevArray;
+      }, []);
+  };
+
+  LineupTracker.Formation.prototype.getLineForPosition = function(position) {
+    var lines = ['forward','mid1','mid2','back','gk'];
+    const arrayLength = lines.length;
+    for (var i = 0; i < arrayLength; i++) {
+      var lineName = lines[i];
+      if (this[lineName].positions.includes(position)) {
+        return lineName;
+      }
+    }
+    throw new Error('No line found for position: ' + position);
+  };
+
+  LineupTracker.Formation.prototype.setDefault = function() {
+    this.forward.positions = ['S'];
+    this.mid1.positions = ['OM', 'AM', 'AM', 'OM'];
+    this.mid2.positions = ['HM'];
+    this.back.positions = ['FB', 'CB', 'CB', 'FB'];
+    this.gk.positions = ['GK'];
+    this.complete = true;
+  };
+
+  /*****************************************************************************
+   *
+   * Data retrieval methods
+   *
+   ****************************************************************************/
   LineupTracker.retrieveGames = function() {
     var games = [
       new LineupTracker.Game('KOC651', new Date(2016, 4, 21, 14, 0), 'London Youth Whitecaps 03G', 50),
