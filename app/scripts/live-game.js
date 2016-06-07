@@ -30,67 +30,31 @@
     roster: null,
     stopwatch: null,
     visiblePlayerCards: [],
-    on: {
-      players: [],
-      container: document.querySelector('#live-on')
-    },
-    next: {
-      players: [],
-      container: document.querySelector('#live-next')
+    players: {
+      on: [],
+      next: []
     },
     playerTemplate: document.querySelector('.playerTemplate'),
-    container: document.querySelector('.live-container'),
     containers: {
-      on: document.querySelector('#live-on'),
-      next: document.querySelector('#live-next'),
-      off: document.querySelector('#live-off'),
-      out: document.querySelector('#live-out'),
+      title: document.querySelector('.mdl-layout-title'),
+      on: document.getElementById('live-on'),
+      next: document.getElementById('live-next'),
+      off: document.getElementById('live-off'),
+      out: document.getElementById('live-out'),
       formation: {
-        forward: document.querySelector('#players-forward'),
-        mid1: document.querySelector('#players-mid1'),
-        mid2: document.querySelector('#players-mid2'),
-        back: document.querySelector('#players-back'),
-        gk: document.querySelector('#players-gk')
+        forward: document.getElementById('players-forward'),
+        mid1: document.getElementById('players-mid1'),
+        mid2: document.getElementById('players-mid2'),
+        back: document.getElementById('players-back'),
+        gk: document.getElementById('players-gk')
       }
     },
     subs: {
       template: document.querySelector('.subTemplate'),
       container: document.getElementById('subsList'),
       dialog: document.getElementById('dialogSubs')
-    },
-    titleContainer: document.querySelector('.mdl-layout-title')
-  };
-
-  liveGame.gameId = window.localStorage.getItem('liveGameId');
-
-  if (!liveGame.gameId) {
-    var pos = window.location.search.indexOf('?game=');
-    if (pos > -1) {
-      var gameId = window.location.search.substr(pos + '?game='.length);
-      liveGame.gameId = gameId;
     }
-  }
-
-  if (!liveGame.gameId) {
-    // Error
-  }
-
-  console.log('Starting game: ', liveGame.gameId);
-
-  var games = LineupTracker.retrieveGames();
-  var currentGame = games.find(game => game.id === liveGame.gameId);
-
-  if (!currentGame.formation) {
-    currentGame.formation = new LineupTracker.Formation();
-  }
-  if (!currentGame.formation.complete) {
-    // Eventually should support editing formation instead
-    currentGame.formation.setDefault();
-  }
-
-  liveGame.game = currentGame;
-  liveGame.formation = currentGame.formation;
-  liveGame.roster = LineupTracker.retrieveRoster();
+  };
 
   /*****************************************************************************
    *
@@ -211,12 +175,13 @@
       if (mode === 'sub') {
         // Populate players to be replaced
         var selectPlayer = listItem.querySelector('.selectPlayer');
-        this.on.players.forEach(player => {
+        this.players.on.forEach(player => {
           var optionReplace = document.createElement('option');
           optionReplace.value = player.name;
           optionReplace.textContent = player.name + ' - ' + player.currentPosition;
           selectPlayer.appendChild(optionReplace);
         });
+        selectPlayer.removeAttribute('hidden');
       }
 
       // Add fully initialized item to list
@@ -299,8 +264,7 @@
   };
 
   liveGame.updateGame = function() {
-    var title = this.titleContainer;
-    title.textContent = 'Live: ' + this.game.name();
+    this.containers.title.textContent = 'Live: ' + this.game.name();
   };
 
   liveGame.saveSubs = function() {
@@ -318,7 +282,7 @@
       player.currentPosition = selectPosition.options[selectPosition.selectedIndex].value;
 
       if (mode === 'starter') {
-        this.on.players.push(player);
+        this.players.on.push(player);
         // TODO: Record starters for game
         continue;
       }
@@ -404,6 +368,36 @@
   * Code required to start the app
   *
   ****************************************************************************/
+  liveGame.gameId = window.localStorage.getItem('liveGameId');
+
+  if (!liveGame.gameId) {
+    var pos = window.location.search.indexOf('?game=');
+    if (pos > -1) {
+      var gameId = window.location.search.substr(pos + '?game='.length);
+      liveGame.gameId = gameId;
+    }
+  }
+
+  if (!liveGame.gameId) {
+    // Error
+  }
+
+  console.log('Starting game: ', liveGame.gameId);
+
+  var games = LineupTracker.retrieveGames();
+  var currentGame = games.find(game => game.id === liveGame.gameId);
+
+  if (!currentGame.formation) {
+    currentGame.formation = new LineupTracker.Formation();
+  }
+  if (!currentGame.formation.complete) {
+    // Eventually should support editing formation instead
+    currentGame.formation.setDefault();
+  }
+
+  liveGame.game = currentGame;
+  liveGame.formation = currentGame.formation;
+  liveGame.roster = LineupTracker.retrieveRoster();
 
   liveGame.updateGame();
   liveGame.roster.forEach(function(player) {
