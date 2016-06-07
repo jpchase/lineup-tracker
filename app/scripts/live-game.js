@@ -118,18 +118,11 @@
   });
 
   document.getElementById('buttonNext').addEventListener('click', function() {
-    liveGame.setupNextPlayers();
+    liveGame.setupPlayerChooser('sub');
   });
 
   document.getElementById('buttonStarter').addEventListener('click', function() {
-    var selected = liveGame.getSelectedPlayers(liveGame.containers.off);
-    liveGame.addStarters(selected.ids, player => {
-      return player.positions[0];
-    });
-    liveGame.movePlayers(selected,
-      liveGame.containers.off,
-      liveGame.containers.on,
-      true);
+    liveGame.setupPlayerChooser('starter');
   });
 
   document.getElementById('buttonSaveSubs').addEventListener('click', function() {
@@ -182,7 +175,7 @@
     });
   };
 
-  liveGame.setupNextPlayers = function() {
+  liveGame.setupPlayerChooser = function(mode) {
     var selected = this.getSelectedPlayers(liveGame.containers.off);
 
     clearChildren(this.subs.container);
@@ -215,14 +208,16 @@
         selectPosition.appendChild(optionPosition);
       });
 
-      // Populate players to be replaced
-      var selectPlayer = listItem.querySelector('.selectPlayer');
-      this.on.players.forEach(player => {
-        var optionReplace = document.createElement('option');
-        optionReplace.value = player.name;
-        optionReplace.textContent = player.name + ' - ' + player.currentPosition;
-        selectPlayer.appendChild(optionReplace);
-      });
+      if (mode === 'sub') {
+        // Populate players to be replaced
+        var selectPlayer = listItem.querySelector('.selectPlayer');
+        this.on.players.forEach(player => {
+          var optionReplace = document.createElement('option');
+          optionReplace.value = player.name;
+          optionReplace.textContent = player.name + ' - ' + player.currentPosition;
+          selectPlayer.appendChild(optionReplace);
+        });
+      }
 
       // Add fully initialized item to list
       listItem.removeAttribute('hidden');
@@ -230,6 +225,7 @@
     });
 
     // Show the dialog, now that it's populated with the selected players
+    this.playerChooserMode = mode;
     this.subs.dialog.showModal();
   };
 
@@ -308,6 +304,7 @@
   };
 
   liveGame.saveSubs = function() {
+    var mode = this.playerChooserMode;
 
     // Extract updated position/replacement from dialog
     var items = this.subs.container.querySelectorAll('.sub');
@@ -320,6 +317,12 @@
       var selectPosition = listItem.querySelector('.selectPosition');
       player.currentPosition = selectPosition.options[selectPosition.selectedIndex].value;
 
+      if (mode === 'starter') {
+        this.on.players.push(player);
+        // TODO: Record starters for game
+        continue;
+      }
+
       // Get the player to be replaced
       var selectPlayer = listItem.querySelector('.selectPlayer');
       player.replaces = selectPlayer.options[selectPlayer.selectedIndex].value;
@@ -329,14 +332,27 @@
 
     // Get the selected players (again), to move them and update the UI
     var selected = this.getSelectedPlayers(this.containers.off);
+    var toContainer = null;
+    var useFormation = false;
+    switch (mode) {
+      case 'sub':
+        toContainer = this.containers.next;
+        break;
+      case 'starter':
+        toContainer = this.containers.on;
+        useFormation = true;
+        break;
+    }
     this.movePlayers(selected,
       this.containers.off,
-      this.containers.next);
+      toContainer,
+      useFormation);
 
-    this.subs.dialog.close();
+    this.closeSubs();
   };
 
   liveGame.closeSubs = function() {
+    this.playerChooserMode = null;
     this.subs.dialog.close();
   };
 
@@ -363,33 +379,8 @@
     var clockRunning = this.game.completeGame();
   };
 
-  liveGame.addStarters = function(players, getPositionCallback) {
-    console.log('starters', players);
-    players.forEach(id => {
-      var player = this.getPlayer(id);
-      player.currentPosition = getPositionCallback(player);
-      this.on.players.push(player);
-      // TODO: Record starters for game
-    });
-  };
-
   liveGame.getPlayer = function(id) {
     return this.roster.find(player => player.name === id);
-  };
-
-  liveGame.setupNextSubs = function(players, getPositionCallback) {
-    console.log('next', players);
-    players.forEach(id => {
-      var player = this.getPlayer(id);
-      // Figure out/prompt for the position they will take
-      player.currentPosition = getPositionCallback(player);
-      console.log('Find player for position: ' + player.currentPosition, this.on.players);
-      // Figure out/prompt for the player to be replaced
-      var replaced = this.on.players.find(subFor => subFor.positions[0] === player.currentPosition);
-      console.log('to be replaced', replaced);
-      player.replaces = replaced.name;
-    });
-    // Figure out/prompt for any position changes for players remaining on the field
   };
 
   liveGame.cancelNextSubs = function(players) {
