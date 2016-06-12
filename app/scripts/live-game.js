@@ -384,8 +384,9 @@
 
   console.log('Starting game: ', liveGame.gameId);
 
-  var games = LineupTracker.retrieveGames();
-  var currentGame = games.find(game => game.id === liveGame.gameId);
+  var currentGame = LineupTracker.retrieveGame(liveGame.gameId);
+
+  console.log('Retrieved game: ', currentGame);
 
   if (!currentGame.formation) {
     currentGame.formation = new LineupTracker.Formation();
@@ -395,6 +396,7 @@
     currentGame.formation.setDefault();
   }
 
+  console.log('Setting game: ', currentGame);
   liveGame.game = currentGame;
   liveGame.formation = currentGame.formation;
   liveGame.roster = LineupTracker.retrieveRoster();

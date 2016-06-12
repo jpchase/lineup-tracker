@@ -3,17 +3,20 @@ var LineupTracker = LineupTracker || {};
 (function() {
   'use strict';
 
+  // In-memory storage of games
+  var allGames = null;
+
   /*****************************************************************************
    *
    * Game class
    *
    ****************************************************************************/
 
-  LineupTracker.Game = function(id, date, opponent, duration) {
-    this.id = id;
-    this.date = date;
-    this.opponent = opponent;
-    this.duration = duration;
+  LineupTracker.Game = function(data) {
+    this.id = data.id;
+    this.date = new Date(data.date);
+    this.opponent = data.opponent;
+    this.duration = data.duration;
      // Other statuses: LIVE, DONE
     this.status = 'NEW';
     this.clockRunning = false;
@@ -124,15 +127,53 @@ var LineupTracker = LineupTracker || {};
    *
    ****************************************************************************/
   LineupTracker.retrieveGames = function() {
-    var games = [
-      new LineupTracker.Game('KOC651', new Date(2016, 4, 21, 14, 0), 'London Youth Whitecaps 03G', 50),
-      new LineupTracker.Game('KOC656', new Date(2016, 4, 21, 16, 30), 'Kitchener Spirit 03G', 50),
-      new LineupTracker.Game('KOC657', new Date(2016, 4, 22, 11, 30), 'Cambridge United 03G', 50),
-      new LineupTracker.Game('KOC660', new Date(2016, 4, 22, 14, 0), 'Semi-Final TBD', 50),
-      new LineupTracker.Game('KOC662', new Date(2016, 4, 22, 16, 30), 'Final TBD', 70)
-    ];
+    if (!allGames) {
+      allGames = [];
+      var foundData = false;
+      var gameData = localStorage.savedGames;
+      console.log('Saved games: ', gameData);
+      if (gameData) {
+        foundData = true;
+        gameData = JSON.parse(gameData);
+        console.log('Parsed data: ', gameData);
+      } else {
+        gameData = [
+          {id: 'KOC651', date: new Date(2016, 4, 21, 14, 0).toString(), opponent: 'London Youth Whitecaps 03G', duration: 50},
+          {id: 'KOC656', date: new Date(2016, 4, 21, 16, 30).toString(), opponent: 'Kitchener Spirit 03G', duration: 50},
+          {id: 'KOC657', date: new Date(2016, 4, 22, 11, 30).toString(), opponent: 'Cambridge United 03G', duration: 50},
+          {id: 'KOC660', date: new Date(2016, 4, 22, 14, 0).toString(), opponent: 'Semi-Final TBD', duration: 50}
+        ];
+      }
 
-    return games;
+      gameData.forEach(data => {
+        allGames.push(new LineupTracker.Game(data));
+      });
+
+      if (!foundData) {
+        this.saveGames();
+      }
+    }
+
+    return allGames;
+  };
+
+  LineupTracker.saveGames = function() {
+    if (!allGames) {
+      return;
+    }
+    var saved = JSON.stringify(allGames);
+    localStorage.savedGames = saved;
+  };
+
+  LineupTracker.retrieveGame = function(gameId) {
+    var games = this.retrieveGames();
+
+    return games.find(game => game.id === gameId);
+  };
+
+  LineupTracker.saveGame = function(game) {
+    allGames.push(game);
+    this.saveGames();
   };
 
   LineupTracker.retrieveRoster = function() {
