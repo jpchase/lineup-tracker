@@ -74,7 +74,7 @@
   });
 
   document.getElementById('buttonSub').addEventListener('click', function() {
-    liveGame.substitutePlayers();
+    liveGame.substitutePlayerCards();
   });
 
   document.getElementById('buttonRemoveStarter').addEventListener('click', function() {
@@ -82,11 +82,7 @@
   });
 
   document.getElementById('buttonCancelSub').addEventListener('click', function() {
-    var selected = liveGame.getSelectedPlayers(liveGame.containers.next);
-    liveGame.cancelNextSubs(selected.ids);
-    liveGame.movePlayers(selected,
-      liveGame.containers.next,
-      liveGame.containers.off);
+    liveGame.cancelNextSubCards();
   });
 
   document.getElementById('buttonNext').addEventListener('click', function() {
@@ -111,7 +107,7 @@
    *
    ****************************************************************************/
 
-  liveGame.getSelectedPlayers = function(container, useFormation) {
+  liveGame.getSelectedPlayerCards = function(container, useFormation) {
     var selector = useFormation ? ':scope .live-formation-line > .player > .playerSelect'
                                 : ':scope .player > .playerSelect';
     var playerSelects = container.querySelectorAll(selector);
@@ -132,7 +128,7 @@
     return {ids: selectedIds, pairs: tuples, tuples: tuples};
   };
 
-  liveGame.movePlayers = function(players, from, to, useFormation) {
+  liveGame.movePlayerCards = function(players, from, to, useFormation) {
     if (useFormation) {
     }
     players.tuples.forEach(tuple => {
@@ -150,7 +146,7 @@
   };
 
   liveGame.setupPlayerChooser = function(mode) {
-    var selected = this.getSelectedPlayers(liveGame.containers.off);
+    var selected = this.getSelectedPlayerCards(liveGame.containers.off);
 
     clearChildren(this.subs.container);
 
@@ -204,8 +200,8 @@
     this.subs.dialog.showModal();
   };
 
-  liveGame.substitutePlayers = function() {
-    var subs = this.getSelectedPlayers(liveGame.containers.next);
+  liveGame.substitutePlayerCards = function() {
+    var subs = this.getSelectedPlayerCards(liveGame.containers.next);
 
     subs.tuples.forEach(tuple => {
       var playerIn = tuple.player;
@@ -235,10 +231,18 @@
   };
 
   liveGame.removeStarterCards = function() {
-    var selected = liveGame.getSelectedPlayers(liveGame.containers.on, true);
+    var selected = liveGame.getSelectedPlayerCards(liveGame.containers.on, true);
     liveGame.removeStarters(selected.ids);
-    liveGame.movePlayers(selected,
+    liveGame.movePlayerCards(selected,
       liveGame.containers.on,
+      liveGame.containers.off);
+  };
+
+  liveGame.cancelNextSubCards = function() {
+    var selected = liveGame.getSelectedPlayerCards(liveGame.containers.next);
+    liveGame.cancelNextSubs(selected.ids);
+    liveGame.movePlayerCards(selected,
+      liveGame.containers.next,
       liveGame.containers.off);
   };
 
@@ -313,7 +317,7 @@
     // TODO: Figure out/prompt for any position changes for players remaining on the field
 
     // Get the selected players (again), to move them and update the UI
-    var selected = this.getSelectedPlayers(this.containers.off);
+    var selected = this.getSelectedPlayerCards(this.containers.off);
     var toContainer = null;
     var useFormation = false;
     switch (mode) {
@@ -325,7 +329,7 @@
         useFormation = true;
         break;
     }
-    this.movePlayers(selected,
+    this.movePlayerCards(selected,
       this.containers.off,
       toContainer,
       useFormation);
