@@ -77,6 +77,10 @@
     liveGame.substitutePlayers();
   });
 
+  document.getElementById('buttonRemoveStarter').addEventListener('click', function() {
+    liveGame.removeStarterCards();
+  });
+
   document.getElementById('buttonCancelSub').addEventListener('click', function() {
     var selected = liveGame.getSelectedPlayers(liveGame.containers.next);
     liveGame.cancelNextSubs(selected.ids);
@@ -107,8 +111,10 @@
    *
    ****************************************************************************/
 
-  liveGame.getSelectedPlayers = function(container) {
-    var playerSelects = container.querySelectorAll(':scope .player > .playerSelect');
+  liveGame.getSelectedPlayers = function(container, useFormation) {
+    var selector = useFormation ? ':scope .live-formation-line > .player > .playerSelect'
+                                : ':scope .player > .playerSelect';
+    var playerSelects = container.querySelectorAll(selector);
     var selectedIds = [];
     var tuples = [];
     for (var i = 0; i < playerSelects.length; ++i) {
@@ -132,7 +138,7 @@
     players.tuples.forEach(tuple => {
       var player = tuple.player;
       var card = tuple.card;
-      from.removeChild(card);
+      card.parentNode.removeChild(card);
       if (useFormation) {
         this.getFormationContainer(player.currentPosition).appendChild(card);
       } else {
@@ -226,6 +232,14 @@
     });
 
     this.substitute(subs.ids);
+  };
+
+  liveGame.removeStarterCards = function() {
+    var selected = liveGame.getSelectedPlayers(liveGame.containers.on, true);
+    liveGame.removeStarters(selected.ids);
+    liveGame.movePlayers(selected,
+      liveGame.containers.on,
+      liveGame.containers.off);
   };
 
   liveGame.getFormationContainer = function(position) {
@@ -356,6 +370,13 @@
     players.forEach(id => {
       var player = this.getPlayer(id);
       player.replaces = null;
+    });
+  };
+
+  liveGame.removeStarters = function(players) {
+    console.log('remove starters', players);
+    players.forEach(id => {
+      var player = this.getPlayer(id);
     });
   };
 
