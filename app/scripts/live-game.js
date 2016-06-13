@@ -69,6 +69,10 @@
     liveGame.completeGame();
   });
 
+  document.getElementById('menuSave').addEventListener('click', function() {
+    liveGame.saveGame();
+  });
+
   document.getElementById('buttonSub').addEventListener('click', function() {
     liveGame.substitutePlayers();
   });
@@ -362,6 +366,12 @@
       playerIn.replaces = null;
     });
   };
+
+  liveGame.saveGame = function() {
+    console.log('saving time');
+    LineupTracker.saveGames();
+  };
+
 
  /*****************************************************************************
   *
