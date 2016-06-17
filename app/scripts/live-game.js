@@ -65,7 +65,7 @@
     liveGame.completeGame();
   });
 
-  document.getElementById('menuSave').addEventListener('click', function() {
+  document.getElementById('buttonSave').addEventListener('click', function() {
     liveGame.saveGame();
   });
 
