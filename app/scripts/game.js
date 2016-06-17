@@ -18,11 +18,20 @@ var LineupTracker = LineupTracker || {};
     this.opponent = data.opponent;
     this.duration = data.duration;
      // Other statuses: LIVE, DONE
-    this.status = 'NEW';
-    this.clockRunning = false;
-    this.elapsed = null;
+    this.status = data.status || 'NEW';
+    this.clockRunning = data.clockRunning || false;
+    this.elapsed = data.elapsed || null;
     this.roster = data.roster || null;
     this.starters = data.starters || [];
+  };
+
+  LineupTracker.Game.prototype.toDebugJSON = function() {
+    return {
+      Name: this.name(),
+      status: this.status,
+      clockRunning: this.clockRunning,
+      elapsed: this.elapsed,
+    };
   };
 
   LineupTracker.Game.prototype.name = function() {
@@ -192,8 +201,9 @@ var LineupTracker = LineupTracker || {};
     return games.find(game => game.id === gameId);
   };
 
-  LineupTracker.saveGame = function(game) {
-    allGames.push(game);
+  LineupTracker.saveGame = function(modifiedGame) {
+    allGames = allGames.filter(game => game.id !== modifiedGame.id);
+    allGames.push(modifiedGame);
     this.saveGames();
   };
 

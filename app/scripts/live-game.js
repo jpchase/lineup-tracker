@@ -411,11 +411,12 @@
 
   liveGame.saveGame = function() {
     console.log('saving time');
-    LineupTracker.saveGames();
+    LineupTracker.saveGame(this.game);
   };
 
   liveGame.dumpDebugInfo = function() {
     console.log('DEBUG !!!!!!!');
+    console.log('Game:', this.game.toDebugJSON());
     this.game.roster.forEach(player => {
       console.log('Player: ', player);
     });
