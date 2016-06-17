@@ -30,10 +30,6 @@
     roster: null,
     stopwatch: null,
     visiblePlayerCards: [],
-    players: {
-      on: [],
-      next: []
-    },
     playerTemplate: document.querySelector('.playerTemplate'),
     containers: {
       title: document.querySelector('.mdl-layout-title'),
@@ -71,6 +67,10 @@
 
   document.getElementById('menuSave').addEventListener('click', function() {
     liveGame.saveGame();
+  });
+
+  document.getElementById('menuDebug').addEventListener('click', function() {
+    liveGame.dumpDebugInfo();
   });
 
   document.getElementById('buttonSub').addEventListener('click', function() {
@@ -120,18 +120,17 @@
         tuples.push({
           id: item.value,
           player: this.getPlayer(item.value),
-          card: item.parentNode,
-          node: item.parentNode
+          card: item.parentNode
         });
       }
     }
-    return {ids: selectedIds, pairs: tuples, tuples: tuples};
+    return {ids: selectedIds, tuples: tuples};
   };
 
-  liveGame.movePlayerCards = function(players, from, to, useFormation) {
-    if (useFormation) {
-    }
-    players.tuples.forEach(tuple => {
+  liveGame.movePlayerCards = function(playerCallback, from, to, useFormation) {
+    var selected = this.getSelectedPlayerCards(from);
+
+    selected.tuples.forEach(tuple => {
       var player = tuple.player;
       var card = tuple.card;
       card.parentNode.removeChild(card);
@@ -139,6 +138,9 @@
         this.getFormationContainer(player.currentPosition).appendChild(card);
       } else {
         to.appendChild(card);
+      }
+      if (playerCallback) {
+        playerCallback(player);
       }
       // TODO: Need to deselect the node after moving
       this.updatePlayerCard(player);
@@ -181,7 +183,7 @@
       if (mode === 'sub') {
         // Populate players to be replaced
         var selectPlayer = listItem.querySelector('.selectPlayer');
-        this.players.on.forEach(player => {
+        this.getPlayersByState('ON').forEach(player => {
           var optionReplace = document.createElement('option');
           optionReplace.value = player.name;
           optionReplace.textContent = player.name + ' - ' + player.currentPosition;
@@ -225,25 +227,21 @@
       this.containers.off.appendChild(cardOut);
       // TODO: Need to deselect the node after moving
       //this.updatePlayerCard(player);
+      this.substitutePlayer(playerIn, playerOut);
     });
-
-    this.substitute(subs.ids);
   };
 
   liveGame.removeStarterCards = function() {
-    var selected = liveGame.getSelectedPlayerCards(liveGame.containers.on, true);
-    liveGame.removeStarters(selected.ids);
-    liveGame.movePlayerCards(selected,
-      liveGame.containers.on,
-      liveGame.containers.off);
+    this.movePlayerCards(this.removeStarter,
+      this.containers.on,
+      this.containers.off,
+      true);
   };
 
   liveGame.cancelNextSubCards = function() {
-    var selected = liveGame.getSelectedPlayerCards(liveGame.containers.next);
-    liveGame.cancelNextSubs(selected.ids);
-    liveGame.movePlayerCards(selected,
-      liveGame.containers.next,
-      liveGame.containers.off);
+    this.movePlayerCards(this.cancelNextSub,
+      this.containers.next,
+      this.containers.off);
   };
 
   liveGame.getFormationContainer = function(position) {
@@ -259,13 +257,6 @@
       }
     }
     throw new Error('No card found for player: ' + player.name);
-  };
-
-  liveGame.movePlayerCard = function(player, card, from, to) {
-    from.removeChild(card);
-    to.appendChild(card);
-    // TODO: Need to deselect the node after moving
-    //this.updatePlayerCard(player);
   };
 
   liveGame.updatePlayerCard = function(player) {
@@ -290,7 +281,23 @@
   };
 
   liveGame.saveSubs = function() {
-    var mode = this.playerChooserMode;
+    let setupPlayer = null;
+    let useReplaces = false;
+    var toContainer = null;
+    var useFormation = false;
+    
+    switch (this.playerChooserMode) {
+      case 'sub':
+        setupPlayer = this.setupNextSub;
+        toContainer = this.containers.next;
+        useReplaces = true;
+        break;
+      case 'starter':
+        setupPlayer = this.setupStarter;
+        toContainer = this.containers.on;
+        useFormation = true;
+        break;
+    }
 
     // Extract updated position/replacement from dialog
     var items = this.subs.container.querySelectorAll('.sub');
@@ -303,9 +310,7 @@
       var selectPosition = listItem.querySelector('.selectPosition');
       player.currentPosition = selectPosition.options[selectPosition.selectedIndex].value;
 
-      if (mode === 'starter') {
-        this.players.on.push(player);
-        // TODO: Record starters for game
+      if (!useReplaces) {
         continue;
       }
 
@@ -316,20 +321,8 @@
 
     // TODO: Figure out/prompt for any position changes for players remaining on the field
 
-    // Get the selected players (again), to move them and update the UI
-    var selected = this.getSelectedPlayerCards(this.containers.off);
-    var toContainer = null;
-    var useFormation = false;
-    switch (mode) {
-      case 'sub':
-        toContainer = this.containers.next;
-        break;
-      case 'starter':
-        toContainer = this.containers.on;
-        useFormation = true;
-        break;
-    }
-    this.movePlayerCards(selected,
+    // Move the subs and update the UI
+    this.movePlayerCards(setupPlayer,
       this.containers.off,
       toContainer,
       useFormation);
@@ -369,27 +362,34 @@
     return this.roster.find(player => player.name === id);
   };
 
-  liveGame.cancelNextSubs = function(players) {
-    console.log('next cancel', players);
-    players.forEach(id => {
-      var player = this.getPlayer(id);
-      player.replaces = null;
-    });
+  liveGame.getPlayersByState = function(status) {
+    return this.roster.filter(player => player.status === status);
   };
 
-  liveGame.removeStarters = function(players) {
-    console.log('remove starters', players);
-    players.forEach(id => {
-      var player = this.getPlayer(id);
-    });
+  liveGame.setupNextSub = function(player) {
+    player.status = 'NEXT';
   };
 
-  liveGame.substitute = function(players, positionChanges) {
-    console.log('do subs', players, positionChanges);
-    players.forEach(id => {
-      var playerIn = this.getPlayer(id);
-      playerIn.replaces = null;
-    });
+  liveGame.cancelNextSub = function(player) {
+    player.replaces = null;
+    player.status = 'OFF';
+  };
+
+  liveGame.setupStarter = function(player) {
+    console.log('setup starter', player);
+    player.status = 'ON';
+  };
+
+  liveGame.removeStarter = function(player) {
+    console.log('remove starter', player);
+    player.status = 'OFF';
+  };
+
+  liveGame.substitutePlayer = function(playerIn, playerOut) {
+    console.log('do sub, in:out', playerIn, playerOut); //positionChanges);
+    playerIn.replaces = null;
+    playerIn.status = 'ON';
+    playerOut.status = 'OFF'
   };
 
   liveGame.saveGame = function() {
@@ -397,6 +397,12 @@
     LineupTracker.saveGames();
   };
 
+  liveGame.dumpDebugInfo = function() {
+    console.log('Debug information');
+    this.roster.forEach(player => {
+      console.log('Player: ', player);
+    });
+  };
 
  /*****************************************************************************
   *
