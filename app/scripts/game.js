@@ -20,6 +20,8 @@ var LineupTracker = LineupTracker || {};
      // Other statuses: LIVE, DONE
     this.status = data.status || 'NEW';
     this.clockRunning = data.clockRunning || false;
+    this.startTime = data.startTime || null;
+    this.lastClockTime = data.lastClockTime || null;
     this.elapsed = data.elapsed || null;
     this.roster = data.roster || null;
     this.starters = data.starters || [];
@@ -30,6 +32,8 @@ var LineupTracker = LineupTracker || {};
       Name: this.name(),
       status: this.status,
       clockRunning: this.clockRunning,
+      startTime: this.startTime,
+      lastClockTime: this.lastClockTime,
       elapsed: this.elapsed,
     };
   };
@@ -47,22 +51,37 @@ var LineupTracker = LineupTracker || {};
         (this.status === 'NEW' && this.clockRunning)) {
       throw new Error('Invalid status to toggle clock');
     }
+    var time = performance.now();
     if (this.status === 'NEW') {
       // Starting the clock for the first time
       console.log('Changing to live.');
       this.status = 'LIVE';
+      this.startTime = time;
+      this.elapsed = 0;
     }
 
     if (this.clockRunning) {
       console.log('Stop the clock');
-      // TODO: Close current timer
+      var diff = time - this.lastClockTime;
+      this.elapsed += diff;
     } else {
       console.log('Start the clock');
-      // TODO: Start new timer
-      // if (!this.gameStartTime) { this.gameStartTime = Date.now(); }
+      this.lastClockTime = time;
     }
     this.clockRunning = !this.clockRunning;
     return this.clockRunning;
+  };
+
+  LineupTracker.Game.prototype.resetClock = function(options) {
+    let force = options && options.force;
+    if (this.status === 'DONE') {
+        return;
+    }
+    this.status = 'NEW';
+    this.clockRunning = false;
+    this.startTime = null;
+    this.lastClockTime = null;
+    this.elapsed = null;
   };
 
   LineupTracker.Game.prototype.completeGame = function() {
@@ -71,6 +90,21 @@ var LineupTracker = LineupTracker || {};
     }
     console.log('Changing to done.');
     this.status = 'DONE';
+  };
+
+  LineupTracker.Game.prototype.resetGame = function(passedOptions) {
+    let options = passedOptions || {};
+    options.status = options.status || 'NEW';
+
+    switch(options.status) {
+    case 'NEW':
+      this.resetClock();
+      this.resetPlayersToOff();
+      return;
+    }
+
+    console.log('Passed options: ', passedOptions);
+    throw new Error('Invalid options to reset game: ' + passedOptions);
   };
 
   LineupTracker.Game.prototype.addStarter = function(player) {
@@ -90,6 +124,13 @@ var LineupTracker = LineupTracker || {};
 
   LineupTracker.Game.prototype.getPlayersByStatus = function(status) {
     return this.roster.filter(player => player.status === status);
+  };
+
+  LineupTracker.Game.prototype.resetPlayersToOff = function() {
+    this.roster.forEach(player => {
+      player.status = 'OFF';
+    });
+    this.starters = [];
   };
 
   /*****************************************************************************
@@ -279,6 +320,33 @@ var Stopwatch = function() {
   Stopwatch.prototype.stop = function stop() {
     this.running = false;
     this.time = null;
+  };
+
+  Stopwatch.prototype.restore = function restore(originalTime, elapsed, running) {
+    let restoreTime = null;
+    if (elapsed && elapsed > 0) {
+      restoreTime = performance.now() - elapsed;
+      console.log('Restore elapsed to: ', restoreTime);
+    } else if (originalTime) {
+      restoreTime = originalTime;
+      console.log('Restore original to: ', restoreTime);
+    }
+
+    if (restoreTime) {
+      this.time = restoreTime;
+      if (running) {
+        console.log('Now start the clock');
+        this.running = false;
+        this.start();
+      }
+      return;
+    }
+
+    throw new Error('Unable to restore without time data');
+  };
+
+  Stopwatch.prototype.pause = function pause() {
+    this.running = false;
   };
 
   Stopwatch.prototype.restart = function restart() {

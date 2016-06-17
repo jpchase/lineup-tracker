@@ -28,7 +28,7 @@
     gameId: null,
     game: null,
     roster: null,
-    stopwatch: null,
+    clock: null,
     visiblePlayerCards: [],
     playerTemplate: document.querySelector('.playerTemplate'),
     containers: {
@@ -67,6 +67,10 @@
 
   document.getElementById('buttonSave').addEventListener('click', function() {
     liveGame.saveGame();
+  });
+
+  document.getElementById('menuReset').addEventListener('click', function() {
+    liveGame.resetGame();
   });
 
   document.getElementById('menuDebug').addEventListener('click', function() {
@@ -289,6 +293,11 @@
   liveGame.setupGame = function() {
     this.containers.title.textContent = 'Live: ' + this.game.name();
 
+    // Restore/resume the game clock if needed
+    if (this.game.status === 'LIVE') {
+      this.resumeClock(true);
+    }
+
     this.game.roster.forEach(function(player) {
       liveGame.updatePlayerCard(player);
     });
@@ -356,17 +365,31 @@
    *
    ****************************************************************************/
 
-  liveGame.toggleClock = function() {
-    var game = this.game;
-    var clockRunning = game.toggleClock();
-    if (clockRunning) {
-      if (!this.stopwatch) {
-        this.stopwatch = new Stopwatch(document.querySelector('#gameClock'), null);
-      }
-      this.stopwatch.start();
-    } else {
-      this.stopwatch.stop();
+  liveGame.resumeClock = function(loading) {
+    if (!this.clock) {
+      this.clock = new Stopwatch(document.querySelector('#gameClock'), null);
     }
+    var game = this.game;
+    let elapsed = game.elapsed;
+    if (loading && game.clockRunning && elapsed > 0) {
+      // When loading the page initially, with a running clock and elapsed time
+      // accumulated, need to adjust the time so the clock displays correctly.
+      elapsed += (performance.now() - game.lastClockTime);
+    }
+    this.clock.restore(
+      game.lastClockTime,
+      elapsed,
+      game.clockRunning);
+  };
+
+  liveGame.toggleClock = function() {
+    var clockRunning = this.game.toggleClock();
+    if (clockRunning) {
+      this.resumeClock();
+    } else {
+      this.clock.pause();
+    }
+    this.saveGame();
   };
 
   liveGame.completeGame = function() {
@@ -412,6 +435,16 @@
   liveGame.saveGame = function() {
     console.log('saving time');
     LineupTracker.saveGame(this.game);
+  };
+
+  liveGame.resetGame = function() {
+    console.log('reset now');
+    this.game.resetGame();
+    if (this.clock) {
+      this.clock.stop();
+      this.clock.reset();
+      this.clock.print();
+    }
   };
 
   liveGame.dumpDebugInfo = function() {
