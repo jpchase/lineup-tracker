@@ -178,24 +178,24 @@ var LineupTracker = LineupTracker || {};
 
   LineupTracker.retrieveRoster = function() {
     var roster = [
-      {name: 'Abby', positions: ['AM', 'OM', 'S']},
-      {name: 'Anne', positions: ['CB', 'FB', 'HM']},
-      {name: 'Brianna', positions: ['CB', 'HM']},
-      {name: 'Brooke', positions: ['AM', 'OM', 'S']},
-      {name: 'Cassidy', positions: ['OM']},
-      {name: 'Ella', positions: ['AM', 'HM', 'S']},
-      {name: 'Emma', positions: ['FB', 'CB']},
-      {name: 'Grace', positions: ['GK']},
-      {name: 'Jordan', positions: ['OM', 'S']},
-      {name: 'Lauren', positions: ['S']},
-      {name: 'Lucy', positions: ['FB']},
-      {name: 'Michaela', positions: ['FB']},
-      {name: 'Milla', positions: ['AM', 'HM']},
-      {name: 'Natasha', positions: ['HM']},
-      {name: 'Naomi', positions: ['CB']},
-      {name: 'Payton', positions: ['HM', 'AM', 'OM']},
-      {name: 'Sisi', positions: ['OM', 'AM']},
-      {name: 'Taty', positions: ['AM', 'OM', 'S']}
+      {name: 'Abby', positions: ['AM', 'OM', 'S'], status: 'OFF'},
+      {name: 'Anne', positions: ['CB', 'FB', 'HM'], status: 'OFF'},
+      {name: 'Brianna', positions: ['CB', 'HM'], status: 'OFF'},
+      {name: 'Brooke', positions: ['AM', 'OM', 'S'], status: 'OFF'},
+      {name: 'Cassidy', positions: ['OM'], status: 'OFF'},
+      {name: 'Ella', positions: ['AM', 'HM', 'S'], status: 'OFF'},
+      {name: 'Emma', positions: ['FB', 'CB'], status: 'OFF'},
+      {name: 'Grace', positions: ['GK'], status: 'OFF'},
+      {name: 'Jordan', positions: ['OM', 'S'], status: 'OFF'},
+      {name: 'Lauren', positions: ['S'], status: 'OFF'},
+      {name: 'Lucy', positions: ['FB'], status: 'OFF'},
+      {name: 'Michaela', positions: ['FB'], status: 'OFF'},
+      {name: 'Milla', positions: ['AM', 'HM'], status: 'OFF'},
+      {name: 'Natasha', positions: ['HM'], status: 'OFF'},
+      {name: 'Naomi', positions: ['CB'], status: 'OFF'},
+      {name: 'Payton', positions: ['HM', 'AM', 'OM'], status: 'OFF'},
+      {name: 'Sisi', positions: ['OM', 'AM'], status: 'OFF'},
+      {name: 'Taty', positions: ['AM', 'OM', 'S'], status: 'OFF'}
     ];
     return roster;
   };
