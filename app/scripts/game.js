@@ -21,6 +21,7 @@ var LineupTracker = LineupTracker || {};
     this.status = 'NEW';
     this.clockRunning = false;
     this.elapsed = null;
+    this.roster = data.roster || null;
     this.starters = data.starters || [];
   };
 
@@ -72,6 +73,14 @@ var LineupTracker = LineupTracker || {};
 
   LineupTracker.Game.prototype.removeStarter = function(player) {
     this.starters = this.starters.filter(id => player !== id);
+  };
+
+  LineupTracker.Game.prototype.getPlayer = function(id) {
+    return this.roster.find(player => player.name === id);
+  };
+
+  LineupTracker.Game.prototype.getPlayersByStatus = function(status) {
+    return this.roster.filter(player => player.status === status);
   };
 
   /*****************************************************************************

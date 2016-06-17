@@ -183,7 +183,7 @@
       if (mode === 'sub') {
         // Populate players to be replaced
         var selectPlayer = listItem.querySelector('.selectPlayer');
-        this.getPlayersByState('ON').forEach(player => {
+        this.getPlayersByStatus('ON').forEach(player => {
           var optionReplace = document.createElement('option');
           optionReplace.value = player.name;
           optionReplace.textContent = player.name + ' - ' + player.currentPosition;
@@ -276,8 +276,12 @@
       player.positions.join(' ');
   };
 
-  liveGame.updateGame = function() {
+  liveGame.setupGame = function() {
     this.containers.title.textContent = 'Live: ' + this.game.name();
+
+    this.game.roster.forEach(function(player) {
+      liveGame.updatePlayerCard(player);
+    });
   };
 
   liveGame.saveSubs = function() {
@@ -360,11 +364,11 @@
   };
 
   liveGame.getPlayer = function(id) {
-    return this.roster.find(player => player.name === id);
+    return this.game.getPlayer(id);
   };
 
-  liveGame.getPlayersByState = function(status) {
-    return this.roster.filter(player => player.status === status);
+  liveGame.getPlayersByStatus = function(status) {
+    return this.game.getPlayersByStatus(status);
   };
 
   liveGame.setupNextSub = function(player) {
@@ -402,7 +406,7 @@
 
   liveGame.dumpDebugInfo = function() {
     console.log('DEBUG !!!!!!!');
-    this.roster.forEach(player => {
+    this.game.roster.forEach(player => {
       console.log('Player: ', player);
     });
     console.log('Starters: ', this.game.starters);
@@ -433,6 +437,7 @@
 
   console.log('Retrieved game: ', currentGame);
 
+  // Setup formation as needed
   if (!currentGame.formation) {
     currentGame.formation = new LineupTracker.Formation();
   }
@@ -441,13 +446,14 @@
     currentGame.formation.setDefault();
   }
 
+  // Setup roster as needed
+  if (!currentGame.roster) {
+    currentGame.roster = LineupTracker.retrieveRoster();
+  }
+
   console.log('Setting game: ', currentGame);
   liveGame.game = currentGame;
   liveGame.formation = currentGame.formation;
-  liveGame.roster = LineupTracker.retrieveRoster();
 
-  liveGame.updateGame();
-  liveGame.roster.forEach(function(player) {
-    liveGame.updatePlayerCard(player);
-  });
+  liveGame.setupGame();
 })();
