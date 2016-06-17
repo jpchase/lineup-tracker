@@ -134,11 +134,7 @@
       var player = tuple.player;
       var card = tuple.card;
       card.parentNode.removeChild(card);
-      if (useFormation) {
-        this.getFormationContainer(player.currentPosition).appendChild(card);
-      } else {
-        to.appendChild(card);
-      }
+      this.placePlayerCard(card, player, to, useFormation);
       if (playerCallback) {
         playerCallback(player);
       }
@@ -259,6 +255,17 @@
     throw new Error('No card found for player: ' + player.name);
   };
 
+  liveGame.placePlayerCard = function(card, player, to, useFormation) {
+    if (useFormation) {
+      this.getFormationContainer(player.currentPosition).appendChild(card);
+    } else {
+      if (!to) {
+        to = this.containers[player.status.toLowerCase()];
+      }
+      to.appendChild(card);
+    }
+  };
+
   liveGame.updatePlayerCard = function(player) {
     var card = this.visiblePlayerCards[player.name];
     if (!card) {
@@ -267,7 +274,10 @@
       card.querySelector('.playerName').textContent = player.name;
       card.querySelector('.playerSelect').value = player.name;
       card.removeAttribute('hidden');
-      this.containers.off.appendChild(card);
+
+      // Place the card correctly, depending on the player status
+      this.placePlayerCard(card, player, null, (player.status === 'ON'));
+
       this.visiblePlayerCards[player.name] = card;
     }
     card.querySelector('.currentPosition').textContent = player.currentPosition;
