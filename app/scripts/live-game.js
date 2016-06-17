@@ -232,7 +232,7 @@
   };
 
   liveGame.removeStarterCards = function() {
-    this.movePlayerCards(this.removeStarter,
+    this.movePlayerCards(this.removeStarter.bind(this),
       this.containers.on,
       this.containers.off,
       true);
@@ -298,6 +298,7 @@
         useFormation = true;
         break;
     }
+    setupPlayer = setupPlayer.bind(this);
 
     // Extract updated position/replacement from dialog
     var items = this.subs.container.querySelectorAll('.sub');
@@ -378,11 +379,13 @@
   liveGame.setupStarter = function(player) {
     console.log('setup starter', player);
     player.status = 'ON';
+    this.game.addStarter(player.name);
   };
 
   liveGame.removeStarter = function(player) {
     console.log('remove starter', player);
     player.status = 'OFF';
+    this.game.removeStarter(player.name);
   };
 
   liveGame.substitutePlayer = function(playerIn, playerOut) {
@@ -398,10 +401,11 @@
   };
 
   liveGame.dumpDebugInfo = function() {
-    console.log('Debug information');
+    console.log('DEBUG !!!!!!!');
     this.roster.forEach(player => {
       console.log('Player: ', player);
     });
+    console.log('Starters: ', this.game.starters);
   };
 
  /*****************************************************************************

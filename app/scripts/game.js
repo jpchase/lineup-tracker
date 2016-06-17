@@ -21,6 +21,7 @@ var LineupTracker = LineupTracker || {};
     this.status = 'NEW';
     this.clockRunning = false;
     this.elapsed = null;
+    this.starters = data.starters || [];
   };
 
   LineupTracker.Game.prototype.name = function() {
@@ -60,6 +61,17 @@ var LineupTracker = LineupTracker || {};
     }
     console.log('Changing to done.');
     this.status = 'DONE';
+  };
+
+  LineupTracker.Game.prototype.addStarter = function(player) {
+    if (this.starters.find(id => player === id)) {
+      return;
+    }
+    this.starters.push(player);
+  };
+
+  LineupTracker.Game.prototype.removeStarter = function(player) {
+    this.starters = this.starters.filter(id => player !== id);
   };
 
   /*****************************************************************************
