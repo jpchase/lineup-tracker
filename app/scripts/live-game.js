@@ -386,14 +386,16 @@
   };
 
   liveGame.updateButtonStates = function() {
-    let isNew = this.game.status === 'NEW';
+    let isNew = (this.game.status === 'NEW');
+    let isStart = (this.game.status === 'START');
     let isLive = (this.game.status === 'LIVE');
+    let isBreak = (this.game.status === 'BREAK');
 
     this.buttons.startGame.disabled = !isNew;
     this.buttons.addStarter.disabled = !isNew;
     this.buttons.removeStarter.disabled = !isNew;
 
-    this.buttons.toggleClock.disabled = !isLive;
+    this.buttons.toggleClock.disabled = !(isLive || isStart || isBreak);
     this.buttons.nextPeriod.disabled = !isLive;
     this.buttons.completeGame.disabled = !isLive;
   };
@@ -429,6 +431,7 @@
       this.clock.pause();
     }
     this.saveGame();
+    this.updateButtonStates();
   };
 
   liveGame.startGame = function() {
