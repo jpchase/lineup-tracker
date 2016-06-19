@@ -138,6 +138,31 @@ var LineupTracker = LineupTracker || {};
     this.starters = this.starters.filter(id => player !== id);
   };
 
+  LineupTracker.Game.prototype.substitutePlayer = function(playerIn, playerOut) {
+    if (this.status !== 'LIVE') {
+      throw new Error('Invalid status to substitute: ' + this.status);
+    }
+
+    playerIn.replaces = null;
+    playerIn.status = 'ON';
+    playerOut.status = 'OFF';
+
+    let time = Date.now()
+    this.addEvent({
+      type: 'SUBIN',
+      date: time,
+      player: playerIn.name,
+      details: {
+        replaced: playerOut.name
+      }
+    });
+    this.addEvent({
+      type: 'SUBOUT',
+      date: time,
+      player: playerOut.name,
+    });
+  };
+
   LineupTracker.Game.prototype.getPlayer = function(id) {
     return this.roster.find(player => player.name === id);
   };
@@ -230,8 +255,7 @@ var LineupTracker = LineupTracker || {};
     this.id = data.id || newId();
     this.date = data.date ? new Date(data.date) : Date.now();
     this.type = data.type || null;
-    this.player1 = data.player1 || null;
-    this.player2 = data.player2 || null;
+    this.player = data.player || null;
     this.details = data.details || null;
   };
 

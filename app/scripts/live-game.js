@@ -438,9 +438,7 @@
 
   liveGame.substitutePlayer = function(playerIn, playerOut) {
     console.log('do sub, in:out', playerIn, playerOut); //positionChanges);
-    playerIn.replaces = null;
-    playerIn.status = 'ON';
-    playerOut.status = 'OFF'
+    this.game.substitutePlayer(playerIn, playerOut);
   };
 
   liveGame.saveGame = function() {
