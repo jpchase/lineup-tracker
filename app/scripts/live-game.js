@@ -31,6 +31,17 @@
     clock: null,
     visiblePlayerCards: [],
     playerTemplate: document.querySelector('.playerTemplate'),
+    buttons: {
+      toggleClock: document.getElementById('buttonToggleClock'),
+      startGame: document.getElementById('buttonStartGame'),
+      completeGame: document.getElementById('buttonComplete'),
+      save: document.getElementById('buttonSave'),
+      addStarter: document.getElementById('buttonStarter'),
+      removeStarter: document.getElementById('buttonRemoveStarter'),
+      addNext: document.getElementById('buttonNext'),
+      cancelNext: document.getElementById('buttonCancelSub'),
+      sub: document.getElementById('buttonSub'),
+    },
     containers: {
       title: document.querySelector('.mdl-layout-title'),
       on: document.getElementById('live-on'),
@@ -57,19 +68,19 @@
    * Event listeners for UI elements
    *
    ****************************************************************************/
-  document.getElementById('buttonToggleClock').addEventListener('click', function() {
+  liveGame.buttons.toggleClock.addEventListener('click', function() {
     liveGame.toggleClock();
   });
 
-  document.getElementById('buttonStartGame').addEventListener('click', function() {
+  liveGame.buttons.startGame.addEventListener('click', function() {
     liveGame.startGame();
   });
 
-  document.getElementById('buttonComplete').addEventListener('click', function() {
+  liveGame.buttons.completeGame.addEventListener('click', function() {
     liveGame.completeGame();
   });
 
-  document.getElementById('buttonSave').addEventListener('click', function() {
+  liveGame.buttons.save.addEventListener('click', function() {
     liveGame.saveGame();
   });
 
@@ -81,23 +92,23 @@
     liveGame.dumpDebugInfo();
   });
 
-  document.getElementById('buttonSub').addEventListener('click', function() {
+  liveGame.buttons.sub.addEventListener('click', function() {
     liveGame.substitutePlayerCards();
   });
 
-  document.getElementById('buttonRemoveStarter').addEventListener('click', function() {
+  liveGame.buttons.removeStarter.addEventListener('click', function() {
     liveGame.removeStarterCards();
   });
 
-  document.getElementById('buttonCancelSub').addEventListener('click', function() {
+  liveGame.buttons.cancelNext.addEventListener('click', function() {
     liveGame.cancelNextSubCards();
   });
 
-  document.getElementById('buttonNext').addEventListener('click', function() {
+  liveGame.buttons.addNext.addEventListener('click', function() {
     liveGame.setupPlayerChooser('sub');
   });
 
-  document.getElementById('buttonStarter').addEventListener('click', function() {
+  liveGame.buttons.addStarter.addEventListener('click', function() {
     liveGame.setupPlayerChooser('starter');
   });
 
@@ -305,6 +316,8 @@
     this.game.roster.forEach(function(player) {
       liveGame.updatePlayerCard(player);
     });
+
+    this.updateButtonStates();
   };
 
   liveGame.saveSubs = function() {
@@ -363,6 +376,18 @@
     this.subs.dialog.close();
   };
 
+  liveGame.updateButtonStates = function() {
+    let isNew = this.game.status === 'NEW';
+    let isLive = (this.game.status === 'LIVE');
+
+    this.buttons.startGame.disabled = !isNew;
+    this.buttons.addStarter.disabled = !isNew;
+    this.buttons.removeStarter.disabled = !isNew;
+
+    this.buttons.toggleClock.disabled = !isLive;
+    this.buttons.completeGame.disabled = !isLive;
+  };
+
   /*****************************************************************************
    *
    * Methods for dealing with the model
@@ -399,12 +424,13 @@
   liveGame.startGame = function() {
     if (this.game.startGame())
     {
-      document.getElementById('buttonStartGame').disabled = true;
+      this.updateButtonStates();
     }
   };
 
   liveGame.completeGame = function() {
     var clockRunning = this.game.completeGame();
+    this.updateButtonStates();
   };
 
   liveGame.getPlayer = function(id) {
@@ -454,6 +480,7 @@
       this.clock.reset();
       this.clock.print();
     }
+    this.updateButtonStates();
   };
 
   liveGame.dumpDebugInfo = function() {
