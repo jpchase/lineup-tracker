@@ -34,6 +34,7 @@
     buttons: {
       toggleClock: document.getElementById('buttonToggleClock'),
       startGame: document.getElementById('buttonStartGame'),
+      nextPeriod: document.getElementById('buttonNextPeriod'),
       completeGame: document.getElementById('buttonComplete'),
       save: document.getElementById('buttonSave'),
       addStarter: document.getElementById('buttonStarter'),
@@ -74,6 +75,10 @@
 
   liveGame.buttons.startGame.addEventListener('click', function() {
     liveGame.startGame();
+  });
+
+  liveGame.buttons.nextPeriod.addEventListener('click', function() {
+    liveGame.nextPeriod();
   });
 
   liveGame.buttons.completeGame.addEventListener('click', function() {
@@ -376,6 +381,11 @@
     this.subs.dialog.close();
   };
 
+  liveGame.nextPeriod = function() {
+    var clockRunning = this.game.nextPeriod();
+    this.updateButtonStates();
+  };
+
   liveGame.updateButtonStates = function() {
     let isNew = this.game.status === 'NEW';
     let isLive = (this.game.status === 'LIVE');
@@ -385,6 +395,7 @@
     this.buttons.removeStarter.disabled = !isNew;
 
     this.buttons.toggleClock.disabled = !isLive;
+    this.buttons.nextPeriod.disabled = !isLive;
     this.buttons.completeGame.disabled = !isLive;
   };
 

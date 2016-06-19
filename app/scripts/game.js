@@ -19,6 +19,7 @@ var LineupTracker = LineupTracker || {};
     this.duration = data.duration;
      // Other statuses: START, LIVE, BREAK, DONE
     this.status = data.status || 'NEW';
+    this.period = data.period || 0;
     this.clockRunning = data.clockRunning || false;
     this.startTime = data.startTime || null;
     this.lastClockTime = data.lastClockTime || null;
@@ -59,6 +60,7 @@ var LineupTracker = LineupTracker || {};
       this.status = 'LIVE';
       this.startTime = time;
       this.elapsed = 0;
+      this.period += 1;
     }
 
     if (this.clockRunning) {
@@ -104,12 +106,26 @@ var LineupTracker = LineupTracker || {};
     return true;
   };
 
+  LineupTracker.Game.prototype.nextPeriod = function() {
+    this.endLivePeriod('BREAK', 'NEXTPERIOD');
+  };
+
   LineupTracker.Game.prototype.completeGame = function() {
+    this.endLivePeriod('DONE', 'COMPLETE');
+  };
+
+  LineupTracker.Game.prototype.endLivePeriod = function(newStatus, eventType) {
     if (this.status !== 'LIVE') {
-      throw new Error('Invalid status to complete game: ' + this.status);
+      throw new Error('Invalid status to end live period: ' + this.status);
     }
-    console.log('Changing to done.');
-    this.status = 'DONE';
+    console.log('Changing status to:', newStatus);
+    this.status = newStatus;
+    this.addEvent({
+      type: eventType,
+      details: {
+        period: this.period
+      }
+    });
   };
 
   LineupTracker.Game.prototype.resetGame = function(passedOptions) {
