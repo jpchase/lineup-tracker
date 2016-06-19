@@ -65,18 +65,22 @@
       </header>
       <main class="mdl-layout__content">
         <div>
-          <label class="mdl-icon-toggle mdl-js-icon-toggle mdl-js-ripple-effect mdl-shadow--4dp mdl-color--accent" for="buttonToggleClock">
-            <input type="checkbox" id="buttonToggleClock" class="mdl-icon-toggle__input" checked>
-            <i class="mdl-icon-toggle__label material-icons">play_arrow</i>
-          </label>
+          <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon mdl-color--accent" id="buttonStartGame">
+            <i class="material-icons" role="presentation">play_arrow</i>
+            <span class="visuallyhidden">Start Game</span>
+          </button>
           <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon mdl-color--accent" id="buttonNextPeriod">
             <i class="material-icons" role="presentation">skip_next</i>
-            <span class="visuallyhidden">2nd Half</span>
+            <span class="visuallyhidden">Next Period</span>
           </button>
           <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon mdl-color--accent" id="buttonComplete">
-            <i class="material-icons" role="presentation">done</i>
+            <i class="material-icons" role="presentation">stop</i>
             <span class="visuallyhidden">End Game</span>
           </button>
+          <label class="mdl-icon-toggle mdl-js-icon-toggle mdl-js-ripple-effect mdl-shadow--4dp mdl-color--accent" for="buttonToggleClock">
+            <input type="checkbox" id="buttonToggleClock" class="mdl-icon-toggle__input" checked>
+            <i class="mdl-icon-toggle__label material-icons">query_builder</i>
+          </label>
           <span id="gameClock"></span>
           <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="buttonSave">
             <i class="material-icons" role="presentation">save</i>

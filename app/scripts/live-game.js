@@ -61,6 +61,10 @@
     liveGame.toggleClock();
   });
 
+  document.getElementById('buttonStartGame').addEventListener('click', function() {
+    liveGame.startGame();
+  });
+
   document.getElementById('buttonComplete').addEventListener('click', function() {
     liveGame.completeGame();
   });
@@ -392,6 +396,13 @@
     this.saveGame();
   };
 
+  liveGame.startGame = function() {
+    if (this.game.startGame())
+    {
+      document.getElementById('buttonStartGame').disabled = true;
+    }
+  };
+
   liveGame.completeGame = function() {
     var clockRunning = this.game.completeGame();
   };
@@ -454,6 +465,7 @@
       console.log('Player: ', player);
     });
     console.log('Starters: ', this.game.starters);
+    console.log('Events: ', this.game.events);
   };
 
  /*****************************************************************************

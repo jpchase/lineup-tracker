@@ -17,7 +17,7 @@ var LineupTracker = LineupTracker || {};
     this.date = new Date(data.date);
     this.opponent = data.opponent;
     this.duration = data.duration;
-     // Other statuses: LIVE, DONE
+     // Other statuses: START, LIVE, BREAK, DONE
     this.status = data.status || 'NEW';
     this.clockRunning = data.clockRunning || false;
     this.startTime = data.startTime || null;
@@ -25,6 +25,7 @@ var LineupTracker = LineupTracker || {};
     this.elapsed = data.elapsed || null;
     this.roster = data.roster || null;
     this.starters = data.starters || [];
+    this.events = data.events || [];
   };
 
   LineupTracker.Game.prototype.toDebugJSON = function() {
@@ -48,11 +49,11 @@ var LineupTracker = LineupTracker || {};
 
   LineupTracker.Game.prototype.toggleClock = function() {
     if (this.status === 'DONE' ||
-        (this.status === 'NEW' && this.clockRunning)) {
-      throw new Error('Invalid status to toggle clock');
+        this.status === 'NEW') {
+      throw new Error('Invalid status to toggle clock: ' + this.status);
     }
     var time = performance.now();
-    if (this.status === 'NEW') {
+    if (this.status !== 'LIVE') {
       // Starting the clock for the first time
       console.log('Changing to live.');
       this.status = 'LIVE';
@@ -84,9 +85,28 @@ var LineupTracker = LineupTracker || {};
     this.elapsed = null;
   };
 
+  LineupTracker.Game.prototype.startGame = function() {
+    if (this.status !== 'NEW') {
+      throw new Error('Invalid status to start game: ' + this.status);
+    }
+    if (this.getPlayersByStatus('ON').length !== 11) {
+      console.log('Not enough starters');
+      return false;
+    }
+    console.log('Starting game.');
+    this.status = 'START';
+    this.addEvent({
+      type: 'START',
+      details: {
+        starters: this.starters.slice(0)
+      }
+    });
+    return true;
+  };
+
   LineupTracker.Game.prototype.completeGame = function() {
     if (this.status !== 'LIVE') {
-      throw new Error('Invalid status to complete game');
+      throw new Error('Invalid status to complete game: ' + this.status);
     }
     console.log('Changing to done.');
     this.status = 'DONE';
@@ -131,6 +151,12 @@ var LineupTracker = LineupTracker || {};
       player.status = 'OFF';
     });
     this.starters = [];
+  };
+
+  LineupTracker.Game.prototype.addEvent = function(eventData) {
+    let added = new LineupTracker.GameEvent(eventData);
+    this.events.push(added);
+    console.log('New event', added);
   };
 
   /*****************************************************************************
@@ -190,6 +216,23 @@ var LineupTracker = LineupTracker || {};
     this.back.positions = ['FB', 'CB', 'CB', 'FB'];
     this.gk.positions = ['GK'];
     this.complete = true;
+  };
+
+  /*****************************************************************************
+   *
+   * Event class
+   *
+   ****************************************************************************/
+
+  LineupTracker.GameEvent = function(passedData) {
+    let data = passedData || {};
+
+    this.id = data.id || newId();
+    this.date = data.date ? new Date(data.date) : Date.now();
+    this.type = data.type || null;
+    this.player1 = data.player1 || null;
+    this.player2 = data.player2 || null;
+    this.details = data.details || null;
   };
 
   /*****************************************************************************
@@ -411,4 +454,26 @@ function clearChildren(node) {
   while (node.lastChild) {
     node.removeChild(node.lastChild);
   }
+}
+
+function newId(
+  a                  // placeholder
+){
+  return a           // if the placeholder was passed, return
+    ? (              // a random number from 0 to 15
+      a ^            // unless b is 8,
+      crypto.getRandomValues(new Uint8Array(1))[0]  // in which case
+      % 16           // a random number from
+      >> a/4         // 8 to 11
+      ).toString(16) // in hexadecimal
+    : (              // or otherwise a concatenated string:
+      [1e7] +        // 10000000 +
+      -1e3 +         // -1000 +
+      -4e3 +         // -4000 +
+      -8e3 +         // -80000000 +
+      -1e11          // -100000000000,
+      ).replace(     // replacing
+        /[018]/g,    // zeroes, ones, and eights with
+        newId        // random hex digits
+      )
 }
