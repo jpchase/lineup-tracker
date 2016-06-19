@@ -254,8 +254,7 @@
   liveGame.removeStarterCards = function() {
     this.movePlayerCards(this.removeStarter.bind(this),
       this.containers.on,
-      this.containers.off,
-      true);
+      this.containers.off);
   };
 
   liveGame.cancelNextSubCards = function() {
