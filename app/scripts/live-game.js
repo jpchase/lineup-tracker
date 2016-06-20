@@ -144,7 +144,8 @@
         tuples.push({
           id: item.value,
           player: this.getPlayer(item.value),
-          card: item.parentNode
+          card: item.parentNode,
+          select: item
         });
       }
     }
@@ -162,7 +163,7 @@
       if (playerCallback) {
         playerCallback(player);
       }
-      // TODO: Need to deselect the node after moving
+      tuple.select.checked = false;
       this.updatePlayerCard(player);
     });
   };
@@ -245,8 +246,7 @@
         this.getFormationContainer(playerIn.currentPosition).appendChild(cardIn);
       }
       this.containers.off.appendChild(cardOut);
-      // TODO: Need to deselect the node after moving
-      //this.updatePlayerCard(player);
+      tuple.select.checked = false;
       this.substitutePlayer(playerIn, playerOut);
     });
   };
