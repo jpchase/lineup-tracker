@@ -179,6 +179,27 @@ var LineupTracker = LineupTracker || {};
     });
   };
 
+  LineupTracker.Game.prototype.swapPosition = function(player) {
+    if (this.status !== 'LIVE') {
+      throw new Error('Invalid status to swap position: ' + this.status);
+    }
+
+    let oldPosition = player.currentPosition;
+    player.currentPosition = player.nextPosition;
+    player.nextPosition = null;
+
+    let time = Date.now()
+    this.addEvent({
+      type: 'SWAPPOSITION',
+      date: time,
+      player: player.name,
+      details: {
+        position: player.currentPosition,
+        oldPosition: oldPosition
+      }
+    });
+  };
+
   LineupTracker.Game.prototype.getPlayer = function(id) {
     return this.roster.find(player => player.name === id);
   };

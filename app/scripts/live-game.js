@@ -40,7 +40,8 @@
       addStarter: document.getElementById('buttonStarter'),
       removeStarter: document.getElementById('buttonRemoveStarter'),
       addNext: document.getElementById('buttonNext'),
-      cancelNext: document.getElementById('buttonCancelSub'),
+      addSwap: document.getElementById('buttonSwap'),
+      cancelNext: document.getElementById('buttonCancelNext'),
       sub: document.getElementById('buttonSub'),
     },
     containers: {
@@ -106,7 +107,11 @@
   });
 
   liveGame.buttons.cancelNext.addEventListener('click', function() {
-    liveGame.cancelNextSubCards();
+    liveGame.cancelNextCards();
+  });
+
+  liveGame.buttons.addSwap.addEventListener('click', function() {
+    liveGame.setupPlayerChooser('swap');
   });
 
   liveGame.buttons.addNext.addEventListener('click', function() {
@@ -145,6 +150,7 @@
           id: item.value,
           player: this.getPlayer(item.value),
           card: item.parentNode,
+          isSwap: (item.parentNode.dataset.isSwap === 'true'),
           select: item
         });
       }
@@ -159,17 +165,36 @@
       var player = tuple.player;
       var card = tuple.card;
       card.parentNode.removeChild(card);
-      this.placePlayerCard(card, player, to, useFormation);
       if (playerCallback) {
-        playerCallback(player);
+        playerCallback(player, tuple.isSwap);
       }
+      if (tuple.isSwap) {
+        return;
+      }
+      this.placePlayerCard(card, player, to, useFormation);
       tuple.select.checked = false;
       this.updatePlayerCard(player);
     });
   };
 
+  liveGame.addSwapCards = function(from, to) {
+    var selected = this.getSelectedPlayerCards(from);
+
+    selected.tuples.forEach(tuple => {
+      var player = tuple.player;
+      var card = tuple.card;
+      var swapCard = card.cloneNode(true);
+      swapCard.dataset.isSwap = 'true';
+      this.placePlayerCard(swapCard, player, to);
+      tuple.select.checked = false;
+      this.updateSwapCard(player, swapCard);
+    });
+  };
+
   liveGame.setupPlayerChooser = function(mode) {
-    var selected = this.getSelectedPlayerCards(liveGame.containers.off);
+    var container = (mode === 'swap') ? liveGame.containers.on
+                                      : liveGame.containers.off;
+    var selected = this.getSelectedPlayerCards(container);
 
     clearChildren(this.subs.container);
 
@@ -229,6 +254,24 @@
     subs.tuples.forEach(tuple => {
       var playerIn = tuple.player;
       var cardIn = tuple.card;
+
+      if (tuple.isSwap) {
+        // Find the actual card for the player
+        let swapContainer = this.getFormationContainer(playerIn.currentPosition);
+        let actualCard = this.getOnPlayerCard(swapContainer, playerIn);
+
+        // Move the player card to the new position
+        swapContainer.removeChild(actualCard);
+        this.getFormationContainer(playerIn.nextPosition).appendChild(actualCard);
+
+        // Remove the swap card
+        cardIn.parentNode.removeChild(cardIn);
+
+        tuple.select.checked = false;
+        this.swapPosition(playerIn);
+        return;
+      }
+
       var playerOut = this.getPlayer(playerIn.replaces);
 
       // Find the card for the player to be substituted
@@ -257,8 +300,8 @@
       this.containers.off);
   };
 
-  liveGame.cancelNextSubCards = function() {
-    this.movePlayerCards(this.cancelNextSub,
+  liveGame.cancelNextCards = function() {
+    this.movePlayerCards(this.cancelNextSubOrSwap,
       this.containers.next,
       this.containers.off);
   };
@@ -309,6 +352,11 @@
       player.positions.join(' ');
   };
 
+  liveGame.updateSwapCard = function(player, swapCard) {
+    swapCard.querySelector('.currentPosition').textContent = player.currentPosition;
+    swapCard.querySelector('.subFor').textContent = player.nextPosition;
+  };
+
   liveGame.setupGame = function() {
     this.containers.title.textContent = 'Live: ' + this.game.name();
 
@@ -327,13 +375,13 @@
   liveGame.saveSubs = function() {
     let setupPlayer = null;
     let useReplaces = false;
-    var toContainer = null;
+    let useNextPosition = false;
+    var toContainer = this.containers.next;
     var useFormation = false;
     
     switch (this.playerChooserMode) {
       case 'sub':
         setupPlayer = this.setupNextSub;
-        toContainer = this.containers.next;
         useReplaces = true;
         break;
       case 'starter':
@@ -341,8 +389,13 @@
         toContainer = this.containers.on;
         useFormation = true;
         break;
+      case 'swap':
+        useNextPosition = true;
+        break;
     }
-    setupPlayer = setupPlayer.bind(this);
+    if (setupPlayer) {
+      setupPlayer = setupPlayer.bind(this);
+    }
 
     // Extract updated position/replacement from dialog
     var items = this.subs.container.querySelectorAll('.sub');
@@ -353,7 +406,12 @@
 
       // Get the position
       var selectPosition = listItem.querySelector('.selectPosition');
-      player.currentPosition = selectPosition.options[selectPosition.selectedIndex].value;
+      var newPosition = selectPosition.options[selectPosition.selectedIndex].value;
+      if (useNextPosition) {
+        player.nextPosition = newPosition;
+      } else {
+        player.currentPosition = newPosition;
+      }
 
       if (!useReplaces) {
         continue;
@@ -364,13 +422,16 @@
       player.replaces = selectPlayer.options[selectPlayer.selectedIndex].value;
     }
 
-    // TODO: Figure out/prompt for any position changes for players remaining on the field
-
-    // Move the subs and update the UI
-    this.movePlayerCards(setupPlayer,
-      this.containers.off,
-      toContainer,
-      useFormation);
+    if (useNextPosition) {
+      // Record any position changes for players remaining on the field
+      this.addSwapCards(this.containers.on, toContainer);
+    } else {
+      // Move the subs and update the UI
+      this.movePlayerCards(setupPlayer,
+        this.containers.off,
+        toContainer,
+        useFormation);
+    }
 
     this.closeSubs();
   };
@@ -458,7 +519,11 @@
     player.status = 'NEXT';
   };
 
-  liveGame.cancelNextSub = function(player) {
+  liveGame.cancelNextSubOrSwap = function(player, isSwap) {
+    if (isSwap) {
+      player.nextPosition = null;
+      return;
+    }
     player.replaces = null;
     player.status = 'OFF';
   };
@@ -476,8 +541,13 @@
   };
 
   liveGame.substitutePlayer = function(playerIn, playerOut) {
-    console.log('do sub, in:out', playerIn, playerOut); //positionChanges);
+    console.log('do sub, in:out', playerIn, playerOut);
     this.game.substitutePlayer(playerIn, playerOut);
+  };
+
+  liveGame.swapPosition = function(player) {
+    console.log('swap position', player);
+    this.game.swapPosition(player);
   };
 
   liveGame.saveGame = function() {
