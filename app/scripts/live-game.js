@@ -44,6 +44,9 @@
       cancelNext: document.getElementById('buttonCancelNext'),
       sub: document.getElementById('buttonSub'),
     },
+    menus: {
+      captains: document.getElementById('menuCaptains'),
+    },
     containers: {
       title: document.querySelector('.mdl-layout-title'),
       on: document.getElementById('live-on'),
@@ -62,6 +65,10 @@
       template: document.querySelector('.subTemplate'),
       container: document.getElementById('subsList'),
       dialog: document.getElementById('dialogSubs')
+    },
+    captains: {
+      container: document.getElementById('captainsContainer'),
+      dialog: document.getElementById('dialogCaptains')
     }
   };
 
@@ -88,6 +95,10 @@
 
   liveGame.buttons.save.addEventListener('click', function() {
     liveGame.saveGame();
+  });
+
+  liveGame.menus.captains.addEventListener('click', function() {
+    liveGame.updateCaptains();
   });
 
   document.getElementById('menuReset').addEventListener('click', function() {
@@ -128,6 +139,14 @@
 
   document.getElementById('buttonCloseSubs').addEventListener('click', function() {
     liveGame.closeSubs();
+  });
+
+  document.getElementById('buttonSaveCaptains').addEventListener('click', function() {
+    liveGame.saveCaptains();
+  });
+
+  document.getElementById('buttonCloseCaptains').addEventListener('click', function() {
+    liveGame.closeCaptains();
   });
 
   /*****************************************************************************
@@ -350,6 +369,9 @@
     card.querySelector('.subFor').textContent = player.replaces;
     card.querySelector('.playerPositions').textContent =
       player.positions.join(' ');
+    if (this.game.captains.find(captain => player.name === captain)) {
+      this.addCaptainBadge(card);
+    }
   };
 
   liveGame.updateSwapCard = function(player, swapCard) {
@@ -455,10 +477,81 @@
     this.buttons.startGame.disabled = !isNew;
     this.buttons.addStarter.disabled = !isNew;
     this.buttons.removeStarter.disabled = !isNew;
+    this.menus.captains.disabled = !isNew;
 
     this.buttons.toggleClock.disabled = !(isLive || isStart || isBreak);
     this.buttons.nextPeriod.disabled = !isLive;
     this.buttons.completeGame.disabled = !isLive;
+  };
+
+  liveGame.updateCaptains = function() {
+    var currentCaptains = null;
+    var setCurrent = false;
+    if (this.game.captains.length) {
+      currentCaptains = this.game.captains.slice(0);
+      setCurrent = true;
+    }
+
+    var items = this.captains.container.querySelectorAll('.selectCaptain');
+    for (var i = 0; i < items.length; ++i) {
+      var selectCaptain = items[i];
+
+      // Clear previous players, in case roster changed
+      while (selectCaptain.options.length > 0) {
+        selectCaptain.remove(0);
+      }
+
+      // Populate players
+      this.game.roster.forEach(player => {
+        var optionCaptain = document.createElement('option');
+        optionCaptain.value = player.name;
+        optionCaptain.textContent = player.name;
+        selectCaptain.appendChild(optionCaptain);
+      });
+
+      if (setCurrent) {
+        selectCaptain.value = currentCaptains[i];
+      }
+    }
+
+    // Show the dialog, now that it's populated with players
+    this.captains.dialog.showModal();
+  };
+
+  liveGame.saveCaptains = function() {
+    // Extract updated captains from dialog
+    var items = this.captains.container.querySelectorAll('.selectCaptain');
+    var captains = [];
+    for (var i = 0; i < items.length; ++i) {
+      var selectCaptain = items[i];
+      captains.push(selectCaptain.options[selectCaptain.selectedIndex].value);
+    }
+
+    const replaced = this.game.updateCaptains(captains);
+
+    replaced.forEach(oldCaptain => {
+      let card = this.visiblePlayerCards[oldCaptain];
+      let playerName = card.querySelector('.playerName');
+      playerName.dataset.badge = null;
+      playerName.classList.remove('mdl-badge');
+    });
+
+    captains.forEach(newCaptain => {
+      let card = this.visiblePlayerCards[newCaptain];
+      this.addCaptainBadge(card);
+    });
+
+    this.closeCaptains();
+  };
+
+  liveGame.closeCaptains = function() {
+    this.captains.dialog.close();
+  };
+
+  liveGame.addCaptainBadge = function(card) {
+    let playerName = card.querySelector('.playerName');
+    playerName.dataset.badge = 'C';
+    playerName.classList.add('mdl-badge');
   };
 
   /*****************************************************************************

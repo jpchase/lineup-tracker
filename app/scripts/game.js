@@ -25,6 +25,7 @@ var LineupTracker = LineupTracker || {};
     this.lastClockTime = data.lastClockTime || null;
     this.elapsed = data.elapsed || null;
     this.roster = data.roster || null;
+    this.captains = data.captains || [];
     this.starters = data.starters || [];
     this.events = data.events || [];
   };
@@ -101,6 +102,12 @@ var LineupTracker = LineupTracker || {};
       type: 'START',
       details: {
         starters: this.starters.slice(0)
+      }
+    });
+    this.addEvent({
+      type: 'CAPTAINS',
+      details: {
+        starters: this.captains.slice(0)
       }
     });
     return true;
@@ -198,6 +205,26 @@ var LineupTracker = LineupTracker || {};
         oldPosition: oldPosition
       }
     });
+  };
+
+  LineupTracker.Game.prototype.updateCaptains = function(newCaptains) {
+    if (!newCaptains || newCaptains.length !== 2) {
+      throw new Error('Invalid input to update captains: ' + newCaptains);
+    }
+    if (this.status !== 'NEW') {
+      throw new Error('Invalid status to update captains: ' + this.status);
+    }
+
+    var replacedCaptains = [];
+    this.captains.forEach(captain => {
+      if (newCaptains[0] !== captain && newCaptains[1] !== captain) {
+        replacedCaptains.push(captain);
+      }
+    });
+
+    this.captains = newCaptains.slice(0);
+
+    return replacedCaptains;
   };
 
   LineupTracker.Game.prototype.getPlayer = function(id) {

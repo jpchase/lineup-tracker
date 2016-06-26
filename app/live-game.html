@@ -59,6 +59,7 @@
           </button>
           <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
               for="menu-more">
+            <li class="mdl-menu__item" id="menuCaptains">Captains</li>
             <li class="mdl-menu__item" id="menuReset">Reset</li>
             <li disabled class="mdl-menu__item">Disabled Action</li>
             <li class="mdl-menu__item" id="menuDebug">Debug</li>
@@ -162,6 +163,19 @@
         <div class="mdl-dialog__actions">
           <button type="button" class="mdl-button" id="buttonSaveSubs">Save</button>
           <button type="button" class="mdl-button close" id="buttonCloseSubs">Close</button>
+        </div>
+      </dialog>
+      <dialog id="dialogCaptains" class="mdl-dialog dialog-wide">
+        <h4 class="mdl-dialog__title">Captains</h4>
+        <div class="mdl-dialog__content" id="captainsContainer">
+          <select class="selectCaptain" id="selectCaptain1">
+          </select>
+          <select class="selectCaptain" id="selectCaptain2">
+          </select>
+        </div>
+        <div class="mdl-dialog__actions">
+          <button type="button" class="mdl-button" id="buttonSaveCaptains">Save</button>
+          <button type="button" class="mdl-button close" id="buttonCloseCaptains">Close</button>
         </div>
       </dialog>
     </div>
