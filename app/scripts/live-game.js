@@ -690,9 +690,9 @@
   liveGame.gameId = window.localStorage.getItem('liveGameId');
 
   if (!liveGame.gameId) {
-    var pos = window.location.search.indexOf('?game=');
+    var pos = window.location.hash.indexOf('game=');
     if (pos > -1) {
-      var gameId = window.location.search.substr(pos + '?game='.length);
+      var gameId = window.location.hash.substr(pos + 'game='.length);
       liveGame.gameId = gameId;
     }
   }
