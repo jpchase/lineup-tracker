@@ -166,7 +166,7 @@ var LineupTracker = LineupTracker || {};
 
   LineupTracker.Game.prototype.substitutePlayer = function(playerIn,
     playerOut) {
-    if (this.status !== 'LIVE') {
+    if (this.status !== 'LIVE' && this.status !== 'BREAK') {
       throw new Error('Invalid status to substitute: ' + this.status);
     }
 
