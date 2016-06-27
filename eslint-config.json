@@ -1,0 +1,24 @@
+{
+	"extends": "google",
+	"rules": {
+    "comma-dangle": [2, "only-multiline"],
+    "spaced-comment": [2, "always", { "markers": ["!"], "exceptions": ["*"] }],
+    "require-jsdoc": ["error", { "require": { "FunctionDeclaration": false } }],
+    "no-console": 0,
+		"no-alert": 0,
+		"no-bitwise": 0,
+		"camelcase": 1,
+		"curly": 1,
+		"no-eq-null": 1,
+		"guard-for-in": 1,
+		"no-empty": 1
+	},
+	"globals": {
+		"clearChildren": false,
+    "Stopwatch": false
+	},
+	"env":{
+		"browser": true,
+		"node": true
+	}
+}

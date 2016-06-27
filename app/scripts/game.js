@@ -1,4 +1,6 @@
+/* eslint-disable */
 var LineupTracker = LineupTracker || {};
+/* eslint-enable */
 
 (function() {
   'use strict';
@@ -77,9 +79,9 @@ var LineupTracker = LineupTracker || {};
   };
 
   LineupTracker.Game.prototype.resetClock = function(options) {
-    let force = options && options.force;
+    // let force = options && options.force;
     if (this.status === 'DONE') {
-        return;
+      return;
     }
     this.status = 'NEW';
     this.clockRunning = false;
@@ -139,11 +141,12 @@ var LineupTracker = LineupTracker || {};
     let options = passedOptions || {};
     options.status = options.status || 'NEW';
 
-    switch(options.status) {
-    case 'NEW':
-      this.resetClock();
-      this.resetPlayersToOff();
-      return;
+    switch (options.status) {
+      case 'NEW':
+        this.resetClock();
+        this.resetPlayersToOff();
+        return;
+      default:
     }
 
     console.log('Passed options: ', passedOptions);
@@ -161,7 +164,8 @@ var LineupTracker = LineupTracker || {};
     this.starters = this.starters.filter(id => player !== id);
   };
 
-  LineupTracker.Game.prototype.substitutePlayer = function(playerIn, playerOut) {
+  LineupTracker.Game.prototype.substitutePlayer = function(playerIn,
+    playerOut) {
     if (this.status !== 'LIVE') {
       throw new Error('Invalid status to substitute: ' + this.status);
     }
@@ -170,7 +174,7 @@ var LineupTracker = LineupTracker || {};
     playerIn.status = 'ON';
     playerOut.status = 'OFF';
 
-    let time = Date.now()
+    let time = Date.now();
     this.addEvent({
       type: 'SUBIN',
       date: time,
@@ -195,7 +199,7 @@ var LineupTracker = LineupTracker || {};
     player.currentPosition = player.nextPosition;
     player.nextPosition = null;
 
-    let time = Date.now()
+    let time = Date.now();
     this.addEvent({
       type: 'SWAPPOSITION',
       date: time,
@@ -287,7 +291,7 @@ var LineupTracker = LineupTracker || {};
   };
 
   LineupTracker.Formation.prototype.getLineForPosition = function(position) {
-    var lines = ['forward','mid1','mid2','back','gk'];
+    var lines = ['forward', 'mid1', 'mid2', 'back', 'gk'];
     const arrayLength = lines.length;
     for (var i = 0; i < arrayLength; i++) {
       var lineName = lines[i];
@@ -328,6 +332,7 @@ var LineupTracker = LineupTracker || {};
    * Data retrieval methods
    *
    ****************************************************************************/
+
   LineupTracker.retrieveGames = function() {
     if (!allGames) {
       allGames = [];
@@ -340,11 +345,16 @@ var LineupTracker = LineupTracker || {};
         console.log('Parsed data: ', gameData);
       } else {
         gameData = [
-          {id: 'KOC651', date: new Date(2016, 4, 21, 14, 0).toString(), opponent: 'London Youth Whitecaps 03G', duration: 50},
-          {id: 'KOC656', date: new Date(2016, 4, 21, 16, 30).toString(), opponent: 'Kitchener Spirit 03G', duration: 50},
-          {id: 'KOC657', date: new Date(2016, 4, 22, 11, 30).toString(), opponent: 'Cambridge United 03G', duration: 50},
-          {id: 'KOC660', date: new Date(2016, 4, 22, 14, 0).toString(), opponent: 'Semi-Final TBD', duration: 50},
-          {id: '129', date: new Date(2016, 6, 26, 13, 0).toString(), opponent: 'Eastside Kickers 03G', duration: 80}
+          {id: 'KOC651', date: new Date(2016, 4, 21, 14, 0).toString(),
+           opponent: 'London Youth Whitecaps 03G', duration: 50},
+          {id: 'KOC656', date: new Date(2016, 4, 21, 16, 30).toString(),
+           opponent: 'Kitchener Spirit 03G', duration: 50},
+          {id: 'KOC657', date: new Date(2016, 4, 22, 11, 30).toString(),
+           opponent: 'Cambridge United 03G', duration: 50},
+          {id: 'KOC660', date: new Date(2016, 4, 22, 14, 0).toString(),
+           opponent: 'Semi-Final TBD', duration: 50},
+          {id: '129', date: new Date(2016, 6, 26, 13, 0).toString(),
+           opponent: 'Eastside Kickers 03G', duration: 80}
         ];
       }
 
@@ -413,7 +423,9 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
-var Stopwatch = function() {
+/* eslint-disable */
+var Stopwatch = (function() {
+/* eslint-enable */
   function Stopwatch(display, results) {
     _classCallCheck(this, Stopwatch);
 
@@ -454,7 +466,8 @@ var Stopwatch = function() {
     this.time = null;
   };
 
-  Stopwatch.prototype.restore = function restore(originalTime, elapsed, running) {
+  Stopwatch.prototype.restore = function restore(originalTime, elapsed,
+    running) {
     let restoreTime = null;
     if (elapsed && elapsed > 0) {
       restoreTime = performance.now() - elapsed;
@@ -497,7 +510,9 @@ var Stopwatch = function() {
   };
 
   Stopwatch.prototype.step = function step(timestamp) {
-    if (!this.running) return;
+    if (!this.running) {
+      return;
+    }
     this.calculate(timestamp);
     this.time = timestamp;
     this.print();
@@ -529,7 +544,7 @@ var Stopwatch = function() {
   };
 
   return Stopwatch;
-}();
+})();
 
 function pad0(value, count) {
   var result = value.toString();
@@ -547,7 +562,8 @@ function clearChildren(node) {
 
 function newId(
   a                  // placeholder
-){
+) {
+/* eslint-disable */
   return a           // if the placeholder was passed, return
     ? (              // a random number from 0 to 15
       a ^            // unless b is 8,
@@ -564,5 +580,6 @@ function newId(
       ).replace(     // replacing
         /[018]/g,    // zeroes, ones, and eights with
         newId        // random hex digits
-      )
+      );
+/* eslint-enable */
 }

@@ -127,14 +127,13 @@
     card.querySelector('.gameDate').textContent = game.date;
     card.querySelector('.liveLink').href = 'live-game.html?game=' + game.id;
     if (app.isLoading) {
-      //app.spinner.setAttribute('hidden', true);
+      // app.spinner.setAttribute('hidden', true);
       app.container.removeAttribute('hidden');
       app.isLoading = false;
     }
   };
 
   app.showRoster = function() {
-    var list = document.querySelector('.rosterList');
     var roster = LineupTracker.retrieveRoster();
 
     roster.forEach(player => {
@@ -155,10 +154,10 @@
       app.visiblePlayerCards[player.name] = card;
     }
     card.querySelector('.playerPositions').textContent =
-    player.positions.join(' ');
+      player.positions.join(' ');
 
-    card.querySelector('.playerGameCount').textContent = player.name.length + ' games';
-    //card.querySelector('.liveLink').href = 'live-game.html?game=' + player.name;
+    card.querySelector('.playerGameCount').textContent =
+      player.name.length + ' games';
   };
 
  /*****************************************************************************

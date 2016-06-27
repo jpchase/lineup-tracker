@@ -133,19 +133,21 @@
     liveGame.setupPlayerChooser('starter');
   });
 
-  document.getElementById('buttonSaveSubs').addEventListener('click', function() {
+  document.getElementById('buttonSaveSubs').addEventListener('click', () => {
     liveGame.saveSubs();
   });
 
-  document.getElementById('buttonCloseSubs').addEventListener('click', function() {
+  document.getElementById('buttonCloseSubs').addEventListener('click', () => {
     liveGame.closeSubs();
   });
 
-  document.getElementById('buttonSaveCaptains').addEventListener('click', function() {
+  document.getElementById('buttonSaveCaptains').addEventListener('click',
+  function() {
     liveGame.saveCaptains();
   });
 
-  document.getElementById('buttonCloseCaptains').addEventListener('click', function() {
+  document.getElementById('buttonCloseCaptains').addEventListener('click',
+  function() {
     liveGame.closeCaptains();
   });
 
@@ -156,8 +158,9 @@
    ****************************************************************************/
 
   liveGame.getSelectedPlayerCards = function(container, useFormation) {
-    var selector = useFormation ? ':scope .live-formation-line > .player > .playerSelect'
-                                : ':scope .player > .playerSelect';
+    var selector = useFormation ?
+      ':scope .live-formation-line > .player > .playerSelect' :
+      ':scope .player > .playerSelect';
     var playerSelects = container.querySelectorAll(selector);
     var selectedIds = [];
     var tuples = [];
@@ -211,8 +214,8 @@
   };
 
   liveGame.setupPlayerChooser = function(mode) {
-    var container = (mode === 'swap') ? liveGame.containers.on
-                                      : liveGame.containers.off;
+    var container = (mode === 'swap') ? liveGame.containers.on :
+                                      liveGame.containers.off;
     var selected = this.getSelectedPlayerCards(container);
 
     clearChildren(this.subs.container);
@@ -228,15 +231,17 @@
       var listItem = this.subs.template.cloneNode(true);
       listItem.classList.remove('subTemplate');
       listItem.querySelector('.playerName').textContent = player.name;
-      listItem.querySelector('.currentPosition').textContent = player.currentPosition;
+      listItem.querySelector('.currentPosition').textContent =
+        player.currentPosition;
 
       // Populate the positions
       //  - First, the common positions for the player
       //  - Second, the remaining positions from the formation
       var selectPosition = listItem.querySelector('.selectPosition');
       var orderedPositions = player.positions.concat(
-        this.formation.uniquePositions().filter(position => !player.positions.includes(position))
-        );
+        this.formation.uniquePositions().filter(
+          position => !player.positions.includes(position))
+      );
 
       orderedPositions.forEach(position => {
         var optionPosition = document.createElement('option');
@@ -251,7 +256,8 @@
         this.getPlayersByStatus('ON').forEach(player => {
           var optionReplace = document.createElement('option');
           optionReplace.value = player.name;
-          optionReplace.textContent = player.name + ' - ' + player.currentPosition;
+          optionReplace.textContent = player.name + ' - ' +
+            player.currentPosition;
           selectPlayer.appendChild(optionReplace);
         });
         selectPlayer.removeAttribute('hidden');
@@ -276,12 +282,14 @@
 
       if (tuple.isSwap) {
         // Find the actual card for the player
-        let swapContainer = this.getFormationContainer(playerIn.currentPosition);
+        let swapContainer = this.getFormationContainer(
+          playerIn.currentPosition);
         let actualCard = this.getOnPlayerCard(swapContainer, playerIn);
 
         // Move the player card to the new position
         swapContainer.removeChild(actualCard);
-        this.getFormationContainer(playerIn.nextPosition).appendChild(actualCard);
+        this.getFormationContainer(playerIn.nextPosition).appendChild(
+          actualCard);
 
         // Remove the swap card
         cardIn.parentNode.removeChild(cardIn);
@@ -305,7 +313,8 @@
         subContainer.replaceChild(cardIn, cardOut);
       } else {
         subContainer.removeChild(cardOut);
-        this.getFormationContainer(playerIn.currentPosition).appendChild(cardIn);
+        this.getFormationContainer(playerIn.currentPosition).appendChild(
+          cardIn);
       }
       this.containers.off.appendChild(cardOut);
       tuple.select.checked = false;
@@ -326,11 +335,13 @@
   };
 
   liveGame.getFormationContainer = function(position) {
-    return this.containers.formation[this.formation.getLineForPosition(position)];
+    return this.containers.formation[this.formation.getLineForPosition(
+      position)];
   };
 
   liveGame.getOnPlayerCard = function(container, player) {
-    var playerSelects = container.querySelectorAll(':scope .player > .playerSelect');
+    var playerSelects = container.querySelectorAll(
+      ':scope .player > .playerSelect');
     for (var i = 0; i < playerSelects.length; ++i) {
       var select = playerSelects[i];
       if (select.value === player.name) {
@@ -375,7 +386,8 @@
   };
 
   liveGame.updateSwapCard = function(player, swapCard) {
-    swapCard.querySelector('.currentPosition').textContent = player.currentPosition;
+    swapCard.querySelector('.currentPosition').textContent =
+      player.currentPosition;
     swapCard.querySelector('.subFor').textContent = player.nextPosition;
   };
 
@@ -400,7 +412,7 @@
     let useNextPosition = false;
     var toContainer = this.containers.next;
     var useFormation = false;
-    
+
     switch (this.playerChooserMode) {
       case 'sub':
         setupPlayer = this.setupNextSub;
@@ -414,6 +426,7 @@
       case 'swap':
         useNextPosition = true;
         break;
+      default:
     }
     if (setupPlayer) {
       setupPlayer = setupPlayer.bind(this);
@@ -428,7 +441,8 @@
 
       // Get the position
       var selectPosition = listItem.querySelector('.selectPosition');
-      var newPosition = selectPosition.options[selectPosition.selectedIndex].value;
+      var newPosition =
+        selectPosition.options[selectPosition.selectedIndex].value;
       if (useNextPosition) {
         player.nextPosition = newPosition;
       } else {
@@ -464,7 +478,7 @@
   };
 
   liveGame.nextPeriod = function() {
-    var clockRunning = this.game.nextPeriod();
+    /* var clockRunning = */this.game.nextPeriod();
     this.updateButtonStates();
   };
 
@@ -493,8 +507,8 @@
     }
 
     var items = this.captains.container.querySelectorAll('.selectCaptain');
-    for (var i = 0; i < items.length; ++i) {
-      var selectCaptain = items[i];
+    for (let i = 0; i < items.length; ++i) {
+      let selectCaptain = items[i];
 
       // Clear previous players, in case roster changed
       while (selectCaptain.options.length > 0) {
@@ -503,7 +517,7 @@
 
       // Populate players
       this.game.roster.forEach(player => {
-        var optionCaptain = document.createElement('option');
+        let optionCaptain = document.createElement('option');
         optionCaptain.value = player.name;
         optionCaptain.textContent = player.name;
         selectCaptain.appendChild(optionCaptain);
@@ -589,14 +603,13 @@
   };
 
   liveGame.startGame = function() {
-    if (this.game.startGame())
-    {
+    if (this.game.startGame()) {
       this.updateButtonStates();
     }
   };
 
   liveGame.completeGame = function() {
-    var clockRunning = this.game.completeGame();
+    /* var clockRunning = */this.game.completeGame();
     this.updateButtonStates();
   };
 

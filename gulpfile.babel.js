@@ -41,7 +41,10 @@ const reload = browserSync.reload;
 // Lint JavaScript
 gulp.task('lint', () =>
   gulp.src('app/scripts/**/*.js')
-    .pipe($.eslint())
+    .pipe($.eslint({
+			// Load a specific ESLint config
+			config: 'eslint-config.json'
+		}))
     .pipe($.eslint.format())
     .pipe($.if(!browserSync.active, $.eslint.failOnError()))
 );
