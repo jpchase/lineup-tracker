@@ -343,7 +343,8 @@ var LineupTracker = LineupTracker || {};
           {id: 'KOC651', date: new Date(2016, 4, 21, 14, 0).toString(), opponent: 'London Youth Whitecaps 03G', duration: 50},
           {id: 'KOC656', date: new Date(2016, 4, 21, 16, 30).toString(), opponent: 'Kitchener Spirit 03G', duration: 50},
           {id: 'KOC657', date: new Date(2016, 4, 22, 11, 30).toString(), opponent: 'Cambridge United 03G', duration: 50},
-          {id: 'KOC660', date: new Date(2016, 4, 22, 14, 0).toString(), opponent: 'Semi-Final TBD', duration: 50}
+          {id: 'KOC660', date: new Date(2016, 4, 22, 14, 0).toString(), opponent: 'Semi-Final TBD', duration: 50},
+          {id: '129', date: new Date(2016, 6, 26, 13, 0).toString(), opponent: 'Eastside Kickers 03G', duration: 80}
         ];
       }
 
