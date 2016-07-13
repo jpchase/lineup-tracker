@@ -409,7 +409,7 @@
     var shiftStartTime = (isOn ? player.lastOnTime : player.lastOffTime);
     var formattedShiftTime = '';
     if (shiftStartTime && !isNaN(shiftStartTime)) {
-      var elapsed = calculateElapsed(Date.now(), shiftStartTime);
+      var elapsed = calculateElapsed(shiftStartTime, Date.now());
       formattedShiftTime = pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
     }
     card.querySelector('.shiftTime').textContent = formattedShiftTime;
