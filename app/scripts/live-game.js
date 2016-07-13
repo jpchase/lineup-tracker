@@ -29,6 +29,7 @@
     game: null,
     roster: null,
     clock: null,
+    shiftIntervalId: null,
     visiblePlayerCards: [],
     playerTemplate: document.querySelector('.playerTemplate'),
     buttons: {
@@ -522,6 +523,25 @@
     this.buttons.completeGame.disabled = !isLive;
   };
 
+  liveGame.refreshShiftTimes = function() {
+    this.visitPlayerCards(this.updateShiftTime);
+  };
+
+  liveGame.startShiftTimeUpdater = function() {
+    // Make sure the updater is not currently running
+    this.stopShiftTimeUpdater();
+    // Refresh the display of shift times every 10 seconds
+    this.shiftIntervalId = setInterval(this.refreshShiftTimes.bind(this), 10000);
+  };
+
+  liveGame.stopShiftTimeUpdater = function() {
+    if (!this.shiftIntervalId) {
+      return;
+    }
+    clearInterval(this.shiftIntervalId);
+    this.shiftIntervalId = null;
+  };
+
   liveGame.updateCaptains = function() {
     var currentCaptains = null;
     var setCurrent = false;
@@ -619,12 +639,14 @@
     var clockRunning = this.game.toggleClock();
     if (clockRunning) {
       this.resumeClock();
+      this.startShiftTimeUpdater();
     } else {
       this.clock.pause();
+      this.stopShiftTimeUpdater();
     }
     this.saveGame();
     this.updateButtonStates();
-    this.visitPlayerCards(this.updateShiftTime);
+    this.refreshShiftTimes();
   };
 
   liveGame.startGame = function() {
