@@ -14,7 +14,9 @@
 		"no-empty": 1
 	},
 	"globals": {
-		"clearChildren": false,
+    "calculateElapsed": false,
+    "clearChildren": false,
+    "pad0": false,
     "Stopwatch": false
 	},
 	"env":{

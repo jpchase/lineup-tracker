@@ -574,7 +574,9 @@ function clearChildren(node) {
   }
 }
 
+/* eslint-disable */
 function calculateElapsed(startTime, endTime) {
+/* eslint-enable */
   var elapsed = [0, 0];
   var timeDiff = endTime - startTime;
 
