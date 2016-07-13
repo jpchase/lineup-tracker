@@ -180,6 +180,16 @@
     return {ids: selectedIds, tuples: tuples};
   };
 
+  liveGame.visitPlayerCards = function(cardCallback) {
+    this.game.roster.forEach(player => {
+      var card = this.visiblePlayerCards[player.name];
+      if (!card) {
+        throw new Error('No card found for: ' + player.name);
+      }
+      cardCallback(player, card);
+    });
+  };
+
   liveGame.movePlayerCards = function(playerCallback, from, to, useFormation) {
     var selected = this.getSelectedPlayerCards(from);
 
@@ -363,6 +373,7 @@
   };
 
   liveGame.updatePlayerCard = function(player) {
+    var isOn = (player.status === 'ON');
     var card = this.visiblePlayerCards[player.name];
     if (!card) {
       card = this.playerTemplate.cloneNode(true);
@@ -372,7 +383,7 @@
       card.removeAttribute('hidden');
 
       // Place the card correctly, depending on the player status
-      this.placePlayerCard(card, player, null, (player.status === 'ON'));
+      this.placePlayerCard(card, player, null, isOn);
 
       this.visiblePlayerCards[player.name] = card;
     }
@@ -383,12 +394,25 @@
     if (this.game.captains.find(captain => player.name === captain)) {
       this.addCaptainBadge(card);
     }
+
+    this.updateShiftTime(player, card);
   };
 
   liveGame.updateSwapCard = function(player, swapCard) {
     swapCard.querySelector('.currentPosition').textContent =
       player.currentPosition;
     swapCard.querySelector('.subFor').textContent = player.nextPosition;
+  };
+
+  liveGame.updateShiftTime = function(player, card) {
+    var isOn = (player.status === 'ON');
+    var shiftStartTime = (isOn ? player.lastOnTime : player.lastOffTime);
+    var formattedShiftTime = '';
+    if (shiftStartTime && !isNaN(shiftStartTime)) {
+      var elapsed = calculateElapsed(Date.now(), shiftStartTime);
+      formattedShiftTime = pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
+    }
+    card.querySelector('.shiftTime').textContent = formattedShiftTime;
   };
 
   liveGame.setupGame = function() {
@@ -399,8 +423,8 @@
       this.resumeClock(true);
     }
 
-    this.game.roster.forEach(function(player) {
-      liveGame.updatePlayerCard(player);
+    this.game.roster.forEach(player => {
+      this.updatePlayerCard(player);
     });
 
     this.updateButtonStates();
@@ -600,6 +624,7 @@
     }
     this.saveGame();
     this.updateButtonStates();
+    this.visitPlayerCards(this.updateShiftTime);
   };
 
   liveGame.startGame = function() {

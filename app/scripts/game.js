@@ -64,6 +64,15 @@ var LineupTracker = LineupTracker || {};
       this.startTime = time;
       this.elapsed = 0;
       this.period += 1;
+
+      var shiftTime = Date.now();
+      this.roster.forEach(player => {
+        if (player.status === 'ON') {
+          player.lastOnTime = shiftTime;
+        } else {
+          player.lastOffTime = shiftTime;
+        }
+      });
     }
 
     if (this.clockRunning) {
@@ -170,11 +179,14 @@ var LineupTracker = LineupTracker || {};
       throw new Error('Invalid status to substitute: ' + this.status);
     }
 
+    let time = Date.now();
+
     playerIn.replaces = null;
     playerIn.status = 'ON';
+    playerIn.lastOnTime = time;
     playerOut.status = 'OFF';
+    playerOut.lastOffTime = time;
 
-    let time = Date.now();
     this.addEvent({
       type: 'SUBIN',
       date: time,
@@ -242,6 +254,8 @@ var LineupTracker = LineupTracker || {};
   LineupTracker.Game.prototype.resetPlayersToOff = function() {
     this.roster.forEach(player => {
       player.status = 'OFF';
+      player.lastOnTime = undefined;
+      player.lastOffTime = undefined;
     });
     this.starters = [];
   };
@@ -558,6 +572,22 @@ function clearChildren(node) {
   while (node.lastChild) {
     node.removeChild(node.lastChild);
   }
+}
+
+function calculateElapsed(startTime, endTime) {
+  var elapsed = [0, 0];
+  var timeDiff = endTime - startTime;
+
+  // get seconds
+  elapsed[1] = Math.round(timeDiff % 60);
+
+  // remove seconds from the time
+  timeDiff = Math.floor(timeDiff / 60);
+
+  // get minutes
+  elapsed[0] = Math.round(timeDiff % 60);
+
+  return elapsed;
 }
 
 function newId(
