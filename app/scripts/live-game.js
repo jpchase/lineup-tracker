@@ -406,14 +406,7 @@
   };
 
   liveGame.updateShiftTime = function(player, card) {
-    var isOn = (player.status === 'ON');
-    var shiftStartTime = (isOn ? player.lastOnTime : player.lastOffTime);
-    var formattedShiftTime = '';
-    if (shiftStartTime && !isNaN(shiftStartTime)) {
-      var elapsed = calculateElapsed(shiftStartTime, Date.now());
-      formattedShiftTime = pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
-    }
-    card.querySelector('.shiftTime').textContent = formattedShiftTime;
+    card.querySelector('.shiftTime').textContent = player.formattedShiftTime;
   };
 
   liveGame.setupGame = function() {
@@ -524,6 +517,7 @@
   };
 
   liveGame.refreshShiftTimes = function() {
+    this.game.updateShiftTimes();
     this.visitPlayerCards(this.updateShiftTime);
   };
 
@@ -531,7 +525,8 @@
     // Make sure the updater is not currently running
     this.stopShiftTimeUpdater();
     // Refresh the display of shift times every 10 seconds
-    this.shiftIntervalId = setInterval(this.refreshShiftTimes.bind(this), 10000);
+    this.shiftIntervalId = setInterval(
+      this.refreshShiftTimes.bind(this), 10000);
   };
 
   liveGame.stopShiftTimeUpdater = function() {

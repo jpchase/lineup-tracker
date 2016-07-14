@@ -51,6 +51,11 @@ var LineupTracker = LineupTracker || {};
            this.date.getDate();
   };
 
+  // Time tracking functions
+  LineupTracker.Game.prototype.getCurrentTime = function() {
+    return Date.now();
+  };
+
   LineupTracker.Game.prototype.toggleClock = function() {
     if (this.status === 'DONE' ||
         this.status === 'NEW') {
@@ -97,6 +102,20 @@ var LineupTracker = LineupTracker || {};
     this.startTime = null;
     this.lastClockTime = null;
     this.elapsed = null;
+  };
+
+  LineupTracker.Game.prototype.updateShiftTimes = function() {
+    const shiftEndTime = this.getCurrentTime();
+    this.roster.forEach(player => {
+      let isOn = (player.status === 'ON');
+      let shiftStartTime = (isOn ? player.lastOnTime : player.lastOffTime);
+      let formattedShiftTime = '';
+      if (shiftStartTime && !isNaN(shiftStartTime)) {
+        let elapsed = calculateElapsed(shiftStartTime, shiftEndTime);
+        formattedShiftTime = pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
+      }
+      player.formattedShiftTime = formattedShiftTime;
+    });
   };
 
   LineupTracker.Game.prototype.startGame = function() {
@@ -254,8 +273,9 @@ var LineupTracker = LineupTracker || {};
   LineupTracker.Game.prototype.resetPlayersToOff = function() {
     this.roster.forEach(player => {
       player.status = 'OFF';
-      player.lastOnTime = undefined;
-      player.lastOffTime = undefined;
+      player.lastOnTime = null;
+      player.lastOffTime = null;
+      player.formattedShiftTime = '';
     });
     this.starters = [];
   };
@@ -574,11 +594,10 @@ function clearChildren(node) {
   }
 }
 
-/* eslint-disable */
 function calculateElapsed(startTime, endTime) {
-/* eslint-enable */
   var elapsed = [0, 0];
-  var timeDiff = endTime - startTime;
+  // Compute diff in seconds (convert from ms)
+  var timeDiff = (endTime - startTime) / 1000;
 
   // get seconds
   elapsed[1] = Math.round(timeDiff % 60);
