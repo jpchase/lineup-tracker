@@ -93,7 +93,9 @@
     playerCardTemplate: document.querySelector('.playerCardTemplate'),
     container: document.querySelector('.game-container'),
     rosterContainer: document.querySelector('.rosterList'),
-    addDialog: document.querySelector('.dialog-container')
+    games: {
+      dialog: document.getElementById('dialogGame')
+    }
   };
 
   /*****************************************************************************
@@ -103,6 +105,18 @@
    ****************************************************************************/
   document.getElementById('tabRoster').addEventListener('click', function() {
     app.showRoster();
+  });
+
+  document.getElementById('buttonAddGame').addEventListener('click', () => {
+    app.addGame();
+  });
+
+  document.getElementById('buttonSaveGame').addEventListener('click', () => {
+    app.saveGame();
+  });
+
+  document.getElementById('buttonCloseGame').addEventListener('click', () => {
+    app.closeGame();
   });
 
   /*****************************************************************************
@@ -158,6 +172,64 @@
 
     card.querySelector('.playerGameCount').textContent =
       player.name.length + ' games';
+  };
+
+  app.addGame = function() {
+    // Clear any existing values in the dialog
+    let allControls = this.getNewGameControls();
+    Object.keys(allControls).forEach(key => {
+      let control = allControls[key];
+      control.value = null;
+    });
+    this.games.dialog.showModal();
+  };
+
+  app.saveGame = function() {
+    let controls = this.getNewGameControls();
+
+    // Parse the date and time values, to get date parts separately
+    let dateParts = controls.date.value.match(/(\d{4})\-(\d{2})\-(\d{2})/);
+    dateParts[2] -= 1; // months are zero-based
+    let timeParts = controls.time.value.match(/(\d{2}):(\d{2})/);
+
+    // Construct the date object from the arrays of parts
+    //  - Ignore element 0, which is the whole string match
+    let date = new Date(
+      dateParts[1], // years
+      dateParts[2], // months
+      dateParts[3], // days
+      timeParts[1], // hours
+      timeParts[2] // minutes
+    );
+
+    let data = {
+      id: controls.id.value,
+      date: date,
+      opponent: controls.opponent.value,
+      duration: parseInt(controls.duration.value, 10),
+    };
+
+    let newGame = new LineupTracker.Game(data);
+    LineupTracker.saveGame(newGame);
+
+    // Display the new game
+    this.updateGameCard(newGame);
+
+    this.closeGame();
+  };
+
+  app.closeGame = function() {
+    this.games.dialog.close();
+  };
+
+  app.getNewGameControls = function() {
+    return {
+      id: document.getElementById('textId'),
+      date: document.getElementById('textGameDate'),
+      time: document.getElementById('textGameTime'),
+      opponent: document.getElementById('textOpponent'),
+      duration: document.getElementById('textDuration'),
+    };
   };
 
  /*****************************************************************************

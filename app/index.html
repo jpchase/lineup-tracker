@@ -82,7 +82,7 @@
                 </div>
               </div>
               <div class="mdl-card__actions">
-                <a href="#" class="mdl-button">Add game</a>
+                <a href="#" class="mdl-button" id="buttonAddGame">Add game</a>
               </div>
             </div>
             <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="btn2">
@@ -123,6 +123,35 @@
           </section>
         </div>
       </main>
+      <dialog id="dialogGame" class="mdl-dialog dialog-wide">
+        <h4 class="mdl-dialog__title">New Game</h4>
+        <div class="mdl-dialog__content" id="newGameContainer">
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" id="textId">
+            <label class="mdl-textfield__label" for="textId">ID</label>
+          </div>
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="date" id="textGameDate">
+            <label class="mdl-textfield__label" for="textGameDate">Date</label>
+          </div>
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="time" id="textGameTime">
+            <label class="mdl-textfield__label" for="textGameTime">Time</label>
+          </div>
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" id="textOpponent">
+            <label class="mdl-textfield__label" for="textOpponent">Opponent</label>
+          </div>
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" pattern="[0-9]*(\.[0-9]+)?" id="textDuration">
+            <label class="mdl-textfield__label" for="textDuration">Game Length</label>
+          </div>
+        </div>
+        <div class="mdl-dialog__actions">
+          <button type="button" class="mdl-button" id="buttonSaveGame">Save</button>
+          <button type="button" class="mdl-button close" id="buttonCloseGame">Close</button>
+        </div>
+      </dialog>
     </div>
 
     <script src="https://storage.googleapis.com/code.getmdl.io/1.0.6/material.min.js"></script>
