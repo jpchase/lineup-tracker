@@ -44,6 +44,8 @@
       addSwap: document.getElementById('buttonSwap'),
       cancelNext: document.getElementById('buttonCancelNext'),
       sub: document.getElementById('buttonSub'),
+      addOut: document.getElementById('buttonOut'),
+      cancelOut: document.getElementById('buttonCancelOut'),
     },
     menus: {
       captains: document.getElementById('menuCaptains'),
@@ -132,6 +134,14 @@
 
   liveGame.buttons.addStarter.addEventListener('click', function() {
     liveGame.setupPlayerChooser('starter');
+  });
+
+  liveGame.buttons.addOut.addEventListener('click', function() {
+    liveGame.addOutCards();
+  });
+
+  liveGame.buttons.cancelOut.addEventListener('click', function() {
+    liveGame.cancelOutCards();
   });
 
   document.getElementById('buttonSaveSubs').addEventListener('click', () => {
@@ -345,6 +355,18 @@
       this.containers.off);
   };
 
+  liveGame.addOutCards = function() {
+    this.movePlayerCards(this.setupOut,
+      this.containers.off,
+      this.containers.out);
+  };
+
+  liveGame.cancelOutCards = function() {
+    this.movePlayerCards(this.cancelOut,
+      this.containers.out,
+      this.containers.off);
+  };
+
   liveGame.getFormationContainer = function(position) {
     return this.containers.formation[this.formation.getLineForPosition(
       position)];
@@ -514,6 +536,8 @@
     this.buttons.toggleClock.disabled = !(isLive || isStart || isBreak);
     this.buttons.nextPeriod.disabled = !isLive;
     this.buttons.completeGame.disabled = !isLive;
+
+    // The out and cancel out buttons are never disabled
   };
 
   liveGame.refreshShiftTimes = function() {
@@ -673,6 +697,14 @@
       return;
     }
     player.replaces = null;
+    player.status = 'OFF';
+  };
+
+  liveGame.setupOut = function(player) {
+    player.status = 'OUT';
+  };
+
+  liveGame.cancelOut = function(player) {
     player.status = 'OFF';
   };
 
