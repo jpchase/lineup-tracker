@@ -136,13 +136,8 @@ var LineupTracker = LineupTracker || {};
     this.addEvent({
       type: 'START',
       details: {
+        captains: this.captains.slice(0),
         starters: this.starters.slice(0)
-      }
-    });
-    this.addEvent({
-      type: 'CAPTAINS',
-      details: {
-        starters: this.captains.slice(0)
       }
     });
     return true;
