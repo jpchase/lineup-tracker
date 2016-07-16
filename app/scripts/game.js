@@ -64,25 +64,7 @@ var LineupTracker = LineupTracker || {};
     var time = performance.now();
     if (this.status !== 'LIVE') {
       // Starting the clock for the first time
-      console.log('Changing to live.');
-      this.status = 'LIVE';
-      this.startTime = time;
-      this.elapsed = 0;
-      this.period += 1;
-
-      var startingGame = (this.period === 1);
-      var shiftTime = Date.now();
-      this.roster.forEach(player => {
-        if (player.status === 'ON') {
-          player.lastOnTime = shiftTime;
-        } else {
-          if (startingGame || !player.lastOffTime) {
-            // Only set the last off time for the beginning of the game. We want
-            // to track the off time from the previous period (before the break).
-            player.lastOffTime = shiftTime;
-          }
-        }
-      });
+      this.startLivePeriod(time);
     }
 
     if (this.clockRunning) {
@@ -133,6 +115,7 @@ var LineupTracker = LineupTracker || {};
     }
     console.log('Starting game.');
     this.status = 'START';
+    this.period = 1;
     this.addEvent({
       type: 'START',
       details: {
@@ -145,10 +128,44 @@ var LineupTracker = LineupTracker || {};
 
   LineupTracker.Game.prototype.nextPeriod = function() {
     this.endLivePeriod('BREAK', 'NEXTPERIOD');
+    this.period += 1;
   };
 
   LineupTracker.Game.prototype.completeGame = function() {
     this.endLivePeriod('DONE', 'COMPLETE');
+  };
+
+  LineupTracker.Game.prototype.startLivePeriod = function(time) {
+    if (this.status !== 'START' &&
+        this.status !== 'BREAK') {
+      throw new Error('Invalid status to start live period: ' + this.status);
+    }
+    console.log('Changing to live.');
+    var startingGame = (this.period === 1);
+    this.status = 'LIVE';
+    this.startTime = time;
+    this.elapsed = 0;
+
+    let shiftTime = this.getCurrentTime();
+    let starters = [];
+    this.roster.forEach(player => {
+      if (player.status === 'ON') {
+        player.lastOnTime = shiftTime;
+        starters.push(player.name);
+      } else if (startingGame || !player.lastOffTime) {
+        // Only set the last off time for the beginning of the game. We want
+        // to track the off time from the previous period (before the break).
+        player.lastOffTime = shiftTime;
+      }
+    });
+
+    this.addEvent({
+      type: 'LIVE',
+      details: {
+        period: this.period,
+        players: starters,
+      }
+    });
   };
 
   LineupTracker.Game.prototype.endLivePeriod = function(newStatus, eventType) {
@@ -160,7 +177,10 @@ var LineupTracker = LineupTracker || {};
     this.addEvent({
       type: eventType,
       details: {
-        period: this.period
+        period: this.period,
+        players: this.getPlayersByStatus('ON').map(player => {
+          return player.name;
+        })
       }
     });
   };
