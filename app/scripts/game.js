@@ -70,12 +70,17 @@ var LineupTracker = LineupTracker || {};
       this.elapsed = 0;
       this.period += 1;
 
+      var startingGame = (this.period === 1);
       var shiftTime = Date.now();
       this.roster.forEach(player => {
         if (player.status === 'ON') {
           player.lastOnTime = shiftTime;
         } else {
-          player.lastOffTime = shiftTime;
+          if (startingGame || !player.lastOffTime) {
+            // Only set the last off time for the beginning of the game. We want
+            // to track the off time from the previous period (before the break).
+            player.lastOffTime = shiftTime;
+          }
         }
       });
     }
