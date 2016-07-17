@@ -523,6 +523,7 @@
     /* var clockRunning = */this.game.nextPeriod();
     this.updateButtonStates();
     this.updatePeriod();
+    this.clock.pause();
   };
 
   liveGame.updateButtonStates = function() {
@@ -685,6 +686,7 @@
   liveGame.completeGame = function() {
     /* var clockRunning = */this.game.completeGame();
     this.updateButtonStates();
+    this.clock.pause();
   };
 
   liveGame.getPlayer = function(id) {

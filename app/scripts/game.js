@@ -172,6 +172,9 @@ var LineupTracker = LineupTracker || {};
     if (this.status !== 'LIVE') {
       throw new Error('Invalid status to end live period: ' + this.status);
     }
+    if (this.clockRunning) {
+      this.toggleClock();
+    }
     console.log('Changing status to:', newStatus);
     this.status = newStatus;
     this.addEvent({
