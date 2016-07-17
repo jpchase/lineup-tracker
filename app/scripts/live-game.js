@@ -523,7 +523,8 @@
     /* var clockRunning = */this.game.nextPeriod();
     this.updateButtonStates();
     this.updatePeriod();
-    this.clock.pause();
+    this.clock.stop();
+    this.clock.reset();
   };
 
   liveGame.updateButtonStates = function() {

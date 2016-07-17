@@ -194,6 +194,7 @@ var LineupTracker = LineupTracker || {};
 
     switch (options.status) {
       case 'NEW':
+        this.period = 0;
         this.resetClock();
         this.resetPlayersToOff();
         return;
