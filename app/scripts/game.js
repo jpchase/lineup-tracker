@@ -53,7 +53,7 @@ var LineupTracker = LineupTracker || {};
 
   // Time tracking functions
   LineupTracker.Game.prototype.getCurrentTime = function() {
-    return Date.now();
+    return getCurrentTime();
   };
 
   LineupTracker.Game.prototype.toggleClock = function() {
@@ -218,7 +218,7 @@ var LineupTracker = LineupTracker || {};
       throw new Error('Invalid status to substitute: ' + this.status);
     }
 
-    let time = Date.now();
+    let time = this.getCurrentTime();
 
     playerIn.replaces = null;
     playerIn.status = 'ON';
@@ -250,7 +250,7 @@ var LineupTracker = LineupTracker || {};
     player.currentPosition = player.nextPosition;
     player.nextPosition = null;
 
-    let time = Date.now();
+    let time = this.getCurrentTime();
     this.addEvent({
       type: 'SWAPPOSITION',
       date: time,
@@ -375,7 +375,7 @@ var LineupTracker = LineupTracker || {};
     let data = passedData || {};
 
     this.id = data.id || newId();
-    this.date = data.date ? new Date(data.date) : Date.now();
+    this.date = new Date(data.date || getCurrentTime());
     this.type = data.type || null;
     this.player = data.player || null;
     this.details = data.details || null;
@@ -612,6 +612,10 @@ function clearChildren(node) {
   while (node.lastChild) {
     node.removeChild(node.lastChild);
   }
+}
+
+function getCurrentTime() {
+  return Date.now();
 }
 
 function calculateElapsed(startTime, endTime) {
