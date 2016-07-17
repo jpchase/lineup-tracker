@@ -52,6 +52,7 @@
     },
     containers: {
       title: document.querySelector('.mdl-layout-title'),
+      period: document.getElementById('gamePeriod'),
       on: document.getElementById('live-on'),
       next: document.getElementById('live-next'),
       off: document.getElementById('live-off'),
@@ -444,6 +445,7 @@
     });
 
     this.updateButtonStates();
+    this.updatePeriod();
   };
 
   liveGame.saveSubs = function() {
@@ -520,6 +522,7 @@
   liveGame.nextPeriod = function() {
     /* var clockRunning = */this.game.nextPeriod();
     this.updateButtonStates();
+    this.updatePeriod();
   };
 
   liveGame.updateButtonStates = function() {
@@ -538,6 +541,10 @@
     this.buttons.completeGame.disabled = !isLive;
 
     // The out and cancel out buttons are never disabled
+  };
+
+  liveGame.updatePeriod = function() {
+    this.containers.period.textContent = 'Period: ' + this.game.period;
   };
 
   liveGame.refreshShiftTimes = function() {
@@ -671,6 +678,7 @@
   liveGame.startGame = function() {
     if (this.game.startGame()) {
       this.updateButtonStates();
+      this.updatePeriod();
     }
   };
 
