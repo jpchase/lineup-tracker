@@ -139,6 +139,7 @@
     }
     card.querySelector('.opponent').textContent = game.opponent;
     card.querySelector('.gameDate').textContent = game.date;
+    card.querySelector('.rosterLink').href = 'roster.html#game=' + game.id;
     card.querySelector('.liveLink').href = 'live-game.html#game=' + game.id;
     if (app.isLoading) {
       // app.spinner.setAttribute('hidden', true);
