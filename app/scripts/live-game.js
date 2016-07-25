@@ -318,6 +318,7 @@
 
         tuple.select.checked = false;
         this.swapPosition(playerIn);
+        this.updatePlayerCard(playerIn);
         return;
       }
 
