@@ -15,9 +15,15 @@
     },
     container: document.querySelector('.rosterList'),
     player: {
-      dialog: document.getElementById('dialogPlayer')
+      dialog: document.getElementById('dialogPlayer'),
+      nameField: document.getElementById('textName'),
+      positionsContainer: document.getElementById('positionContainer'),
     }
+  };
 
+  app.player.getPositionChecks = function() {
+    return this.positionsContainer.querySelectorAll(
+      ':scope label > .positionCheck');
   };
 
   /*****************************************************************************
@@ -74,36 +80,44 @@
   };
 
   app.addPlayer = function() {
-    let container = document.getElementById('positionContainer');
-    clearChildren(container);
+    let availablePositions = this.formation.uniquePositions();
+    let positionChecks = this.player.getPositionChecks();
 
-    let positionTemplate = document.querySelector('.positionTemplate');
-    this.formation.uniquePositions().forEach(position => {
-      let positionLabel = positionTemplate.cloneNode(true);
-      let positionCheck = positionLabel.querySelector('.positionCheck');
+    // Reset the controls
+    this.player.nameField.value = '';
+    for (let i = 0; i < positionChecks.length; ++i) {
+      if (i < availablePositions.length) {
+        // Will be used, just de-select
+        positionChecks[i].checked = false;
+        continue;
+      }
+      // Will not be used, hide
+      positionChecks[i].setAttribute('hidden', true);
+    }
+
+    // Setup the list of available positions
+    for (let i = 0; i < availablePositions.length; ++i) {
+      let positionLabel = positionChecks[i].parentNode;
       let positionName = positionLabel.querySelector('.positionName');
 
-      positionLabel.classList.remove('positionTemplate');
-      positionLabel.htmlFor = positionCheck.id = 'checkPosition' + position;
-      positionCheck.value = position;
-      positionName.textContent = position + ' 1';
+      let position = availablePositions[i];
+      positionChecks[i].value = position;
+      positionName.textContent = position;
 
       positionLabel.removeAttribute('hidden');
-      container.appendChild(positionLabel);
-    });
+    }
 
     this.player.dialog.showModal();
   };
 
   app.savePlayer = function() {
-    let container = document.getElementById('positionContainer');
+    if (!this.player.nameField.value) {
+      console.log('Must specify a name');
+      return;
+    }
 
-    // var selector = useFormation ?
-    //   ':scope .live-formation-line > .player > .playerSelect' :
-    //   ':scope .player > .playerSelect';
     let positions = [];
-    let positionChecks =
-      container.querySelectorAll(':scope label > .positionCheck');
+    let positionChecks = this.player.getPositionChecks();
     for (let i = 0; i < positionChecks.length; ++i) {
       let item = positionChecks[i];
       if (item.checked) {
@@ -117,7 +131,7 @@
     }
 
     let player = {
-      name: document.getElementById('textName').value,
+      name: this.player.nameField.value,
       positions: positions,
       status: 'OFF',
       isCallup: true,
