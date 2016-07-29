@@ -1,21 +1,3 @@
-/*!
- *
- *  Web Starter Kit
- *  Copyright 2015 Google Inc. All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *    https://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License
- *
- */
 /* eslint-env browser */
 (function() {
   'use strict';
@@ -32,6 +14,10 @@
       addPlayer: document.getElementById('buttonAddPlayer'),
     },
     container: document.querySelector('.rosterList'),
+    player: {
+      dialog: document.getElementById('dialogPlayer')
+    }
+
   };
 
   /*****************************************************************************
@@ -40,6 +26,15 @@
    *
    ****************************************************************************/
   app.buttons.addPlayer.addEventListener('click', () => {
+    app.addPlayer();
+  });
+
+  document.getElementById('buttonSavePlayer').addEventListener('click', () => {
+    app.savePlayer();
+  });
+
+  document.getElementById('buttonClosePlayer').addEventListener('click', () => {
+    app.closePlayer();
   });
 
   document.getElementById('menuReset').addEventListener('click', () => {
@@ -76,6 +71,74 @@
     this.roster.forEach(player => {
       this.updatePlayerCard(player);
     });
+  };
+
+  app.addPlayer = function() {
+    let container = document.getElementById('positionContainer');
+    clearChildren(container);
+
+    let positionTemplate = document.querySelector('.positionTemplate');
+    this.formation.uniquePositions().forEach(position => {
+      let positionLabel = positionTemplate.cloneNode(true);
+      let positionCheck = positionLabel.querySelector('.positionCheck');
+      let positionName = positionLabel.querySelector('.positionName');
+
+      positionLabel.classList.remove('positionTemplate');
+      positionLabel.htmlFor = positionCheck.id = 'checkPosition' + position;
+      positionCheck.value = position;
+      positionName.textContent = position + ' 1';
+
+      positionLabel.removeAttribute('hidden');
+      container.appendChild(positionLabel);
+    });
+
+    this.player.dialog.showModal();
+  };
+
+  app.savePlayer = function() {
+    let container = document.getElementById('positionContainer');
+
+    // var selector = useFormation ?
+    //   ':scope .live-formation-line > .player > .playerSelect' :
+    //   ':scope .player > .playerSelect';
+    let positions = [];
+    let positionChecks =
+      container.querySelectorAll(':scope label > .positionCheck');
+    for (let i = 0; i < positionChecks.length; ++i) {
+      let item = positionChecks[i];
+      if (item.checked) {
+        positions.push(item.value);
+      }
+    }
+
+    if (positions.length < 1) {
+      console.log('No positions selected');
+      return;
+    }
+
+    let player = {
+      name: document.getElementById('textName').value,
+      positions: positions,
+      status: 'OFF',
+      isCallup: true,
+    };
+
+    app.roster.push(player);
+
+    if (app.gameId) {
+      let game = LineupTracker.retrieveGame(app.gameId);
+      game.roster = app.roster;
+      LineupTracker.saveGame(game);
+    }
+
+    // Display the new player
+    this.updatePlayerCard(player);
+
+    this.closePlayer();
+  };
+
+  app.closePlayer = function() {
+    this.player.dialog.close();
   };
 
   /*****************************************************************************
@@ -117,6 +180,16 @@
   } else {
     app.roster = LineupTracker.retrieveRoster();
   }
+
+  // Setup formation as needed
+  if (!currentGame.formation) {
+    currentGame.formation = new LineupTracker.Formation();
+  }
+  if (!currentGame.formation.complete) {
+    // Eventually should support editing formation instead
+    currentGame.formation.setDefault();
+  }
+  app.formation = currentGame.formation;
 
   app.setupRoster();
 })();
