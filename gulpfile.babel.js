@@ -106,7 +106,7 @@ gulp.task('styles', () => {
 });
 
 // Concatenate and minify JavaScript. Optionally transpiles ES2015 code to ES5.
-// to enables ES2015 support remove the line `"only": "gulpfile.babel.js",` in the
+// to enable ES2015 support remove the line `"only": "gulpfile.babel.js",` in the
 // `.babelrc` file.
 gulp.task('scripts', () => {
   // Note: Since we are not using useref in the scripts build pipeline,
@@ -200,7 +200,9 @@ gulp.task('html', () => {
 });
 
 // Clean output directory
-gulp.task('clean', () => del(['.tmp', 'dist/*', '!dist/.git'], {dot: true}));
+gulp.task('clean', () => {
+  del(['.tmp', 'dist/*', '!dist/.git'], {dot: true});
+});
 
 // Watch files for changes & reload
 gulp.task('serve', ['scripts', 'styles'], () => {
@@ -249,6 +251,14 @@ gulp.task('default', ['clean'], cb =>
     cb
   )
 );
+
+gulp.task('test', () => {
+  gulp.src('spec/*.js')
+    // gulp-jasmine works on filepaths so you can't have any plugins before it
+    .pipe($.jasmine({
+        verbose: true
+      }))
+});
 
 // Run PageSpeed Insights
 gulp.task('pagespeed', cb =>
