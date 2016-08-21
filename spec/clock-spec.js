@@ -1,11 +1,6 @@
 import {Timer} from '../app/scripts/clock.js';
 
 describe('Timer', () => {
-   it('should have 0 elapsed for new instance', () => {
-       let timer = new Timer();
-       let elapsed = timer.getElapsed();
-       expect(elapsed).toEqual([0,0]);
-   });
 
    it('should not be running for new instance', () => {
        let timer = new Timer();
@@ -25,4 +20,27 @@ describe('Timer', () => {
        expect(timer.isRunning).toBe(false);
    });
 
+   describe('Elapsed time', () => {
+     it('should have 0 elapsed for new instance', () => {
+         let timer = new Timer();
+         let elapsed = timer.getElapsed();
+         expect(elapsed).toEqual([0,0]);
+     });
+
+     it('should have correct elapsed when running', () => {
+         let timer = new Timer();
+         timer.start();
+         let elapsed = timer.getElapsed();
+         expect(elapsed).toEqual([0,1]);
+     });
+
+     it('should have correct elapsed after stopped', () => {
+         let timer = new Timer();
+         timer.start();
+         timer.stop();
+         let elapsed = timer.getElapsed();
+         expect(elapsed).toEqual([0,5]);
+     });
+
+   });
 });
