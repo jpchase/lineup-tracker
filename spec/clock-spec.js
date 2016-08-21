@@ -1,4 +1,13 @@
-import {Timer} from '../app/scripts/clock.js';
+import {CurrentTimeProvider,Timer} from '../app/scripts/clock.js';
+
+describe('CurrentTimeProvider', () => {
+   it('should return the current time', () => {
+       let provider = new CurrentTimeProvider();
+       const expectedTime = Date.now();
+       const actualTime = provider.getCurrentTime();
+       expect(actualTime).toEqual(expectedTime);
+   });
+});
 
 describe('Timer', () => {
 
