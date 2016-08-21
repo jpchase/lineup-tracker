@@ -30,6 +30,16 @@ describe('Timer', () => {
    });
 
    describe('Elapsed time', () => {
+     const startTime = new Date(2016, 0, 1, 14, 0, 0);
+     const time1 = new Date(2016, 0, 1, 14, 0, 5);
+     const time2 = new Date(2016, 0, 1, 14, 0, 10);
+
+     function mockTimeProvider(t0, t1, t2, t3) {
+       let provider = new CurrentTimeProvider();
+       spyOn(provider, 'getCurrentTime').and.returnValues(t0, t1, t2, t3);
+       return provider;
+     }
+
      it('should have 0 elapsed for new instance', () => {
          let timer = new Timer();
          let elapsed = timer.getElapsed();
@@ -37,10 +47,11 @@ describe('Timer', () => {
      });
 
      it('should have correct elapsed when running', () => {
-         let timer = new Timer();
-         timer.start();
-         let elapsed = timer.getElapsed();
-         expect(elapsed).toEqual([0,1]);
+       const provider = mockTimeProvider(startTime, time1);
+       let timer = new Timer(provider);
+       timer.start();
+       let elapsed = timer.getElapsed();
+       expect(elapsed).toEqual([0,5]);
      });
 
      it('should have correct elapsed after stopped', () => {
