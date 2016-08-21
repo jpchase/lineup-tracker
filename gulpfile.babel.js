@@ -209,7 +209,7 @@ gulp.task('serve', ['scripts', 'styles'], () => {
   browserSync({
     notify: false,
     // Customize the Browsersync console logging prefix
-    logPrefix: 'WSK',
+    logPrefix: 'Lineups',
     // Allow scroll syncing across breakpoints
     scrollElementMapping: ['main', '.mdl-layout'],
     // Run as an https by uncommenting 'https: true'
@@ -230,7 +230,7 @@ gulp.task('serve', ['scripts', 'styles'], () => {
 gulp.task('serve:dist', ['default'], () =>
   browserSync({
     notify: false,
-    logPrefix: 'WSK',
+    logPrefix: 'Lineups',
     // Allow scroll syncing across breakpoints
     scrollElementMapping: ['main', '.mdl-layout'],
     // Run as an https by uncommenting 'https: true'
@@ -277,18 +277,13 @@ gulp.task('copy-sw-scripts', () => {
     .pipe(gulp.dest('dist/scripts/sw'));
 });
 
-// See http://www.html5rocks.com/en/tutorials/service-worker/introduction/ for
-// an in-depth explanation of what service workers are and why you should care.
-// Generate a service worker file that will provide offline functionality for
-// local resources. This should only be done for the 'dist' directory, to allow
-// live reload to work as expected when serving from the 'app' directory.
 gulp.task('generate-service-worker', ['copy-sw-scripts'], () => {
   const rootDir = 'dist';
   const filepath = path.join(rootDir, 'service-worker.js');
 
   return swPrecache.write(filepath, {
     // Used to avoid cache conflicts when serving on localhost.
-    cacheId: pkg.name || 'web-starter-kit',
+    cacheId: pkg.name || 'lineup-tracker',
     // sw-toolbox.js needs to be listed first. It sets up methods used in runtime-caching.js.
     importScripts: [
       'scripts/sw/sw-toolbox.js',
