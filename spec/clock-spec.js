@@ -41,9 +41,9 @@ describe('Timer', () => {
      }
 
      it('should have 0 elapsed for new instance', () => {
-         let timer = new Timer();
-         let elapsed = timer.getElapsed();
-         expect(elapsed).toEqual([0,0]);
+       let timer = new Timer();
+       let elapsed = timer.getElapsed();
+       expect(elapsed).toEqual([0, 0]);
      });
 
      it('should have correct elapsed when running', () => {
@@ -51,15 +51,37 @@ describe('Timer', () => {
        let timer = new Timer(provider);
        timer.start();
        let elapsed = timer.getElapsed();
-       expect(elapsed).toEqual([0,5]);
+       expect(elapsed).toEqual([0, 5]);
      });
 
      it('should have correct elapsed after stopped', () => {
-         let timer = new Timer();
-         timer.start();
-         timer.stop();
-         let elapsed = timer.getElapsed();
-         expect(elapsed).toEqual([0,5]);
+       const provider = mockTimeProvider(startTime, time2);
+       let timer = new Timer(provider);
+       timer.start();
+       timer.stop();
+       let elapsed = timer.getElapsed();
+       expect(elapsed).toEqual([0, 10]);
+     });
+
+     it('should have correct elapsed after restarting', () => {
+       const provider = mockTimeProvider(startTime, time1, startTime, time2);
+       let timer = new Timer(provider);
+       timer.start();
+       timer.stop();
+       timer.start();
+       let elapsed = timer.getElapsed();
+       expect(elapsed).toEqual([0, 15]);
+     });
+
+     it('should have correct elapsed after restarted and stopped', () => {
+       const provider = mockTimeProvider(startTime, time2, startTime, time2);
+       let timer = new Timer(provider);
+       timer.start();
+       timer.stop();
+       timer.start();
+       timer.stop();
+       let elapsed = timer.getElapsed();
+       expect(elapsed).toEqual([0, 20]);
      });
 
    });

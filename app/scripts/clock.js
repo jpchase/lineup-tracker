@@ -24,17 +24,37 @@ export class Timer {
 
   stop() {
     this.isRunning = false;
+    // Calculate elapsed since last start and add to stored duration
+    this.duration = this.addElapsed();
+    this.startTime = null;
   }
 
   getElapsed() {
     if (!this.startTime) {
       return this.duration;
     }
-    return calculateElapsed(this.startTime, this.getCurrentTime());
+    // Currently running, calculate as: time so far + stored duration
+    return this.addElapsed();
   }
 
   getCurrentTime() {
     return this.provider.getCurrentTime();
+  }
+
+  addElapsed() {
+    let stopTime = this.getCurrentTime();
+    let elapsed = calculateElapsed(this.startTime, stopTime);
+
+    // Added elapsed to accumulated duration
+    let total = this.duration.slice(0);
+    total[0] += elapsed[0];
+    total[1] += elapsed[1];
+
+    if (total[1] >= 60) {
+      total[0] += 1;
+      total[1] -= 60;
+    }
+    return total;
   }
 }
 
