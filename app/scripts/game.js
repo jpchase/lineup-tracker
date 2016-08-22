@@ -246,7 +246,7 @@ var LineupTracker = LineupTracker || {};
   };
 
   LineupTracker.Game.prototype.swapPosition = function(player) {
-    if (this.status !== 'LIVE') {
+    if (this.status !== 'LIVE' && this.status !== 'BREAK') {
       throw new Error('Invalid status to swap position: ' + this.status);
     }
 
