@@ -33,6 +33,7 @@ describe('Timer', () => {
      const startTime = new Date(2016, 0, 1, 14, 0, 0);
      const time1 = new Date(2016, 0, 1, 14, 0, 5);
      const time2 = new Date(2016, 0, 1, 14, 0, 10);
+     const time3 = new Date(2016, 0, 1, 14, 1, 55);
 
      function mockTimeProvider(t0, t1, t2, t3) {
        let provider = new CurrentTimeProvider();
@@ -82,6 +83,28 @@ describe('Timer', () => {
        timer.stop();
        let elapsed = timer.getElapsed();
        expect(elapsed).toEqual([0, 20]);
+     });
+
+     it('should have correct elapsed when added seconds equal exactly 1 minute', () => {
+       const provider = mockTimeProvider(startTime, time3, startTime, time1);
+       let timer = new Timer(provider);
+       timer.start();
+       timer.stop();
+       timer.start();
+       timer.stop();
+       let elapsed = timer.getElapsed();
+       expect(elapsed).toEqual([2, 0]);
+     });
+
+     it('should have correct elapsed when added seconds total more than 1 minute', () => {
+       const provider = mockTimeProvider(startTime, time3, startTime, time2);
+       let timer = new Timer(provider);
+       timer.start();
+       timer.stop();
+       timer.start();
+       timer.stop();
+       let elapsed = timer.getElapsed();
+       expect(elapsed).toEqual([2, 5]);
      });
 
    });
