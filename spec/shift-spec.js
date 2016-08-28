@@ -4,7 +4,7 @@ describe('PlayerTimeTrackerMap', () => {
 
    it('should be empty for new instance', () => {
      let map = new PlayerTimeTrackerMap();
-     expect(map.trackers).toEqual({});
+     expect(map.trackers.size).toBe(0);
    });
 
    it('should have shift timers running after start', () => {
@@ -16,8 +16,9 @@ describe('PlayerTimeTrackerMap', () => {
      let map = new PlayerTimeTrackerMap();
      map.startShiftTimers(players);
 
-     let onTracker = map.trackers[players[0].name];
-     let offTracker = map.trackers[players[1].name];
+     expect(map.trackers.size).toBe(2);
+     let onTracker = map.trackers.get(players[0].name);
+     let offTracker = map.trackers.get(players[1].name);
 
      expect(onTracker).not.toBe(null);
      expect(onTracker.playerId).toBe(players[0].name);
@@ -40,10 +41,13 @@ describe('PlayerTimeTrackerMap', () => {
 
      let map = new PlayerTimeTrackerMap();
      map.startShiftTimers(players);
+
+     expect(map.trackers.size).toBe(2);
+
      map.stopShiftTimers(players);
 
-     let onTracker = map.trackers[players[0].name];
-     let offTracker = map.trackers[players[1].name];
+     let onTracker = map.trackers.get(players[0].name);
+     let offTracker = map.trackers.get(players[1].name);
 
      expect(onTracker).not.toBe(null);
      expect(onTracker.playerId).toBe(players[0].name);
