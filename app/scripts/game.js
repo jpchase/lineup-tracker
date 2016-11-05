@@ -449,6 +449,7 @@ var LineupTracker = LineupTracker || {};
   };
 
   LineupTracker.retrieveRoster = function() {
+    /*
     var roster = [
       {name: 'Abby', positions: ['AM', 'OM', 'S'], status: 'OFF'},
       {name: 'Anne', positions: ['CB', 'FB', 'HM'], status: 'OFF'},
@@ -468,6 +469,25 @@ var LineupTracker = LineupTracker || {};
       {name: 'Payton', positions: ['HM', 'AM', 'OM'], status: 'OFF'},
       {name: 'Sisi', positions: ['OM', 'AM'], status: 'OFF'},
       {name: 'Taty', positions: ['AM', 'OM', 'S'], status: 'OFF'}
+    ];
+    */
+    let roster = [
+      {name: 'Allie', positions: ['CB'], status: 'OFF'},
+      {name: 'Amanda', positions: ['CB', 'FB', 'HM'], status: 'OFF'},
+      {name: 'Emma F', positions: ['AM', 'HM', 'OM'], status: 'OFF'},
+      {name: 'Emma H', positions: ['AM', 'HM'], status: 'OFF'},
+      {name: 'Emmalene', positions: ['FB', 'OM'], status: 'OFF'},
+      {name: 'Jill', positions: ['AM', 'OM', 'S'], status: 'OFF'},
+      {name: 'Kiana', positions: ['S', 'OM'], status: 'OFF'},
+      {name: 'Lauren', positions: ['AM', 'OM', 'S'], status: 'OFF'},
+      {name: 'Leah', positions: ['OM', 'S'], status: 'OFF'},
+      {name: 'Maddie', positions: ['AM', 'HM'], status: 'OFF'},
+      {name: 'Sophia', positions: ['FB', 'CB'], status: 'OFF'},
+      {name: 'Syd', positions: ['HM', 'AM'], status: 'OFF'},
+      {name: 'Taya', positions: ['OM', 'S'], status: 'OFF'},
+      {name: 'Val', positions: ['CB', 'HM'], status: 'OFF'},
+      {name: 'Thalia', positions: ['FB', 'OM'], status: 'OFF'},
+      {name: 'Teanna', positions: ['OM', 'FB'], status: 'OFF'},
     ];
     return roster;
   };
