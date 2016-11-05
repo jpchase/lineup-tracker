@@ -1,10 +1,18 @@
 'use strict';
 
-import {CurrentTimeProvider,Timer} from './clock.js';
+import {Timer} from './clock.js';
+
+export class PlayerTimeTracker {
+  constructor(data) {
+    this.playerId = data.id;
+    this.onTimer = null;
+    this.offTimer = null;
+  }
+}
 
 export class PlayerTimeTrackerMap {
   constructor(timeProvider) {
-    this.provider = timeProvider;// || new CurrentTimeProvider();
+    this.provider = timeProvider;
     this.trackers = new Map();
   }
 
@@ -34,13 +42,5 @@ export class PlayerTimeTrackerMap {
         timer.stop();
       }
     });
-  }
-}
-
-export class PlayerTimeTracker {
-  constructor(data) {
-    this.playerId = data.id;
-    this.onTimer = null;
-    this.offTimer = null;
   }
 }

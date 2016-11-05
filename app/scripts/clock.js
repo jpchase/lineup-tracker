@@ -1,9 +1,6 @@
 'use strict';
 
 export class CurrentTimeProvider {
-  constructor() {
-  }
-
   getCurrentTime() {
     return Date.now();
   }
