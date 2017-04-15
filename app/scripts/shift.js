@@ -67,7 +67,7 @@ export class PlayerTimeTrackerMap {
         playerInTracker.isOn || !playerOutTracker.isOn) {
       throw new Error('Invalid status to substitute, playerIn = ' +
                       JSON.stringify(playerInTracker) +
-                      ', playerOut.isOn = ' +
+                      ', playerOut = ' +
                       JSON.stringify(playerOutTracker));
     }
     this.stopShift(playerInTracker);
