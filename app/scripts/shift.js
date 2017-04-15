@@ -13,25 +13,44 @@ export class PlayerTimeTracker {
     this.onTimer = null;
     this.offTimer = null;
   }
+
+  toDebugString() {
+    return JSON.stringify({
+      id: this.id,
+      isOn: this.isOn
+    });
+  }
 }
 
 export class PlayerTimeTrackerMap {
   constructor(timeProvider) {
     this.provider = timeProvider;
+    this.trackers = null;
+    this.clockRunning = false;
+  }
+
+  initialize(players) {
+    if (!players || !players.length) {
+      throw new Error('Players must be provided to initialize');
+    }
+
     this.trackers = new Map();
+    players.forEach(player => {
+      let tracker = new PlayerTimeTracker({
+        id: player.name,
+        isOn: (player.status === 'ON')
+      });
+      this.trackers.set(tracker.id, tracker);
+    });
   }
 
   startShiftTimers(players) {
-    players.forEach(player => {
-      let tracker = this.trackers.get(player.name);
-      if (!tracker) {
-        tracker = new PlayerTimeTracker({
-          id: player.name,
-          isOn: (player.status === 'ON')
-        });
-        this.trackers.set(tracker.id, tracker);
-      }
+    if (!this.trackers) {
+      throw new Error('Map is empty');
+    }
 
+    this.clockRunning = true;
+    this.trackers.forEach(tracker => {
       this.startShift(tracker);
     });
   }
@@ -47,6 +66,11 @@ export class PlayerTimeTrackerMap {
   }
 
   stopShiftTimers() {
+    if (!this.trackers) {
+      throw new Error('Map is empty');
+    }
+
+    this.clockRunning = false;
     this.trackers.forEach(tracker => {
       this.stopShift(tracker);
     });
@@ -60,21 +84,29 @@ export class PlayerTimeTrackerMap {
   }
 
   substitutePlayer(playerInId, playerOutId) {
+    if (!this.trackers) {
+      throw new Error('Map is empty');
+    }
+
     let playerInTracker = this.trackers.get(playerInId);
     let playerOutTracker = this.trackers.get(playerOutId);
 
     if (!playerInTracker || !playerOutTracker ||
         playerInTracker.isOn || !playerOutTracker.isOn) {
+      const inDebugString = playerInTracker ? playerInTracker.toDebugString() : undefined;
+      const outDebugString = playerOutTracker ? playerOutTracker.toDebugString() : undefined;
       throw new Error('Invalid status to substitute, playerIn = ' +
-                      JSON.stringify(playerInTracker) +
+                      inDebugString +
                       ', playerOut = ' +
-                      JSON.stringify(playerOutTracker));
+                      outDebugString);
     }
     this.stopShift(playerInTracker);
     this.stopShift(playerOutTracker);
     playerInTracker.isOn = true;
     playerOutTracker.isOn = false;
-    this.startShift(playerInTracker);
-    this.startShift(playerOutTracker);
+    if (this.clockRunning) {
+      this.startShift(playerInTracker);
+      this.startShift(playerOutTracker);
+    }
   }
 }

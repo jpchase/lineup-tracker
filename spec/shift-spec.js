@@ -5,12 +5,62 @@ describe('PlayerTimeTrackerMap', () => {
 
   beforeEach(() => {
     map = new PlayerTimeTrackerMap();
+
+    jasmine.addMatchers({
+      toBeOn: function () {
+        return {
+          compare: function (actual, expected) {
+            let tracker = actual;
+
+            return {
+              pass: tracker && tracker.id === expected && tracker.isOn
+            };
+          }
+        };
+      },
+      toBeOff: function () {
+        return {
+          compare: function (actual, expected) {
+            let tracker = actual;
+
+            return {
+              pass: tracker && tracker.id === expected && !tracker.isOn
+            };
+          }
+        };
+      },
+      toBeRunning: function () {
+        return {
+          compare: function (actual, expected) {
+            let tracker = actual;
+
+            return {
+              pass: tracker &&
+                    (tracker.isOn ? tracker.onTimer : tracker.offTimer) &&
+                    (tracker.isOn ?
+                        tracker.onTimer.isRunning :
+                        tracker.offTimer.isRunning)
+            };
+          }
+        };
+      }
+    });
+
   });
 
   describe('uninitialized', () => {
 
     it('should be empty', () => {
-      expect(map.trackers.size).toBe(0);
+      expect(map.trackers).toBe(null);
+    });
+
+    it('should throw when no players to initialize', () => {
+      expect(() => {
+        map.initialize();
+      }).toThrowError('Players must be provided to initialize');
+      expect(() => {
+        map.initialize([]);
+      }).toThrowError('Players must be provided to initialize');
     });
 
     it('should throw for operations', () => {
@@ -22,7 +72,7 @@ describe('PlayerTimeTrackerMap', () => {
       }).toThrowError('Map is empty');
       expect(() => {
         map.substitutePlayer(1, 2);
-      }).toThrowError('Invalid status to substitute, playerIn = undefined, playerOut = undefined');
+      }).toThrowError('Map is empty');
     });
 
   });
@@ -36,45 +86,7 @@ describe('PlayerTimeTrackerMap', () => {
     ];
 
     beforeEach(() => {
-      jasmine.addMatchers({
-        toBeOn: function () {
-          return {
-            compare: function (actual, expected) {
-              let tracker = actual;
-
-              return {
-                pass: tracker && tracker.id === expected && tracker.isOn
-              };
-            }
-          };
-        },
-        toBeOff: function () {
-          return {
-            compare: function (actual, expected) {
-              let tracker = actual;
-
-              return {
-                pass: tracker && tracker.id === expected && !tracker.isOn
-              };
-            }
-          };
-        },
-        toBeRunning: function () {
-          return {
-            compare: function (actual, expected) {
-              let tracker = actual;
-
-              return {
-                pass: tracker &&
-                      (tracker.isOn ? tracker.onTimer : tracker.offTimer) &&
-                      (tracker.isOn ?
-                          tracker.onTimer.isRunning :
-                          tracker.offTimer.isRunning)
-              };
-            }
-          };
-        }
-      });
+      map.initialize(players);
     });
 
     it('should have shift timers running after start', () => {
@@ -111,48 +123,61 @@ describe('PlayerTimeTrackerMap', () => {
       expect(offTracker).not.toBeRunning();
     });
 
-    it('should have shift timers changed after sub', () => {
-      map.startShiftTimers(players);
+    describe('substitutions', () => {
 
-      expect(map.trackers.size).toBe(2);
+      it('should throw if players are invalid', () => {
+        expect(() => {
+          map.substitutePlayer(playerOffId + 'X', playerOnId + 'X');
+        }).toThrowError('Invalid status to substitute, playerIn = undefined, playerOut = undefined');
+        expect(() => {
+          map.substitutePlayer(playerOnId, playerOnId);
+        }).toThrowError('Invalid status to substitute, playerIn = {"id":1,"isOn":true}, playerOut = {"id":1,"isOn":true}');
+      });
 
-      let onTracker = map.trackers.get(playerOnId);
-      let offTracker = map.trackers.get(playerOffId);
+      it('should have shift timers changed after sub', () => {
+        map.startShiftTimers(players);
 
-      map.substitutePlayer(playerOffId, playerOnId);
+        expect(map.trackers.size).toBe(2);
 
-      expect(onTracker).toBeOff(playerOnId);
-      expect(onTracker).toBeRunning();
+        let onTracker = map.trackers.get(playerOnId);
+        let offTracker = map.trackers.get(playerOffId);
 
-      expect(offTracker).toBeOn(playerOffId);
-      expect(offTracker).toBeRunning();
+        map.substitutePlayer(playerOffId, playerOnId);
+
+        expect(onTracker).toBeOff(playerOnId);
+        expect(onTracker).toBeRunning();
+
+        expect(offTracker).toBeOn(playerOffId);
+        expect(offTracker).toBeRunning();
+      });
+
+      it('should have shift timers changed after sub with clock stopped, but not be running', () => {
+
+        let onTracker = map.trackers.get(playerOnId);
+        let offTracker = map.trackers.get(playerOffId);
+
+        // Verify substitution before starting the clock
+        map.substitutePlayer(playerOffId, playerOnId);
+
+        expect(onTracker).toBeOff(playerOnId);
+        expect(onTracker).not.toBeRunning();
+
+        expect(offTracker).toBeOn(playerOffId);
+        expect(offTracker).not.toBeRunning();
+
+        map.startShiftTimers(players);
+
+        map.stopShiftTimers();
+
+        // Verify substitution after starting and stopping the clock
+        map.substitutePlayer(playerOnId, playerOffId);
+
+        expect(onTracker).toBeOn(playerOnId);
+        expect(onTracker).not.toBeRunning();
+
+        expect(offTracker).toBeOff(playerOffId);
+        expect(offTracker).not.toBeRunning();
+      });
     });
-
-    it('should have shift timers changed after sub with clock stopped, but not be running', () => {
-/*
-      map.substitutePlayer(playerOffId, playerOnId);
-
-      expect(onTracker).toBeOff(playerOnId);
-      expect(onTracker).not.toBeRunning();
-
-      expect(offTracker).toBeOn(playerOffId);
-      expect(offTracker).not.toBeRunning();*/
-
-      map.startShiftTimers(players);
-
-      let onTracker = map.trackers.get(playerOnId);
-      let offTracker = map.trackers.get(playerOffId);
-
-      map.stopShiftTimers();
-
-      map.substitutePlayer(playerOffId, playerOnId);
-
-      expect(onTracker).toBeOff(playerOnId);
-      expect(onTracker).not.toBeRunning();
-
-      expect(offTracker).toBeOn(playerOffId);
-      expect(offTracker).not.toBeRunning();
-    });
-
   });
 });
