@@ -93,8 +93,12 @@ export class PlayerTimeTrackerMap {
 
     if (!playerInTracker || !playerOutTracker ||
         playerInTracker.isOn || !playerOutTracker.isOn) {
-      const inDebugString = playerInTracker ? playerInTracker.toDebugString() : undefined;
-      const outDebugString = playerOutTracker ? playerOutTracker.toDebugString() : undefined;
+      const inDebugString = playerInTracker ?
+                              playerInTracker.toDebugString() :
+                              undefined;
+      const outDebugString = playerOutTracker ?
+                              playerOutTracker.toDebugString() :
+                              undefined;
       throw new Error('Invalid status to substitute, playerIn = ' +
                       inDebugString +
                       ', playerOut = ' +
