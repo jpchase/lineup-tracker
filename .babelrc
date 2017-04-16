@@ -4,6 +4,7 @@
   "only": [
     "gulpfile.babel.js",
     "clock.js",
+    "game.js",
     "shift.js",
     "spec/"],
   "retainLines": true

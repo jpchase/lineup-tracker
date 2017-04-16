@@ -30,7 +30,11 @@ import del from 'del';
 import runSequence from 'run-sequence';
 import browserSync from 'browser-sync';
 import swPrecache from 'sw-precache';
+import babelify from 'babelify';
+import browserify from 'browserify';
 import gulpLoadPlugins from 'gulp-load-plugins';
+import buffer from 'vinyl-buffer';
+import source from 'vinyl-source-stream';
 import {output as pagespeed} from 'psi';
 import pkg from './package.json';
 import merge from 'merge-stream';
@@ -148,18 +152,23 @@ gulp.task('scripts', () => {
   ];
 
   var tasks = scriptGroups.map(group => {
-      return gulp.src(group.src)
-        .pipe($.newer('.tmp/scripts'))
-        .pipe($.sourcemaps.init())
-        .pipe($.babel())
-        .pipe($.sourcemaps.write())
+      return browserify(group.src, { debug: true })
+        .transform(babelify.configure({ presets: ['es2015'] }))
+        .bundle()
+        .on('error', $.util.log.bind($.util, 'Browserify Error'))
+        .pipe(source(group.name + '.js'))
+        .pipe(buffer())
+        .pipe($.sourcemaps.init({ loadMaps: true }))
+       // .pipe(uglify({ mangle: false }))
+        .pipe($.sourcemaps.write('./'))
         .pipe(gulp.dest('.tmp/scripts'))
-        .pipe($.concat(group.name + '.min.js'))
-  //      .pipe($.uglify({preserveComments: 'license'}))
-        // Output files
-        .pipe($.size({title: 'scripts'}))
-        .pipe($.sourcemaps.write('.'))
-        .pipe(gulp.dest('dist/scripts'));
+        .pipe($.rename((path) => {
+                                    if (path.basename.endsWith('.js'))
+                                      path.basename = group.name + ".min.js";
+                                    else
+                                      path.basename += ".min";
+                                 }))
+        .pipe(gulp.dest('dist/scripts/'));
   });
 
   return merge(tasks);
