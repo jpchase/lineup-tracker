@@ -7,11 +7,12 @@ export class CurrentTimeProvider {
 }
 
 export class Timer {
-  constructor(timeProvider) {
+  constructor(passedData, timeProvider) {
+    let data = passedData || {};
     this.provider = timeProvider || new CurrentTimeProvider();
-    this.isRunning = false;
-    this.startTime = null;
-    this.duration = [0, 0];
+    this.isRunning = data.isRunning || false;
+    this.startTime = data.startTime || null;
+    this.duration = data.duration || [0, 0];
   }
 
   start() {
@@ -27,7 +28,7 @@ export class Timer {
   }
 
   getElapsed() {
-    if (!this.startTime) {
+    if (!this.isRunning) {
       return this.duration;
     }
     // Currently running, calculate as: time so far + stored duration
