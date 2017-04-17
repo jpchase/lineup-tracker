@@ -23,10 +23,14 @@ export class PlayerTimeTracker {
 }
 
 export class PlayerTimeTrackerMap {
-  constructor(timeProvider) {
+  constructor(passedData, timeProvider) {
+    let data = passedData || {};
     this.provider = timeProvider;
     this.trackers = null;
-    this.clockRunning = false;
+    this.clockRunning = data.clockRunning || false;
+    if (data.trackers && data.trackers.length) {
+      this.initialize(data.trackers);
+    }
   }
 
   initialize(players) {
@@ -37,8 +41,8 @@ export class PlayerTimeTrackerMap {
     this.trackers = new Map();
     players.forEach(player => {
       let tracker = new PlayerTimeTracker({
-        id: player.name,
-        isOn: (player.status === 'ON')
+        id: player.id || player.name,
+        isOn: player.isOn || (player.status === 'ON')
       });
       this.trackers.set(tracker.id, tracker);
     });

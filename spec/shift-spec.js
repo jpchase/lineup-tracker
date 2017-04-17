@@ -1,12 +1,29 @@
 import {PlayerTimeTrackerMap} from '../app/scripts/shift.js';
 
+describe('PlayerTimeTracker', () => {
+});
+
 describe('PlayerTimeTrackerMap', () => {
+  const playerOnId = 1;
+  const playerOffId = 2;
+
   let map;
 
   beforeEach(() => {
     map = new PlayerTimeTrackerMap();
 
     jasmine.addMatchers({
+      toBeInitialized: function () {
+        return {
+          compare: function (actual, expected) {
+            let map = actual;
+
+            return {
+              pass: map && !map.clockRunning && !map.trackers
+            };
+          }
+        };
+      },
       toBeOn: function () {
         return {
           compare: function (actual, expected) {
@@ -51,7 +68,7 @@ describe('PlayerTimeTrackerMap', () => {
   describe('uninitialized', () => {
 
     it('should be empty', () => {
-      expect(map.trackers).toBe(null);
+      expect(map).toBeInitialized();
     });
 
     it('should throw when no players to initialize', () => {
@@ -78,8 +95,6 @@ describe('PlayerTimeTrackerMap', () => {
   });
 
   describe('initialized', () => {
-    const playerOnId = 1;
-    const playerOffId = 2;
 
     beforeEach(() => {
       const players = [
@@ -179,6 +194,67 @@ describe('PlayerTimeTrackerMap', () => {
         expect(offTracker).toBeOff(playerOffId);
         expect(offTracker).not.toBeRunning();
       });
+    }); // describe('substitutions')
+  }); // describe('initialized')
+
+  describe('Existing data', () => {
+
+    it('should be initialized correctly for null data', () => {
+      map = new PlayerTimeTrackerMap(null);
+      expect(map).toBeInitialized();
     });
-  });
+
+    it('should be initialized correctly for empty data', () => {
+      map = new PlayerTimeTrackerMap({});
+      expect(map).toBeInitialized();
+    });
+
+    it('should be initialized correctly from stopped data', () => {
+      let expected = {
+        clockRunning: false,
+        trackers: [
+          { id: playerOnId, isOn: true },
+          { id: playerOffId, isOn: false },
+        ],
+      }
+      map = new PlayerTimeTrackerMap(expected);
+
+      expect(map.trackers.size).toBe(2);
+      expect(map.clockRunning).toBe(false);
+
+      let onTracker = map.trackers.get(playerOnId);
+      let offTracker = map.trackers.get(playerOffId);
+
+      expect(onTracker).toBeOn(playerOnId);
+      expect(onTracker).not.toBeRunning();
+
+      expect(offTracker).toBeOff(playerOffId);
+      expect(offTracker).not.toBeRunning();
+    });
+
+    it('should be initialized correctly from running data', () => {
+      let expected = {
+        clockRunning: true,
+        trackers: [
+          { id: playerOnId, isOn: true },
+          { id: playerOffId, isOn: false },
+        ],
+      }
+      map = new PlayerTimeTrackerMap(expected);
+
+      expect(map.trackers.size).toBe(2);
+      expect(map.clockRunning).toBe(true);
+
+      let onTracker = map.trackers.get(playerOnId);
+      let offTracker = map.trackers.get(playerOffId);
+
+      expect(onTracker).toBeOn(playerOnId);
+      expect(onTracker).toBeRunning();
+
+      expect(offTracker).toBeOff(playerOffId);
+      expect(offTracker).toBeRunning();
+    });
+
+  }); // describe('Existing data')
+
 });
