@@ -80,17 +80,18 @@ describe('PlayerTimeTrackerMap', () => {
   describe('initialized', () => {
     const playerOnId = 1;
     const playerOffId = 2;
-    const players = [
-      {name: playerOnId, status: 'ON'},
-      {name: playerOffId, status: 'OFF'}
-    ];
 
     beforeEach(() => {
+      const players = [
+        {name: playerOnId, status: 'ON'},
+        {name: playerOffId, status: 'OFF'}
+      ];
+
       map.initialize(players);
     });
 
     it('should have shift timers running after start', () => {
-      map.startShiftTimers(players);
+      map.startShiftTimers();
 
       expect(map.trackers.size).toBe(2);
 
@@ -107,7 +108,7 @@ describe('PlayerTimeTrackerMap', () => {
     });
 
     it('should have shift timers stopped after stop', () => {
-      map.startShiftTimers(players);
+      map.startShiftTimers();
 
       expect(map.trackers.size).toBe(2);
 
@@ -135,7 +136,7 @@ describe('PlayerTimeTrackerMap', () => {
       });
 
       it('should have shift timers changed after sub', () => {
-        map.startShiftTimers(players);
+        map.startShiftTimers();
 
         expect(map.trackers.size).toBe(2);
 
@@ -165,7 +166,7 @@ describe('PlayerTimeTrackerMap', () => {
         expect(offTracker).toBeOn(playerOffId);
         expect(offTracker).not.toBeRunning();
 
-        map.startShiftTimers(players);
+        map.startShiftTimers();
 
         map.stopShiftTimers();
 

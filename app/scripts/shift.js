@@ -44,7 +44,7 @@ export class PlayerTimeTrackerMap {
     });
   }
 
-  startShiftTimers(players) {
+  startShiftTimers() {
     if (!this.trackers) {
       throw new Error('Map is empty');
     }
