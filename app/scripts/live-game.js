@@ -240,7 +240,11 @@
                                       liveGame.containers.off;
     var selected = this.getSelectedPlayerCards(container);
 
-    clearChildren(this.subs.container);
+    // clearChildren(this.subs.container);
+    var node = this.subs.container;
+    while (node.lastChild) {
+      node.removeChild(node.lastChild);
+    }
 
     selected.tuples.forEach(tuple => {
       var player = tuple.player;
