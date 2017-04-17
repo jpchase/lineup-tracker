@@ -1,3 +1,4 @@
+import {CurrentTimeProvider} from '../app/scripts/clock.js';
 import {PlayerTimeTrackerMap} from '../app/scripts/shift.js';
 
 describe('PlayerTimeTracker', () => {
@@ -209,6 +210,14 @@ describe('PlayerTimeTrackerMap', () => {
   }); // describe('initialized')
 
   describe('Existing data', () => {
+    const startTime = new Date(2016, 0, 1, 14, 0, 0);
+    const time1 = new Date(2016, 0, 1, 14, 0, 5);
+
+    function mockTimeProvider(t0, t1, t2, t3) {
+      let provider = new CurrentTimeProvider();
+      spyOn(provider, 'getCurrentTime').and.returnValues(t0, t1, t2, t3);
+      return provider;
+    }
 
     it('should be initialized correctly for null data', () => {
       map = new PlayerTimeTrackerMap(null);
@@ -243,15 +252,58 @@ describe('PlayerTimeTrackerMap', () => {
       expect(offTracker).not.toBeRunning();
     });
 
+    it('should be initialized correctly from stopped data, with duration', () => {
+      let expected = {
+        clockRunning: false,
+        trackers: [
+          { id: playerOnId, isOn: true,
+            onTimer: {
+              isRunning: false, duration: [0,5]
+            }
+          },
+          { id: playerOffId, isOn: false,
+            offTimer: {
+              isRunning: false, duration: [0,5]
+            }
+          },
+        ],
+      }
+      map = new PlayerTimeTrackerMap(expected);
+
+      expect(map).toHaveSize(2);
+      expect(map.clockRunning).toBe(false);
+
+      let onTracker = map.trackers.get(playerOnId);
+      let offTracker = map.trackers.get(playerOffId);
+
+      expect(onTracker).toBeOn(playerOnId);
+      expect(onTracker).not.toBeRunning();
+      expect(onTracker.onTimer.getElapsed()).toEqual([0, 5]);
+
+      expect(offTracker).toBeOff(playerOffId);
+      expect(offTracker).not.toBeRunning();
+      expect(offTracker.offTimer.getElapsed()).toEqual([0, 5]);
+    });
+
     it('should be initialized correctly from running data', () => {
       let expected = {
         clockRunning: true,
         trackers: [
-          { id: playerOnId, isOn: true },
-          { id: playerOffId, isOn: false },
+          { id: playerOnId, isOn: true,
+            onTimer: {
+              isRunning: true, startTime: startTime, duration: [0,5]
+            }
+          },
+          { id: playerOffId, isOn: false,
+            offTimer: {
+              isRunning: true, startTime: startTime, duration: [0,5]
+            }
+          },
         ],
       }
-      map = new PlayerTimeTrackerMap(expected);
+      const provider = mockTimeProvider(time1, time1);
+
+      map = new PlayerTimeTrackerMap(expected, provider);
 
       expect(map).toHaveSize(2);
       expect(map.clockRunning).toBe(true);
@@ -261,9 +313,11 @@ describe('PlayerTimeTrackerMap', () => {
 
       expect(onTracker).toBeOn(playerOnId);
       expect(onTracker).toBeRunning();
+      expect(onTracker.onTimer.getElapsed()).toEqual([0, 10]);
 
       expect(offTracker).toBeOff(playerOffId);
       expect(offTracker).toBeRunning();
+      expect(offTracker.offTimer.getElapsed()).toEqual([0, 10]);
     });
 
   }); // describe('Existing data')
