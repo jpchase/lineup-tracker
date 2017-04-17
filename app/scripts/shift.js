@@ -38,13 +38,16 @@ export class PlayerTimeTrackerMap {
       throw new Error('Players must be provided to initialize');
     }
 
-    this.trackers = new Map();
+    this.trackers = [];
+    this.trackers.get = id => {
+      return this.trackers.find(tracker => tracker.id === id);
+    };
     players.forEach(player => {
       let tracker = new PlayerTimeTracker({
         id: player.id || player.name,
         isOn: player.isOn || (player.status === 'ON')
       });
-      this.trackers.set(tracker.id, tracker);
+      this.trackers.push(tracker);
     });
   }
 

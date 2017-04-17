@@ -24,6 +24,17 @@ describe('PlayerTimeTrackerMap', () => {
           }
         };
       },
+      toHaveSize: function () {
+        return {
+          compare: function (actual, expected) {
+            let map = actual;
+
+            return {
+              pass: map && map.trackers && map.trackers.length === expected
+            };
+          }
+        };
+      },
       toBeOn: function () {
         return {
           compare: function (actual, expected) {
@@ -108,7 +119,7 @@ describe('PlayerTimeTrackerMap', () => {
     it('should have shift timers running after start', () => {
       map.startShiftTimers();
 
-      expect(map.trackers.size).toBe(2);
+      expect(map).toHaveSize(2);
 
       let onTracker = map.trackers.get(playerOnId);
       let offTracker = map.trackers.get(playerOffId);
@@ -125,7 +136,7 @@ describe('PlayerTimeTrackerMap', () => {
     it('should have shift timers stopped after stop', () => {
       map.startShiftTimers();
 
-      expect(map.trackers.size).toBe(2);
+      expect(map).toHaveSize(2);
 
       let onTracker = map.trackers.get(playerOnId);
       let offTracker = map.trackers.get(playerOffId);
@@ -153,7 +164,7 @@ describe('PlayerTimeTrackerMap', () => {
       it('should have shift timers changed after sub', () => {
         map.startShiftTimers();
 
-        expect(map.trackers.size).toBe(2);
+        expect(map).toHaveSize(2);
 
         let onTracker = map.trackers.get(playerOnId);
         let offTracker = map.trackers.get(playerOffId);
@@ -219,7 +230,7 @@ describe('PlayerTimeTrackerMap', () => {
       }
       map = new PlayerTimeTrackerMap(expected);
 
-      expect(map.trackers.size).toBe(2);
+      expect(map).toHaveSize(2);
       expect(map.clockRunning).toBe(false);
 
       let onTracker = map.trackers.get(playerOnId);
@@ -242,7 +253,7 @@ describe('PlayerTimeTrackerMap', () => {
       }
       map = new PlayerTimeTrackerMap(expected);
 
-      expect(map.trackers.size).toBe(2);
+      expect(map).toHaveSize(2);
       expect(map.clockRunning).toBe(true);
 
       let onTracker = map.trackers.get(playerOnId);
