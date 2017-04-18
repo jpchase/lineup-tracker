@@ -53,11 +53,8 @@ export class PlayerTimeTrackerMap {
       // Use different data format, depending if recreating or initializing
       // from scratch with actual player objects.
       let tracker = new PlayerTimeTracker(recreating ?
-        player :
-        {
-          id: player.id || player.name,
-          isOn: (player.status === 'ON')
-        }, this.provider);
+        player : {id: player.id || player.name, isOn: (player.status === 'ON')},
+        this.provider);
       this.trackers.push(tracker);
     });
   }
