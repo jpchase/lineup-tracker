@@ -94,13 +94,16 @@ describe('PlayerTimeTrackerMap', () => {
 
     it('should throw for operations', () => {
       expect(() => {
+        map.get();
+      }).toThrowError('Map is empty');
+      expect(() => {
         map.startShiftTimers();
       }).toThrowError('Map is empty');
       expect(() => {
         map.stopShiftTimers();
       }).toThrowError('Map is empty');
       expect(() => {
-        map.substitutePlayer(1, 2);
+        map.substitutePlayer(playerOffId, playerOnId);
       }).toThrowError('Map is empty');
     });
 
@@ -117,31 +120,48 @@ describe('PlayerTimeTrackerMap', () => {
       map.initialize(players);
     });
 
-    it('should have shift timers running after start', () => {
+    it('should not get trackers for non-existent ids', () => {
+      expect(map).toHaveSize(2);
+
+      let tracker = map.get(playerOnId + 'X');
+
+      expect(tracker).toBe(undefined);
+    });
+
+    it('should have trackers with correct values', () => {
       map.startShiftTimers();
 
       expect(map).toHaveSize(2);
 
-      let onTracker = map.trackers.get(playerOnId);
-      let offTracker = map.trackers.get(playerOffId);
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
 
       expect(onTracker).toBeOn(playerOnId);
+      expect(offTracker).toBeOff(playerOffId);
+    });
+
+    it('should have shift timers running after start', () => {
+      expect(map).toHaveSize(2);
+
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
+
+      map.startShiftTimers();
+
       expect(onTracker).toBeRunning();
       expect(onTracker.offTimer).toBe(null);
 
-      expect(offTracker).toBeOff(playerOffId);
       expect(offTracker).toBeRunning();
       expect(offTracker.onTimer).toBe(null);
     });
 
     it('should have shift timers stopped after stop', () => {
-      map.startShiftTimers();
-
       expect(map).toHaveSize(2);
 
-      let onTracker = map.trackers.get(playerOnId);
-      let offTracker = map.trackers.get(playerOffId);
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
 
+      map.startShiftTimers();
       map.stopShiftTimers();
 
       expect(onTracker).toBeOn(playerOnId);
@@ -163,13 +183,12 @@ describe('PlayerTimeTrackerMap', () => {
       });
 
       it('should have shift timers changed after sub', () => {
-        map.startShiftTimers();
-
         expect(map).toHaveSize(2);
 
-        let onTracker = map.trackers.get(playerOnId);
-        let offTracker = map.trackers.get(playerOffId);
+        let onTracker = map.get(playerOnId);
+        let offTracker = map.get(playerOffId);
 
+        map.startShiftTimers();
         map.substitutePlayer(playerOffId, playerOnId);
 
         expect(onTracker).toBeOff(playerOnId);
@@ -180,9 +199,8 @@ describe('PlayerTimeTrackerMap', () => {
       });
 
       it('should have shift timers changed after sub with clock stopped, but not be running', () => {
-
-        let onTracker = map.trackers.get(playerOnId);
-        let offTracker = map.trackers.get(playerOffId);
+        let onTracker = map.get(playerOnId);
+        let offTracker = map.get(playerOffId);
 
         // Verify substitution before starting the clock
         map.substitutePlayer(playerOffId, playerOnId);
@@ -242,8 +260,8 @@ describe('PlayerTimeTrackerMap', () => {
       expect(map).toHaveSize(2);
       expect(map.clockRunning).toBe(false);
 
-      let onTracker = map.trackers.get(playerOnId);
-      let offTracker = map.trackers.get(playerOffId);
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
 
       expect(onTracker).toBeOn(playerOnId);
       expect(onTracker).not.toBeRunning();
@@ -273,8 +291,8 @@ describe('PlayerTimeTrackerMap', () => {
       expect(map).toHaveSize(2);
       expect(map.clockRunning).toBe(false);
 
-      let onTracker = map.trackers.get(playerOnId);
-      let offTracker = map.trackers.get(playerOffId);
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
 
       expect(onTracker).toBeOn(playerOnId);
       expect(onTracker).not.toBeRunning();
@@ -308,8 +326,8 @@ describe('PlayerTimeTrackerMap', () => {
       expect(map).toHaveSize(2);
       expect(map.clockRunning).toBe(true);
 
-      let onTracker = map.trackers.get(playerOnId);
-      let offTracker = map.trackers.get(playerOffId);
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
 
       expect(onTracker).toBeOn(playerOnId);
       expect(onTracker).toBeRunning();
