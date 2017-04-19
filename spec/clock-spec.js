@@ -1,11 +1,58 @@
 import {CurrentTimeProvider,Timer} from '../app/scripts/clock.js';
 
 describe('CurrentTimeProvider', () => {
+  it('should not be frozen by default', () => {
+    let provider = new CurrentTimeProvider();
+    expect(provider.isFrozen).toBe(false);
+  });
+
   it('should return the current time', () => {
     let provider = new CurrentTimeProvider();
     const expectedTime = Date.now();
     const actualTime = provider.getCurrentTime();
     expect(actualTime).toEqual(expectedTime);
+  });
+
+  it('should throw for repeated calls to freeze()', () => {
+    let provider = new CurrentTimeProvider();
+    expect(provider.isFrozen).toBe(false);
+    provider.freeze();
+    expect(provider.isFrozen).toBe(true);
+    expect(() => {
+      provider.freeze();
+    }).toThrowError('Cannot freeze when already frozen');
+  });
+
+  it('should throw for repeated calls to unfreeze()', () => {
+    let provider = new CurrentTimeProvider();
+    expect(provider.isFrozen).toBe(false);
+    provider.freeze();
+    expect(provider.isFrozen).toBe(true);
+    provider.unfreeze();
+    expect(provider.isFrozen).toBe(false);
+    expect(() => {
+      provider.unfreeze();
+    }).toThrowError('Cannot unfreeze when not frozen');
+  });
+
+  it('should return the frozen time', () => {
+    const time1 = new Date(2016, 0, 1, 14, 0, 0);
+    const time2 = new Date(2016, 0, 1, 14, 1, 0);
+
+    let provider = new CurrentTimeProvider();
+    spyOn(provider, 'getTimeInternal').and.returnValues(time1, time2);
+
+    provider.freeze();
+
+    const actualTime1 = provider.getCurrentTime();
+    expect(actualTime1).toEqual(time1);
+    const actualTime2 = provider.getCurrentTime();
+    expect(actualTime2).toEqual(time1);
+
+    provider.unfreeze();
+
+    const actualTime3 = provider.getCurrentTime();
+    expect(actualTime3).toEqual(time2);
   });
 });
 
@@ -17,7 +64,7 @@ describe('Timer', () => {
 
   function mockTimeProvider(t0, t1, t2, t3) {
     let provider = new CurrentTimeProvider();
-    spyOn(provider, 'getCurrentTime').and.returnValues(t0, t1, t2, t3);
+    spyOn(provider, 'getTimeInternal').and.returnValues(t0, t1, t2, t3);
     return provider;
   }
 
@@ -85,6 +132,15 @@ describe('Timer', () => {
     expect(timer.isRunning).toBe(false);
   });
 
+  it('should be empty after reset', () => {
+    const provider = mockTimeProvider(startTime, time1);
+    let timer = new Timer(null, provider);
+    timer.start();
+    timer.stop();
+    timer.reset();
+    expect(timer).toBeInitialized();
+  });
+
   describe('Elapsed time', () => {
 
     it('should have 0 elapsed for new instance', () => {
@@ -93,8 +149,10 @@ describe('Timer', () => {
     });
 
     it('should have correct elapsed when running', () => {
-      const provider = mockTimeProvider(startTime, time1);
+      const provider = mockTimeProvider(startTime, time1, time1);
       let timer = new Timer(null, provider);
+      timer.start();
+      expect(timer).toHaveElapsed([0, 5]);
       timer.start();
       expect(timer).toHaveElapsed([0, 5]);
     });
@@ -103,6 +161,8 @@ describe('Timer', () => {
       const provider = mockTimeProvider(startTime, time2);
       let timer = new Timer(null, provider);
       timer.start();
+      timer.stop();
+      expect(timer).toHaveElapsed([0, 10]);
       timer.stop();
       expect(timer).toHaveElapsed([0, 10]);
     });

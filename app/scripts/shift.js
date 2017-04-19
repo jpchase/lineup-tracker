@@ -1,6 +1,12 @@
 'use strict';
 
-import {Timer} from './clock.js';
+import {CurrentTimeProvider, Timer} from './clock.js';
+
+function getCurrentTimer(tracker) {
+  if (!tracker)
+    return undefined;
+  return (tracker.isOn) ? tracker.onTimer : tracker.offTimer;
+}
 
 export class PlayerTimeTracker {
   constructor(passedData, timeProvider) {
@@ -27,12 +33,17 @@ export class PlayerTimeTracker {
       isOn: this.isOn
     });
   }
+
+  getShiftTime() {
+    let timer = getCurrentTimer(this);
+    return timer ? timer.getElapsed() : [0, 0];
+  }
 }
 
 export class PlayerTimeTrackerMap {
   constructor(passedData, timeProvider) {
     let data = passedData || {};
-    this.provider = timeProvider;
+    this.timeProvider = timeProvider || new CurrentTimeProvider();
     this.trackers = null;
     this.clockRunning = data.clockRunning || false;
     if (data.trackers && data.trackers.length) {
@@ -46,15 +57,12 @@ export class PlayerTimeTrackerMap {
     }
 
     this.trackers = [];
-    this.trackers.get = id => {
-      return this.trackers.find(tracker => tracker.id === id);
-    };
     players.forEach(player => {
       // Use different data format, depending if recreating or initializing
       // from scratch with actual player objects.
       let tracker = new PlayerTimeTracker(recreating ?
         player : {id: player.id || player.name, isOn: (player.status === 'ON')},
-        this.provider);
+        this.timeProvider);
       this.trackers.push(tracker);
     });
   }
@@ -72,17 +80,25 @@ export class PlayerTimeTrackerMap {
     }
 
     this.clockRunning = true;
+    this.timeProvider.freeze();
     this.trackers.forEach(tracker => {
       this.startShift(tracker);
     });
+    this.timeProvider.unfreeze();
   }
 
-  startShift(tracker) {
+  startShift(tracker, reset) {
+    if (reset) {
+      let timer = getCurrentTimer(tracker);
+      if (timer) {
+        timer.reset();
+      }
+    }
     if (tracker.isOn) {
-      tracker.onTimer = tracker.onTimer || new Timer(this.provider);
+      tracker.onTimer = tracker.onTimer || new Timer(null, this.timeProvider);
       tracker.onTimer.start();
     } else {
-      tracker.offTimer = tracker.offTimer || new Timer(this.provider);
+      tracker.offTimer = tracker.offTimer || new Timer(null, this.timeProvider);
       tracker.offTimer.start();
     }
   }
@@ -93,13 +109,15 @@ export class PlayerTimeTrackerMap {
     }
 
     this.clockRunning = false;
+    this.timeProvider.freeze();
     this.trackers.forEach(tracker => {
       this.stopShift(tracker);
     });
+    this.timeProvider.unfreeze();
   }
 
   stopShift(tracker) {
-    let timer = (tracker.isOn) ? tracker.onTimer : tracker.offTimer;
+    let timer = getCurrentTimer(tracker);
     if (timer) {
       timer.stop();
     }
@@ -110,8 +128,8 @@ export class PlayerTimeTrackerMap {
       throw new Error('Map is empty');
     }
 
-    let playerInTracker = this.trackers.get(playerInId);
-    let playerOutTracker = this.trackers.get(playerOutId);
+    let playerInTracker = this.get(playerInId);
+    let playerOutTracker = this.get(playerOutId);
 
     if (!playerInTracker || !playerOutTracker ||
         playerInTracker.isOn || !playerOutTracker.isOn) {
@@ -126,13 +144,21 @@ export class PlayerTimeTrackerMap {
                       ', playerOut = ' +
                       outDebugString);
     }
+    let unfreeze = false;
+    if (this.clockRunning) {
+      this.timeProvider.freeze();
+      unfreeze = true;
+    }
     this.stopShift(playerInTracker);
     this.stopShift(playerOutTracker);
     playerInTracker.isOn = true;
     playerOutTracker.isOn = false;
     if (this.clockRunning) {
-      this.startShift(playerInTracker);
-      this.startShift(playerOutTracker);
+      this.startShift(playerInTracker, true);
+      this.startShift(playerOutTracker, true);
+    }
+    if (unfreeze) {
+      this.timeProvider.unfreeze();
     }
   }
 }

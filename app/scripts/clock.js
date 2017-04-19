@@ -1,8 +1,38 @@
 'use strict';
 
 export class CurrentTimeProvider {
-  getCurrentTime() {
+  constructor() {
+    this.isFrozen = false;
+  }
+
+  getTimeInternal() {
     return Date.now();
+  }
+
+  getCurrentTime() {
+    if (this.isFrozen && this.frozenTime) {
+      return this.frozenTime;
+    }
+    return this.getTimeInternal();
+  }
+
+  // Stop using the current time, so that consecutive calls to getCurrentTime()
+  // will all return the same value (e.g. when using in a loop).
+  freeze() {
+    if (this.isFrozen) {
+      throw new Error('Cannot freeze when already frozen');
+    }
+    this.frozenTime = this.getTimeInternal();
+    this.isFrozen = true;
+  }
+
+  // Resume normal operation of providing the current time.
+  unfreeze() {
+    if (!this.isFrozen) {
+      throw new Error('Cannot unfreeze when not frozen');
+    }
+    this.isFrozen = false;
+    this.frozenTime = undefined;
   }
 }
 
@@ -15,12 +45,26 @@ export class Timer {
     this.duration = data.duration || [0, 0];
   }
 
+  reset() {
+    this.isRunning = false;
+    this.duration = [0, 0];
+    this.startTime = null;
+  }
+
   start() {
+    if (this.isRunning) {
+      // Already started
+      return;
+    }
     this.isRunning = true;
     this.startTime = this.getCurrentTime();
   }
 
   stop() {
+    if (!this.isRunning) {
+      // Already stopped
+      return;
+    }
     this.isRunning = false;
     // Calculate elapsed since last start and add to stored duration
     this.duration = this.addElapsed();
