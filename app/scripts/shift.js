@@ -3,8 +3,9 @@
 import {CurrentTimeProvider, Timer} from './clock.js';
 
 function getCurrentTimer(tracker) {
-  if (!tracker)
+  if (!tracker) {
     return undefined;
+  }
   return (tracker.isOn) ? tracker.onTimer : tracker.offTimer;
 }
 
@@ -49,6 +50,13 @@ export class PlayerTimeTrackerMap {
     if (data.trackers && data.trackers.length) {
       this.initialize(data.trackers, true);
     }
+  }
+
+  toJSON() {
+    return {
+      clockRunning: this.clockRunning,
+      trackers: this.trackers,
+    };
   }
 
   initialize(players, recreating) {

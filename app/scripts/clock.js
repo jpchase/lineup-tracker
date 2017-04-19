@@ -51,6 +51,14 @@ export class Timer {
     this.startTime = null;
   }
 
+  toJSON() {
+    return {
+      isRunning: this.isRunning,
+      startTime: this.startTime,
+      duration: this.duration,
+    };
+  }
+
   start() {
     if (this.isRunning) {
       // Already started

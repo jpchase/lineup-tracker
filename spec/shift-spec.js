@@ -309,7 +309,6 @@ describe('PlayerTimeTrackerMap', () => {
       expect(offTracker).toHaveShiftTime([0, 5]);
     });
 
-
     it('should have shift times restarted after sub', () => {
       const provider = initMapWithTime(startTime, time1, time2);
 
@@ -353,6 +352,27 @@ describe('PlayerTimeTrackerMap', () => {
   }); // describe('Shift timing')
 
   describe('Existing data', () => {
+
+    it('should not have the time provider serialized', () => {
+      let data = {
+        trackers: [
+          { id: playerOnId, isOn: true },
+          { id: playerOffId, isOn: false },
+        ],
+      }
+      map = new PlayerTimeTrackerMap(data);
+
+      expect(map).toHaveSize(2);
+      expect(map.clockRunning).toBe(false);
+
+      const serialized = JSON.stringify(map);
+      let mapData = JSON.parse(serialized);
+
+      expect(mapData.clockRunning).toBe(false);
+      expect(mapData.trackers).not.toBe(undefined);
+      expect(mapData.trackers.length).toBe(2);
+      expect(mapData.provider).toBe(undefined);
+    });
 
     it('should be initialized correctly for null data', () => {
       map = new PlayerTimeTrackerMap(null);

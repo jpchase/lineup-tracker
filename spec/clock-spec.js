@@ -210,6 +210,16 @@ describe('Timer', () => {
 
   describe('Existing data', () => {
 
+    it('should not have the time provider serialized', () => {
+      let timer = new Timer(null);
+      const serialized = JSON.stringify(timer);
+      let timerData = JSON.parse(serialized);
+      expect(timerData.isRunning).toBe(false);
+      expect(timerData.startTime).toBe(null);
+      expect(timerData.duration).toEqual([0, 0]);
+      expect(timerData.provider).toBe(undefined);
+    });
+
     it('should be initialized correctly for null data', () => {
       let timer = new Timer(null);
       expect(timer).toBeInitialized();
