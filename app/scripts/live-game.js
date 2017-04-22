@@ -16,7 +16,9 @@
  *  limitations under the License
  *
  */
+import {TimerWidget} from './clock.js';
 /* eslint-env browser */
+
 (function() {
   'use strict';
 
@@ -652,6 +654,10 @@
    ****************************************************************************/
 
   liveGame.resumeClock = function(loading) {
+    if (!this.gameTimer) {
+      this.gameTimer = new TimerWidget(document.querySelector('#gameTimer'));
+    }
+    this.gameTimer.attach(this.game.timer);
     if (!this.clock) {
       this.clock = new Stopwatch(document.querySelector('#gameClock'), null);
     }

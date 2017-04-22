@@ -1,3 +1,4 @@
+import {CurrentTimeProvider, Duration, Timer} from './clock.js';
 import {PlayerTimeTrackerMap} from './shift.js';
 
 /* eslint-disable */
@@ -13,6 +14,7 @@ var LineupTracker = window.LineupTracker;
   // In-memory storage of games
   var allGames = null;
 
+  LineupTracker.Duration = Duration;
   /*****************************************************************************
    *
    * Game class
@@ -27,7 +29,10 @@ var LineupTracker = window.LineupTracker;
      // Other statuses: START, LIVE, BREAK, DONE
     this.status = data.status || 'NEW';
     this.period = data.period || 0;
-    this.timeTracker = new PlayerTimeTrackerMap(data.timeTracker);
+    this.timeProvider = new CurrentTimeProvider();
+    this.timer = new Timer(data.timer, this.timeProvider);
+    this.timeTracker = new PlayerTimeTrackerMap(data.timeTracker,
+                                                this.timeProvider);
     this.clockRunning = data.clockRunning || false;
     this.startTime = data.startTime || null;
     this.lastClockTime = data.lastClockTime || null;
@@ -42,6 +47,7 @@ var LineupTracker = window.LineupTracker;
     return {
       Name: this.name(),
       status: this.status,
+      timer: this.timer,
       clockRunning: this.clockRunning,
       startTime: this.startTime,
       lastClockTime: this.lastClockTime,
@@ -73,6 +79,16 @@ var LineupTracker = window.LineupTracker;
       this.startLivePeriod(time);
     }
 
+    if (this.timer.isRunning) {
+      console.log('Stopping the timer');
+      this.timer.stop();
+      this.timeTracker.stopShiftTimers();
+    } else {
+      console.log('Starting the timer');
+      this.timer.start();
+      this.timeTracker.startShiftTimers();
+    }
+
     if (this.clockRunning) {
       console.log('Stop the clock');
       var diff = time - this.lastClockTime;
@@ -101,6 +117,7 @@ var LineupTracker = window.LineupTracker;
 
   LineupTracker.Game.prototype.updateShiftTimes = function() {
     const shiftEndTime = this.getCurrentTime();
+    this.timeProvider.freeze();
     this.roster.forEach(player => {
       let isOn = (player.status === 'ON');
       let shiftStartTime = (isOn ? player.lastOnTime : player.lastOffTime);
@@ -109,8 +126,15 @@ var LineupTracker = window.LineupTracker;
         let elapsed = calculateElapsed(shiftStartTime, shiftEndTime);
         formattedShiftTime = pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
       }
+      let tracker = this.timeTracker && this.timeTracker.get(player.name);
+      if (tracker) {
+        let newElapsed = tracker.getShiftTime();
+        formattedShiftTime += ('<' + pad0(newElapsed[0], 2) + ':' +
+                               pad0(newElapsed[1], 2) + '>');
+      }
       player.formattedShiftTime = formattedShiftTime;
     });
+    this.timeProvider.unfreeze();
   };
 
   LineupTracker.Game.prototype.startGame = function() {
@@ -239,7 +263,7 @@ var LineupTracker = window.LineupTracker;
     playerOut.status = 'OFF';
     playerOut.lastOffTime = time;
 
-    this.timeTracker.substitutePlayer(playerOut.name, playerIn.name);
+    this.timeTracker.substitutePlayer(playerIn.name, playerOut.name);
 
     this.addEvent({
       type: 'SUBIN',

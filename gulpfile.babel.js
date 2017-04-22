@@ -135,7 +135,7 @@ gulp.task('scripts', () => {
     },
     // For live-game.html
     {
-      name: 'live',
+      name: 'live-game',
       src: [
         './app/scripts/live-game.js'
         // Other scripts

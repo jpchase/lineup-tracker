@@ -1,5 +1,13 @@
 'use strict';
 
+function pad0(value, count) {
+  var result = value.toString();
+  for (; result.length < count; --count) {
+    result = '0' + result;
+  }
+  return result;
+}
+
 export class CurrentTimeProvider {
   constructor() {
     this.isFrozen = false;
@@ -33,6 +41,12 @@ export class CurrentTimeProvider {
     }
     this.isFrozen = false;
     this.frozenTime = undefined;
+  }
+}
+
+export class Duration {
+  static format(elapsed) {
+    return pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
   }
 }
 
@@ -123,4 +137,27 @@ function calculateElapsed(startTime, endTime) {
   elapsed[0] = Math.round(timeDiff % 60);
 
   return elapsed;
+}
+
+export class TimerWidget {
+  constructor(display) {
+    this.display = display;
+  }
+
+  attach(timer) {
+    this.timer = timer;
+    this.refresh();
+  }
+
+  refresh() {
+    if (!this.timer || !this.timer.isRunning) {
+      return;
+    }
+    this.print();
+    requestAnimationFrame(this.refresh.bind(this));
+  }
+
+  print() {
+    this.display.innerText = Duration.format(this.timer.getElapsed());
+  }
 }
