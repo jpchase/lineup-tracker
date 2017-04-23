@@ -672,13 +672,13 @@ import {TimerWidget} from './clock.js';
       game.lastClockTime,
       elapsed,
       game.clockRunning);
+    this.startShiftTimeUpdater();
   };
 
   liveGame.toggleClock = function() {
     var clockRunning = this.game.toggleClock();
     if (clockRunning) {
       this.resumeClock();
-      this.startShiftTimeUpdater();
     } else {
       this.clock.pause();
       this.stopShiftTimeUpdater();
