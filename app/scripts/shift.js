@@ -75,11 +75,20 @@ export class PlayerTimeTrackerMap {
     });
   }
 
+  reset() {
+    this.trackers = null;
+    this.clockRunning = false;
+  }
+
   get(id) {
     if (!this.trackers) {
-      throw new Error('Map is empty');
+      return undefined;
     }
     return this.trackers.find(tracker => tracker.id === id);
+  }
+
+  [Symbol.iterator]() {
+    return this.trackers.values();
   }
 
   startShiftTimers() {

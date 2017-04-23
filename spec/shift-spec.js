@@ -134,9 +134,8 @@ describe('PlayerTimeTrackerMap', () => {
     });
 
     it('should throw for operations', () => {
-      expect(() => {
-        map.get();
-      }).toThrowError('Map is empty');
+      const tracker = map.get();
+      expect(tracker).toBe(undefined);
       expect(() => {
         map.startShiftTimers();
       }).toThrowError('Map is empty');
@@ -154,6 +153,11 @@ describe('PlayerTimeTrackerMap', () => {
 
     beforeEach(() => {
       map.initialize(players);
+    });
+
+    it('should be empty after reset', () => {
+      map.reset();
+      expect(map).toBeInitialized();
     });
 
     it('should not get trackers for non-existent ids', () => {

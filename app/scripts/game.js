@@ -109,6 +109,7 @@ var LineupTracker = window.LineupTracker;
       return;
     }
     this.status = 'NEW';
+    this.timer.reset();
     this.clockRunning = false;
     this.startTime = null;
     this.lastClockTime = null;
@@ -118,23 +119,26 @@ var LineupTracker = window.LineupTracker;
   LineupTracker.Game.prototype.updateShiftTimes = function() {
     const shiftEndTime = this.getCurrentTime();
     this.timeProvider.freeze();
-    this.roster.forEach(player => {
-      let isOn = (player.status === 'ON');
-      let shiftStartTime = (isOn ? player.lastOnTime : player.lastOffTime);
-      let formattedShiftTime = '';
-      if (shiftStartTime && !isNaN(shiftStartTime)) {
-        let elapsed = calculateElapsed(shiftStartTime, shiftEndTime);
-        formattedShiftTime = pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
-      }
-      let tracker = this.timeTracker && this.timeTracker.get(player.name);
-      if (tracker) {
-        let newElapsed = tracker.getShiftTime();
-        formattedShiftTime += ('<' + pad0(newElapsed[0], 2) + ':' +
-                               pad0(newElapsed[1], 2) + '>');
-      }
-      player.formattedShiftTime = formattedShiftTime;
-    });
-    this.timeProvider.unfreeze();
+    try {
+      this.roster.forEach(player => {
+        let isOn = (player.status === 'ON');
+        let shiftStartTime = (isOn ? player.lastOnTime : player.lastOffTime);
+        let formattedShiftTime = '';
+        if (shiftStartTime && !isNaN(shiftStartTime)) {
+          let elapsed = calculateElapsed(shiftStartTime, shiftEndTime);
+          formattedShiftTime = pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
+        }
+        let tracker = this.timeTracker && this.timeTracker.get(player.name);
+        if (tracker) {
+          let newElapsed = tracker.getShiftTime();
+          formattedShiftTime += ('<' + pad0(newElapsed[0], 2) + ':' +
+                                 pad0(newElapsed[1], 2) + '>');
+        }
+        player.formattedShiftTime = formattedShiftTime;
+      });
+    } finally {
+      this.timeProvider.unfreeze();
+    }
   };
 
   LineupTracker.Game.prototype.startGame = function() {
@@ -336,6 +340,8 @@ var LineupTracker = window.LineupTracker;
       player.lastOffTime = null;
       player.formattedShiftTime = '';
     });
+    this.timer.reset();
+    this.timeTracker.reset();
     this.starters = [];
   };
 
