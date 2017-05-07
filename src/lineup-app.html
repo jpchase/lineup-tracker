@@ -1,0 +1,19 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="lineup-roster.html">
+
+<dom-module id="my-app">
+  <template>
+    <style>
+    </style>
+  </template>
+
+  <script>
+    class MyApp extends Polymer.Element {
+
+      static get is() { return 'lineup-app'; }
+
+    }
+
+    window.customElements.define(MyApp.is, MyApp);
+  </script>
+</dom-module>

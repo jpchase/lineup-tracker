@@ -1,0 +1,92 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-shared-styles.html">
+
+<dom-module id="lineup-roster">
+  <template>
+    <style is="custom-style" include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+
+      .flex-equal-justified {
+        @apply(--layout-horizontal);
+        @apply(--layout-justified);
+        line-height: 35px;
+      }
+
+      .avatar {
+        display: inline-block;
+        box-sizing: border-box;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--paper-amber-500);
+        text-align: center;
+        vertical-align: middle;
+        line-height: 35px;
+        margin-right: 1em;
+      }
+    </style>
+
+    <div class="card">
+      <paper-listbox class="xxdropdown-content" multi>
+        <template is="dom-repeat" items="{{roster}}" as="player">
+          <paper-item>
+            <paper-item-body two-line>
+              <div class="container flex-equal-justified">
+                <div><span class="avatar">&#35[[player.uniformNumber]]</span>[[player.name]]</div>
+                <div>X games</div>
+              </div>
+              <div secondary>[[player.positions]]</div>
+            </paper-item-body>
+          </paper-item>
+        </template>
+      </paper-listbox>
+    </div>
+  </template>
+
+  <script>
+    class LineupRoster extends Polymer.Element {
+      static get is() { return 'lineup-roster'; }
+
+      static get properties() {
+        return {
+          roster: {
+            type: Object,
+            value: function() {
+                    let roster = [
+                      {name: 'Allie', uniformNumber: 16, positions: ['CB'], status: 'OFF'},
+                      {name: 'Amanda', uniformNumber: 2, positions: ['CB', 'FB', 'HM'], status: 'OFF'},
+                      {name: 'Emma F', uniformNumber: 42, positions: ['AM', 'HM', 'OM'], status: 'OFF'},
+                      {name: 'Emma H', uniformNumber: 4, positions: ['AM', 'HM'], status: 'OFF'},
+                      {name: 'Emmalene', uniformNumber: 22, positions: ['FB', 'OM'], status: 'OFF'},
+                      {name: 'Jill', uniformNumber: 28, positions: ['AM', 'OM', 'S'], status: 'OFF'},
+                      {name: 'Kiana', uniformNumber: 13, positions: ['S', 'OM'], status: 'OFF'},
+                      {name: 'Lauren', uniformNumber: 8, positions: ['AM', 'OM', 'S'], status: 'OFF'},
+                      {name: 'Leah', uniformNumber: 44, positions: ['OM', 'S'], status: 'OFF'},
+                      {name: 'Ryley', uniformNumber: 19, positions: ['GK'], status: 'OFF'},
+                      {name: 'Sophia', uniformNumber: 18, positions: ['FB', 'CB'], status: 'OFF'},
+                      {name: 'Syd', uniformNumber: 5, positions: ['HM', 'AM'], status: 'OFF'},
+                      {name: 'Val', uniformNumber: 27, positions: ['CB', 'HM'], status: 'OFF'},
+                      {name: 'Thalia', uniformNumber: 9, positions: ['FB', 'OM'], status: 'OFF'},
+                      {name: 'Teanna', uniformNumber: 77, positions: ['OM', 'FB'], status: 'OFF'},
+                    ];
+                    return roster;
+                  }
+          }
+        }
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        // …
+      }
+    }
+
+    window.customElements.define(LineupRoster.is, LineupRoster);
+  </script>
+</dom-module>
