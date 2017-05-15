@@ -87,12 +87,9 @@
     hasRequestPending: false,
     visibleGameCards: {},
     currentGames: [],
-    visiblePlayerCards: {},
     spinner: document.querySelector('.loader'),
     gameCardTemplate: document.querySelector('.gameCardTemplate'),
-    playerCardTemplate: document.querySelector('.playerCardTemplate'),
     container: document.querySelector('.game-container'),
-    rosterContainer: document.querySelector('.rosterList'),
     games: {
       dialog: document.getElementById('dialogGame')
     }
@@ -153,25 +150,6 @@
 
     var rosterWidget = document.querySelector('lineup-roster');
     rosterWidget.roster = roster;
-  };
-
-  // Updates a player card with the data. If the card
-  // doesn't already exist, it's cloned from the template.
-  app.updatePlayerCard = function(player) {
-    var card = app.visiblePlayerCards[player.name];
-    if (!card) {
-      card = app.playerCardTemplate.cloneNode(true);
-      card.classList.remove('playerCardTemplate');
-      card.querySelector('.playerName').textContent = player.name;
-      card.removeAttribute('hidden');
-      app.rosterContainer.appendChild(card);
-      app.visiblePlayerCards[player.name] = card;
-    }
-    card.querySelector('.playerPositions').textContent =
-      player.positions.join(' ');
-
-    card.querySelector('.playerGameCount').textContent =
-      player.uniformNumber + ' games';
   };
 
   app.addGame = function() {
