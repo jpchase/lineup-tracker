@@ -39,7 +39,7 @@
             <paper-item-body two-line>
               <div class="container flex-equal-justified">
                 <div><span class="avatar">&#35[[player.uniformNumber]]</span>[[player.name]]</div>
-                <div>X games</div>
+                <div>[[player.status]] games</div>
               </div>
               <div secondary>[[player.positions]]</div>
             </paper-item-body>
@@ -57,26 +57,6 @@
         return {
           roster: {
             type: Object,
-            value: function() {
-                    let roster = [
-                      {name: 'Allie', uniformNumber: 16, positions: ['CB'], status: 'OFF'},
-                      {name: 'Amanda', uniformNumber: 2, positions: ['CB', 'FB', 'HM'], status: 'OFF'},
-                      {name: 'Emma F', uniformNumber: 42, positions: ['AM', 'HM', 'OM'], status: 'OFF'},
-                      {name: 'Emma H', uniformNumber: 4, positions: ['AM', 'HM'], status: 'OFF'},
-                      {name: 'Emmalene', uniformNumber: 22, positions: ['FB', 'OM'], status: 'OFF'},
-                      {name: 'Jill', uniformNumber: 28, positions: ['AM', 'OM', 'S'], status: 'OFF'},
-                      {name: 'Kiana', uniformNumber: 13, positions: ['S', 'OM'], status: 'OFF'},
-                      {name: 'Lauren', uniformNumber: 8, positions: ['AM', 'OM', 'S'], status: 'OFF'},
-                      {name: 'Leah', uniformNumber: 44, positions: ['OM', 'S'], status: 'OFF'},
-                      {name: 'Ryley', uniformNumber: 19, positions: ['GK'], status: 'OFF'},
-                      {name: 'Sophia', uniformNumber: 18, positions: ['FB', 'CB'], status: 'OFF'},
-                      {name: 'Syd', uniformNumber: 5, positions: ['HM', 'AM'], status: 'OFF'},
-                      {name: 'Val', uniformNumber: 27, positions: ['CB', 'HM'], status: 'OFF'},
-                      {name: 'Thalia', uniformNumber: 9, positions: ['FB', 'OM'], status: 'OFF'},
-                      {name: 'Teanna', uniformNumber: 77, positions: ['OM', 'FB'], status: 'OFF'},
-                    ];
-                    return roster;
-                  }
           }
         }
       }

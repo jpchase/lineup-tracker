@@ -151,9 +151,8 @@
   app.showRoster = function() {
     var roster = LineupTracker.retrieveRoster();
 
-    roster.forEach(player => {
-      this.updatePlayerCard(player);
-    });
+    var rosterWidget = document.querySelector('lineup-roster');
+    rosterWidget.roster = roster;
   };
 
   // Updates a player card with the data. If the card
@@ -172,7 +171,7 @@
       player.positions.join(' ');
 
     card.querySelector('.playerGameCount').textContent =
-      player.name.length + ' games';
+      player.uniformNumber + ' games';
   };
 
   app.addGame = function() {
