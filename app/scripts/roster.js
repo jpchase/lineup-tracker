@@ -14,6 +14,7 @@
       addPlayer: document.getElementById('buttonAddPlayer'),
     },
     container: document.querySelector('.rosterList'),
+    widget: document.querySelector('lineup-roster'),
     player: {
       dialog: document.getElementById('dialogPlayer'),
       nameField: document.getElementById('textName'),
@@ -74,6 +75,7 @@
   };
 
   app.setupRoster = function() {
+    this.widget.roster = this.roster;
     this.roster.forEach(player => {
       this.updatePlayerCard(player);
     });
