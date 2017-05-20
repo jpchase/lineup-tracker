@@ -21,9 +21,13 @@ export class PlayerTimeTracker {
     if (data.offTimer) {
       this.offTimer = new Timer(data.offTimer, timeProvider);
     }
+    if (data.shiftCount) {
+      this.shiftCount = data.shiftCount;
+    }
   }
 
   reset() {
+    this.shiftCount = 0;
     this.onTimer = null;
     this.offTimer = null;
   }
@@ -114,6 +118,7 @@ export class PlayerTimeTrackerMap {
     if (tracker.isOn) {
       tracker.onTimer = tracker.onTimer || new Timer(null, this.timeProvider);
       tracker.onTimer.start();
+      tracker.shiftCount += 1;
     } else {
       tracker.offTimer = tracker.offTimer || new Timer(null, this.timeProvider);
       tracker.offTimer.start();
