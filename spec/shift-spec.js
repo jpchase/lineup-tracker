@@ -81,13 +81,24 @@ describe('PlayerTimeTrackerMap', () => {
           }
         };
       },
+      toBeAlreadyOn: function () {
+        return {
+          compare: function (actual, expected) {
+            let tracker = actual;
+
+            return {
+              pass: tracker && tracker.isOn && tracker.alreadyOn
+            };
+          }
+        };
+      },
       toBeOff: function () {
         return {
           compare: function (actual, expected) {
             let tracker = actual;
 
             return {
-              pass: tracker && tracker.id === expected && !tracker.isOn
+              pass: tracker && tracker.id === expected && !tracker.isOn && !tracker.alreadyOn
             };
           }
         };
@@ -353,6 +364,7 @@ describe('PlayerTimeTrackerMap', () => {
       map.startShiftTimers();
 
       expect(onTracker).toHaveShiftCount(1);
+      expect(onTracker).toBeAlreadyOn();
       expect(offTracker).toHaveShiftCount(0);
     });
 
@@ -381,6 +393,7 @@ describe('PlayerTimeTrackerMap', () => {
       map.stopShiftTimers();
 
       expect(onTracker).toHaveShiftCount(1);
+      expect(onTracker).toBeAlreadyOn();
       expect(offTracker).toHaveShiftCount(0);
     });
 
@@ -394,18 +407,21 @@ describe('PlayerTimeTrackerMap', () => {
       map.stopShiftTimers();
 
       expect(onTracker).toHaveShiftCount(1);
+      expect(onTracker).toBeAlreadyOn();
       expect(offTracker).toHaveShiftCount(0);
 
       map.startShiftTimers();
       map.stopShiftTimers();
 
       expect(onTracker).toHaveShiftCount(1);
+      expect(onTracker).toBeAlreadyOn();
       expect(offTracker).toHaveShiftCount(0);
 
       map.startShiftTimers();
       map.stopShiftTimers();
 
       expect(onTracker).toHaveShiftCount(1);
+      expect(onTracker).toBeAlreadyOn();
       expect(offTracker).toHaveShiftCount(0);
     });
 
@@ -433,7 +449,9 @@ describe('PlayerTimeTrackerMap', () => {
       map.substitutePlayer(playerOffId, playerOnId);
 
       expect(onTracker).toHaveShiftCount(1);
+      expect(onTracker).not.toBeAlreadyOn();
       expect(offTracker).toHaveShiftCount(1);
+      expect(offTracker).toBeAlreadyOn();
     });
 
     it('should have shift times at zero after sub with clock stopped', () => {
@@ -473,7 +491,9 @@ describe('PlayerTimeTrackerMap', () => {
       map.substitutePlayer(playerOffId, playerOnId);
 
       expect(onTracker).toHaveShiftCount(0);
+      expect(onTracker).not.toBeAlreadyOn();
       expect(offTracker).toHaveShiftCount(0);
+      expect(offTracker).not.toBeAlreadyOn();
 
       map.startShiftTimers();
       map.stopShiftTimers();
@@ -487,6 +507,7 @@ describe('PlayerTimeTrackerMap', () => {
       map.substitutePlayer(playerOnId, playerOffId);
 
       expect(onTracker).toHaveShiftCount(0);
+      expect(onTracker).not.toBeAlreadyOn();
       expect(offTracker).toHaveShiftCount(1);
 
       map.startShiftTimers();
@@ -533,7 +554,7 @@ describe('PlayerTimeTrackerMap', () => {
       let expected = {
         clockRunning: false,
         trackers: [
-          { id: playerOnId, isOn: true, shiftCount: 1 },
+          { id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 1 },
           { id: playerOffId, isOn: false },
         ],
       }
@@ -546,6 +567,7 @@ describe('PlayerTimeTrackerMap', () => {
       let offTracker = map.get(playerOffId);
 
       expect(onTracker).toBeOn(playerOnId);
+      expect(onTracker).toBeAlreadyOn();
       expect(onTracker).not.toBeRunning();
       expect(onTracker).toHaveShiftCount(1);
 
@@ -558,12 +580,12 @@ describe('PlayerTimeTrackerMap', () => {
       let expected = {
         clockRunning: false,
         trackers: [
-          { id: playerOnId, isOn: true, shiftCount: 1,
+          { id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 1,
             onTimer: {
               isRunning: false, duration: [0,5]
             }
           },
-          { id: playerOffId, isOn: false, shiftCount: 0,
+          { id: playerOffId, isOn: false, alreadyOn: false, shiftCount: 0,
             offTimer: {
               isRunning: false, duration: [0,5]
             }
@@ -580,6 +602,7 @@ describe('PlayerTimeTrackerMap', () => {
 
       expect(onTracker).toBeOn(playerOnId);
       expect(onTracker).not.toBeRunning();
+      expect(onTracker).toBeAlreadyOn();
       expect(onTracker.onTimer.getElapsed()).toEqual([0, 5]);
       expect(onTracker).toHaveShiftCount(1);
 
@@ -593,12 +616,12 @@ describe('PlayerTimeTrackerMap', () => {
       let expected = {
         clockRunning: true,
         trackers: [
-          { id: playerOnId, isOn: true, shiftCount: 2,
+          { id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 2,
             onTimer: {
               isRunning: true, startTime: startTime, duration: [0,5]
             }
           },
-          { id: playerOffId, isOn: false, shiftCount: 1,
+          { id: playerOffId, isOn: false, alreadyOn: false, shiftCount: 1,
             offTimer: {
               isRunning: true, startTime: startTime, duration: [0,5]
             }
@@ -617,6 +640,7 @@ describe('PlayerTimeTrackerMap', () => {
 
       expect(onTracker).toBeOn(playerOnId);
       expect(onTracker).toBeRunning();
+      expect(onTracker).toBeAlreadyOn();
       expect(onTracker.onTimer.getElapsed()).toEqual([0, 10]);
       expect(onTracker).toHaveShiftCount(2);
 

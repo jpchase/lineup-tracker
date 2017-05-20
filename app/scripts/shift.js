@@ -13,21 +13,19 @@ export class PlayerTimeTracker {
   constructor(passedData, timeProvider) {
     let data = passedData || {};
     this.id = data.id;
-    this.isOn = data.isOn;
-    this.reset();
+    this.isOn = !!data.isOn;
+    this.alreadyOn = !!data.alreadyOn;
+    this.shiftCount = data.shiftCount || 0;
+    this.resetShiftTime();
     if (data.onTimer) {
       this.onTimer = new Timer(data.onTimer, timeProvider);
     }
     if (data.offTimer) {
       this.offTimer = new Timer(data.offTimer, timeProvider);
     }
-    if (data.shiftCount) {
-      this.shiftCount = data.shiftCount;
-    }
   }
 
-  reset() {
-    this.shiftCount = 0;
+  resetShiftTime() {
     this.onTimer = null;
     this.offTimer = null;
   }
@@ -118,7 +116,10 @@ export class PlayerTimeTrackerMap {
     if (tracker.isOn) {
       tracker.onTimer = tracker.onTimer || new Timer(null, this.timeProvider);
       tracker.onTimer.start();
-      tracker.shiftCount += 1;
+      if (!tracker.alreadyOn) {
+        tracker.alreadyOn = true;
+        tracker.shiftCount += 1;
+      }
     } else {
       tracker.offTimer = tracker.offTimer || new Timer(null, this.timeProvider);
       tracker.offTimer.start();
@@ -175,6 +176,7 @@ export class PlayerTimeTrackerMap {
     this.stopShift(playerOutTracker);
     playerInTracker.isOn = true;
     playerOutTracker.isOn = false;
+    playerOutTracker.alreadyOn = false;
     if (this.clockRunning) {
       this.startShift(playerInTracker, true);
       this.startShift(playerOutTracker, true);
