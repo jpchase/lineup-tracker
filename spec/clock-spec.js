@@ -1,20 +1,23 @@
-import {CurrentTimeProvider,Timer} from '../app/scripts/clock.js';
+import {CurrentTimeProvider,ManualTimeProvider,Timer} from '../app/scripts/clock.js';
 
 describe('CurrentTimeProvider', () => {
+  let provider;
+
+  beforeEach(() => {
+    provider = new CurrentTimeProvider();
+  });
+
   it('should not be frozen by default', () => {
-    let provider = new CurrentTimeProvider();
     expect(provider.isFrozen).toBe(false);
   });
 
   it('should return the current time', () => {
-    let provider = new CurrentTimeProvider();
     const expectedTime = Date.now();
     const actualTime = provider.getCurrentTime();
     expect(actualTime).toEqual(expectedTime);
   });
 
   it('should throw for repeated calls to freeze()', () => {
-    let provider = new CurrentTimeProvider();
     expect(provider.isFrozen).toBe(false);
     provider.freeze();
     expect(provider.isFrozen).toBe(true);
@@ -24,7 +27,6 @@ describe('CurrentTimeProvider', () => {
   });
 
   it('should throw for repeated calls to unfreeze()', () => {
-    let provider = new CurrentTimeProvider();
     expect(provider.isFrozen).toBe(false);
     provider.freeze();
     expect(provider.isFrozen).toBe(true);
@@ -39,7 +41,6 @@ describe('CurrentTimeProvider', () => {
     const time1 = new Date(2016, 0, 1, 14, 0, 0);
     const time2 = new Date(2016, 0, 1, 14, 1, 0);
 
-    let provider = new CurrentTimeProvider();
     spyOn(provider, 'getTimeInternal').and.returnValues(time1, time2);
 
     provider.freeze();
@@ -54,6 +55,43 @@ describe('CurrentTimeProvider', () => {
     const actualTime3 = provider.getCurrentTime();
     expect(actualTime3).toEqual(time2);
   });
+});
+
+describe('ManualTimeProvider', () => {
+  let provider;
+
+  beforeEach(() => {
+    provider = new ManualTimeProvider();
+  });
+
+  it('should return the current time when not manually set', () => {
+    const expectedTime = Date.now();
+    const actualTime = provider.getCurrentTime();
+    expect(actualTime).toEqual(expectedTime);
+  });
+
+  it('should return the set time', () => {
+    const time1 = new Date(2016, 0, 1, 14, 0, 0);
+    const time2 = new Date(2016, 0, 1, 14, 1, 0);
+
+    provider.setCurrentTime(time1);
+
+    const actualTime1 = provider.getCurrentTime();
+    expect(actualTime1).toEqual(time1);
+    const actualTime2 = provider.getCurrentTime();
+    expect(actualTime2).toEqual(time1);
+
+    provider.setCurrentTime(time2);
+
+    const actualTime3 = provider.getCurrentTime();
+    expect(actualTime3).toEqual(time2);
+
+    provider.setCurrentTime(time1);
+
+    const actualTime4 = provider.getCurrentTime();
+    expect(actualTime4).toEqual(time1);
+  });
+
 });
 
 describe('Timer', () => {

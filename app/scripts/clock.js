@@ -44,6 +44,16 @@ export class CurrentTimeProvider {
   }
 }
 
+export class ManualTimeProvider extends CurrentTimeProvider {
+  setCurrentTime(newTime) {
+    this.currentTime = newTime;
+  }
+
+  getTimeInternal() {
+    return this.currentTime || super.getTimeInternal();
+  }
+}
+
 export class Duration {
   static format(elapsed) {
     return pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
