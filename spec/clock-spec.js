@@ -92,6 +92,27 @@ describe('ManualTimeProvider', () => {
     expect(actualTime4).toEqual(time1);
   });
 
+  it('should return the incremented time', () => {
+    const time1 = new Date(2016, 0, 1, 14, 0, 0);
+    const time2 = new Date(2016, 0, 1, 14, 1, 0);
+    const time3 = new Date(2016, 0, 1, 14, 2, 15);
+
+    provider.setCurrentTime(time1);
+
+    const actualTime1 = provider.getCurrentTime();
+    expect(actualTime1).toEqual(time1);
+
+    provider.incrementCurrentTime([1,0]);
+
+    const actualTime2 = provider.getCurrentTime();
+    expect(actualTime2).toEqual(time2);
+
+    provider.incrementCurrentTime([1,15]);
+
+    const actualTime3 = provider.getCurrentTime();
+    expect(actualTime3).toEqual(time3);
+  });
+
 });
 
 describe('Timer', () => {

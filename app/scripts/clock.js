@@ -49,6 +49,10 @@ export class ManualTimeProvider extends CurrentTimeProvider {
     this.currentTime = newTime;
   }
 
+  incrementCurrentTime(duration) {
+    this.currentTime = Duration.addToDate(this.currentTime, duration);
+  }
+
   getTimeInternal() {
     return this.currentTime || super.getTimeInternal();
   }
@@ -57,6 +61,12 @@ export class ManualTimeProvider extends CurrentTimeProvider {
 export class Duration {
   static format(elapsed) {
     return pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
+  }
+
+  static addToDate(date, duration) {
+    let result = new Date(date.getTime());
+    result.setMinutes(result.getMinutes() + duration[0], result.getSeconds() + duration[1]);
+    return result;
   }
 }
 
