@@ -1,4 +1,4 @@
-import {CurrentTimeProvider,ManualTimeProvider,Timer} from '../app/scripts/clock.js';
+import {CurrentTimeProvider,ManualTimeProvider,Duration,Timer} from '../app/scripts/clock.js';
 
 describe('CurrentTimeProvider', () => {
   let provider;
@@ -113,6 +113,56 @@ describe('ManualTimeProvider', () => {
     expect(actualTime3).toEqual(time3);
   });
 
+});
+
+describe('Duration', () => {
+
+  it('should return initialized array for zero', () => {
+    expect(Duration.zero()).toEqual([0,0]);
+  });
+
+  describe('add', () => {
+    const testValues = [
+      { left:[0,1], right:[0,1], sum:[0,2] },
+      { left:[1,0], right:[1,0], sum:[2,0] },
+      { left:[1,2], right:[3,4], sum:[4,6] },
+      { left:[1,59], right:[0,1], sum:[2,0] },
+      { left:[12,29], right:[10,32], sum:[23,1] },
+    ];
+
+    function formatDuration(duration) {
+      return '[' + duration[0] + ',' + duration[1] +']';
+    }
+
+    it('should return zero for both inputs zero', () => {
+      expect(Duration.add(Duration.zero(), Duration.zero())).toEqual(Duration.zero());
+
+      expect(Duration.add(Duration.zero(), [0,0])).toEqual(Duration.zero());
+
+      expect(Duration.add([0,0], Duration.zero())).toEqual(Duration.zero());
+    });
+
+    function addTest(left, right, expectedSum) {
+      it('should return correct sum for zero + ' + formatDuration(left), () => {
+        const actualSum = Duration.add(Duration.zero(), left);
+        expect(actualSum).toEqual(left);
+      });
+
+      it('should return correct sum for ' + formatDuration(left) + ' + zero', () => {
+        const actualSum = Duration.add(left, Duration.zero());
+        expect(actualSum).toEqual(left);
+      });
+
+      it('should return correct sum for ' + formatDuration(left) + ' + ' + formatDuration(right), () => {
+        const actualSum = Duration.add(left, right);
+        expect(actualSum).toEqual(expectedSum);
+      });
+    }
+
+    testValues.forEach(test => {
+      addTest(test.left, test.right, test.sum);
+    });
+  }); // add
 });
 
 describe('Timer', () => {
