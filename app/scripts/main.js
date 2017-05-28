@@ -119,6 +119,14 @@
     app.closeGame();
   });
 
+  document.getElementById('menuU16A').addEventListener('click', () => {
+    app.setTeam('menuU16A');
+  });
+
+  document.getElementById('menuNMSC2003').addEventListener('click', () => {
+    app.setTeam('menuNMSC2003');
+  });
+
   /*****************************************************************************
    *
    * Methods to update/refresh the UI
@@ -154,6 +162,13 @@
     roster.forEach(player => {
       this.updatePlayerCard(player);
     });
+  };
+
+  app.setTeam = function(menuId) {
+    console.log('About to set team for:', menuId);
+    const teamId = menuId.substring(4);
+    LineupTracker.saveCurrentTeamId(teamId);
+    window.location.reload();
   };
 
   // Updates a player card with the data. If the card
@@ -205,6 +220,7 @@
 
     let data = {
       id: controls.id.value,
+      teamId: LineupTracker.getCurrentTeamId(),
       date: date,
       opponent: controls.opponent.value,
       duration: parseInt(controls.duration.value, 10),
