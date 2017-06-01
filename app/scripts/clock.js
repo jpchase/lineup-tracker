@@ -44,23 +44,9 @@ export class CurrentTimeProvider {
   }
 }
 
-export class ManualTimeProvider extends CurrentTimeProvider {
-  setCurrentTime(newTime) {
-    this.currentTime = newTime;
-  }
-
-  incrementCurrentTime(duration) {
-    this.currentTime = Duration.addToDate(this.currentTime, duration);
-  }
-
-  getTimeInternal() {
-    return this.currentTime || super.getTimeInternal();
-  }
-}
-
 export class Duration {
   static zero() {
-    return [0,0];
+    return [0, 0];
   }
 
   static format(elapsed) {
@@ -81,8 +67,23 @@ export class Duration {
 
   static addToDate(date, duration) {
     let result = new Date(date.getTime());
-    result.setMinutes(result.getMinutes() + duration[0], result.getSeconds() + duration[1]);
+    result.setMinutes(result.getMinutes() + duration[0],
+                      result.getSeconds() + duration[1]);
     return result;
+  }
+}
+
+export class ManualTimeProvider extends CurrentTimeProvider {
+  setCurrentTime(newTime) {
+    this.currentTime = newTime;
+  }
+
+  incrementCurrentTime(duration) {
+    this.currentTime = Duration.addToDate(this.currentTime, duration);
+  }
+
+  getTimeInternal() {
+    return this.currentTime || super.getTimeInternal();
   }
 }
 
