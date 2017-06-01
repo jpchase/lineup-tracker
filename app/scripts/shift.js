@@ -13,8 +13,8 @@ export class PlayerTimeTracker {
   constructor(passedData, timeProvider) {
     let data = passedData || {};
     this.id = data.id;
-    this.isOn = !!data.isOn;
-    this.alreadyOn = !!data.alreadyOn;
+    this.isOn = Boolean(data.isOn);
+    this.alreadyOn = Boolean(data.alreadyOn);
     this.shiftCount = data.shiftCount || 0;
     this.totalTime = data.totalTime || Duration.zero();
     this.resetShiftTime();
