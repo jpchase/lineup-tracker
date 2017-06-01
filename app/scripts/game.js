@@ -99,11 +99,9 @@ var LineupTracker = window.LineupTracker;
       console.log('Stop the clock');
       var diff = time - this.lastClockTime;
       this.elapsed += diff;
-      this.timeTracker.stopShiftTimers();
     } else {
       console.log('Start the clock');
       this.lastClockTime = time;
-      this.timeTracker.startShiftTimers();
     }
     this.clockRunning = !this.clockRunning;
     return this.clockRunning;
