@@ -322,6 +322,7 @@ gulp.task('generate-service-worker', ['copy-sw-scripts'], () => {
       `${rootDir}/styles/**/*.css`,
       `${rootDir}/*.{html,json}`
     ],
+    ignoreUrlParametersMatching: [/homescreen/, /^utm_/],
     // Translates a static file path to the relative URL that it's served from.
     stripPrefix: path.join(rootDir, path.sep)
   });

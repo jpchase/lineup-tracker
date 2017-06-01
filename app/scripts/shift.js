@@ -1,6 +1,6 @@
 'use strict';
 
-import {CurrentTimeProvider, Timer} from './clock.js';
+import {CurrentTimeProvider, Duration, Timer} from './clock.js';
 
 function getCurrentTimer(tracker) {
   if (!tracker) {
@@ -13,8 +13,11 @@ export class PlayerTimeTracker {
   constructor(passedData, timeProvider) {
     let data = passedData || {};
     this.id = data.id;
-    this.isOn = data.isOn;
-    this.reset();
+    this.isOn = !!data.isOn;
+    this.alreadyOn = !!data.alreadyOn;
+    this.shiftCount = data.shiftCount || 0;
+    this.totalTime = data.totalTime || Duration.zero();
+    this.resetShiftTime();
     if (data.onTimer) {
       this.onTimer = new Timer(data.onTimer, timeProvider);
     }
@@ -23,7 +26,7 @@ export class PlayerTimeTracker {
     }
   }
 
-  reset() {
+  resetShiftTime() {
     this.onTimer = null;
     this.offTimer = null;
   }
@@ -38,6 +41,17 @@ export class PlayerTimeTracker {
   getShiftTime() {
     let timer = getCurrentTimer(this);
     return timer ? timer.getElapsed() : [0, 0];
+  }
+
+  getTotalTime() {
+    if (this.isOn && this.onTimer) {
+      return Duration.add(this.totalTime, this.onTimer.getElapsed());
+    }
+    return this.totalTime;
+  }
+
+  addShiftToTotal() {
+    this.totalTime = Duration.add(this.totalTime, this.getShiftTime());
   }
 }
 
@@ -114,6 +128,10 @@ export class PlayerTimeTrackerMap {
     if (tracker.isOn) {
       tracker.onTimer = tracker.onTimer || new Timer(null, this.timeProvider);
       tracker.onTimer.start();
+      if (!tracker.alreadyOn) {
+        tracker.alreadyOn = true;
+        tracker.shiftCount += 1;
+      }
     } else {
       tracker.offTimer = tracker.offTimer || new Timer(null, this.timeProvider);
       tracker.offTimer.start();
@@ -161,15 +179,21 @@ export class PlayerTimeTrackerMap {
                       ', playerOut = ' +
                       outDebugString);
     }
+
     let unfreeze = false;
     if (this.clockRunning) {
       this.timeProvider.freeze();
       unfreeze = true;
     }
+
     this.stopShift(playerInTracker);
     this.stopShift(playerOutTracker);
     playerInTracker.isOn = true;
+
+    playerOutTracker.addShiftToTotal();
     playerOutTracker.isOn = false;
+    playerOutTracker.alreadyOn = false;
+
     if (this.clockRunning) {
       this.startShift(playerInTracker, true);
       this.startShift(playerOutTracker, true);

@@ -11,6 +11,11 @@ var LineupTracker = window.LineupTracker;
 (function() {
   'use strict';
 
+  const TEAM_U16A = 'U16A';
+  const TEAM_NMSC2003 = 'NMSC2003';
+  const DEFAULT_TEAM_ID = TEAM_U16A;
+  let currentTeamId = null;
+
   // In-memory storage of games
   var allGames = null;
 
@@ -23,6 +28,7 @@ var LineupTracker = window.LineupTracker;
 
   LineupTracker.Game = function(data) {
     this.id = data.id;
+    this.teamId = data.teamId;
     this.date = new Date(data.date);
     this.opponent = data.opponent;
     this.duration = data.duration;
@@ -93,11 +99,9 @@ var LineupTracker = window.LineupTracker;
       console.log('Stop the clock');
       var diff = time - this.lastClockTime;
       this.elapsed += diff;
-      this.timeTracker.stopShiftTimers();
     } else {
       console.log('Start the clock');
       this.lastClockTime = time;
-      this.timeTracker.startShiftTimers();
     }
     this.clockRunning = !this.clockRunning;
     return this.clockRunning;
@@ -432,7 +436,22 @@ var LineupTracker = window.LineupTracker;
    *
    ****************************************************************************/
 
-  LineupTracker.retrieveGames = function() {
+  LineupTracker.getCurrentTeamId = function() {
+    if (!currentTeamId) {
+      currentTeamId = localStorage.currentTeamId || DEFAULT_TEAM_ID;
+    }
+    return currentTeamId;
+  };
+
+  LineupTracker.saveCurrentTeamId = function(teamId) {
+    if (teamId !== TEAM_U16A && teamId !== TEAM_NMSC2003) {
+      throw new Error('Invalid teamId: ' + teamId);
+    }
+    console.log('Saving team id:', teamId);
+    localStorage.currentTeamId = currentTeamId = teamId;
+  };
+
+  LineupTracker.retrieveAllGames = function() {
     if (!allGames) {
       allGames = [];
       var foundData = false;
@@ -458,6 +477,9 @@ var LineupTracker = window.LineupTracker;
       }
 
       gameData.forEach(data => {
+        if (!data.teamId) {
+          data.teamId = DEFAULT_TEAM_ID;
+        }
         allGames.push(new LineupTracker.Game(data));
       });
 
@@ -467,6 +489,13 @@ var LineupTracker = window.LineupTracker;
     }
 
     return allGames;
+  };
+
+  LineupTracker.retrieveGames = function() {
+    let games = this.retrieveAllGames();
+    const teamId = this.getCurrentTeamId();
+
+    return games.filter(game => game.teamId === teamId);
   };
 
   LineupTracker.saveGames = function() {
@@ -512,38 +541,79 @@ var LineupTracker = window.LineupTracker;
       {name: 'Taty', positions: ['AM', 'OM', 'S'], status: 'OFF'}
     ];
     */
-    let roster = [
-      {name: 'Allie', uniformNumber: 16, positions: ['CB'],
-       status: 'OFF'},
-      {name: 'Amanda', uniformNumber: 2, positions: ['CB', 'FB', 'HM'],
-       status: 'OFF'},
-      {name: 'Emma F', uniformNumber: 42, positions: ['AM', 'HM', 'OM'],
-       status: 'OFF'},
-      {name: 'Emma H', uniformNumber: 4, positions: ['AM', 'HM'],
-       status: 'OFF'},
-      {name: 'Emmalene', uniformNumber: 22, positions: ['FB', 'OM'],
-       status: 'OFF'},
-      {name: 'Jill', uniformNumber: 28, positions: ['AM', 'OM', 'S'],
-       status: 'OFF'},
-      {name: 'Kiana', uniformNumber: 13, positions: ['S', 'OM'],
-       status: 'OFF'},
-      {name: 'Lauren', uniformNumber: 8, positions: ['AM', 'OM', 'S'],
-       status: 'OFF'},
-      {name: 'Leah', uniformNumber: 44, positions: ['OM', 'S'],
-       status: 'OFF'},
-      {name: 'Ryley', uniformNumber: 19, positions: ['GK'],
-       status: 'OFF'},
-      {name: 'Sophia', uniformNumber: 18, positions: ['FB', 'CB'],
-       status: 'OFF'},
-      {name: 'Syd', uniformNumber: 5, positions: ['HM', 'AM'],
-       status: 'OFF'},
-      {name: 'Val', uniformNumber: 27, positions: ['CB', 'HM'],
-       status: 'OFF'},
-      {name: 'Thalia', uniformNumber: 9, positions: ['FB', 'OM'],
-       status: 'OFF'},
-      {name: 'Teanna', uniformNumber: 77, positions: ['OM', 'FB'],
-       status: 'OFF'},
-    ];
+    const teamId = this.getCurrentTeamId();
+    let roster;
+    if (teamId === TEAM_NMSC2003) {
+      roster = [
+        {name: 'Ashley', uniformNumber: 19, positions: ['FB'],
+         status: 'OFF'},
+        {name: 'Brianna', uniformNumber: 36, positions: ['AM', 'HM'],
+         status: 'OFF'},
+        {name: 'Camila', uniformNumber: 8, positions: ['FB', 'HM'],
+         status: 'OFF'},
+        {name: 'Darci', uniformNumber: 20, positions: ['AM', 'HM'],
+         status: 'OFF'},
+        {name: 'Ella', uniformNumber: 16, positions: ['OM', 'S', 'W'],
+         status: 'OFF'},
+        {name: 'Emma', uniformNumber: 7, positions: ['CB', 'FB'],
+         status: 'OFF'},
+        {name: 'Bella', uniformNumber: 4, positions: ['W', 'OM'],
+         status: 'OFF'},
+        {name: 'Iyana', uniformNumber: 13, positions: ['FB', 'CB'],
+         status: 'OFF'},
+        {name: 'Jada', uniformNumber: 0, positions: ['GK'],
+         status: 'OFF'},
+        {name: 'Jasmine', uniformNumber: 9, positions: ['S', 'AM'],
+         status: 'OFF'},
+        {name: 'Jeneefa', uniformNumber: 2, positions: ['FB', 'CB'],
+         status: 'OFF'},
+        {name: 'Leah', uniformNumber: 33, positions: ['S', 'AM'],
+         status: 'OFF'},
+        {name: 'Mary', uniformNumber: 12, positions: ['CB', 'FB'],
+         status: 'OFF'},
+        {name: 'Navleen', uniformNumber: 5, positions: ['FB', 'CB`'],
+         status: 'OFF'},
+        {name: 'Nia', uniformNumber: 6, positions: ['W', 'AM'],
+         status: 'OFF'},
+        {name: 'Nicole', uniformNumber: 10, positions: ['HM', 'FB'],
+         status: 'OFF'},
+        {name: 'Sarah', uniformNumber: 1, positions: ['GK'],
+         status: 'OFF'},
+      ];
+    } else if (!teamId || teamId === TEAM_U16A) { // U16A, by default
+      roster = [
+        {name: 'Allie', uniformNumber: 16, positions: ['CB'],
+         status: 'OFF'},
+        {name: 'Amanda', uniformNumber: 2, positions: ['CB', 'FB', 'HM'],
+         status: 'OFF'},
+        {name: 'Emma F', uniformNumber: 42, positions: ['AM', 'HM', 'OM'],
+         status: 'OFF'},
+        {name: 'Emma H', uniformNumber: 4, positions: ['AM', 'HM'],
+         status: 'OFF'},
+        {name: 'Emmalene', uniformNumber: 22, positions: ['FB', 'OM'],
+         status: 'OFF'},
+        {name: 'Jill', uniformNumber: 28, positions: ['AM', 'OM', 'S'],
+         status: 'OFF'},
+        {name: 'Kiana', uniformNumber: 13, positions: ['S', 'OM'],
+         status: 'OFF'},
+        {name: 'Lauren', uniformNumber: 8, positions: ['AM', 'OM', 'S'],
+         status: 'OFF'},
+        {name: 'Leah', uniformNumber: 44, positions: ['OM', 'S'],
+         status: 'OFF'},
+        {name: 'Ryley', uniformNumber: 19, positions: ['GK'],
+         status: 'OFF'},
+        {name: 'Sophia', uniformNumber: 18, positions: ['FB', 'CB'],
+         status: 'OFF'},
+        {name: 'Syd', uniformNumber: 5, positions: ['HM', 'AM'],
+         status: 'OFF'},
+        {name: 'Val', uniformNumber: 27, positions: ['CB', 'HM'],
+         status: 'OFF'},
+        {name: 'Thalia', uniformNumber: 9, positions: ['FB', 'OM'],
+         status: 'OFF'},
+        {name: 'Teanna', uniformNumber: 77, positions: ['OM', 'FB'],
+         status: 'OFF'},
+      ];
+    }
     return roster;
   };
 

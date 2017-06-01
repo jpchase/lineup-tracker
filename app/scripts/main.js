@@ -116,6 +116,14 @@
     app.closeGame();
   });
 
+  document.getElementById('menuU16A').addEventListener('click', () => {
+    app.setTeam('menuU16A');
+  });
+
+  document.getElementById('menuNMSC2003').addEventListener('click', () => {
+    app.setTeam('menuNMSC2003');
+  });
+
   /*****************************************************************************
    *
    * Methods to update/refresh the UI
@@ -182,6 +190,7 @@
 
     let data = {
       id: controls.id.value,
+      teamId: LineupTracker.getCurrentTeamId(),
       date: date,
       opponent: controls.opponent.value,
       duration: parseInt(controls.duration.value, 10),

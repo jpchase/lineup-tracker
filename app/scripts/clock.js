@@ -44,9 +44,45 @@ export class CurrentTimeProvider {
   }
 }
 
+export class ManualTimeProvider extends CurrentTimeProvider {
+  setCurrentTime(newTime) {
+    this.currentTime = newTime;
+  }
+
+  incrementCurrentTime(duration) {
+    this.currentTime = Duration.addToDate(this.currentTime, duration);
+  }
+
+  getTimeInternal() {
+    return this.currentTime || super.getTimeInternal();
+  }
+}
+
 export class Duration {
+  static zero() {
+    return [0,0];
+  }
+
   static format(elapsed) {
     return pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
+  }
+
+  static add(duration1, duration2) {
+    let total = duration1.slice(0);
+    total[0] += duration2[0];
+    total[1] += duration2[1];
+
+    if (total[1] >= 60) {
+      total[0] += 1;
+      total[1] -= 60;
+    }
+    return total;
+  }
+
+  static addToDate(date, duration) {
+    let result = new Date(date.getTime());
+    result.setMinutes(result.getMinutes() + duration[0], result.getSeconds() + duration[1]);
+    return result;
   }
 }
 

@@ -1,20 +1,23 @@
-import {CurrentTimeProvider,Timer} from '../app/scripts/clock.js';
+import {CurrentTimeProvider,ManualTimeProvider,Duration,Timer} from '../app/scripts/clock.js';
 
 describe('CurrentTimeProvider', () => {
+  let provider;
+
+  beforeEach(() => {
+    provider = new CurrentTimeProvider();
+  });
+
   it('should not be frozen by default', () => {
-    let provider = new CurrentTimeProvider();
     expect(provider.isFrozen).toBe(false);
   });
 
   it('should return the current time', () => {
-    let provider = new CurrentTimeProvider();
     const expectedTime = Date.now();
     const actualTime = provider.getCurrentTime();
     expect(actualTime).toEqual(expectedTime);
   });
 
   it('should throw for repeated calls to freeze()', () => {
-    let provider = new CurrentTimeProvider();
     expect(provider.isFrozen).toBe(false);
     provider.freeze();
     expect(provider.isFrozen).toBe(true);
@@ -24,7 +27,6 @@ describe('CurrentTimeProvider', () => {
   });
 
   it('should throw for repeated calls to unfreeze()', () => {
-    let provider = new CurrentTimeProvider();
     expect(provider.isFrozen).toBe(false);
     provider.freeze();
     expect(provider.isFrozen).toBe(true);
@@ -39,7 +41,6 @@ describe('CurrentTimeProvider', () => {
     const time1 = new Date(2016, 0, 1, 14, 0, 0);
     const time2 = new Date(2016, 0, 1, 14, 1, 0);
 
-    let provider = new CurrentTimeProvider();
     spyOn(provider, 'getTimeInternal').and.returnValues(time1, time2);
 
     provider.freeze();
@@ -54,6 +55,114 @@ describe('CurrentTimeProvider', () => {
     const actualTime3 = provider.getCurrentTime();
     expect(actualTime3).toEqual(time2);
   });
+});
+
+describe('ManualTimeProvider', () => {
+  let provider;
+
+  beforeEach(() => {
+    provider = new ManualTimeProvider();
+  });
+
+  it('should return the current time when not manually set', () => {
+    const expectedTime = Date.now();
+    const actualTime = provider.getCurrentTime();
+    expect(actualTime).toEqual(expectedTime);
+  });
+
+  it('should return the set time', () => {
+    const time1 = new Date(2016, 0, 1, 14, 0, 0);
+    const time2 = new Date(2016, 0, 1, 14, 1, 0);
+
+    provider.setCurrentTime(time1);
+
+    const actualTime1 = provider.getCurrentTime();
+    expect(actualTime1).toEqual(time1);
+    const actualTime2 = provider.getCurrentTime();
+    expect(actualTime2).toEqual(time1);
+
+    provider.setCurrentTime(time2);
+
+    const actualTime3 = provider.getCurrentTime();
+    expect(actualTime3).toEqual(time2);
+
+    provider.setCurrentTime(time1);
+
+    const actualTime4 = provider.getCurrentTime();
+    expect(actualTime4).toEqual(time1);
+  });
+
+  it('should return the incremented time', () => {
+    const time1 = new Date(2016, 0, 1, 14, 0, 0);
+    const time2 = new Date(2016, 0, 1, 14, 1, 0);
+    const time3 = new Date(2016, 0, 1, 14, 2, 15);
+
+    provider.setCurrentTime(time1);
+
+    const actualTime1 = provider.getCurrentTime();
+    expect(actualTime1).toEqual(time1);
+
+    provider.incrementCurrentTime([1,0]);
+
+    const actualTime2 = provider.getCurrentTime();
+    expect(actualTime2).toEqual(time2);
+
+    provider.incrementCurrentTime([1,15]);
+
+    const actualTime3 = provider.getCurrentTime();
+    expect(actualTime3).toEqual(time3);
+  });
+
+});
+
+describe('Duration', () => {
+
+  it('should return initialized array for zero', () => {
+    expect(Duration.zero()).toEqual([0,0]);
+  });
+
+  describe('add', () => {
+    const testValues = [
+      { left:[0,1], right:[0,1], sum:[0,2] },
+      { left:[1,0], right:[1,0], sum:[2,0] },
+      { left:[1,2], right:[3,4], sum:[4,6] },
+      { left:[1,59], right:[0,1], sum:[2,0] },
+      { left:[12,29], right:[10,32], sum:[23,1] },
+    ];
+
+    function formatDuration(duration) {
+      return '[' + duration[0] + ',' + duration[1] +']';
+    }
+
+    it('should return zero for both inputs zero', () => {
+      expect(Duration.add(Duration.zero(), Duration.zero())).toEqual(Duration.zero());
+
+      expect(Duration.add(Duration.zero(), [0,0])).toEqual(Duration.zero());
+
+      expect(Duration.add([0,0], Duration.zero())).toEqual(Duration.zero());
+    });
+
+    function addTest(left, right, expectedSum) {
+      it('should return correct sum for zero + ' + formatDuration(left), () => {
+        const actualSum = Duration.add(Duration.zero(), left);
+        expect(actualSum).toEqual(left);
+      });
+
+      it('should return correct sum for ' + formatDuration(left) + ' + zero', () => {
+        const actualSum = Duration.add(left, Duration.zero());
+        expect(actualSum).toEqual(left);
+      });
+
+      it('should return correct sum for ' + formatDuration(left) + ' + ' + formatDuration(right), () => {
+        const actualSum = Duration.add(left, right);
+        expect(actualSum).toEqual(expectedSum);
+      });
+    }
+
+    testValues.forEach(test => {
+      addTest(test.left, test.right, test.sum);
+    });
+  }); // add
 });
 
 describe('Timer', () => {
