@@ -6,6 +6,7 @@
     "clock.js",
     "live-game.js",
     "game.js",
+    "rotation.js",
     "shift.js",
     "spec/"],
   "retainLines": true
