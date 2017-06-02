@@ -76,6 +76,7 @@
 
   app.setupRoster = function() {
     this.widget.roster = this.roster;
+    this.widget.isGame = true;
     this.roster.forEach(player => {
       this.updatePlayerCard(player);
     });
