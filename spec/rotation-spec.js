@@ -27,6 +27,19 @@ describe('Rotation', () => {
     it('should be empty', () => {
       expect(rotation).toBeInitialized();
     });
+
+    it('should throw when no roster to initialize', () => {
+      expect(() => {
+        rotation.initialize();
+      }).toThrowError('Players must be provided to initialize');
+      expect(() => {
+        rotation.initialize([]);
+      }).toThrowError('Players must be provided to initialize');
+    });
+
+    it('should throw for operations', () => {
+    });
+
   });
 
 });
