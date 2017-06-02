@@ -160,6 +160,13 @@
     rosterWidget.roster = roster;
   };
 
+  app.setTeam = function(menuId) {
+    console.log('About to set team for:', menuId);
+    const teamId = menuId.substring(4);
+    LineupTracker.saveCurrentTeamId(teamId);
+    window.location.reload();
+  };
+
   app.addGame = function() {
     // Clear any existing values in the dialog
     let allControls = this.getNewGameControls();
