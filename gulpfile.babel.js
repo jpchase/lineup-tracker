@@ -220,7 +220,8 @@ gulp.task('polymer', () => {
                              if (path.dirname.startsWith('src'))
                                path.dirname = path.dirname.substring(3);
                            }))
- .pipe(gulp.dest('.tmp/'));
+ .pipe(gulp.dest('.tmp/'))
+ .pipe(gulp.dest('dist/'));
 
 });
 
@@ -272,7 +273,7 @@ gulp.task('serve:dist', ['default'], () =>
 gulp.task('default', ['clean'], cb =>
   runSequence(
     'styles',
-    ['lint', 'html', 'scripts', 'images', 'copy'],
+    ['lint', 'html', 'scripts', 'polymer', 'images', 'copy'],
     'generate-service-worker',
     cb
   )
@@ -317,6 +318,7 @@ gulp.task('generate-service-worker', ['copy-sw-scripts'], () => {
     ],
     staticFileGlobs: [
       // Add/remove glob patterns to match your directory setup.
+      `${rootDir}/bower_components/**/*`,
       `${rootDir}/images/**/*`,
       `${rootDir}/scripts/**/*.js`,
       `${rootDir}/styles/**/*.css`,
