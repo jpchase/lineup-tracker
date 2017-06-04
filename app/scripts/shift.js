@@ -28,7 +28,7 @@ export class PlayerTimeTracker {
   }
 
   toJSON() {
-    const dataToSerialize  = {
+    const dataToSerialize = {
       id: this.id,
       isOn: this.isOn,
       alreadyOn: this.alreadyOn,
