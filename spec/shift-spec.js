@@ -1,7 +1,92 @@
 import {CurrentTimeProvider, ManualTimeProvider} from '../app/scripts/clock.js';
-import {PlayerTimeTrackerMap} from '../app/scripts/shift.js';
+import {PlayerTimeTracker, PlayerTimeTrackerMap} from '../app/scripts/shift.js';
+
+function isElapsedEqual(actual, expected) {
+  if (!actual || !expected)
+    return false;
+
+  if (!actual.length || !expected.length ||
+      expected.length !== 2 ||
+      actual.length < expected.length)
+    return false;
+
+  for (var i = 0; i < expected.length; i++) {
+    if (expected[i] != actual[i])
+      return false;
+  }
+  return true;
+}
+
+function getTimingMatchers() {
+  return {
+    toHaveShiftTime: function () {
+      return {
+        compare: function (actual, expected) {
+          let tracker = actual;
+          let elapsed = tracker ? tracker.getShiftTime() : null;
+
+          return {
+            pass: elapsed && isElapsedEqual(elapsed, expected)
+          };
+        }
+      };
+    },
+    toHaveTotalTime: function () {
+      return {
+        compare: function (actual, expected) {
+          let tracker = actual;
+          let elapsed = tracker ? tracker.getTotalTime() : null;
+
+          return {
+            pass: elapsed && isElapsedEqual(elapsed, expected)
+          };
+        }
+      };
+    },
+    toHaveShiftCount: function () {
+      return {
+        compare: function (actual, expected) {
+          let tracker = actual;
+
+          return {
+            pass: tracker && tracker.shiftCount === expected
+          };
+        }
+      };
+    },
+  };
+}
 
 describe('PlayerTimeTracker', () => {
+  let tracker;
+
+  beforeEach(() => {
+    jasmine.addMatchers(getTimingMatchers());
+  });
+
+  it('should have correct total time after shift reset', () => {
+    let expected = {
+      id: 1, isOn: true, alreadyOn: true, shiftCount: 1,
+      totalTime: [0,0],
+      onTimer: {
+        isRunning: false, duration: [0,5]
+      }
+    };
+
+    tracker = new PlayerTimeTracker(expected);
+
+    expect(tracker).toHaveShiftCount(1);
+    expect(tracker).toHaveShiftTime([0, 5]);
+    expect(tracker).toHaveTotalTime([0, 5]);
+
+    tracker.addShiftToTotal();
+
+    tracker.resetShiftTime();
+
+    expect(tracker).toHaveShiftCount(1);
+    expect(tracker).toHaveShiftTime([0, 0]);
+    expect(tracker).toHaveTotalTime([0, 5]);
+  });
 });
 
 describe('PlayerTimeTrackerMap', () => {
@@ -22,22 +107,6 @@ describe('PlayerTimeTrackerMap', () => {
 
   let map;
 
-  function isElapsedEqual(actual, expected) {
-    if (!actual || !expected)
-      return false;
-
-    if (!actual.length || !expected.length ||
-        expected.length !== 2 ||
-        actual.length < expected.length)
-      return false;
-
-    for (var i = 0; i < expected.length; i++) {
-      if (expected[i] != actual[i])
-        return false;
-    }
-    return true;
-  }
-
   function mockTimeProvider(t0, t1, t2, t3) {
     let provider = new CurrentTimeProvider();
     spyOn(provider, 'getTimeInternal').and.returnValues(t0, t1, t2, t3);
@@ -55,6 +124,7 @@ describe('PlayerTimeTrackerMap', () => {
   beforeEach(() => {
     map = new PlayerTimeTrackerMap();
 
+    jasmine.addMatchers(getTimingMatchers());
     jasmine.addMatchers({
       toBeInitialized: function () {
         return {
@@ -126,41 +196,6 @@ describe('PlayerTimeTrackerMap', () => {
           }
         };
       },
-      toHaveShiftTime: function () {
-        return {
-          compare: function (actual, expected) {
-            let tracker = actual;
-            let elapsed = tracker ? tracker.getShiftTime() : null;
-
-            return {
-              pass: elapsed && isElapsedEqual(elapsed, expected)
-            };
-          }
-        };
-      },
-      toHaveTotalTime: function () {
-        return {
-          compare: function (actual, expected) {
-            let tracker = actual;
-            let elapsed = tracker ? tracker.getTotalTime() : null;
-
-            return {
-              pass: elapsed && isElapsedEqual(elapsed, expected)
-            };
-          }
-        };
-      },
-      toHaveShiftCount: function () {
-        return {
-          compare: function (actual, expected) {
-            let tracker = actual;
-
-            return {
-              pass: tracker && tracker.shiftCount === expected
-            };
-          }
-        };
-      },
     });
 
   });
@@ -188,6 +223,9 @@ describe('PlayerTimeTrackerMap', () => {
       }).toThrowError('Map is empty');
       expect(() => {
         map.stopShiftTimers();
+      }).toThrowError('Map is empty');
+      expect(() => {
+        map.totalShiftTimers();
       }).toThrowError('Map is empty');
       expect(() => {
         map.substitutePlayer(playerOffId, playerOnId);
@@ -501,6 +539,15 @@ describe('PlayerTimeTrackerMap', () => {
       provider.freeze();
       expect(onTracker).toHaveTotalTime([0, 20]);
       expect(offTracker).toHaveTotalTime([0, 0]);
+      provider.unfreeze();
+
+      map.totalShiftTimers();
+
+      provider.freeze();
+      expect(onTracker).toHaveTotalTime([0, 20]);
+      expect(offTracker).toHaveTotalTime([0, 0]);
+      provider.unfreeze();
+
     });
 
     it('should have correct shift counts after multiple start/stop', () => {
@@ -728,6 +775,10 @@ describe('PlayerTimeTrackerMap', () => {
 
       expect(map).toHaveSize(2);
       expect(map.clockRunning).toBe(false);
+      expect(map.timeProvider).not.toBe(undefined);
+      map.trackers.forEach(tracker => {
+        expect(tracker.timeProvider).not.toBe(undefined);
+      });
 
       const serialized = JSON.stringify(map);
       let mapData = JSON.parse(serialized);
@@ -735,7 +786,10 @@ describe('PlayerTimeTrackerMap', () => {
       expect(mapData.clockRunning).toBe(false);
       expect(mapData.trackers).not.toBe(undefined);
       expect(mapData.trackers.length).toBe(2);
-      expect(mapData.provider).toBe(undefined);
+      expect(mapData.timeProvider).toBe(undefined);
+      mapData.trackers.forEach(tracker => {
+        expect(tracker.timeProvider).toBe(undefined);
+      });
     });
 
     it('should be initialized correctly for null data', () => {
