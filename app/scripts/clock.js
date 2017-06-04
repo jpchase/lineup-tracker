@@ -171,7 +171,7 @@ function calculateElapsed(startTime, endTime) {
   timeDiff = Math.floor(timeDiff / 60);
 
   // get minutes
-  elapsed[0] = Math.round(timeDiff % 60);
+  elapsed[0] = Math.round(timeDiff % 100);
 
   return elapsed;
 }
