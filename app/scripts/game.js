@@ -174,6 +174,7 @@ var LineupTracker = window.LineupTracker;
 
   LineupTracker.Game.prototype.completeGame = function() {
     this.endLivePeriod('DONE', 'COMPLETE');
+    this.timeTracker.totalShiftTimers();
   };
 
   LineupTracker.Game.prototype.startLivePeriod = function(time) {
