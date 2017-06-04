@@ -134,6 +134,25 @@
               <span class="subFor"></span>
               <span class="shiftTime"></span>
             </span>
+            <div id="live-totals">
+              <h5>Playing Time</h5>
+              <table class="mdl-data-table mdl-js-data-table">
+                <thead>
+                  <tr>
+                    <th class="mdl-data-table__cell--non-numeric">Name</th>
+                    <th>Shifts</th>
+                    <th class="mdl-data-table__cell--non-numeric">Time</th>
+                  </tr>
+                </thead>
+                <tbody id="live-playing-time">
+                  <tr class="playingTimeTemplate" hidden>
+                    <td class="playerName mdl-data-table__cell--non-numeric"></td>
+                    <td class="shiftCount"></td>
+                    <td class="totalTime mdl-data-table__cell--non-numeric"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </section>
       </main>
       <dialog id="dialogSubs" class="mdl-dialog dialog-wide">

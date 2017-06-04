@@ -33,7 +33,9 @@ import {TimerWidget} from './clock.js';
     clock: null,
     shiftIntervalId: null,
     visiblePlayerCards: [],
+    playingTimeCards: [],
     playerTemplate: document.querySelector('.playerTemplate'),
+    playingTimeTemplate: document.querySelector('.playingTimeTemplate'),
     buttons: {
       toggleClock: document.getElementById('buttonToggleClock'),
       startGame: document.getElementById('buttonStartGame'),
@@ -59,6 +61,7 @@ import {TimerWidget} from './clock.js';
       next: document.getElementById('live-next'),
       off: document.getElementById('live-off'),
       out: document.getElementById('live-out'),
+      playingTime: document.getElementById('live-playing-time'),
       formation: {
         forward: document.getElementById('players-forward'),
         mid1: document.getElementById('players-mid1'),
@@ -194,9 +197,10 @@ import {TimerWidget} from './clock.js';
     return {ids: selectedIds, tuples: tuples};
   };
 
-  liveGame.visitPlayerCards = function(cardCallback) {
+  liveGame.visitPlayerCards = function(cardCallback, cardList) {
+    const cards = cardList || this.visiblePlayerCards;
     this.game.roster.forEach(player => {
-      var card = this.visiblePlayerCards[player.name];
+      var card = cards[player.name];
       if (!card) {
         throw new Error('No card found for: ' + player.name);
       }
@@ -429,6 +433,22 @@ import {TimerWidget} from './clock.js';
     this.updateShiftTime(player, card);
   };
 
+  liveGame.updatePlayingTimeCard = function(player) {
+    var card = this.playingTimeCards[player.name];
+    if (!card) {
+      card = this.playingTimeTemplate.cloneNode(true);
+      card.classList.remove('playingTimeTemplate');
+      card.querySelector('.playerName').textContent = player.name;
+      card.removeAttribute('hidden');
+
+      this.containers.playingTime.appendChild(card);
+
+      this.playingTimeCards[player.name] = card;
+    }
+
+    this.updateTotalTime(player, card);
+  };
+
   liveGame.updateSwapCard = function(player, swapCard) {
     swapCard.querySelector('.currentPosition').textContent =
       player.currentPosition;
@@ -437,6 +457,11 @@ import {TimerWidget} from './clock.js';
 
   liveGame.updateShiftTime = function(player, card) {
     card.querySelector('.shiftTime').textContent = player.formattedShiftTime;
+  };
+
+  liveGame.updateTotalTime = function(player, card) {
+    card.querySelector('.shiftCount').textContent = player.shiftCount;
+    card.querySelector('.totalTime').textContent = player.formattedTotalTime;
   };
 
   liveGame.setupGame = function() {
@@ -449,6 +474,10 @@ import {TimerWidget} from './clock.js';
 
     this.game.roster.forEach(player => {
       this.updatePlayerCard(player);
+    });
+
+    this.game.roster.forEach(player => {
+      this.updatePlayingTimeCard(player);
     });
 
     this.updateButtonStates();
@@ -559,6 +588,7 @@ import {TimerWidget} from './clock.js';
   liveGame.refreshShiftTimes = function() {
     this.game.updateShiftTimes();
     this.visitPlayerCards(this.updateShiftTime);
+    this.visitPlayerCards(this.updateTotalTime, this.playingTimeCards);
   };
 
   liveGame.startShiftTimeUpdater = function() {

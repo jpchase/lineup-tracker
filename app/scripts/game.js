@@ -137,6 +137,10 @@ var LineupTracker = window.LineupTracker;
           let newElapsed = tracker.getShiftTime();
           formattedShiftTime += ('<' + pad0(newElapsed[0], 2) + ':' +
                                  pad0(newElapsed[1], 2) + '>');
+          player.shiftCount = tracker.shiftCount;
+          let totalTime = tracker.getTotalTime();
+          player.formattedTotalTime = pad0(totalTime[0], 2) + ':' +
+                                      pad0(totalTime[1], 2);
         }
         player.formattedShiftTime = formattedShiftTime;
       });
