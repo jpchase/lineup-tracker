@@ -81,7 +81,7 @@ describe('PlayerTimeTracker', () => {
 
     tracker.addShiftToTotal();
 
-    tracker.resetShiftTime();
+    tracker.resetShiftTimes();
 
     expect(tracker).toHaveShiftCount(1);
     expect(tracker).toHaveShiftTime([0, 0]);
@@ -710,6 +710,53 @@ describe('PlayerTimeTrackerMap', () => {
       expect(onTracker).toHaveShiftCount(1);
       expect(offTracker).toHaveShiftCount(1);
     });
+
+    it('should have correct shift time after subs with clock running then stopped', () => {
+      const provider = initMapWithManualTime();
+
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
+
+      provider.setCurrentTime(startTime);
+      map.startShiftTimers();
+
+      // First substitution, clock running
+      provider.incrementCurrentTime([0,5]);
+
+      expect(onTracker).toHaveShiftTime([0, 5]);
+      expect(offTracker).toHaveShiftTime([0, 5]);
+
+      map.substitutePlayer(playerOffId, playerOnId);
+
+      provider.incrementCurrentTime([0,5]);
+
+      expect(onTracker).toHaveShiftTime([0, 5]);
+      expect(offTracker).toHaveShiftTime([0, 5]);
+
+      // Second substitution, clock stopped
+      map.stopShiftTimers();
+
+      expect(onTracker).toHaveShiftTime([0, 5]);
+      expect(offTracker).toHaveShiftTime([0, 5]);
+
+      map.substitutePlayer(playerOnId, playerOffId);
+
+      expect(onTracker).toHaveShiftTime([0, 0]);
+      expect(offTracker).toHaveShiftTime([0, 0]);
+
+      provider.incrementCurrentTime([0, 15]);
+
+      expect(onTracker).toHaveShiftTime([0, 0]);
+      expect(offTracker).toHaveShiftTime([0, 0]);
+
+      map.startShiftTimers();
+
+      provider.incrementCurrentTime([0, 20]);
+
+      expect(onTracker).toHaveShiftTime([0, 20]);
+      expect(offTracker).toHaveShiftTime([0, 20]);
+    });
+
 
     it('should have correct total time after multiple subs', () => {
       const provider = initMapWithManualTime();

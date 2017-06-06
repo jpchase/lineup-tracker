@@ -18,7 +18,7 @@ export class PlayerTimeTracker {
     this.shiftCount = data.shiftCount || 0;
     this.totalTime = data.totalTime || Duration.zero();
     this.timeProvider = timeProvider;
-    this.resetShiftTime();
+    this.resetShiftTimes();
     if (data.onTimer) {
       this.onTimer = new Timer(data.onTimer, timeProvider);
     }
@@ -44,7 +44,7 @@ export class PlayerTimeTracker {
     return dataToSerialize;
   }
 
-  resetShiftTime() {
+  resetShiftTimes() {
     this.onTimer = null;
     this.offTimer = null;
   }
@@ -68,13 +68,14 @@ export class PlayerTimeTracker {
     return this.totalTime;
   }
 
-  startShift(reset) {
-    if (reset) {
-      let timer = getCurrentTimer(this);
-      if (timer) {
-        timer.reset();
-      }
+  resetShift() {
+    let timer = getCurrentTimer(this);
+    if (timer) {
+      timer.reset();
     }
+  }
+
+  startShift() {
     if (this.isOn) {
       this.onTimer = this.onTimer || new Timer(null, this.timeProvider);
       this.onTimer.start();
@@ -187,7 +188,7 @@ export class PlayerTimeTrackerMap {
     this.timeProvider.freeze();
     this.trackers.forEach(tracker => {
       tracker.addShiftToTotal();
-      tracker.resetShiftTime();
+      tracker.resetShiftTimes();
     });
     this.timeProvider.unfreeze();
   }
@@ -228,9 +229,12 @@ export class PlayerTimeTrackerMap {
     playerOutTracker.isOn = false;
     playerOutTracker.alreadyOn = false;
 
+    playerInTracker.resetShift();
+    playerOutTracker.resetShift();
+
     if (this.clockRunning) {
-      playerInTracker.startShift(true);
-      playerOutTracker.startShift(true);
+      playerInTracker.startShift();
+      playerOutTracker.startShift();
     }
     if (unfreeze) {
       this.timeProvider.unfreeze();
