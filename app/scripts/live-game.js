@@ -593,6 +593,7 @@ import {TimerWidget} from './clock.js';
       updateCard(player, card);
       cards.push({
         node: card,
+        playerStatus: player.status,
         sortValue: player.formattedTotalTime,
       });
     },
@@ -612,9 +613,17 @@ import {TimerWidget} from './clock.js';
     // Remove and reinsert all the cards
     const container = this.containers.playingTime;
     cards.forEach(function(card) {
-      container.removeChild(card.node);
+      try {
+        container.removeChild(card.node);
+      } catch (e) {
+        // Ignore errors removing the node. If the player was previously OUT,
+        // the card node will not be in the container.
+      }
     });
     cards.forEach(function(card) {
+      if (card.playerStatus === 'OUT') {
+        return;
+      }
       container.appendChild(card.node);
     });
   };
