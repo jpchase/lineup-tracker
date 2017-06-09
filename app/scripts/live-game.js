@@ -559,8 +559,6 @@ import {TimerWidget} from './clock.js';
     /* var clockRunning = */this.game.nextPeriod();
     this.updateButtonStates();
     this.updatePeriod();
-    this.clock.stop();
-    this.clock.reset();
   };
 
   liveGame.updateButtonStates = function() {
@@ -730,21 +728,11 @@ import {TimerWidget} from './clock.js';
     if (!this.gameTimer) {
       this.gameTimer = new TimerWidget(document.querySelector('#gameTimer'));
     }
+    if (!this.periodTimer) {
+      this.periodTimer = new TimerWidget(document.querySelector('#periodTimer'));
+    }
     this.gameTimer.attach(this.game.timer);
-    if (!this.clock) {
-      this.clock = new Stopwatch(document.querySelector('#gameClock'), null);
-    }
-    var game = this.game;
-    let elapsed = game.elapsed;
-    if (loading && game.clockRunning && elapsed > 0) {
-      // When loading the page initially, with a running clock and elapsed time
-      // accumulated, need to adjust the time so the clock displays correctly.
-      elapsed += (performance.now() - game.lastClockTime);
-    }
-    this.clock.restore(
-      game.lastClockTime,
-      elapsed,
-      game.clockRunning);
+    this.periodTimer.attach(this.game.periodTimer);
     this.startShiftTimeUpdater();
   };
 
@@ -753,7 +741,6 @@ import {TimerWidget} from './clock.js';
     if (clockRunning) {
       this.resumeClock();
     } else {
-      this.clock.pause();
       this.stopShiftTimeUpdater();
     }
     this.saveGame();
@@ -769,9 +756,8 @@ import {TimerWidget} from './clock.js';
   };
 
   liveGame.completeGame = function() {
-    /* var clockRunning = */this.game.completeGame();
+    this.game.completeGame();
     this.updateButtonStates();
-    this.clock.pause();
   };
 
   liveGame.getPlayer = function(id) {
@@ -833,11 +819,6 @@ import {TimerWidget} from './clock.js';
   liveGame.resetGame = function() {
     console.log('reset now');
     this.game.resetGame();
-    if (this.clock) {
-      this.clock.stop();
-      this.clock.reset();
-      this.clock.print();
-    }
     this.updateButtonStates();
   };
 

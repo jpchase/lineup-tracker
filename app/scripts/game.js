@@ -37,6 +37,7 @@ var LineupTracker = window.LineupTracker;
     this.period = data.period || 0;
     this.timeProvider = new CurrentTimeProvider();
     this.timer = new Timer(data.timer, this.timeProvider);
+    this.periodTimer = new Timer(data.periodTimer, this.timeProvider);
     this.timeTracker = new PlayerTimeTrackerMap(data.timeTracker,
                                                 this.timeProvider);
     this.clockRunning = data.clockRunning || false;
@@ -54,6 +55,7 @@ var LineupTracker = window.LineupTracker;
       Name: this.name(),
       status: this.status,
       timer: this.timer,
+      periodTimer: this.periodTimer,
       clockRunning: this.clockRunning,
       startTime: this.startTime,
       lastClockTime: this.lastClockTime,
@@ -88,10 +90,12 @@ var LineupTracker = window.LineupTracker;
     if (this.timer.isRunning) {
       console.log('Stopping the timer');
       this.timer.stop();
+      this.periodTimer.stop();
       this.timeTracker.stopShiftTimers();
     } else {
       console.log('Starting the timer');
       this.timer.start();
+      this.periodTimer.start();
       this.timeTracker.startShiftTimers();
     }
 
@@ -114,6 +118,7 @@ var LineupTracker = window.LineupTracker;
     }
     this.status = 'NEW';
     this.timer.reset();
+    this.periodTimer.reset();
     this.clockRunning = false;
     this.startTime = null;
     this.lastClockTime = null;
@@ -174,6 +179,7 @@ var LineupTracker = window.LineupTracker;
   LineupTracker.Game.prototype.nextPeriod = function() {
     this.endLivePeriod('BREAK', 'NEXTPERIOD');
     this.period += 1;
+    this.periodTimer.reset();
   };
 
   LineupTracker.Game.prototype.completeGame = function() {
@@ -350,6 +356,7 @@ var LineupTracker = window.LineupTracker;
       player.formattedShiftTime = '';
     });
     this.timer.reset();
+    this.periodTimer.reset();
     this.timeTracker.reset();
     this.starters = [];
   };
