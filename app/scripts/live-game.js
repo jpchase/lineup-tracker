@@ -729,7 +729,8 @@ import {TimerWidget} from './clock.js';
       this.gameTimer = new TimerWidget(document.querySelector('#gameTimer'));
     }
     if (!this.periodTimer) {
-      this.periodTimer = new TimerWidget(document.querySelector('#periodTimer'));
+      this.periodTimer = new TimerWidget(
+        document.querySelector('#periodTimer'));
     }
     this.gameTimer.attach(this.game.timer);
     this.periodTimer.attach(this.game.periodTimer);
