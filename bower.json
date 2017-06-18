@@ -1,16 +1,13 @@
 {
   "name": "lineup-tracker",
   "dependencies": {
-    "paper-item": "PolymerElements/paper-item#2.0-preview",
-    "paper-listbox": "2.0-preview",
-    "polymer": "Polymer/polymer#^2.0.0-rc.1",
+    "paper-item": "PolymerElements/paper-item#^2.0.0",
+    "paper-listbox": "PolymerElements/paper-listbox#^2.0.0",
+    "polymer": "Polymer/polymer#^2.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0-rc.4"
   },
-  "resolutions": {
-    "polymer": "^2.0.0-rc.1"
-  },
   "devDependencies": {
-    "web-component-tester": "6.0.0-prerelease.5"
+    "web-component-tester": "6.0.0"
   },
   "private": true
 }
