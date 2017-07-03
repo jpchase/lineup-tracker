@@ -1,0 +1,38 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<!-- shared styles for all views -->
+<dom-module id="shared-styles">
+  <template>
+    <style>
+      :host {
+        --app-primary-color: rgb(96,125,139); /* #4285f4;*/ /* blue-grey */
+        --app-secondary-color: var(--paper-amber-500); /* rgb(255, 193, 7); amber */
+        --paper-icon-button-ink-color: var(--app-secondary-color);
+      }
+
+      paper-fab {
+        --paper-fab-background: var(--app-secondary-color);
+      }
+
+      paper-checkbox {
+        display: block;
+      }
+
+      paper-checkbox {
+        --paper-checkbox-checked-color: var(--app-primary-color);
+        --paper-checkbox-checked-ink-color: var(--app-primary-color);
+/*        --paper-checkbox-unchecked-color: var(--paper-blue-900);
+        --paper-checkbox-unchecked-ink-color: var(--paper-blue-900);
+        --paper-checkbox-label-color: var(--paper-blue-500);
+        --paper-checkbox-label-checked-color: var(--paper-blue-900);*/
+      }
+
+      .flex-equal-justified {
+        @apply(--layout-horizontal);
+        @apply(--layout-justified);
+        line-height: 35px;
+      }
+    </style>
+  </template>
+</dom-module>
+

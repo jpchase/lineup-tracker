@@ -77,9 +77,23 @@
   app.setupRoster = function() {
     this.widget.roster = this.roster;
     this.widget.isGame = true;
+    this.widget.availablePositions = this.formation.uniquePositions();
+    this.widget.addEventListener('playerAdded', app.playerAdded);
+    /*
     this.roster.forEach(player => {
       this.updatePlayerCard(player);
     });
+    */
+  };
+
+  app.playerAdded = function(event) {
+    console.log('playerAdded fired', event);
+
+    if (app.gameId) {
+      let game = LineupTracker.retrieveGame(app.gameId);
+      game.roster = app.roster;
+      LineupTracker.saveGame(game);
+    }
   };
 
   app.addPlayer = function() {

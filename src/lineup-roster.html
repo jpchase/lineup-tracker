@@ -1,22 +1,50 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../bower_components/paper-item/paper-item-shared-styles.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="lineup-icons.html">
+<link rel="import" href="shared-styles.html">
 
 <dom-module id="lineup-roster">
   <template>
     <style is="custom-style" include="shared-styles">
       :host {
         display: block;
-        padding: 10px;
       }
 
-      .flex-equal-justified {
-        @apply(--layout-horizontal);
-        @apply(--layout-justified);
-        line-height: 35px;
+      app-header {
+        color: white;
+        background-color: var(--app-primary-color);
+        padding: 0;
+      }
+
+      app-header paper-icon-button {
+        --paper-icon-button-ink-color: white;
+      }
+
+      paper-fab {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 30px;
+      }
+
+      paper-checkbox {
+        display: block;
+        padding: 5px;
+      }
+
+      .roster {
+        padding: 10px;
       }
 
       .avatar {
@@ -33,7 +61,15 @@
       }
     </style>
 
-    <div class="card">
+    <app-header fixed condenses >
+      <app-toolbar>
+        <paper-icon-button icon="lineup:arrow-back"></paper-icon-button>
+        <div main-title>roster title</div>
+        <paper-icon-button icon="lineup:more-vert"></paper-icon-button>
+      </app-toolbar>
+    </app-header>
+
+    <div class="roster">
       <paper-listbox class="xxdropdown-content" multi>
         <template is="dom-repeat" items="{{roster}}" as="player">
           <paper-item>
@@ -42,7 +78,7 @@
                 <div><span class="avatar">&#35[[player.uniformNumber]]</span>[[player.name]]</div>
                 <div>
                   <template is="dom-if" if="{{!isGame}}">
-                    [[player.status]] games
+                    NN games
                   </template>
                   <template is="dom-if" if="{{isGame}}">
                     actions here
@@ -55,6 +91,20 @@
         </template>
       </paper-listbox>
     </div>
+    <paper-fab icon="lineup:person-add" on-tap="showAddPlayer"></paper-fab>
+    <paper-dialog id="dialogAddPlayer" xmodal noCancelOnOutsideClick>
+      <h2>Add Player</h2>
+      <paper-input always-float-label id="nameField" label="Name" minLength="2" errorMessage="Must specify a name"></paper-input>
+      <div id="positionContainer">
+        <template is="dom-repeat" items="{{availablePositions}}" as="position">
+          <paper-checkbox class="positionCheck" value="[[position]]">[[position]]</paper-checkbox>
+        </template>
+      </div>
+      <div class="buttons">
+        <paper-button raised dialog-dismiss on-tap="cancelAddPlayer">Cancel</paper-button>
+        <paper-button raised dialog-confirm autofocus on-tap="saveNewPlayer">Save</paper-button>
+      </div>
+    </paper-dialog>
   </template>
 
   <script>
@@ -69,8 +119,81 @@
           },
           roster: {
             type: Object,
+          },
+          availablePositions: {
+            type: Object,
+          },
+          gameId: {
+            type: String,
           }
         }
+      }
+
+      showAddPlayer() {
+        this.$.dialogAddPlayer.open();
+      }
+
+      saveNewPlayer() {
+        let dialog = this.$.dialogAddPlayer;
+
+        let positions = [];
+        let positionChecks = this._getPositionChecks();
+        for (let i = 0; i < positionChecks.length; ++i) {
+          let item = positionChecks[i];
+          if (item.checked) {
+            positions.push(item.value);
+          }
+        }
+
+        if (positions.length < 1) {
+          console.log('No positions selected');
+          return;
+        }
+
+        let player = {
+          name: this._getNameField().value,
+          positions: positions,
+          status: 'OFF',
+          isCallup: this.isGame,
+        };
+
+        this.push('roster', player);
+
+        this.dispatchEvent(new CustomEvent('playerAdded', {bubbles: true, composed: true, detail: player}));
+
+        this.closeAddPlayer(positionChecks);
+      };
+
+      cancelAddPlayer() {
+        this.closeAddPlayer();
+      }
+
+      closeAddPlayer(positionChecks) {
+        this._resetAddPlayer(positionChecks);
+        this.$.dialogAddPlayer.close();
+      }
+
+      _resetAddPlayer(positionChecks) {
+        console.log('positionChecks is', positionChecks);
+        if (!positionChecks) {
+          console.log('get the position checks to reset');
+          positionChecks = this._getPositionChecks();
+        }
+        console.log('dialog is',  this.$.dialogAddPlayer);
+        console.log('nameField is',  this.$.dialogAddPlayer.querySelector("#nameField"));
+        this.$.dialogAddPlayer.querySelector("#nameField").value = "";
+        for (let i = 0; i < positionChecks.length; ++i) {
+          positionChecks[i].checked = false;
+        }
+      }
+
+      _getNameField() {
+        return this.$.dialogAddPlayer.querySelector("#nameField");
+      }
+
+      _getPositionChecks() {
+        return this.$.dialogAddPlayer.querySelectorAll(
+          '#positionContainer  > .positionCheck');
       }
 
       connectedCallback() {
