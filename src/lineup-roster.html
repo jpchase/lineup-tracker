@@ -11,6 +11,8 @@
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../bower_components/web-animations-js/web-animations-next.min.html">
 <link rel="import" href="lineup-icons.html">
 <link rel="import" href="shared-styles.html">
 
@@ -64,8 +66,14 @@
     <app-header fixed condenses >
       <app-toolbar>
         <paper-icon-button icon="lineup:arrow-back"></paper-icon-button>
-        <div main-title>roster title</div>
-        <paper-icon-button icon="lineup:more-vert"></paper-icon-button>
+        <div main-title>Roster: {{rosterName}}</div>
+        <paper-menu-button horizontal-align="right" noOverlap="true" closeOnActivate="true">
+          <paper-icon-button icon="lineup:more-vert" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+          <paper-listbox slot="dropdown-content">
+            <paper-item on-tap="resetRoster">Reset to team roster</paper-item>
+            <paper-item on-tap="debugRoster">Debug</paper-item>
+          </paper-listbox>
+        </paper-menu-button>
       </app-toolbar>
     </app-header>
 
@@ -120,6 +128,9 @@
           roster: {
             type: Object,
           },
+          rosterName: {
+            type: String,
+          },
           availablePositions: {
             type: Object,
           },
@@ -171,6 +182,10 @@
       closeAddPlayer(positionChecks) {
         this._resetAddPlayer(positionChecks);
         this.$.dialogAddPlayer.close();
+      }
+
+      debugRoster() {
+        console.log('Roster', this.roster);
       }
 
       _resetAddPlayer(positionChecks) {

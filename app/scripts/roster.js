@@ -77,6 +77,7 @@
   app.setupRoster = function() {
     this.widget.roster = this.roster;
     this.widget.isGame = true;
+    this.widget.rosterName = this.game.name();
     this.widget.availablePositions = this.formation.uniquePositions();
     this.widget.addEventListener('playerAdded', app.playerAdded);
     /*
@@ -221,6 +222,7 @@
     currentGame.formation.setDefault();
   }
   app.formation = currentGame.formation;
+  app.game = currentGame;
 
   app.setupRoster();
 })();

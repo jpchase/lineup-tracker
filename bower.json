@@ -10,7 +10,9 @@
     "iron-iconset-svg": "PolymerElements/iron-iconset-svg#^2.0.0",
     "paper-fab": "PolymerElements/paper-fab#^2.0.0",
     "paper-input": "PolymerElements/paper-input#^2.0.1",
-    "paper-checkbox": "PolymerElements/paper-checkbox#^2.0.0"
+    "paper-checkbox": "PolymerElements/paper-checkbox#^2.0.0",
+    "paper-menu-button": "PolymerElements/paper-menu-button#^2.0.0",
+    "web-animations-js": "web-animations/web-animations-js#^2.2.5"
   },
   "devDependencies": {
     "web-component-tester": "6.0.0"
