@@ -22,11 +22,12 @@
     this.widget.isGame = true;
     this.widget.rosterName = this.game.name();
     this.widget.availablePositions = this.formation.uniquePositions();
-    this.widget.addEventListener('playerAdded', app.playerAdded);
+    this.widget.addEventListener('playerAdded', app.rosterChanged);
+    this.widget.addEventListener('rosterResetToTeam', app.rosterChanged);
   };
 
-  app.playerAdded = function(event) {
-    console.log('playerAdded fired', event);
+  app.rosterChanged = function(event) {
+    console.log('Roster change event fired', event);
 
     if (app.gameId) {
       let game = LineupTracker.retrieveGame(app.gameId);

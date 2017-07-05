@@ -140,6 +140,27 @@
         }
       }
 
+      resetRoster() {
+        console.log('Reset to team roster now');
+
+        let index = this.roster.length - 1;
+        let removed = [];
+        while (index >= 0) {
+          let player = this.roster[index];
+          if (!player || player.isCallup) {
+            console.log('Removing player from roster', player);
+            removed.push(player);
+            this.splice('roster', index, 1);
+          }
+          index -= 1;
+        }
+        this.dispatchEvent(new CustomEvent('rosterResetToTeam', {bubbles: true, composed: true, detail: removed}));
+      }
+
+      debugRoster() {
+        console.log('Roster', this.roster);
+      }
+
       showAddPlayer() {
         this.$.dialogAddPlayer.open();
       }
@@ -184,18 +205,10 @@
         this.$.dialogAddPlayer.close();
       }
 
-      debugRoster() {
-        console.log('Roster', this.roster);
-      }
-
       _resetAddPlayer(positionChecks) {
-        console.log('positionChecks is', positionChecks);
         if (!positionChecks) {
-          console.log('get the position checks to reset');
           positionChecks = this._getPositionChecks();
         }
-        console.log('dialog is',  this.$.dialogAddPlayer);
-        console.log('nameField is',  this.$.dialogAddPlayer.querySelector("#nameField"));
         this.$.dialogAddPlayer.querySelector("#nameField").value = "";
         for (let i = 0; i < positionChecks.length; ++i) {
           positionChecks[i].checked = false;
