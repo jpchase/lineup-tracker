@@ -8,49 +8,8 @@
     gameId: null,
     game: null,
     roster: null,
-    visiblePlayerCards: [],
-    playerTemplate: document.querySelector('.playerCardTemplate'),
-    buttons: {
-      addPlayer: document.getElementById('buttonAddPlayer'),
-    },
-    container: document.querySelector('.rosterList'),
     widget: document.querySelector('lineup-roster'),
-    player: {
-      dialog: document.getElementById('dialogPlayer'),
-      nameField: document.getElementById('textName'),
-      positionsContainer: document.getElementById('positionContainer'),
-    }
   };
-
-  app.player.getPositionChecks = function() {
-    return this.positionsContainer.querySelectorAll(
-      ':scope label > .positionCheck');
-  };
-
-  /*****************************************************************************
-   *
-   * Event listeners for UI elements
-   *
-   ****************************************************************************/
-  app.buttons.addPlayer.addEventListener('click', () => {
-    app.addPlayer();
-  });
-
-  document.getElementById('buttonSavePlayer').addEventListener('click', () => {
-    app.savePlayer();
-  });
-
-  document.getElementById('buttonClosePlayer').addEventListener('click', () => {
-    app.closePlayer();
-  });
-
-  document.getElementById('menuReset').addEventListener('click', () => {
-    // app.resetRoster();
-  });
-
-  document.getElementById('menuDebug').addEventListener('click', () => {
-    // app.dumpDebugInfo();
-  });
 
   /*****************************************************************************
    *
@@ -58,33 +17,12 @@
    *
    ****************************************************************************/
 
-  app.updatePlayerCard = function(player) {
-    var card = this.visiblePlayerCards[player.name];
-    if (!card) {
-      card = this.playerTemplate.cloneNode(true);
-      card.classList.remove('playerTemplate');
-      card.querySelector('.playerName').textContent = player.name;
-      // card.querySelector('.playerSelect').value = player.name;
-      card.removeAttribute('hidden');
-
-      this.container.appendChild(card);
-      this.visiblePlayerCards[player.name] = card;
-    }
-    card.querySelector('.playerPositions').textContent =
-      player.positions.join(' ');
-  };
-
   app.setupRoster = function() {
     this.widget.roster = this.roster;
     this.widget.isGame = true;
     this.widget.rosterName = this.game.name();
     this.widget.availablePositions = this.formation.uniquePositions();
     this.widget.addEventListener('playerAdded', app.playerAdded);
-    /*
-    this.roster.forEach(player => {
-      this.updatePlayerCard(player);
-    });
-    */
   };
 
   app.playerAdded = function(event) {
@@ -95,92 +33,6 @@
       game.roster = app.roster;
       LineupTracker.saveGame(game);
     }
-  };
-
-  app.addPlayer = function() {
-    let availablePositions = this.formation.uniquePositions();
-    let positionChecks = this.player.getPositionChecks();
-
-    // Reset the controls
-    this.player.nameField.value = '';
-    for (let i = 0; i < positionChecks.length; ++i) {
-      if (i < availablePositions.length) {
-        // Will be used, just de-select
-        positionChecks[i].checked = false;
-        continue;
-      }
-      // Will not be used, hide
-      positionChecks[i].setAttribute('hidden', true);
-    }
-
-    // Setup the list of available positions
-    for (let i = 0; i < availablePositions.length; ++i) {
-      let positionLabel = positionChecks[i].parentNode;
-      let positionName = positionLabel.querySelector('.positionName');
-
-      let position = availablePositions[i];
-      positionChecks[i].value = position;
-      positionName.textContent = position;
-
-      positionLabel.removeAttribute('hidden');
-    }
-
-    this.player.dialog.showModal();
-  };
-
-  app.savePlayer = function() {
-    if (!this.player.nameField.value) {
-      console.log('Must specify a name');
-      return;
-    }
-
-    let positions = [];
-    let positionChecks = this.player.getPositionChecks();
-    for (let i = 0; i < positionChecks.length; ++i) {
-      let item = positionChecks[i];
-      if (item.checked) {
-        positions.push(item.value);
-      }
-    }
-
-    if (positions.length < 1) {
-      console.log('No positions selected');
-      return;
-    }
-
-    let player = {
-      name: this.player.nameField.value,
-      positions: positions,
-      status: 'OFF',
-      isCallup: true,
-    };
-
-    app.roster.push(player);
-
-    if (app.gameId) {
-      let game = LineupTracker.retrieveGame(app.gameId);
-      game.roster = app.roster;
-      LineupTracker.saveGame(game);
-    }
-
-    // Display the new player
-    this.updatePlayerCard(player);
-
-    this.closePlayer();
-  };
-
-  app.closePlayer = function() {
-    this.player.dialog.close();
-  };
-
-  /*****************************************************************************
-   *
-   * Methods for dealing with the model
-   *
-   ****************************************************************************/
-
-  app.getPlayer = function(id) {
-    return this.roster.getPlayer(id);
   };
 
  /*****************************************************************************

@@ -53,100 +53,13 @@
         <div class="mdl-layout__header-row">
           <span class="mdl-layout-title">Roster</span>
           <div class="mdl-layout-spacer"></div>
-          <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored" id="buttonAddPlayer">
-            <i class="material-icons" role="presentation">add</i>
-            <span class="visuallyhidden">Add</span>
-          </button>
-          <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="menu-more">
-            <i class="material-icons">more_vert</i>
-          </button>
-          <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-              for="menu-more">
-            <li class="mdl-menu__item" id="menuReset">Reset to team roster</li>
-            <li class="mdl-menu__item" id="menuDebug">Debug</li>
-          </ul>
         </div>
       </header>
       <main class="mdl-layout__content">
         <section>
-          <!--
-          <ul class="rosterList mdl-list">
-          </ul>
-          <ul hidden>
-            <li class="playerCardTemplate mdl-list__item mdl-list__item--two-line" hidden>
-              <span class="mdl-list__item-primary-content">
-                <span class="playerName"></span>
-                <span class="playerPositions mdl-list__item-sub-title"></span>
-              </span>
-              <span class="mdl-list__item-secondary-content">
-                <span class="playerGameCount mdl-list__item-secondary-info"></span>
-                <a class="mdl-list__item-secondary-action" href="#"><i class="material-icons">delete</i></a>
-              </span>
-            </li>
-          </ul>
-          -->
           <lineup-roster></lineup-roster>
         </section>
       </main>
-      <dialog id="dialogPlayer" class="mdl-dialog dialog-wide">
-        <h4 class="mdl-dialog__title">Add Player</h4>
-        <div class="mdl-dialog__content" id="addPlayerContainer">
-          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-            <input class="mdl-textfield__input" type="text" pattern="[A-Z]+[A-Za-z]+" required id="textName">
-            <label class="mdl-textfield__label" for="textName">Name</label>
-          </div>
-          <div id="positionContainer">
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition1" hidden>
-              <input type="checkbox" id="checkPosition1" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 1</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition2" hidden>
-              <input type="checkbox" id="checkPosition2" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 2</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition3" hidden>
-              <input type="checkbox" id="checkPosition3" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 3</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition4" hidden>
-              <input type="checkbox" id="checkPosition4" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 4</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition5" hidden>
-              <input type="checkbox" id="checkPosition5" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 5</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition6" hidden>
-              <input type="checkbox" id="checkPosition6" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 6</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition7" hidden>
-              <input type="checkbox" id="checkPosition7" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 7</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition8" hidden>
-              <input type="checkbox" id="checkPosition8" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 8</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition9" hidden>
-              <input type="checkbox" id="checkPosition9" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 9</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition10" hidden>
-              <input type="checkbox" id="checkPosition10" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 10</span>
-            </label>
-            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkPosition11" hidden>
-              <input type="checkbox" id="checkPosition11" class="positionCheck mdl-checkbox__input">
-              <span class="positionName mdl-checkbox__label">Position 11</span>
-            </label>
-          </div>
-        </div>
-        <div class="mdl-dialog__actions">
-          <button type="button" class="mdl-button" id="buttonSavePlayer">Save</button>
-          <button type="button" class="mdl-button close" id="buttonClosePlayer">Close</button>
-        </div>
-      </dialog>
     </div>
 
     <script src="https://storage.googleapis.com/code.getmdl.io/1.0.6/material.min.js"></script>
