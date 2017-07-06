@@ -100,9 +100,9 @@
    * Event listeners for UI elements
    *
    ****************************************************************************/
-  document.getElementById('tabRoster').addEventListener('click', function() {
-    app.showRoster();
-  });
+  // document.getElementById('tabRoster').addEventListener('click', function() {
+  //   app.showRoster();
+  // });
 
   document.getElementById('buttonAddGame').addEventListener('click', () => {
     app.addGame();

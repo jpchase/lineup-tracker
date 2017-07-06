@@ -51,25 +51,13 @@
     <!-- Your styles -->
     <link rel="stylesheet" href="styles/main.css">
 
-    <link rel="import" href="lineup-roster.html">
+    <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 
+    <link rel="import" href="lineup-app.html">
   </head>
   <body class="mdl-demo mdl-color--grey-100 mdl-color-text--grey-700 mdl-base">
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-      <header class="mdl-layout__header mdl-layout__header--scroll mdl-color--primary">
-        <div class="mdl-layout--large-screen-only mdl-layout__header-row">
-        </div>
-        <div class="mdl-layout__header-row">
-          <h3>Lineup Tracker</h3>
-        </div>
-        <div class="mdl-layout--large-screen-only mdl-layout__header-row">
-        </div>
-        <div class="mdl-layout__tab-bar mdl-js-ripple-effect mdl-color--primary-dark">
-          <a href="#overview" class="mdl-layout__tab is-active">Overview</a>
-          <a href="#games" class="mdl-layout__tab">Games</a>
-          <a id="tabRoster" href="#roster" class="mdl-layout__tab">Roster</a>
-        </div>
-      </header>
+    <lineup-app>
+      <div slot="legacyContent">
       <main class="mdl-layout__content">
         <div class="mdl-layout__tab-panel is-active" id="overview">
           <section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
@@ -142,7 +130,8 @@
           <button type="button" class="mdl-button close" id="buttonCloseGame">Close</button>
         </div>
       </dialog>
-    </div>
+      </div>
+    </lineup-app>
 
     <script src="https://storage.googleapis.com/code.getmdl.io/1.0.6/material.min.js"></script>
     <!-- build:js(app/) ../../scripts/game.min.js -->
