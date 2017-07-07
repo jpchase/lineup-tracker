@@ -4,6 +4,7 @@
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
@@ -36,9 +37,26 @@
         font-weight: bold;
       }
 
+      paper-tabs {
+        height: 100%;
+        max-width: 640px;
+      }
+
+      paper-tab[link] a {
+        /* These mixins (from iron-flex-layout) center the link text. */
+        @apply --layout-horizontal;
+        @apply --layout-center-center;
+        /*color: #fff;*/
+        text-decoration: none;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
     </style>
 
-    <app-drawer-layout fullbleed>
+    <app-drawer-layout force-narrow>
       <!-- Drawer content -->
       <app-drawer id="drawer" slot="drawer">
         <app-toolbar>Menu</app-toolbar>
@@ -57,18 +75,24 @@
       </app-drawer>
 
       <!-- Main content -->
-      <app-header-layout has-scrolling-region>
-        <app-header slot="header" condenses reveals effects="waterfall">
+      <app-header-layout>
+        <app-header slot="header">
           <app-toolbar>
-            <paper-icon-button icon="lineup:menu" drawer-toggle></paper-icon-button>
+            <paper-icon-button icon="lineup:menu" drawer-toggle hidden$="{{wideLayout}}"></paper-icon-button>
             <div main-title>Lineup Tracker</div>
           </app-toolbar>
           <app-toolbar class="tabs-bar" hidden$="{{!wideLayout}}">
             <!-- Nav on desktop: tabs -->
-            <paper-tabs selected="{{selected}}" attr-for-selected="name" bottom-item>
-              <paper-tab name="overview">Overview</paper-tab>
-              <paper-tab name="games">Games</paper-tab>
-              <paper-tab name="roster">Roster</paper-tab>
+            <paper-tabs selected="{{page}}" attr-for-selected="name" bottom-item>
+              <paper-tab name="overview" link>
+                <a href="#overview" tabindex="-1">Overview</a>
+              </paper-tab>
+              <paper-tab name="games" link>
+                <a href="#games" tabindex="-1">Games</a>
+              </paper-tab>
+              <paper-tab name="roster" link>
+                <a href="#roster" tabindex="-1">Roster</a>
+              </paper-tab>
             </paper-tabs>
           </app-toolbar>
         </app-header>
@@ -90,10 +114,26 @@
         return {
           page: {
             type: String,
-            reflectToAttribute: true,
+            value: 'overview',
+            //reflectToAttribute: true,
             //observer: '_pageChanged',
           },
+
+          wideLayout: {
+            type: Boolean,
+            value: false,
+            observer: '_onLayoutChange',
+          },
         };
+      }
+
+      _onLayoutChange(wide) {
+        console.log('_onLayoutChange: ', wide);
+        var drawer = this.$.drawer;
+        if (wide && drawer.opened) {
+          console.log('close drawer');
+          drawer.opened = false;
+        }
       }
     }
 
