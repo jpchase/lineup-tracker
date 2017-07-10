@@ -13,6 +13,7 @@
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../bower_components/web-animations-js/web-animations-next.min.html">
+<link rel="import" href="lineup-game-logic.html">
 <link rel="import" href="lineup-icons.html">
 <link rel="import" href="shared-styles.html">
 
@@ -227,6 +228,23 @@
       connectedCallback() {
         super.connectedCallback();
         // …
+      }
+
+      ready() {
+        super.ready();
+
+        let roster;
+        if (this.isGame) {
+          //roster = undef;
+        } else {
+          roster = LineupTracker.retrieveRoster();
+        }
+        this.roster = roster;
+        // When possible, use afterNextRender to defer non-critical
+        // work until after first paint.
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          //...
+        });
       }
 
     }
