@@ -447,8 +447,13 @@ var LineupTracker = window.LineupTracker;
     if (teamId !== TEAM_U16A && teamId !== TEAM_NMSC2003) {
       throw new Error('Invalid teamId: ' + teamId);
     }
+    if (currentTeamId === teamId) {
+      console.log('Not saving team id, same as current:', teamId);
+      return false;
+    }
     console.log('Saving team id:', teamId);
     localStorage.currentTeamId = currentTeamId = teamId;
+    return true;
   };
 
   LineupTracker.retrieveAllGames = function() {
@@ -456,7 +461,7 @@ var LineupTracker = window.LineupTracker;
       allGames = [];
       var foundData = false;
       var gameData = localStorage.savedGames;
-      console.log('Saved games: ', gameData);
+      // console.log('Saved games: ', gameData);
       if (gameData) {
         foundData = true;
         gameData = JSON.parse(gameData);

@@ -7,9 +7,13 @@
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="lineup-game-logic.html">
 <link rel="import" href="lineup-roster.html">
 <link rel="import" href="lineup-icons.html">
 <link rel="import" href="shared-styles.html">
@@ -63,11 +67,19 @@
         <app-toolbar>Menu</app-toolbar>
 
         <!-- Nav on mobile: side nav menu -->
-        <paper-menu selected="{{selected}}" attr-for-selected="name">
-          <template is="dom-repeat" items="{{items}}">
-            <paper-item name="{{item}}">{{item}}</paper-item>
-          </template>
+        <paper-dropdown-menu label="Team" noink no-animations>
+          <paper-listbox slot="dropdown-content" class="dropdown-content" selected="{{team}}" attr-for-selected="name">
+            <paper-item name="U16A">U16A</paper-item>
+            <paper-item name="NMSC2003">NMSC 2003</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+        <!--
+        <paper-menu selected="{{page}}" attr-for-selected="name">
+          <paper-item name="overview">Overview</paper-item>
+          <paper-item name="games">Games</paper-item>
+          <paper-item name="roster">Roster</paper-item>
         </paper-menu>
+        -->
         <iron-selector selected="{{page}}" attr-for-selected="name" class="drawer-list" role="navigation">
           <a name="overview" href="#overview">Overview</a>
           <a name="games" href="#games">Games</a>
@@ -81,6 +93,16 @@
           <app-toolbar>
             <paper-icon-button icon="lineup:menu" drawer-toggle hidden$="{{wideLayout}}"></paper-icon-button>
             <div main-title>Lineup Tracker</div>
+            <paper-menu-button hidden$="{{!wideLayout}}">
+              <paper-button slot="dropdown-trigger">
+                <span>[[team]]</span>
+                <iron-icon icon="lineup:arrow-drop-down"></iron-icon>
+              </paper-button>
+              <paper-listbox slot="dropdown-content" class="dropdown-content" selected="{{team}}" attr-for-selected="name">
+                <paper-item style="z-index: 2" name="U16A">U16A</paper-item>
+                <paper-item style="z-index: 1" name="NMSC2003">NMSC 2003</paper-item>
+              </paper-listbox>
+            </paper-menu-button>
           </app-toolbar>
           <app-toolbar class="tabs-bar" hidden$="{{!wideLayout}}">
             <!-- Nav on desktop: tabs -->
@@ -123,6 +145,12 @@
             observer: '_pageChanged',
           },
 
+          team: {
+            type: String,
+            value: function() { return LineupTracker.getCurrentTeamId(); },
+            observer: '_teamChanged',
+          },
+
           wideLayout: {
             type: Boolean,
             value: false,
@@ -135,6 +163,12 @@
         console.log('_pageChanged: ', page);
       }
 
+      _teamChanged(team) {
+        console.log('_teamChanged: ', team);
+        if (LineupTracker.saveCurrentTeamId(team))
+          window.location.reload();
+      }
+
       _onLayoutChange(wide) {
         console.log('_onLayoutChange: ', wide);
         var drawer = this.$.drawer;
@@ -143,6 +177,7 @@
           drawer.opened = false;
         }
       }
+
     }
 
     window.customElements.define(LineupApp.is, LineupApp);

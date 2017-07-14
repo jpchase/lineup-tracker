@@ -100,10 +100,6 @@
    * Event listeners for UI elements
    *
    ****************************************************************************/
-  // document.getElementById('tabRoster').addEventListener('click', function() {
-  //   app.showRoster();
-  // });
-
   document.getElementById('buttonAddGame').addEventListener('click', () => {
     app.addGame();
   });
@@ -114,14 +110,6 @@
 
   document.getElementById('buttonCloseGame').addEventListener('click', () => {
     app.closeGame();
-  });
-
-  document.getElementById('menuU16A').addEventListener('click', () => {
-    app.setTeam('menuU16A');
-  });
-
-  document.getElementById('menuNMSC2003').addEventListener('click', () => {
-    app.setTeam('menuNMSC2003');
   });
 
   /*****************************************************************************
@@ -158,13 +146,6 @@
 
     var rosterWidget = document.querySelector('lineup-roster');
     rosterWidget.roster = roster;
-  };
-
-  app.setTeam = function(menuId) {
-    console.log('About to set team for:', menuId);
-    const teamId = menuId.substring(4);
-    LineupTracker.saveCurrentTeamId(teamId);
-    window.location.reload();
   };
 
   app.addGame = function() {
