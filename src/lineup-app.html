@@ -14,6 +14,7 @@
 <link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="lineup-game-logic.html">
+<link rel="import" href="lineup-games.html">
 <link rel="import" href="lineup-roster.html">
 <link rel="import" href="lineup-icons.html">
 <link rel="import" href="shared-styles.html">
@@ -122,6 +123,7 @@
             <!-- Include content still to be moved into elements -->
             <slot name="legacyContent"></slot>
           </div>
+          <lineup-games name="games"></lineup-games>
           <lineup-roster name="roster"></lineup-roster>
         </iron-pages>
       </app-header-layout>

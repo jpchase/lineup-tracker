@@ -1,0 +1,46 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-shared-styles.html">
+<link rel="import" href="lineup-icons.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="lineup-game">
+  <template>
+    <style is="custom-style" include="shared-styles">
+      :host {
+      }
+    </style>
+
+    <paper-item>
+      <paper-item-body two-line>
+        <div xclass="container flex-equal-justified">[[game.id]]</div>
+        <div secondary>
+          <span class="opponent">[[game.opponent]]</span>
+          <span class="gameDate">[[game.date]]</span>
+        </div>
+      </paper-item-body>
+      <paper-icon-button icon="lineup:schedule"></paper-icon-button>
+      <paper-icon-button icon="lineup:people"></paper-icon-button>
+    </paper-item>
+
+  </template>
+
+  <script>
+    class LineupGame extends Polymer.Element {
+      static get is() { return 'lineup-game'; }
+
+      static get properties() {
+        return {
+          game: {
+            type: Object,
+          },
+        }
+      }
+    }
+
+    window.customElements.define(LineupGame.is, LineupGame);
+  </script>
+</dom-module>
