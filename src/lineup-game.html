@@ -22,7 +22,7 @@
           <span class="gameDate">[[game.date]]</span>
         </div>
       </paper-item-body>
-      <paper-icon-button icon="lineup:schedule"></paper-icon-button>
+      <paper-icon-button icon="lineup:schedule" on-tap="_viewGameClicked"></paper-icon-button>
       <paper-icon-button icon="lineup:people"></paper-icon-button>
     </paper-item>
 
@@ -39,6 +39,10 @@
           },
         }
       }
+
+      _viewGameClicked() {
+        window.location = '/live-game.html#game=' + this.game.id;
+      };
     }
 
     window.customElements.define(LineupGame.is, LineupGame);
