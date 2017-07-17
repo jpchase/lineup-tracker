@@ -100,18 +100,22 @@
         </template>
       </paper-listbox>
     </div>
-    <paper-fab icon="lineup:person-add" on-tap="showAddPlayer"></paper-fab>
+    <paper-fab icon="lineup:person-add" on-tap="_showAddPlayer"></paper-fab>
     <paper-dialog id="dialogAddPlayer" xmodal noCancelOnOutsideClick>
       <h2>Add Player</h2>
       <paper-input always-float-label id="nameField" label="Name" minLength="2" errorMessage="Must specify a name"></paper-input>
+      <paper-input always-float-label id="uniformNumberField"
+          label="Uniform Number"
+          type="number" min="1" max="99"
+          errorMessage="Must specify a valid uniform number"></paper-input>
       <div id="positionContainer">
         <template is="dom-repeat" items="{{availablePositions}}" as="position">
           <paper-checkbox class="positionCheck" value="[[position]]">[[position]]</paper-checkbox>
         </template>
       </div>
       <div class="buttons">
-        <paper-button raised dialog-dismiss on-tap="cancelAddPlayer">Cancel</paper-button>
-        <paper-button raised dialog-confirm autofocus on-tap="saveNewPlayer">Save</paper-button>
+        <paper-button raised dialog-dismiss on-tap="_cancelAddPlayer">Cancel</paper-button>
+        <paper-button raised dialog-confirm autofocus on-tap="_saveNewPlayer">Save</paper-button>
       </div>
     </paper-dialog>
   </template>
@@ -155,6 +159,7 @@
           }
           index -= 1;
         }
+        this._saveUpdatedRoster();
         this.dispatchEvent(new CustomEvent('rosterResetToTeam', {bubbles: true, composed: true, detail: removed}));
       }
 
@@ -162,11 +167,26 @@
         console.log('Roster', this.roster);
       }
 
-      showAddPlayer() {
+      _saveUpdatedRoster() {
+        console.log('About to save updated roster');
+
+        if (this.isGame) {
+          if (!this.gameId) {
+            throw new Error('missing game id!');
+          }
+          let game = LineupTracker.retrieveGame(app.gameId);
+          game.roster = this.roster;
+          LineupTracker.saveGame(game);
+        } else {
+          // TODO: Implement saving of team roster
+        }
+      }
+
+      _showAddPlayer() {
         this.$.dialogAddPlayer.open();
       }
 
-      saveNewPlayer() {
+      _saveNewPlayer() {
         let dialog = this.$.dialogAddPlayer;
 
         let positions = [];
@@ -185,23 +205,25 @@
 
         let player = {
           name: this._getNameField().value,
+          uniformNumber: parseInt(this._getUniformNumberField().value, 10),
           positions: positions,
           status: 'OFF',
           isCallup: this.isGame,
         };
 
         this.push('roster', player);
+        this._saveUpdatedRoster();
 
         this.dispatchEvent(new CustomEvent('playerAdded', {bubbles: true, composed: true, detail: player}));
 
-        this.closeAddPlayer(positionChecks);
+        this._closeAddPlayer(positionChecks);
       };
 
-      cancelAddPlayer() {
-        this.closeAddPlayer();
+      _cancelAddPlayer() {
+        this._closeAddPlayer();
       }
 
-      closeAddPlayer(positionChecks) {
+      _closeAddPlayer(positionChecks) {
         this._resetAddPlayer(positionChecks);
         this.$.dialogAddPlayer.close();
       }
@@ -210,7 +232,8 @@
         if (!positionChecks) {
           positionChecks = this._getPositionChecks();
         }
-        this.$.dialogAddPlayer.querySelector("#nameField").value = "";
+        this._getNameField().value = "";
+        this._getUniformNumberField().value = "";
         for (let i = 0; i < positionChecks.length; ++i) {
           positionChecks[i].checked = false;
         }
@@ -218,6 +241,10 @@
 
       _getNameField() {
         return this.$.dialogAddPlayer.querySelector("#nameField");
+      }
+
+      _getUniformNumberField() {
+        return this.$.dialogAddPlayer.querySelector("#uniformNumberField");
       }
 
       _getPositionChecks() {
@@ -234,12 +261,20 @@
         super.ready();
 
         let roster;
+        let availablePositions;
         if (this.isGame) {
           //roster = undef;
         } else {
           roster = LineupTracker.retrieveRoster();
+          let formation = new LineupTracker.Formation();
+          if (!formation.complete) {
+            // Eventually should support editing formation instead
+            formation.setDefault();
+          }
+          availablePositions = formation.uniquePositions();
         }
         this.roster = roster;
+        this.availablePositions = availablePositions;
         // When possible, use afterNextRender to defer non-critical
         // work until after first paint.
         Polymer.RenderStatus.afterNextRender(this, function() {
