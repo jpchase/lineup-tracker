@@ -177,6 +177,9 @@
     if (pos > -1) {
       var gameId = window.location.hash.substr(pos + 'game='.length);
       app.gameId = gameId;
+    } else {
+      let params = new URLSearchParams(window.location.search.substring(1));
+      app.gameId = params.get("game");
     }
   }
 

@@ -847,6 +847,9 @@ import {TimerWidget} from './clock.js';
     if (pos > -1) {
       var gameId = window.location.hash.substr(pos + 'game='.length);
       liveGame.gameId = gameId;
+    } else {
+      let params = new URLSearchParams(window.location.search.substring(1));
+      liveGame.gameId = params.get("game");
     }
   }
 
