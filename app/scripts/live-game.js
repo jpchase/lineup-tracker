@@ -353,6 +353,8 @@ import {TimerWidget} from './clock.js';
       tuple.select.checked = false;
       this.substitutePlayer(playerIn, playerOut);
     });
+
+    this.saveGame();
   };
 
   liveGame.removeStarterCards = function() {
