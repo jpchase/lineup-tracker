@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
@@ -91,9 +92,9 @@
         </paper-menu>
         -->
         <iron-selector selected="{{page}}" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="overview" href="/overview">Overview</a>
-          <a name="games" href="/games">Games</a>
-          <a name="roster" href="/roster">Roster</a>
+          <template is="dom-repeat" items="{{navItems}}">
+            <a name$="{{item.id}}" href="/{{item.id}}">{{item.displayName}}</a>
+          </template>
         </iron-selector>
       </app-drawer>
 
@@ -117,9 +118,9 @@
           <app-toolbar class="tabs-bar" hidden$="{{!wideLayout}}">
             <!-- Nav on desktop: tabs -->
             <paper-tabs selected="{{page}}" attr-for-selected="name" bottom-item>
-              <paper-tab name="overview">Overview</paper-tab>
-              <paper-tab name="games">Games</paper-tab>
-              <paper-tab name="roster">Roster</paper-tab>
+              <template is="dom-repeat" items="{{navItems}}">
+                <paper-tab name$="{{item.id}}">{{item.displayName}}</paper-tab>
+              </template>
             </paper-tabs>
           </app-toolbar>
         </app-header>
@@ -166,6 +167,17 @@
             value: false,
             observer: '_onLayoutChange',
           },
+
+          navItems: {
+            type: Array,
+            value: function() {
+              return [
+                {id:'overview', displayName: 'Overview'},
+                {id:'games', displayName: 'Games'},
+                {id:'roster', displayName: 'Roster'},
+              ];
+            }
+          }
         };
       }
 
