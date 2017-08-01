@@ -2,7 +2,9 @@
 <link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
@@ -22,13 +24,26 @@
 
     </style>
 
-    <div>
-      <iron-list items="[[games]]" as="game">
-        <template>
-          <lineup-game game="[[game]]"></lineup-game>
-        </template>
-      </iron-list>
-    </div>
+    <app-route
+        route="{{gameRoute}}"
+        pattern="/:gameId/:page"
+        data="{{routeData}}"
+        tail="{{gameSubroute}}"></app-route>
+
+    <iron-pages
+        selected="[[gamePage]]"
+        attr-for-selected="name"
+        fallback-selection="list"
+        role="main">
+      <div name="list">
+        <iron-list items="[[games]]" as="game">
+          <template>
+            <lineup-game game="[[game]]" on-viewrosterclicked="_showRoster"></lineup-game>
+          </template>
+        </iron-list>
+      </div>
+      <lineup-roster name="roster" is-game="true"></lineup-roster>
+    </iron-pages>
   </template>
 
   <script>
@@ -40,7 +55,34 @@
           games: {
             type: Object,
           },
+          gameRoute: {
+            type: String,
+          },
+          gamePage: {
+            type: String,
+            observer: '_gamePageChanged',
+          },
         }
+      }
+
+      static get observers() {
+        return [
+          '_gameRoutePageChanged(routeData.page)',
+        ];
+      }
+
+      _gamePageChanged(page) {
+        console.log('_gamePageChanged: ', page);
+      }
+
+      _gameRoutePageChanged(page) {
+        console.log('_gameRoutePageChanged: ', page);
+        this.gamePage = page;
+      }
+
+      _showRoster(event) {
+        console.log('_showRoster: ', event);
+        this.set('gameRoute.path', event.detail + '/roster');
       }
 
       ready() {
@@ -52,6 +94,7 @@
         // work until after first paint.
         Polymer.RenderStatus.afterNextRender(this, function() {
           //...
+          console.log('gameRoute', this.gameRoute);
         });
       }
 

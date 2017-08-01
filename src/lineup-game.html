@@ -23,7 +23,7 @@
         </div>
       </paper-item-body>
       <paper-icon-button icon="lineup:schedule" on-tap="_viewGameClicked"></paper-icon-button>
-      <paper-icon-button icon="lineup:people"></paper-icon-button>
+      <paper-icon-button icon="lineup:people" on-tap="_viewRosterClicked"></paper-icon-button>
     </paper-item>
 
   </template>
@@ -42,6 +42,11 @@
 
       _viewGameClicked() {
         window.location = '/live-game.html#game=' + this.game.id;
+      };
+
+      _viewRosterClicked() {
+        console.log('viewRosterClicked here');
+        this.dispatchEvent(new CustomEvent('viewrosterclicked', {bubbles: true, composed: true, detail: this.game.id}));
       };
     }
 
