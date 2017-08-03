@@ -64,7 +64,7 @@
       }
     </style>
 
-    <app-header fixed condenses >
+    <app-header fixed condenses>
       <app-toolbar>
         <paper-icon-button icon="lineup:arrow-back"></paper-icon-button>
         <div main-title>Roster: {{rosterName}}</div>
@@ -141,8 +141,14 @@
           },
           gameId: {
             type: String,
+            observer: '_gameChanged',
           }
         }
+      }
+
+      _gameChanged(gameId) {
+        console.log('_isGameChanged (' + this.isGame + '): ', gameId, this.gameId);
+        this.__initRoster();
       }
 
       resetRoster() {
@@ -174,7 +180,7 @@
           if (!this.gameId) {
             throw new Error('missing game id!');
           }
-          let game = LineupTracker.retrieveGame(app.gameId);
+          let game = LineupTracker.retrieveGame(this.gameId);
           game.roster = this.roster;
           LineupTracker.saveGame(game);
         } else {
@@ -252,34 +258,59 @@
           '#positionContainer  > .positionCheck');
       }
 
-      connectedCallback() {
-        super.connectedCallback();
-        // …
-      }
-
       ready() {
         super.ready();
+        console.log('roster - ready');
 
-        let roster;
-        let availablePositions;
-        if (this.isGame) {
-          //roster = undef;
-        } else {
-          roster = LineupTracker.retrieveRoster();
-          let formation = new LineupTracker.Formation();
-          if (!formation.complete) {
-            // Eventually should support editing formation instead
-            formation.setDefault();
-          }
-          availablePositions = formation.uniquePositions();
-        }
-        this.roster = roster;
-        this.availablePositions = availablePositions;
+        this.__initRoster();
+
         // When possible, use afterNextRender to defer non-critical
         // work until after first paint.
         Polymer.RenderStatus.afterNextRender(this, function() {
           //...
         });
+      }
+
+      __initRoster() {
+        console.log('initRoster');
+
+        let roster;
+        let formation;
+        if (this.isGame) {
+          console.log('roster - init - isGame');
+
+          if (!this.gameId) {
+            console.log('Missing gameId');
+            return;
+          }
+
+          let currentGame = LineupTracker.retrieveGame(this.gameId);
+
+          console.log('Retrieved game: ', currentGame);
+
+          // Setup roster as needed
+          this.rosterName = currentGame.name();
+          if (currentGame.roster) {
+            roster = currentGame.roster;
+          } else {
+            roster = LineupTracker.retrieveRoster();
+          }
+          formation = currentGame.formation;
+        } else {
+          console.log('roster - init - not isGame');
+          roster = LineupTracker.retrieveRoster();
+        }
+
+        if (!formation) {
+          formation = new LineupTracker.Formation();
+        }
+        if (!formation.complete) {
+          // Eventually should support editing formation instead
+          formation.setDefault();
+        }
+
+        this.roster = roster;
+        this.availablePositions = formation.uniquePositions();
       }
 
     }
