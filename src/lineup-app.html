@@ -18,6 +18,7 @@
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="lineup-game-logic.html">
 <link rel="import" href="lineup-games.html">
+<link rel="import" href="lineup-overview.html">
 <link rel="import" href="lineup-roster.html">
 <link rel="import" href="lineup-icons.html">
 <link rel="import" href="shared-styles.html">
@@ -131,6 +132,7 @@
             fallback-selection="overview"
             role="main">
           <div name="overview">
+            <lineup-overview></lineup-overview>
             <!-- Include content still to be moved into elements -->
             <slot name="legacyContent"></slot>
           </div>

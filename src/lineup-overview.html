@@ -1,0 +1,65 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="lineup-game-logic.html">
+<link rel="import" href="lineup-game.html">
+<link rel="import" href="lineup-icons.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="lineup-overview">
+  <template>
+    <style is="custom-style" include="shared-styles">
+
+      .currentGames {
+        width: 100%;
+      }
+    </style>
+
+    <paper-card heading="Upcoming Games" class="currentGames">
+      <div class="card-content">
+        <div name="list">
+          <iron-list items="[[currentGames]]" as="game">
+            <template>
+              <lineup-game game="[[game]]" on-viewrosterclicked="_showRoster"></lineup-game>
+            </template>
+          </iron-list>
+        </div>
+      </div>
+      <div class="card-actions">
+        <div class="horizontal justified">
+          <paper-button>
+            <iron-icon icon="lineup:event"></iron-icon>
+            Add Game
+          </paper-button>
+        </div>
+      </div>
+    </paper-card>
+
+  </template>
+
+  <script>
+    class LineupOverview extends Polymer.Element {
+      static get is() { return 'lineup-overview'; }
+
+      static get properties() {
+        return {
+          currentGames: {
+            type: Object,
+          },
+        }
+      }
+
+      ready() {
+        super.ready();
+
+        const today = new Date();
+        today.setUTCHours(0,0,0,0);
+        this.currentGames = LineupTracker.retrieveGames().filter(game => game.date > today);
+      }
+
+    }
+
+    window.customElements.define(LineupOverview.is, LineupOverview);
+  </script>
+</dom-module>
