@@ -64,19 +64,24 @@
       }
     </style>
 
-    <app-header fixed condenses>
-      <app-toolbar>
-        <paper-icon-button icon="lineup:arrow-back"></paper-icon-button>
-        <div main-title>Roster: {{rosterName}}</div>
-        <paper-menu-button horizontal-align="right" noOverlap="true" closeOnActivate="true">
-          <paper-icon-button icon="lineup:more-vert" slot="dropdown-trigger" alt="menu"></paper-icon-button>
-          <paper-listbox slot="dropdown-content">
-            <paper-item on-tap="resetRoster">Reset to team roster</paper-item>
-            <paper-item on-tap="debugRoster">Debug</paper-item>
-          </paper-listbox>
-        </paper-menu-button>
-      </app-toolbar>
-    </app-header>
+
+    <dom-if if="[[isGame]]">
+      <template>
+        <app-header fixed condenses>
+          <app-toolbar>
+            <paper-icon-button icon="lineup:arrow-back" on-tap="_goBack"></paper-icon-button>
+            <div main-title>Roster: {{rosterName}}</div>
+            <paper-menu-button horizontal-align="right" noOverlap="true" closeOnActivate="true">
+              <paper-icon-button icon="lineup:more-vert" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+              <paper-listbox slot="dropdown-content">
+                <paper-item on-tap="resetRoster">Reset to team roster</paper-item>
+                <paper-item on-tap="debugRoster">Debug</paper-item>
+              </paper-listbox>
+            </paper-menu-button>
+          </app-toolbar>
+        </app-header>
+      </template>
+    </dom-if>
 
     <div class="roster">
       <paper-listbox class="xxdropdown-content" multi>
@@ -258,17 +263,14 @@
           '#positionContainer  > .positionCheck');
       }
 
+      _goBack() {
+        history.back();
+      }
+
       ready() {
         super.ready();
-        console.log('roster - ready');
 
         this.__initRoster();
-
-        // When possible, use afterNextRender to defer non-critical
-        // work until after first paint.
-        Polymer.RenderStatus.afterNextRender(this, function() {
-          //...
-        });
       }
 
       __initRoster() {
@@ -277,16 +279,12 @@
         let roster;
         let formation;
         if (this.isGame) {
-          console.log('roster - init - isGame');
-
           if (!this.gameId) {
             console.log('Missing gameId');
             return;
           }
 
           let currentGame = LineupTracker.retrieveGame(this.gameId);
-
-          console.log('Retrieved game: ', currentGame);
 
           // Setup roster as needed
           this.rosterName = currentGame.name();
@@ -297,7 +295,6 @@
           }
           formation = currentGame.formation;
         } else {
-          console.log('roster - init - not isGame');
           roster = LineupTracker.retrieveRoster();
         }
 
