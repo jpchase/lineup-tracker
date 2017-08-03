@@ -57,10 +57,15 @@
           },
           gameRoute: {
             type: String,
+            observer: '_gameRouteChanged',
           },
           gamePage: {
             type: String,
             observer: '_gamePageChanged',
+          },
+          visible: {
+            type: Boolean,
+            value: false
           },
         }
       }
@@ -71,12 +76,33 @@
         ];
       }
 
+      _gameRouteChanged(route) {
+        console.log('_gameRouteChanged, visible = ' + this.visible + ': ', route);
+        if (!this.visible) {
+          return;
+        }
+        if (route.path) {
+          // There is a game-specific path, this will be handled by the
+          // app-route.
+          return;
+        }
+        // If visible and no path, then default to the list page
+        this.gamePage = 'list';
+      }
+
       _gamePageChanged(page) {
         console.log('_gamePageChanged: ', page);
       }
 
       _gameRoutePageChanged(page) {
         console.log('_gameRoutePageChanged: ', page);
+
+        // Polymer 2.0 will call with `undefined` on initialization.
+        // Ignore until we are properly called with a string.
+        if (page === undefined) {
+          return;
+        }
+
         this.gamePage = page;
       }
 
