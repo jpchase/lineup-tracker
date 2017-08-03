@@ -171,7 +171,6 @@
           index -= 1;
         }
         this._saveUpdatedRoster();
-        this.dispatchEvent(new CustomEvent('rosterResetToTeam', {bubbles: true, composed: true, detail: removed}));
       }
 
       debugRoster() {
@@ -224,9 +223,6 @@
 
         this.push('roster', player);
         this._saveUpdatedRoster();
-
-        this.dispatchEvent(new CustomEvent('playerAdded', {bubbles: true, composed: true, detail: player}));
-
         this._closeAddPlayer(positionChecks);
       };
 

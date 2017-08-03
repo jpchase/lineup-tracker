@@ -147,14 +147,6 @@ gulp.task('scripts', () => {
         // Other scripts
       ]
     },
-    // For roster.html
-    {
-      name: 'roster',
-      src: [
-        './app/scripts/roster.js'
-        // Other scripts
-      ]
-    },
   ];
 
   var tasks = scriptGroups.map(group => {
