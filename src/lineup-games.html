@@ -3,7 +3,6 @@
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
@@ -11,7 +10,7 @@
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/web-animations-js/web-animations-next.min.html">
 <link rel="import" href="lineup-game-logic.html">
-<link rel="import" href="lineup-game.html">
+<link rel="import" href="lineup-game-list.html">
 <link rel="import" href="lineup-icons.html">
 <link rel="import" href="shared-styles.html">
 
@@ -35,13 +34,7 @@
         attr-for-selected="name"
         fallback-selection="list"
         role="main">
-      <div name="list">
-        <iron-list items="[[games]]" as="game">
-          <template>
-            <lineup-game game="[[game]]" on-viewrosterclicked="_showRoster"></lineup-game>
-          </template>
-        </iron-list>
-      </div>
+      <lineup-game-list name="list" games="[[games]]" top-route="{{topRoute}}"></lineup-game-list>
       <lineup-roster name="roster" is-game="true" game-id="[[routeData.gameId]]"></lineup-roster>
     </iron-pages>
   </template>
@@ -55,13 +48,15 @@
           games: {
             type: Object,
           },
+          topRoute: {
+            type: Object,
+          },
           gameRoute: {
-            type: String,
+            type: Object,
             observer: '_gameRouteChanged',
           },
           gamePage: {
             type: String,
-            observer: '_gamePageChanged',
           },
           visible: {
             type: Boolean,
@@ -88,10 +83,6 @@
         }
         // If visible and no path, then default to the list page
         this.gamePage = 'list';
-      }
-
-      _gamePageChanged(page) {
-        console.log('_gamePageChanged: ', page);
       }
 
       _gameRoutePageChanged(page) {

@@ -1,9 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-card/paper-card.html">
 <link rel="import" href="lineup-game-logic.html">
-<link rel="import" href="lineup-game.html">
+<link rel="import" href="lineup-game-list.html">
 <link rel="import" href="lineup-icons.html">
 <link rel="import" href="shared-styles.html">
 
@@ -18,13 +17,7 @@
 
     <paper-card heading="Upcoming Games" class="currentGames">
       <div class="card-content">
-        <div name="list">
-          <iron-list items="[[currentGames]]" as="game">
-            <template>
-              <lineup-game game="[[game]]" on-viewrosterclicked="_showRoster"></lineup-game>
-            </template>
-          </iron-list>
-        </div>
+        <lineup-game-list top-route="{{topRoute}}" games="[[currentGames]]"></lineup-game-list>
       </div>
       <div class="card-actions">
         <div class="horizontal justified">
@@ -44,6 +37,9 @@
 
       static get properties() {
         return {
+          topRoute: {
+            type: Object,
+          },
           currentGames: {
             type: Object,
           },

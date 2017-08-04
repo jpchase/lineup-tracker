@@ -8,6 +8,7 @@
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
+<link rel="import" href="../bower_components/iron-meta/iron-meta.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
@@ -66,6 +67,11 @@
 
     </style>
 
+
+    <template is="dom-repeat" items="{{navItems}}">
+      <iron-meta key="{{item.id}}" value="{{item.path}}"></iron-meta>
+    </template>
+
     <app-location route="{{route}}"></app-location>
     <app-route
         route="{{route}}"
@@ -94,7 +100,7 @@
         -->
         <iron-selector selected="{{page}}" attr-for-selected="name" class="drawer-list" role="navigation">
           <template is="dom-repeat" items="{{navItems}}">
-            <a name$="{{item.id}}" href="/{{item.id}}">{{item.displayName}}</a>
+            <a name$="{{item.id}}" href="{{item.path}}">{{item.displayName}}</a>
           </template>
         </iron-selector>
       </app-drawer>
@@ -120,7 +126,7 @@
             <!-- Nav on desktop: tabs -->
             <paper-tabs selected="{{page}}" attr-for-selected="name" bottom-item>
               <template is="dom-repeat" items="{{navItems}}">
-                <paper-tab name$="{{item.id}}" link><a href="/{{item.id}}" tabindex="-1">{{item.displayName}}</a></paper-tab>
+                <paper-tab name$="{{item.id}}" link><a href="{{item.path}}" tabindex="-1">{{item.displayName}}</a></paper-tab>
               </template>
             </paper-tabs>
           </app-toolbar>
@@ -132,11 +138,11 @@
             fallback-selection="overview"
             role="main">
           <div name="overview">
-            <lineup-overview></lineup-overview>
+            <lineup-overview top-route="{{route}}"></lineup-overview>
             <!-- Include content still to be moved into elements -->
             <slot name="legacyContent"></slot>
           </div>
-          <lineup-games name="games" game-route="{{subroute}}"></lineup-games>
+          <lineup-games name="games" top-route="{{route}}" game-route="{{subroute}}"></lineup-games>
           <lineup-roster name="roster"></lineup-roster>
         </iron-pages>
       </app-header-layout>
@@ -175,9 +181,9 @@
             type: Array,
             value: function() {
               return [
-                {id:'overview', displayName: 'Overview'},
-                {id:'games', displayName: 'Games'},
-                {id:'roster', displayName: 'Roster'},
+                {id:'overview', path: '/overview', displayName: 'Overview'},
+                {id:'games', path: '/games', displayName: 'Games'},
+                {id:'roster', path: '/roster', displayName: 'Roster'},
               ];
             }
           }
