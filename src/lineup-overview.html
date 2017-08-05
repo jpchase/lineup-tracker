@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-card/paper-card.html">
 <link rel="import" href="lineup-game-logic.html">
+<link rel="import" href="lineup-game-create.html">
 <link rel="import" href="lineup-game-list.html">
 <link rel="import" href="lineup-icons.html">
 <link rel="import" href="shared-styles.html">
@@ -21,13 +22,14 @@
       </div>
       <div class="card-actions">
         <div class="horizontal justified">
-          <paper-button>
+          <paper-button on-tap="_addGameClicked">
             <iron-icon icon="lineup:event"></iron-icon>
             Add Game
           </paper-button>
         </div>
       </div>
     </paper-card>
+    <lineup-game-create id="createGame" on-gamecreated="_gameCreated"></lineup-game-create>
 
   </template>
 
@@ -54,6 +56,19 @@
         this.currentGames = LineupTracker.retrieveGames().filter(game => game.date > today);
       }
 
+      _addGameClicked() {
+        console.log('_addGameClicked');
+        this.$.createGame.showCreateGame();
+      }
+
+      _gameCreated(event) {
+        console.log('_gameCreated', event);
+        let newGame = event.detail;
+
+        if (newGame.date > new Date()) {
+          this.push('currentGames', newGame);
+        }
+      }
     }
 
     window.customElements.define(LineupOverview.is, LineupOverview);

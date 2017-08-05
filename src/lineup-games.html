@@ -21,6 +21,13 @@
         display: block;
       }
 
+      paper-fab {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 30px;
+      }
+
     </style>
 
     <app-route
@@ -34,7 +41,11 @@
         attr-for-selected="name"
         fallback-selection="list"
         role="main">
-      <lineup-game-list name="list" games="[[games]]" top-route="{{topRoute}}"></lineup-game-list>
+      <div name="list">
+        <lineup-game-list games="[[games]]" top-route="{{topRoute}}"></lineup-game-list>
+        <lineup-game-create id="createGame" on-gamecreated="_gameCreated"></lineup-game-create>
+        <paper-fab icon="lineup:add" on-tap="_addGameClicked"></paper-fab>
+      </div>
       <lineup-roster name="roster" is-game="true" game-id="[[routeData.gameId]]"></lineup-roster>
     </iron-pages>
   </template>
@@ -97,9 +108,15 @@
         this.gamePage = page;
       }
 
-      _showRoster(event) {
-        console.log('_showRoster: ', event);
-        this.set('gameRoute.path', event.detail + '/roster');
+      _addGameClicked() {
+        console.log('_addGameClicked');
+        this.$.createGame.showCreateGame();
+      }
+
+      _gameCreated(event) {
+        console.log('_gameCreated', event);
+        let newGame = event.detail;
+        this.push('games', newGame);
       }
 
       ready() {
