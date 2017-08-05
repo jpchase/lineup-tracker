@@ -122,7 +122,17 @@
       ready() {
         super.ready();
 
-        this.games = LineupTracker.retrieveGames();
+        this.games = LineupTracker.retrieveGames().sort((a,b) => {
+          // Sort games by descending date (i.e. most recent first)
+          if (a.date > b.date) {
+            return -1;
+          }
+          if (a.date < b.date) {
+            return 1;
+          }
+          // Dates are equal (unlikely as they include the kickoff time)
+          return 0;
+        });
 
         // When possible, use afterNextRender to defer non-critical
         // work until after first paint.

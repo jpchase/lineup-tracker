@@ -53,7 +53,17 @@
 
         const today = new Date();
         today.setUTCHours(0,0,0,0);
-        this.currentGames = LineupTracker.retrieveGames().filter(game => game.date > today);
+        this.currentGames = LineupTracker.retrieveGames().filter(game => game.date > today).sort((a,b) => {
+          // Sort games by ascending date
+          if (a.date < b.date) {
+            return -1;
+          }
+          if (a.date > b.date) {
+            return 1;
+          }
+          // Dates are equal (unlikely as they include the kickoff time)
+          return 0;
+        });
       }
 
       _addGameClicked() {
