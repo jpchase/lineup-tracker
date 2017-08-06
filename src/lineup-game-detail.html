@@ -1,15 +1,10 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../bower_components/paper-item/paper-item-shared-styles.html">
-<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
-<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
-<link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="lineup-game-logic.html">
 <link rel="import" href="lineup-icons.html">
@@ -24,7 +19,7 @@
     <app-header fixed condenses>
       <app-toolbar>
         <paper-icon-button icon="lineup:arrow-back" on-tap="_goBack"></paper-icon-button>
-        <div main-title>Live: [[_gameName]]</div>
+        <div main-title>Live: [[_getName(game)]]</div>
         <paper-menu-button horizontal-align="right" noOverlap="true" closeOnActivate="true">
           <paper-icon-button icon="lineup:more-vert" slot="dropdown-trigger" alt="menu"></paper-icon-button>
           <paper-listbox slot="dropdown-content">
@@ -37,10 +32,50 @@
     </app-header>
 
     <div>
-      <p>Game content to go here</p>
-      <pre id="gameContent">
-        [[ _gameContents ]]
-      </pre>
+      <div id="live-on">
+        <h5>Playing</h5>
+        <!--
+        <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonRemoveStarter">
+          Remove Starter
+        </button>
+        -->
+        <div class="live-formation-line" id="players-forward">
+        </div>
+        <div class="live-formation-line" id="players-mid1">
+        </div>
+        <div class="live-formation-line" id="players-mid2">
+        </div>
+        <div class="live-formation-line" id="players-back">
+        </div>
+        <div class="live-formation-line" id="players-gk">
+        </div>
+      </div>
+      <div id="live-next">
+        <h5>Next On</h5>
+        <!--
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="buttonSub">Sub</button>
+        <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonSwap">Swap</button>
+        <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonCancelNext">Cancel</button>
+        -->
+      </div>
+      <div id="live-off">
+        <h5>Subs</h5>
+        <!--
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="buttonNext">Next</button>
+        <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonStarter">
+          Starter
+        </button>
+        <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonOut">Out</button>
+        -->
+        <div id="players_off"></div>
+      </div>
+      <div id="live-out">
+        <h5>Unavailable</h5>
+        <!--
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="buttonCancelOut">Return</button>
+        -->
+        <div id="players_out"></div>
+      </div>
     </div>
 
   </template>
@@ -59,19 +94,19 @@
             type: Object,
             readonly: true,
           },
-          _gameName: {
-            type: String,
-            computed: '_getName(game)',
-          },
-          _gameContents: {
-            type: String,
-            computed: '_getContents(game)',
+          _visiblePlayerCards: {
+            type: Object,
+            value: function() { return {}; },
           },
         }
       }
 
       _gameChanged(gameId) {
-        console.log('_isGameChanged', gameId, this.gameId);
+        console.log('_gameChanged', gameId, this.gameId);
+        if (this.game && this.game.id === gameId) {
+          console.log('Game id not actually changed', this.game.id);
+          return;
+        }
         this._initGame();
       }
 
@@ -105,11 +140,136 @@
           return;
         }
 
+        if (this.game && this.game.id !== this.gameId) {
+          // Changed games, reset UI
+          this._visiblePlayerCards = {};
+
+          let allContainers = this._getPlayerContainers();
+          Object.keys(allContainers).forEach(key => {
+            let node = allContainers[key];
+            while (node.lastChild) {
+              node.removeChild(node.lastChild);
+            }
+          });
+
+        }
+
         this.game = LineupTracker.retrieveGame(this.gameId);
+
+        this._setupLiveGame();
       }
+
+      _setupLiveGame() {
+        // Setup roster as needed
+        console.log('_setupLiveGame', this.game.roster);
+        if (!this.game.roster) {
+          this.game.roster = LineupTracker.retrieveRoster();
+          console.log('No roster was set, now', this.game);
+        }
+
+        // // Restore/resume the game clock if needed
+        // if (this.game.status === 'LIVE') {
+        //   this.resumeClock(true);
+        // }
+
+        this.game.roster.forEach(player => {
+          this._updatePlayerCard(player);
+        });
+
+        // this.game.roster.forEach(player => {
+        //   this.updatePlayingTimeCard(player);
+        // });
+
+        // this.updateButtonStates();
+        // this.updatePeriod();
+      };
+
+      _getPlayerContainers() {
+        return {
+          // on: this.$.players_on,
+          out: this.$.players_out,
+          off: this.$.players_off,
+        };
+      }
+
+      _getPlayerContainer(status) {
+        const containers = this._getPlayerContainers();
+        let container = containers[status.toLowerCase()];
+        return container || containers.off;
+      }
+
+      _placePlayerCard(card, player, to, useFormation) {
+        if (useFormation) {
+          //this.getFormationContainer(player.currentPosition).appendChild(card);
+        } else {
+          if (!to) {
+            to = this._getPlayerContainer(player.status);
+          }
+          to.appendChild(card);
+        }
+      };
+
+      _updatePlayerCard(player) {
+        const isOn = (player.status === 'ON');
+        let card = this._visiblePlayerCards[player.name];
+        if (!card) {
+          card = document.createElement('lineup-player-card');
+          card.player = player;
+
+          // Place the card correctly, depending on the player status
+          this._placePlayerCard(card, player, null, isOn);
+
+          this._visiblePlayerCards[player.name] = card;
+        }
+        // if (this.game.captains.find(captain => player.name === captain)) {
+        //   this.addCaptainBadge(card);
+        // }
+
+        // this.updateShiftTime(player, card);
+      };
 
     }
 
     window.customElements.define(LineupGameDetail.is, LineupGameDetail);
+  </script>
+</dom-module>
+
+
+<dom-module id="lineup-player-card">
+  <template>
+    <style is="custom-style" include="shared-styles">
+
+    </style>
+
+    <span class="player">
+      <!--
+      <input type="checkbox" name="player" class="playerSelect">
+      -->
+      <span class="playerName">[[player.name]]</span>
+      <span class="currentPosition">[[player.currentPosition]]</span>
+      <span class="playerPositions">
+        <template is="dom-repeat" items="{{player.positions}}">
+          [[item]]
+        </template>
+      </span>
+      <span class="subFor">[[player.replaces]]</span>
+      <span class="shiftTime"></span>
+    </span>
+  </template>
+
+  <script>
+    class LineupPlayerCard extends Polymer.Element {
+      static get is() { return 'lineup-player-card'; }
+
+      static get properties() {
+        return {
+          player: {
+            type: Object,
+          },
+        }
+      }
+    }
+
+    window.customElements.define(LineupPlayerCard.is, LineupPlayerCard);
   </script>
 </dom-module>
