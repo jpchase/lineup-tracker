@@ -137,11 +137,7 @@
             selected-attribute="visible"
             fallback-selection="overview"
             role="main">
-          <div name="overview">
-            <lineup-overview top-route="{{route}}"></lineup-overview>
-            <!-- Include content still to be moved into elements -->
-            <slot name="legacyContent"></slot>
-          </div>
+          <lineup-overview name="overview" top-route="{{route}}"></lineup-overview>
           <lineup-games name="games" top-route="{{route}}" game-route="{{subroute}}"></lineup-games>
           <lineup-roster name="roster"></lineup-roster>
         </iron-pages>

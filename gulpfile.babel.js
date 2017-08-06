@@ -131,14 +131,6 @@ gulp.task('scripts', () => {
         // Other scripts
       ]
     },
-    // For index.html
-    {
-      name: 'main',
-      src: [
-        './app/scripts/main.js',
-        // Other scripts
-      ]
-    },
     // For live-game.html
     {
       name: 'live-game',
