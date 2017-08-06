@@ -32,8 +32,10 @@ import {TimerWidget} from './clock.js';
     roster: null,
     clock: null,
     shiftIntervalId: null,
-    visiblePlayerCards: [],
+    visiblePlayerCards: {},
+    playingTimeCards: {},
     playerTemplate: document.querySelector('.playerTemplate'),
+    playingTimeTemplate: document.querySelector('.playingTimeTemplate'),
     buttons: {
       toggleClock: document.getElementById('buttonToggleClock'),
       startGame: document.getElementById('buttonStartGame'),
@@ -59,6 +61,7 @@ import {TimerWidget} from './clock.js';
       next: document.getElementById('live-next'),
       off: document.getElementById('live-off'),
       out: document.getElementById('live-out'),
+      playingTime: document.getElementById('live-playing-time'),
       formation: {
         forward: document.getElementById('players-forward'),
         mid1: document.getElementById('players-mid1'),
@@ -194,9 +197,10 @@ import {TimerWidget} from './clock.js';
     return {ids: selectedIds, tuples: tuples};
   };
 
-  liveGame.visitPlayerCards = function(cardCallback) {
+  liveGame.visitPlayerCards = function(cardCallback, cardList) {
+    const cards = cardList || this.visiblePlayerCards;
     this.game.roster.forEach(player => {
-      var card = this.visiblePlayerCards[player.name];
+      var card = cards[player.name];
       if (!card) {
         throw new Error('No card found for: ' + player.name);
       }
@@ -349,6 +353,8 @@ import {TimerWidget} from './clock.js';
       tuple.select.checked = false;
       this.substitutePlayer(playerIn, playerOut);
     });
+
+    this.saveGame();
   };
 
   liveGame.removeStarterCards = function() {
@@ -429,6 +435,22 @@ import {TimerWidget} from './clock.js';
     this.updateShiftTime(player, card);
   };
 
+  liveGame.updatePlayingTimeCard = function(player) {
+    var card = this.playingTimeCards[player.name];
+    if (!card) {
+      card = this.playingTimeTemplate.cloneNode(true);
+      card.classList.remove('playingTimeTemplate');
+      card.querySelector('.playerName').textContent = player.name;
+      card.removeAttribute('hidden');
+
+      this.containers.playingTime.appendChild(card);
+
+      this.playingTimeCards[player.name] = card;
+    }
+
+    this.updateTotalTime(player, card);
+  };
+
   liveGame.updateSwapCard = function(player, swapCard) {
     swapCard.querySelector('.currentPosition').textContent =
       player.currentPosition;
@@ -437,6 +459,11 @@ import {TimerWidget} from './clock.js';
 
   liveGame.updateShiftTime = function(player, card) {
     card.querySelector('.shiftTime').textContent = player.formattedShiftTime;
+  };
+
+  liveGame.updateTotalTime = function(player, card) {
+    card.querySelector('.shiftCount').textContent = player.shiftCount;
+    card.querySelector('.totalTime').textContent = player.formattedTotalTime;
   };
 
   liveGame.setupGame = function() {
@@ -449,6 +476,10 @@ import {TimerWidget} from './clock.js';
 
     this.game.roster.forEach(player => {
       this.updatePlayerCard(player);
+    });
+
+    this.game.roster.forEach(player => {
+      this.updatePlayingTimeCard(player);
     });
 
     this.updateButtonStates();
@@ -530,8 +561,6 @@ import {TimerWidget} from './clock.js';
     /* var clockRunning = */this.game.nextPeriod();
     this.updateButtonStates();
     this.updatePeriod();
-    this.clock.stop();
-    this.clock.reset();
   };
 
   liveGame.updateButtonStates = function() {
@@ -556,9 +585,53 @@ import {TimerWidget} from './clock.js';
     this.containers.period.textContent = 'Period: ' + this.game.period;
   };
 
+  liveGame.updatePlayingTimeCards = function() {
+    // Copy the cards into an array, and update the times as we go
+    let cards = [];
+    const updateCard = this.updateTotalTime;
+    this.visitPlayerCards(function(player, card) {
+      updateCard(player, card);
+      cards.push({
+        node: card,
+        playerStatus: player.status,
+        sortValue: player.formattedTotalTime,
+      });
+    },
+    this.playingTimeCards);
+
+    // Sort the cards by total playing time, in ascending order
+    cards.sort(function(a, b) {
+      if (a.sortValue < b.sortValue) {
+        return -1;
+      }
+      if (a.sortValue > b.sortValue) {
+        return 1;
+      }
+      return 0;
+    });
+
+    // Remove and reinsert all the cards
+    const container = this.containers.playingTime;
+    cards.forEach(function(card) {
+      try {
+        container.removeChild(card.node);
+      } catch (e) {
+        // Ignore errors removing the node. If the player was previously OUT,
+        // the card node will not be in the container.
+      }
+    });
+    cards.forEach(function(card) {
+      if (card.playerStatus === 'OUT') {
+        return;
+      }
+      container.appendChild(card.node);
+    });
+  };
+
   liveGame.refreshShiftTimes = function() {
     this.game.updateShiftTimes();
     this.visitPlayerCards(this.updateShiftTime);
+    this.updatePlayingTimeCards();
   };
 
   liveGame.startShiftTimeUpdater = function() {
@@ -657,21 +730,12 @@ import {TimerWidget} from './clock.js';
     if (!this.gameTimer) {
       this.gameTimer = new TimerWidget(document.querySelector('#gameTimer'));
     }
+    if (!this.periodTimer) {
+      this.periodTimer = new TimerWidget(
+        document.querySelector('#periodTimer'));
+    }
     this.gameTimer.attach(this.game.timer);
-    if (!this.clock) {
-      this.clock = new Stopwatch(document.querySelector('#gameClock'), null);
-    }
-    var game = this.game;
-    let elapsed = game.elapsed;
-    if (loading && game.clockRunning && elapsed > 0) {
-      // When loading the page initially, with a running clock and elapsed time
-      // accumulated, need to adjust the time so the clock displays correctly.
-      elapsed += (performance.now() - game.lastClockTime);
-    }
-    this.clock.restore(
-      game.lastClockTime,
-      elapsed,
-      game.clockRunning);
+    this.periodTimer.attach(this.game.periodTimer);
     this.startShiftTimeUpdater();
   };
 
@@ -680,7 +744,6 @@ import {TimerWidget} from './clock.js';
     if (clockRunning) {
       this.resumeClock();
     } else {
-      this.clock.pause();
       this.stopShiftTimeUpdater();
     }
     this.saveGame();
@@ -696,9 +759,8 @@ import {TimerWidget} from './clock.js';
   };
 
   liveGame.completeGame = function() {
-    /* var clockRunning = */this.game.completeGame();
+    this.game.completeGame();
     this.updateButtonStates();
-    this.clock.pause();
   };
 
   liveGame.getPlayer = function(id) {
@@ -760,11 +822,6 @@ import {TimerWidget} from './clock.js';
   liveGame.resetGame = function() {
     console.log('reset now');
     this.game.resetGame();
-    if (this.clock) {
-      this.clock.stop();
-      this.clock.reset();
-      this.clock.print();
-    }
     this.updateButtonStates();
   };
 
@@ -790,6 +847,9 @@ import {TimerWidget} from './clock.js';
     if (pos > -1) {
       var gameId = window.location.hash.substr(pos + 'game='.length);
       liveGame.gameId = gameId;
+    } else {
+      let params = new URLSearchParams(window.location.search.substring(1));
+      liveGame.gameId = params.get("game");
     }
   }
 

@@ -177,6 +177,14 @@ describe('Timer', () => {
     return provider;
   }
 
+  function manualTimeProvider(currentTime) {
+    let provider = new ManualTimeProvider();
+    if (currentTime) {
+      provider.setCurrentTime(currentTime);
+    }
+    return provider;
+  }
+
   function isElapsedEqual(actual, expected) {
     if (!actual || !expected)
       return false;
@@ -264,6 +272,21 @@ describe('Timer', () => {
       expect(timer).toHaveElapsed([0, 5]);
       timer.start();
       expect(timer).toHaveElapsed([0, 5]);
+    });
+
+    it('should have correct elapsed when running for more than an hour', () => {
+      const provider = manualTimeProvider(startTime);
+      let timer = new Timer(null, provider);
+      timer.start();
+
+      provider.incrementCurrentTime([0,5]);
+      expect(timer).toHaveElapsed([0, 5]);
+
+      provider.incrementCurrentTime([59,59]);
+      expect(timer).toHaveElapsed([60, 4]);
+
+      provider.incrementCurrentTime([31,0]);
+      expect(timer).toHaveElapsed([91, 4]);
     });
 
     it('should have correct elapsed after stopped', () => {

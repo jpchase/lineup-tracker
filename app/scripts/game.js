@@ -37,12 +37,9 @@ var LineupTracker = window.LineupTracker;
     this.period = data.period || 0;
     this.timeProvider = new CurrentTimeProvider();
     this.timer = new Timer(data.timer, this.timeProvider);
+    this.periodTimer = new Timer(data.periodTimer, this.timeProvider);
     this.timeTracker = new PlayerTimeTrackerMap(data.timeTracker,
                                                 this.timeProvider);
-    this.clockRunning = data.clockRunning || false;
-    this.startTime = data.startTime || null;
-    this.lastClockTime = data.lastClockTime || null;
-    this.elapsed = data.elapsed || null;
     this.roster = data.roster || null;
     this.captains = data.captains || [];
     this.starters = data.starters || [];
@@ -54,10 +51,7 @@ var LineupTracker = window.LineupTracker;
       Name: this.name(),
       status: this.status,
       timer: this.timer,
-      clockRunning: this.clockRunning,
-      startTime: this.startTime,
-      lastClockTime: this.lastClockTime,
-      elapsed: this.elapsed,
+      periodTimer: this.periodTimer,
     };
   };
 
@@ -71,7 +65,11 @@ var LineupTracker = window.LineupTracker;
 
   // Time tracking functions
   LineupTracker.Game.prototype.getCurrentTime = function() {
-    return getCurrentTime();
+    return this.timeProvider.getCurrentTime();
+  };
+
+  LineupTracker.Game.prototype.isClockRunning = function() {
+    return this.timer && this.timer.isRunning;
   };
 
   LineupTracker.Game.prototype.toggleClock = function() {
@@ -79,32 +77,24 @@ var LineupTracker = window.LineupTracker;
         this.status === 'NEW') {
       throw new Error('Invalid status to toggle clock: ' + this.status);
     }
-    var time = performance.now();
     if (this.status !== 'LIVE') {
       // Starting the clock for the first time
-      this.startLivePeriod(time);
+      this.startLivePeriod();
     }
 
     if (this.timer.isRunning) {
       console.log('Stopping the timer');
       this.timer.stop();
+      this.periodTimer.stop();
       this.timeTracker.stopShiftTimers();
     } else {
       console.log('Starting the timer');
       this.timer.start();
+      this.periodTimer.start();
       this.timeTracker.startShiftTimers();
     }
 
-    if (this.clockRunning) {
-      console.log('Stop the clock');
-      var diff = time - this.lastClockTime;
-      this.elapsed += diff;
-    } else {
-      console.log('Start the clock');
-      this.lastClockTime = time;
-    }
-    this.clockRunning = !this.clockRunning;
-    return this.clockRunning;
+    return this.isClockRunning();
   };
 
   LineupTracker.Game.prototype.resetClock = function(options) {
@@ -114,29 +104,21 @@ var LineupTracker = window.LineupTracker;
     }
     this.status = 'NEW';
     this.timer.reset();
-    this.clockRunning = false;
-    this.startTime = null;
-    this.lastClockTime = null;
-    this.elapsed = null;
+    this.periodTimer.reset();
   };
 
   LineupTracker.Game.prototype.updateShiftTimes = function() {
-    const shiftEndTime = this.getCurrentTime();
     this.timeProvider.freeze();
     try {
       this.roster.forEach(player => {
-        let isOn = (player.status === 'ON');
-        let shiftStartTime = (isOn ? player.lastOnTime : player.lastOffTime);
         let formattedShiftTime = '';
-        if (shiftStartTime && !isNaN(shiftStartTime)) {
-          let elapsed = calculateElapsed(shiftStartTime, shiftEndTime);
-          formattedShiftTime = pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
-        }
         let tracker = this.timeTracker && this.timeTracker.get(player.name);
         if (tracker) {
-          let newElapsed = tracker.getShiftTime();
-          formattedShiftTime += ('<' + pad0(newElapsed[0], 2) + ':' +
-                                 pad0(newElapsed[1], 2) + '>');
+          let elapsed = tracker.getShiftTime();
+          formattedShiftTime = Duration.format(elapsed);
+          player.shiftCount = tracker.shiftCount;
+          let totalTime = tracker.getTotalTime();
+          player.formattedTotalTime = Duration.format(totalTime);
         }
         player.formattedShiftTime = formattedShiftTime;
       });
@@ -170,33 +152,26 @@ var LineupTracker = window.LineupTracker;
   LineupTracker.Game.prototype.nextPeriod = function() {
     this.endLivePeriod('BREAK', 'NEXTPERIOD');
     this.period += 1;
+    this.periodTimer.reset();
   };
 
   LineupTracker.Game.prototype.completeGame = function() {
     this.endLivePeriod('DONE', 'COMPLETE');
+    this.timeTracker.totalShiftTimers();
   };
 
-  LineupTracker.Game.prototype.startLivePeriod = function(time) {
+  LineupTracker.Game.prototype.startLivePeriod = function() {
     if (this.status !== 'START' &&
         this.status !== 'BREAK') {
       throw new Error('Invalid status to start live period: ' + this.status);
     }
     console.log('Changing to live.');
-    var startingGame = (this.period === 1);
     this.status = 'LIVE';
-    this.startTime = time;
-    this.elapsed = 0;
 
-    let shiftTime = this.getCurrentTime();
     let starters = [];
     this.roster.forEach(player => {
       if (player.status === 'ON') {
-        player.lastOnTime = shiftTime;
         starters.push(player.name);
-      } else if (startingGame || !player.lastOffTime) {
-        // Only set the last off time for the beginning of the game. We want
-        // to track the off time from the previous period (before the break).
-        player.lastOffTime = shiftTime;
       }
     });
 
@@ -213,7 +188,7 @@ var LineupTracker = window.LineupTracker;
     if (this.status !== 'LIVE') {
       throw new Error('Invalid status to end live period: ' + this.status);
     }
-    if (this.clockRunning) {
+    if (this.isClockRunning()) {
       this.toggleClock();
     }
     console.log('Changing status to:', newStatus);
@@ -267,9 +242,7 @@ var LineupTracker = window.LineupTracker;
 
     playerIn.replaces = null;
     playerIn.status = 'ON';
-    playerIn.lastOnTime = time;
     playerOut.status = 'OFF';
-    playerOut.lastOffTime = time;
 
     this.timeTracker.substitutePlayer(playerIn.name, playerOut.name);
 
@@ -340,16 +313,18 @@ var LineupTracker = window.LineupTracker;
   LineupTracker.Game.prototype.resetPlayersToOff = function() {
     this.roster.forEach(player => {
       player.status = 'OFF';
-      player.lastOnTime = null;
-      player.lastOffTime = null;
       player.formattedShiftTime = '';
     });
     this.timer.reset();
+    this.periodTimer.reset();
     this.timeTracker.reset();
     this.starters = [];
   };
 
   LineupTracker.Game.prototype.addEvent = function(eventData) {
+    if (!eventData.date) {
+      eventData.date = this.timeProvider.getCurrentTime();
+    }
     let added = new LineupTracker.GameEvent(eventData);
     this.events.push(added);
     console.log('New event', added);
@@ -424,7 +399,8 @@ var LineupTracker = window.LineupTracker;
     let data = passedData || {};
 
     this.id = data.id || newId();
-    this.date = new Date(data.date || getCurrentTime());
+    this.date = new Date(data.date ||
+                         new CurrentTimeProvider().getCurrentTime());
     this.type = data.type || null;
     this.player = data.player || null;
     this.details = data.details || null;
@@ -624,170 +600,6 @@ var LineupTracker = window.LineupTracker;
 
   console.log('Setup LineupTracker in game.js');
 })();
-
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError('Cannot call a class as a function');
-  }
-}
-
-/* eslint-disable */
-window.Stopwatch = (function() {
-/* eslint-enable */
-  function Stopwatch(display, results) {
-    _classCallCheck(this, Stopwatch);
-
-    this.running = false;
-    this.display = display;
-    this.results = results;
-    this.laps = [];
-    this.reset();
-    this.print(this.times);
-  }
-
-  Stopwatch.prototype.reset = function reset() {
-    this.times = [0, 0, 0];
-  };
-
-  Stopwatch.prototype.start = function start() {
-    if (!this.time) {
-      this.time = performance.now();
-    }
-    if (!this.running) {
-      this.running = true;
-      requestAnimationFrame(this.step.bind(this));
-    }
-  };
-
-  Stopwatch.prototype.lap = function lap() {
-    var times = this.times;
-    if (this.running) {
-      this.reset();
-    }
-    var li = document.createElement('li');
-    li.innerText = this.format(times);
-    this.results.appendChild(li);
-  };
-
-  Stopwatch.prototype.stop = function stop() {
-    this.running = false;
-    this.time = null;
-  };
-
-  Stopwatch.prototype.restore = function restore(originalTime, elapsed,
-    running) {
-    let restoreTime = null;
-    if (elapsed && elapsed > 0) {
-      restoreTime = performance.now() - elapsed;
-      console.log('Restore elapsed to: ', restoreTime);
-    } else if (originalTime) {
-      restoreTime = originalTime;
-      console.log('Restore original to: ', restoreTime);
-    }
-
-    if (restoreTime) {
-      this.time = restoreTime;
-      if (running) {
-        console.log('Now start the clock');
-        this.running = false;
-        this.start();
-      }
-      return;
-    }
-
-    throw new Error('Unable to restore without time data');
-  };
-
-  Stopwatch.prototype.pause = function pause() {
-    this.running = false;
-  };
-
-  Stopwatch.prototype.restart = function restart() {
-    if (!this.time) {
-      this.time = performance.now();
-    }
-    if (!this.running) {
-      this.running = true;
-      requestAnimationFrame(this.step.bind(this));
-    }
-    this.reset();
-  };
-
-  Stopwatch.prototype.clear = function clear() {
-    clearChildren(this.results);
-  };
-
-  Stopwatch.prototype.step = function step(timestamp) {
-    if (!this.running) {
-      return;
-    }
-    this.calculate(timestamp);
-    this.time = timestamp;
-    this.print();
-    requestAnimationFrame(this.step.bind(this));
-  };
-
-  Stopwatch.prototype.calculate = function calculate(timestamp) {
-    var diff = timestamp - this.time;
-    // Hundredths of a second are 100 ms
-    this.times[2] += diff / 10;
-    // Seconds are 100 hundredths of a second
-    if (this.times[2] >= 100) {
-      this.times[1] += 1;
-      this.times[2] -= 100;
-    }
-    // Minutes are 60 seconds
-    if (this.times[1] >= 60) {
-      this.times[0] += 1;
-      this.times[1] -= 60;
-    }
-  };
-
-  Stopwatch.prototype.print = function print() {
-    this.display.innerText = this.format(this.times);
-  };
-
-  Stopwatch.prototype.format = function format(times) {
-    return pad0(times[0], 2) + ':' + pad0(times[1], 2);// + ':' + pad0(Math.floor(times[2]), 2);
-  };
-
-  return Stopwatch;
-})();
-
-function pad0(value, count) {
-  var result = value.toString();
-  for (; result.length < count; --count) {
-    result = '0' + result;
-  }
-  return result;
-}
-
-function clearChildren(node) {
-  while (node.lastChild) {
-    node.removeChild(node.lastChild);
-  }
-}
-
-function getCurrentTime() {
-  return Date.now();
-}
-
-function calculateElapsed(startTime, endTime) {
-  var elapsed = [0, 0];
-  // Compute diff in seconds (convert from ms)
-  var timeDiff = (endTime - startTime) / 1000;
-
-  // get seconds
-  elapsed[1] = Math.round(timeDiff % 60);
-
-  // remove seconds from the time
-  timeDiff = Math.floor(timeDiff / 60);
-
-  // get minutes
-  elapsed[0] = Math.round(timeDiff % 60);
-
-  return elapsed;
-}
 
 function newId(
   a                  // placeholder

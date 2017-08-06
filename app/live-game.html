@@ -85,7 +85,7 @@
             <input type="checkbox" id="buttonToggleClock" class="mdl-icon-toggle__input" checked>
             <i class="mdl-icon-toggle__label material-icons">query_builder</i>
           </label>
-          <span id="gameClock"></span>&nbsp;&lt;<span id="gameTimer"></span>&gt;
+          <span id="periodTimer"></span>&nbsp;[<span id="gameTimer"></span>]
           <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="buttonSave">
             <i class="material-icons" role="presentation">save</i>
             <span class="visuallyhidden">Save</span>
@@ -134,6 +134,25 @@
               <span class="subFor"></span>
               <span class="shiftTime"></span>
             </span>
+            <div id="live-totals">
+              <h5>Playing Time</h5>
+              <table class="mdl-data-table mdl-js-data-table">
+                <thead>
+                  <tr>
+                    <th class="mdl-data-table__cell--non-numeric">Name</th>
+                    <th>Shifts</th>
+                    <th class="mdl-data-table__cell--non-numeric">Time</th>
+                  </tr>
+                </thead>
+                <tbody id="live-playing-time">
+                  <tr class="playingTimeTemplate" hidden>
+                    <td class="playerName mdl-data-table__cell--non-numeric"></td>
+                    <td class="shiftCount"></td>
+                    <td class="totalTime mdl-data-table__cell--non-numeric"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </section>
       </main>
       <dialog id="dialogSubs" class="mdl-dialog dialog-wide">
