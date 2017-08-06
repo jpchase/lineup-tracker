@@ -56,16 +56,19 @@
 
       _viewGameClicked(event) {
         console.log('viewGameClicked here', event);
-        window.location = '/live-game.html#game=' + event.model.game.id;
+        this._showGameView(event, 'detail');
       };
 
       _viewRosterClicked(event) {
         console.log('viewRosterClicked here', event);
+        this._showGameView(event, 'roster');
+      };
+
+      _showGameView(event, view) {
         let gamesPath = this.$.meta.byKey('games');
-        let fullPath = [gamesPath, event.model.game.id, 'roster'].join('/');
+        let fullPath = [gamesPath, event.model.game.id, view].join('/');
         console.log('setting path', gamesPath, fullPath);
         this.set('topRoute.path', fullPath);
-        this.dispatchEvent(new CustomEvent('viewrosterclicked', {bubbles: true, composed: true, detail: event.model.game.id}));
       };
 
     }

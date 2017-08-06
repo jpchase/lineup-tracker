@@ -1,0 +1,115 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-shared-styles.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="lineup-game-logic.html">
+<link rel="import" href="lineup-icons.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="lineup-game-detail">
+  <template>
+    <style is="custom-style" include="shared-styles">
+
+    </style>
+
+    <app-header fixed condenses>
+      <app-toolbar>
+        <paper-icon-button icon="lineup:arrow-back" on-tap="_goBack"></paper-icon-button>
+        <div main-title>Live: [[_gameName]]</div>
+        <paper-menu-button horizontal-align="right" noOverlap="true" closeOnActivate="true">
+          <paper-icon-button icon="lineup:more-vert" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+          <paper-listbox slot="dropdown-content">
+            <paper-item on-tap="_showCaptains">Captains</paper-item>
+            <paper-item on-tap="_resetGame">Reset</paper-item>
+            <paper-item on-tap="_debugGame">Debug</paper-item>
+          </paper-listbox>
+        </paper-menu-button>
+      </app-toolbar>
+    </app-header>
+
+    <div>
+      <p>Game content to go here</p>
+      <pre id="gameContent">
+        [[ _gameContents ]]
+      </pre>
+    </div>
+
+  </template>
+
+  <script>
+    class LineupGameDetail extends Polymer.Element {
+      static get is() { return 'lineup-game-detail'; }
+
+      static get properties() {
+        return {
+          gameId: {
+            type: String,
+            observer: '_gameChanged',
+          },
+          game: {
+            type: Object,
+            readonly: true,
+          },
+          _gameName: {
+            type: String,
+            computed: '_getName(game)',
+          },
+          _gameContents: {
+            type: String,
+            computed: '_getContents(game)',
+          },
+        }
+      }
+
+      _gameChanged(gameId) {
+        console.log('_isGameChanged', gameId, this.gameId);
+        this._initGame();
+      }
+
+      _getName(game) {
+        return game.name();
+      }
+
+      _getContents(game) {
+        return JSON.stringify(game.toDebugJSON());
+      }
+
+      _debugGame() {
+        console.log('DEBUG !!!!!!!');
+        console.log('Game:', this.game.toDebugJSON());
+        this.game.roster.forEach(player => {
+          console.log('Player: ', player);
+        });
+        console.log('Starters: ', this.game.starters);
+        console.log('Events: ', this.game.events);
+      }
+
+      _goBack() {
+        history.back();
+      }
+
+      _initGame() {
+        console.log('initGame');
+
+        if (!this.gameId) {
+          console.log('Missing gameId');
+          return;
+        }
+
+        this.game = LineupTracker.retrieveGame(this.gameId);
+      }
+
+    }
+
+    window.customElements.define(LineupGameDetail.is, LineupGameDetail);
+  </script>
+</dom-module>

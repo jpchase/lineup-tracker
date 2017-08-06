@@ -11,6 +11,8 @@
 <link rel="import" href="../bower_components/web-animations-js/web-animations-next.min.html">
 <link rel="import" href="lineup-game-logic.html">
 <link rel="import" href="lineup-game-list.html">
+<link rel="import" href="lineup-game-detail.html">
+<link rel="import" href="lineup-roster.html">
 <link rel="import" href="lineup-icons.html">
 <link rel="import" href="shared-styles.html">
 
@@ -46,6 +48,7 @@
         <lineup-game-create id="createGame" on-gamecreated="_gameCreated"></lineup-game-create>
         <paper-fab icon="lineup:add" on-tap="_addGameClicked"></paper-fab>
       </div>
+      <lineup-game-detail name="detail" game-id="[[routeData.gameId]]"></lineup-game-detail>
       <lineup-roster name="roster" is-game="true" game-id="[[routeData.gameId]]"></lineup-roster>
     </iron-pages>
   </template>
