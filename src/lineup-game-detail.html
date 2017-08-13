@@ -124,7 +124,6 @@
       }
 
       _getAllPlayers(roster) {
-        console.log('called _getAllPlayers', roster);
         return roster;
       }
 
@@ -257,9 +256,17 @@
         width: 40px;
       }
 
+      .player.on .playerPositions,
+      .player.on .subFor,
+      .player.next .playerPositions,
+      .player.off .currentPosition,
+      .player.off .subFor {
+        display: none;
+      }
+
     </style>
 
-    <span class="player">
+    <span class$="player [[mode]]">
       <span class="playerName">[[player.name]]</span>
       <span class="uniformNumber">[[player.uniformNumber]]</span>
       <span class="currentPosition">[[player.currentPosition]]</span>
@@ -282,6 +289,9 @@
           player: {
             type: Object,
           },
+          mode: {
+            type: String,
+          },
         }
       }
     }
@@ -296,7 +306,7 @@
     </style>
 
     <template is="dom-repeat" items="[[_filteredPlayers]]" as="player">
-      <lineup-player-card player="{{player}}"></lineup-player-card>
+      <lineup-player-card mode="[[mode]]" player="{{player}}"></lineup-player-card>
     </template>
   </template>
 
@@ -311,23 +321,12 @@
           },
           players: {
             type: Object,
-            observer: '_playersChanged',
           },
           _filteredPlayers: {
             type: Object,
             computed: '_filterPlayers(players)',
           },
         }
-      }
-
-      static get observers() {
-        return [
-          '_wtfAllPlayers(players.*)',
-        ];
-      }
-
-      _wtfAllPlayers(change) {
-        console.log('_wtfAllPlayers', change);
       }
 
       _getPlayerStatus(mode) {
@@ -349,15 +348,9 @@
           return [];
         }
         const statusFilter = this._getPlayerStatus(this.mode);
-        console.log('Filter players, mode = ' + this.mode + ', status = ' + statusFilter);
-        let players = this.players.filter((player => player.status === statusFilter));
-        console.log('Filtered players', players);
-        return players;
+        return this.players.filter((player => player.status === statusFilter));
       }
 
-      _playersChanged(allPlayers) {
-        console.log('_playersChanged', allPlayers);
-      }
     }
 
     window.customElements.define(LineupPlayerCardList.is, LineupPlayerCardList);
