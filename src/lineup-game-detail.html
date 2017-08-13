@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
@@ -49,6 +50,7 @@
         </div>
         <div class="live-formation-line" id="players-gk">
         </div>
+        <lineup-player-card-list mode="on" players="[[allPlayers]]"></lineup-player-card-list>
       </div>
       <div id="live-next">
         <h5>Next On</h5>
@@ -57,6 +59,7 @@
         <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonSwap">Swap</button>
         <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonCancelNext">Cancel</button>
         -->
+        <lineup-player-card-list mode="next" players="[[allPlayers]]"></lineup-player-card-list>
       </div>
       <div id="live-off">
         <h5>Subs</h5>
@@ -68,6 +71,7 @@
         <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonOut">Out</button>
         -->
         <div id="players_off"></div>
+        <lineup-player-card-list mode="off" players="[[allPlayers]]"></lineup-player-card-list>
       </div>
       <div id="live-out">
         <h5>Unavailable</h5>
@@ -75,6 +79,7 @@
         <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="buttonCancelOut">Return</button>
         -->
         <div id="players_out"></div>
+        <lineup-player-card-list mode="out" players="[[allPlayers]]"></lineup-player-card-list>
       </div>
     </div>
 
@@ -98,6 +103,10 @@
             type: Object,
             value: function() { return {}; },
           },
+          allPlayers: {
+            type: Object,
+            computed: '_getAllPlayers(game.roster)',
+          },
         }
       }
 
@@ -114,8 +123,9 @@
         return game.name();
       }
 
-      _getContents(game) {
-        return JSON.stringify(game.toDebugJSON());
+      _getAllPlayers(roster) {
+        console.log('called _getAllPlayers', roster);
+        return roster;
       }
 
       _debugGame() {
@@ -163,7 +173,7 @@
         // Setup roster as needed
         console.log('_setupLiveGame', this.game.roster);
         if (!this.game.roster) {
-          this.game.roster = LineupTracker.retrieveRoster();
+          this.set('game.roster', LineupTracker.retrieveRoster());
           console.log('No roster was set, now', this.game);
         }
 
@@ -172,9 +182,9 @@
         //   this.resumeClock(true);
         // }
 
-        this.game.roster.forEach(player => {
-          this._updatePlayerCard(player);
-        });
+        // this.game.roster.forEach(player => {
+        //   this._updatePlayerCard(player);
+        // });
 
         // this.game.roster.forEach(player => {
         //   this.updatePlayingTimeCard(player);
@@ -239,13 +249,19 @@
   <template>
     <style is="custom-style" include="shared-styles">
 
+      .player {
+        border: 1px;
+        border-style: dashed;
+        display: inline-block;
+        height: 45px;
+        width: 40px;
+      }
+
     </style>
 
     <span class="player">
-      <!--
-      <input type="checkbox" name="player" class="playerSelect">
-      -->
       <span class="playerName">[[player.name]]</span>
+      <span class="uniformNumber">[[player.uniformNumber]]</span>
       <span class="currentPosition">[[player.currentPosition]]</span>
       <span class="playerPositions">
         <template is="dom-repeat" items="{{player.positions}}">
@@ -271,5 +287,79 @@
     }
 
     window.customElements.define(LineupPlayerCard.is, LineupPlayerCard);
+  </script>
+</dom-module>
+
+<dom-module id="lineup-player-card-list">
+  <template>
+    <style is="custom-style" include="shared-styles">
+    </style>
+
+    <template is="dom-repeat" items="[[_filteredPlayers]]" as="player">
+      <lineup-player-card player="{{player}}"></lineup-player-card>
+    </template>
+  </template>
+
+  <script>
+    class LineupPlayerCardList extends Polymer.Element {
+      static get is() { return 'lineup-player-card-list'; }
+
+      static get properties() {
+        return {
+          mode: {
+            type: String,
+          },
+          players: {
+            type: Object,
+            observer: '_playersChanged',
+          },
+          _filteredPlayers: {
+            type: Object,
+            computed: '_filterPlayers(players)',
+          },
+        }
+      }
+
+      static get observers() {
+        return [
+          '_wtfAllPlayers(players.*)',
+        ];
+      }
+
+      _wtfAllPlayers(change) {
+        console.log('_wtfAllPlayers', change);
+      }
+
+      _getPlayerStatus(mode) {
+        let status = mode.toUpperCase();
+        switch (status) {
+          case 'NEXT':
+          case 'OFF':
+          case 'ON':
+          case 'OUT':
+            return status;
+          default:
+            console.log('Unsupported mode:', mode);
+        }
+        return status;
+      }
+
+      _filterPlayers(allPlayers) {
+        if (!this.players) {
+          return [];
+        }
+        const statusFilter = this._getPlayerStatus(this.mode);
+        console.log('Filter players, mode = ' + this.mode + ', status = ' + statusFilter);
+        let players = this.players.filter((player => player.status === statusFilter));
+        console.log('Filtered players', players);
+        return players;
+      }
+
+      _playersChanged(allPlayers) {
+        console.log('_playersChanged', allPlayers);
+      }
+    }
+
+    window.customElements.define(LineupPlayerCardList.is, LineupPlayerCardList);
   </script>
 </dom-module>
