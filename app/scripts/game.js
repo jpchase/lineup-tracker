@@ -552,7 +552,7 @@ var LineupTracker = window.LineupTracker;
          status: 'OFF'},
         {name: 'Mary', uniformNumber: 12, positions: ['CB', 'FB'],
          status: 'OFF'},
-        {name: 'Navleen', uniformNumber: 5, positions: ['FB', 'CB`'],
+        {name: 'Navleen', uniformNumber: 5, positions: ['FB', 'CB'],
          status: 'OFF'},
         {name: 'Nia', uniformNumber: 6, positions: ['W', 'AM'],
          status: 'OFF'},
