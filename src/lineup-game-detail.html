@@ -50,7 +50,7 @@
         </div>
         <div class="live-formation-line" id="players-gk">
         </div>
-        <lineup-player-card-list mode="on" players="[[allPlayers]]"></lineup-player-card-list>
+        <lineup-player-card-list mode="on" players="[[allPlayers]]" on-playerselected="_playerSelected"></lineup-player-card-list>
       </div>
       <div id="live-next">
         <h5>Next On</h5>
@@ -59,7 +59,7 @@
         <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonSwap">Swap</button>
         <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonCancelNext">Cancel</button>
         -->
-        <lineup-player-card-list mode="next" players="[[allPlayers]]"></lineup-player-card-list>
+        <lineup-player-card-list mode="next" players="[[allPlayers]]" on-playerselected="_playerSelected"></lineup-player-card-list>
       </div>
       <div id="live-off">
         <h5>Subs</h5>
@@ -71,7 +71,7 @@
         <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonOut">Out</button>
         -->
         <div id="players_off"></div>
-        <lineup-player-card-list mode="off" players="[[allPlayers]]"></lineup-player-card-list>
+        <lineup-player-card-list mode="off" players="[[allPlayers]]" on-playerselected="_playerSelected"></lineup-player-card-list>
       </div>
       <div id="live-out">
         <h5>Unavailable</h5>
@@ -79,7 +79,7 @@
         <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="buttonCancelOut">Return</button>
         -->
         <div id="players_out"></div>
-        <lineup-player-card-list mode="out" players="[[allPlayers]]"></lineup-player-card-list>
+        <lineup-player-card-list mode="out" players="[[allPlayers]]" on-playerselected="_playerSelected"></lineup-player-card-list>
       </div>
     </div>
 
@@ -237,6 +237,10 @@
         // this.updateShiftTime(player, card);
       };
 
+      _playerSelected(e) {
+        console.log('game - detail: _playerSelected', e);
+      }
+
     }
 
     window.customElements.define(LineupGameDetail.is, LineupGameDetail);
@@ -266,7 +270,7 @@
 
     </style>
 
-    <span class$="player [[mode]]">
+    <span class$="player [[mode]]" on-tap="_toggleSelected">
       <span class="playerName">[[player.name]]</span>
       <span class="uniformNumber">[[player.uniformNumber]]</span>
       <span class="currentPosition">[[player.currentPosition]]</span>
@@ -292,7 +296,19 @@
           mode: {
             type: String,
           },
+          selected: {
+            type: Boolean,
+            value: false,
+          }
         }
+      }
+
+      _toggleSelected(e) {
+        // console.log('_toggleSelected - ' + this.selected, e);
+        this.dispatchEvent(new CustomEvent('playerselected', {
+          bubbles: true, composed: true,
+          detail: {player: this.player, selected: this.selected},
+        }));
       }
     }
 
