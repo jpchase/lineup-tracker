@@ -2,10 +2,20 @@ import {CurrentTimeProvider, Duration, Timer} from './clock.js';
 import {PlayerTimeTrackerMap} from './shift.js';
 
 /* eslint-disable */
-if (!window.LineupTracker) {
-  window.LineupTracker = {};
+var theGlobal;
+if (typeof window !== 'undefined') {
+  // Running in browser
+  theGlobal = window;
+} else if (typeof global !== 'undefined') {
+  // Running in node
+  theGlobal = global;
+} else {
+  theGlobal = {};
 }
-var LineupTracker = window.LineupTracker;
+if (!theGlobal.LineupTracker) {
+  theGlobal.LineupTracker = {};
+}
+var LineupTracker = theGlobal.LineupTracker;
 /* eslint-enable */
 
 (function() {
@@ -219,6 +229,52 @@ var LineupTracker = window.LineupTracker;
 
     console.log('Passed options: ', passedOptions);
     throw new Error('Invalid options to reset game: ' + passedOptions);
+  };
+
+  LineupTracker.Game.prototype.preparePlayerChange = function(players) {
+    if (!players || players.length !== 2) {
+      console.log('Invalid players to prepare change', players);
+      return false;
+    }
+
+    let onPlayer, otherPlayer;
+    players.forEach(player => {
+      if (!player) {
+        return;
+      }
+      switch (player.status) {
+        case 'ON':
+          if (onPlayer) {
+            console.log('Can only make a change with one ON player');
+            return;
+          }
+          onPlayer = player;
+          break;
+
+        case 'OFF':
+          if (otherPlayer) {
+            console.log('Can only make a change with one OFF player');
+            return;
+          }
+          otherPlayer = player;
+          break;
+
+        default:
+          console.log('Unsupported status', player);
+          return;
+      }
+    });
+
+    if (!(onPlayer && otherPlayer)) {
+      return false;
+    }
+
+    // Prepare a sub
+    otherPlayer.status = 'NEXT';
+    otherPlayer.currentPosition = onPlayer.currentPosition;
+    otherPlayer.replaces = onPlayer.name;
+
+    return true;
   };
 
   LineupTracker.Game.prototype.addStarter = function(player) {

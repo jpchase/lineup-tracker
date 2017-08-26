@@ -264,7 +264,7 @@ gulp.task('default', ['clean'], cb =>
 );
 
 gulp.task('test', () => {
-  gulp.src('spec/*.js')
+  gulp.src(['app/scripts/game.js', 'spec/*.js'])
     // gulp-jasmine works on filepaths so you can't have any plugins before it
     .pipe($.jasmine({
         verbose: true
