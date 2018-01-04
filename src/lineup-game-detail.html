@@ -93,11 +93,18 @@
         return {
           gameId: {
             type: String,
-            observer: '_gameChanged',
+            observer: '_gameIdChanged',
           },
           game: {
             type: Object,
             readonly: true,
+            observer: '_gameChanged',
+          },
+          _selectedOn: {
+            type: Object,
+          },
+          _selectedOff: {
+            type: Object,
           },
           _visiblePlayerCards: {
             type: Object,
@@ -110,8 +117,22 @@
         }
       }
 
-      _gameChanged(gameId) {
-        console.log('_gameChanged', gameId, this.gameId);
+      static get observers() {
+        return [
+          '_gameRosterChanged(game.roster)',
+        ];
+      }
+
+      _gameRosterChanged(thing) {
+        console.log('_gameRosterChanged: ', thing);
+      }
+
+      _gameChanged(thing) {
+        console.log('_gameChanged: ', thing);
+      }
+
+      _gameIdChanged(gameId) {
+        console.log('_gameIdChanged', gameId, this.gameId);
         if (this.game && this.game.id === gameId) {
           console.log('Game id not actually changed', this.game.id);
           return;
@@ -124,6 +145,7 @@
       }
 
       _getAllPlayers(roster) {
+        this.linkPaths('allPlayers', 'game.roster.*');
         return roster;
       }
 
@@ -239,6 +261,34 @@
 
       _playerSelected(e) {
         console.log('game - detail: _playerSelected', e);
+        let player = e.detail.player;
+
+        switch (player.status) {
+          case 'ON':
+            this._selectedOn = player;
+            break;
+          case 'OFF':
+            this._selectedOff = player;
+            break;
+          default:
+            return;
+        }
+
+
+console.log('calling a game method', this.game.getPlayersByStatus('OFF'));
+
+        if (this.game.preparePlayerChange([this._selectedOn, this._selectedOff])) {
+          // Change made, unselected players and other UI changes
+          // TODO: Also save game here?
+          console.log('Successfully prepped a player change');
+          let onPlayer = this._selectedOn;
+          let offPlayer = this._selectedOff;
+          this.notifyPath('game.roster');
+          //console.log('Try notifying allPlayers');
+          //this.notifyPath('allPlayers');
+          this._selectedOn = undefined;
+          this._selectedOff = undefined;
+        }
       }
 
     }
