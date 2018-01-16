@@ -112,7 +112,7 @@
           },
           allPlayers: {
             type: Object,
-            computed: '_getAllPlayers(game.roster)',
+            computed: '_getAllPlayers(game.roster.*)',
           },
         }
       }
@@ -410,11 +410,11 @@ console.log('calling a game method', this.game.getPlayersByStatus('OFF'));
       }
 
       _filterPlayers(allPlayers) {
-        if (!this.players) {
+        if (!this.players && !this.players.value) {
           return [];
         }
         const statusFilter = this._getPlayerStatus(this.mode);
-        return this.players.filter((player => player.status === statusFilter));
+        return this.players.value.filter((player => player.status === statusFilter));
       }
 
     }
