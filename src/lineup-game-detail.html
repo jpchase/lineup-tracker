@@ -59,7 +59,7 @@
         <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonSwap">Swap</button>
         <button class="mdl-button mdl-js-button mdl-button--primary" id="buttonCancelNext">Cancel</button>
         -->
-        <lineup-player-card-list mode="next" players="[[allPlayers]]" on-playerselected="_playerSelected"></lineup-player-card-list>
+        <lineup-player-card-list mode="next" show-cancel="true" players="[[allPlayers]]" on-playerselected="_playerSelected" on-playerlistcancel="_cancelSub"></lineup-player-card-list>
       </div>
       <div id="live-off">
         <h5>Subs</h5>
@@ -161,6 +161,17 @@
 
       _goBack() {
         history.back();
+      }
+
+      _cancelSub(e) {
+        console.log('game - detail: _cancelSub', e);
+        let player = e.detail.player;
+        if (this.game.cancelPlayerChange(player)) {
+          // TODO: Also save game here?
+          console.log('Successfully canceled a player change');
+          this.notifyPath('game.roster');
+        }
+
       }
 
       _initGame() {
@@ -373,6 +384,9 @@ console.log('calling a game method', this.game.getPlayersByStatus('OFF'));
 
     <template is="dom-repeat" items="[[_filteredPlayers]]" as="player">
       <lineup-player-card mode="[[mode]]" player="{{player}}"></lineup-player-card>
+      <template is="dom-if" if="{{showCancel}}">
+        <paper-icon-button icon="lineup:cancel" on-tap="_doCancel"></paper-icon-button>
+      </template>
     </template>
   </template>
 
@@ -384,6 +398,10 @@ console.log('calling a game method', this.game.getPlayersByStatus('OFF'));
         return {
           mode: {
             type: String,
+          },
+          showCancel: {
+            type: Boolean,
+            value: false,
           },
           players: {
             type: Object,
@@ -417,6 +435,14 @@ console.log('calling a game method', this.game.getPlayersByStatus('OFF'));
         return this.players.value.filter((player => player.status === statusFilter));
       }
 
+      _doCancel(e) {
+        console.log('_doCancel', e);
+        console.log('_doCancel - model.player', e.model.player);
+        this.dispatchEvent(new CustomEvent('playerlistcancel', {
+          bubbles: true, composed: true,
+          detail: {player: e.model.player},
+        }));
+      }
     }
 
     window.customElements.define(LineupPlayerCardList.is, LineupPlayerCardList);
