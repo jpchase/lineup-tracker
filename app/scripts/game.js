@@ -277,6 +277,25 @@ var LineupTracker = theGlobal.LineupTracker;
     return true;
   };
 
+  LineupTracker.Game.prototype.cancelPlayerChange = function(player) {
+    if (!player) {
+      console.log('Invalid player to cancel change', player);
+      return false;
+    }
+
+    switch (player.status) {
+      case 'NEXT':
+        player.status = 'OFF';
+        player.currentPosition = undefined;
+        player.replaces = undefined;
+        return true;
+
+      default:
+        console.log('Unsupported status to cancel player change', player);
+        return false;
+    }
+  };
+
   LineupTracker.Game.prototype.addStarter = function(player) {
     if (this.starters.find(id => player === id)) {
       return;
