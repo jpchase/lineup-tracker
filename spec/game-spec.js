@@ -11,7 +11,62 @@ describe('Game', () => {
   let provider;
 
   beforeEach(() => {
-    //provider = new CurrentTimeProvider();
+
+    jasmine.addMatchers({
+      toBeOff: function () {
+        return {
+          compare: function (actual, expected) {
+            let player = actual;
+
+            return {
+              pass: player && player.status === 'OFF' && !player.replaces &&
+                    !player.currentPosition
+            };
+          }
+        };
+      },
+      toBeOn: function () {
+        return {
+          compare: function (actual, expected) {
+            let player = actual;
+            let position = expected;
+
+            return {
+              pass: player && player.status === 'ON' &&
+                    (!position || player.currentPosition === position)
+            };
+          }
+        };
+      },
+      toBeOut: function () {
+        return {
+          compare: function (actual, expected) {
+            let player = actual;
+
+            return {
+              pass: player && player.status === 'OUT' && !player.replaces &&
+                    !player.currentPosition
+            };
+          }
+        };
+      },
+      toBeNext: function () {
+        return {
+          compare: function (actual, expected) {
+            let player = actual;
+            let replacedPlayer = expected;
+
+            return {
+              pass: player && player.status === 'NEXT' &&
+                    player.replaces === replacedPlayer.name &&
+                    player.currentPosition &&
+                    player.currentPosition === replacedPlayer.currentPosition
+            };
+          }
+        };
+      },
+    });
+
   });
 
   it('should be empty for new instance', () => {
@@ -68,10 +123,7 @@ describe('Game', () => {
         const offPlayer = {name: playerOffId, status: 'OFF'};
 
         expect(game.preparePlayerChange([playerOn, offPlayer])).toBe(true);
-        expect(offPlayer.status).toBe('NEXT');
-        expect(offPlayer.replaces).toBe(playerOn.name);
-        expect(offPlayer.currentPosition).toBeTruthy();
-        expect(offPlayer.currentPosition).toBe(playerOn.currentPosition);
+        expect(offPlayer).toBeNext(playerOn);
       });
 
     }); // prepare player changes
@@ -86,14 +138,16 @@ describe('Game', () => {
       });
 
       it('should fail if player is not next sub', () => {
+        const onPosition = playerOn.currentPosition;
         expect(game.cancelPlayerChange(playerOn)).toBe(false);
-        // Check that player values are unchanged
-        expect(playerOn.status).toBe('ON');
-        expect(playerOn.currentPosition).toBeTruthy();
+        expect(playerOn).toBeOn(onPosition);
 
         expect(game.cancelPlayerChange(playerOff)).toBe(false);
+        expect(playerOff).toBeOff();
+
         const outPlayer = {name: playerAltOnId, status: 'OUT'};
         expect(game.cancelPlayerChange(outPlayer)).toBe(false);
+        expect(outPlayer).toBeOut();
       });
 
       it('should reset next sub to off', () => {
@@ -105,9 +159,8 @@ describe('Game', () => {
         };
 
         expect(game.cancelPlayerChange(nextPlayer)).toBe(true);
-        expect(nextPlayer.status).toBe('OFF');
-        expect(nextPlayer.replaces).toBe(undefined);
-        expect(nextPlayer.currentPosition).toBe(undefined);
+
+        expect(nextPlayer).toBeOff();
       });
 
     }); // cancel player changes
