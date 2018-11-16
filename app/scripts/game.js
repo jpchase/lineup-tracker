@@ -6,9 +6,16 @@ var theGlobal;
 if (typeof window !== 'undefined') {
   // Running in browser
   theGlobal = window;
+  theGlobal.getRandom = function() {
+    return window.crypto.getRandomValues(new Uint8Array(1))[0];
+  }
 } else if (typeof global !== 'undefined') {
   // Running in node
   theGlobal = global;
+  const crypto = require('crypto');
+  theGlobal.getRandom = function() {
+    return crypto.randomBytes(1);
+  }
 } else {
   theGlobal = {};
 }
@@ -260,7 +267,7 @@ var LineupTracker = theGlobal.LineupTracker;
           break;
 
         default:
-          console.log('Unsupported status', player);
+          console.log('Unsupported status to prepare player change', player);
           return;
       }
     });
@@ -274,6 +281,51 @@ var LineupTracker = theGlobal.LineupTracker;
     otherPlayer.currentPosition = onPlayer.currentPosition;
     otherPlayer.replaces = onPlayer.name;
 
+    return true;
+  };
+
+  LineupTracker.Game.prototype.applyPlayerChanges = function() {
+    let nextPlayers = this.getPlayersByStatus('NEXT');
+
+    if (!nextPlayers || nextPlayers.length === 0) {
+      console.log('No subs to apply');
+      return false;
+    }
+
+    let pendingSubs = [];
+    let offIds = [];
+    let nextIds = [];
+
+    // Setup and validate player changes
+    for (let i = 0; i < nextPlayers.length; i++) {
+      const player = nextPlayers[i];
+
+      if (nextIds.includes(player.name)) {
+        console.log('Invalid changes, player set as next sub more than once', player);
+        return false;
+      }
+      nextIds.push(player.name);
+
+      if (offIds.includes(player.replaces)) {
+        console.log('Invalid changes, player set to be replaced more than once: ' + player.replaces);
+        return false;
+      }
+      offIds.push(player.replaces);
+
+      let offPlayer = this.getPlayer(player.replaces);
+
+      pendingSubs.push({in:player, out:offPlayer});
+    }
+
+    this.timeProvider.freeze();
+
+    pendingSubs.forEach(sub => {
+      this.substitutePlayer(sub.in, sub.out);
+    });
+
+    this.timeProvider.unfreeze();
+
+    console.log('Applied subs', pendingSubs);
     return true;
   };
 
@@ -317,6 +369,7 @@ var LineupTracker = theGlobal.LineupTracker;
 
     playerIn.replaces = null;
     playerIn.status = 'ON';
+    playerOut.currentPosition = null;
     playerOut.status = 'OFF';
 
     this.timeTracker.substitutePlayer(playerIn.name, playerOut.name);
@@ -382,6 +435,9 @@ var LineupTracker = theGlobal.LineupTracker;
   };
 
   LineupTracker.Game.prototype.getPlayersByStatus = function(status) {
+    if (!this.roster) {
+      return [];
+    }
     return this.roster.filter(player => player.status === status);
   };
 
@@ -683,7 +739,7 @@ function newId(
   return a           // if the placeholder was passed, return
     ? (              // a random number from 0 to 15
       a ^            // unless b is 8,
-      crypto.getRandomValues(new Uint8Array(1))[0]  // in which case
+      theGlobal.getRandom()  // in which case
       % 16           // a random number from
       >> a/4         // 8 to 11
       ).toString(16) // in hexadecimal

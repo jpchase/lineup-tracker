@@ -3,14 +3,19 @@ describe('Game', () => {
   const playerOffId = 2;
   const playerAltOnId = 3;
   const playerAltOffId = 4;
-  const playerOn = {name: playerOnId, status: 'ON', currentPosition: 'CB'};
-  const playerOff = {name: playerOffId, status: 'OFF'};
-  const playerAltOn = {name: playerAltOnId, status: 'ON'};
-  const playerAltOff = {name: playerAltOffId, status: 'OFF'};
+  let playerOn;
+  let playerOff;
+  let playerAltOn;
+  let playerAltOff;
 
   let provider;
 
   beforeEach(() => {
+
+    playerOn = {name: playerOnId, status: 'ON', currentPosition: 'CB'};
+    playerOff = {name: playerOffId, status: 'OFF'};
+    playerAltOn = {name: playerAltOnId, status: 'ON'};
+    playerAltOff = {name: playerAltOffId, status: 'OFF'};
 
     jasmine.addMatchers({
       toBeOff: function () {
@@ -127,6 +132,63 @@ describe('Game', () => {
       });
 
     }); // prepare player changes
+
+    describe('apply', () => {
+
+      beforeEach(() => {
+        game.status = 'LIVE';
+        game.roster = [playerOn, playerOff, playerAltOn, playerAltOff];
+        game.timeTracker.initialize(game.roster);
+
+      });
+
+      it('should fail if no pending changes', () => {
+        expect(game.applyPlayerChanges()).toBe(false);
+      });
+
+      it('should fail if on player subbed more than once', () => {
+        const onPosition = playerOn.currentPosition;
+        const firstSub = playerOff;
+        firstSub.status = 'NEXT';
+        firstSub.replaces = playerOnId;
+        firstSub.currentPosition = onPosition;
+
+        const secondSub = playerAltOff;
+        secondSub.status = 'NEXT';
+        secondSub.replaces = playerOnId;
+        secondSub.currentPosition = onPosition;
+
+        expect(game.applyPlayerChanges()).toBe(false);
+      });
+
+      it('should fail if off player replaces more than one', () => {
+        const onPosition = playerOn.currentPosition;
+        const firstSub = playerOff;
+        firstSub.status = 'NEXT';
+        firstSub.replaces = playerOnId;
+        firstSub.currentPosition = onPosition;
+
+        const secondSub = playerAltOff;
+        secondSub.status = 'NEXT';
+        secondSub.replaces = playerOnId;
+        secondSub.currentPosition = onPosition;
+
+        expect(game.applyPlayerChanges()).toBe(false);
+      });
+
+      it('should sub the next player for the on player', () => {
+        const onPosition = playerOn.currentPosition;
+        const nextPlayer = playerAltOff;
+        nextPlayer.status = 'NEXT';
+        nextPlayer.replaces = playerOnId;
+        nextPlayer.currentPosition = onPosition;
+
+        expect(game.applyPlayerChanges()).toBe(true);
+        expect(playerOn).toBeOff();
+        expect(nextPlayer).toBeOn(onPosition);
+      });
+
+    }); // apply player changes
 
     describe('cancel', () => {
 
