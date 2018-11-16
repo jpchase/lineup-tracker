@@ -5,6 +5,20 @@ describe('CurrentTimeProvider', () => {
 
   beforeEach(() => {
     provider = new CurrentTimeProvider();
+
+    jasmine.addMatchers({
+      toBeTime: function () {
+        return {
+          compare: function (actual, expected) {
+
+            return {
+              pass: actual === expected || actual === expected + 1
+            };
+          }
+        };
+      }
+    });
+
   });
 
   it('should not be frozen by default', () => {
@@ -62,12 +76,26 @@ describe('ManualTimeProvider', () => {
 
   beforeEach(() => {
     provider = new ManualTimeProvider();
+
+    jasmine.addMatchers({
+      toBeTime: function () {
+        return {
+          compare: function (actual, expected) {
+
+            return {
+              pass: actual === expected || actual === expected + 1
+            };
+          }
+        };
+      }
+    });
+
   });
 
   it('should return the current time when not manually set', () => {
     const expectedTime = Date.now();
     const actualTime = provider.getCurrentTime();
-    expect(actualTime).toEqual(expectedTime);
+    expect(actualTime).toBeTime(expectedTime);
   });
 
   it('should return the set time', () => {
