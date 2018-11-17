@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -45,10 +45,6 @@
       }
     </script>
 
-    <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
-
-    <link rel="import" href="lineup-app.html">
-
     <style>
       body {
         font-family: 'Roboto', 'Helvetica', sans-serif;
@@ -59,5 +55,8 @@
   </head>
   <body>
     <lineup-app></lineup-app>
+    <!-- Load webcomponents-loader.js to check and load any polyfills your browser needs -->
+    <script src="node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script type="module" src="src/components/lineup-app.js" crossorigin></script>
   </body>
 </html>
