@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lineup Tracker</title>
 
     <!-- Disable tap highlight on IE -->
@@ -43,6 +43,10 @@
           navigator.serviceWorker.register('/service-worker.js');
         });
       }
+
+      // Redux assumes `process.env.NODE_ENV` exists in the ES module build.
+      // https://github.com/reactjs/redux/issues/2907
+      window.process = { env: { NODE_ENV: 'production' } };
     </script>
 
     <style>
@@ -54,8 +58,10 @@
     </style>
   </head>
   <body>
-    <lineup-app></lineup-app>
-    <!-- Load webcomponents-loader.js to check and load any polyfills your browser needs -->
+    <lineup-app appTitle="Lineup Tracker"></lineup-app>
+    <noscript>
+      Please enable JavaScript to view this website.
+    </noscript>
     <script src="node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
     <script type="module" src="src/components/lineup-app.js" crossorigin></script>
   </body>
