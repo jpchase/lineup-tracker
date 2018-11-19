@@ -199,7 +199,7 @@ gulp.task('html', () => {
 });
 
 gulp.task('polymer', () => {
-  merge(project.sources(), project.dependencies())
+  return merge(project.sources(), project.dependencies())
   .pipe($.rename((path) => {
                              if (path.dirname.startsWith('src'))
                                path.dirname = path.dirname.substring(3);
@@ -215,7 +215,7 @@ gulp.task('clean', () => {
 });
 
 // Watch files for changes & reload
-gulp.task('serve', gulp.series(['scripts', 'styles', 'polymer'], () => {
+gulp.task('serve', gulp.series(['scripts', 'styles', 'polymer'], (done) => {
   browserSync({
     notify: false,
     // Customize the Browsersync console logging prefix
@@ -230,11 +230,12 @@ gulp.task('serve', gulp.series(['scripts', 'styles', 'polymer'], () => {
     port: 3000
   });
 
-  gulp.watch(['app/**/*.html'], reload);
-  gulp.watch(['src/**/*.html'], ['polymer', reload]);
-  gulp.watch(['app/styles/**/*.{scss,css}'], ['styles', reload]);
-  gulp.watch(['app/scripts/**/*.js'], ['lint', 'scripts']);
-  gulp.watch(['app/images/**/*'], reload);
+  // gulp.watch(['app/**/*.html'], reload);
+  // gulp.watch(['src/**/*.html'], ['polymer', reload]);
+  // gulp.watch(['app/styles/**/*.{scss,css}'], ['styles', reload]);
+  // gulp.watch(['app/scripts/**/*.js'], ['lint', 'scripts']);
+  // gulp.watch(['app/images/**/*'], reload);
+  done();
 }));
 
 // Build production files, the default task
@@ -261,13 +262,12 @@ gulp.task('serve:dist', gulp.series(['default'], () =>
   })
 ));
 
-gulp.task('test', (done) => {
-  gulp.src(['app/scripts/game.js', 'spec/*.js'])
+gulp.task('test', () => {
+  return gulp.src(['app/scripts/game.js', 'spec/*.js'])
     // gulp-jasmine works on filepaths so you can't have any plugins before it
     .pipe($.jasmine({
         verbose: true
       }));
-  done();
 });
 
 // Run PageSpeed Insights
