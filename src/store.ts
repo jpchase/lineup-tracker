@@ -1,11 +1,5 @@
 /**
 @license
-Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
 declare global {
@@ -27,14 +21,17 @@ import thunk, { ThunkMiddleware } from 'redux-thunk';
 import { lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer.js';
 
 import app, { AppState } from './reducers/app.js';
+import { TeamState } from './reducers/team.js';
 import { AppAction } from './actions/app.js';
+import { TeamAction } from './actions/team.js';
 
 // Overall state extends static states and partials lazy states.
 export interface RootState {
   app?: AppState;
+  team?: TeamState;
 }
 
-export type RootAction = AppAction;
+export type RootAction = AppAction | TeamAction;
 
 // Sets up a Chrome extension for time travel debugging.
 // See https://github.com/zalmoxisus/redux-devtools-extension for more information.
