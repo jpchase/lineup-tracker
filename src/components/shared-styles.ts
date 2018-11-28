@@ -44,6 +44,12 @@ export const SharedStyles = html`
     }
   }
 
+  .flex-equal-justified {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
   .circle {
     display: block;
     width: 64px;

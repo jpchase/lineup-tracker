@@ -7,7 +7,7 @@ import { LitElement, html, property } from '@polymer/lit-element';
 import { Player } from '../models/roster.js';
 
 // These are the elements needed by this element.
-import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-item/paper-item-body.js';
 
 // These are the shared styles needed by this element.
@@ -32,10 +32,11 @@ class LineupRosterItem extends LitElement {
           margin-right: 1em;
         }
       </style>
-      <paper-item>
+      <paper-icon-item>
+        <span class="avatar" slot="item-icon">&#35${this.player!.uniformNumber}</span>
         <paper-item-body two-line>
-          <div class="container flex-equal-justified">
-            <div><span class="avatar">&#35${this.player!.uniformNumber}</span>${this.player!.name}</div>
+          <div class="flex-equal-justified">
+            <div>${this.player!.name}</div>
             <div>
               ${this.isGame
                   ? html`actions here`
@@ -43,9 +44,9 @@ class LineupRosterItem extends LitElement {
               }
             </div>
           </div>
-          <div secondary>${this.player!.positions}</div>
+          <div secondary>${this.player!.positions.join(', ')}</div>
         </paper-item-body>
-      </paper-item>
+      </paper-icon-item>
     `;
   }
 
