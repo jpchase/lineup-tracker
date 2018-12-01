@@ -3,7 +3,7 @@
 */
 
 export interface Player {
-  id: number;
+  id: string;
   name: string;
   uniformNumber: number;
   positions: string[];
