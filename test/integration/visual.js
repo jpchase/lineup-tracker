@@ -19,6 +19,11 @@ const pixelmatch = require('pixelmatch');
 const currentDir = `${process.cwd()}/test/integration/screenshots-current`;
 const baselineDir = `${process.cwd()}/test/integration/screenshots-baseline`;
 
+const breakpoints = [
+  { name: 'wide', viewPort: {width: 800, height: 600} },
+  { name: 'narrow', viewPort: {width: 375, height: 667} },
+];
+
 describe('👀 page screenshots are correct', function() {
   let polyserve, browser, page;
 
@@ -43,60 +48,48 @@ describe('👀 page screenshots are correct', function() {
   beforeEach(async function() {
     browser = await puppeteer.launch();
     page = await browser.newPage();
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
   });
 
   afterEach(() => browser.close());
 
-  describe('wide screen', function() {
-    beforeEach(async function() {
-      return page.setViewport({width: 800, height: 600});
-    });
+  for (const breakpoint of breakpoints) {
+    describe(`${breakpoint.name} screen`, function() {
+      const prefix = breakpoint.name;
 
-    it('/index.html', async function() {
-      return takeAndCompareScreenshot(page, '', 'wide');
-    });
-    it('/viewHome', async function() {
-      return takeAndCompareScreenshot(page, 'viewHome', 'wide');
-    });
-    it('/viewGames', async function() {
-      return takeAndCompareScreenshot(page, 'viewGames', 'wide');
-    });
-    it('/viewRoster', async function() {
-      return takeAndCompareScreenshot(page, 'viewRoster', 'wide');
-    });
-    it('/404', async function() {
-      return takeAndCompareScreenshot(page, 'batmanNotAView', 'wide');
-    });
-  });
+      beforeEach(async function() {
+        return page.setViewport(breakpoint.viewPort);
+      });
 
-  describe('narrow screen', function() {
-    beforeEach(async function() {
-      return page.setViewport({width: 375, height: 667});
+      it('/index.html', async function() {
+        return takeAndCompareScreenshot(page, '', prefix);
+      });
+      it('/viewHome', async function() {
+        return takeAndCompareScreenshot(page, 'viewHome', prefix);
+      });
+      it('/viewGames', async function() {
+        return takeAndCompareScreenshot(page, 'viewGames', prefix);
+      });
+      it('/viewRoster', async function() {
+        return takeAndCompareScreenshot(page, 'viewRoster', prefix, 'lineup-view-roster');
+      });
+      it('/404', async function() {
+        return takeAndCompareScreenshot(page, 'batmanNotAView', prefix);
+      });
     });
+  }
 
-    it('/index.html', async function() {
-      return takeAndCompareScreenshot(page, '', 'narrow');
-    });
-    it('/viewHome', async function() {
-      return takeAndCompareScreenshot(page, 'viewHome', 'narrow');
-    });
-    it('/viewGames', async function() {
-      return takeAndCompareScreenshot(page, 'viewGames', 'narrow');
-    });
-    it('/viewRoster', async function() {
-      return takeAndCompareScreenshot(page, 'viewRoster', 'narrow');
-    });
-    it('/404', async function() {
-      return takeAndCompareScreenshot(page, 'batmanNotAView', 'narrow');
-    });
-  });
 });
 
-async function takeAndCompareScreenshot(page, route, filePrefix) {
+async function takeAndCompareScreenshot(page, route, filePrefix, waitForSelector) {
   // If you didn't specify a file, use the name of the route.
   let fileName = filePrefix + '/' + (route ? route : 'index');
 
   await page.goto(`http://127.0.0.1:4444/${route}`);
+  if (waitForSelector) {
+    // await page.waitForSelector(waitForSelector);
+    await page.waitFor(1000);
+  }
   await page.screenshot({path: `${currentDir}/${fileName}.png`});
   return compareScreenshots(fileName);
 }
