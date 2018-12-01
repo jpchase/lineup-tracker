@@ -1,12 +1,4 @@
 {
-  "presets": ["es2015"],
-  // Remove the line below to enable ES2015 support.
-  "only": [
-    "gulpfile.babel.js",
-    "clock.js",
-    "live-game.js",
-    "game.js",
-    "shift.js",
-    "spec/"],
+  "presets": ["@babel/preset-env"],
   "retainLines": true
 }
