@@ -7,6 +7,7 @@ export interface Player {
   name: string;
   uniformNumber: number;
   positions: string[];
+  status: string;
 }
 
 export interface Roster {
