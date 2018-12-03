@@ -7,8 +7,9 @@ describe('getRoster', () => {
 
   it('should dispatch an action to get the roster', () => {
     const dispatchMock = jest.fn();
+    const getStateMock = jest.fn();
 
-    actions.getRoster()(dispatchMock);
+    actions.getRoster()(dispatchMock, getStateMock, undefined);
 
     expect(dispatchMock).toBeCalledWith(expect.objectContaining({
         type: actions.GET_ROSTER,
