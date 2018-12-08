@@ -1,8 +1,21 @@
-import { Roster } from '../../src/models/roster.js';
-import { GET_ROSTER } from '../../src/actions/team.js';
-import team from '../../src/reducers/team.js';
+import { Roster } from '@app/models/roster';
+import { GET_ROSTER } from '@app/actions/team';
+import team from '@app/reducers/team';
+import { TeamState } from '@app/reducers/team';
+import { getFakeAction } from '../helpers/test_data';
+
+const TEAM_INITIAL_STATE: TeamState = {
+  roster: {},
+  error: ''
+};
 
 describe('Roster reducer', () => {
+
+  it('should return the initial state', () => {
+    expect(
+      team(TEAM_INITIAL_STATE, getFakeAction())
+    ).toEqual(TEAM_INITIAL_STATE);
+  });
 
   it('should handle GET_ROSTER', () => {
     const expectedRoster: Roster = {
@@ -13,10 +26,7 @@ describe('Roster reducer', () => {
     };
 
     expect(
-      team({
-        roster: {},
-        error: ''
-      }, {
+      team(TEAM_INITIAL_STATE, {
           type: GET_ROSTER,
           roster: expectedRoster
         })
