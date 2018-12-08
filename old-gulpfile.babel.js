@@ -199,7 +199,7 @@ gulp.task('html', () => {
 });
 
 gulp.task('polymer', () => {
-  merge(project.sources(), project.dependencies())
+  return merge(project.sources(), project.dependencies())
   .pipe($.rename((path) => {
                              if (path.dirname.startsWith('src'))
                                path.dirname = path.dirname.substring(3);
@@ -215,7 +215,7 @@ gulp.task('clean', () => {
 });
 
 // Watch files for changes & reload
-gulp.task('serve', ['scripts', 'styles', 'polymer'], () => {
+gulp.task('serve', gulp.series(['scripts', 'styles', 'polymer'], (done) => {
   browserSync({
     notify: false,
     // Customize the Browsersync console logging prefix
@@ -230,15 +230,24 @@ gulp.task('serve', ['scripts', 'styles', 'polymer'], () => {
     port: 3000
   });
 
-  gulp.watch(['app/**/*.html'], reload);
-  gulp.watch(['src/**/*.html'], ['polymer', reload]);
-  gulp.watch(['app/styles/**/*.{scss,css}'], ['styles', reload]);
-  gulp.watch(['app/scripts/**/*.js'], ['lint', 'scripts']);
-  gulp.watch(['app/images/**/*'], reload);
-});
+  // gulp.watch(['app/**/*.html'], reload);
+  // gulp.watch(['src/**/*.html'], ['polymer', reload]);
+  // gulp.watch(['app/styles/**/*.{scss,css}'], ['styles', reload]);
+  // gulp.watch(['app/scripts/**/*.js'], ['lint', 'scripts']);
+  // gulp.watch(['app/images/**/*'], reload);
+  done();
+}));
+
+// Build production files, the default task
+gulp.task('default', gulp.series('clean',
+    'styles',
+    gulp.parallel('lint', 'html', 'scripts', 'polymer', 'images', 'copy'),
+    // 'generate-service-worker'
+  )
+);
 
 // Build and serve the output from the dist build
-gulp.task('serve:dist', ['default'], () =>
+gulp.task('serve:dist', gulp.series(['default'], () =>
   browserSync({
     notify: false,
     logPrefix: 'Lineups',
@@ -251,24 +260,14 @@ gulp.task('serve:dist', ['default'], () =>
     server: 'dist',
     port: 3001
   })
-);
-
-// Build production files, the default task
-gulp.task('default', ['clean'], cb =>
-  runSequence(
-    'styles',
-    ['lint', 'html', 'scripts', 'polymer', 'images', 'copy'],
-    'generate-service-worker',
-    cb
-  )
-);
+));
 
 gulp.task('test', () => {
-  gulp.src(['app/scripts/game.js', 'spec/*.js'])
+  return gulp.src(['app/scripts/game.js', 'spec/*.js'])
     // gulp-jasmine works on filepaths so you can't have any plugins before it
     .pipe($.jasmine({
         verbose: true
-      }))
+      }));
 });
 
 // Run PageSpeed Insights
@@ -288,7 +287,7 @@ gulp.task('copy-sw-scripts', () => {
     .pipe(gulp.dest('dist/scripts/sw'));
 });
 
-gulp.task('generate-service-worker', ['copy-sw-scripts'], () => {
+gulp.task('generate-service-worker', gulp.series(['copy-sw-scripts'], () => {
   const rootDir = 'dist';
   const filepath = path.join(rootDir, 'service-worker.js');
 
@@ -312,7 +311,7 @@ gulp.task('generate-service-worker', ['copy-sw-scripts'], () => {
     // Translates a static file path to the relative URL that it's served from.
     stripPrefix: path.join(rootDir, path.sep)
   });
-});
+}));
 
 // Load custom tasks from the `tasks` directory
 // Run: `npm install --save-dev require-dir` from the command-line

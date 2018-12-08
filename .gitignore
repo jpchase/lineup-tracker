@@ -4,3 +4,4 @@ src/**/*.js
 dist/
 .tmp
 app.yaml
+*.sublime-workspace
