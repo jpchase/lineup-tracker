@@ -2,19 +2,16 @@
 	"folders":
 	[
 		{
-			"path": "lineup-tracker/app"
+			"path": "app"
 		},
 		{
-			"path": "lineup-tracker/spec"
+			"path": "spec"
 		},
 		{
-			"path": "lineup-tracker/src"
+			"path": "src"
 		},
 		{
-			"path": "lineup-tracker"
-		},
-		{
-			"path": "lineup-tracker/test"
+			"path": "test"
 		}
 	]
 }
