@@ -1,0 +1,20 @@
+{
+	"folders":
+	[
+		{
+			"path": "lineup-tracker/app"
+		},
+		{
+			"path": "lineup-tracker/spec"
+		},
+		{
+			"path": "lineup-tracker/src"
+		},
+		{
+			"path": "lineup-tracker"
+		},
+		{
+			"path": "lineup-tracker/test"
+		}
+	]
+}
