@@ -1,4 +1,4 @@
-import * as actions from '../../src/actions/team.js';
+import * as actions from '@app/actions/team';
 
 describe('getRoster', () => {
   it('should return a function to dispatch an action', () => {

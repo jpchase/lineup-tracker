@@ -7,5 +7,8 @@ module.exports = {
         ignoreCodes: [18002, 18003, 'TS151001']
       }
     }
+  },
+  moduleNameMapper: {
+    '^@app/(.*)$': '<rootDir>/src/$1'
   }
 };
