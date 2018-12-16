@@ -5,7 +5,7 @@
 import { LitElement, html, property } from '@polymer/lit-element';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 
-import { Roster } from '../models/roster.js';
+import { Roster } from '../models/team.js';
 
 // This element is connected to the Redux store.
 import { store, RootState } from '../store.js';

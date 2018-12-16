@@ -5,11 +5,13 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store.js';
-import { Roster } from '../models/roster.js';
+import { Roster, Team } from '../models/team.js';
+export const GET_TEAMS = 'GET_TEAMS';
 export const GET_ROSTER = 'GET_ROSTER';
 
-export interface TeamActionGetRoster extends Action<'GET_ROSTER'> {roster: Roster};
-export type TeamAction = TeamActionGetRoster;
+export interface TeamActionGetTeams extends Action<'GET_TEAMS'> { teams: Team[] };
+export interface TeamActionGetRoster extends Action<'GET_ROSTER'> { roster: Roster };
+export type TeamAction = TeamActionGetTeams | TeamActionGetRoster;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
@@ -45,6 +47,22 @@ const TEAM_U16A = [
   {id: 'TA', name: 'Teanna', uniformNumber: 77, positions: ['OM', 'FB'],
    status: 'OFF'},
 ];
+
+export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
+  // Here you would normally get the data from the server. We're simulating
+  // that by dispatching an async action (that you would dispatch when you
+  // succesfully got the data back)
+
+  // You could reformat the data in the right format as well:
+  const teams: Team[] = [{ id: 'U16A', name: 'Waterloo U16A' }];
+
+  console.log(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
+
+  dispatch({
+    type: GET_TEAMS,
+    teams
+  });
+};
 
 export const getRoster: ActionCreator<ThunkResult> = () => (dispatch) => {
   // Here you would normally get the data from the server. We're simulating

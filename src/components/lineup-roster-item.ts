@@ -4,7 +4,7 @@
 
 import { LitElement, html, property } from '@polymer/lit-element';
 
-import { Player } from '../models/roster.js';
+import { Player } from '../models/team.js';
 
 // These are the elements needed by this element.
 import '@polymer/paper-item/paper-icon-item.js';
