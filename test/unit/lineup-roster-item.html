@@ -1,0 +1,83 @@
+<!--
+@license
+Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>my-view1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
+    <script src="../../node_modules/wct-browser-legacy/browser.js"></script>
+
+    <!-- Import the element to test -->
+    <script type="module" src="../../src/components/lineup-roster-item.js"></script>
+  </head>
+  <body>
+    <test-fixture id="basic">
+      <template>
+        <lineup-roster-item></lineup-roster-item>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      import 'axe-core/axe.min.js';
+      import {axeReport} from 'pwa-helpers/axe-report.js';
+
+      suite('lineup-roster-item tests', function() {
+        let el;
+        setup(function() {
+          el = fixture('basic');
+          // Make tests wait until element is rendered.
+          // return el.updateComplete; // this never returns
+        });
+
+        test('starts empty', function() {
+          console.log('empty test');
+
+          assert.equal(el.isGame, false);
+          assert.equal(el.player, undefined);
+        });
+
+        test('renders player properties', async function() {
+          const player = {
+            id: 'AC',
+            name: 'Amanda',
+            uniformNumber: 2,
+            positions: ['CB', 'FB', 'HM'],
+            status: 'OFF'
+          };
+          el.player = player;
+          await el.updateComplete;
+
+          assert.equal(el.player.uniformNumber, 2);
+          const avatar = el.shadowRoot.querySelector('paper-icon-item .avatar');
+          assert.isOk(avatar, 'Missing avatar');
+          assert.equal(avatar.textContent, '#2');
+
+          const nameElement = el.shadowRoot.querySelector('paper-icon-item paper-item-body .flex-equal-justified div');
+          assert.isOk(nameElement, 'Missing name element');
+          assert.equal(nameElement.textContent, 'Amanda');
+
+          const positionsElement = el.shadowRoot.querySelector('paper-icon-item paper-item-body div[secondary]');
+          assert.isOk(positionsElement, 'Missing positions element');
+          assert.equal(positionsElement.textContent, 'CB, FB, HM');
+
+        });
+
+        test('a11y', function() {
+          console.log('ally test');
+          return axeReport(el);
+        });
+      });
+    </script>
+  </body>
+</html>
