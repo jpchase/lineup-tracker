@@ -64,6 +64,10 @@ async function generateBaselineScreenshots(page) {
     const views = ['Home', 'Games', 'Roster'];
     for (const view of views) {
       await page.goto(`http://127.0.0.1:4444/view${view}`);
+      if (view === 'Roster') {
+        // TODO: Remove sleep hack to avoid blank page in screenshot
+        await page.waitFor(1000);
+      }
       await page.screenshot({path: `${baselineDir}/${prefix}/view${view}.png`});
     }
     // 404.

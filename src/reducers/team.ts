@@ -13,13 +13,18 @@ import { RootAction } from '../store.js';
 export interface TeamState {
   teams: Team[];
   teamId: string;
+  teamName: string;
   roster: Roster;
   error: string;
 }
 
+const TEAM_U16A = { id: 'U16A', name: 'Waterloo U16A' };
+
+// TODO: Remove default U16A team data when have support for adding/editing teams.
 const INITIAL_STATE: TeamState = {
-  teams: [],
-  teamId: '',
+  teams: [TEAM_U16A],
+  teamId: TEAM_U16A.id,
+  teamName: TEAM_U16A.name,
   roster: {},
   error: ''
 };

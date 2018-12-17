@@ -15,7 +15,9 @@ export type TeamAction = TeamActionGetTeams | TeamActionGetRoster;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
-const TEAM_U16A = [
+const TEAM_U16A = { id: 'U16A', name: 'Waterloo U16A' };
+
+const ROSTER_U16A = [
   {id: 'AB', name: 'Allie', uniformNumber: 16, positions: ['CB'],
    status: 'OFF'},
   {id: 'AC', name: 'Amanda', uniformNumber: 2, positions: ['CB', 'FB', 'HM'],
@@ -54,7 +56,7 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
   // succesfully got the data back)
 
   // You could reformat the data in the right format as well:
-  const teams: Team[] = [{ id: 'U16A', name: 'Waterloo U16A' }];
+  const teams: Team[] = [TEAM_U16A];
 
   console.log(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
 
@@ -70,7 +72,7 @@ export const getRoster: ActionCreator<ThunkResult> = () => (dispatch) => {
   // succesfully got the data back)
 
   // You could reformat the data in the right format as well:
-  const roster = TEAM_U16A.reduce((obj, player) => {
+  const roster = ROSTER_U16A.reduce((obj, player) => {
     obj[player.id] = player
     return obj
   }, {} as Roster);
