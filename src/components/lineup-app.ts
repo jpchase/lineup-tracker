@@ -34,6 +34,15 @@ import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import { menuIcon } from './lineup-icons.js';
 import './snack-bar.js';
 
+interface Page {
+  page: string;
+  label: string;
+}
+
+interface Pages {
+  [index: string]: Page;
+}
+
 class LineupApp extends connect(store)(LitElement) {
   protected render() {
     return html`
@@ -220,6 +229,13 @@ class LineupApp extends connect(store)(LitElement) {
   @property({type: Boolean})
   private _offline = false;
 
+  @property({ type: Object })
+  private _pages: Pages = {
+      'viewHome': { page: 'viewHome', label: 'Overview' },
+      'viewGames': { page: 'viewGames', label: 'Games' },
+      'viewRoster': { page: 'viewRoster', label: 'Roster' },
+  };
+
   constructor() {
     super();
     // To force all event listeners for gestures to be passive.
@@ -236,7 +252,7 @@ class LineupApp extends connect(store)(LitElement) {
 
   protected updated(changedProps: PropertyValues) {
     if (changedProps.has('_page')) {
-      const pageTitle = this.appTitle + ' - ' + this._page;
+      const pageTitle = this.appTitle + ' - ' + this._pages[this._page].label;
       updateMetadata({
         title: pageTitle,
         description: pageTitle
