@@ -12,8 +12,16 @@ import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { installRouter } from 'pwa-helpers/router.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 
+import { Team } from '../models/team.js';
+
 // This element is connected to the Redux store.
 import { store, RootState } from '../store.js';
+
+// We are lazy loading its reducer.
+import team from '../reducers/team.js';
+store.addReducers({
+  team
+});
 
 // These are the actions needed by this element.
 import {
@@ -21,6 +29,7 @@ import {
   updateOffline,
   updateDrawerState
 } from '../actions/app.js';
+import { getTeams } from '../actions/team.js';
 
 // The following line imports the type only - it will be removed by tsc so
 // another import for app-drawer.js is required below.
@@ -32,6 +41,7 @@ import '@polymer/app-layout/app-header/app-header.js';
 import '@polymer/app-layout/app-scroll-effects/effects/waterfall.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import { menuIcon } from './lineup-icons.js';
+import './lineup-team-selector.js';
 import './snack-bar.js';
 
 interface Page {
@@ -50,6 +60,30 @@ class LineupApp extends connect(store)(LitElement) {
       :host {
         --app-drawer-width: 256px;
         display: block;
+
+        /* Default theme */
+        /*
+        --primary-text-color: red;
+        --app-dark-text-color: orange;
+
+        --secondary-text-color: cyan;
+
+        --app-primary-color: #202020;
+        --app-secondary-color: #202020;
+        --app-dark-text-color: var(--app-secondary-color);
+        --app-background-color: #fafafa;
+        color: var(--app-dark-text-color);
+        --app-drawer-background-color: var(--app-background-color);
+        --app-drawer-text-color: var(--app-dark-text-color);
+        --app-drawer-selected-color: var(--app-dark-text-color);
+
+        --app-primary-color: #C3134E;
+        --app-dark-text-color: #293237;
+        */
+      }
+
+      [hidden] {
+        display: none !important;
       }
 
       app-header {
@@ -77,7 +111,12 @@ class LineupApp extends connect(store)(LitElement) {
         padding-right: 44px;
       }
 
-      .toolbar-list {
+      .team-selector {
+        display: inline-block;
+      }
+
+      .toolbar-list,
+      .toolbar-top-right {
         display: none;
       }
 
@@ -92,6 +131,10 @@ class LineupApp extends connect(store)(LitElement) {
       .toolbar-list > a[selected] {
         color: var(--app-header-selected-color);
         border-bottom: 4px solid var(--app-header-selected-color);
+      }
+
+      .toolbar-top-left {
+        width: 44px;
       }
 
       .menu-btn {
@@ -156,6 +199,12 @@ class LineupApp extends connect(store)(LitElement) {
           display: block;
         }
 
+        .toolbar-top-left,
+        .toolbar-top-right {
+          display: block;
+          width: 100px;
+        }
+
         .menu-btn {
           display: none;
         }
@@ -175,8 +224,15 @@ class LineupApp extends connect(store)(LitElement) {
     <!-- Header -->
     <app-header condenses reveals effects="waterfall">
       <app-toolbar class="toolbar-top">
-        <button class="menu-btn" title="Menu" @click="${this._menuButtonClicked}">${menuIcon}</button>
+        <div class="toolbar-top-left">
+          <button class="menu-btn" title="Menu" @click="${this._menuButtonClicked}">${menuIcon}</button>
+        </div>
         <div main-title>${this.appTitle}</div>
+        <div class="toolbar-top-right">
+          <lineup-team-selector ?hidden="${this._page === 'view404'}"
+                                .teamId=${this._teamId} .teams=${this._teams}>
+          </lineup-team-selector>
+        </div>
       </app-toolbar>
 
       <!-- This gets hidden on a small screen-->
@@ -231,10 +287,17 @@ class LineupApp extends connect(store)(LitElement) {
 
   @property({ type: Object })
   private _pages: Pages = {
-      'viewHome': { page: 'viewHome', label: 'Overview' },
-      'viewGames': { page: 'viewGames', label: 'Games' },
-      'viewRoster': { page: 'viewRoster', label: 'Roster' },
+    'viewHome': { page: 'viewHome', label: 'Overview' },
+    'viewGames': { page: 'viewGames', label: 'Games' },
+    'viewRoster': { page: 'viewRoster', label: 'Roster' },
+    'view404': { page: 'view404', label: 'Page not found' },
   };
+
+  @property({ type: String })
+  private _teamId = '';
+
+  @property({ type: Object })
+  private _teams: Team[] = [];
 
   constructor() {
     super();
@@ -248,6 +311,8 @@ class LineupApp extends connect(store)(LitElement) {
     installOfflineWatcher((offline) => store.dispatch(updateOffline(offline)));
     installMediaQueryWatcher(`(min-width: 460px)`,
         () => store.dispatch(updateDrawerState(false)));
+
+    store.dispatch(getTeams());
   }
 
   protected updated(changedProps: PropertyValues) {
@@ -274,6 +339,9 @@ class LineupApp extends connect(store)(LitElement) {
     this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;
     this._drawerOpened = state.app!.drawerOpened;
+
+    this._teamId = state.team!.teamId;
+    this._teams = state.team!.teams;
   }
 }
 

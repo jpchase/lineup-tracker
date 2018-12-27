@@ -7,6 +7,7 @@ import { getFakeAction } from '../helpers/test_data';
 const TEAM_INITIAL_STATE: TeamState = {
   teams: [],
   teamId: '',
+  teamName: '',
   roster: {},
   error: ''
 };

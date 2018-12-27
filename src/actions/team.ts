@@ -15,7 +15,7 @@ export type TeamAction = TeamActionGetTeams | TeamActionGetRoster;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
-const TEAM_U16A = { id: 'U16A', name: 'Waterloo U16A' };
+const TEAM_U16A = { id: 'U16A', name: 'Wat U16A' };
 
 const ROSTER_U16A = [
   {id: 'AB', name: 'Allie', uniformNumber: 16, positions: ['CB'],

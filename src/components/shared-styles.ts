@@ -17,6 +17,10 @@ export const SharedStyles = html`
     box-sizing: border-box;
   }
 
+  [hidden] {
+    display: none !important;
+  }
+
   section {
     padding: 24px;
     background: var(--app-section-odd-color);
