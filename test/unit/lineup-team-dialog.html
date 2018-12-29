@@ -41,7 +41,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
         function getDialog() {
-          const dialog = el.shadowRoot.querySelector('paper-dialog');
+          let dialog = el.shadowRoot.querySelector('paper-dialog');
           assert.isOk(dialog, 'Missing dialog');
           return dialog;
         }
@@ -63,6 +63,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('shows dialog when opened', async function() {
           el.open();
           await el.updateComplete;
+          // TODO: Figure out better way than manual sleep
           await sleep(0);
 
           assert.isTrue(el.opened, 'should be opened');
@@ -74,6 +75,66 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.isOk(el.shadowRoot.querySelector('paper-dialog paper-input#team-id'), 'ID field');
 
           assert.isOk(el.shadowRoot.querySelector('paper-dialog paper-input#team-name'), 'name field');
+        });
+
+        test('closes dialog when cancelled', async function() {
+          el.open();
+          await el.updateComplete;
+          // TODO: Figure out better way than manual sleep
+          await sleep(0);
+
+          assert.isTrue(el.opened, 'should be opened');
+
+          const idField = el.shadowRoot.querySelector('paper-dialog paper-input#team-id');
+          idField.value = 'cancelId01';
+
+          const nameField = el.shadowRoot.querySelector('paper-dialog paper-input#team-name');
+          nameField.value = 'Cancel team 01'
+
+          const cancelButton = el.shadowRoot.querySelector('paper-dialog paper-button[dialog-dismiss]');
+          cancelButton.click();
+          // TODO: Figure out better way than manual sleep
+          await sleep(50);
+
+          assert.isFalse(el.opened, 'should be closed');
+
+          const dialog = getDialog();
+          const display = getComputedStyle(dialog, null).display;
+          assert.equal(display, 'none', 'Dialog display');
+
+          assert.isUndefined(el.newTeam, 'newTeam');
+        });
+
+        test('creates new team when dialog saved', async function() {
+          el.open();
+          await el.updateComplete;
+          // TODO: Figure out better way than manual sleep
+          await sleep(0);
+
+          assert.isTrue(el.opened, 'should be opened');
+
+          const idField = el.shadowRoot.querySelector('paper-dialog paper-input#team-id');
+          idField.value = 'newId01';
+
+          const nameField = el.shadowRoot.querySelector('paper-dialog paper-input#team-name');
+          nameField.value = 'Club team 01'
+
+          const saveButton = el.shadowRoot.querySelector('paper-dialog paper-button[dialog-confirm]');
+          saveButton.click();
+          // TODO: Figure out better way than manual sleep
+          await sleep(50);
+
+          assert.isFalse(el.opened, 'should be closed');
+
+          const dialog = getDialog();
+          const display = getComputedStyle(dialog, null).display;
+          assert.equal(display, 'none', 'Dialog display');
+
+          assert.deepEqual(el.newTeam,
+            {
+              id: 'newId01',
+              name: 'Club team 01'
+            });
         });
 
         test('a11y', function() {

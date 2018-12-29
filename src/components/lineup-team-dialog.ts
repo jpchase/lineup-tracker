@@ -11,6 +11,7 @@ import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-dialog/paper-dialog.js';
 import '@polymer/paper-input/paper-input.js';
 import { PaperDialogElement } from '@polymer/paper-dialog/paper-dialog.js';
+import { PaperInputElement } from '@polymer/paper-input/paper-input.js';
 
 interface PaperDialogClosingReason {
   confirmed?: boolean;
@@ -94,6 +95,14 @@ export class LineupTeamDialog extends LitElement {
     }
 
     console.log('actually closed');
+
+    const idField = this.shadowRoot!.querySelector('paper-dialog paper-input#team-id') as PaperInputElement;
+    const nameField = this.shadowRoot!.querySelector('paper-dialog paper-input#team-name') as PaperInputElement;
+    this.newTeam = {
+      id: idField.value!,
+      name: nameField.value!
+    };
+
   }
 }
 
