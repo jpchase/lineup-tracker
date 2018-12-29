@@ -71,21 +71,35 @@ describe('👀 page screenshots are correct', function() {
         return takeAndCompareScreenshot(page, 'viewGames', prefix);
       });
       it('/viewRoster', async function() {
-        return takeAndCompareScreenshot(page, 'viewRoster', prefix, 'lineup-view-roster');
+        return takeAndCompareScreenshot(page, 'viewRoster', prefix, null, null, 'lineup-view-roster');
       });
       it('/404', async function() {
         return takeAndCompareScreenshot(page, 'batmanNotAView', prefix);
+      });
+
+      it('add new team', async function() {
+        return takeAndCompareScreenshot(page, '', prefix, 'addNewTeam', async () => {
+          await page.evaluate(() => {
+            const app = document.querySelector('lineup-app');
+            const selector = app.shadowRoot.querySelector('lineup-team-selector');
+            const list = selector.shadowRoot.querySelector('paper-dropdown-menu paper-listbox');
+            list.select('addnewteam');
+          });
+        });
       });
     });
   }
 
 });
 
-async function takeAndCompareScreenshot(page, route, filePrefix, waitForSelector) {
+async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setup, waitForSelector) {
   // If you didn't specify a file, use the name of the route.
-  let fileName = filePrefix + '/' + (route ? route : 'index');
+  let fileName = filePrefix + '/' + (setupName ? setupName : (route ? route : 'index'));
 
   await page.goto(`http://127.0.0.1:4444/${route}`);
+  if (setup) {
+    await setup(page);
+  }
   if (waitForSelector) {
     // await page.waitForSelector(waitForSelector);
     await page.waitFor(1000);

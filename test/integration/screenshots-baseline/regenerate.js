@@ -73,5 +73,16 @@ async function generateBaselineScreenshots(page) {
     // 404.
     await page.goto('http://127.0.0.1:4444/batmanNotAView');
     await page.screenshot({path: `${baselineDir}/${prefix}/batmanNotAView.png`});
+
+    // Add new team
+    await page.goto('http://127.0.0.1:4444/');
+    await page.evaluate(() => {
+      const app = document.querySelector('lineup-app');
+      const selector = app.shadowRoot.querySelector('lineup-team-selector');
+      const list = selector.shadowRoot.querySelector('paper-dropdown-menu paper-listbox');
+      list.select('addnewteam');
+    });
+    await page.screenshot({path: `${baselineDir}/${prefix}/addNewTeam.png`});
+
   }
 }
