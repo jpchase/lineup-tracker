@@ -45,7 +45,7 @@ export class LineupTeamDialog extends LitElement {
         </paper-input>
         <div class="buttons">
           <paper-button dialog-dismiss>Cancel</paper-button>
-          <paper-button dialog-confirm autofocus>OK</paper-button>
+          <paper-button dialog-confirm autofocus>Save</paper-button>
         </div>
       </paper-dialog>
     `;
