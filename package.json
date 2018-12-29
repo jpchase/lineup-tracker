@@ -17,9 +17,13 @@
     "extends": "google"
   },
   "dependencies": {
+    "@material/mwc-formfield": "^0.3.4",
     "@polymer/app-layout": "^3.0.0",
     "@polymer/lit-element": "^0.6.2",
+    "@polymer/paper-button": "^3.0.1",
+    "@polymer/paper-dialog": "^3.0.1",
     "@polymer/paper-dropdown-menu": "^3.0.1",
+    "@polymer/paper-input": "^3.0.1",
     "@polymer/paper-item": "^3.0.1",
     "@polymer/paper-listbox": "^3.0.1",
     "@polymer/polymer": "^3.1.0",

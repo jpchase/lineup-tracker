@@ -41,6 +41,8 @@ import '@polymer/app-layout/app-header/app-header.js';
 import '@polymer/app-layout/app-scroll-effects/effects/waterfall.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import { menuIcon } from './lineup-icons.js';
+import { LineupTeamDialog } from './lineup-team-dialog.js';
+import './lineup-team-dialog.js';
 import './lineup-team-selector.js';
 import './snack-bar.js';
 
@@ -230,7 +232,8 @@ class LineupApp extends connect(store)(LitElement) {
         <div main-title>${this.appTitle}</div>
         <div class="toolbar-top-right">
           <lineup-team-selector ?hidden="${this._page === 'view404'}"
-                                .teamId=${this._teamId} .teams=${this._teams}>
+                                .teamId=${this._teamId} .teams=${this._teams}
+                                @add-new-team="${this._addNewTeam}">
           </lineup-team-selector>
         </div>
       </app-toolbar>
@@ -299,6 +302,8 @@ class LineupApp extends connect(store)(LitElement) {
   @property({ type: Object })
   private _teams: Team[] = [];
 
+  private _teamDialog: LineupTeamDialog|undefined = undefined;
+
   constructor() {
     super();
     // To force all event listeners for gestures to be passive.
@@ -332,6 +337,15 @@ class LineupApp extends connect(store)(LitElement) {
 
   private _drawerOpenedChanged(e: Event) {
     store.dispatch(updateDrawerState((e.target as AppDrawerElement).opened));
+  }
+
+  private async _addNewTeam() {
+    if (!this._teamDialog) {
+      this._teamDialog = document.createElement('lineup-team-dialog') as LineupTeamDialog;
+      this.shadowRoot!.appendChild(this._teamDialog);
+      await this._teamDialog.updateComplete;
+    }
+    this._teamDialog.open();
   }
 
   stateChanged(state: RootState) {
