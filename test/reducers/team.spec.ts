@@ -50,6 +50,8 @@ describe('Teams reducer', () => {
       })
     ).toEqual(expect.objectContaining({
       teams: [newTeam],
+      teamId: newTeam.id,
+      teamName: newTeam.name
     }));
 
   });
@@ -74,6 +76,8 @@ describe('Teams reducer', () => {
       })
     ).toEqual(expect.objectContaining({
       teams: [...state.teams, newTeam],
+      teamId: newTeam.id,
+      teamName: newTeam.name
     }));
 
   });

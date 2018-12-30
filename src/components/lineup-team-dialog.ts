@@ -64,9 +64,6 @@ export class LineupTeamDialog extends LitElement {
   @property({ type: Object })
   teams: Team[] = [];
 
-  @property({ type: Object })
-  newTeam: Team | undefined = undefined;
-
   private _dialog: PaperDialogElement | undefined = undefined;
 
   protected firstUpdated() {
@@ -98,11 +95,17 @@ export class LineupTeamDialog extends LitElement {
 
     const idField = this.shadowRoot!.querySelector('paper-dialog paper-input#team-id') as PaperInputElement;
     const nameField = this.shadowRoot!.querySelector('paper-dialog paper-input#team-name') as PaperInputElement;
-    this.newTeam = {
+    const newTeam: Team = {
       id: idField.value!,
       name: nameField.value!
     };
 
+    // This event will be handled by lineup-app.
+    this.dispatchEvent(new CustomEvent('new-team-created', {
+      bubbles: true, composed: true, detail: {
+        team: newTeam
+      }
+    }));
   }
 }
 

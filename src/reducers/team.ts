@@ -36,7 +36,9 @@ const team: Reducer<TeamState, RootAction> = (state = INITIAL_STATE, action) => 
       console.log(`team.ts - reducer: ${JSON.stringify(action)}, ${state}`);
       const newState: TeamState = {
         ...state,
-        teams: state.teams.slice(0)
+        teams: state.teams.slice(0),
+        teamId: action.team.id,
+        teamName: action.team.name
       };
       newState.teams.push(action.team);
       return newState;

@@ -29,7 +29,7 @@ import {
   updateOffline,
   updateDrawerState
 } from '../actions/app.js';
-import { getTeams } from '../actions/team.js';
+import { addNewTeam, getTeams } from '../actions/team.js';
 
 // The following line imports the type only - it will be removed by tsc so
 // another import for app-drawer.js is required below.
@@ -317,6 +317,8 @@ class LineupApp extends connect(store)(LitElement) {
     installMediaQueryWatcher(`(min-width: 460px)`,
         () => store.dispatch(updateDrawerState(false)));
 
+    window.addEventListener('new-team-created', this._newTeamCreated.bind(this));
+
     store.dispatch(getTeams());
   }
 
@@ -337,6 +339,10 @@ class LineupApp extends connect(store)(LitElement) {
 
   private _drawerOpenedChanged(e: Event) {
     store.dispatch(updateDrawerState((e.target as AppDrawerElement).opened));
+  }
+
+  private _newTeamCreated(e: CustomEvent) {
+    store.dispatch(addNewTeam(e.detail.team));
   }
 
   private async _addNewTeam() {
