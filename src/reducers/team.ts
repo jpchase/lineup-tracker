@@ -5,6 +5,7 @@
 import { Reducer } from 'redux';
 import { Roster, Team } from '../models/team.js';
 import {
+  ADD_TEAM,
   GET_ROSTER,
   GET_TEAMS
 } from '../actions/team.js';
@@ -31,18 +32,29 @@ const INITIAL_STATE: TeamState = {
 
 const team: Reducer<TeamState, RootAction> = (state = INITIAL_STATE, action) => {
   switch (action.type) {
+    case ADD_TEAM:
+      console.log(`team.ts - reducer: ${JSON.stringify(action)}, ${state}`);
+      const newState: TeamState = {
+        ...state,
+        teams: state.teams.slice(0)
+      };
+      newState.teams.push(action.team);
+      return newState;
+
     case GET_ROSTER:
       console.log(`team.ts - reducer: ${JSON.stringify(action)}, ${state}`);
       return {
         ...state,
         roster: action.roster
       };
+
     case GET_TEAMS:
       console.log(`team.ts - reducer: ${JSON.stringify(action)}, ${state}`);
       return {
         ...state,
         teams: action.teams
       };
+
     default:
       return state;
   }

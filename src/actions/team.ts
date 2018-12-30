@@ -6,12 +6,14 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store.js';
 import { Roster, Team } from '../models/team.js';
+export const ADD_TEAM = 'ADD_TEAM';
 export const GET_TEAMS = 'GET_TEAMS';
 export const GET_ROSTER = 'GET_ROSTER';
 
+export interface TeamActionAddTeam extends Action<'ADD_TEAM'> { team: Team };
 export interface TeamActionGetTeams extends Action<'GET_TEAMS'> { teams: Team[] };
 export interface TeamActionGetRoster extends Action<'GET_ROSTER'> { roster: Roster };
-export type TeamAction = TeamActionGetTeams | TeamActionGetRoster;
+export type TeamAction = TeamActionAddTeam | TeamActionGetTeams | TeamActionGetRoster;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
@@ -63,6 +65,26 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
   dispatch({
     type: GET_TEAMS,
     teams
+  });
+};
+
+export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
+  if (!newTeam) {
+    return;
+  }
+  const state = getState();
+  // Verify that the team id is unique.
+  const teamState = state.team!;
+  if (teamState.teams && teamState.teams.some(team => team.id === newTeam.id)) {
+    return;
+  }
+  dispatch(addTeam(newTeam));
+};
+
+export const addTeam: ActionCreator<ThunkResult> = (team: Team) => (dispatch) => {
+  dispatch({
+    type: ADD_TEAM,
+    team
   });
 };
 
