@@ -119,6 +119,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           const nameField = el.shadowRoot.querySelector('paper-dialog paper-input#team-name');
           nameField.value = 'Club team 01'
 
+          let eventFired = false;
+          let newTeam = null;
+          const handler = function(event) {
+            eventFired = true;
+            newTeam = event.detail.team;
+            window.removeEventListener('new-team-created', handler);
+          };
+
+          window.addEventListener('new-team-created', handler);
+
           const saveButton = el.shadowRoot.querySelector('paper-dialog paper-button[dialog-confirm]');
           saveButton.click();
           // TODO: Figure out better way than manual sleep
@@ -130,7 +140,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           const display = getComputedStyle(dialog, null).display;
           assert.equal(display, 'none', 'Dialog display');
 
-          assert.deepEqual(el.newTeam,
+          assert.isTrue(eventFired, 'Event new-team-created should be fired');
+
+          assert.deepEqual(newTeam,
             {
               id: 'newId01',
               name: 'Club team 01'

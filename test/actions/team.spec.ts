@@ -1,22 +1,82 @@
 import * as actions from '@app/actions/team';
-import { Team } from '@app/models/team';
+import { Team, Teams } from '@app/models/team';
+import { get, set } from 'idb-keyval';
+
+jest.mock('idb-keyval');
+const mockedGet = <jest.Mock<typeof get>>get;
+const mockedSet = <jest.Mock<typeof set>>set;
+
+const KEY_TEAMS = 'teams';
 
 describe('getTeams', () => {
+  const storedTeam: Team = {
+      id: 'st1', name: 'Stored team 1'
+  };
+
+  beforeEach(() => {
+      mockedGet.mockReset();
+  });
+
   it('should return a function to dispatch the getTeams action', () => {
     expect(typeof actions.getTeams()).toBe('function');
   });
 
-  it('should dispatch an action to get the list of teams', () => {
+  it('should dispatch an action to get the list of teams', async () => {
     const dispatchMock = jest.fn();
     const getStateMock = jest.fn();
+    mockedGet.mockResolvedValue(undefined);
 
     actions.getTeams()(dispatchMock, getStateMock, undefined);
+
+    // Waits for promises to resolve.
+    await Promise.resolve();
 
     expect(dispatchMock).toBeCalledWith(expect.objectContaining({
       type: actions.GET_TEAMS,
       teams: expect.anything(),
     }));
   });
+
+  it('should dispatch an action with the teams returned from get() from storage', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      const teamData: Teams = {} as Teams;
+      teamData[storedTeam.id] = storedTeam;
+      mockedGet.mockResolvedValue(teamData);
+
+      actions.getTeams()(dispatchMock, getStateMock, undefined);
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      // Checks that get() was called to retrieve teams from storage.
+      expect(mockedGet.mock.calls.length).toBe(1);
+      expect(mockedGet.mock.calls[0][0]).toBe(KEY_TEAMS);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+          type: actions.GET_TEAMS,
+          teams: [storedTeam],
+      }));
+  });
+
+    it('should not dispatch an action when get() fails', async () => {
+        const dispatchMock = jest.fn();
+        const getStateMock = jest.fn();
+        mockedGet.mockRejectedValue(new Error('Some error'));
+
+        actions.getTeams()(dispatchMock, getStateMock, undefined);
+
+        // Waits for promises to resolve.
+        await Promise.resolve();
+
+        // Checks that get() was called.
+        expect(mockedGet.mock.calls.length).toBe(1);
+        expect(mockedGet.mock.calls[0][0]).toBe(KEY_TEAMS);
+
+        expect(dispatchMock).not.toBeCalled();
+    });
+
 });
 
 describe('addNewTeam', () => {
@@ -74,6 +134,80 @@ describe('addNewTeam', () => {
 
     expect(dispatchMock).not.toBeCalled();
   });
+});
+
+describe('saveTeam', () => {
+    const storedTeam: Team = {
+        id: 'st1', name: 'Stored team 1'
+    };
+    const newTeam: Team = {
+        id: 'nt1', name: 'New team 1'
+    };
+
+    beforeEach(() => {
+        mockedSet.mockReset();
+    });
+
+
+    it('should return a function to dispatch the action', () => {
+        expect(typeof actions.saveTeam()).toBe('function');
+    });
+
+    it('should dispatch an action to add team', async () => {
+        const dispatchMock = jest.fn();
+        const getStateMock = jest.fn(() => {
+            return {
+                team: {
+                    teams: [storedTeam]
+                }
+            };
+        });
+        // Set any resolved value, so that set() promise will actually resolve.
+        mockedSet.mockResolvedValue({});
+
+        actions.saveTeam(newTeam)(dispatchMock, getStateMock, undefined);
+
+        // Waits for promises to resolve.
+        await Promise.resolve();
+
+        expect(getStateMock).toBeCalled();
+
+        // Checks that set() was called to save teams to storage.
+        const expectedTeamData: Teams = {} as Teams;
+        expectedTeamData[storedTeam.id] = storedTeam;
+        expectedTeamData[newTeam.id] = newTeam;
+
+        expect(mockedSet.mock.calls.length).toBe(1);
+        expect(mockedSet.mock.calls[0][0]).toBe(KEY_TEAMS);
+        expect(mockedSet.mock.calls[0][1]).toEqual(expectedTeamData);
+
+        expect(dispatchMock).toBeCalledWith(expect.any(Function));
+    });
+
+    it('should not dispatch an action when set() fails', async () => {
+        const dispatchMock = jest.fn();
+        const getStateMock = jest.fn(() => {
+            return {
+                team: {
+                    teams: [storedTeam]
+                }
+            };
+        });
+        mockedSet.mockRejectedValue(new Error('Some error'));
+
+        actions.saveTeam(newTeam)(dispatchMock, getStateMock, undefined);
+
+        // Waits for promises to resolve.
+        await Promise.resolve();
+
+        expect(getStateMock).toBeCalled();
+
+        // Checks that set() was called.
+        expect(mockedSet.mock.calls.length).toBe(1);
+        expect(mockedSet.mock.calls[0][0]).toBe(KEY_TEAMS);
+
+        expect(dispatchMock).not.toBeCalled();
+    });
 });
 
 describe('addTeam', () => {

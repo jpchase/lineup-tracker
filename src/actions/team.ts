@@ -5,7 +5,9 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store.js';
-import { Roster, Team } from '../models/team.js';
+import { Roster, Team, Teams } from '../models/team.js';
+import { get, set } from 'idb-keyval';
+
 export const ADD_TEAM = 'ADD_TEAM';
 export const GET_TEAMS = 'GET_TEAMS';
 export const GET_ROSTER = 'GET_ROSTER';
@@ -16,6 +18,8 @@ export interface TeamActionGetRoster extends Action<'GET_ROSTER'> { roster: Rost
 export type TeamAction = TeamActionAddTeam | TeamActionGetTeams | TeamActionGetRoster;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
+
+const KEY_TEAMS = 'teams';
 
 const TEAM_U16A = { id: 'U16A', name: 'Wat U16A' };
 
@@ -58,13 +62,26 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
   // succesfully got the data back)
 
   // You could reformat the data in the right format as well:
-  const teams: Team[] = [TEAM_U16A];
+  let teams: Team[] = [TEAM_U16A];
 
-  console.log(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
+  get(KEY_TEAMS).then((value) => {
+    if (value) {
+      const teamData: Teams = value as Teams;
+      teams = Object.keys(teamData).reduce((obj, teamId) => {
+        obj.push(teamData[teamId]);
+        return obj;
+      }, [] as Team[]);
+    }
 
-  dispatch({
-    type: GET_TEAMS,
-    teams
+    console.log(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
+
+    dispatch({
+      type: GET_TEAMS,
+      teams
+    });
+
+  }).catch((error: any) => {
+    console.log(`Loading of teams from storage failed: ${error}`);
   });
 };
 
@@ -78,7 +95,29 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
   if (teamState.teams && teamState.teams.some(team => team.id === newTeam.id)) {
     return;
   }
-  dispatch(addTeam(newTeam));
+  dispatch(saveTeam(newTeam));
+};
+
+// Saves the new team in local storage, before adding to the store
+export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
+  // TODO: Duplicating logic here from that in reducers to add team to state?
+  const teamState = getState().team;
+  let teams: Team[] = [];
+  if (teamState && teamState.teams) {
+    teams = teamState.teams;
+  }
+
+  const teamData: Teams = teams.reduce((obj, team) => {
+    obj[team.id] = team;
+    return obj;
+  }, {} as Teams);
+  teamData[newTeam.id] = newTeam;
+
+  set(KEY_TEAMS, teamData).then(() => {
+    dispatch(addTeam(newTeam));
+  }).catch((error: any) => {
+    console.log(`Storage of ${newTeam} failed: ${error}`);
+  });
 };
 
 export const addTeam: ActionCreator<ThunkResult> = (team: Team) => (dispatch) => {
