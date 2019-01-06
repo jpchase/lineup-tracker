@@ -13,15 +13,13 @@ export const GET_TEAMS = 'GET_TEAMS';
 export const GET_ROSTER = 'GET_ROSTER';
 
 export interface TeamActionAddTeam extends Action<'ADD_TEAM'> { team: Team };
-export interface TeamActionGetTeams extends Action<'GET_TEAMS'> { teams: Team[] };
+export interface TeamActionGetTeams extends Action<'GET_TEAMS'> { teams: Teams };
 export interface TeamActionGetRoster extends Action<'GET_ROSTER'> { roster: Roster };
 export type TeamAction = TeamActionAddTeam | TeamActionGetTeams | TeamActionGetRoster;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
 const KEY_TEAMS = 'teams';
-
-const TEAM_U16A = { id: 'U16A', name: 'Wat U16A' };
 
 const ROSTER_U16A = [
   {id: 'AB', name: 'Allie', uniformNumber: 16, positions: ['CB'],
@@ -62,16 +60,8 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
   // succesfully got the data back)
 
   // You could reformat the data in the right format as well:
-  let teams: Team[] = [TEAM_U16A];
-
   get(KEY_TEAMS).then((value) => {
-    if (value) {
-      const teamData: Teams = value as Teams;
-      teams = Object.keys(teamData).reduce((obj, teamId) => {
-        obj.push(teamData[teamId]);
-        return obj;
-      }, [] as Team[]);
-    }
+    const teams: Teams = (value ? value : {}) as Teams;
 
     console.log(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
 
@@ -92,7 +82,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
   const state = getState();
   // Verify that the team id is unique.
   const teamState = state.team!;
-  if (teamState.teams && teamState.teams.some(team => team.id === newTeam.id)) {
+  if (teamState.teams && teamState.teams[newTeam.id]) {
     return;
   }
   dispatch(saveTeam(newTeam));
@@ -102,18 +92,11 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
   // TODO: Duplicating logic here from that in reducers to add team to state?
   const teamState = getState().team;
-  let teams: Team[] = [];
-  if (teamState && teamState.teams) {
-    teams = teamState.teams;
-  }
+  const teams = (teamState && teamState.teams) ? teamState.teams : {};
 
-  const teamData: Teams = teams.reduce((obj, team) => {
-    obj[team.id] = team;
-    return obj;
-  }, {} as Teams);
-  teamData[newTeam.id] = newTeam;
+  teams[newTeam.id] = newTeam;
 
-  set(KEY_TEAMS, teamData).then(() => {
+  set(KEY_TEAMS, teams).then(() => {
     dispatch(addTeam(newTeam));
   }).catch((error: any) => {
     console.log(`Storage of ${newTeam} failed: ${error}`);

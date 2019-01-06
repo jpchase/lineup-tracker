@@ -12,7 +12,7 @@ import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { installRouter } from 'pwa-helpers/router.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 
-import { Team } from '../models/team.js';
+import { Teams } from '../models/team.js';
 
 // This element is connected to the Redux store.
 import { store, RootState } from '../store.js';
@@ -300,7 +300,7 @@ class LineupApp extends connect(store)(LitElement) {
   private _teamId = '';
 
   @property({ type: Object })
-  private _teams: Team[] = [];
+  private _teams: Teams = {};
 
   private _teamDialog: LineupTeamDialog|undefined = undefined;
 

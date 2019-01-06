@@ -41,7 +41,7 @@ describe('getTeams', () => {
       const dispatchMock = jest.fn();
       const getStateMock = jest.fn();
 
-      const teamData: Teams = {} as Teams;
+      const teamData: Teams = {};
       teamData[storedTeam.id] = storedTeam;
       mockedGet.mockResolvedValue(teamData);
 
@@ -56,7 +56,7 @@ describe('getTeams', () => {
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
           type: actions.GET_TEAMS,
-          teams: [storedTeam],
+          teams: teamData,
       }));
   });
 
@@ -102,11 +102,11 @@ describe('addNewTeam', () => {
   it('should dispatch an action to add a new team that is unique', () => {
     const dispatchMock = jest.fn();
     const getStateMock = jest.fn(() => {
+      const teamData: Teams = {};
+      teamData['EX'] = { id: 'EX', name: 'Existing team' };
       return {
         team: {
-          teams: [{
-            id: 'EX', name: 'Existing team'
-          }]
+          teams: teamData
         }
       };
     });
@@ -121,9 +121,11 @@ describe('addNewTeam', () => {
   it('should do nothing with a new team that is not unique', () => {
     const dispatchMock = jest.fn();
     const getStateMock = jest.fn(() => {
+      const teamData: Teams = {};
+      teamData[newTeam.id] = newTeam;
       return {
         team: {
-          teams: [newTeam]
+          teams: teamData
         }
       };
     });
@@ -156,9 +158,11 @@ describe('saveTeam', () => {
     it('should dispatch an action to add team', async () => {
         const dispatchMock = jest.fn();
         const getStateMock = jest.fn(() => {
+            const teamData: Teams = {};
+            teamData[storedTeam.id] = storedTeam;
             return {
                 team: {
-                    teams: [storedTeam]
+                    teams: teamData
                 }
             };
         });
@@ -187,9 +191,11 @@ describe('saveTeam', () => {
     it('should not dispatch an action when set() fails', async () => {
         const dispatchMock = jest.fn();
         const getStateMock = jest.fn(() => {
+            const teamData: Teams = {};
+            teamData[storedTeam.id] = storedTeam;
             return {
                 team: {
-                    teams: [storedTeam]
+                    teams: teamData
                 }
             };
         });

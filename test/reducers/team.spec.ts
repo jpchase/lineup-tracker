@@ -1,11 +1,11 @@
-import { Roster, Team } from '@app/models/team';
+import { Roster, Team, Teams } from '@app/models/team';
 import { ADD_TEAM, GET_ROSTER, GET_TEAMS } from '@app/actions/team';
 import team from '@app/reducers/team';
 import { TeamState } from '@app/reducers/team';
 import { getFakeAction } from '../helpers/test_data';
 
 const TEAM_INITIAL_STATE: TeamState = {
-  teams: [],
+  teams: {} as Teams,
   teamId: '',
   teamName: '',
   roster: {},
@@ -13,6 +13,12 @@ const TEAM_INITIAL_STATE: TeamState = {
 };
 
 describe('Teams reducer', () => {
+  const existingTeam: Team = {
+      id: 'EX', name: 'Existing team'
+  };
+  const newTeam: Team = {
+      id: 'nt1', name: 'New team 1'
+  };
 
   it('should return the initial state', () => {
     expect(
@@ -21,65 +27,64 @@ describe('Teams reducer', () => {
   });
 
   it('should handle GET_TEAMS', () => {
-    const expectedTeams: Team[] = [
-      {
-        id: 'EX', name: 'Existing team'
-      }
-    ];
+    const expectedTeams = {} as Teams;
+    expectedTeams[existingTeam.id] = existingTeam;
 
-    expect(
-      team(TEAM_INITIAL_STATE, {
+    const newState = team(TEAM_INITIAL_STATE, {
         type: GET_TEAMS,
         teams: expectedTeams
-      })
-    ).toEqual(expect.objectContaining({
+    });
+
+    expect(newState).toEqual(expect.objectContaining({
       teams: expectedTeams,
     }));
 
+    expect(newState).not.toBe(TEAM_INITIAL_STATE);
+    expect(newState.teams).not.toBe(TEAM_INITIAL_STATE.teams);
   });
 
   it('should handle ADD_TEAM with empty teams', () => {
-    const newTeam: Team = {
-      id: 'nt1', name: 'New team 1'
-    };
+    const expectedTeams = {} as Teams;
+    expectedTeams[newTeam.id] = newTeam;
 
-    expect(
-      team(TEAM_INITIAL_STATE, {
+    const newState = team(TEAM_INITIAL_STATE, {
         type: ADD_TEAM,
         team: newTeam
-      })
-    ).toEqual(expect.objectContaining({
-      teams: [newTeam],
+    });
+
+    expect(newState).toEqual(expect.objectContaining({
+      teams: expectedTeams,
       teamId: newTeam.id,
       teamName: newTeam.name
     }));
 
+    expect(newState).not.toBe(TEAM_INITIAL_STATE);
+    expect(newState.teams).not.toBe(TEAM_INITIAL_STATE.teams);
   });
 
   it('should handle ADD_TEAM with existing teams', () => {
     const state: TeamState = {
       ...TEAM_INITIAL_STATE
     };
-    state.teams = [
-      {
-        id: 'EX', name: 'Existing team'
-      }
-    ];
-    const newTeam: Team = {
-      id: 'nt1', name: 'New team 1'
-    };
+    state.teams[existingTeam.id] = existingTeam;
 
-    expect(
-      team(state, {
+    const expectedTeams = {} as Teams;
+    expectedTeams[existingTeam.id] = existingTeam;
+    expectedTeams[newTeam.id] = newTeam;
+
+    const newState = team(state, {
         type: ADD_TEAM,
         team: newTeam
-      })
-    ).toEqual(expect.objectContaining({
-      teams: [...state.teams, newTeam],
+    });
+
+    expect(newState).toEqual(expect.objectContaining({
+      teams: expectedTeams,
       teamId: newTeam.id,
       teamName: newTeam.name
     }));
 
+    expect(newState).not.toBe(state);
+    expect(newState.teams).not.toBe(state.teams);
   });
 
 });

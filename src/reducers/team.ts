@@ -3,7 +3,7 @@
 */
 
 import { Reducer } from 'redux';
-import { Roster, Team } from '../models/team.js';
+import { Roster, Teams } from '../models/team.js';
 import {
   ADD_TEAM,
   GET_ROSTER,
@@ -12,7 +12,7 @@ import {
 import { RootAction } from '../store.js';
 
 export interface TeamState {
-  teams: Team[];
+  teams: Teams;
   teamId: string;
   teamName: string;
   roster: Roster;
@@ -23,7 +23,7 @@ const TEAM_U16A = { id: 'U16A', name: 'Wat U16A' };
 
 // TODO: Remove default U16A team data when have support for adding/editing teams.
 const INITIAL_STATE: TeamState = {
-  teams: [TEAM_U16A],
+  teams: {},
   teamId: TEAM_U16A.id,
   teamName: TEAM_U16A.name,
   roster: {},
@@ -36,11 +36,11 @@ const team: Reducer<TeamState, RootAction> = (state = INITIAL_STATE, action) => 
       console.log(`team.ts - reducer: ${JSON.stringify(action)}, ${state}`);
       const newState: TeamState = {
         ...state,
-        teams: state.teams.slice(0),
+        teams: { ...state.teams },
         teamId: action.team.id,
         teamName: action.team.name
       };
-      newState.teams.push(action.team);
+      newState.teams[action.team.id] = action.team;
       return newState;
 
     case GET_ROSTER:

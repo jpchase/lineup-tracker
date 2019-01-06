@@ -4,7 +4,7 @@
 
 import { LitElement, html, property } from '@polymer/lit-element';
 
-import { Team } from '../models/team.js';
+import { Teams } from '../models/team.js';
 
 // These are the elements needed by this element.
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
@@ -76,7 +76,8 @@ class LineupTeamSelector extends LitElement {
                        selected="${this.teamId}"
                        attr-for-selected="id"
                        @iron-select="${this._onIronSelect}">
-          ${this.teams.map((team: Team) => {
+          ${Object.keys(this.teams).map((key) => {
+            const team = this.teams[key];
             return html`
               <paper-item id="${team.id}">${team.name}</paper-item>
             `
@@ -97,7 +98,7 @@ class LineupTeamSelector extends LitElement {
   teamId = '';
 
   @property({type: Object})
-  teams: Team[] = [];
+  teams: Teams = {};
 }
 
 window.customElements.define('lineup-team-selector', LineupTeamSelector);

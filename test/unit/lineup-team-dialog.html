@@ -64,7 +64,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           el.open();
           await el.updateComplete;
           // TODO: Figure out better way than manual sleep
-          await sleep(0);
+          await sleep(50);
 
           assert.isTrue(el.opened, 'should be opened');
 
