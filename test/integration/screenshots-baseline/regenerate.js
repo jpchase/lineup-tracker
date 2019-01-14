@@ -42,12 +42,6 @@ describe('🎁 regenerate screenshots', function() {
 
   afterEach(() => browser.close());
 
-  it('did it', async function() {
-    return generateBaselineScreenshots(page);
-  });
-});
-
-async function generateBaselineScreenshots(page) {
   const breakpoints = [
       {width: 800, height: 600},
       {width: 375, height: 667}];
@@ -55,24 +49,45 @@ async function generateBaselineScreenshots(page) {
 
   for (let i = 0; i < prefixes.length; i++) {
     const prefix = prefixes[i];
+    const breakpoint = breakpoints[i];
+
+    it(`views - ${prefix}`, async function() {
+      return generateBaselineScreenshots(page, prefix, breakpoint);
+    });
+
+    it(`Add team - ${prefix}`, async function() {
+      return generateAddTeamScreenshots(page, prefix, breakpoint);
+    });
+  }
+});
+
+async function generateBaselineScreenshots(page, prefix, breakpoint) {
     console.log(prefix + '...');
-    page.setViewport(breakpoints[i]);
+    page.setViewport(breakpoint);
     // Index.
     await page.goto('http://127.0.0.1:4444/');
     await page.screenshot({path: `${baselineDir}/${prefix}/index.png`});
     // Views.
     const views = ['Home', 'Games', 'Roster'];
     for (const view of views) {
+      console.log(`View: ${view}`);
       await page.goto(`http://127.0.0.1:4444/view${view}`);
       if (view === 'Roster') {
+        console.log(`Wait extra for Roster view`);
         // TODO: Remove sleep hack to avoid blank page in screenshot
         await page.waitFor(1000);
       }
+      console.log(`Screenshot for view: ${view}`);
       await page.screenshot({path: `${baselineDir}/${prefix}/view${view}.png`});
     }
     // 404.
+    console.log(`Screenshot for 404`);
     await page.goto('http://127.0.0.1:4444/batmanNotAView');
     await page.screenshot({path: `${baselineDir}/${prefix}/batmanNotAView.png`});
+}
+
+async function generateAddTeamScreenshots(page, prefix, breakpoint) {
+    page.setViewport(breakpoint);
 
     // Add new team
     await page.goto('http://127.0.0.1:4444/');
@@ -83,6 +98,4 @@ async function generateBaselineScreenshots(page) {
       list.select('addnewteam');
     });
     await page.screenshot({path: `${baselineDir}/${prefix}/addNewTeam.png`});
-
-  }
 }

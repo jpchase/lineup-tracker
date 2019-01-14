@@ -1,6 +1,8 @@
-import * as firebase from 'firebase/app';
+import * as firebase_app from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
+
+export const firebase = (window as any)['firebase'] || firebase_app;
 
 // Initialize Firebase
 const config = {

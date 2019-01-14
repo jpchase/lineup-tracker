@@ -33,8 +33,6 @@ describe('getUser', () => {
       photoURL: null
     } as FirebaseUser;
 
-    jest.fn(() => true);
-
     const changedMock: AuthStateChangedFn = (nextOrObserver /*, error, completed*/): Unsubscribe => {
       if (typeof nextOrObserver === 'function') {
         nextOrObserver(firebaseUser);
@@ -48,6 +46,7 @@ describe('getUser', () => {
 
     // Checks that onAuthStateChanged() was called with a callback.
     expect(changedSpy.mock.calls.length).toBe(1);
+    expect(typeof changedSpy.mock.calls[0][0]).toBe('function');
 
     const signedInUser: User = {
       id: 'su1', name: 'Signed in user 1', email: '', imageUrl: ''
@@ -57,6 +56,71 @@ describe('getUser', () => {
       type: actions.GET_USER,
       user: signedInUser,
     }));
+  });
+
+  it('should dispatch an action with no user after sign out', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = jest.fn();
+
+    const changedMock: AuthStateChangedFn = (nextOrObserver /*, error, completed*/): Unsubscribe => {
+      if (typeof nextOrObserver === 'function') {
+        nextOrObserver(null);
+      }
+      return {} as Unsubscribe;
+    };
+
+    changedSpy.mockImplementation(changedMock);
+
+    actions.getUser()(dispatchMock, getStateMock, undefined);
+
+    // Checks that onAuthStateChanged() was called with a callback.
+    expect(changedSpy.mock.calls.length).toBe(1);
+
+    expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      type: actions.GET_USER,
+      user: {},
+    }));
+  });
+
+});
+
+describe('signIn', () => {
+  const signInSpy = jest.spyOn(authRef, 'signInWithPopup');
+  const logSpy = jest.spyOn(global.console, 'log');
+  const errorSpy = jest.spyOn(global.console, 'error');
+
+  afterEach(() => {
+    signInSpy.mockRestore();
+    logSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('should return a function to do the sign in', () => {
+    expect(typeof actions.signIn()).toBe('function');
+  });
+
+  it('should call the Firebase sign in method and log success', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = jest.fn();
+
+    signInSpy.mockResolvedValue({ user: { uid: 1234 }});
+
+    actions.signIn()(dispatchMock, getStateMock, undefined);
+
+    // Checks that signInWithPopup() was called.
+    expect(signInSpy.mock.calls.length).toBe(1);
+  });
+
+  it('should call the Firebase sign in method and handle error', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = jest.fn();
+
+    signInSpy.mockRejectedValue(new Error('Some error'));
+
+    actions.signIn()(dispatchMock, getStateMock, undefined);
+
+    // Checks that signInWithPopup() was called.
+    expect(signInSpy.mock.calls.length).toBe(1);
   });
 
 });

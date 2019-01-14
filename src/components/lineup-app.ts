@@ -12,14 +12,17 @@ import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { installRouter } from 'pwa-helpers/router.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 
+import { User } from '../models/auth.js';
 import { Teams } from '../models/team.js';
 
 // This element is connected to the Redux store.
 import { store, RootState } from '../store.js';
 
 // We are lazy loading its reducer.
+import auth from '../reducers/auth.js';
 import team from '../reducers/team.js';
 store.addReducers({
+  auth,
   team
 });
 
@@ -29,6 +32,7 @@ import {
   updateOffline,
   updateDrawerState
 } from '../actions/app.js';
+import { getUser, signIn } from '../actions/auth.js';
 import { addNewTeam, getTeams } from '../actions/team.js';
 
 // The following line imports the type only - it will be removed by tsc so
@@ -40,7 +44,7 @@ import '@polymer/app-layout/app-drawer/app-drawer.js';
 import '@polymer/app-layout/app-header/app-header.js';
 import '@polymer/app-layout/app-scroll-effects/effects/waterfall.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
-import { menuIcon } from './lineup-icons.js';
+import { accountIcon, menuIcon } from './lineup-icons.js';
 import { LineupTeamDialog } from './lineup-team-dialog.js';
 import './lineup-team-dialog.js';
 import './lineup-team-selector.js';
@@ -93,7 +97,6 @@ class LineupApp extends connect(store)(LitElement) {
         top: 0;
         left: 0;
         width: 100%;
-        text-align: center;
         background-color: var(--app-header-background-color);
         color: var(--app-header-text-color);
         border-bottom: 1px solid #eee;
@@ -104,13 +107,7 @@ class LineupApp extends connect(store)(LitElement) {
       }
 
       [main-title] {
-        font-family: 'Pacifico';
-        text-transform: lowercase;
         font-size: 30px;
-        /* In the narrow layout, the toolbar is offset by the width of the
-        drawer button, and the text looks not centered. Add a padding to
-        match that button */
-        padding-right: 44px;
       }
 
       .team-selector {
@@ -146,6 +143,35 @@ class LineupApp extends connect(store)(LitElement) {
         cursor: pointer;
         height: 44px;
         width: 44px;
+      }
+
+      .signin-btn {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        padding: 8px;
+        box-sizing: border-box;
+        background: none;
+        border: none;
+        fill: var(--app-header-text-color);
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      .signin-btn {
+        margin-left: 8px;
+        padding: 2px;
+        visibility: hidden;
+      }
+
+      .signin-btn[visible] {
+        visibility: visible;
+      }
+
+      .signin-btn > img {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
       }
 
       .drawer-list {
@@ -199,12 +225,17 @@ class LineupApp extends connect(store)(LitElement) {
       @media (min-width: 460px) {
         .toolbar-list {
           display: block;
+          text-align: center;
         }
 
-        .toolbar-top-left,
+        .toolbar-top-left {
+          display: none;
+        }
+
         .toolbar-top-right {
-          display: block;
-          width: 100px;
+          display: flex;
+          justify-content: flex-end;
+          width: 170px;
         }
 
         .menu-btn {
@@ -213,12 +244,6 @@ class LineupApp extends connect(store)(LitElement) {
 
         .main-content {
           padding-top: 107px;
-        }
-
-        /* The drawer button isn't shown in the wide layout, so we don't
-        need to offset the title */
-        [main-title] {
-          padding-right: 0px;
         }
       }
     </style>
@@ -230,11 +255,14 @@ class LineupApp extends connect(store)(LitElement) {
           <button class="menu-btn" title="Menu" @click="${this._menuButtonClicked}">${menuIcon}</button>
         </div>
         <div main-title>${this.appTitle}</div>
-        <div class="toolbar-top-right">
-          <lineup-team-selector ?hidden="${this._page === 'view404'}"
-                                .teamId=${this._teamId} .teams=${this._teams}
+        <div class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
+          <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
                                 @add-new-team="${this._addNewTeam}">
           </lineup-team-selector>
+          <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
+              @click="${this._signinButtonClicked}">
+            ${this._user && this._user.imageUrl ? html`<img src="${this._user.imageUrl}">` : accountIcon}
+          </button>
         </div>
       </app-toolbar>
 
@@ -296,6 +324,12 @@ class LineupApp extends connect(store)(LitElement) {
     'view404': { page: 'view404', label: 'Page not found' },
   };
 
+  @property({ type: Boolean })
+  private _authInitialized = true;
+
+  @property({ type: Object })
+  private _user?: User;
+
   @property({ type: String })
   private _teamId = '';
 
@@ -319,6 +353,8 @@ class LineupApp extends connect(store)(LitElement) {
 
     window.addEventListener('new-team-created', this._newTeamCreated.bind(this));
 
+    // get authenticated user
+    store.dispatch(getUser());
     store.dispatch(getTeams());
   }
 
@@ -341,6 +377,13 @@ class LineupApp extends connect(store)(LitElement) {
     store.dispatch(updateDrawerState((e.target as AppDrawerElement).opened));
   }
 
+    private _signinButtonClicked() {
+        if (!(this._user && this._user.imageUrl)) {
+          store.dispatch(signIn());
+        }
+        // store.dispatch(this._user && this._user.imageUrl ? signOut() : signIn());
+    }
+
   private _newTeamCreated(e: CustomEvent) {
     store.dispatch(addNewTeam(e.detail.team));
   }
@@ -359,6 +402,8 @@ class LineupApp extends connect(store)(LitElement) {
     this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;
     this._drawerOpened = state.app!.drawerOpened;
+
+    this._user = state.auth!.user;
 
     this._teamId = state.team!.teamId;
     this._teams = state.team!.teams;

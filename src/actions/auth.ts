@@ -38,9 +38,11 @@ export const getUser: ActionCreator<ThunkResult> = () => (dispatch) => {
 export const signIn: ActionCreator<ThunkResult> = () => () => {
     authRef
         .signInWithPopup(provider)
-        .then((/* result */) => { })
+        .then(result => {
+          console.log(`Sign in succeeded: ${result.user ? result.user.uid : null}`);
+        })
         .catch(error => {
-            console.log(error);
+            console.error(`Error trying to sign in: ${error}`);
         });
 };
 

@@ -48,7 +48,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('starts empty', function() {
           assert.equal(el.teamId, '', 'teamId');
-          assert.isArray(el.teams, 'teams');
+          assert.deepEqual(el.teams, {}, 'teams');
         });
 
         test('renders items for each team', async function() {
