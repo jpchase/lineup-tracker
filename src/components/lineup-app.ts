@@ -351,7 +351,7 @@ class LineupApp extends connect(store)(LitElement) {
     installMediaQueryWatcher(`(min-width: 460px)`,
         () => store.dispatch(updateDrawerState(false)));
 
-    window.addEventListener('new-team-created', this._newTeamCreated.bind(this));
+    window.addEventListener('new-team-created', this._newTeamCreated.bind(this) as EventListener);
 
     // get authenticated user
     store.dispatch(getUser());
