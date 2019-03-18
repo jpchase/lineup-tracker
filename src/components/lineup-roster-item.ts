@@ -2,7 +2,7 @@
 @license
 */
 
-import { LitElement, html, property } from '@polymer/lit-element';
+import { LitElement, html, property } from 'lit-element';
 
 import { Player } from '../models/team.js';
 

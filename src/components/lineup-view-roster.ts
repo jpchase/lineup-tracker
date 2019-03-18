@@ -2,7 +2,7 @@
 @license
 */
 
-import { html, property } from '@polymer/lit-element';
+import { html, property } from 'lit-element';
 import { PageViewElement } from './page-view-element.js';
 
 // import { Team } from '../models/team.js';

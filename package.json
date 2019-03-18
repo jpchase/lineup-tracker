@@ -22,7 +22,6 @@
   "dependencies": {
     "@material/mwc-formfield": "^0.3.4",
     "@polymer/app-layout": "^3.0.0",
-    "@polymer/lit-element": "^0.6.2",
     "@polymer/paper-button": "^3.0.1",
     "@polymer/paper-dialog": "^3.0.1",
     "@polymer/paper-dropdown-menu": "^3.0.1",
@@ -33,6 +32,7 @@
     "@webcomponents/webcomponentsjs": "^2.0.0",
     "firebase": "^5.7.2",
     "idb-keyval": "^3.1.0",
+    "lit-element": "^2.0.1",
     "pwa-helpers": "^0.9.0",
     "redux": "^4.0.0",
     "redux-thunk": "^2.3.0",
