@@ -5,17 +5,19 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store.js';
-import { Roster, Team, Teams } from '../models/team.js';
+import { Player, Roster, Team, Teams } from '../models/team.js';
 import { get, set } from 'idb-keyval';
 
 export const ADD_TEAM = 'ADD_TEAM';
 export const GET_TEAMS = 'GET_TEAMS';
 export const GET_ROSTER = 'GET_ROSTER';
+export const ADD_PLAYER = 'ADD_PLAYER';
 
 export interface TeamActionAddTeam extends Action<'ADD_TEAM'> { team: Team };
 export interface TeamActionGetTeams extends Action<'GET_TEAMS'> { teams: Teams };
 export interface TeamActionGetRoster extends Action<'GET_ROSTER'> { roster: Roster };
-export type TeamAction = TeamActionAddTeam | TeamActionGetTeams | TeamActionGetRoster;
+export interface TeamActionAddPlayer extends Action<'ADD_PLAYER'> { player: Player };
+export type TeamAction = TeamActionAddTeam | TeamActionGetTeams | TeamActionGetRoster | TeamActionAddPlayer;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
@@ -126,5 +128,40 @@ export const getRoster: ActionCreator<ThunkResult> = () => (dispatch) => {
   dispatch({
     type: GET_ROSTER,
     roster
+  });
+};
+
+export const addNewPlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
+  if (!newPlayer) {
+    return;
+  }
+  const state = getState();
+  // Verify that the player id is unique.
+  const teamState = state.team!;
+  if (teamState.roster && teamState.roster[newPlayer.id]) {
+    return;
+  }
+  dispatch(savePlayer(newPlayer));
+};
+
+// Saves the new player in local storage, before adding to the store
+export const savePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch /*, getState*/) => {
+  // TODO: Duplicating logic here from that in reducers to add player to state?
+  // const teamState = getState().team;
+  // const roster = (teamState && teamState.roster) ? teamState.roster : {};
+
+  // roster[newPlayer.id] = newPlayer;
+
+  // set(KEY_ROSTER, roster).then(() => {
+    dispatch(addPlayer(newPlayer));
+  // }).catch((error: any) => {
+  //   console.log(`Storage of ${newPlayer} failed: ${error}`);
+  // });
+};
+
+export const addPlayer: ActionCreator<ThunkResult> = (player: Player) => (dispatch) => {
+  dispatch({
+    type: ADD_PLAYER,
+    player
   });
 };

@@ -1,5 +1,5 @@
 import * as actions from '@app/actions/team';
-import { Team, Teams } from '@app/models/team';
+import { Player, Roster, Team, Teams } from '@app/models/team';
 import { get, set } from 'idb-keyval';
 
 jest.mock('idb-keyval');
@@ -255,4 +255,170 @@ describe('getRoster', () => {
         roster: expect.anything(),
       }));
   });
+});
+
+describe('addNewPlayer', () => {
+  const storedPlayer: Player = {
+      id: 'sp1', name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: 'OFF'
+  };
+  const newPlayer: Player = {
+      id: 'np1', name: 'New player 1', uniformNumber: 1, positions: ['CB'], status: 'OFF'
+  };
+
+  it('should return a function to dispatch the action', () => {
+    expect(typeof actions.addNewPlayer()).toBe('function');
+  });
+
+  it('should do nothing if new player is missing', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = jest.fn();
+
+    actions.addNewPlayer()(dispatchMock, getStateMock, undefined);
+
+    expect(getStateMock).not.toBeCalled();
+
+    expect(dispatchMock).not.toBeCalled();
+  });
+
+  it('should dispatch an action to add a new player that is unique', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = jest.fn(() => {
+      const playerData: Roster = {};
+      playerData[storedPlayer.id] = storedPlayer;
+      return {
+        team: {
+          roster: playerData
+        }
+      };
+    });
+
+    actions.addNewPlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+
+    expect(getStateMock).toBeCalled();
+
+    expect(dispatchMock).toBeCalledWith(expect.any(Function));
+  });
+
+  it('should do nothing with a new player that is not unique', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = jest.fn(() => {
+      const playerData: Roster = {};
+      playerData[newPlayer.id] = newPlayer;
+      return {
+        team: {
+          roster: playerData
+        }
+      };
+    });
+
+    actions.addNewPlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+
+    expect(getStateMock).toBeCalled();
+
+    expect(dispatchMock).not.toBeCalled();
+  });
+});
+
+describe('savePlayer', () => {
+    const storedPlayer: Player = {
+        id: 'sp1', name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: 'OFF'
+    };
+    const newPlayer: Player = {
+        id: 'np1', name: 'New player 1', uniformNumber: 1, positions: ['CB'], status: 'OFF'
+    };
+
+    beforeEach(() => {
+        mockedSet.mockReset();
+    });
+
+
+    it('should return a function to dispatch the action', () => {
+        expect(typeof actions.savePlayer()).toBe('function');
+    });
+
+    it('should dispatch an action to add player', async () => {
+        const dispatchMock = jest.fn();
+        const getStateMock = jest.fn(() => {
+            const playerData: Roster = {};
+            playerData[storedPlayer.id] = storedPlayer;
+            return {
+                team: {
+                    roster: playerData
+                }
+            };
+        });
+        // Set any resolved value, so that set() promise will actually resolve.
+        mockedSet.mockResolvedValue({});
+
+        actions.savePlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+
+        // Waits for promises to resolve.
+        await Promise.resolve();
+/*
+        expect(getStateMock).toBeCalled();
+
+        // Checks that set() was called to save players to storage.
+        const expectedPlayerData: Roster = {} as Roster;
+        expectedPlayerData[storedPlayer.id] = storedPlayer;
+        expectedPlayerData[newPlayer.id] = newPlayer;
+
+        expect(mockedSet.mock.calls.length).toBe(1);
+        expect(mockedSet.mock.calls[0][0]).toBe(KEY_TEAMS);
+        expect(mockedSet.mock.calls[0][1]).toEqual(expectedPlayerData);
+*/
+        expect(dispatchMock).toBeCalledWith(expect.any(Function));
+    });
+
+    it('should not dispatch an action when set() fails', async () => {
+        const dispatchMock = jest.fn();
+        const getStateMock = jest.fn(() => {
+            const playerData: Roster = {};
+            playerData[storedPlayer.id] = storedPlayer;
+            return {
+                team: {
+                    roster: playerData
+                }
+            };
+        });
+        mockedSet.mockRejectedValue(new Error('Some error'));
+
+        actions.savePlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+
+        // Waits for promises to resolve.
+        await Promise.resolve();
+/*
+        expect(getStateMock).toBeCalled();
+
+        // Checks that set() was called.
+        expect(mockedSet.mock.calls.length).toBe(1);
+        expect(mockedSet.mock.calls[0][0]).toBe(KEY_TEAMS);
+
+        expect(dispatchMock).not.toBeCalled();
+*/
+        // TODO: Remove when data saving logic implemented.
+        expect(dispatchMock).toBeCalledWith(expect.any(Function));
+    });
+});
+
+describe('addPlayer', () => {
+  const newPlayer: Player = {
+      id: 'np1', name: 'New player 1', uniformNumber: 1, positions: ['CB'], status: 'OFF'
+  };
+
+  it('should return a function to dispatch the addPlayer action', () => {
+    expect(typeof actions.addPlayer()).toBe('function');
+  });
+
+  it('should dispatch an action to add the player', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = jest.fn();
+
+    actions.addPlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+
+    expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      type: actions.ADD_PLAYER,
+      player: newPlayer,
+    }));
+  });
+
 });
