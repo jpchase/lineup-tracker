@@ -7,6 +7,7 @@ import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store.js';
 import { Player, Roster, Team, Teams } from '../models/team.js';
 import { get, set } from 'idb-keyval';
+import { firestore } from "../firebase";
 
 export const ADD_TEAM = 'ADD_TEAM';
 export const GET_TEAMS = 'GET_TEAMS';
@@ -98,8 +99,15 @@ export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch
 
   teams[newTeam.id] = newTeam;
 
-  set(KEY_TEAMS, teams).then(() => {
+  const collection = firestore.collection('teams');
+  // collection.doc(newTeam.id).set(newTeam).then(() => {
+  collection.add(newTeam).then(() => {
+    console.log('doc added');
+    return set(KEY_TEAMS, teams);
+  }).then(() => {
+    console.log('set done');
     dispatch(addTeam(newTeam));
+    console.log('dispatch done');
   }).catch((error: any) => {
     console.log(`Storage of ${newTeam} failed: ${error}`);
   });

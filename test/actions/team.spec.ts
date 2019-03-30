@@ -1,12 +1,18 @@
 import * as actions from '@app/actions/team';
 import { Player, Roster, Team, Teams } from '@app/models/team';
 import { get, set } from 'idb-keyval';
+import { firestore } from '@app/firebase';
+import { collectionMock } from '../helpers/mock_firestore';
+
+jest.mock('@app/firebase');
+firestore.collection = collectionMock;
 
 jest.mock('idb-keyval');
 const mockedGet = <jest.Mock<typeof get>>get;
 const mockedSet = <jest.Mock<typeof set>>set;
 
 const KEY_TEAMS = 'teams';
+
 
 describe('getTeams', () => {
   const storedTeam: Team = {
@@ -150,7 +156,6 @@ describe('saveTeam', () => {
         mockedSet.mockReset();
     });
 
-
     it('should return a function to dispatch the action', () => {
         expect(typeof actions.saveTeam()).toBe('function');
     });
@@ -176,6 +181,10 @@ describe('saveTeam', () => {
 
         expect(getStateMock).toBeCalled();
 
+        // Checks that firestore doc was added for new team.
+        expect(collectionMock).toHaveBeenCalled();
+        expect(collectionMock().add).toHaveBeenCalledWith(expect.objectContaining(newTeam));
+
         // Checks that set() was called to save teams to storage.
         const expectedTeamData: Teams = {} as Teams;
         expectedTeamData[storedTeam.id] = storedTeam;
@@ -185,6 +194,8 @@ describe('saveTeam', () => {
         expect(mockedSet.mock.calls[0][0]).toBe(KEY_TEAMS);
         expect(mockedSet.mock.calls[0][1]).toEqual(expectedTeamData);
 
+        // Waits for promises to resolve.
+        await Promise.resolve();
         expect(dispatchMock).toBeCalledWith(expect.any(Function));
     });
 
