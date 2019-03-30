@@ -19,6 +19,8 @@ const pixelmatch = require('pixelmatch');
 const currentDir = `${process.cwd()}/test/integration/screenshots-current`;
 const baselineDir = `${process.cwd()}/test/integration/screenshots-baseline`;
 
+const firebaseScriptRegex = new RegExp(/(http:\/\/\d+\.\d+\.\d+\.\d+:\d+\/)?__\/firebase\/\d+\.\d+\.\d+(\/.+)/);
+
 const breakpoints = [
   { name: 'wide', viewPort: {width: 800, height: 600} },
   { name: 'narrow', viewPort: {width: 375, height: 667} },
@@ -48,7 +50,24 @@ describe('👀 page screenshots are correct', function() {
   beforeEach(async function() {
     browser = await puppeteer.launch();
     page = await browser.newPage();
+
+    // Override url for Firebase scripts
+    await page.setRequestInterception(true);
+    page.on('request', request => {
+      const scriptMatch = firebaseScriptRegex.exec(request.url());
+      if (!scriptMatch) {
+        request.continue();
+        return;
+      }
+      const url = scriptMatch[1] + 'node_modules/firebase' + scriptMatch[2];
+      request.continue({ url });
+    });
+
     page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+
+    page.on('requestfailed', request => {
+      console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure().errorText);
+    });
   });
 
   afterEach(() => browser.close());
