@@ -1,5 +1,13 @@
 {
   "suites": ["test/unit"],
+  "clientOptions": {
+    "environmentScripts":
+    [
+      "../../node_modules/firebase/firebase-app.js",
+      "../../node_modules/firebase/firebase-auth.js",
+      "../../node_modules/firebase/firebase-firestore.js"
+    ]
+  },
   "plugins": {
     "local": {
       "browserOptions": {
