@@ -6,8 +6,8 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store.js';
 import { Player, Roster, Team, Teams } from '../models/team.js';
-import { get, set } from 'idb-keyval';
 import { firestore } from "../firebase";
+import { DocumentData, DocumentReference, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_TEAM = 'ADD_TEAM';
 export const GET_TEAMS = 'GET_TEAMS';
@@ -63,8 +63,17 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
   // succesfully got the data back)
 
   // You could reformat the data in the right format as well:
-  get(KEY_TEAMS).then((value) => {
-    const teams: Teams = (value ? value : {}) as Teams;
+  firestore.collection(KEY_TEAMS).get().then((value: QuerySnapshot) => {
+    const teams = {} as Teams;
+
+    value.forEach((result: QueryDocumentSnapshot) => {
+        const data: DocumentData = result.data();
+        const entry: Team = {
+            id: result.id,
+            name: data.name
+        };
+        teams[entry.id] = entry;
+    });
 
     console.log(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
 
@@ -74,7 +83,8 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
     });
 
   }).catch((error: any) => {
-    console.log(`Loading of teams from storage failed: ${error}`);
+      // TODO: Dispatch error?
+      console.log(`Loading of teams from storage failed: ${error}`);
   });
 };
 
@@ -92,23 +102,15 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 };
 
 // Saves the new team in local storage, before adding to the store
-export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
-  // TODO: Duplicating logic here from that in reducers to add team to state?
-  const teamState = getState().team;
-  const teams = (teamState && teamState.teams) ? teamState.teams : {};
-
-  teams[newTeam.id] = newTeam;
-
-  const collection = firestore.collection('teams');
-  // collection.doc(newTeam.id).set(newTeam).then(() => {
-  collection.add(newTeam).then(() => {
-    console.log('doc added');
-    return set(KEY_TEAMS, teams);
-  }).then(() => {
-    console.log('set done');
+export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch) => {
+  const collection = firestore.collection(KEY_TEAMS);
+  collection.add(newTeam).then((doc: DocumentReference) => {
+    console.log(`doc added: ${doc.id}`);
+    newTeam.id = doc.id;
     dispatch(addTeam(newTeam));
     console.log('dispatch done');
   }).catch((error: any) => {
+    // TODO: Dispatch error?
     console.log(`Storage of ${newTeam} failed: ${error}`);
   });
 };
