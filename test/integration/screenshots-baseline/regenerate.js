@@ -12,7 +12,9 @@ const puppeteer = require('puppeteer');
 const {startServer} = require('polyserve');
 const path = require('path');
 const fs = require('fs');
+
 const baselineDir = `${process.cwd()}/test/integration/screenshots-baseline`;
+const firebaseScriptRegex = new RegExp(/(http:\/\/\d+\.\d+\.\d+\.\d+:\d+\/)?__\/firebase\/\d+\.\d+\.\d+(\/.+)/);
 
 describe('🎁 regenerate screenshots', function() {
   let polyserve, browser, page;
@@ -38,6 +40,18 @@ describe('🎁 regenerate screenshots', function() {
   beforeEach(async function() {
     browser = await puppeteer.launch();
     page = await browser.newPage();
+
+    // Override url for Firebase scripts
+    await page.setRequestInterception(true);
+    page.on('request', request => {
+      const scriptMatch = firebaseScriptRegex.exec(request.url());
+      if (!scriptMatch) {
+        request.continue();
+        return;
+      }
+      const url = scriptMatch[1] + 'node_modules/firebase' + scriptMatch[2];
+      request.continue({ url });
+    });
   });
 
   afterEach(() => browser.close());
