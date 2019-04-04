@@ -1,15 +1,10 @@
 import * as actions from '@app/actions/team';
 import { Player, Roster, Team, Teams } from '@app/models/team';
-import { get, set } from 'idb-keyval';
 import { firestore } from '@app/firebase';
 import { collectionMock, collectionData } from '../helpers/mock_firestore';
 
 jest.mock('@app/firebase');
 firestore.collection = collectionMock;
-
-jest.mock('idb-keyval');
-const mockedGet = <jest.Mock<typeof get>>get;
-const mockedSet = <jest.Mock<typeof set>>set;
 
 const KEY_TEAMS = 'teams';
 
@@ -20,7 +15,6 @@ describe('getTeams', () => {
   };
 
   beforeEach(() => {
-      mockedGet.mockReset();
   });
 
   it('should return a function to dispatch the getTeams action', () => {
@@ -148,10 +142,6 @@ describe('saveTeam', () => {
         id: 'nt1', name: 'New team 1'
     };
 
-    beforeEach(() => {
-        mockedSet.mockReset();
-    });
-
     it('should return a function to dispatch the action', () => {
         expect(typeof actions.saveTeam()).toBe('function');
     });
@@ -159,8 +149,6 @@ describe('saveTeam', () => {
     it('should dispatch an action to add team', async () => {
         const dispatchMock = jest.fn();
         const getStateMock = jest.fn();
-        // Set any resolved value, so that set() promise will actually resolve.
-        mockedSet.mockResolvedValue({});
 
         actions.saveTeam(newTeam)(dispatchMock, getStateMock, undefined);
 
@@ -306,9 +294,7 @@ describe('savePlayer', () => {
     };
 
     beforeEach(() => {
-        mockedSet.mockReset();
     });
-
 
     it('should return a function to dispatch the action', () => {
         expect(typeof actions.savePlayer()).toBe('function');
@@ -325,8 +311,6 @@ describe('savePlayer', () => {
                 }
             };
         });
-        // Set any resolved value, so that set() promise will actually resolve.
-        mockedSet.mockResolvedValue({});
 
         actions.savePlayer(newPlayer)(dispatchMock, getStateMock, undefined);
 
@@ -358,7 +342,6 @@ describe('savePlayer', () => {
                 }
             };
         });
-        mockedSet.mockRejectedValue(new Error('Some error'));
 
         actions.savePlayer(newPlayer)(dispatchMock, getStateMock, undefined);
 
