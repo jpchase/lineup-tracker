@@ -18,7 +18,8 @@
         "firefox": [
           "-headless"
         ]
-      }
+      },
+      "skipSeleniumInstall": true
     }
   }
 }
