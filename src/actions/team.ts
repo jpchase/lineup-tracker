@@ -93,10 +93,16 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
     return;
   }
   const state = getState();
-  // Verify that the team id is unique.
+  // Verify that the team name is unique.
   const teamState = state.team!;
-  if (teamState.teams && teamState.teams[newTeam.id]) {
-    return;
+  if (teamState.teams) {
+      const hasMatch = Object.keys(teamState.teams).some((key) => {
+          const team = teamState.teams[key];
+          return (team.name.localeCompare(newTeam.name, undefined, {sensitivity: 'base'}) == 0);
+      });
+      if (hasMatch) {
+          return;
+      }
   }
   dispatch(saveTeam(newTeam));
 };

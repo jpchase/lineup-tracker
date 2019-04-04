@@ -8,11 +8,20 @@ firestore.collection = collectionMock;
 
 const KEY_TEAMS = 'teams';
 
+// New team created by the UI does not have an ID until added to storage.
+const newTeam: Team = {
+    id: '', name: 'New team 1'
+};
+const newTeamSaved: Team = {
+  // TODO: Changed id to 'nt1', when supported by collection mocking;
+    id: 'theId', name: newTeam.name
+};
+
+const storedTeam: Team = {
+    id: 'st1', name: 'Stored team 1'
+};
 
 describe('getTeams', () => {
-  const storedTeam: Team = {
-      id: 'st1', name: 'Stored team 1'
-  };
 
   beforeEach(() => {
   });
@@ -79,10 +88,6 @@ describe('getTeams', () => {
 });
 
 describe('addNewTeam', () => {
-  const newTeam: Team = {
-    id: 'nt1', name: 'New team 1'
-  };
-
   it('should return a function to dispatch the action', () => {
     expect(typeof actions.addNewTeam()).toBe('function');
   });
@@ -121,7 +126,7 @@ describe('addNewTeam', () => {
     const dispatchMock = jest.fn();
     const getStateMock = jest.fn(() => {
       const teamData: Teams = {};
-      teamData[newTeam.id] = newTeam;
+      teamData[newTeamSaved.id] = newTeamSaved;
       return {
         team: {
           teams: teamData
@@ -138,9 +143,6 @@ describe('addNewTeam', () => {
 });
 
 describe('saveTeam', () => {
-    const newTeam: Team = {
-        id: 'nt1', name: 'New team 1'
-    };
 
     it('should return a function to dispatch the action', () => {
         expect(typeof actions.saveTeam()).toBe('function');
@@ -183,10 +185,6 @@ describe('saveTeam', () => {
 });
 
 describe('addTeam', () => {
-  const newTeam: Team = {
-    id: 'nt1', name: 'New team 1'
-  };
-
   it('should return a function to dispatch the addTeam action', () => {
     expect(typeof actions.addTeam()).toBe('function');
   });
@@ -199,7 +197,7 @@ describe('addTeam', () => {
 
     expect(dispatchMock).toBeCalledWith(expect.objectContaining({
       type: actions.ADD_TEAM,
-      team: newTeam,
+      team: newTeamSaved,
     }));
   });
 

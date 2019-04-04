@@ -72,8 +72,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           const display = getComputedStyle(dialog, null).display;
           assert.equal(display, 'block', 'Dialog display');
 
-          assert.isOk(el.shadowRoot.querySelector('paper-dialog paper-input#team-id'), 'ID field');
-
           assert.isOk(el.shadowRoot.querySelector('paper-dialog paper-input#team-name'), 'name field');
         });
 
@@ -84,9 +82,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           await sleep(0);
 
           assert.isTrue(el.opened, 'should be opened');
-
-          const idField = el.shadowRoot.querySelector('paper-dialog paper-input#team-id');
-          idField.value = 'cancelId01';
 
           const nameField = el.shadowRoot.querySelector('paper-dialog paper-input#team-name');
           nameField.value = 'Cancel team 01'
@@ -113,11 +108,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           assert.isTrue(el.opened, 'should be opened');
 
-          const idField = el.shadowRoot.querySelector('paper-dialog paper-input#team-id');
-          idField.value = 'newId01';
-
           const nameField = el.shadowRoot.querySelector('paper-dialog paper-input#team-name');
-          nameField.value = 'Club team 01'
+          nameField.value = ' Club team 01 '
 
           let eventFired = false;
           let newTeam = null;
@@ -144,7 +136,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           assert.deepEqual(newTeam,
             {
-              id: 'newId01',
+              id: '',
               name: 'Club team 01'
             });
         });

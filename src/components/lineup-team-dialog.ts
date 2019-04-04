@@ -39,8 +39,6 @@ export class LineupTeamDialog extends LitElement {
       </style>
       <paper-dialog id="teams-dialog" modal @opened-changed="${this._onOpenedChanged}">
         <h2>Add new team</h2>
-        <paper-input id="team-id" label="Team ID">
-        </paper-input>
         <paper-input id="team-name" label="Team Name">
         </paper-input>
         <div class="buttons">
@@ -93,11 +91,10 @@ export class LineupTeamDialog extends LitElement {
 
     console.log('actually closed');
 
-    const idField = this.shadowRoot!.querySelector('paper-dialog paper-input#team-id') as PaperInputElement;
     const nameField = this.shadowRoot!.querySelector('paper-dialog paper-input#team-name') as PaperInputElement;
     const newTeam: Team = {
-      id: idField.value!,
-      name: nameField.value!
+      id: '',
+      name: nameField.value!.trim()
     };
 
     // This event will be handled by lineup-app.
