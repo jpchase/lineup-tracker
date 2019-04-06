@@ -1,6 +1,7 @@
 const setMock = jest.fn(() => { return Promise.resolve(); });
 const docMock = jest.fn(() => {
   return {
+    id: 'theId',
     set: setMock
   };
 });

@@ -109,16 +109,13 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 
 // Saves the new team in local storage, before adding to the store
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch) => {
-  const collection = firestore.collection(KEY_TEAMS);
-  collection.add(newTeam).then((doc: DocumentReference) => {
-    console.log(`doc added: ${doc.id}`);
+    const collection = firestore.collection(KEY_TEAMS);
+    const doc: DocumentReference = collection.doc();
+    console.log(`blank doc added: ${doc.id}`);
+    doc.set(newTeam);
     newTeam.id = doc.id;
     dispatch(addTeam(newTeam));
     console.log('dispatch done');
-  }).catch((error: any) => {
-    // TODO: Dispatch error?
-    console.log(`Storage of ${newTeam} failed: ${error}`);
-  });
 };
 
 export const addTeam: ActionCreator<ThunkResult> = (team: Team) => (dispatch) => {

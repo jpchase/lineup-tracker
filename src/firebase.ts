@@ -13,10 +13,25 @@ const config = {
 firebase.initializeApp(config);
 
 const firestore = firebase.firestore();
+
 const settings = {
   timestampsInSnapshots: true,
 };
 firestore.settings(settings);
+firestore.enablePersistence()
+    .catch(function(err: any) {
+        if (err.code == 'failed-precondition') {
+            // Multiple tabs open, persistence can only be enabled
+            // in one tab at a a time.
+            // ...
+            console.log('Multiple tabs open, offline storage not available');
+        } else if (err.code == 'unimplemented') {
+            // The current browser does not support all of the
+            // features required to enable persistence
+            // ...
+            console.log('Offline storage not supported');
+        }
+    });
 
 export default firebase;
 
