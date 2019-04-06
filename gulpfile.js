@@ -8,11 +8,13 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
+const fs = require('fs');
 const gulp = require('gulp');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
 const del = require('del');
 const spawn = require('child_process').spawn;
+const superstatic = require('superstatic').server;
 
 /**
  * Cleans the prpl-server build in the server directory.
@@ -44,15 +46,39 @@ gulp.task('prpl-server', gulp.series(
 ));
 
 /**
- * Gulp task to run `tsc --watch` and `polymer serve` in parallel.
+ * Gulp task to run equivalent of `firebase serve`.
  */
 gulp.task('serve', () => {
-  const spawnOptions = {
-    // `shell` option for Windows compatability. See:
-    // https://nodejs.org/api/child_process.html#child_process_spawning_bat_and_cmd_files_on_windows
-    shell: true,
-    stdio: 'inherit'
+  const firebaseJson = JSON.parse(fs.readFileSync('./firebase.json', 'utf8'));
+
+  // Customize the firebase hosting config:
+  //  - Add rewrites to serve the firebase SDK scripts from node_modules. This
+  //    allows local serving when offline.
+  const config = { ...firebaseJson.hosting };
+  config.rewrites.push({
+    source: '/__/firebase/5.7.2/firebase-app.js',
+    destination: `node_modules/firebase/firebase-app.js`
+  });
+  config.rewrites.push({
+    source: '/__/firebase/5.7.2/firebase-auth.js',
+    destination: `node_modules/firebase/firebase-auth.js`
+  });
+  config.rewrites.push({
+    source: '/__/firebase/5.7.2/firebase-firestore.js',
+    destination: `node_modules/firebase/firebase-firestore.js`
+  });
+
+  const options = {
+    port: 5000,
+    cwd: __dirname,
+    config: config,
+    compression: true,
+    debug: true
   };
-  spawn('tsc', ['--watch'], spawnOptions);
-  spawn('polymer', ['serve'], spawnOptions);
+
+  const serve = superstatic(options);
+  serve.listen(function(err) {
+    if (err) { console.log(err); }
+    console.log(`Superstatic now serving on port ${options.port} ...`);
+  });
 });

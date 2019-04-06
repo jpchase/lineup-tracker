@@ -9,6 +9,9 @@
     "manifest.json",
     "node_modules/@webcomponents/webcomponentsjs/**",
     "node_modules/web-animations-js/web-animations-next-lite.min.js",
+    "node_modules/firebase/firebase-app.js",
+    "node_modules/firebase/firebase-auth.js",
+    "node_modules/firebase/firebase-firestore.js",
     "push-manifest.json"
   ],
   "builds": [

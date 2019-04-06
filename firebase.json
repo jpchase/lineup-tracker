@@ -1,13 +1,13 @@
 {
   "hosting": {
-    "public": "build/deploy", // "build/es5-bundled/",
+    "public": "build/deploy",
     "rewrites": [
       {
         "source": "**/!(*.*)",
         "destination": "/index.html"
       }
     ],
-     "headers": [
+    "headers": [
       {
         "source":"/service-worker.js",
         "headers": [

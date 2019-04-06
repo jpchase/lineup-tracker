@@ -59,6 +59,7 @@
     "polyserve": "^0.27.0",
     "prpl-server": "^1.2.0",
     "puppeteer": "^1.5.0",
+    "superstatic": "^6.0.4",
     "ts-jest": "^23.10.5",
     "typescript": "^3.3.3333",
     "wct-browser-legacy": "^1.0.1"
