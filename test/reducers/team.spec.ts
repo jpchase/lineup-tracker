@@ -1,5 +1,5 @@
 import { Roster, Team, Teams } from '@app/models/team';
-import { ADD_TEAM, GET_ROSTER, GET_TEAMS } from '@app/actions/team';
+import { ADD_TEAM, CHANGE_TEAM, GET_ROSTER, GET_TEAMS } from '@app/actions/team';
 import team from '@app/reducers/team';
 import { TeamState } from '@app/reducers/team';
 import { getFakeAction } from '../helpers/test_data';
@@ -41,6 +41,31 @@ describe('Teams reducer', () => {
 
     expect(newState).not.toBe(TEAM_INITIAL_STATE);
     expect(newState.teams).not.toBe(TEAM_INITIAL_STATE.teams);
+  });
+
+  it('should handle CHANGE_TEAM', () => {
+    const state = {
+      ...TEAM_INITIAL_STATE,
+      teams: {} as Teams
+    } as TeamState;
+    state.teams[existingTeam.id] = existingTeam;
+    state.teams[newTeam.id] = newTeam;
+    state.teamId = existingTeam.id;
+    state.teamName = existingTeam.name;
+
+    const newState = team(state, {
+      type: CHANGE_TEAM,
+      teamId: newTeam.id
+    });
+
+    expect(newState).toEqual(expect.objectContaining({
+      teamId: newTeam.id,
+      teamName: newTeam.name
+    }));
+
+    expect(newState).not.toBe(state);
+    expect(newState.teamId).not.toBe(state.teamId);
+    expect(newState.teamName).not.toBe(state.teamName);
   });
 
   it('should handle ADD_TEAM with empty teams', () => {

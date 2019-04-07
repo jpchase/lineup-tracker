@@ -10,15 +10,17 @@ import { firestore } from "../firebase";
 import { DocumentData, DocumentReference, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_TEAM = 'ADD_TEAM';
+export const CHANGE_TEAM = 'CHANGE_TEAM';
 export const GET_TEAMS = 'GET_TEAMS';
 export const GET_ROSTER = 'GET_ROSTER';
 export const ADD_PLAYER = 'ADD_PLAYER';
 
 export interface TeamActionAddTeam extends Action<'ADD_TEAM'> { team: Team };
+export interface TeamActionChangeTeam extends Action<'CHANGE_TEAM'> { teamId: string };
 export interface TeamActionGetTeams extends Action<'GET_TEAMS'> { teams: Teams };
 export interface TeamActionGetRoster extends Action<'GET_ROSTER'> { roster: Roster };
 export interface TeamActionAddPlayer extends Action<'ADD_PLAYER'> { player: Player };
-export type TeamAction = TeamActionAddTeam | TeamActionGetTeams | TeamActionGetRoster | TeamActionAddPlayer;
+export type TeamAction = TeamActionAddTeam | TeamActionChangeTeam | TeamActionGetTeams | TeamActionGetRoster | TeamActionAddPlayer;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
@@ -85,6 +87,26 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
   }).catch((error: any) => {
       // TODO: Dispatch error?
       console.log(`Loading of teams from storage failed: ${error}`);
+  });
+};
+
+export const changeTeam: ActionCreator<ThunkResult> = (teamId: string) => (dispatch, getState) => {
+  if (!teamId) {
+    return;
+  }
+  const state = getState();
+  // Verify that the team id exists.
+  const teamState = state.team!;
+  if (!teamState.teams || !teamState.teams[teamId]) {
+    return;
+  }
+  // Only change if different from the current team.
+  if (teamState.teamId === teamId) {
+    return;
+  }
+  dispatch({
+    type: CHANGE_TEAM,
+    teamId
   });
 };
 

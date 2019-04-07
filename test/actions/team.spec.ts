@@ -21,6 +21,22 @@ const storedTeam: Team = {
     id: 'st1', name: 'Stored team 1'
 };
 
+function mockGetState(teams: Team[], currentTeam?: Team) {
+  return jest.fn(() => {
+    const teamData = teams.reduce((obj, team) => {
+      obj[team.id] = team;
+      return obj;
+    }, {} as Teams);
+    return {
+      team: {
+        teamId: currentTeam ? currentTeam.id : undefined,
+        teamName: currentTeam ? currentTeam.name : undefined,
+        teams: teamData
+      }
+    };
+  });
+}
+
 describe('getTeams', () => {
 
   beforeEach(() => {
@@ -85,6 +101,59 @@ describe('getTeams', () => {
         expect(dispatchMock).not.toBeCalled();
     });
 
+});
+
+describe('changeTeam', () => {
+  it('should return a function to dispatch the action', () => {
+    expect(typeof actions.changeTeam()).toBe('function');
+  });
+
+  it('should do nothing if no teams exist', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = mockGetState([]);
+
+    actions.changeTeam(storedTeam.id)(dispatchMock, getStateMock, undefined);
+
+    expect(getStateMock).toBeCalled();
+
+    expect(dispatchMock).not.toBeCalled();
+  });
+
+  it('should do nothing if team id does not exist', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = mockGetState([storedTeam]);
+
+    actions.changeTeam('nosuchid')(dispatchMock, getStateMock, undefined);
+
+    expect(getStateMock).toBeCalled();
+
+    expect(dispatchMock).not.toBeCalled();
+  });
+
+  it('should do nothing if team id already set as current team', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = mockGetState([storedTeam], storedTeam);
+
+    actions.changeTeam(storedTeam.id)(dispatchMock, getStateMock, undefined);
+
+    expect(getStateMock).toBeCalled();
+
+    expect(dispatchMock).not.toBeCalled();
+  });
+
+  it('should dispatch an action to change the selected team', () => {
+    const dispatchMock = jest.fn();
+    const getStateMock = mockGetState([storedTeam, newTeamSaved], storedTeam);
+
+    actions.changeTeam(newTeamSaved.id)(dispatchMock, getStateMock, undefined);
+
+    expect(getStateMock).toBeCalled();
+
+    expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      type: actions.CHANGE_TEAM,
+      teamId: newTeamSaved.id,
+    }));
+  });
 });
 
 describe('addNewTeam', () => {
