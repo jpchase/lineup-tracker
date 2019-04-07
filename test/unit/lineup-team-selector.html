@@ -68,6 +68,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(firstTeam.textContent, teams[0].name, 'Team name');
         });
 
+        test('fires event when team selected', async function() {
+          const teams = [{
+            id: 't1',
+            name: 'First team',
+          }];
+          el.teams = teams;
+          await el.updateComplete;
+
+          let eventFired = false;
+          let eventTeamId = null;
+          const handler = function(event) {
+            eventFired = true;
+            eventTeamId = event.detail.teamId;
+            window.removeEventListener('team-changed', handler);
+          };
+
+          window.addEventListener('team-changed', handler);
+
+          const list = el.shadowRoot.querySelector('paper-dropdown-menu paper-listbox')
+          list.select(teams[0].id);
+
+          await 0;
+          assert.isTrue(eventFired, 'Event team-changed should be fired');
+          assert.deepEqual(eventTeamId, teams[0].id);
+        });
+
         test('renders item to add new team when empty', async function() {
           await el.updateComplete;
           const items = getItems();

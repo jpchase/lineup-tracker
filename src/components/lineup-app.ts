@@ -33,7 +33,7 @@ import {
   updateDrawerState
 } from '../actions/app.js';
 import { getUser, signIn } from '../actions/auth.js';
-import { addNewTeam, getTeams } from '../actions/team.js';
+import { addNewTeam, changeTeam, getTeams } from '../actions/team.js';
 
 // The following line imports the type only - it will be removed by tsc so
 // another import for app-drawer.js is required below.
@@ -257,6 +257,7 @@ class LineupApp extends connect(store)(LitElement) {
         <div main-title>${this.appTitle}</div>
         <div class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
           <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
+                                @team-changed="${this._teamChanged}"
                                 @add-new-team="${this._addNewTeam}">
           </lineup-team-selector>
           <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
@@ -383,6 +384,10 @@ class LineupApp extends connect(store)(LitElement) {
         }
         // store.dispatch(this._user && this._user.imageUrl ? signOut() : signIn());
     }
+
+  private _teamChanged(e: CustomEvent) {
+    store.dispatch(changeTeam(e.detail.teamId));
+  }
 
   private _newTeamCreated(e: CustomEvent) {
     store.dispatch(addNewTeam(e.detail.team));

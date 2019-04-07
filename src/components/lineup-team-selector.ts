@@ -89,8 +89,19 @@ class LineupTeamSelector extends LitElement {
   }
 
   private _onIronSelect(e: CustomEvent) {
-    if (e.detail.item && e.detail.item.hasAttribute('addNew')) {
+    if (!e.detail.item) {
+      return;
+    }
+
+    if (e.detail.item.hasAttribute('addNew')) {
       this.dispatchEvent(new CustomEvent('add-new-team', {bubbles: true}));
+    } else {
+      this.dispatchEvent(new CustomEvent('team-changed', {
+        bubbles: true,
+        detail: {
+          teamId: e.detail.item.getAttribute('id')
+        }
+      }));
     }
   }
 
