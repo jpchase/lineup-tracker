@@ -18,10 +18,6 @@ const fixtureData = {
         }
     }
 };
-const mockFirebase = new MockFirebase(fixtureData);
-firebaseRef.firestore.mockImplementation(() => {
-  return mockFirebase.firestore();
-});
 
 const KEY_TEAMS = 'teams';
 
@@ -55,6 +51,17 @@ function mockGetState(teams: Team[], currentTeam?: Team) {
     };
   });
 }
+
+describe('Team actions', () => {
+  const mockFirebase = new MockFirebase(fixtureData);
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+
+    firebaseRef.firestore.mockImplementation(() => {
+      return mockFirebase.firestore();
+    });
+  });
 
 describe('getTeams', () => {
   it('should return a function to dispatch the getTeams action', () => {
@@ -442,3 +449,5 @@ describe('addPlayer', () => {
   });
 
 });
+
+}); // describe('Team actions')
