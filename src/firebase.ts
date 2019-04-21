@@ -2,7 +2,7 @@ import * as firebase_app from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 
-export const firebase = (window as any)['firebase'] || firebase_app;
+export const firebaseRef = (window as any)['firebase'] || firebase_app;
 
 // Initialize Firebase
 const config = {
@@ -10,9 +10,9 @@ const config = {
   authDomain: "resplendent-fire-4542.firebaseapp.com",
   projectId: "resplendent-fire-4542",
 };
-firebase.initializeApp(config);
+firebaseRef.initializeApp(config);
 
-const firestore = firebase.firestore();
+const firestore = firebaseRef.firestore();
 
 const settings = {
   timestampsInSnapshots: true,
@@ -33,11 +33,7 @@ firestore.enablePersistence()
         }
     });
 
-export default firebase;
+export default firebaseRef;
 
-export const authRef: firebase.auth.Auth = firebase.auth() as firebase.auth.Auth;
-export const provider = new firebase.auth.GoogleAuthProvider();
-
-export {
-  firestore,
-};
+export const authRef: firebase.auth.Auth = firebaseRef.auth() as firebase.auth.Auth;
+export const provider = new firebaseRef.auth.GoogleAuthProvider();

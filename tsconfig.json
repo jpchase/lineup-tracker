@@ -16,7 +16,8 @@
     }
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "test/helpers/mock-cloud-firestore.d.ts"
   ],
   "exclude": [],
 }

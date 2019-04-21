@@ -6,7 +6,7 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store.js';
 import { Player, Roster, Team, Teams } from '../models/team.js';
-import { firestore } from "../firebase";
+import { firebaseRef } from "../firebase";
 import { DocumentData, DocumentReference, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_TEAM = 'ADD_TEAM';
@@ -65,7 +65,8 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
   // succesfully got the data back)
 
   // You could reformat the data in the right format as well:
-  firestore.collection(KEY_TEAMS).get().then((value: QuerySnapshot) => {
+  // TODO: Add try/catch for firestore/collection/get calls?
+  firebaseRef.firestore().collection(KEY_TEAMS).get().then((value: QuerySnapshot) => {
     const teams = {} as Teams;
 
     value.forEach((result: QueryDocumentSnapshot) => {
@@ -131,7 +132,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 
 // Saves the new team in local storage, before adding to the store
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch) => {
-    const collection = firestore.collection(KEY_TEAMS);
+    const collection = firebaseRef.firestore().collection(KEY_TEAMS);
     const doc: DocumentReference = collection.doc();
     console.log(`blank doc added: ${doc.id}`);
     doc.set(newTeam);

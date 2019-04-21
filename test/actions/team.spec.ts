@@ -1,20 +1,39 @@
 import * as actions from '@app/actions/team';
 import { Player, Roster, Team, Teams } from '@app/models/team';
-import { firestore } from '@app/firebase';
-import { collectionMock, collectionData } from '../helpers/mock_firestore';
+import { firebaseRef } from '@app/firebase';
+import { Query, QuerySnapshot } from '@firebase/firestore-types';
+/// <reference path="mock-cloud-firestore.d.ts" />
+import * as MockFirebase from 'mock-cloud-firestore';
 
 jest.mock('@app/firebase');
-firestore.collection = collectionMock;
+
+const fixtureData = {
+    __collection__: {
+        teams: {
+            __doc__: {
+                st1: {
+                    name: 'Stored team 1'
+                },
+            }
+        }
+    }
+};
+const mockFirebase = new MockFirebase(fixtureData);
+firebaseRef.firestore.mockImplementation(() => {
+  return mockFirebase.firestore();
+});
 
 const KEY_TEAMS = 'teams';
 
 // New team created by the UI does not have an ID until added to storage.
-const newTeam: Team = {
-    id: '', name: 'New team 1'
-};
+function getNewTeam(): Team {
+    return {
+        id: '', name: 'New team 1'
+    };
+}
 const newTeamSaved: Team = {
   // TODO: Changed id to 'nt1', when supported by collection mocking;
-    id: 'theId', name: newTeam.name
+    id: 'theId', name: getNewTeam().name
 };
 
 const storedTeam: Team = {
@@ -38,45 +57,21 @@ function mockGetState(teams: Team[], currentTeam?: Team) {
 }
 
 describe('getTeams', () => {
-
-  beforeEach(() => {
-  });
-
   it('should return a function to dispatch the getTeams action', () => {
     expect(typeof actions.getTeams()).toBe('function');
   });
 
-  it('should dispatch an action to get the list of teams', async () => {
-    const dispatchMock = jest.fn();
-    const getStateMock = jest.fn();
-
-    actions.getTeams()(dispatchMock, getStateMock, undefined);
-
-    // Waits for promises to resolve.
-    await Promise.resolve();
-
-    expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-      type: actions.GET_TEAMS,
-      teams: expect.anything(),
-    }));
-  });
-
-  it('should dispatch an action with the teams returned from get() from storage', async () => {
+  it('should dispatch an action with the teams returned from storage', async () => {
       const dispatchMock = jest.fn();
       const getStateMock = jest.fn();
 
       const teamData: Teams = {};
       teamData[storedTeam.id] = storedTeam;
-      collectionData.getSnapshot = [storedTeam];
 
       actions.getTeams()(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
-
-      // Checks that get() was called to retrieve teams from storage.
-      expect(collectionMock).toHaveBeenCalledWith(KEY_TEAMS);
-      expect(collectionMock().get).toHaveBeenCalled();
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
           type: actions.GET_TEAMS,
@@ -84,19 +79,18 @@ describe('getTeams', () => {
       }));
   });
 
-    it('should not dispatch an action when get() fails', async () => {
+    it('should not dispatch an action when storage access fails', async () => {
         const dispatchMock = jest.fn();
         const getStateMock = jest.fn();
-        collectionMock().get.mockRejectedValue(new Error('Get failed with some error'));
 
-        actions.getTeams()(dispatchMock, getStateMock, undefined);
+        firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+
+        expect(() => {
+          actions.getTeams()(dispatchMock, getStateMock, undefined);
+        }).toThrow();
 
         // Waits for promises to resolve.
         await Promise.resolve();
-
-        // Checks that get() was called to retrieve teams from storage.
-        expect(collectionMock).toHaveBeenCalledWith(KEY_TEAMS);
-        expect(collectionMock().get).toHaveBeenCalled();
 
         expect(dispatchMock).not.toBeCalled();
     });
@@ -184,7 +178,7 @@ describe('addNewTeam', () => {
       };
     });
 
-    actions.addNewTeam(newTeam)(dispatchMock, getStateMock, undefined);
+    actions.addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
 
     expect(getStateMock).toBeCalled();
 
@@ -203,7 +197,7 @@ describe('addNewTeam', () => {
       };
     });
 
-    actions.addNewTeam(newTeam)(dispatchMock, getStateMock, undefined);
+    actions.addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
 
     expect(getStateMock).toBeCalled();
 
@@ -212,7 +206,6 @@ describe('addNewTeam', () => {
 });
 
 describe('saveTeam', () => {
-
     it('should return a function to dispatch the action', () => {
         expect(typeof actions.saveTeam()).toBe('function');
     });
@@ -221,39 +214,35 @@ describe('saveTeam', () => {
         const dispatchMock = jest.fn();
         const getStateMock = jest.fn();
 
-        actions.saveTeam(newTeam)(dispatchMock, getStateMock, undefined);
+        actions.saveTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
 
         // Waits for promises to resolve.
         await Promise.resolve();
 
-        // Checks that firestore set(doc) was called for new team.
-        expect(collectionMock).toHaveBeenCalledWith(KEY_TEAMS);
-        expect(collectionMock().doc).toHaveBeenCalled();
-        expect(collectionMock().doc().set).toHaveBeenCalledWith(expect.objectContaining(newTeam));
+        // Checks that the new team was saved to the database.
+        const query: Query = mockFirebase.firestore().collection(KEY_TEAMS).where('name', '==', newTeamSaved.name);
+        const result: QuerySnapshot = await query.get();
+        expect(result.size).toEqual(1);
 
         // Waits for promises to resolve.
         await Promise.resolve();
         expect(dispatchMock).toBeCalledWith(expect.any(Function));
     });
 
-/*
-    it('should not dispatch an action when storage set() fails', async () => {
+    it('should not dispatch an action when storage access fails', async () => {
         const dispatchMock = jest.fn();
         const getStateMock = jest.fn();
-        collectionMock().doc().set.mockImplementationOnce(() => { throw new Error('Set failed with some error'); });
+        firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
 
-        actions.saveTeam(newTeam)(dispatchMock, getStateMock, undefined);
+        expect(() => {
+          actions.saveTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
+        }).toThrow();
 
         // Waits for promises to resolve.
         await Promise.resolve();
 
-        // Checks that firestore set(doc) was called for new team.
-        expect(collectionMock).toHaveBeenCalledWith(KEY_TEAMS);
-        expect(collectionMock().doc().set).toHaveBeenCalledWith(expect.objectContaining(newTeam));
-
         expect(dispatchMock).not.toBeCalled();
     });
-    */
 });
 
 describe('addTeam', () => {
@@ -265,7 +254,7 @@ describe('addTeam', () => {
     const dispatchMock = jest.fn();
     const getStateMock = jest.fn();
 
-    actions.addTeam(newTeam)(dispatchMock, getStateMock, undefined);
+    actions.addTeam(newTeamSaved)(dispatchMock, getStateMock, undefined);
 
     expect(dispatchMock).toBeCalledWith(expect.objectContaining({
       type: actions.ADD_TEAM,
