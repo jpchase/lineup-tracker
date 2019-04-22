@@ -20,13 +20,10 @@ export interface TeamState {
   error: string;
 }
 
-const TEAM_U16A = { id: 'U16A', name: 'Wat U16A' };
-
-// TODO: Remove default U16A team data when have support for adding/editing teams.
 const INITIAL_STATE: TeamState = {
   teams: {},
-  teamId: TEAM_U16A.id,
-  teamName: TEAM_U16A.name,
+  teamId: '',
+  teamName: '',
   roster: {},
   error: ''
 };

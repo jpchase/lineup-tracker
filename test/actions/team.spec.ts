@@ -12,7 +12,20 @@ const fixtureData = {
         teams: {
             __doc__: {
                 st1: {
-                    name: 'Stored team 1'
+                    name: 'Stored team 1',
+
+                    __collection__: {
+                      roster: {
+                        __doc__: {
+                          sp1: {
+                              name: 'Stored player 1',
+                              uniformNumber: 5,
+                              positions: ['CB'],
+                              status: 'OFF'
+                          }
+                        }
+                      }
+                    }
                 },
             }
         }
@@ -272,22 +285,60 @@ describe('addTeam', () => {
 });
 
 describe('getRoster', () => {
+  const storedPlayer: Player = {
+    id: 'sp1', name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: 'OFF'
+  };
+
   it('should return a function to dispatch the getRoster action', () => {
     expect( typeof actions.getRoster() ).toBe('function');
   });
 
-  it('should dispatch an action to get the roster', () => {
+    it('should do nothing if team id is missing', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.getRoster()(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+  it('should dispatch an action with the roster returned from storage', async () => {
     const dispatchMock = jest.fn();
     const getStateMock = jest.fn();
 
-    actions.getRoster()(dispatchMock, getStateMock, undefined);
+    const rosterData: Roster = {};
+    rosterData[storedPlayer.id] = storedPlayer;
+
+    actions.getRoster(storedTeam.id)(dispatchMock, getStateMock, undefined);
+
+    // Waits for promises to resolve.
+    await Promise.resolve();
 
     expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.GET_ROSTER,
-        roster: expect.anything(),
-      }));
+      type: actions.GET_ROSTER,
+      roster: rosterData,
+    }));
   });
-});
+
+    it('should not dispatch an action when storage access fails', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+
+      expect(() => {
+        actions.getRoster(storedTeam.id)(dispatchMock, getStateMock, undefined);
+      }).toThrow();
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+}); // describe('getRoster')
 
 describe('addNewPlayer', () => {
   const storedPlayer: Player = {
