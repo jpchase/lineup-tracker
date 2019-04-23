@@ -3,18 +3,19 @@
 */
 
 import { Reducer } from 'redux';
+import { User } from '../models/auth.js';
 import {
   GET_USER
 } from '../actions/auth.js';
 import { RootAction } from '../store.js';
 
 export interface AuthState {
-  user: any;
+  user: User | undefined;
   error: string;
 }
 
 const INITIAL_STATE: AuthState = {
-  user: {},
+  user: undefined,
   error: ''
 };
 
