@@ -69,6 +69,12 @@
           assert.deepEqual(el.roster, {});
         });
 
+        test('shows no players placeholder for empty roster', function() {
+          assert.deepEqual(el.roster, {});
+          const placeholder = el.shadowRoot.querySelector('div p.empty-roster');
+          assert.isOk(placeholder, 'Missing empty placeholder element');
+        });
+
         for (const numPlayers of [1, 6]) {
           const testName = numPlayers === 1 ? 'single player' : `multiple players`;
           test(`renders list with ${testName}`, async function() {
@@ -77,7 +83,7 @@
             el.roster = roster;
             await el.updateComplete;
 
-            const items = el.shadowRoot.querySelectorAll('div lineup-roster-item');
+            const items = el.shadowRoot.querySelectorAll('div div div lineup-roster-item');
             assert.isOk(items, 'Missing items for players');
             assert.equal(items.length, numPlayers, 'Rendered player count');
           });
