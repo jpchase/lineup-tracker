@@ -354,9 +354,11 @@ class LineupApp extends connect(store)(LitElement) {
 
     window.addEventListener('new-team-created', this._newTeamCreated.bind(this) as EventListener);
 
-    // get authenticated user
-    store.dispatch(getUser());
-    store.dispatch(getTeams());
+    // Get the authenticated user (if signed in), and then load the teams for
+    // that user.
+    store.dispatch(getUser()).then(() => {
+      store.dispatch(getTeams());
+    });
   }
 
   protected updated(changedProps: PropertyValues) {

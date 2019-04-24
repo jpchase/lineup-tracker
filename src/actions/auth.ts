@@ -16,8 +16,15 @@ export interface AuthActionGetUser extends Action<'GET_USER'> { user: User };
 export type AuthAction = AuthActionGetUser;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AuthAction>;
+type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AuthAction>;
 
-export const getUser: ActionCreator<ThunkResult> = () => (dispatch) => {
+export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) => {
+  // Return a promise that resolves once the auth state is known, via callback.
+  let resolveFunc: Function;
+  const changedPromise = new Promise<boolean>((resolve) => {
+    resolveFunc = resolve;
+  });
+
     authRef.onAuthStateChanged((user: FirebaseUser | null) => {
         if (user) {
           console.log(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
@@ -25,14 +32,18 @@ export const getUser: ActionCreator<ThunkResult> = () => (dispatch) => {
                 type: GET_USER,
                 user: getUserFromFirebaseUser(user)
             });
+          resolveFunc(true);
         } else {
           console.log(`onAuthStateChanged: user = ${user}`);
           dispatch({
                 type: GET_USER,
                 user: {} as User
             });
+          resolveFunc(false);
         }
     });
+
+  return changedPromise;
 };
 
 export const signIn: ActionCreator<ThunkResult> = () => () => {
