@@ -16,6 +16,8 @@ import { SharedStyles } from './shared-styles.js';
 // This element is *not* connected to the Redux store.
 class LineupRosterItem extends LitElement {
   protected render() {
+    const player = this.player!;
+    const positions = player.positions || [];
     return html`
       ${SharedStyles}
       <style>
@@ -33,10 +35,10 @@ class LineupRosterItem extends LitElement {
         }
       </style>
       <paper-icon-item>
-        <span class="avatar" slot="item-icon">&#35${this.player!.uniformNumber}</span>
+        <span class="avatar" slot="item-icon">&#35${player.uniformNumber}</span>
         <paper-item-body two-line>
           <div class="flex-equal-justified">
-            <div>${this.player!.name}</div>
+            <div>${player.name}</div>
             <div>
               ${this.isGame
                   ? html`actions here`
@@ -44,7 +46,7 @@ class LineupRosterItem extends LitElement {
               }
             </div>
           </div>
-          <div secondary>${this.player!.positions.join(', ')}</div>
+          <div secondary>${positions.join(', ')}</div>
         </paper-item-body>
       </paper-icon-item>
     `;
