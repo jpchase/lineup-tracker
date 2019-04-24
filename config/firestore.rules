@@ -3,19 +3,31 @@ service cloud.firestore {
     function signedIn() {
       return request.auth != null && request.auth.uid != null;
     }
-    function owner() {
-      return request.auth != null && request.auth.uid == resource.data.owner_uid;
+    function owner(res) {
+      return request.auth != null && request.auth.uid == res.data.owner_uid;
     }
 
     // True if the user is the owner or the requested data is 'public'
-    function ownerOrPublic() {
-      return owner() || resource.data.public == true;
+    function ownerOrPublic(res) {
+      return owner(res) || res.data.public == true;
+    }
+
+    match /teams/{team} {
+      allow read: if ownerOrPublic(resource);
+      allow create: if signedIn();
+      allow update: if owner(resource);
+      allow delete: if false;
+
+      match /roster/{player} {
+        allow read: if ownerOrPublic(get(/databases/$(database)/documents/teams/$(team)));
+        allow update: if owner(get(/databases/$(database)/documents/teams/$(team)));
+      }
     }
 
     match /{document=**} {
-      allow read: if ownerOrPublic();
+      allow read: if ownerOrPublic(resource);
       allow create: if signedIn();
-      allow update: if owner();
+      allow update: if owner(resource);
       allow delete: if false;
     }
   }
