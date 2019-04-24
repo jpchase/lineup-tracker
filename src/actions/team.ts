@@ -7,7 +7,7 @@ import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store.js';
 import { Player, Roster, Team, Teams } from '../models/team.js';
 import { firebaseRef } from "../firebase";
-import { DocumentData, DocumentReference, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
+import { CollectionReference, DocumentData, DocumentReference, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_TEAM = 'ADD_TEAM';
 export const CHANGE_TEAM = 'CHANGE_TEAM';
@@ -26,10 +26,28 @@ type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
 const KEY_TEAMS = 'teams';
 const KEY_ROSTER = 'roster';
+const FIELD_OWNER = 'owner_uid';
+const FIELD_PUBLIC = 'public';
 
-export const getTeams: ActionCreator<ThunkResult> = () => (dispatch) => {
+function getTeamsCollection(): CollectionReference {
+  return firebaseRef.firestore().collection(KEY_TEAMS);
+}
+
+export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
   // TODO: Add try/catch for firestore/collection/get calls?
-  firebaseRef.firestore().collection(KEY_TEAMS).get().then((value: QuerySnapshot) => {
+  let query: Query = getTeamsCollection();
+  // Show the user's teams, when signed in. Otherwise, only show public data.
+  // TODO: Extract into helper function somewhere?
+  const currentUser = getState().auth!.user;
+  if (currentUser && currentUser.id) {
+      console.log(`Get teams for owner = ${JSON.stringify(currentUser)}`);
+    query = query.where(FIELD_OWNER, '==', currentUser.id);
+  } else {
+      console.log(`Get public teams`);
+    query = query.where(FIELD_PUBLIC, '==', true);
+  }
+
+  query.get().then((value: QuerySnapshot) => {
     const teams = {} as Teams;
 
     value.forEach((result: QueryDocumentSnapshot) => {
@@ -95,7 +113,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 
 // Saves the new team in local storage, before adding to the store
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch) => {
-    const collection = firebaseRef.firestore().collection(KEY_TEAMS);
+    const collection = getTeamsCollection();
     const doc: DocumentReference = collection.doc();
     doc.set(newTeam);
     newTeam.id = doc.id;

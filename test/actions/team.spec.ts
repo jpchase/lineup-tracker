@@ -7,12 +7,28 @@ import * as MockFirebase from 'mock-cloud-firestore';
 
 jest.mock('@app/firebase');
 
+interface MockGetStateOptions {
+  signedIn?: boolean;
+  userId?: string;
+}
+
+const TEST_USER_ID = 'U1234';
+
+function getPublicTeamData() {
+  return { name: 'Public team 1' }
+};
+
+function getPublicTeam(): Team {
+  return { id: 'pt1', ...getPublicTeamData() }
+};
+
 const fixtureData = {
     __collection__: {
         teams: {
             __doc__: {
                 st1: {
                     name: 'Stored team 1',
+                    owner_uid: TEST_USER_ID,
 
                     __collection__: {
                       roster: {
@@ -22,6 +38,23 @@ const fixtureData = {
                               uniformNumber: 5,
                               positions: ['CB'],
                               status: 'OFF'
+                          }
+                        }
+                      }
+                    }
+                },
+                pt1: {
+                    ...getPublicTeamData(),
+                    public: true,
+
+                    __collection__: {
+                      roster: {
+                        __doc__: {
+                          pp1: {
+                            name: 'Public player 1',
+                            uniformNumber: 5,
+                            positions: ['CB'],
+                            status: 'OFF'
                           }
                         }
                       }
@@ -49,13 +82,27 @@ const storedTeam: Team = {
     id: 'st1', name: 'Stored team 1'
 };
 
-function mockGetState(teams: Team[], currentTeam?: Team) {
+function buildTeams(teams: Team[]): Teams {
+  return teams.reduce((obj, team) => {
+    obj[team.id] = team;
+    return obj;
+  }, {} as Teams);
+}
+
+function mockGetState(teams: Team[], currentTeam?: Team, options?: MockGetStateOptions) {
   return jest.fn(() => {
-    const teamData = teams.reduce((obj, team) => {
-      obj[team.id] = team;
-      return obj;
-    }, {} as Teams);
+    const teamData = buildTeams(teams);
+
+    // TODO: extract into test helper method?
+    let mockAuth: any = { user: undefined };
+    if (options && options.signedIn) {
+        mockAuth.user = {
+          id: options.userId,
+          name: 'Some user'
+        };
+    }
     return {
+      auth: mockAuth,
       team: {
         teamId: currentTeam ? currentTeam.id : undefined,
         teamName: currentTeam ? currentTeam.name : undefined,
@@ -81,12 +128,9 @@ describe('getTeams', () => {
     expect(typeof actions.getTeams()).toBe('function');
   });
 
-  it('should dispatch an action with the teams returned from storage', async () => {
+  it('should dispatch an action with owned teams returned from storage', async () => {
       const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
-
-      const teamData: Teams = {};
-      teamData[storedTeam.id] = storedTeam;
+      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
 
       actions.getTeams()(dispatchMock, getStateMock, undefined);
 
@@ -95,9 +139,24 @@ describe('getTeams', () => {
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
           type: actions.GET_TEAMS,
-          teams: teamData,
+          teams: buildTeams([storedTeam]),
       }));
   });
+
+    it('should dispatch an action with public teams when not signed in', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState([], undefined, { signedIn: false })
+
+      actions.getTeams()(dispatchMock, getStateMock, undefined);
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+          type: actions.GET_TEAMS,
+          teams: buildTeams([getPublicTeam()]),
+      }));
+    });
 
     it('should not dispatch an action when storage access fails', async () => {
         const dispatchMock = jest.fn();

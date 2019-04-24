@@ -1,0 +1,22 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null && request.auth.uid != null;
+    }
+    function owner() {
+      return request.auth != null && request.auth.uid == resource.data.owner_uid;
+    }
+
+    // True if the user is the owner or the requested data is 'public'
+    function ownerOrPublic() {
+      return owner() || resource.data.public == true;
+    }
+
+    match /{document=**} {
+      allow read: if ownerOrPublic();
+      allow create: if signedIn();
+      allow update: if owner();
+      allow delete: if false;
+    }
+  }
+}

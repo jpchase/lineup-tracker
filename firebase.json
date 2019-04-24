@@ -9,7 +9,7 @@
     ],
     "headers": [
       {
-        "source":"/service-worker.js",
+        "source": "/service-worker.js",
         "headers": [
           {
             "key": "Cache-Control",
@@ -18,5 +18,9 @@
         ]
       }
     ]
+  },
+  "firestore": {
+    "rules": "config/firestore.rules",
+    "indexes": "config/firestore.indexes.json"
   }
 }
