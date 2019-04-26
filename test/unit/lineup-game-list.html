@@ -1,0 +1,98 @@
+<!--
+@license
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>lineup-game-list</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
+    <script src="../../node_modules/wct-browser-legacy/browser.js"></script>
+
+    <!-- Import the element to test -->
+    <script type="module" src="../../src/components/lineup-game-list.js"></script>
+  </head>
+  <body>
+    <test-fixture id="basic">
+      <template>
+        <lineup-game-list></lineup-game-list>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      import 'axe-core/axe.min.js';
+      import {axeReport} from 'pwa-helpers/axe-report.js';
+
+      function getGames(numGames) {
+        const size = numGames || 6;
+        const games = {};
+        for (let i = 0; i < size; i++) {
+          const gameId = `G${i}`;
+          let pos;
+          switch (i % 3) {
+            case 0:
+              pos = ['CB', 'FB', 'HM'];
+              break;
+
+            case 1:
+              pos = ['S', 'OM'];
+              break;
+
+            case 2:
+              pos = ['AM'];
+              break;
+          }
+
+          games[gameId] = {
+            id: gameId,
+            opponent: `Other team ${i}`,
+            uniformNumber: i + (i % 3) * 10,
+            positions: pos,
+            status: 'OFF'
+          };
+        }
+        return games;
+      }
+
+      suite('lineup-game-list tests', function() {
+        let el;
+        setup(function() {
+          el = fixture('basic');
+          // Make tests wait until element is rendered.
+          return el.updateComplete;
+        });
+
+        test('starts empty', function() {
+          assert.deepEqual(el.games, {});
+        });
+
+        test('shows no games placeholder for empty list', function() {
+          assert.deepEqual(el.games, {});
+          const placeholder = el.shadowRoot.querySelector('div p.empty-list');
+          assert.isOk(placeholder, 'Missing empty placeholder element');
+        });
+
+        for (const numGames of [1, 6]) {
+          const testName = numGames === 1 ? 'single game' : `multiple games`;
+          test(`renders list with ${testName}`, async function() {
+            const games = getGames(numGames);
+            el.games = games;
+            await el.updateComplete;
+
+            const items = el.shadowRoot.querySelectorAll('div div div.game');
+            assert.isOk(items, 'Missing items for games');
+            assert.equal(items.length, numGames, 'Rendered game count');
+          });
+        }
+
+        test('a11y', function() {
+          console.log('ally test');
+          return axeReport(el);
+        });
+      });
+    </script>
+  </body>
+</html>

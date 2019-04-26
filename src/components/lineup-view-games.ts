@@ -11,6 +11,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 import { html } from 'lit-element';
 import { PageViewElement } from './page-view-element.js';
 
+// These are the elements needed by this element.
+import './lineup-game-list.js';
+
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles.js';
 
@@ -19,8 +22,7 @@ class LineupViewGames extends (PageViewElement) {
     return html`
       ${SharedStyles}
       <section>
-        <h2>Completed Games</h2>
-        <p>List of completed games here</p>
+        <lineup-game-list></lineup-game-list>
       </section>
     `;
   }
