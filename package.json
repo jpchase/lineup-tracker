@@ -11,6 +11,7 @@
     "test": "npm run test:unit_coverage && npm run test:unit && npm run test:integration",
     "test:integration": "tsc && mocha test/integration --timeout=15000",
     "test:unit": "tsc && polymer test --module-resolution=node --npm",
+    "test:unit_single": "tsc && jest test/reducers/game.spec.ts",
     "test:unit_redux": "tsc && jest",
     "test:unit_coverage": "tsc && jest --coverage",
     "test:sauce": "tsc && polymer test --module-resolution=node --npm -s 'windows 10/microsoftedge@17' -s 'macos 10.13/safari@11'",
