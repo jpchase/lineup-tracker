@@ -1,23 +1,37 @@
-import {CurrentTimeProvider,ManualTimeProvider,Duration,Timer} from '../app/scripts/clock.js';
+import {CurrentTimeProvider,ManualTimeProvider,Duration,Timer} from '@app/models/clock';
+
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeTime(expected: number): R;
+      toBeInitialized(): R;
+      toHaveElapsed(expected: any): R;
+    }
+  }
+}
+
+const toBeTimeMatcher = {
+  toBeTime: function() {
+    return {
+      compare: function(actual: number, expected: number) {
+        const pass: boolean = actual === expected || actual === expected + 1;
+
+        return {
+          pass,
+          message: `expected ${actual} ${pass ? 'not ': ''} to be ${expected}`
+        };
+      }
+    };
+  }
+};
 
 describe('CurrentTimeProvider', () => {
-  let provider;
+  let provider: CurrentTimeProvider;
 
   beforeEach(() => {
     provider = new CurrentTimeProvider();
 
-    jasmine.addMatchers({
-      toBeTime: function () {
-        return {
-          compare: function (actual, expected) {
-
-            return {
-              pass: actual === expected || actual === expected + 1
-            };
-          }
-        };
-      }
-    });
+    jasmine.addMatchers(toBeTimeMatcher);
 
   });
 
@@ -72,23 +86,12 @@ describe('CurrentTimeProvider', () => {
 });
 
 describe('ManualTimeProvider', () => {
-  let provider;
+  let provider: ManualTimeProvider;
 
   beforeEach(() => {
     provider = new ManualTimeProvider();
 
-    jasmine.addMatchers({
-      toBeTime: function () {
-        return {
-          compare: function (actual, expected) {
-
-            return {
-              pass: actual === expected || actual === expected + 1
-            };
-          }
-        };
-      }
-    });
+    jasmine.addMatchers(toBeTimeMatcher);
 
   });
 
@@ -99,8 +102,8 @@ describe('ManualTimeProvider', () => {
   });
 
   it('should return the set time', () => {
-    const time1 = new Date(2016, 0, 1, 14, 0, 0);
-    const time2 = new Date(2016, 0, 1, 14, 1, 0);
+    const time1 = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    const time2 = new Date(2016, 0, 1, 14, 1, 0).getTime();
 
     provider.setCurrentTime(time1);
 
@@ -121,9 +124,9 @@ describe('ManualTimeProvider', () => {
   });
 
   it('should return the incremented time', () => {
-    const time1 = new Date(2016, 0, 1, 14, 0, 0);
-    const time2 = new Date(2016, 0, 1, 14, 1, 0);
-    const time3 = new Date(2016, 0, 1, 14, 2, 15);
+    const time1 = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    const time2 = new Date(2016, 0, 1, 14, 1, 0).getTime();
+    const time3 = new Date(2016, 0, 1, 14, 2, 15).getTime();
 
     provider.setCurrentTime(time1);
 
@@ -158,7 +161,7 @@ describe('Duration', () => {
       { left:[12,29], right:[10,32], sum:[23,1] },
     ];
 
-    function formatDuration(duration) {
+    function formatDuration(duration: number[]) {
       return '[' + duration[0] + ',' + duration[1] +']';
     }
 
@@ -170,7 +173,7 @@ describe('Duration', () => {
       expect(Duration.add([0,0], Duration.zero())).toEqual(Duration.zero());
     });
 
-    function addTest(left, right, expectedSum) {
+    function addTest(left: number[], right: number[], expectedSum: number[]) {
       it('should return correct sum for zero + ' + formatDuration(left), () => {
         const actualSum = Duration.add(Duration.zero(), left);
         expect(actualSum).toEqual(left);
@@ -194,18 +197,18 @@ describe('Duration', () => {
 });
 
 describe('Timer', () => {
-  const startTime = new Date(2016, 0, 1, 14, 0, 0);
-  const time1 = new Date(2016, 0, 1, 14, 0, 5);
-  const time2 = new Date(2016, 0, 1, 14, 0, 10);
-  const time3 = new Date(2016, 0, 1, 14, 1, 55);
+  const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+  const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
+  const time2 = new Date(2016, 0, 1, 14, 0, 10).getTime();
+  const time3 = new Date(2016, 0, 1, 14, 1, 55).getTime();
 
-  function mockTimeProvider(t0, t1, t2, t3) {
+  function mockTimeProvider(t0: number, t1?: number, t2?: number, t3?: number) {
     let provider = new CurrentTimeProvider();
     spyOn(provider, 'getTimeInternal').and.returnValues(t0, t1, t2, t3);
     return provider;
   }
 
-  function manualTimeProvider(currentTime) {
+  function manualTimeProvider(currentTime: number) {
     let provider = new ManualTimeProvider();
     if (currentTime) {
       provider.setCurrentTime(currentTime);
@@ -213,7 +216,7 @@ describe('Timer', () => {
     return provider;
   }
 
-  function isElapsedEqual(actual, expected) {
+  function isElapsedEqual(actual: number[], expected: number[]) {
     if (!actual || !expected)
       return false;
 
@@ -233,24 +236,26 @@ describe('Timer', () => {
     jasmine.addMatchers({
       toBeInitialized: function () {
         return {
-          compare: function (actual, expected) {
+          compare: function (actual: any) {
             let timer = actual;
 
             return {
               pass: timer && !timer.isRunning && !timer.startTime &&
-                    timer.duration && timer.duration[0] === 0 && timer.duration[1] === 0
+                    timer.duration && timer.duration[0] === 0 && timer.duration[1] === 0,
+              message: `expected timer not to be running, without start time, and duration [0,0]`
             };
           }
         };
       },
       toHaveElapsed: function () {
         return {
-          compare: function (actual, expected) {
-            let timer = actual;
-            let elapsed = timer ? timer.getElapsed() : null;
+          compare: function (actual: any, expected: any) {
+            const timer = actual;
+            const elapsed = timer ? timer.getElapsed() : null;
 
             return {
-              pass: elapsed && isElapsedEqual(elapsed, expected)
+              pass: elapsed && isElapsedEqual(elapsed, expected),
+              message: `expected timer elapsed ${elapsed} to be ${expected}`
             };
           }
         };

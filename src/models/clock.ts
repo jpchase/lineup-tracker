@@ -1,7 +1,5 @@
-'use strict';
-
-function pad0(value, count) {
-  var result = value.toString();
+function pad0(value: number, count: number): string {
+  let result = value.toString();
   for (; result.length < count; --count) {
     result = '0' + result;
   }
@@ -9,15 +7,18 @@ function pad0(value, count) {
 }
 
 export class CurrentTimeProvider {
+  isFrozen: boolean;
+  frozenTime: number | undefined;
+
   constructor() {
     this.isFrozen = false;
   }
 
-  getTimeInternal() {
+  getTimeInternal(): number {
     return Date.now();
   }
 
-  getCurrentTime() {
+  getCurrentTime(): number {
     if (this.isFrozen && this.frozenTime) {
       return this.frozenTime;
     }
@@ -45,15 +46,15 @@ export class CurrentTimeProvider {
 }
 
 export class Duration {
-  static zero() {
+  static zero(): number[] {
     return [0, 0];
   }
 
-  static format(elapsed) {
+  static format(elapsed: number[]): string {
     return pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
   }
 
-  static add(duration1, duration2) {
+  static add(duration1: number[], duration2: number[]): number[] {
     let total = duration1.slice(0);
     total[0] += duration2[0];
     total[1] += duration2[1];
@@ -65,21 +66,23 @@ export class Duration {
     return total;
   }
 
-  static addToDate(date, duration) {
-    let result = new Date(date.getTime());
+  static addToDate(date: number, duration: number[]): number {
+    let result = new Date(date);
     result.setMinutes(result.getMinutes() + duration[0],
                       result.getSeconds() + duration[1]);
-    return result;
+    return result.getTime();
   }
 }
 
 export class ManualTimeProvider extends CurrentTimeProvider {
-  setCurrentTime(newTime) {
+  currentTime: number | undefined;
+
+  setCurrentTime(newTime: number) {
     this.currentTime = newTime;
   }
 
-  incrementCurrentTime(duration) {
-    this.currentTime = Duration.addToDate(this.currentTime, duration);
+  incrementCurrentTime(duration: number[]) {
+    this.currentTime = Duration.addToDate(this.getTimeInternal(), duration);
   }
 
   getTimeInternal() {
@@ -88,7 +91,12 @@ export class ManualTimeProvider extends CurrentTimeProvider {
 }
 
 export class Timer {
-  constructor(passedData, timeProvider) {
+  provider: CurrentTimeProvider;
+  isRunning: boolean;
+  startTime: number | null;
+  duration: number[];
+
+  constructor(passedData?: any, timeProvider?: CurrentTimeProvider) {
     let data = passedData || {};
     this.provider = timeProvider || new CurrentTimeProvider();
     this.isRunning = data.isRunning || false;
@@ -142,9 +150,9 @@ export class Timer {
     return this.provider.getCurrentTime();
   }
 
-  addElapsed() {
+  private addElapsed() {
     let stopTime = this.getCurrentTime();
-    let elapsed = calculateElapsed(this.startTime, stopTime);
+    let elapsed = calculateElapsed(this.startTime!, stopTime);
 
     // Added elapsed to accumulated duration
     let total = this.duration.slice(0);
@@ -159,7 +167,7 @@ export class Timer {
   }
 }
 
-function calculateElapsed(startTime, endTime) {
+function calculateElapsed(startTime: number, endTime: number) {
   let elapsed = [0, 0];
   // Compute diff in seconds (convert from ms)
   let timeDiff = (endTime - startTime) / 1000;
@@ -177,11 +185,14 @@ function calculateElapsed(startTime, endTime) {
 }
 
 export class TimerWidget {
-  constructor(display) {
+  timer: Timer | undefined;
+  display: HTMLElement;
+
+  constructor(display: HTMLElement) {
     this.display = display;
   }
 
-  attach(timer) {
+  attach(timer: Timer) {
     this.timer = timer;
     this.refresh();
   }
@@ -195,6 +206,10 @@ export class TimerWidget {
   }
 
   print() {
-    this.display.innerText = Duration.format(this.timer.getElapsed());
+    let text = '';
+    if (this.timer) {
+      text = Duration.format(this.timer.getElapsed());
+    }
+    this.display.innerText = text;
   }
 }
