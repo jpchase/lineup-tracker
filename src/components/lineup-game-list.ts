@@ -6,6 +6,8 @@ import { LitElement, html, property } from 'lit-element';
 
 import { Games } from '../models/game.js';
 
+import { peopleIcon, scheduleIcon } from './lineup-icons.js';
+
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles.js';
 
@@ -28,8 +30,14 @@ class LineupGameList extends LitElement {
       ${gameList.length > 0 ? html`
         <div class="list">
         ${gameList.map(game => html`
-          <div class="game">
-            ${JSON.stringify(game)}
+          <div class="game flex-equal-justified">
+            <div class="gameId">${game.id}</div>
+            <div secondary>
+              <span class="opponent">${game.opponent}</span>
+              <span class="gameDate">${game.date}</span>
+            </div>
+            <button title="view game">${scheduleIcon}</button>
+            <button title="view roster">${peopleIcon}</button>
           </div>
         `)}
         </div>
