@@ -42,6 +42,11 @@ const fixtureData = {
           ...getStoredGameData(),
           owner_uid: TEST_USER_ID,
         },
+        sg2: {
+          ...getStoredGameData(),
+          teamId: 'otherTeam',
+          owner_uid: TEST_USER_ID,
+        },
         [PUBLIC_GAME_ID]: {
           ...getPublicGameData(),
           public: true,

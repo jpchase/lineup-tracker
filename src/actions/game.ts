@@ -21,6 +21,7 @@ type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 const KEY_GAMES = 'games';
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
+const FIELD_TEAMID = 'teamId';
 
 function getGamesCollection(): CollectionReference {
   return firebaseRef.firestore().collection(KEY_GAMES);
@@ -31,7 +32,7 @@ export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatc
     return;
   }
   // TODO: Add try/catch for firestore/collection/get calls?
-  let query: Query = getGamesCollection();
+  let query: Query = getGamesCollection().where(FIELD_TEAMID, '==', teamId);
   // Show the user's games, when signed in. Otherwise, only show public data.
   // TODO: Extract into helper function somewhere?
   const currentUser = getState().auth!.user;
