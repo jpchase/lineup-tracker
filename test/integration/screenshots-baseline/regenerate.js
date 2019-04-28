@@ -82,7 +82,7 @@ async function generateBaselineScreenshots(page, prefix, breakpoint) {
     await page.goto('http://127.0.0.1:4444/');
     await page.screenshot({path: `${baselineDir}/${prefix}/index.png`});
     // Views.
-    const views = ['Home', 'Games', 'Roster'];
+    const views = ['Home', 'GameDetail', 'Games', 'Roster'];
     for (const view of views) {
       console.log(`View: ${view}`);
       await page.goto(`http://127.0.0.1:4444/view${view}`);

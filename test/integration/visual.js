@@ -106,6 +106,11 @@ describe('👀 page screenshots are correct', function() {
           });
         });
       });
+
+      it('/viewGameDetail', async function() {
+        return takeAndCompareScreenshot(page, 'viewGameDetail', prefix);
+      });
+
     });
   }
 

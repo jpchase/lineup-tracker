@@ -49,6 +49,9 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => (dispatch) => {
     case 'viewGames':
       import('../components/lineup-view-games.js');
       break;
+    case 'viewGameDetail':
+      import('../components/lineup-view-game-detail.js');
+      break;
     case 'viewRoster':
       import('../components/lineup-view-roster.js');
       break;
