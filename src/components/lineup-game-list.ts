@@ -20,11 +20,6 @@ class LineupGameList extends LitElement {
       ${SharedStyles}
       <style>
         :host { display: block; }
-        .empty-list {
-          text-align: center;
-          white-space: nowrap;
-          color: var(--app-secondary-color);
-        }
       </style>
       <div>
       ${gameList.length > 0 ? html`

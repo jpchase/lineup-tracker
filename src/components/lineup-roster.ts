@@ -21,11 +21,6 @@ class LineupRoster extends LitElement {
       ${SharedStyles}
       <style>
         :host { display: block; }
-        .empty-roster {
-          text-align: center;
-          white-space: nowrap;
-          color: var(--app-secondary-color);
-        }
       </style>
       <div>
       ${playerList.length > 0 ? html`
@@ -38,7 +33,7 @@ class LineupRoster extends LitElement {
         `)}
         </div>
       ` : html`
-        <p class="empty-roster">
+        <p class="empty-list">
           No players in roster.
         </p>
       `}
