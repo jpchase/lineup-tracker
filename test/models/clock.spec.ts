@@ -42,7 +42,7 @@ describe('CurrentTimeProvider', () => {
   it('should return the current time', () => {
     const expectedTime = Date.now();
     const actualTime = provider.getCurrentTime();
-    expect(actualTime).toEqual(expectedTime);
+    expect(actualTime).toBeTime(expectedTime);
   });
 
   it('should throw for repeated calls to freeze()', () => {
