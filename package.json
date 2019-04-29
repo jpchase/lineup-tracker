@@ -11,7 +11,7 @@
     "test": "npm run test:unit_coverage && npm run test:unit && npm run test:integration",
     "test:integration": "tsc && mocha test/integration --timeout=15000",
     "test:unit": "tsc && polymer test --module-resolution=node --npm",
-    "test:unit_single": "tsc && jest test/reducers/game.spec.ts",
+    "test:unit_single": "tsc && jest test/models/clock.spec.ts",
     "test:unit_redux": "tsc && jest",
     "test:unit_coverage": "tsc && jest --coverage",
     "test:sauce": "tsc && polymer test --module-resolution=node --npm -s 'windows 10/microsoftedge@17' -s 'macos 10.13/safari@11'",
@@ -45,6 +45,7 @@
     "web-animations-js": "^2.3.1"
   },
   "devDependencies": {
+    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/preset-env": "^7.1.6",
     "@types/jest": "^23.3.10",
     "axe-core": "^3.0.0",
