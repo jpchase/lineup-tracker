@@ -107,8 +107,8 @@ describe('👀 page screenshots are correct', function() {
         });
       });
 
-      it('/viewGameDetail', async function() {
-        return takeAndCompareScreenshot(page, 'viewGameDetail', prefix);
+      it('/game', async function() {
+        return takeAndCompareScreenshot(page, 'game', prefix, 'viewGameDetail');
       });
 
     });

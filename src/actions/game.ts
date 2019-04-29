@@ -70,3 +70,10 @@ export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatc
     console.log(`Loading of games from storage failed: ${error}`);
   });
 };
+
+export const getGame: ActionCreator<ThunkResult> = (gameId: string) => (/* dispatch, getState */) => {
+  if (!gameId) {
+    return Promise.reject();
+  }
+  return Promise.resolve();
+}

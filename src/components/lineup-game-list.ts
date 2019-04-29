@@ -31,7 +31,7 @@ class LineupGameList extends LitElement {
               <span class="opponent">${game.opponent}</span>
               <span class="gameDate">${game.date}</span>
             </div>
-            <button title="view game">${scheduleIcon}</button>
+            <a href="/game/${game.id}" title="view game">${scheduleIcon}</a>
             <button title="view roster">${peopleIcon}</button>
           </div>
         `)}

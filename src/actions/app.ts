@@ -26,19 +26,22 @@ export type AppAction = AppActionUpdatePage | AppActionUpdateOffline | AppAction
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AppAction>;
 
-export const navigate: ActionCreator<ThunkResult> = (path: string) => (dispatch) => {
+export const navigate: ActionCreator<ThunkResult> = (location: Location) => (dispatch) => {
   // Extract the page name from path.
-  const page = path === '/' ? 'viewHome' : path.slice(1);
+  const pathname = location.pathname;
+  const parts = pathname.slice(1).split('/');
+  let page = parts[0] || 'viewHome';
 
-  // Any other info you might want to extract from the path (like page type),
-  // you can do here
-  dispatch(loadPage(page));
+  // Game views have path: /{view}/{gameId}
+  const gameId = parts[1];
+
+  dispatch(loadPage(page, gameId));
 
   // Close the drawer - in case the *path* change came from a link in the drawer.
   dispatch(updateDrawerState(false));
 };
 
-const loadPage: ActionCreator<ThunkResult> = (page: string) => (dispatch) => {
+const loadPage: ActionCreator<ThunkResult> = (page: string, gameId: string) => async (dispatch) => {
   switch(page) {
     case 'viewHome':
       import('../components/lineup-view-home.js').then(() => {
@@ -49,8 +52,11 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => (dispatch) => {
     case 'viewGames':
       import('../components/lineup-view-games.js');
       break;
-    case 'viewGameDetail':
-      import('../components/lineup-view-game-detail.js');
+    case 'game':
+      /*const module: any =*/ import('../components/lineup-view-game-detail.js');
+      // Fetch the data for the given game id.
+      console.log(`loading game detail page for ${gameId}`);
+      // await dispatch(module.getGame(gameId));
       break;
     case 'viewRoster':
       import('../components/lineup-view-roster.js');

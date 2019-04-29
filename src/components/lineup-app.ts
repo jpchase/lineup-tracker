@@ -289,7 +289,7 @@ class LineupApp extends connect(store)(LitElement) {
     <main role="main" class="main-content">
       <lineup-view-home class="page" ?active="${this._page === 'viewHome'}"></lineup-view-home>
       <lineup-view-games class="page" ?active="${this._page === 'viewGames'}"></lineup-view-games>
-      <lineup-view-game-detail class="page" ?active="${this._page === 'viewGameDetail'}"></lineup-view-game-detail>
+      <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
       <lineup-view-roster class="page" ?active="${this._page === 'viewRoster'}"></lineup-view-roster>
       <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
     </main>
@@ -322,7 +322,7 @@ class LineupApp extends connect(store)(LitElement) {
   private _pages: Pages = {
     'viewHome': { page: 'viewHome', label: 'Overview' },
     'viewGames': { page: 'viewGames', label: 'Games' },
-    'viewGameDetail': { page: 'viewGameDetail', label: 'Game Detail' },
+    'game': { page: 'game', label: 'Game Detail' },
     'viewRoster': { page: 'viewRoster', label: 'Roster' },
     'view404': { page: 'view404', label: 'Page not found' },
   };
@@ -349,7 +349,7 @@ class LineupApp extends connect(store)(LitElement) {
   }
 
   protected firstUpdated() {
-    installRouter((location) => store.dispatch(navigate(decodeURIComponent(location.pathname))));
+    installRouter((location) => store.dispatch(navigate(location)));
     installOfflineWatcher((offline) => store.dispatch(updateOffline(offline)));
     installMediaQueryWatcher(`(min-width: 460px)`,
         () => store.dispatch(updateDrawerState(false)));

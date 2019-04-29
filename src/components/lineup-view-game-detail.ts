@@ -17,6 +17,9 @@ store.addReducers({
   game
 });
 
+// These are the actions needed by this element.
+import { getGame } from '../actions/game.js';
+
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles.js';
 
@@ -50,3 +53,6 @@ class LineupViewGameDetail extends connect(store)(PageViewElement) {
 }
 
 window.customElements.define('lineup-view-game-detail', LineupViewGameDetail);
+
+// Expose action for use in loading view.
+export { getGame };
