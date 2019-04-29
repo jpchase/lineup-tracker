@@ -71,7 +71,7 @@
 
         test('shows no players placeholder for empty roster', function() {
           assert.deepEqual(el.roster, {});
-          const placeholder = el.shadowRoot.querySelector('div p.empty-roster');
+          const placeholder = el.shadowRoot.querySelector('div p.empty-list');
           assert.isOk(placeholder, 'Missing empty placeholder element');
         });
 
