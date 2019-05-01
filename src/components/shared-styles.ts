@@ -51,7 +51,7 @@ export const SharedStyles = html`
   .empty-list {
     text-align: center;
     white-space: nowrap;
-    color: var(--app-secondary-color);
+    /* color: var(--app-secondary-color); */
   }
 
   .flex-equal-justified {

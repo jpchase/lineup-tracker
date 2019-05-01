@@ -52,6 +52,8 @@ describe('🎁 regenerate screenshots', function() {
       const url = scriptMatch[1] + 'node_modules/firebase' + scriptMatch[2];
       request.continue({ url });
     });
+
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
   });
 
   afterEach(() => browser.close());
@@ -86,6 +88,11 @@ async function generateBaselineScreenshots(page, prefix, breakpoint) {
     for (const view of views) {
       console.log(`View: ${view}`);
       await page.goto(`http://127.0.0.1:4444/view${view}`);
+      if (view === 'Games') {
+        console.log(`Wait extra for Games view to load fonts`);
+        // TODO: Remove sleep hack to avoid missing icon on FAB in screenshot
+        await page.waitFor(1000);
+      }
       if (view === 'Roster') {
         console.log(`Wait extra for Roster view`);
         // TODO: Remove sleep hack to avoid blank page in screenshot

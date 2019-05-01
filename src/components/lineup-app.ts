@@ -73,9 +73,10 @@ class LineupApp extends connect(store)(LitElement) {
         --app-dark-text-color: orange;
 
         --secondary-text-color: cyan;
-
-        --app-primary-color: #202020;
-        --app-secondary-color: #202020;
+        */
+        --app-primary-color: #607D8B;
+        --app-secondary-color: #FFC107;
+        /*
         --app-dark-text-color: var(--app-secondary-color);
         --app-background-color: #fafafa;
         color: var(--app-dark-text-color);
@@ -86,6 +87,10 @@ class LineupApp extends connect(store)(LitElement) {
         --app-primary-color: #C3134E;
         --app-dark-text-color: #293237;
         */
+        --mdc-theme-on-primary: white;
+        --mdc-theme-primary: var(--app-primary-color);
+        --mdc-theme-on-secondary: black;
+        --mdc-theme-secondary: var(--app-secondary-color);;
       }
 
       [hidden] {

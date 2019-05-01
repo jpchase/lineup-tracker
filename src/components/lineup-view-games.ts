@@ -30,6 +30,7 @@ store.addReducers({
 import { getGames } from '../actions/game.js';
 
 // These are the elements needed by this element.
+import '@material/mwc-fab';
 import './lineup-game-list.js';
 
 // These are the shared styles needed by this element.
@@ -39,8 +40,17 @@ class LineupViewGames extends connect(store)(PageViewElement) {
   protected render() {
     return html`
       ${SharedStyles}
+      <style>
+        mwc-fab {
+          position: fixed;
+          left: 50%;
+          transform: translateX(-50%);
+          bottom: 30px;
+        }
+      </style>
       <section>
         <lineup-game-list .games="${this._games}"></lineup-game-list>
+        <mwc-fab icon="add" label="Add Game" @click="${this._addButtonClicked}"></mwc-fab>
       </section>
     `;
   }
@@ -50,6 +60,10 @@ class LineupViewGames extends connect(store)(PageViewElement) {
 
   @property({ type: Object })
   private _games: Games = {};
+
+  private _addButtonClicked() {
+    alert('Add game clicked');
+  }
 
   // This is called every time something is updated in the store.
   stateChanged(state: RootState) {
