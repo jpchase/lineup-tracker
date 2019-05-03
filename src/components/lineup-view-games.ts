@@ -31,7 +31,10 @@ import { getGames } from '../actions/game.js';
 
 // These are the elements needed by this element.
 import '@material/mwc-fab';
+import './lineup-game-create.js';
 import './lineup-game-list.js';
+
+import { EVENT_NEWGAMECREATED } from './events.js';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles.js';
@@ -47,10 +50,19 @@ class LineupViewGames extends connect(store)(PageViewElement) {
           transform: translateX(-50%);
           bottom: 30px;
         }
+
+        lineup-game-create {
+          display: none;
+        }
+
+        lineup-game-create[active] {
+          display: block;
+        }
       </style>
       <section>
         <lineup-game-list .games="${this._games}"></lineup-game-list>
         <mwc-fab icon="add" label="Add Game" @click="${this._addButtonClicked}"></mwc-fab>
+        <lineup-game-create ?active="${this._showCreate}"></lineup-game-create>
       </section>
     `;
   }
@@ -58,11 +70,24 @@ class LineupViewGames extends connect(store)(PageViewElement) {
   @property({ type: String })
   private _teamId = '';
 
+  @property({ type: Boolean })
+  private _showCreate = false;
+
   @property({ type: Object })
   private _games: Games = {};
 
   private _addButtonClicked() {
-    alert('Add game clicked');
+    this._showCreate = true;
+  }
+
+  private _newGameCreated(e: CustomEvent) {
+    console.log(`New game: ${JSON.stringify(e.detail.game)}`);
+    // store.dispatch(addNewGame(e.detail.game));
+    this._showCreate = false;
+  }
+
+  protected firstUpdated() {
+    window.addEventListener(EVENT_NEWGAMECREATED, this._newGameCreated.bind(this) as EventListener);
   }
 
   // This is called every time something is updated in the store.
