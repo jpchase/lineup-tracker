@@ -16,6 +16,7 @@
     }
   },
   "include": [
+    "config.json.d.ts",
     "src/**/*.ts",
     "test/helpers/mock-cloud-firestore.d.ts"
   ],
