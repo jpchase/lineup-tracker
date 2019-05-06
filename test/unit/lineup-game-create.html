@@ -1,0 +1,103 @@
+<!--
+@license
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>lineup-game-create</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
+    <script src="../../node_modules/wct-browser-legacy/browser.js"></script>
+
+    <!-- Import the element to test -->
+    <script type="module" src="../../src/components/lineup-game-create.js"></script>
+  </head>
+  <body>
+    <test-fixture id="basic">
+      <template>
+        <lineup-game-create></lineup-game-create>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      import 'axe-core/axe.min.js';
+      import {axeReport} from 'pwa-helpers/axe-report.js';
+
+      suite('lineup-game-create tests', function() {
+        let el;
+        setup(function() {
+          el = fixture('basic');
+          // Make tests wait until element is rendered.
+          return el.updateComplete;
+        });
+
+        function getInputField(fieldId) {
+          const field = el.shadowRoot.querySelector(`paper-input#${fieldId}`);
+          assert.isOk(field, `Missing field: ${fieldId}`);
+          return field;
+        }
+
+        function sleep(milliseconds) {
+          return new Promise(resolve => setTimeout(resolve, milliseconds))
+        }
+
+        test('starts empty', function() {
+          const dateField = getInputField('dateField');
+
+          assert.equal(dateField.value, '', 'Date field should be empty');
+        });
+
+        test('clears fields when cancelled', function() {
+          // TODO: Implement when cancel handling is implemented.
+          assert.isTrue(true);
+        });
+
+        test('creates new game when saved', async function() {
+
+          const nameField = getInputField('idField');
+          nameField.value = ' G01 '
+
+          const gameDate = new Date(2016, 0, 1, 14, 30);
+          const dateField = getInputField('dateField');
+          dateField.value = ` ${gameDate.toLocaleDateString()} `;
+
+          const opponentField = getInputField('opponentField');
+          opponentField.value = ' Some Opponent ';
+
+          let eventFired = false;
+          let newGame = null;
+          const handler = function(event) {
+            eventFired = true;
+            newGame = event.detail.game;
+            window.removeEventListener('new-game-created', handler);
+          };
+
+          window.addEventListener('new-game-created', handler);
+
+          const saveButton = el.shadowRoot.querySelector('mwc-button[dialog-confirm]');
+          saveButton.click();
+          // TODO: Figure out better way than manual sleep
+          await sleep(50);
+
+          assert.isTrue(eventFired, 'Event new-game-created should be fired');
+
+          assert.deepEqual(newGame,
+            {
+              name: 'G01',
+              // TODO: Change when component also sets the time
+              // date: gameDate,
+              date: new Date(2016, 0, 1),
+              opponent: 'Some Opponent'
+            });
+        });
+
+        test('a11y', function() {
+          return axeReport(el);
+        });
+      });
+    </script>
+  </body>
+</html>
