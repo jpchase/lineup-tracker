@@ -1,11 +1,12 @@
 import { Game, Games } from '@app/models/game';
-import { ADD_GAME, GET_GAMES } from '@app/actions/game';
+import { ADD_GAME, GET_GAME, GET_GAMES } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
 import { getFakeAction, buildGames } from '../helpers/test_data';
 
 const GAME_INITIAL_STATE: GameState = {
   games: {} as Games,
+  gameId: '',
   error: ''
 };
 
@@ -21,6 +22,20 @@ describe('Games reducer', () => {
     expect(
       game(GAME_INITIAL_STATE, getFakeAction())
       ).toEqual(GAME_INITIAL_STATE);
+  });
+
+  it('should handle GET_GAME', () => {
+    const newState = game(GAME_INITIAL_STATE, {
+      type: GET_GAME,
+      gameId: newGame.id
+    });
+
+    expect(newState).toEqual(expect.objectContaining({
+      gameId: newGame.id,
+    }));
+
+    expect(newState).not.toBe(GAME_INITIAL_STATE);
+    expect(newState.gameId).not.toBe(GAME_INITIAL_STATE.gameId);
   });
 
   it('should handle GET_GAMES', () => {

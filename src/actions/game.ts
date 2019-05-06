@@ -10,13 +10,16 @@ import { firebaseRef } from "../firebase";
 import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot} from '@firebase/firestore-types';
 
 export const ADD_GAME = 'ADD_GAME';
+export const GET_GAME = 'GET_GAME';
 export const GET_GAMES = 'GET_GAMES';
 
 export interface GameActionAddGame extends Action<'ADD_GAME'> { game: Game };
+export interface GameActionGetGame extends Action<'GET_GAME'> { gameId: string };
 export interface GameActionGetGames extends Action<'GET_GAMES'> { games: Games };
-export type GameAction = GameActionAddGame | GameActionGetGames;
+export type GameAction = GameActionAddGame | GameActionGetGame | GameActionGetGames;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
+type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
 
 const KEY_GAMES = 'games';
 const FIELD_OWNER = 'owner_uid';
@@ -71,7 +74,7 @@ export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatc
   });
 };
 
-export const getGame: ActionCreator<ThunkResult> = (gameId: string) => (/* dispatch, getState */) => {
+export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (/* dispatch, getState */) => {
   if (!gameId) {
     return Promise.reject();
   }
