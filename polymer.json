@@ -21,6 +21,7 @@
       "html": { "minify": false}
     }
   ],
+  "addServiceWorker": false,
   "moduleResolution": "node",
   "npm": true
 }
