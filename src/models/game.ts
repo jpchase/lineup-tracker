@@ -3,16 +3,17 @@
 */
 
 export interface GameMetadata {
-  name: string;
+  name?: string;
   date: Date;
   opponent: string;
 }
 
-export interface Game {
+export interface Game extends GameMetadata {
   id: string;
   teamId: string;
-  date: Date;
-  opponent: string;
+}
+
+export interface GameDetail extends Game {
 }
 
 export interface Games {

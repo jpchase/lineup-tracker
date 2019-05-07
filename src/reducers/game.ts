@@ -3,7 +3,7 @@
 */
 
 import { Reducer } from 'redux';
-import { Games } from '../models/game.js';
+import { Games, GameDetail } from '../models/game.js';
 import {
   ADD_GAME,
   GET_GAME,
@@ -14,12 +14,14 @@ import { RootAction } from '../store.js';
 export interface GameState {
   games: Games;
   gameId: string;
+  game: GameDetail | undefined;
   error: string;
 }
 
 const INITIAL_STATE: GameState = {
   games: {},
   gameId: '',
+  game: undefined,
   error: ''
 };
 

@@ -5,11 +5,11 @@
 import { html, property } from 'lit-element';
 import { PageViewElement } from './page-view-element.js';
 
-import { Game } from '../models/game.js';
+import { GameDetail } from '../models/game.js';
 
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { store } from '../store.js';
+import { store, RootState } from '../store.js';
 
 // We are lazy loading its reducer.
 import game from '../reducers/game.js';
@@ -44,10 +44,17 @@ class LineupViewGameDetail extends connect(store)(PageViewElement) {
   private _gameId = '';
 
   @property({ type: Object })
-  private _game: Game | undefined;
+  private _game: GameDetail | undefined;
 
   protected firstUpdated() {
     this._gameId = '';
+  }
+
+  stateChanged(state: RootState) {
+      if (!state.game) {
+          return;
+      }
+      this._game = state.game!.game;
   }
 
 }
