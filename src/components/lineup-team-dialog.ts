@@ -13,6 +13,8 @@ import '@polymer/paper-input/paper-input.js';
 import { PaperDialogElement } from '@polymer/paper-dialog/paper-dialog.js';
 import { PaperInputElement } from '@polymer/paper-input/paper-input.js';
 
+import { EVENT_NEWTEAMCREATED } from './events.js';
+
 interface PaperDialogClosingReason {
   confirmed?: boolean;
 }
@@ -98,7 +100,7 @@ export class LineupTeamDialog extends LitElement {
     };
 
     // This event will be handled by lineup-app.
-    this.dispatchEvent(new CustomEvent('new-team-created', {
+    this.dispatchEvent(new CustomEvent(EVENT_NEWTEAMCREATED, {
       bubbles: true, composed: true, detail: {
         team: newTeam
       }

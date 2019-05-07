@@ -50,6 +50,8 @@ import './lineup-team-dialog.js';
 import './lineup-team-selector.js';
 import './snack-bar.js';
 
+import { EVENT_NEWTEAMCREATED } from './events.js';
+
 interface Page {
   page: string;
   label: string;
@@ -359,7 +361,7 @@ class LineupApp extends connect(store)(LitElement) {
     installMediaQueryWatcher(`(min-width: 460px)`,
         () => store.dispatch(updateDrawerState(false)));
 
-    window.addEventListener('new-team-created', this._newTeamCreated.bind(this) as EventListener);
+    window.addEventListener(EVENT_NEWTEAMCREATED, this._newTeamCreated.bind(this) as EventListener);
 
     // Get the authenticated user (if signed in), and then load the teams for
     // that user.
