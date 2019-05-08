@@ -17,7 +17,7 @@ export interface TeamState {
   teamId: string;
   teamName: string;
   roster: Roster;
-  error: string;
+  error?: string;
 }
 
 const INITIAL_STATE: TeamState = {

@@ -61,7 +61,9 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions) {
     return {
       auth: getMockAuthState(options),
       game: {
-        games: buildGames(games)
+        games: buildGames(games),
+        gameId: '',
+        game: undefined
       }
     };
   });

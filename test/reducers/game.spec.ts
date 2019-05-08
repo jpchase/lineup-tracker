@@ -7,6 +7,7 @@ import { getFakeAction, buildGames } from '../helpers/test_data';
 const GAME_INITIAL_STATE: GameState = {
   games: {} as Games,
   gameId: '',
+  game: undefined,
   error: ''
 };
 

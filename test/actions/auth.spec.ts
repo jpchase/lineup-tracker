@@ -1,16 +1,31 @@
 import * as actions from '@app/actions/auth';
 import { User } from '@app/models/auth';
 import { authRef /*, provider */ } from "@app/firebase";
-import { User as FirebaseUser } from '@firebase/auth-types';
+import { Error as FirebaseError, User as FirebaseUser, UserCredential } from '@firebase/auth-types';
 import { Observer, Unsubscribe } from '@firebase/util';
 
 type AuthStateChangedFn = (
   nextOrObserver: Observer<any> | ((a: FirebaseUser | null) => any),
-    error ?: (a: Error) => any,
+    error ?: (a: FirebaseError) => any,
     completed ?: Unsubscribe
   ) => Unsubscribe;
 
 jest.mock('@app/firebase');
+
+function buildFirebaseUser(uid: number): FirebaseUser {
+  const result: any = {
+    uid,
+    displayName: `User ${uid}`
+  }
+  return result as FirebaseUser;
+}
+
+function buildUserCredential(user: FirebaseUser): UserCredential {
+  return {
+    credential: null,
+    user
+  }
+}
 
 describe('getUser', () => {
   let changedSpy = jest.spyOn(authRef, 'onAuthStateChanged');
@@ -103,7 +118,8 @@ describe('signIn', () => {
     const dispatchMock = jest.fn();
     const getStateMock = jest.fn();
 
-    signInSpy.mockResolvedValue({ user: { uid: 1234 }});
+    const result: UserCredential = buildUserCredential(buildFirebaseUser(1234));
+    signInSpy.mockResolvedValue(Promise.resolve(result));
 
     actions.signIn()(dispatchMock, getStateMock, undefined);
 

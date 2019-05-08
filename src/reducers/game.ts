@@ -15,7 +15,7 @@ export interface GameState {
   games: Games;
   gameId: string;
   game: GameDetail | undefined;
-  error: string;
+  error?: string;
 }
 
 const INITIAL_STATE: GameState = {

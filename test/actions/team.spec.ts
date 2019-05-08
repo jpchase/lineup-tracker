@@ -89,9 +89,20 @@ function buildTeams(teams: Team[]): Teams {
   }, {} as Teams);
 }
 
-function mockGetState(teams: Team[], currentTeam?: Team, options?: MockGetStateOptions) {
+function buildRoster(players?: Player[]): Roster {
+  if (!players) {
+    return {} as Roster;
+  }
+  return players.reduce((obj, player) => {
+    obj[player.id] = player;
+    return obj;
+  }, {} as Roster);
+}
+
+function mockGetState(teams: Team[], currentTeam?: Team, options?: MockGetStateOptions, players?: Player[]) {
   return jest.fn(() => {
     const teamData = buildTeams(teams);
+    const rosterData = buildRoster(players);
 
     // TODO: extract into test helper method?
     let mockAuth: any = { user: undefined };
@@ -104,9 +115,10 @@ function mockGetState(teams: Team[], currentTeam?: Team, options?: MockGetStateO
     return {
       auth: mockAuth,
       team: {
-        teamId: currentTeam ? currentTeam.id : undefined,
-        teamName: currentTeam ? currentTeam.name : undefined,
-        teams: teamData
+        teamId: currentTeam ? currentTeam.id : '',
+        teamName: currentTeam ? currentTeam.name : '',
+        teams: teamData,
+        roster: rosterData
       }
     };
   });
@@ -247,15 +259,7 @@ describe('addNewTeam', () => {
 
   it('should dispatch an action to add a new team that is unique', () => {
     const dispatchMock = jest.fn();
-    const getStateMock = jest.fn(() => {
-      const teamData: Teams = {};
-      teamData['EX'] = { id: 'EX', name: 'Existing team' };
-      return {
-        team: {
-          teams: teamData
-        }
-      };
-    });
+    const getStateMock = mockGetState([{ id: 'EX', name: 'Existing team' }]);
 
     actions.addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
 
@@ -266,15 +270,7 @@ describe('addNewTeam', () => {
 
   it('should do nothing with a new team that is not unique', () => {
     const dispatchMock = jest.fn();
-    const getStateMock = jest.fn(() => {
-      const teamData: Teams = {};
-      teamData[newTeamSaved.id] = newTeamSaved;
-      return {
-        team: {
-          teams: teamData
-        }
-      };
-    });
+    const getStateMock = mockGetState([newTeamSaved]);
 
     actions.addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
 
@@ -424,15 +420,7 @@ describe('addNewPlayer', () => {
 
   it('should dispatch an action to add a new player that is unique', () => {
     const dispatchMock = jest.fn();
-    const getStateMock = jest.fn(() => {
-      const playerData: Roster = {};
-      playerData[storedPlayer.id] = storedPlayer;
-      return {
-        team: {
-          roster: playerData
-        }
-      };
-    });
+    const getStateMock = mockGetState([], undefined, undefined, [storedPlayer]);
 
     actions.addNewPlayer(newPlayer)(dispatchMock, getStateMock, undefined);
 
@@ -443,15 +431,7 @@ describe('addNewPlayer', () => {
 
   it('should do nothing with a new player that is not unique', () => {
     const dispatchMock = jest.fn();
-    const getStateMock = jest.fn(() => {
-      const playerData: Roster = {};
-      playerData[newPlayer.id] = newPlayer;
-      return {
-        team: {
-          roster: playerData
-        }
-      };
-    });
+    const getStateMock = mockGetState([], undefined, undefined, [newPlayer]);
 
     actions.addNewPlayer(newPlayer)(dispatchMock, getStateMock, undefined);
 
@@ -478,15 +458,7 @@ describe('savePlayer', () => {
 
     it('should dispatch an action to add player', async () => {
         const dispatchMock = jest.fn();
-        const getStateMock = jest.fn(() => {
-            const playerData: Roster = {};
-            playerData[storedPlayer.id] = storedPlayer;
-            return {
-                team: {
-                    roster: playerData
-                }
-            };
-        });
+        const getStateMock = mockGetState([], undefined, undefined, [storedPlayer]);
 
         actions.savePlayer(newPlayer)(dispatchMock, getStateMock, undefined);
 
@@ -509,15 +481,7 @@ describe('savePlayer', () => {
 
     it('should not dispatch an action when set() fails', async () => {
         const dispatchMock = jest.fn();
-        const getStateMock = jest.fn(() => {
-            const playerData: Roster = {};
-            playerData[storedPlayer.id] = storedPlayer;
-            return {
-                team: {
-                    roster: playerData
-                }
-            };
-        });
+        const getStateMock = mockGetState([], undefined, undefined, [storedPlayer]);
 
         actions.savePlayer(newPlayer)(dispatchMock, getStateMock, undefined);
 
