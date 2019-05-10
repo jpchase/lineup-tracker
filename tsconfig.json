@@ -13,7 +13,12 @@
     "baseUrl": ".",
     "paths": {
       "@app/*": ["src/*"]
-    }
+    },
+    "plugins": [
+      {
+        "name": "typescript-lit-html-plugin"
+      }
+    ]
   },
   "include": [
     "config.json.d.ts",
