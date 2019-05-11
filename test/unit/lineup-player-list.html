@@ -10,10 +10,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/wct-browser-legacy/browser.js"></script>
-
-    <!-- Import the element to test -->
-    <script type="module" src="../../src/components/lineup-player-list.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
   </head>
   <body>
     <test-fixture id="basic">
@@ -23,8 +22,10 @@
     </test-fixture>
 
     <script type="module">
+      import '@polymer/test-fixture';
       import 'axe-core/axe.min.js';
       import {axeReport} from 'pwa-helpers/axe-report.js';
+      import '../../src/components/lineup-player-list.js';
 
       function getRoster(numPlayers) {
         const size = numPlayers || 6;
@@ -62,7 +63,7 @@
         setup(function() {
           el = fixture('basic');
           // Make tests wait until element is rendered.
-          return el.updateComplete; // this never returns
+          return el.updateComplete;
         });
 
         test('starts empty', function() {

@@ -2,7 +2,7 @@
 @license
 */
 
-import { LitElement, html, property } from 'lit-element';
+import { LitElement, customElement, html, property } from 'lit-element';
 
 import { Player } from '../models/team.js';
 
@@ -14,10 +14,11 @@ import { EVENT_PLAYERSELECTED } from './events.js';
 import { SharedStyles } from './shared-styles.js';
 
 // This element is *not* connected to the Redux store.
-class LineupPlayerCard extends LitElement {
+@customElement('lineup-player-card')
+export class LineupPlayerCard extends LitElement {
   protected render() {
     const player = this.player!;
-    const positions = player.positions || [];
+    const positions: string[] = [];//player.positions || [];
     return html`
       ${SharedStyles}
       <style>
@@ -68,5 +69,3 @@ class LineupPlayerCard extends LitElement {
     }));
   }
 }
-
-window.customElements.define('lineup-player-card', LineupPlayerCard);

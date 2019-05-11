@@ -10,10 +10,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/wct-browser-legacy/browser.js"></script>
-
-    <!-- Import the element to test -->
-    <script type="module" src="../../src/components/lineup-game-create.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
   </head>
   <body>
     <test-fixture id="basic">
@@ -23,8 +22,10 @@
     </test-fixture>
 
     <script type="module">
+      import '@polymer/test-fixture';
       import 'axe-core/axe.min.js';
       import {axeReport} from 'pwa-helpers/axe-report.js';
+      import '../../src/components/lineup-game-create.js';
 
       suite('lineup-game-create tests', function() {
         let el;
@@ -84,12 +85,16 @@
 
           assert.isTrue(eventFired, 'Event new-game-created should be fired');
 
+          assert.equal(newGame.date.getUTCFullYear(), 2016);
+          assert.equal(newGame.date.getUTCMonth(), 0);
+          assert.equal(newGame.date.getUTCDate(), 1);
+
           assert.deepEqual(newGame,
             {
               name: 'G01',
               // TODO: Change when component also sets the time
               // date: gameDate,
-              date: new Date(2016, 0, 1),
+              date: newGame.date,
               opponent: 'Some Opponent'
             });
         });

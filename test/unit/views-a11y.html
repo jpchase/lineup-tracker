@@ -22,13 +22,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </script>
 
     <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/wct-browser-legacy/browser.js"></script>
-
-    <!-- Import the element to test -->
-    <script type="module" src="../../src/components/lineup-view-home.js"></script>
-    <script type="module" src="../../src/components/lineup-view-games.js"></script>
-    <script type="module" src="../../src/components/lineup-view-roster.js"></script>
-    <script type="module" src="../../src/components/lineup-view404.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
   </head>
   <body>
     <test-fixture id="viewHome">
@@ -53,8 +48,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script type="module">
+      import '@polymer/test-fixture';
       import 'axe-core/axe.min.js';
       import {axeReport} from 'pwa-helpers/axe-report.js';
+      import '../../src/components/lineup-view-home.js';
+      import '../../src/components/lineup-view-games.js';
+      import '../../src/components/lineup-view-roster.js';
+      import '../../src/components/lineup-view404.js';
 
       suite('views a11y tests', function() {
         test('lineup-view-home', function() {

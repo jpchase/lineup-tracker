@@ -14,7 +14,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <meta charset="utf-8">
     <title>Tests</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="../../node_modules/wct-browser-legacy/browser.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
   </head>
   <body>
     <script>
@@ -46,10 +47,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         'lineup-team-selector.html',
         'lineup-team-selector.html?wc-shadydom=true&wc-ce=true',
         // Load accessibility test suite, using native shadow dom
-        // TODO: Figure out why these are failing
-        // 'views-a11y.html',
+        'views-a11y.html',
         // Load accessibility test suite, using shadydom
-        // 'views-a11y.html?wc-shadydom=true&wc-ce=true',
+        'views-a11y.html?wc-shadydom=true&wc-ce=true',
       ]);
     </script>
   </body>
