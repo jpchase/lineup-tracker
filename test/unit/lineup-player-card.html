@@ -1,0 +1,82 @@
+<!--
+@license
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>lineup-roster-item</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
+    <script src="../../node_modules/wct-browser-legacy/browser.js"></script>
+
+    <!-- Import the element to test -->
+    <script type="module" src="../../src/components/lineup-player-card.js"></script>
+  </head>
+  <body>
+    <test-fixture id="basic">
+      <template>
+        <lineup-player-card></lineup-player-card>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      import 'axe-core/axe.min.js';
+      import {axeReport} from 'pwa-helpers/axe-report.js';
+
+      suite('lineup-player-card tests', function() {
+        let el;
+        setup(function() {
+          el = fixture('basic');
+          // Make tests wait until element is rendered.
+          // return el.updateComplete; // this never returns
+        });
+
+        test('starts empty', function() {
+          console.log('empty test');
+
+          assert.equal(el.mode, '');
+          assert.equal(el.selected, false);
+          assert.equal(el.player, undefined);
+        });
+
+        test('renders player properties', async function() {
+          const player = {
+            id: 'AC',
+            name: 'Amanda',
+            uniformNumber: 2,
+            positions: ['CB', 'FB', 'HM'],
+            status: 'OFF'
+          };
+          el.player = player;
+          await el.updateComplete;
+
+          assert.equal(el.player.uniformNumber, 2);
+
+          const playerElement = el.shadowRoot.querySelector('span.player');
+          assert.isOk(playerElement, 'Missing main element for player');
+
+          const numberElement = playerElement.querySelector('.uniformNumber');
+          assert.isOk(numberElement, 'Missing number element');
+          assert.equal(numberElement.textContent, '2');
+
+          const nameElement = playerElement.querySelector('.playerName');
+          assert.isOk(nameElement, 'Missing name element');
+          assert.equal(nameElement.textContent, 'Amanda');
+
+          // const positionsElement = playerElement.querySelector('paper-icon-item paper-item-body div[secondary]');
+          // assert.isOk(positionsElement, 'Missing positions element');
+          // assert.equal(positionsElement.textContent, 'CB, FB, HM');
+
+        });
+
+        test('a11y', function() {
+          console.log('ally test');
+          return axeReport(el);
+        });
+      });
+    </script>
+  </body>
+</html>

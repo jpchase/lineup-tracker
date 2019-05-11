@@ -1,0 +1,102 @@
+<!--
+@license
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>lineup-player-list</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
+    <script src="../../node_modules/wct-browser-legacy/browser.js"></script>
+
+    <!-- Import the element to test -->
+    <script type="module" src="../../src/components/lineup-player-list.js"></script>
+  </head>
+  <body>
+    <test-fixture id="basic">
+      <template>
+        <lineup-player-list></lineup-player-list>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      import 'axe-core/axe.min.js';
+      import {axeReport} from 'pwa-helpers/axe-report.js';
+
+      function getRoster(numPlayers) {
+        const size = numPlayers || 6;
+        const roster = {};
+        for (let i = 0; i < size; i++) {
+          const playerId = `P${i}`;
+          let pos;
+          switch (i % 3) {
+            case 0:
+              pos = ['CB', 'FB', 'HM'];
+              break;
+
+            case 1:
+              pos = ['S', 'OM'];
+              break;
+
+            case 2:
+              pos = ['AM'];
+              break;
+          }
+
+          roster[playerId] = {
+            id: playerId,
+            name: `Player ${i}`,
+            uniformNumber: i + (i % 3) * 10,
+            positions: pos,
+            status: 'OFF'
+          };
+        }
+        return roster;
+      }
+
+      suite('lineup-player-list tests', function() {
+        let el;
+        setup(function() {
+          el = fixture('basic');
+          // Make tests wait until element is rendered.
+          return el.updateComplete; // this never returns
+        });
+
+        test('starts empty', function() {
+          assert.equal(el.mode, '');
+          assert.equal(el.showCancel, false);
+          assert.equal(el.roster, undefined);
+        });
+
+        test('shows no players placeholder for empty roster', function() {
+          assert.equal(el.roster, undefined);
+          const placeholder = el.shadowRoot.querySelector('div p.empty-list');
+          assert.isOk(placeholder, 'Missing empty placeholder element');
+        });
+
+        for (const numPlayers of [1, 6]) {
+          const testName = numPlayers === 1 ? 'single player' : `multiple players`;
+          test(`renders list with ${testName}`, async function() {
+            const roster = getRoster(numPlayers);
+            const playerIds = Object.keys(roster);
+            el.mode = 'OFF';
+            el.roster = roster;
+            await el.updateComplete;
+
+            const items = el.shadowRoot.querySelectorAll('div div lineup-player-card');
+            assert.isOk(items, 'Missing items for players');
+            assert.equal(items.length, numPlayers, 'Rendered player count');
+          });
+        }
+
+        test('a11y', function() {
+          console.log('ally test');
+          return axeReport(el);
+        });
+      });
+    </script>
+  </body>
+</html>
