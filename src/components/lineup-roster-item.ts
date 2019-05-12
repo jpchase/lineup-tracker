@@ -2,19 +2,20 @@
 @license
 */
 
-import { LitElement, html, property } from 'lit-element';
+import { LitElement, customElement, html, property } from 'lit-element';
 
-import { Player } from '../models/team.js';
+import { Player } from '../models/team';
 
 // These are the elements needed by this element.
 import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-item/paper-item-body.js';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
-class LineupRosterItem extends LitElement {
+@customElement('lineup-roster-item')
+export class LineupRosterItem extends LitElement {
   protected render() {
     if (!this.player) {
       return;
@@ -61,5 +62,3 @@ class LineupRosterItem extends LitElement {
   @property({type: Object})
   player: Player|undefined = undefined;
 }
-
-window.customElements.define('lineup-roster-item', LineupRosterItem);

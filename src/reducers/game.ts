@@ -3,13 +3,13 @@
 */
 
 import { Reducer } from 'redux';
-import { Games, GameDetail } from '../models/game.js';
+import { Games, GameDetail } from '../models/game';
 import {
   ADD_GAME,
   GET_GAME,
   GET_GAMES
-} from '../actions/game.js';
-import { RootAction } from '../store.js';
+} from '../actions/game';
+import { RootAction } from '../store';
 
 export interface GameState {
   games: Games;

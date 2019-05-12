@@ -2,9 +2,9 @@
 @license
 */
 
-import { LitElement, html, property } from 'lit-element';
+import { LitElement, customElement, html, property } from 'lit-element';
 
-import { Teams } from '../models/team.js';
+import { Teams } from '../models/team';
 
 // These are the elements needed by this element.
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
@@ -14,16 +14,18 @@ import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
-class LineupTeamSelector extends LitElement {
+@customElement('lineup-team-selector')
+export class LineupTeamSelector extends LitElement {
   protected render() {
     return html`
       ${SharedStyles}
       <style>
         paper-dropdown-menu.teams {
           width: 115px;
+          /*
           --paper-input-container-label: {
             color: var(--paper-pink-500);
             font-style: italic;
@@ -35,7 +37,7 @@ class LineupTeamSelector extends LitElement {
             font-style: normal;
             font-family: serif;
             text-transform: uppercase;
-          };
+          };*/
           /* no underline */
           --paper-input-container-underline: {
             display: none;
@@ -111,5 +113,3 @@ class LineupTeamSelector extends LitElement {
   @property({type: Object})
   teams: Teams = {};
 }
-
-window.customElements.define('lineup-team-selector', LineupTeamSelector);

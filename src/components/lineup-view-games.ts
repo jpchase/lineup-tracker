@@ -8,38 +8,39 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-import { html, property } from 'lit-element';
-import { PageViewElement } from './page-view-element.js';
+import { customElement, html, property } from 'lit-element';
+import { PageViewElement } from './page-view-element';
 
-import { Games } from '../models/game.js';
+import { Games } from '../models/game';
 
 
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { store, RootState } from '../store.js';
-// import { GameState } from '../reducers/game.js';
-import { TeamState } from '../reducers/team.js';
+import { store, RootState } from '../store';
+// import { GameState } from '../reducers/game';
+import { TeamState } from '../reducers/team';
 
 // We are lazy loading its reducer.
-import game from '../reducers/game.js';
+import game from '../reducers/game';
 store.addReducers({
   game
 });
 
 // These are the actions needed by this element.
-import { getGames } from '../actions/game.js';
+import { getGames } from '../actions/game';
 
 // These are the elements needed by this element.
 import '@material/mwc-fab';
-import './lineup-game-create.js';
-import './lineup-game-list.js';
+import './lineup-game-create';
+import './lineup-game-list';
 
-import { EVENT_NEWGAMECREATED } from './events.js';
+import { EVENT_NEWGAMECREATED } from './events';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
-class LineupViewGames extends connect(store)(PageViewElement) {
+@customElement('lineup-view-games')
+export class LineupViewGames extends connect(store)(PageViewElement) {
   protected render() {
     return html`
       ${SharedStyles}
@@ -103,5 +104,3 @@ class LineupViewGames extends connect(store)(PageViewElement) {
     this._games = state.game!.games;
   }
 }
-
-window.customElements.define('lineup-view-games', LineupViewGames);

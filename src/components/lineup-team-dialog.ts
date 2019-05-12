@@ -2,9 +2,9 @@
 @license
 */
 
-import { LitElement, html, property } from 'lit-element';
+import { LitElement, customElement, html, property } from 'lit-element';
 
-import { Team } from '../models/team.js';
+import { Team } from '../models/team';
 
 // These are the elements needed by this element.
 import '@polymer/paper-button/paper-button.js';
@@ -13,16 +13,17 @@ import '@polymer/paper-input/paper-input.js';
 import { PaperDialogElement } from '@polymer/paper-dialog/paper-dialog.js';
 import { PaperInputElement } from '@polymer/paper-input/paper-input.js';
 
-import { EVENT_NEWTEAMCREATED } from './events.js';
+import { EVENT_NEWTEAMCREATED } from './events';
 
 interface PaperDialogClosingReason {
   confirmed?: boolean;
 }
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
+@customElement('lineup-team-dialog')
 export class LineupTeamDialog extends LitElement {
   protected render() {
     console.log('in render()');
@@ -107,5 +108,3 @@ export class LineupTeamDialog extends LitElement {
     }));
   }
 }
-
-window.customElements.define('lineup-team-dialog', LineupTeamDialog);

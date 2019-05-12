@@ -4,8 +4,8 @@
 
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { RootState } from '../store.js';
-import { Game, Games } from '../models/game.js';
+import { RootState } from '../store';
+import { Game, Games } from '../models/game';
 import { firebaseRef } from "../firebase";
 import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot} from '@firebase/firestore-types';
 

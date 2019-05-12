@@ -2,32 +2,33 @@
 @license
 */
 
-import { html, property } from 'lit-element';
-import { PageViewElement } from './page-view-element.js';
+import { customElement, html, property } from 'lit-element';
+import { PageViewElement } from './page-view-element';
 
-import { Roster } from '../models/team.js';
+import { Roster } from '../models/team';
 
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { store, RootState } from '../store.js';
-import { TeamState } from '../reducers/team.js';
+import { store, RootState } from '../store';
+import { TeamState } from '../reducers/team';
 
 // We are lazy loading its reducer.
-import team from '../reducers/team.js';
+import team from '../reducers/team';
 store.addReducers({
     team
 });
 
 // These are the actions needed by this element.
-import { getRoster } from '../actions/team.js';
+import { getRoster } from '../actions/team';
 
 // These are the elements needed by this element.
-import './lineup-roster.js';
+import './lineup-roster';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
-class LineupViewRoster extends connect(store)(PageViewElement) {
+@customElement('lineup-view-roster')
+export class LineupViewRoster extends connect(store)(PageViewElement) {
   protected render() {
     return html`
       ${SharedStyles}
@@ -62,5 +63,3 @@ class LineupViewRoster extends connect(store)(PageViewElement) {
   }
 
 }
-
-window.customElements.define('lineup-view-roster', LineupViewRoster);

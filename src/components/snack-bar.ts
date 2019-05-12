@@ -8,9 +8,10 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-import { LitElement, html, property } from 'lit-element';
+import { LitElement, customElement, html, property } from 'lit-element';
 
-class SnackBar extends LitElement {
+@customElement('snack-bar')
+export class SnackBar extends LitElement {
   protected render() {
     return html`
       <style>
@@ -49,5 +50,3 @@ class SnackBar extends LitElement {
   @property({type: Boolean})
   active = false;
 }
-
-window.customElements.define('snack-bar', SnackBar);

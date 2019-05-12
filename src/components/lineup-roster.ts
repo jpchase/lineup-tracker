@@ -2,18 +2,19 @@
 @license
 */
 
-import { LitElement, html, property } from 'lit-element';
+import { LitElement, customElement, html, property } from 'lit-element';
 
-import { Roster } from '../models/team.js';
+import { Roster } from '../models/team';
 
 // These are the elements needed by this element.
-import './lineup-roster-item.js';
+import './lineup-roster-item';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
-class LineupRoster extends LitElement {
+@customElement('lineup-roster')
+export class LineupRoster extends LitElement {
   protected render() {
     const roster = this.roster;
     const playerList = roster ? Object.keys(roster).map(key => roster[key]) : [];
@@ -43,5 +44,3 @@ class LineupRoster extends LitElement {
   @property({ type: Object })
   roster: Roster = {};
 }
-
-window.customElements.define('lineup-roster', LineupRoster);

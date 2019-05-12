@@ -2,17 +2,18 @@
 @license
 */
 
-import { LitElement, html, property } from 'lit-element';
+import { LitElement, customElement, html, property } from 'lit-element';
 
-import { Games } from '../models/game.js';
+import { Games } from '../models/game';
 
-import { peopleIcon, scheduleIcon } from './lineup-icons.js';
+import { peopleIcon, scheduleIcon } from './lineup-icons';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
-class LineupGameList extends LitElement {
+@customElement('lineup-game-list')
+export class LineupGameList extends LitElement {
   protected render() {
     const games = this.games;
     const gameList = games ? Object.keys(games).map(key => games[key]) : [];
@@ -47,5 +48,3 @@ class LineupGameList extends LitElement {
   @property({ type: Object })
   games: Games = {};
 }
-
-window.customElements.define('lineup-game-list', LineupGameList);

@@ -3,14 +3,14 @@
 */
 
 import { Reducer } from 'redux';
-import { Roster, Teams } from '../models/team.js';
+import { Roster, Teams } from '../models/team';
 import {
   ADD_TEAM,
   CHANGE_TEAM,
   GET_ROSTER,
   GET_TEAMS
-} from '../actions/team.js';
-import { RootAction } from '../store.js';
+} from '../actions/team';
+import { RootAction } from '../store';
 
 export interface TeamState {
   teams: Teams;

@@ -3,11 +3,11 @@
 */
 
 import { Reducer } from 'redux';
-import { User } from '../models/auth.js';
+import { User } from '../models/auth';
 import {
   GET_USER
-} from '../actions/auth.js';
-import { RootAction } from '../store.js';
+} from '../actions/auth';
+import { RootAction } from '../store';
 
 export interface AuthState {
   user: User | undefined;

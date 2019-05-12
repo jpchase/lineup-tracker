@@ -2,28 +2,29 @@
 @license
 */
 
-import { html, property } from 'lit-element';
-import { PageViewElement } from './page-view-element.js';
+import { html, customElement, property } from 'lit-element';
+import { PageViewElement } from './page-view-element';
 
-import { GameDetail } from '../models/game.js';
+import { GameDetail } from '../models/game';
 
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { store, RootState } from '../store.js';
+import { store, RootState } from '../store';
 
 // We are lazy loading its reducer.
-import game from '../reducers/game.js';
+import game from '../reducers/game';
 store.addReducers({
   game
 });
 
 // These are the actions needed by this element.
-import { getGame } from '../actions/game.js';
+import { getGame } from '../actions/game';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
-class LineupViewGameDetail extends connect(store)(PageViewElement) {
+@customElement('lineup-view-game-detail')
+export class LineupViewGameDetail extends connect(store)(PageViewElement) {
   protected render() {
     return html`
       ${SharedStyles}
@@ -58,8 +59,6 @@ class LineupViewGameDetail extends connect(store)(PageViewElement) {
   }
 
 }
-
-window.customElements.define('lineup-view-game-detail', LineupViewGameDetail);
 
 // Expose action for use in loading view.
 export { getGame };

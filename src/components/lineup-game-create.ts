@@ -2,9 +2,9 @@
 @license
 */
 
-import { LitElement, html } from 'lit-element';
+import { LitElement, customElement, html } from 'lit-element';
 
-import { GameMetadata } from '../models/game.js';
+import { GameMetadata } from '../models/game';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
@@ -13,13 +13,14 @@ import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-input/paper-input.js';
 import { PaperInputElement } from '@polymer/paper-input/paper-input.js';
 
-import { EVENT_NEWGAMECREATED } from './events.js';
+import { EVENT_NEWGAMECREATED } from './events';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
-class LineupGameCreate extends LitElement {
+@customElement('lineup-game-create')
+export class LineupGameCreate extends LitElement {
   protected render() {
     // const games = this.games;
     return html`
@@ -69,6 +70,7 @@ class LineupGameCreate extends LitElement {
         const opponentField = this.shadowRoot!.querySelector('paper-input#opponentField') as PaperInputElement;
         // const durationField = this.shadowRoot!.querySelector('paper-input#durationField') as PaperInputElement;
 
+console.log(`Date is: ${dateField.value!.trim()}`);
         const newGame: GameMetadata = {
             name: nameField.value!.trim(),
             date: new Date(Date.parse(dateField.value!.trim())),
@@ -83,5 +85,3 @@ class LineupGameCreate extends LitElement {
         }));
     }
 }
-
-window.customElements.define('lineup-game-create', LineupGameCreate);

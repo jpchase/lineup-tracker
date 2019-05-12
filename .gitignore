@@ -2,6 +2,7 @@ build/
 node_modules/
 test/integration/screenshots-current/
 src/**/*.js
+!src/index.js
 dist/
 .tmp
 app.yaml

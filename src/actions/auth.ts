@@ -5,8 +5,8 @@
 
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { RootState } from '../store.js';
-import { User } from '../models/auth.js';
+import { RootState } from '../store';
+import { User } from '../models/auth';
 import { User as FirebaseUser } from '@firebase/auth-types';
 import { authRef, provider } from "../firebase";
 

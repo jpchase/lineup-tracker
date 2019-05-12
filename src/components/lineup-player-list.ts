@@ -5,15 +5,15 @@
 import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 
-import { Player, Roster } from '../models/team.js';
+import { Player, Roster } from '../models/team';
 
 // These are the elements needed by this element.
-import './lineup-player-card.js';
+import './lineup-player-card';
 
-import { EVENT_PLAYERLISTCANCEL } from './events.js';
+import { EVENT_PLAYERLISTCANCEL } from './events';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
 @customElement('lineup-player-list')
@@ -74,9 +74,9 @@ export class LineupPlayerList extends LitElement {
     const statusFilter = this._getPlayerStatus(this.mode);
     const roster = this.roster;
     return Object.keys(roster).reduce((result: Player[], key) => {
-      const player = roster[key]; 
+      const player = roster[key];
       if (player.status === statusFilter) {
-        result.push(player); 
+        result.push(player);
       }
       return result;
     }, []);
@@ -89,5 +89,5 @@ export class LineupPlayerList extends LitElement {
       bubbles: true, composed: true,
       detail: {} // {player: e.model.player},
     }));
-  }  
+  }
 }

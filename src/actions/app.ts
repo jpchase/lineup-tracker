@@ -10,7 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { RootState } from '../store.js';
+import { RootState } from '../store';
 export const UPDATE_PAGE = 'UPDATE_PAGE';
 export const UPDATE_OFFLINE = 'UPDATE_OFFLINE';
 export const UPDATE_DRAWER_STATE = 'UPDATE_DRAWER_STATE';
@@ -44,26 +44,26 @@ export const navigate: ActionCreator<ThunkResult> = (location: Location) => (dis
 const loadPage: ActionCreator<ThunkResult> = (page: string, gameId: string) => async (dispatch) => {
   switch(page) {
     case 'viewHome':
-      import('../components/lineup-view-home.js').then(() => {
+      import('../components/lineup-view-home').then(() => {
         // Put code in here that you want to run every time when
         // navigating to viewHome after lineup-view-home.js is loaded.
       });
       break;
     case 'viewGames':
-      import('../components/lineup-view-games.js');
+      import('../components/lineup-view-games');
       break;
     case 'game':
-      /*const module: any =*/ import('../components/lineup-view-game-detail.js');
+      /*const module: any =*/ import('../components/lineup-view-game-detail');
       // Fetch the data for the given game id.
       console.log(`loading game detail page for ${gameId}`);
       // await dispatch(module.getGame(gameId));
       break;
     case 'viewRoster':
-      import('../components/lineup-view-roster.js');
+      import('../components/lineup-view-roster');
       break;
     default:
       page = 'view404';
-      import('../components/lineup-view404.js');
+      import('../components/lineup-view404');
   }
 
   dispatch(updatePage(page));

@@ -4,7 +4,7 @@ Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 */
 
-import { LitElement, html, property, PropertyValues } from 'lit-element';
+import { LitElement, customElement, html, property, PropertyValues } from 'lit-element';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
@@ -12,15 +12,15 @@ import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { installRouter } from 'pwa-helpers/router.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 
-import { User } from '../models/auth.js';
-import { Teams } from '../models/team.js';
+import { User } from '../models/auth';
+import { Teams } from '../models/team';
 
 // This element is connected to the Redux store.
-import { store, RootState } from '../store.js';
+import { store, RootState } from '../store';
 
 // We are lazy loading its reducer.
-import auth from '../reducers/auth.js';
-import team from '../reducers/team.js';
+import auth from '../reducers/auth';
+import team from '../reducers/team';
 store.addReducers({
   auth,
   team
@@ -31,9 +31,9 @@ import {
   navigate,
   updateOffline,
   updateDrawerState
-} from '../actions/app.js';
-import { getUser, signIn } from '../actions/auth.js';
-import { addNewTeam, changeTeam, getTeams } from '../actions/team.js';
+} from '../actions/app';
+import { getUser, signIn } from '../actions/auth';
+import { addNewTeam, changeTeam, getTeams } from '../actions/team';
 
 // The following line imports the type only - it will be removed by tsc so
 // another import for app-drawer.js is required below.
@@ -44,13 +44,13 @@ import '@polymer/app-layout/app-drawer/app-drawer.js';
 import '@polymer/app-layout/app-header/app-header.js';
 import '@polymer/app-layout/app-scroll-effects/effects/waterfall.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
-import { accountIcon, menuIcon } from './lineup-icons.js';
-import { LineupTeamDialog } from './lineup-team-dialog.js';
-import './lineup-team-dialog.js';
-import './lineup-team-selector.js';
-import './snack-bar.js';
+import { accountIcon, menuIcon } from './lineup-icons';
+import { LineupTeamDialog } from './lineup-team-dialog';
+import './lineup-team-dialog';
+import './lineup-team-selector';
+import './snack-bar';
 
-import { EVENT_NEWTEAMCREATED } from './events.js';
+import { EVENT_NEWTEAMCREATED } from './events';
 
 interface Page {
   page: string;
@@ -61,7 +61,8 @@ interface Pages {
   [index: string]: Page;
 }
 
-class LineupApp extends connect(store)(LitElement) {
+@customElement('lineup-app')
+export class LineupApp extends connect(store)(LitElement) {
   protected render() {
     return html`
     <style>
@@ -425,5 +426,3 @@ class LineupApp extends connect(store)(LitElement) {
     this._teams = state.team!.teams;
   }
 }
-
-window.customElements.define('lineup-app', LineupApp);

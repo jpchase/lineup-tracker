@@ -4,14 +4,14 @@
 
 import { LitElement, customElement, html, property } from 'lit-element';
 
-import { Player } from '../models/team.js';
+import { Player } from '../models/team';
 
 // These are the elements needed by this element.
 
-import { EVENT_PLAYERSELECTED } from './events.js';
+import { EVENT_PLAYERSELECTED } from './events';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles.js';
+import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
 @customElement('lineup-player-card')
