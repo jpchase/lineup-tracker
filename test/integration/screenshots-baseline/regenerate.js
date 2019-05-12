@@ -73,8 +73,9 @@ async function generateBaselineScreenshots(page, prefix, breakpoint) {
     // Views.
     const views = ['Home', 'GameDetail', 'Games', 'Roster'];
     for (const view of views) {
-      console.log(`View: ${view}`);
-      await page.goto(`http://127.0.0.1:4444/view${view}`);
+      const route = (view === 'GameDetail') ? 'game' : `view${view}`;
+      console.log(`View: ${view}, route: ${route}`);
+      await page.goto(`http://127.0.0.1:4444/${route}`);
       if (view === 'Games') {
         console.log(`Wait extra for Games view to load fonts`);
         // TODO: Remove sleep hack to avoid missing icon on FAB in screenshot
