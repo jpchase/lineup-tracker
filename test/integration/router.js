@@ -14,13 +14,11 @@ const {startServer} = require('polyserve');
 const path = require('path');
 const appUrl = 'http://127.0.0.1:4444';
 
-const firebaseScriptRegex = new RegExp(/(http:\/\/\d+\.\d+\.\d+\.\d+:\d+\/)?__\/firebase\/\d+\.\d+\.\d+(\/.+)/);
-
 describe('routing tests', function() {
   let polyserve, browser, page;
 
   before(async function() {
-    polyserve = await startServer({port:4444, root:path.join(__dirname, '../..'), moduleResolution:'node'});
+    polyserve = await startServer({port:4444, root:path.join(__dirname, '../../dist'), moduleResolution:'node'});
   });
 
   after((done) => polyserve.close(done));
@@ -28,18 +26,6 @@ describe('routing tests', function() {
   beforeEach(async function() {
     browser = await puppeteer.launch();
     page = await browser.newPage();
-
-    // Override url for Firebase scripts
-    await page.setRequestInterception(true);
-    page.on('request', request => {
-      const scriptMatch = firebaseScriptRegex.exec(request.url());
-      if (!scriptMatch) {
-        request.continue();
-        return;
-      }
-      const url = scriptMatch[1] + 'node_modules/firebase' + scriptMatch[2];
-      request.continue({ url });
-    });
   });
 
   afterEach(() => browser.close());
@@ -89,7 +75,6 @@ async function testNavigation(page, href, linkText) {
   };
 
   const selector = `a[href="/${href}"]`;
-  const shadowSelector = `a[href="/${href}"]`;
 
   // Does the link say the right thing?
   const myApp = await page.$('lineup-app');
@@ -109,7 +94,7 @@ async function testNavigationInADifferentWay(page, href, linkText) {
   const text = await page.evaluate((el) => el.textContent, linkHandle);
   expect(text).equal(linkText);
 
-  await linkHandle.click();
+  await page.evaluate((el) => el.click(), linkHandle);
   let newUrl = await page.evaluate('window.location.href')
   expect(newUrl).equal(`${appUrl}/${href}`);
 }
