@@ -17,6 +17,9 @@ import { SharedStyles } from './shared-styles.js';
 @customElement('lineup-player-card')
 export class LineupPlayerCard extends LitElement {
   protected render() {
+    if (!this.player) {
+      return;
+    }
     const player = this.player!;
     const positions: string[] = [];//player.positions || [];
     return html`

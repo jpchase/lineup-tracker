@@ -16,6 +16,9 @@ import { SharedStyles } from './shared-styles.js';
 // This element is *not* connected to the Redux store.
 class LineupRosterItem extends LitElement {
   protected render() {
+    if (!this.player) {
+      return;
+    }
     const player = this.player!;
     const positions = player.positions || [];
     return html`
