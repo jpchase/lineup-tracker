@@ -13,10 +13,10 @@ const GAME_INITIAL_STATE: GameState = {
 
 describe('Games reducer', () => {
   const existingGame: Game = {
-    id: 'EX', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Existing opponent'
+    id: 'EX', name: 'Existing Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Existing opponent'
   };
   const newGame: Game = {
-    id: 'NG', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Opponent for new'
+    id: 'NG', name: 'New Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Opponent for new'
   };
 
   it('should return the initial state', () => {

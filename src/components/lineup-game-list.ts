@@ -27,7 +27,7 @@ export class LineupGameList extends LitElement {
         <div class="list">
         ${gameList.map(game => html`
           <div class="game flex-equal-justified">
-            <div class="gameId">${game.id}</div>
+            <div class="name">${game.name}</div>
             <div secondary>
               <span class="opponent">${game.opponent}</span>
               <span class="gameDate">${game.date}</span>

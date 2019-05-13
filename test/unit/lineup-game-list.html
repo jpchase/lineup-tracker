@@ -32,27 +32,13 @@
         const games = {};
         for (let i = 0; i < size; i++) {
           const gameId = `G${i}`;
-          let pos;
-          switch (i % 3) {
-            case 0:
-              pos = ['CB', 'FB', 'HM'];
-              break;
-
-            case 1:
-              pos = ['S', 'OM'];
-              break;
-
-            case 2:
-              pos = ['AM'];
-              break;
-          }
 
           games[gameId] = {
             id: gameId,
+            teamId: 'T1',
+            name: `Game ${i}`,
             opponent: `Other team ${i}`,
-            uniformNumber: i + (i % 3) * 10,
-            positions: pos,
-            status: 'OFF'
+            date: new Date(2016, (i % 3), i)
           };
         }
         return games;
@@ -86,6 +72,28 @@
             const items = el.shadowRoot.querySelectorAll('div div div.game');
             assert.isOk(items, 'Missing items for games');
             assert.equal(items.length, numGames, 'Rendered game count');
+
+            let index = 0;
+            for (const gameId of Object.keys(games)) {
+              const game = games[gameId];
+
+              const gameElement = items[index];
+
+              const nameElement = gameElement.querySelector('.name');
+              assert.isOk(nameElement, 'Missing name element');
+              assert.equal(nameElement.textContent, game.name);
+
+              const opponentElement = gameElement.querySelector('.opponent');
+              assert.isOk(opponentElement, 'Missing opponent element');
+              assert.equal(opponentElement.textContent, game.opponent);
+
+              const dateElement = gameElement.querySelector('.gameDate');
+              assert.isOk(dateElement, 'Missing name element');
+              assert.equal(dateElement.textContent, game.date.toString());
+
+              index++;
+            }
+
           });
         }
 

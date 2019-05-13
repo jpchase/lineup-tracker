@@ -55,6 +55,7 @@ export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatc
       const entry: Game = {
         id: result.id,
         teamId: data.teamId,
+        name: data.name,
         date: data.date.toDate(),
         opponent: data.opponent
       };

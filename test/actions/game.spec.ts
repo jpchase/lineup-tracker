@@ -1,5 +1,5 @@
 import * as actions from '@app/actions/game';
-import { Game } from '@app/models/game';
+import { Game, StoredGameData } from '@app/models/game';
 import { firebaseRef } from '@app/firebase';
 /// <reference path="mock-cloud-firestore.d.ts" />
 import * as MockFirebase from 'mock-cloud-firestore';
@@ -9,9 +9,10 @@ jest.mock('@app/firebase');
 
 const PUBLIC_GAME_ID = 'pg1';
 
-function getPublicGameData() {
+function getPublicGameData(): StoredGameData {
   return {
     teamId: getPublicTeam().id,
+    name: 'Public G',
     date: new Date(2016, 1, 10),
     opponent: 'Public Opponent'
   }
@@ -21,9 +22,10 @@ function getPublicGame(): Game {
   return { id: PUBLIC_GAME_ID, ...getPublicGameData() }
 };
 
-function getStoredGameData() {
+function getStoredGameData(): StoredGameData {
   return {
     teamId: getStoredTeam().id,
+    name: 'Stored G',
     date: new Date(2016, 1, 10),
     opponent: 'Stored Game Opponent'
   }
