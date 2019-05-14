@@ -36,7 +36,7 @@
         });
 
         function getInputField(fieldId) {
-          const field = el.shadowRoot.querySelector(`paper-input#${fieldId}`);
+          const field = el.shadowRoot.querySelector(`#${fieldId} > input`);
           assert.isOk(field, `Missing field: ${fieldId}`);
           return field;
         }
@@ -57,13 +57,18 @@
         });
 
         test('creates new game when saved', async function() {
+          // TODO: Figure out better way to wait for component to be rendered
+          await sleep(50);
 
-          const nameField = getInputField('idField');
+          const nameField = getInputField('nameField');
           nameField.value = ' G01 '
 
           const gameDate = new Date(2016, 0, 1, 14, 30);
           const dateField = getInputField('dateField');
-          dateField.value = ` ${gameDate.toLocaleDateString()} `;
+          dateField.value = '2016-01-01';
+
+          const timeField = getInputField('timeField');
+          timeField.value = '14:30';
 
           const opponentField = getInputField('opponentField');
           opponentField.value = ' Some Opponent ';
@@ -78,23 +83,17 @@
 
           window.addEventListener('new-game-created', handler);
 
-          const saveButton = el.shadowRoot.querySelector('mwc-button[dialog-confirm]');
+          const saveButton = el.shadowRoot.querySelector('mwc-button.save');
           saveButton.click();
           // TODO: Figure out better way than manual sleep
           await sleep(50);
 
           assert.isTrue(eventFired, 'Event new-game-created should be fired');
 
-          assert.equal(newGame.date.getUTCFullYear(), 2016);
-          assert.equal(newGame.date.getUTCMonth(), 0);
-          assert.equal(newGame.date.getUTCDate(), 1);
-
           assert.deepEqual(newGame,
             {
               name: 'G01',
-              // TODO: Change when component also sets the time
-              // date: gameDate,
-              date: newGame.date,
+              date: gameDate,
               opponent: 'Some Opponent'
             });
         });
