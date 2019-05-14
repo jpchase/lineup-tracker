@@ -15,10 +15,10 @@ firebaseRef.initializeApp(config);
 const firestore = firebaseRef.firestore();
 
 const settings = {
-  timestampsInSnapshots: true,
+  cacheSizeBytes: firestore.settings.CACHE_SIZE_UNLIMITED,
 };
 firestore.settings(settings);
-firestore.enablePersistence()
+firestore.enablePersistence({ synchronizeTabs:true })
     .catch(function(err: any) {
         if (err.code == 'failed-precondition') {
             // Multiple tabs open, persistence can only be enabled
