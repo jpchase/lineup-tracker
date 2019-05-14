@@ -4,7 +4,7 @@
 
 import { LitElement, customElement, html, property } from 'lit-element';
 
-import { Player } from '../models/team';
+import { Player } from '../models/player';
 
 // These are the elements needed by this element.
 

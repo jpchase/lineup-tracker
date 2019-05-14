@@ -4,7 +4,7 @@
 
 import { LitElement, customElement, html, property } from 'lit-element';
 
-import { Roster } from '../models/team';
+import { Roster } from '../models/player';
 
 // These are the elements needed by this element.
 import './lineup-roster-item';

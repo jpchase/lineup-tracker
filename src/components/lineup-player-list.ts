@@ -5,7 +5,7 @@
 import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 
-import { Player, Roster } from '../models/team';
+import { Player, Roster } from '../models/player';
 
 // These are the elements needed by this element.
 import './lineup-player-card';

@@ -5,7 +5,7 @@
 import { customElement, html, property } from 'lit-element';
 import { PageViewElement } from './page-view-element';
 
-import { Roster } from '../models/team';
+import { Roster } from '../models/player';
 
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';

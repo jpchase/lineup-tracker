@@ -3,7 +3,8 @@
 */
 
 import { Reducer } from 'redux';
-import { Roster, Teams } from '../models/team';
+import { Roster } from '../models/player';
+import { Teams } from '../models/team';
 import {
   ADD_TEAM,
   CHANGE_TEAM,
