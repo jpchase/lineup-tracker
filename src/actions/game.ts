@@ -7,7 +7,7 @@ import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { Game, Games } from '../models/game';
 import { firebaseRef } from "../firebase";
-import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot} from '@firebase/firestore-types';
+import { CollectionReference, DocumentData, DocumentReference, Query, QuerySnapshot, QueryDocumentSnapshot} from '@firebase/firestore-types';
 
 export const ADD_GAME = 'ADD_GAME';
 export const GET_GAME = 'GET_GAME';
@@ -81,3 +81,38 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (/
   }
   return Promise.resolve();
 }
+
+export const addNewGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch, getState) => {
+  if (!newGame) {
+    return;
+  }
+  const state = getState();
+  // Verify that the game name is unique.
+  const gameState = state.game!;
+  if (gameState.games) {
+    const hasMatch = Object.keys(gameState.games).some((key) => {
+      const game = gameState.games[key];
+      return (game.name.localeCompare(newGame.name, undefined, {sensitivity: 'base'}) == 0);
+    });
+    if (hasMatch) {
+      return;
+    }
+  }
+  dispatch(saveGame(newGame));
+};
+
+// Saves the new game in local storage, before adding to the store
+export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch) => {
+  const collection = getGamesCollection();
+  const doc: DocumentReference = collection.doc();
+  doc.set(newGame);
+  newGame.id = doc.id;
+  dispatch(addGame(newGame));
+};
+
+export const addGame: ActionCreator<ThunkResult> = (game: Game) => (dispatch) => {
+  dispatch({
+    type: ADD_GAME,
+    game
+  });
+};
