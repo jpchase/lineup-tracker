@@ -4,7 +4,7 @@
   "repository": "github:jpchase/lineup-tracker",
   "scripts": {
     "start": "gulp serve",
-    "start:webpack": "webpack-dev-server --open --mode development",
+    "start:webpack": "tsc && webpack-dev-server --open --mode development",
     "serve:tmp": "npm run build:static && firebase serve",
     "build": "tsc && npm run build:prpl-server && npm run build:static",
     "build:static": "tsc && polymer build",

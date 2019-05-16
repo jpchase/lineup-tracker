@@ -78,17 +78,17 @@
           const handler = function(event) {
             eventFired = true;
             newGame = event.detail.game;
-            window.removeEventListener('new-game-created', handler);
+            window.removeEventListener('newgamecreated', handler);
           };
 
-          window.addEventListener('new-game-created', handler);
+          window.addEventListener('newgamecreated', handler);
 
           const saveButton = el.shadowRoot.querySelector('mwc-button.save');
           saveButton.click();
           // TODO: Figure out better way than manual sleep
           await sleep(50);
 
-          assert.isTrue(eventFired, 'Event new-game-created should be fired');
+          assert.isTrue(eventFired, 'Event newgamecreated should be fired');
 
           assert.deepEqual(newGame,
             {
