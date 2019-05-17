@@ -1,26 +1,13 @@
 import * as actions from '@app/actions/team';
-import { Player, Roster, Team, Teams } from '@app/models/team';
+import { Player, Roster } from '@app/models/player';
+import { Team, Teams } from '@app/models/team';
 import { firebaseRef } from '@app/firebase';
 import { Query, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />
 import * as MockFirebase from 'mock-cloud-firestore';
+import { TEST_USER_ID, getMockAuthState, getPublicTeam, getPublicTeamData, getStoredTeam, MockAuthStateOptions } from '../helpers/test_data';
 
 jest.mock('@app/firebase');
-
-interface MockGetStateOptions {
-  signedIn?: boolean;
-  userId?: string;
-}
-
-const TEST_USER_ID = 'U1234';
-
-function getPublicTeamData() {
-  return { name: 'Public team 1' }
-};
-
-function getPublicTeam(): Team {
-  return { id: 'pt1', ...getPublicTeamData() }
-};
 
 const fixtureData = {
     __collection__: {
@@ -67,19 +54,21 @@ const fixtureData = {
 
 const KEY_TEAMS = 'teams';
 
+export function getNewTeamData() {
+  return { name: 'New team 1' }
+};
+
 // New team created by the UI does not have an ID until added to storage.
 function getNewTeam(): Team {
     return {
-        id: '', name: 'New team 1'
+        ...getNewTeamData(),
+        id: ''
     };
 }
 const newTeamSaved: Team = {
+  ...getNewTeam(),
   // TODO: Changed id to 'nt1', when supported by collection mocking;
-    id: 'theId', name: getNewTeam().name
-};
-
-const storedTeam: Team = {
-    id: 'st1', name: 'Stored team 1'
+    id: 'theId'
 };
 
 function buildTeams(teams: Team[]): Teams {
@@ -99,21 +88,13 @@ function buildRoster(players?: Player[]): Roster {
   }, {} as Roster);
 }
 
-function mockGetState(teams: Team[], currentTeam?: Team, options?: MockGetStateOptions, players?: Player[]) {
+function mockGetState(teams: Team[], currentTeam?: Team, options?: MockAuthStateOptions, players?: Player[]) {
   return jest.fn(() => {
     const teamData = buildTeams(teams);
     const rosterData = buildRoster(players);
 
-    // TODO: extract into test helper method?
-    let mockAuth: any = { user: undefined };
-    if (options && options.signedIn) {
-        mockAuth.user = {
-          id: options.userId,
-          name: 'Some user'
-        };
-    }
     return {
-      auth: mockAuth,
+      auth: getMockAuthState(options),
       team: {
         teamId: currentTeam ? currentTeam.id : '',
         teamName: currentTeam ? currentTeam.name : '',
@@ -151,7 +132,7 @@ describe('getTeams', () => {
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
           type: actions.GET_TEAMS,
-          teams: buildTeams([storedTeam]),
+          teams: buildTeams([getStoredTeam()]),
       }));
   });
 
@@ -197,7 +178,7 @@ describe('changeTeam', () => {
     const dispatchMock = jest.fn();
     const getStateMock = mockGetState([]);
 
-    actions.changeTeam(storedTeam.id)(dispatchMock, getStateMock, undefined);
+    actions.changeTeam(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
     expect(getStateMock).toBeCalled();
 
@@ -206,7 +187,7 @@ describe('changeTeam', () => {
 
   it('should do nothing if team id does not exist', () => {
     const dispatchMock = jest.fn();
-    const getStateMock = mockGetState([storedTeam]);
+    const getStateMock = mockGetState([getStoredTeam()]);
 
     actions.changeTeam('nosuchid')(dispatchMock, getStateMock, undefined);
 
@@ -216,6 +197,7 @@ describe('changeTeam', () => {
   });
 
   it('should do nothing if team id already set as current team', () => {
+    const storedTeam = getStoredTeam();
     const dispatchMock = jest.fn();
     const getStateMock = mockGetState([storedTeam], storedTeam);
 
@@ -227,6 +209,7 @@ describe('changeTeam', () => {
   });
 
   it('should dispatch an action to change the selected team', () => {
+    const storedTeam = getStoredTeam();
     const dispatchMock = jest.fn();
     const getStateMock = mockGetState([storedTeam, newTeamSaved], storedTeam);
 
@@ -285,7 +268,7 @@ describe('saveTeam', () => {
         expect(typeof actions.saveTeam()).toBe('function');
     });
 
-    it('should dispatch an action to add team', async () => {
+    it('should save to storage and dispatch an action to add team', async () => {
         const dispatchMock = jest.fn();
         const getStateMock = jest.fn();
 
@@ -366,7 +349,7 @@ describe('getRoster', () => {
     const rosterData: Roster = {};
     rosterData[storedPlayer.id] = storedPlayer;
 
-    actions.getRoster(storedTeam.id)(dispatchMock, getStateMock, undefined);
+    actions.getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
     // Waits for promises to resolve.
     await Promise.resolve();
@@ -384,7 +367,7 @@ describe('getRoster', () => {
       firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
 
       expect(() => {
-        actions.getRoster(storedTeam.id)(dispatchMock, getStateMock, undefined);
+        actions.getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
       }).toThrow();
 
       // Waits for promises to resolve.
