@@ -2,9 +2,12 @@
 @license
 */
 
-export interface Team {
-  id: string;
+export interface TeamData {
   name: string;
+}
+
+export interface Team extends TeamData {
+  id: string;
 }
 
 export interface Teams {

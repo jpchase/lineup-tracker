@@ -3,11 +3,12 @@
 */
 
 import { Reducer } from 'redux';
+import { createSelector } from 'reselect';
 import { User } from '../models/auth';
 import {
   GET_USER
 } from '../actions/auth';
-import { RootAction } from '../store';
+import { RootAction, RootState } from '../store';
 
 export interface AuthState {
   user: User | undefined;
@@ -34,3 +35,15 @@ const auth: Reducer<AuthState, RootAction> = (state = INITIAL_STATE, action) => 
 };
 
 export default auth;
+
+export const userSelector = (state: RootState) => state.auth && state.auth.user;
+
+export const currentUserIdSelector = createSelector(
+  userSelector,
+  (user) => {
+    if (!user) {
+      return;
+    }
+    return user.id;
+  }
+);

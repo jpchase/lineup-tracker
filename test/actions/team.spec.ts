@@ -1,8 +1,8 @@
 import * as actions from '@app/actions/team';
 import { Player, Roster } from '@app/models/player';
-import { Team, Teams } from '@app/models/team';
+import { Team, TeamData, Teams } from '@app/models/team';
 import { firebaseRef } from '@app/firebase';
-import { Query, QuerySnapshot } from '@firebase/firestore-types';
+import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />
 import * as MockFirebase from 'mock-cloud-firestore';
 import { TEST_USER_ID, getMockAuthState, getPublicTeam, getPublicTeamData, getStoredTeam, MockAuthStateOptions } from '../helpers/test_data';
@@ -59,16 +59,14 @@ export function getNewTeamData() {
 };
 
 // New team created by the UI does not have an ID until added to storage.
-function getNewTeam(): Team {
-    return {
-        ...getNewTeamData(),
-        id: ''
-    };
+function getNewTeam(): TeamData {
+  return {
+    ...getNewTeamData()
+  };
 }
 const newTeamSaved: Team = {
   ...getNewTeam(),
-  // TODO: Changed id to 'nt1', when supported by collection mocking;
-    id: 'theId'
+  id: 'somerandomid'
 };
 
 function buildTeams(teams: Team[]): Teams {
@@ -270,7 +268,7 @@ describe('saveTeam', () => {
 
     it('should save to storage and dispatch an action to add team', async () => {
         const dispatchMock = jest.fn();
-        const getStateMock = jest.fn();
+        const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
 
         actions.saveTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
 
@@ -281,6 +279,22 @@ describe('saveTeam', () => {
         const query: Query = mockFirebase.firestore().collection(KEY_TEAMS).where('name', '==', newTeamSaved.name);
         const result: QuerySnapshot = await query.get();
         expect(result.size).toEqual(1);
+
+        const expectedData: any = {
+          ...getNewTeamData(),
+          owner_uid: TEST_USER_ID
+        };
+
+        let id = '';
+        let data: DocumentData = {};
+        result.forEach((doc: QueryDocumentSnapshot) => {
+          id = doc.id;
+          data = doc.data();
+        });
+
+        expect(id).toBeTruthy();
+        expect(id).toMatch(/[A-Za-z0-9]+/);
+        expect(data).toEqual(expectedData);
 
         // Waits for promises to resolve.
         await Promise.resolve();
