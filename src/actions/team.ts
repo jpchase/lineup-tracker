@@ -7,8 +7,8 @@ import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
-import { currentUserIdSelector } from '../reducers/auth';
-import { firebaseRef } from "../firebase";
+import { firebaseRef } from '../firebase';
+import { buildNewDocumentData } from '../firestore-helpers';
 import { CollectionReference, DocumentData, DocumentReference, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_TEAM = 'ADD_TEAM';
@@ -115,12 +115,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 
 // Saves the new team in local storage, before adding to the store
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
-    const data = {
-      ...newTeam,
-      owner_uid: currentUserIdSelector(getState())
-    };
-    // Ensure there is no 'id' property, as that will prevent a unique id from being generated.
-    delete data.id;
+    const data = buildNewDocumentData(newTeam, getState());
 
     const collection = getTeamsCollection();
     const doc: DocumentReference = collection.doc();
