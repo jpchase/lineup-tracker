@@ -1,11 +1,11 @@
 import * as actions from '@app/actions/team';
 import { Player, Roster } from '@app/models/player';
-import { Team, TeamData, Teams } from '@app/models/team';
+import { Team, TeamData } from '@app/models/team';
 import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />
 import * as MockFirebase from 'mock-cloud-firestore';
-import { TEST_USER_ID, getMockAuthState, getPublicTeam, getPublicTeamData, getStoredTeam, MockAuthStateOptions } from '../helpers/test_data';
+import { TEST_USER_ID, buildRoster, buildTeams, getMockAuthState, getPublicTeam, getPublicTeamData, getStoredTeam, MockAuthStateOptions } from '../helpers/test_data';
 
 jest.mock('@app/firebase');
 
@@ -68,23 +68,6 @@ const newTeamSaved: Team = {
   ...getNewTeam(),
   id: 'somerandomid'
 };
-
-function buildTeams(teams: Team[]): Teams {
-  return teams.reduce((obj, team) => {
-    obj[team.id] = team;
-    return obj;
-  }, {} as Teams);
-}
-
-function buildRoster(players?: Player[]): Roster {
-  if (!players) {
-    return {} as Roster;
-  }
-  return players.reduce((obj, player) => {
-    obj[player.id] = player;
-    return obj;
-  }, {} as Roster);
-}
 
 function mockGetState(teams: Team[], currentTeam?: Team, options?: MockAuthStateOptions, players?: Player[]) {
   return jest.fn(() => {

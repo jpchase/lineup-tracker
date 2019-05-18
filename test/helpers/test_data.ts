@@ -1,6 +1,7 @@
-import { RootAction } from '../../src/store.js';
+import { RootAction } from '@app/store';
 import { Game, Games } from '@app/models/game';
-import { Team } from '../../src/models/team.js';
+import { Player, Roster } from '@app/models/player';
+import { Team, Teams } from '@app/models/team';
 
 export function getFakeAction(): RootAction {
     // This must be a real action type, due to type checking. Using the offline
@@ -22,6 +23,18 @@ export function getMockAuthState(options?: MockAuthStateOptions) {
       };
     }
   return mockAuth;
+}
+
+export function getMockTeamState(teams: Team[], currentTeam?: Team, players?: Player[]) {
+  const teamData = buildTeams(teams);
+  const rosterData = buildRoster(players);
+
+  return {
+    teamId: currentTeam ? currentTeam.id : '',
+    teamName: currentTeam ? currentTeam.name : '',
+    teams: teamData,
+    roster: rosterData
+  };
 }
 
 export const TEST_USER_ID = 'U1234';
@@ -47,4 +60,21 @@ export function buildGames(games: Game[]): Games {
     obj[game.id] = game;
     return obj;
   }, {} as Games);
+}
+
+export function buildTeams(teams: Team[]): Teams {
+  return teams.reduce((obj, team) => {
+    obj[team.id] = team;
+    return obj;
+  }, {} as Teams);
+}
+
+export function buildRoster(players?: Player[]): Roster {
+  if (!players) {
+    return {} as Roster;
+  }
+  return players.reduce((obj, player) => {
+    obj[player.id] = player;
+    return obj;
+  }, {} as Roster);
 }

@@ -1,16 +1,16 @@
 import * as actions from '@app/actions/game';
-import { Game, StoredGameData } from '@app/models/game';
+import { Game, GameMetadata } from '@app/models/game';
 import { firebaseRef } from '@app/firebase';
-import { Query, QuerySnapshot } from '@firebase/firestore-types';
+import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />
 import * as MockFirebase from 'mock-cloud-firestore';
-import { TEST_USER_ID, buildGames, getMockAuthState, getPublicTeam, getStoredTeam, MockAuthStateOptions } from '../helpers/test_data';
+import { TEST_USER_ID, buildGames, getMockAuthState, getMockTeamState, getPublicTeam, getStoredTeam, MockAuthStateOptions } from '../helpers/test_data';
 
 jest.mock('@app/firebase');
 
 const PUBLIC_GAME_ID = 'pg1';
 
-function getPublicGameData(): StoredGameData {
+function getPublicGameData(): any {
   return {
     teamId: getPublicTeam().id,
     name: 'Public G',
@@ -23,7 +23,7 @@ function getPublicGame(): Game {
   return { id: PUBLIC_GAME_ID, ...getPublicGameData() };
 };
 
-function getStoredGameData(): StoredGameData {
+function getStoredGameData(): any {
   return {
     teamId: getStoredTeam().id,
     name: 'Stored G',
@@ -38,22 +38,18 @@ function getStoredGame(): Game {
 };
 
 
-function getNewGameData(): StoredGameData {
+function getNewGameMetadata(): GameMetadata {
   return {
-    teamId: getStoredTeam().id,
     name: 'New G',
     date: new Date(2016, 4, 6),
     opponent: 'New Game Opponent'
   };
 };
 
-// New game created by the UI does not have an ID until added to storage.
-function getNewGame(): Game {
-  return { id: '', ...getNewGameData() };
+// New game created by the UI does not have IDs until added to storage.
+function getNewGameSaved(): Game {
+  return { ...getNewGameMetadata(), id: 'theGameId', teamId: getStoredTeam().id };
 }
-const newGameSaved: Game = {
-  ...getNewGame(), id: 'theGameId'
-};
 
 const fixtureData = {
   __collection__: {
@@ -77,16 +73,21 @@ const fixtureData = {
   }
 };
 
-function mockGetState(games: Game[], options?: MockAuthStateOptions) {
+function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?: any) {
   return jest.fn(() => {
-    return {
+    const mockState = {
       auth: getMockAuthState(options),
       game: {
         games: buildGames(games),
         gameId: '',
         game: undefined
-      }
+      },
+      team: undefined
     };
+    if (teamState) {
+      mockState.team = teamState;
+    }
+    return mockState;
   });
 }
 
@@ -186,7 +187,7 @@ describe('Game actions', () => {
       const dispatchMock = jest.fn();
       const getStateMock = mockGetState([getStoredGame()]);
 
-      actions.addNewGame(getNewGame())(dispatchMock, getStateMock, undefined);
+      actions.addNewGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).toBeCalled();
 
@@ -195,9 +196,9 @@ describe('Game actions', () => {
 
     it('should do nothing with a new game that is not unique', () => {
       const dispatchMock = jest.fn();
-      const getStateMock = mockGetState([newGameSaved]);
+      const getStateMock = mockGetState([getNewGameSaved()]);
 
-      actions.addNewGame(getNewGame())(dispatchMock, getStateMock, undefined);
+      actions.addNewGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).toBeCalled();
 
@@ -210,19 +211,40 @@ describe('Game actions', () => {
       expect(typeof actions.saveGame()).toBe('function');
     });
 
-    it('should dispatch an action to add game', async () => {
+    it('should save to storage and dispatch an action to add game', async () => {
       const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID }, getMockTeamState([], getStoredTeam()));
 
-      actions.saveGame(getNewGame())(dispatchMock, getStateMock, undefined);
+      actions.saveGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
 
       // Checks that the new team was saved to the database.
-      const query: Query = mockFirebase.firestore().collection('games').where('name', '==', newGameSaved.name);
+      const newGame = getNewGameMetadata();
+      const query: Query = mockFirebase.firestore().collection('games').where('name', '==', newGame.name);
       const result: QuerySnapshot = await query.get();
       expect(result.size).toEqual(1);
+
+      const expectedData: any = {
+        ...newGame,
+        teamId: getStoredTeam().id,
+        owner_uid: TEST_USER_ID
+      };
+      // The date property is checked separately, as firestore doesn't store as JavaScript Date values.
+      delete expectedData.date;
+
+      let id = '';
+      let data: DocumentData = {};
+      result.forEach((doc: QueryDocumentSnapshot) => {
+        id = doc.id;
+        data = doc.data();
+      });
+
+      expect(id).toBeTruthy();
+      expect(id).toMatch(/[A-Za-z0-9]+/);
+      expect(data).toEqual(expect.objectContaining(expectedData));
+      expect(data.date.toDate()).toEqual(newGame.date);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -235,7 +257,7 @@ describe('Game actions', () => {
       firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
 
       expect(() => {
-        actions.saveGame(getNewGame())(dispatchMock, getStateMock, undefined);
+        actions.saveGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
       }).toThrow();
 
       // Waits for promises to resolve.
@@ -251,6 +273,7 @@ describe('Game actions', () => {
     });
 
     it('should dispatch an action to add the team', () => {
+      const newGameSaved = getNewGameSaved();
       const dispatchMock = jest.fn();
       const getStateMock = jest.fn();
 

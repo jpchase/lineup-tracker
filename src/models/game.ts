@@ -8,12 +8,9 @@ export interface GameMetadata {
   opponent: string;
 }
 
-export interface StoredGameData extends GameMetadata {
-  teamId: string;
-}
-
-export interface Game extends StoredGameData {
+export interface Game extends GameMetadata {
   id: string;
+  teamId: string;
 }
 
 export interface GameDetail extends Game {

@@ -11,7 +11,7 @@ import {
   GET_ROSTER,
   GET_TEAMS
 } from '../actions/team';
-import { RootAction } from '../store';
+import { RootAction, RootState } from '../store';
 
 export interface TeamState {
   teams: Teams;
@@ -64,3 +64,5 @@ const team: Reducer<TeamState, RootAction> = (state = INITIAL_STATE, action) => 
 };
 
 export default team;
+
+export const currentTeamIdSelector = (state: RootState) => state.team && state.team.teamId;
