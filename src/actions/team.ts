@@ -8,7 +8,7 @@ import { RootState } from '../store';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import { firebaseRef } from '../firebase';
-import { buildNewDocumentData } from '../firestore-helpers';
+import { buildNewDocumentData, loadRoster } from '../firestore-helpers';
 import { CollectionReference, DocumentData, DocumentReference, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_TEAM = 'ADD_TEAM';
@@ -136,24 +136,7 @@ export const getRoster: ActionCreator<ThunkResult> = (teamId: string) => (dispat
   if (!teamId) {
     return;
   }
-  // TODO: Add try/catch for firestore/collection/get calls?
-  firebaseRef.firestore().collection(`${KEY_TEAMS}/${teamId}/${KEY_ROSTER}`).get().then((value: QuerySnapshot) => {
-    const roster = {} as Roster;
-
-    value.forEach((result: QueryDocumentSnapshot) => {
-      const data: DocumentData = result.data();
-      const player: Player = {
-        id: result.id,
-        name: data.name,
-        uniformNumber: data.uniformNumber,
-        positions: data.positions,
-        status: data.status
-      };
-      roster[player.id] = player;
-    });
-
-    console.log(`getRoster - ActionCreator: ${JSON.stringify(roster)}`);
-
+  loadRoster(firebaseRef.firestore(), `${KEY_TEAMS}/${teamId}/${KEY_ROSTER}`).then((roster: Roster) => {
     dispatch({
       type: GET_ROSTER,
       roster

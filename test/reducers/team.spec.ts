@@ -1,4 +1,5 @@
-import { Roster, Team, Teams } from '@app/models/team';
+import { Roster} from '@app/models/player';
+import { Team, Teams } from '@app/models/team';
 import { ADD_TEAM, CHANGE_TEAM, GET_ROSTER, GET_TEAMS } from '@app/actions/team';
 import team from '@app/reducers/team';
 import { TeamState } from '@app/reducers/team';
