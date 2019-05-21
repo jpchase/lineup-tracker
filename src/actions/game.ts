@@ -5,19 +5,23 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
-import { Game, Games } from '../models/game';
+import { Game, Games, GameDetail } from '../models/game';
 import { firebaseRef } from '../firebase';
 import { buildNewDocumentData } from '../firestore-helpers';
 import { CollectionReference, DocumentData, DocumentReference, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_GAME = 'ADD_GAME';
-export const GET_GAME = 'GET_GAME';
+export const GET_GAME_REQUEST = 'GET_GAME_REQUEST';
+export const GET_GAME_SUCCESS = 'GET_GAME_SUCCESS';
+export const GET_GAME_FAIL = 'GET_GAME_FAIL';
 export const GET_GAMES = 'GET_GAMES';
 
 export interface GameActionAddGame extends Action<'ADD_GAME'> { game: Game };
-export interface GameActionGetGame extends Action<'GET_GAME'> { gameId: string };
+export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { gameId: string };
+export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail };
+export interface GameActionGetGameFail extends Action<'GET_GAME_FAIL'> { error: string };
 export interface GameActionGetGames extends Action<'GET_GAMES'> { games: Games };
-export type GameAction = GameActionAddGame | GameActionGetGame | GameActionGetGames;
+export type GameAction = GameActionAddGame | GameActionGetGameRequest | GameActionGetGameSuccess | GameActionGetGameFail | GameActionGetGames;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
