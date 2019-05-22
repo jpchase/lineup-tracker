@@ -8,7 +8,7 @@ import { RootState } from '../store';
 import { Game, Games, GameDetail } from '../models/game';
 import { firebaseRef } from '../firebase';
 import { buildNewDocumentData } from '../firestore-helpers';
-import { CollectionReference, DocumentData, DocumentReference, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
+import { CollectionReference, DocumentData, DocumentReference, DocumentSnapshot, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_GAME = 'ADD_GAME';
 export const GET_GAME_REQUEST = 'GET_GAME_REQUEST';
@@ -35,6 +35,19 @@ function getGamesCollection(): CollectionReference {
   return firebaseRef.firestore().collection(KEY_GAMES);
 }
 
+function extractGame(document: DocumentSnapshot): Game {
+  // Caller is responsible for ensuring data exists
+  const data: DocumentData = document.data()!;
+  const game: Game = {
+    id: document.id,
+    teamId: data.teamId,
+    name: data.name,
+    date: data.date.toDate(),
+    opponent: data.opponent
+  };
+  return game;
+}
+
 export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatch, getState) => {
   if (!teamId) {
     return;
@@ -56,14 +69,7 @@ export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatc
     const games = {} as Games;
 
     value.forEach((result: QueryDocumentSnapshot) => {
-      const data: DocumentData = result.data();
-      const entry: Game = {
-        id: result.id,
-        teamId: data.teamId,
-        name: data.name,
-        date: data.date.toDate(),
-        opponent: data.opponent
-      };
+      const entry: Game = extractGame(result);
       games[entry.id] = entry;
     });
 
@@ -80,12 +86,56 @@ export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatc
   });
 };
 
-export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (/* dispatch, getState */) => {
+export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (dispatch, getState) => {
   if (!gameId) {
     return Promise.reject();
   }
-  return Promise.resolve();
+  dispatch(getGameRequest(gameId));
+
+  // Checks if the game has already been retrieved.
+  const state = getState();
+  const existingGame: Game | undefined = state.game && state.game.games && state.game.games[gameId];
+  // TODO: Check that all detail also loaded
+  if (existingGame) {
+    dispatch(getGameSuccess(existingGame));
+    // let the calling code know there's nothing to wait for.
+    return Promise.resolve();
+  }
+
+  const docRef: DocumentReference = getGamesCollection().doc(gameId);
+  return docRef.get().then((value: DocumentSnapshot) => {
+    if (value.exists) {
+      const game: GameDetail = extractGame(value);
+      dispatch(getGameSuccess(game));
+    } else {
+      dispatch(getGameFail(`Game not found: ${gameId}`));
+    }
+  })
+  .catch((error: any) => {
+    dispatch(getGameFail(error));
+  });
 }
+
+const getGameRequest: ActionCreator<GameActionGetGameRequest> = (gameId: string) => {
+  return {
+    type: GET_GAME_REQUEST,
+    gameId
+  };
+};
+
+const getGameSuccess: ActionCreator<GameActionGetGameSuccess> = (game: GameDetail) => {
+  return {
+    type: GET_GAME_SUCCESS,
+    game
+  };
+};
+
+const getGameFail: ActionCreator<GameActionGetGameFail> = (error: string) => {
+  return {
+    type: GET_GAME_FAIL,
+    error
+  };
+};
 
 export const addNewGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch, getState) => {
   if (!newGame) {

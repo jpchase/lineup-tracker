@@ -80,7 +80,9 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?:
       game: {
         games: buildGames(games),
         gameId: '',
-        game: undefined
+        game: undefined,
+        detailLoading: false,
+        detailFailure: false
       },
       team: undefined
     };
@@ -121,7 +123,7 @@ describe('Game actions', () => {
 
     it('should dispatch an action with owned games returned from storage', async () => {
       const dispatchMock = jest.fn();
-      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID })
+      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID });
 
       actions.getGames(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
@@ -136,7 +138,7 @@ describe('Game actions', () => {
 
     it('should dispatch an action with public games when not signed in', async () => {
       const dispatchMock = jest.fn();
-      const getStateMock = mockGetState([], { signedIn: false })
+      const getStateMock = mockGetState([], { signedIn: false });
 
       actions.getGames(getPublicTeam().id)(dispatchMock, getStateMock, undefined);
 
@@ -166,6 +168,103 @@ describe('Game actions', () => {
     });
 
   }); // describe('getGames')
+
+  describe('getGame', () => {
+    it('should return a function to dispatch the getGame action', () => {
+      expect(typeof actions.getGame()).toBe('function');
+    });
+
+    it('should do nothing if game id is missing', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.getGame()(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+    it('should dispatch success action with game returned from storage', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState([]);
+
+      const gameId = getStoredGame().id;
+      await actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toHaveBeenCalledTimes(2);
+
+      // Checks that first dispatch was the request action
+      expect(dispatchMock.mock.calls[0]).toEqual([expect.objectContaining({
+        type: actions.GET_GAME_REQUEST,
+        gameId: gameId,
+      })]);
+
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.GET_GAME_SUCCESS,
+        game: getStoredGame(),
+      }));
+    });
+
+    it('should use the already loaded game, without retrieving from storage', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState([getStoredGame()]);
+
+      await actions.getGame(getStoredGame().id)(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).toHaveBeenCalledTimes(2);
+
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.GET_GAME_SUCCESS,
+        game: getStoredGame(),
+      }));
+    });
+
+    it('should fail when game not found in storage', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState([]);
+
+      const gameId = 'nosuchgame';
+      await actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toHaveBeenCalledTimes(2);
+
+      // Checks that first dispatch was the request action
+      expect(dispatchMock.mock.calls[0]).toEqual([expect.objectContaining({
+        type: actions.GET_GAME_REQUEST,
+        gameId: gameId,
+      })]);
+
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.GET_GAME_FAIL,
+        error: `Game not found: ${gameId}`,
+      }));
+    });
+
+    it('should dispatch only request action when storage access fails', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+      const gameId = getStoredGame().id;
+
+      firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+
+      expect(() => {
+        actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
+      }).toThrow();
+
+      expect(dispatchMock).toHaveBeenCalledTimes(1);
+
+      // Checks that first dispatch was the request action
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.GET_GAME_REQUEST,
+        gameId: gameId,
+      }));
+    });
+
+  }); // describe('getGame')
 
   describe('addNewGame', () => {
     it('should return a function to dispatch the action', () => {

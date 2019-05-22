@@ -53,10 +53,10 @@ const loadPage: ActionCreator<ThunkResult> = (page: string, gameId: string) => a
       import('../components/lineup-view-games');
       break;
     case 'game':
-      /*const module: any =*/ import('../components/lineup-view-game-detail');
+      const module = await import('../components/lineup-view-game-detail');
       // Fetch the data for the given game id.
       console.log(`loading game detail page for ${gameId}`);
-      // await dispatch(module.getGame(gameId));
+      await dispatch(module.getGame(gameId));
       break;
     case 'viewRoster':
       import('../components/lineup-view-roster');
