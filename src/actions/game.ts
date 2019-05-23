@@ -6,8 +6,9 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { Game, Games, GameDetail } from '../models/game';
+import { Roster } from '../models/player';
 import { firebaseRef } from '../firebase';
-import { buildNewDocumentData } from '../firestore-helpers';
+import { buildNewDocumentData, loadRoster } from '../firestore-helpers';
 import { CollectionReference, DocumentData, DocumentReference, DocumentSnapshot, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_GAME = 'ADD_GAME';
@@ -27,6 +28,7 @@ type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
 
 const KEY_GAMES = 'games';
+const KEY_ROSTER = 'roster';
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
 const FIELD_TEAMID = 'teamId';
@@ -95,24 +97,33 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
   // Checks if the game has already been retrieved.
   const state = getState();
   const existingGame: Game | undefined = state.game && state.game.games && state.game.games[gameId];
-  // TODO: Check that all detail also loaded
-  if (existingGame) {
+  if (existingGame && existingGame.hasDetail) {
     dispatch(getGameSuccess(existingGame));
     // let the calling code know there's nothing to wait for.
     return Promise.resolve();
   }
 
+  let game: Game;
   const docRef: DocumentReference = getGamesCollection().doc(gameId);
   return docRef.get().then((value: DocumentSnapshot) => {
-    if (value.exists) {
-      const game: GameDetail = extractGame(value);
-      dispatch(getGameSuccess(game));
-    } else {
-      dispatch(getGameFail(`Game not found: ${gameId}`));
+    if (!value.exists) {
+      throw new Error(`Game not found: ${gameId}`);
     }
+    game = extractGame(value);
+  })
+  .then(() => {
+    return loadRoster(firebaseRef.firestore(), `${KEY_GAMES}/${gameId}/${KEY_ROSTER}`);
+  })
+  .then((roster: Roster) => {
+    const gameDetail: GameDetail = {
+      ...game,
+      hasDetail: true,
+      roster
+    };
+    dispatch(getGameSuccess(gameDetail));
   })
   .catch((error: any) => {
-    dispatch(getGameFail(error));
+    dispatch(getGameFail(error.toString()));
   });
 }
 

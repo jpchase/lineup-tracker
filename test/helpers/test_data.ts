@@ -55,6 +55,14 @@ export function getStoredTeam(): Team {
   return { id: 'st1', ...getStoredTeamData() }
 };
 
+export function getStoredPlayerData() {
+  return { name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: 'OFF' }
+};
+
+export function getStoredPlayer(): Player {
+  return { id: 'sp1', ...getStoredPlayerData() }
+};
+
 export function buildGames(games: Game[]): Games {
   return games.reduce((obj, game) => {
     obj[game.id] = game;

@@ -1,6 +1,7 @@
 /**
 @license
 */
+import { Roster } from './player';
 
 export interface GameMetadata {
   name: string;
@@ -11,9 +12,11 @@ export interface GameMetadata {
 export interface Game extends GameMetadata {
   id: string;
   teamId: string;
+  hasDetail?: boolean;
 }
 
 export interface GameDetail extends Game {
+  roster: Roster;
 }
 
 export interface Games {
