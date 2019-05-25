@@ -6,6 +6,7 @@ import { html, customElement, property } from 'lit-element';
 import { PageViewElement } from './page-view-element';
 
 import { GameDetail } from '../models/game';
+import { Roster } from '../models/player';
 
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
@@ -20,18 +21,42 @@ store.addReducers({
 // These are the actions needed by this element.
 import { getGame } from '../actions/game';
 
+// These are the elements needed by this element.
+import './lineup-player-list';
+
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
 @customElement('lineup-view-game-detail')
 export class LineupViewGameDetail extends connect(store)(PageViewElement) {
   protected render() {
+    const roster: Roster = this._game ? this._game.roster : {};
     return html`
       ${SharedStyles}
       <section>
-        <p>TODO: Load game for id [${this._gameId}]</p>
       ${this._game ? html`
-        <p>TODO: Show game details for id [${this._gameId}]</p>
+        <div main-title>Live: ${this._getName()}</div>
+        <div toolbar>
+          <span id="gameTimer">clock here</span>
+        </div>
+        <div>
+          <div id="live-on">
+            <h5>Playing</h5>
+            <lineup-player-list mode="on" .roster="${roster}"></lineup-player-list>
+          </div>
+          <div id="live-next">
+            <h5>Next On</h5>
+            <lineup-player-list mode="next" .roster="${roster}"></lineup-player-list>
+          </div>
+          <div id="live-off">
+            <h5>Subs</h5>
+            <lineup-player-list mode="off" .roster="${roster}"></lineup-player-list>
+          </div>
+          <div id="live-out">
+            <h5>Unavailable</h5>
+            <lineup-player-list mode="out" .roster="${roster}"></lineup-player-list>
+          </div>
+        </div>
       ` : html`
         <p class="empty-list">
           Game not found.
@@ -41,14 +66,10 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
     `;
   }
 
-  @property({ type: String })
-  private _gameId = '';
-
   @property({ type: Object })
   private _game: GameDetail | undefined;
 
   protected firstUpdated() {
-    this._gameId = '';
   }
 
   stateChanged(state: RootState) {
@@ -58,6 +79,14 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
       this._game = state.game!.game;
   }
 
+  private _getName() {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
+      'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    const game = this._game!;
+    return game.opponent + ' ' + monthNames[game.date.getMonth()] + ' ' +
+      game.date.getDate();
+  }
 }
 
 // Expose action for use in loading view.
