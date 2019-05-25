@@ -5,7 +5,7 @@
 import { html, customElement, property } from 'lit-element';
 import { PageViewElement } from './page-view-element';
 
-import { GameDetail } from '../models/game';
+import { GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
 
 // This element is connected to the Redux store.
@@ -29,34 +29,48 @@ import { SharedStyles } from './shared-styles';
 
 @customElement('lineup-view-game-detail')
 export class LineupViewGameDetail extends connect(store)(PageViewElement) {
+  private _getDetailContent(game: GameDetail) {
+    if (game.status === GameStatus.Done) {
+      // Completed game
+      return html`Game is done`;
+    } else if (game.status === GameStatus.New && !Object.keys(game.roster).length) {
+      return html`Roster setup required`;
+    }
+
+    // Game is in progress
+    const roster: Roster = game.roster;
+    return html`
+      <div toolbar>
+        <span id="gameTimer">clock here</span>
+      </div>
+      <div>
+        <div id="live-on">
+          <h5>Playing</h5>
+          <lineup-player-list mode="on" .roster="${roster}"></lineup-player-list>
+        </div>
+        <div id="live-next">
+          <h5>Next On</h5>
+          <lineup-player-list mode="next" .roster="${roster}"></lineup-player-list>
+        </div>
+        <div id="live-off">
+          <h5>Subs</h5>
+          <lineup-player-list mode="off" .roster="${roster}"></lineup-player-list>
+        </div>
+        <div id="live-out">
+          <h5>Unavailable</h5>
+          <lineup-player-list mode="out" .roster="${roster}"></lineup-player-list>
+        </div>
+      </div>
+    `;
+  }
+
   protected render() {
-    const roster: Roster = this._game ? this._game.roster : {};
     return html`
       ${SharedStyles}
       <section>
       ${this._game ? html`
         <div main-title>Live: ${this._getName()}</div>
-        <div toolbar>
-          <span id="gameTimer">clock here</span>
-        </div>
-        <div>
-          <div id="live-on">
-            <h5>Playing</h5>
-            <lineup-player-list mode="on" .roster="${roster}"></lineup-player-list>
-          </div>
-          <div id="live-next">
-            <h5>Next On</h5>
-            <lineup-player-list mode="next" .roster="${roster}"></lineup-player-list>
-          </div>
-          <div id="live-off">
-            <h5>Subs</h5>
-            <lineup-player-list mode="off" .roster="${roster}"></lineup-player-list>
-          </div>
-          <div id="live-out">
-            <h5>Unavailable</h5>
-            <lineup-player-list mode="out" .roster="${roster}"></lineup-player-list>
-          </div>
-        </div>
+        ${this._getDetailContent(this._game)}
       ` : html`
         <p class="empty-list">
           Game not found.
