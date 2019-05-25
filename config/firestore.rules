@@ -13,14 +13,16 @@ service cloud.firestore {
     }
 
     match /teams/{team} {
-      allow read: if ownerOrPublic(resource);
-      allow create: if signedIn();
-      allow update: if owner(resource);
-      allow delete: if false;
-
       match /roster/{player} {
         allow read: if ownerOrPublic(get(/databases/$(database)/documents/teams/$(team)));
         allow update: if owner(get(/databases/$(database)/documents/teams/$(team)));
+      }
+    }
+
+    match /games/{game} {
+      match /roster/{player} {
+        allow read: if ownerOrPublic(get(/databases/$(database)/documents/games/$(game)));
+        allow update: if owner(get(/databases/$(database)/documents/games/$(game)));
       }
     }
 
