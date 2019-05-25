@@ -9,9 +9,18 @@ export interface GameMetadata {
   opponent: string;
 }
 
+export enum GameStatus {
+  New = 'NEW',
+  Start = 'START',
+  Live = 'LIVE',
+  Break = 'BREAK',
+  Done = 'DONE'
+}
+
 export interface Game extends GameMetadata {
   id: string;
   teamId: string;
+  status: GameStatus;
   hasDetail?: boolean;
 }
 

@@ -5,7 +5,7 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
-import { Game, Games, GameDetail } from '../models/game';
+import { Game, Games, GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
 import { firebaseRef } from '../firebase';
 import { buildNewDocumentData, loadRoster } from '../firestore-helpers';
@@ -43,6 +43,7 @@ function extractGame(document: DocumentSnapshot): Game {
   const game: Game = {
     id: document.id,
     teamId: data.teamId,
+    status: data.status,
     name: data.name,
     date: data.date.toDate(),
     opponent: data.opponent
@@ -169,6 +170,9 @@ export const addNewGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispat
 
 // Saves the new game in local storage, before adding to the store
 export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch, getState) => {
+  if (!newGame.status) {
+    newGame.status = GameStatus.New;
+  }
   const data = buildNewDocumentData(newGame, getState(), true);
 
   const collection = getGamesCollection();

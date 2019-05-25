@@ -1,5 +1,5 @@
 import * as actions from '@app/actions/game';
-import { Game, GameDetail, GameMetadata } from '@app/models/game';
+import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
 import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />
@@ -13,6 +13,7 @@ const PUBLIC_GAME_ID = 'pg1';
 function getPublicGameData(): any {
   return {
     teamId: getPublicTeam().id,
+    status: GameStatus.Done,
     name: 'Public G',
     date: new Date(2016, 1, 10),
     opponent: 'Public Opponent'
@@ -26,6 +27,7 @@ function getPublicGame(): Game {
 function getStoredGameData(): any {
   return {
     teamId: getStoredTeam().id,
+    status: GameStatus.New,
     name: 'Stored G',
     date: new Date(2016, 1, 10),
     opponent: 'Stored Game Opponent'
@@ -55,7 +57,7 @@ function getNewGameMetadata(): GameMetadata {
 
 // New game created by the UI does not have IDs until added to storage.
 function getNewGameSaved(): Game {
-  return { ...getNewGameMetadata(), id: 'theGameId', teamId: getStoredTeam().id };
+  return { ...getNewGameMetadata(), id: 'theGameId', teamId: getStoredTeam().id, status: GameStatus.New };
 }
 
 const fixtureData = {
@@ -361,6 +363,7 @@ describe('Game actions', () => {
 
       const expectedData: any = {
         ...newGame,
+        status: GameStatus.New,
         teamId: getStoredTeam().id,
         owner_uid: TEST_USER_ID
       };
