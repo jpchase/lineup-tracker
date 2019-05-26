@@ -1,4 +1,4 @@
-import { Game, Games } from '@app/models/game';
+import { Game, Games, GameDetail, GameStatus } from '@app/models/game';
 import { ADD_GAME, GET_GAME_REQUEST, GET_GAME_SUCCESS, GET_GAME_FAIL, GET_GAMES } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
@@ -15,10 +15,10 @@ const GAME_INITIAL_STATE: GameState = {
 
 describe('Games reducer', () => {
   const existingGame: Game = {
-    id: 'EX', name: 'Existing Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Existing opponent'
+    id: 'EX', status: GameStatus.Start, name: 'Existing Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Existing opponent'
   };
   const newGame: Game = {
-    id: 'NG', name: 'New Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Opponent for new'
+    id: 'NG', status: GameStatus.New, name: 'New Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Opponent for new'
   };
 
   it('should return the initial state', () => {
@@ -44,14 +44,18 @@ describe('Games reducer', () => {
   });
 
   it('should handle GET_GAME_SUCCESS', () => {
+    const gameDetail: GameDetail = {
+      ...newGame,
+      roster: {}
+    };
     const newState = game(GAME_INITIAL_STATE, {
       type: GET_GAME_SUCCESS,
-      game: newGame
+      game: gameDetail
     });
 
     expect(newState).toEqual(expect.objectContaining({
-      game: newGame,
-      games: buildGames([newGame]),
+      game: gameDetail,
+      games: buildGames([gameDetail]),
       detailLoading: false,
       detailFailure: false
     }));
