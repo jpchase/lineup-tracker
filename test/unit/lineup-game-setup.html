@@ -1,0 +1,66 @@
+<!--
+@license
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>lineup-game-list</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
+  </head>
+  <body>
+    <test-fixture id="basic">
+      <template>
+        <lineup-game-setup></lineup-game-setup>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      import '@polymer/test-fixture';
+      import 'axe-core/axe.min.js';
+      import {axeReport} from 'pwa-helpers/axe-report.js';
+      import '../../src/components/lineup-game-setup.js';
+
+      function getGame() {
+        return {
+          id: 'G1',
+          teamId: 'T1',
+          name: `G01`,
+          opponent: `Other team`,
+          date: new Date(2016, 1, 1)
+        };
+      }
+
+      suite('lineup-game-setup tests', function() {
+        let el;
+        setup(function() {
+          el = fixture('basic');
+          // Make tests wait until element is rendered.
+          return el.updateComplete;
+        });
+
+        test('starts empty', function() {
+          assert.equal(el.game, undefined);
+        });
+
+        test('renders all the tasks', function() {
+          el.game = getGame();
+          const items = el.shadowRoot.querySelectorAll('div div.task');
+          assert.isOk(items, 'Missing items for tasks');
+          assert.equal(items.length, 5, 'Rendered task count');
+        });
+
+        test('a11y', function() {
+          console.log('ally test');
+          return axeReport(el);
+        });
+      });
+    </script>
+  </body>
+</html>

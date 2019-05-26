@@ -22,6 +22,7 @@ store.addReducers({
 import { getGame } from '../actions/game';
 
 // These are the elements needed by this element.
+import './lineup-game-setup';
 import './lineup-player-list';
 
 // These are the shared styles needed by this element.
@@ -33,9 +34,9 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
     if (game.status === GameStatus.Done) {
       // Completed game
       return html`Game is done`;
-    } else if (game.status === GameStatus.New && !Object.keys(game.roster).length) {
-      return html`Roster setup required`;
     }
+
+    const isNew = (game.status === GameStatus.New);
 
     // Game is in progress
     const roster: Roster = game.roster;
@@ -43,6 +44,10 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
       <div toolbar>
         <span id="gameTimer">clock here</span>
       </div>
+      ${isNew
+        ? html`<lineup-game-setup .game="${game}"></lineup-game-setup>`
+        : ''
+      }
       <div>
         <div id="live-on">
           <h5>Playing</h5>
