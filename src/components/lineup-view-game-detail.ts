@@ -36,24 +36,25 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
       return html`Game is done`;
     }
 
+    const inProgress = (game.status === GameStatus.Live || game.status === GameStatus.Break);
     const isNew = (game.status === GameStatus.New);
+    const setupRequired = isNew;
 
-    // Game is in progress
     const roster: Roster = game.roster;
     return html`
       <div toolbar>
         <span id="gameTimer">clock here</span>
       </div>
-      ${isNew
+      ${setupRequired
         ? html`<lineup-game-setup .game="${game}"></lineup-game-setup>`
         : ''
       }
       <div>
         <div id="live-on">
-          <h5>Playing</h5>
+          <h5>${inProgress ? html`Playing` : html`Starters`}</h5>
           <lineup-player-list mode="on" .roster="${roster}"></lineup-player-list>
         </div>
-        <div id="live-next">
+        <div id="live-next" ?hidden=${setupRequired}>
           <h5>Next On</h5>
           <lineup-player-list mode="next" .roster="${roster}"></lineup-player-list>
         </div>
@@ -61,7 +62,7 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
           <h5>Subs</h5>
           <lineup-player-list mode="off" .roster="${roster}"></lineup-player-list>
         </div>
-        <div id="live-out">
+        <div id="live-out" ?hidden=${setupRequired}>
           <h5>Unavailable</h5>
           <lineup-player-list mode="out" .roster="${roster}"></lineup-player-list>
         </div>
