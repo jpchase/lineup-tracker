@@ -26,6 +26,7 @@ const enum SetupSteps {
 
 interface SetupTask {
   step: SetupSteps;
+  pending: boolean;
   inProgress: boolean;
   complete: boolean;
 }
@@ -85,7 +86,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
               ? html`spinner here`
               : task.complete
                 ? html`done icon here`
-                : isAutoStep(task.step)
+                : (task.pending || isAutoStep(task.step))
                   ? html`pending icon/text here`
                   : html`widget to mark done`
             }
@@ -131,35 +132,40 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     tasks.push({
       step: SetupSteps.CopyRoster,
       inProgress: this._copyRosterStarted,
-      complete: rosterCopied
+      complete: rosterCopied,
+      pending: !rosterCopied && !this._copyRosterStarted
     });
 
     // Copy formation
     tasks.push({
       step: SetupSteps.CopyFormation,
       inProgress: false,
-      complete: false
+      complete: false,
+      pending: !tasks[tasks.length - 1].complete
     });
 
     // Adjust roster
     tasks.push({
       step: SetupSteps.AdjustRoster,
       inProgress: false,
-      complete: false
+      complete: false,
+      pending: !tasks[tasks.length - 1].complete
     });
 
     // Captains
     tasks.push({
       step: SetupSteps.Captains,
       inProgress: false,
-      complete: false
+      complete: false,
+      pending: !tasks[tasks.length - 1].complete
     });
 
     // Starting lineup
     tasks.push({
       step: SetupSteps.Starters,
       inProgress: false,
-      complete: false
+      complete: false,
+      pending: !tasks[tasks.length - 1].complete
     });
 
     return tasks;
