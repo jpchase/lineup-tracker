@@ -30,7 +30,7 @@ interface SetupTask {
   complete: boolean;
 }
 
-function getStepName(step: SetupSteps) {
+function getStepName(step: SetupSteps): string {
   switch (step) {
     case SetupSteps.CopyRoster:
       return 'Copy roster from team';
@@ -50,7 +50,21 @@ function getStepName(step: SetupSteps) {
     default:
       return '<unknown step>';
   }
+}
 
+function isAutoStep(step: SetupSteps): boolean {
+  switch (step) {
+    case SetupSteps.CopyRoster:
+    case SetupSteps.CopyFormation:
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+function isRosterCopied(game: GameDetail) {
+  return (Object.keys(game.roster).length > 0);
 }
 
 @customElement('lineup-game-setup')
@@ -64,13 +78,16 @@ export class LineupGameSetup extends connect(store)(LitElement) {
       </style>
       <div>
         ${repeat(tasks, (task: SetupTask) => task.step, (task: SetupTask) => html`
-          <div class="task">
+          <div class="task flex-equal-justified">
             <div class="name">${getStepName(task.step)}</div>
-            <div class="icon">
+            <div class="status">
             ${task.inProgress
               ? html`spinner here`
               : task.complete
-                ? html`done icon here` : ''
+                ? html`done icon here`
+                : isAutoStep(task.step)
+                  ? html`pending icon/text here`
+                  : html`widget to mark done`
             }
             </div>
           </div>
@@ -78,8 +95,11 @@ export class LineupGameSetup extends connect(store)(LitElement) {
       </div>`
   }
 
+  @property({ type: Boolean })
+  private _copyRosterStarted = false;
+
   @property({ type: Object })
-  game: GameDetail | undefined;
+  private _game: GameDetail | undefined;
 
   protected firstUpdated() {
   }
@@ -88,20 +108,29 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     if (!state.game) {
       return;
     }
-    // this._game = state.game!.game;
+    this._game = state.game!.game;
+    if (!this._game) {
+      return;
+    }
+    if (isRosterCopied(this._game)) {
+      return;
+    }
+    // Fire the request to copy the roster from the team
+    this._copyRosterStarted = true;
+    // TODO: Actually send the request using redux
   }
 
   _getTasks(): SetupTask[] {
-    if (!this.game) {
+    if (!this._game) {
       return [];
     }
     const tasks: SetupTask[] = [];
 
     // Copy roster
-    const rosterCopied = (Object.keys(this.game.roster).length > 0);
+    const rosterCopied = isRosterCopied(this._game);
     tasks.push({
       step: SetupSteps.CopyRoster,
-      inProgress: false,
+      inProgress: this._copyRosterStarted,
       complete: rosterCopied
     });
 
