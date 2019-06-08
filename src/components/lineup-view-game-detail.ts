@@ -4,6 +4,7 @@
 
 import { html, customElement, property } from 'lit-element';
 import { PageViewElement } from './page-view-element';
+import { updateMetadata } from 'pwa-helpers/metadata.js';
 
 import { GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
@@ -46,7 +47,7 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
         <span id="gameTimer">clock here</span>
       </div>
       ${setupRequired
-        ? html`<lineup-game-setup .game="${game}"></lineup-game-setup>`
+        ? html`<lineup-game-setup></lineup-game-setup>`
         : ''
       }
       <div>
@@ -71,6 +72,13 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
   }
 
   protected render() {
+    if (this._game) {
+      updateMetadata({
+        title: `Game - ${this._getName()}`,
+        description: `Game details for: ${this._getName()}`
+      });
+    }
+
     return html`
       ${SharedStyles}
       <section>
