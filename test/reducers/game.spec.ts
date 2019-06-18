@@ -1,8 +1,9 @@
 import { Game, Games, GameDetail, GameStatus } from '@app/models/game';
+import { Player } from '@app/models/player';
 import { ADD_GAME, GET_GAME_REQUEST, GET_GAME_SUCCESS, GET_GAME_FAIL, GET_GAMES } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
-import { getFakeAction, buildGames } from '../helpers/test_data';
+import { getFakeAction, buildGames, buildRoster, getStoredPlayer, getStoredPlayerData } from '../helpers/test_data';
 
 const GAME_INITIAL_STATE: GameState = {
   games: {} as Games,
@@ -44,14 +45,81 @@ describe('Games reducer', () => {
   });
 
   it('should handle GET_GAME_SUCCESS', () => {
+    const inputGame: GameDetail = {
+      ...newGame,
+      roster: buildRoster([getStoredPlayer()])
+    };
+    const newState = game(GAME_INITIAL_STATE, {
+      type: GET_GAME_SUCCESS,
+      game: inputGame
+    });
+
     const gameDetail: GameDetail = {
+      ...newGame,
+      hasDetail: true,
+      roster: buildRoster([getStoredPlayer()])
+    };
+
+    expect(newState).toEqual(expect.objectContaining({
+      game: gameDetail,
+      games: buildGames([gameDetail]),
+      detailLoading: false,
+      detailFailure: false
+    }));
+
+    expect(newState).not.toBe(GAME_INITIAL_STATE);
+    expect(newState.game).not.toBe(GAME_INITIAL_STATE.game);
+  });
+
+  it('should handle GET_GAME_SUCCESS ignore team roster when already set', () => {
+    const gamePlayer: Player = {
+      ...getStoredPlayerData(),
+      id: 'gp1'
+    };
+    const inputGame: GameDetail = {
+      ...newGame,
+      roster: buildRoster([gamePlayer])
+    };
+
+    const newState = game(GAME_INITIAL_STATE, {
+      type: GET_GAME_SUCCESS,
+      game: inputGame,
+      teamRoster: buildRoster([getStoredPlayer()])
+    });
+
+    const gameDetail: GameDetail = {
+      ...newGame,
+      hasDetail: true,
+      roster: buildRoster([gamePlayer])
+    };
+
+    expect(newState).toEqual(expect.objectContaining({
+      game: gameDetail,
+      games: buildGames([gameDetail]),
+      detailLoading: false,
+      detailFailure: false,
+    }));
+
+    expect(newState).not.toBe(GAME_INITIAL_STATE);
+    expect(newState.game).not.toBe(GAME_INITIAL_STATE.game);
+  });
+
+  it('should handle GET_GAME_SUCCESS and copy team roster', () => {
+    const inputGame: GameDetail = {
       ...newGame,
       roster: {}
     };
     const newState = game(GAME_INITIAL_STATE, {
       type: GET_GAME_SUCCESS,
-      game: gameDetail
+      game: inputGame,
+      teamRoster: buildRoster([getStoredPlayer()])
     });
+
+    const gameDetail: GameDetail = {
+      ...newGame,
+      hasDetail: true,
+      roster: buildRoster([getStoredPlayer()])
+    };
 
     expect(newState).toEqual(expect.objectContaining({
       game: gameDetail,

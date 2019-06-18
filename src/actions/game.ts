@@ -8,7 +8,7 @@ import { RootState } from '../store';
 import { Game, Games, GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
 import { firebaseRef } from '../firebase';
-import { buildNewDocumentData, loadRoster } from '../firestore-helpers';
+import { buildNewDocumentData, buildGameRosterPath, buildTeamRosterPath, loadRoster, KEY_GAMES } from '../firestore-helpers';
 import { CollectionReference, DocumentData, DocumentReference, DocumentSnapshot, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_GAME = 'ADD_GAME';
@@ -19,7 +19,7 @@ export const GET_GAMES = 'GET_GAMES';
 
 export interface GameActionAddGame extends Action<'ADD_GAME'> { game: Game };
 export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { gameId: string };
-export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail };
+export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail, teamRoster?: Roster };
 export interface GameActionGetGameFail extends Action<'GET_GAME_FAIL'> { error: string };
 export interface GameActionGetGames extends Action<'GET_GAMES'> { games: Games };
 export type GameAction = GameActionAddGame | GameActionGetGameRequest | GameActionGetGameSuccess | GameActionGetGameFail | GameActionGetGames;
@@ -27,8 +27,6 @@ export type GameAction = GameActionAddGame | GameActionGetGameRequest | GameActi
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
 
-const KEY_GAMES = 'games';
-const KEY_ROSTER = 'roster';
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
 const FIELD_TEAMID = 'teamId';
@@ -105,6 +103,8 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
   }
 
   let game: Game;
+  let gameRoster: Roster;
+  let gameRosterExists = false;
   const docRef: DocumentReference = getGamesCollection().doc(gameId);
   return docRef.get().then((value: DocumentSnapshot) => {
     if (!value.exists) {
@@ -113,15 +113,24 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
     game = extractGame(value);
   })
   .then(() => {
-    return loadRoster(firebaseRef.firestore(), `${KEY_GAMES}/${gameId}/${KEY_ROSTER}`);
+    return loadRoster(firebaseRef.firestore(), buildGameRosterPath(gameId));
   })
   .then((roster: Roster) => {
+    // Checks if the game roster has been populated.
+    gameRoster = roster;
+    gameRosterExists = (Object.keys(roster).length > 0);
+    if (gameRosterExists) {
+      return {};
+    }
+    // No roster yet, load the team roster.
+    return loadRoster(firebaseRef.firestore(), buildTeamRosterPath(game.teamId));
+  })
+  .then((teamRoster: Roster) => {
     const gameDetail: GameDetail = {
       ...game,
-      hasDetail: true,
-      roster
+      roster: gameRoster
     };
-    dispatch(getGameSuccess(gameDetail));
+    dispatch(getGameSuccess(gameDetail, teamRoster));
   })
   .catch((error: any) => {
     dispatch(getGameFail(error.toString()));
@@ -135,10 +144,11 @@ const getGameRequest: ActionCreator<GameActionGetGameRequest> = (gameId: string)
   };
 };
 
-const getGameSuccess: ActionCreator<GameActionGetGameSuccess> = (game: GameDetail) => {
+const getGameSuccess: ActionCreator<GameActionGetGameSuccess> = (game: GameDetail, teamRoster?: Roster) => {
   return {
     type: GET_GAME_SUCCESS,
-    game
+    game,
+    teamRoster
   };
 };
 

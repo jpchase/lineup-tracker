@@ -4,6 +4,10 @@ import { Player, Roster } from './models/player';
 import { currentUserIdSelector } from './reducers/auth';
 import { currentTeamIdSelector } from './reducers/team';
 
+export const KEY_GAMES = 'games';
+export const KEY_ROSTER = 'roster';
+export const KEY_TEAMS = 'teams';
+
 export function buildNewDocumentData(model: any, state: RootState, addTeamId?: boolean): DocumentData {
   const data: DocumentData = {
     ...model,
@@ -16,6 +20,14 @@ export function buildNewDocumentData(model: any, state: RootState, addTeamId?: b
   }
 
   return data;
+}
+
+export function buildGameRosterPath(gameId: string) {
+  return `${KEY_GAMES}/${gameId}/${KEY_ROSTER}`;
+}
+
+export function buildTeamRosterPath(teamId: string) {
+  return `${KEY_TEAMS}/${teamId}/${KEY_ROSTER}`;
 }
 
 export function loadRoster(firestore: FirebaseFirestore, collectionPath: string): Promise<Roster> {

@@ -4,7 +4,7 @@ import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />
 import * as MockFirebase from 'mock-cloud-firestore';
-import { TEST_USER_ID, buildGames, buildRoster, getMockAuthState, getMockTeamState, getPublicTeam, getStoredTeam, getStoredPlayer, getStoredPlayerData, MockAuthStateOptions } from '../helpers/test_data';
+import { TEST_USER_ID, buildGames, buildRoster, getMockAuthState, getMockTeamState, getPublicTeam, getStoredTeam, getStoredTeamData, getStoredPlayer, getStoredPlayerData, MockAuthStateOptions } from '../helpers/test_data';
 
 jest.mock('@app/firebase');
 
@@ -38,12 +38,19 @@ const STORED_GAME_ID = 'sg1';
 function getStoredGame(): Game {
   return { id: STORED_GAME_ID, ...getStoredGameData() };
 };
+const OTHER_STORED_GAME_ID = 'sg2';
+function getOtherStoredGameWithoutDetail(): Game {
+  return { id: OTHER_STORED_GAME_ID, ...getStoredGameData() };
+};
+
+function getTeamRoster() {
+  return buildRoster([getStoredPlayer()]);
+};
 
 function getStoredGameDetail(): GameDetail {
   return {
     ...getStoredGame(),
-    hasDetail: true,
-    roster: buildRoster([getStoredPlayer()])
+    roster: getTeamRoster()
   };
 };
 
@@ -78,7 +85,11 @@ const fixtureData = {
             }
           }
         },
-        sg2: {
+        [OTHER_STORED_GAME_ID]: {
+          ...getStoredGameData(),
+          owner_uid: TEST_USER_ID,
+        },
+        sgOther: {
           ...getStoredGameData(),
           teamId: 'otherTeam',
           owner_uid: TEST_USER_ID,
@@ -86,6 +97,24 @@ const fixtureData = {
         [PUBLIC_GAME_ID]: {
           ...getPublicGameData(),
           public: true,
+        },
+      }
+    },
+    teams: {
+      __doc__: {
+        st1: {
+          ...getStoredTeamData(),
+          owner_uid: TEST_USER_ID,
+
+          __collection__: {
+            roster: {
+              __doc__: {
+                sp1: {
+                  ...getStoredPlayerData()
+                }
+              }
+            }
+          }
         },
       }
     }
@@ -140,7 +169,7 @@ describe('Game actions', () => {
       expect(dispatchMock).not.toBeCalled();
     });
 
-    it('should dispatch an action with owned games returned from storage', async () => {
+    it('should dispatch an action with owned games for team returned from storage', async () => {
       const dispatchMock = jest.fn();
       const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID });
 
@@ -151,7 +180,7 @@ describe('Game actions', () => {
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
         type: actions.GET_GAMES,
-        games: buildGames([getStoredGame()]),
+        games: buildGames([getStoredGame(), getOtherStoredGameWithoutDetail()]),
       }));
     });
 
@@ -211,6 +240,8 @@ describe('Game actions', () => {
       const gameId = getStoredGame().id;
       await actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
 
+      expect(firebaseRef.firestore).toHaveBeenCalledTimes(2);
+
       expect(dispatchMock).toHaveBeenCalledTimes(2);
 
       // Checks that first dispatch was the request action
@@ -227,7 +258,11 @@ describe('Game actions', () => {
 
     it('should use the already loaded game, without retrieving from storage', async () => {
       const dispatchMock = jest.fn();
-      const getStateMock = mockGetState([getStoredGameDetail()]);
+      const loadedGame: GameDetail = {
+        ...getStoredGameDetail(),
+        hasDetail: true
+      };
+      const getStateMock = mockGetState([loadedGame]);
 
       await actions.getGame(getStoredGame().id)(dispatchMock, getStateMock, undefined);
 
@@ -238,7 +273,7 @@ describe('Game actions', () => {
 
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
         type: actions.GET_GAME_SUCCESS,
-        game: getStoredGameDetail(),
+        game: loadedGame,
       }));
     });
 
@@ -248,7 +283,7 @@ describe('Game actions', () => {
 
       await actions.getGame(getStoredGame().id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).toHaveBeenCalled();
+      expect(firebaseRef.firestore).toHaveBeenCalledTimes(2);
 
       // The request action is dispatched, regardless.
       expect(dispatchMock).toHaveBeenCalledTimes(2);
@@ -256,6 +291,28 @@ describe('Game actions', () => {
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
         type: actions.GET_GAME_SUCCESS,
         game: getStoredGameDetail(),
+      }));
+    });
+
+    it('should retrieve team roster from storage when game roster is empty', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState([]);
+
+      await actions.getGame(OTHER_STORED_GAME_ID)(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).toHaveBeenCalledTimes(3);
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).toHaveBeenCalledTimes(2);
+
+      const storedGame: GameDetail = {
+        ...getOtherStoredGameWithoutDetail(),
+        roster: {}
+      }
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.GET_GAME_SUCCESS,
+        game: storedGame,
+        teamRoster: getTeamRoster()
       }));
     });
 
