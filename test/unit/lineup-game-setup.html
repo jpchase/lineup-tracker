@@ -47,6 +47,9 @@
 
         test('starts empty', function() {
           assert.equal(el.game, undefined);
+          const items = el.shadowRoot.querySelectorAll('div div.task');
+          assert.isOk(items, 'Missing items for tasks');
+          assert.equal(items.length, 0, 'Should be no rendered tasks');
         });
 
         test('renders all the tasks', function() {

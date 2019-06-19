@@ -64,10 +64,6 @@ function isAutoStep(step: SetupSteps): boolean {
   }
 }
 
-function isRosterCopied(game: GameDetail) {
-  return (Object.keys(game.roster).length > 0);
-}
-
 @customElement('lineup-game-setup')
 export class LineupGameSetup extends connect(store)(LitElement) {
   protected render() {
@@ -96,9 +92,6 @@ export class LineupGameSetup extends connect(store)(LitElement) {
       </div>`
   }
 
-  @property({ type: Boolean })
-  private _copyRosterStarted = false;
-
   @property({ type: Object })
   private _game: GameDetail | undefined;
 
@@ -113,12 +106,6 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     if (!this._game) {
       return;
     }
-    if (isRosterCopied(this._game)) {
-      return;
-    }
-    // Fire the request to copy the roster from the team
-    this._copyRosterStarted = true;
-    // TODO: Actually send the request using redux
   }
 
   _getTasks(): SetupTask[] {
@@ -127,21 +114,12 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     }
     const tasks: SetupTask[] = [];
 
-    // Copy roster
-    const rosterCopied = isRosterCopied(this._game);
-    tasks.push({
-      step: SetupSteps.CopyRoster,
-      inProgress: this._copyRosterStarted,
-      complete: rosterCopied,
-      pending: !rosterCopied && !this._copyRosterStarted
-    });
-
     // Copy formation
     tasks.push({
       step: SetupSteps.CopyFormation,
       inProgress: false,
       complete: false,
-      pending: !tasks[tasks.length - 1].complete
+      pending: false
     });
 
     // Adjust roster
