@@ -8,7 +8,7 @@ import { RootState } from '../store';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import { firebaseRef } from '../firebase';
-import { buildNewDocumentData, loadRoster } from '../firestore-helpers';
+import { buildNewDocumentData, loadTeamRoster, KEY_TEAMS } from '../firestore-helpers';
 import { CollectionReference, DocumentData, DocumentReference, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_TEAM = 'ADD_TEAM';
@@ -26,8 +26,6 @@ export type TeamAction = TeamActionAddTeam | TeamActionChangeTeam | TeamActionGe
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
-const KEY_TEAMS = 'teams';
-const KEY_ROSTER = 'roster';
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
 
@@ -136,7 +134,7 @@ export const getRoster: ActionCreator<ThunkResult> = (teamId: string) => (dispat
   if (!teamId) {
     return;
   }
-  loadRoster(firebaseRef.firestore(), `${KEY_TEAMS}/${teamId}/${KEY_ROSTER}`).then((roster: Roster) => {
+  loadTeamRoster(firebaseRef.firestore(), teamId).then((roster: Roster) => {
     dispatch({
       type: GET_ROSTER,
       roster

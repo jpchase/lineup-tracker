@@ -30,7 +30,15 @@ export function buildTeamRosterPath(teamId: string) {
   return `${KEY_TEAMS}/${teamId}/${KEY_ROSTER}`;
 }
 
-export function loadRoster(firestore: FirebaseFirestore, collectionPath: string): Promise<Roster> {
+export function loadTeamRoster(firestore: FirebaseFirestore, teamId: string): Promise<Roster> {
+  return loadRoster(firestore, buildTeamRosterPath(teamId));
+}
+
+export function loadGameRoster(firestore: FirebaseFirestore, gameId: string): Promise<Roster> {
+  return loadRoster(firestore, buildGameRosterPath(gameId));
+}
+
+function loadRoster(firestore: FirebaseFirestore, collectionPath: string): Promise<Roster> {
   // TODO: Add try/catch for firestore/collection/get calls?
   return firestore.collection(collectionPath).get().then((value: QuerySnapshot) => {
     const roster = {} as Roster;

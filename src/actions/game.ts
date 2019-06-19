@@ -8,7 +8,7 @@ import { RootState } from '../store';
 import { Game, Games, GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
 import { firebaseRef } from '../firebase';
-import { buildNewDocumentData, buildGameRosterPath, buildTeamRosterPath, loadRoster, KEY_GAMES } from '../firestore-helpers';
+import { buildNewDocumentData, loadGameRoster, loadTeamRoster, KEY_GAMES } from '../firestore-helpers';
 import { CollectionReference, DocumentData, DocumentReference, DocumentSnapshot, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_GAME = 'ADD_GAME';
@@ -113,7 +113,7 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
     game = extractGame(value);
   })
   .then(() => {
-    return loadRoster(firebaseRef.firestore(), buildGameRosterPath(gameId));
+    return loadGameRoster(firebaseRef.firestore(), gameId);
   })
   .then((roster: Roster) => {
     // Checks if the game roster has been populated.
@@ -123,7 +123,7 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
       return {};
     }
     // No roster yet, load the team roster.
-    return loadRoster(firebaseRef.firestore(), buildTeamRosterPath(game.teamId));
+    return loadTeamRoster(firebaseRef.firestore(), game.teamId);
   })
   .then((teamRoster: Roster) => {
     const gameDetail: GameDetail = {
