@@ -37,10 +37,10 @@ function getStepName(step: SetupSteps): string {
       return 'Copy roster from team';
 
     case SetupSteps.CopyFormation:
-      return 'Copy formation from team';
+      return 'Set formation';
 
     case SetupSteps.AdjustRoster:
-      return 'Copy roster from team';
+      return 'Set game roster';
 
     case SetupSteps.Captains:
       return 'Set captains';
@@ -56,7 +56,6 @@ function getStepName(step: SetupSteps): string {
 function isAutoStep(step: SetupSteps): boolean {
   switch (step) {
     case SetupSteps.CopyRoster:
-    case SetupSteps.CopyFormation:
       return true;
 
     default:
@@ -67,7 +66,7 @@ function isAutoStep(step: SetupSteps): boolean {
 @customElement('lineup-game-setup')
 export class LineupGameSetup extends connect(store)(LitElement) {
   protected render() {
-    const tasks = this._getTasks();
+    const tasks = this._tasks;
     return html`
       ${SharedStyles}
       <style>
@@ -95,6 +94,9 @@ export class LineupGameSetup extends connect(store)(LitElement) {
   @property({ type: Object })
   private _game: GameDetail | undefined;
 
+  @property({ type: Object })
+  private _tasks: SetupTask[] = this._initTasks();
+
   protected firstUpdated() {
   }
 
@@ -108,10 +110,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     }
   }
 
-  _getTasks(): SetupTask[] {
-    if (!this._game) {
-      return [];
-    }
+  _initTasks(): SetupTask[] {
     const tasks: SetupTask[] = [];
 
     // Copy formation
