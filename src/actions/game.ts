@@ -5,7 +5,7 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
-import { Game, Games, GameDetail, GameStatus } from '../models/game';
+import { Game, Games, GameDetail, GameStatus, FormationType } from '../models/game';
 import { Roster } from '../models/player';
 import { firebaseRef } from '../firebase';
 import { buildNewDocumentData, loadGameRoster, loadTeamRoster, KEY_GAMES } from '../firestore-helpers';
@@ -16,13 +16,15 @@ export const GET_GAME_REQUEST = 'GET_GAME_REQUEST';
 export const GET_GAME_SUCCESS = 'GET_GAME_SUCCESS';
 export const GET_GAME_FAIL = 'GET_GAME_FAIL';
 export const GET_GAMES = 'GET_GAMES';
+export const SET_FORMATION = 'SET_FORMATION';
 
 export interface GameActionAddGame extends Action<'ADD_GAME'> { game: Game };
 export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { gameId: string };
 export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail, teamRoster?: Roster };
 export interface GameActionGetGameFail extends Action<'GET_GAME_FAIL'> { error: string };
 export interface GameActionGetGames extends Action<'GET_GAMES'> { games: Games };
-export type GameAction = GameActionAddGame | GameActionGetGameRequest | GameActionGetGameSuccess | GameActionGetGameFail | GameActionGetGames;
+export interface GameActionSetFormation extends Action<'SET_FORMATION'> { formationType: FormationType };
+export type GameAction = GameActionAddGame | GameActionGetGameRequest | GameActionGetGameSuccess | GameActionGetGameFail | GameActionGetGames | GameActionSetFormation;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
@@ -157,6 +159,16 @@ const getGameFail: ActionCreator<GameActionGetGameFail> = (error: string) => {
     type: GET_GAME_FAIL,
     error
   };
+};
+
+export const setFormation: ActionCreator<ThunkResult> = (formationType: FormationType) => (dispatch) => {
+  if (!formationType) {
+    return;
+  }
+  dispatch({
+    type: SET_FORMATION,
+    formationType
+  });
 };
 
 export const addNewGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch, getState) => {

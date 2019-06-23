@@ -1,6 +1,6 @@
-import { Game, Games, GameDetail, GameStatus } from '@app/models/game';
+import { Game, Games, GameDetail, GameStatus, FormationType } from '@app/models/game';
 import { Player } from '@app/models/player';
-import { ADD_GAME, GET_GAME_REQUEST, GET_GAME_SUCCESS, GET_GAME_FAIL, GET_GAMES } from '@app/actions/game';
+import { ADD_GAME, GET_GAME_REQUEST, GET_GAME_SUCCESS, GET_GAME_FAIL, GET_GAMES, SET_FORMATION } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
 import { getFakeAction, buildGames, buildRoster, getStoredPlayer, getStoredPlayerData } from '../helpers/test_data';
@@ -146,6 +146,36 @@ describe('Games reducer', () => {
 
     expect(newState).not.toBe(GAME_INITIAL_STATE);
     expect(newState.error).not.toBe(GAME_INITIAL_STATE.error);
+  });
+
+  it('should handle SET_FORMATION', () => {
+    const state: GameState = {
+      ...GAME_INITIAL_STATE,
+      game: {
+        ...newGame,
+        hasDetail: true,
+        roster: buildRoster([getStoredPlayer()])
+      }
+    };
+
+    const newState = game(state, {
+      type: SET_FORMATION,
+      formationType: FormationType.F4_3_3
+    });
+
+    const gameDetail: GameDetail = {
+      ...newGame,
+      hasDetail: true,
+      roster: buildRoster([getStoredPlayer()]),
+      formation: { type: FormationType.F4_3_3 }
+    };
+
+    expect(newState).toEqual(expect.objectContaining({
+      game: gameDetail,
+    }));
+
+    expect(newState).not.toBe(state);
+    expect(newState.game).not.toBe(state.game);
   });
 
   it('should handle GET_GAMES', () => {

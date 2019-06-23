@@ -3,14 +3,15 @@
 */
 
 import { Reducer } from 'redux';
-import { Games, GameDetail } from '../models/game';
+import { Games, GameDetail, GameStatus } from '../models/game';
 import { Player, Roster } from '../models/player';
 import {
   ADD_GAME,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
-  GET_GAMES
+  GET_GAMES,
+  SET_FORMATION
 } from '../actions/game';
 import { RootAction } from '../store';
 
@@ -69,6 +70,9 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         hasGameRoster = true;
       }
       gameDetail.hasDetail = hasGameRoster;
+      if (!gameDetail.status) {
+        gameDetail.status = GameStatus.New;
+      }
       newState.game = gameDetail;
       newState.games[action.game.id] = action.game;
       newState.detailFailure = false;
@@ -79,6 +83,15 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       newState.error = action.error;
       newState.detailFailure = true;
       newState.detailLoading = false;
+      return newState;
+
+    case SET_FORMATION:
+      const existingGame: GameDetail = newState.game!;
+      const gameWithFormation: GameDetail = {
+        ...existingGame,
+        formation: { type: action.formationType }
+      };
+      newState.game = gameWithFormation;
       return newState;
 
     default:

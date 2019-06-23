@@ -1,5 +1,5 @@
 import * as actions from '@app/actions/game';
-import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
+import { Game, GameDetail, GameMetadata, GameStatus, FormationType } from '@app/models/game';
 import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />
@@ -478,5 +478,34 @@ describe('Game actions', () => {
       }));
     });
   }); // describe('addGame')
+
+  describe('setFormation', () => {
+    it('should return a function to dispatch the setFormation action', () => {
+      expect(typeof actions.setFormation()).toBe('function');
+    });
+
+    it('should do nothing if formation input is missing', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.setFormation()(dispatchMock, getStateMock, undefined);
+
+      expect(getStateMock).not.toBeCalled();
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+    it('should dispatch an action to set the formation', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.setFormation(FormationType.F4_3_3)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.SET_FORMATION,
+        formationType: FormationType.F4_3_3,
+      }));
+    });
+  }); // describe('setFormation')
 
 }); // describe('Game actions')
