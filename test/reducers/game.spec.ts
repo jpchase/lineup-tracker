@@ -1,4 +1,4 @@
-import { Game, Games, GameDetail, GameStatus, FormationType } from '@app/models/game';
+import { Game, Games, GameDetail, GameStatus, FormationType, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 import { Player } from '@app/models/player';
 import { ADD_GAME, GET_GAME_REQUEST, GET_GAME_SUCCESS, GET_GAME_FAIL, GET_GAMES, SET_FORMATION } from '@app/actions/game';
 import game from '@app/reducers/game';
@@ -13,6 +13,27 @@ const GAME_INITIAL_STATE: GameState = {
   detailFailure: false,
   error: ''
 };
+
+function buildSetupTasks(): SetupTask[] {
+  return [
+    {
+      step: SetupSteps.Formation,
+      status: SetupStatus.Active
+    },
+    {
+      step: SetupSteps.Roster,
+      status: SetupStatus.Pending
+    },
+    {
+      step: SetupSteps.Captains,
+      status: SetupStatus.Pending
+    },
+    {
+      step: SetupSteps.Starters,
+      status: SetupStatus.Pending
+    }
+  ]
+}
 
 describe('Games reducer', () => {
   const existingGame: Game = {
@@ -46,7 +67,7 @@ describe('Games reducer', () => {
 
   it('should handle GET_GAME_SUCCESS', () => {
     const inputGame: GameDetail = {
-      ...newGame,
+      ...existingGame,
       roster: buildRoster([getStoredPlayer()])
     };
     const newState = game(GAME_INITIAL_STATE, {
@@ -55,7 +76,7 @@ describe('Games reducer', () => {
     });
 
     const gameDetail: GameDetail = {
-      ...newGame,
+      ...existingGame,
       hasDetail: true,
       roster: buildRoster([getStoredPlayer()])
     };
@@ -77,7 +98,7 @@ describe('Games reducer', () => {
       id: 'gp1'
     };
     const inputGame: GameDetail = {
-      ...newGame,
+      ...existingGame,
       roster: buildRoster([gamePlayer])
     };
 
@@ -88,7 +109,7 @@ describe('Games reducer', () => {
     });
 
     const gameDetail: GameDetail = {
-      ...newGame,
+      ...existingGame,
       hasDetail: true,
       roster: buildRoster([gamePlayer])
     };
@@ -118,7 +139,8 @@ describe('Games reducer', () => {
     const gameDetail: GameDetail = {
       ...newGame,
       hasDetail: true,
-      roster: buildRoster([getStoredPlayer()])
+      roster: buildRoster([getStoredPlayer()]),
+      setupTasks: buildSetupTasks()
     };
 
     expect(newState).toEqual(expect.objectContaining({

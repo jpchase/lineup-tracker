@@ -3,7 +3,7 @@
 */
 
 import { Reducer } from 'redux';
-import { Games, GameDetail, GameStatus } from '../models/game';
+import { Games, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 import { Player, Roster } from '../models/player';
 import {
   ADD_GAME,
@@ -73,6 +73,12 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       if (!gameDetail.status) {
         gameDetail.status = GameStatus.New;
       }
+
+      if (gameDetail.status === GameStatus.New) {
+        if (!gameDetail.setupTasks) {
+          gameDetail.setupTasks = buildTasks(/* gameDetail */);
+        }
+      }
       newState.game = gameDetail;
       newState.games[action.game.id] = action.game;
       newState.detailFailure = false;
@@ -100,3 +106,33 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 };
 
 export default game;
+
+function buildTasks(/* gameDetail: GameDetail*/): SetupTask[] {
+  const tasks: SetupTask[] = [];
+
+  // Copy formation
+  tasks.push({
+    step: SetupSteps.Formation,
+    status: SetupStatus.Active
+  });
+
+  // Adjust roster
+  tasks.push({
+    step: SetupSteps.Roster,
+    status: SetupStatus.Pending
+  });
+
+  // Captains
+  tasks.push({
+    step: SetupSteps.Captains,
+    status: SetupStatus.Pending
+  });
+
+  // Starting lineup
+  tasks.push({
+    step: SetupSteps.Starters,
+    status: SetupStatus.Pending
+  });
+
+  return tasks;
+}

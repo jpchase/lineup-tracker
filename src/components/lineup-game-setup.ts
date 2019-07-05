@@ -121,37 +121,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     if (!this._game) {
       return;
     }
-    this._tasks = this._buildTasks();
-  }
-
-  private _buildTasks(): SetupTask[] {
-    const tasks: SetupTask[] = [];
-
-    // Copy formation
-    tasks.push({
-      step: SetupSteps.Formation,
-      status: SetupStatus.Active
-    });
-
-    // Adjust roster
-    tasks.push({
-      step: SetupSteps.Roster,
-      status: SetupStatus.Pending
-    });
-
-    // Captains
-    tasks.push({
-      step: SetupSteps.Captains,
-      status: SetupStatus.Pending
-    });
-
-    // Starting lineup
-    tasks.push({
-      step: SetupSteps.Starters,
-      status: SetupStatus.Pending
-    });
-
-    return tasks;
+    this._tasks = this._game.setupTasks || [];
   }
 
   private _markStepComplete(step: SetupSteps) {
