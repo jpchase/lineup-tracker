@@ -27,11 +27,16 @@ const enum SetupSteps {
   Starters
 }
 
+const enum SetupStatus {
+  Pending,
+  Active,
+  InProgress,
+  Complete
+}
+
 interface SetupTask {
   step: SetupSteps;
-  pending: boolean;
-  inProgress: boolean;
-  complete: boolean;
+  status: SetupStatus;
 }
 
 function getStepName(step: SetupSteps): string {
@@ -91,11 +96,11 @@ export class LineupGameSetup extends connect(store)(LitElement) {
                  @click="${ (e: Event) => this._doStep(e, task.step)}">${getStepName(task.step)}</a>
             </div>
             <div class="status">
-            ${task.inProgress
+            ${task.status === SetupStatus.InProgress
               ? html`spinner here`
-              : task.complete
+              : task.status === SetupStatus.Complete
                 ? html`done icon here`
-                : (task.pending || isAutoStep(task.step))
+                : (task.status === SetupStatus.Pending || isAutoStep(task.step))
                   ? html`pending icon/text here`
                   : html`widget to mark done`
             }
@@ -144,44 +149,36 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     // Copy formation
     tasks.push({
       step: SetupSteps.CopyFormation,
-      inProgress: false,
-      complete: false,
-      pending: false
+      status: SetupStatus.Active
     });
 
     // Adjust roster
     tasks.push({
       step: SetupSteps.AdjustRoster,
-      inProgress: false,
-      complete: false,
-      pending: !tasks[tasks.length - 1].complete
+      status: SetupStatus.Pending
     });
 
     // Captains
     tasks.push({
       step: SetupSteps.Captains,
-      inProgress: false,
-      complete: false,
-      pending: !tasks[tasks.length - 1].complete
+      status: SetupStatus.Pending
     });
 
     // Starting lineup
     tasks.push({
       step: SetupSteps.Starters,
-      inProgress: false,
-      complete: false,
-      pending: !tasks[tasks.length - 1].complete
+      status: SetupStatus.Pending
     });
 
     return tasks;
   }
 
   private _markStepComplete(step: SetupSteps) {
-    this._tasks[step].complete = true;
+    this._tasks[step].status = SetupStatus.Complete;
     if (step >= this._tasks.length) {
       return;
     }
-    this._tasks[step + 1].pending = false;
+    this._tasks[step + 1].status = SetupStatus.Active;
   }
 
   private _doStep(e: Event, step: SetupSteps) {
