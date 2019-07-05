@@ -11,13 +11,16 @@ import { GameDetail } from '../models/game';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store, RootState } from '../store';
 
+// These are the actions needed by this element.
+import { setFormation } from '../actions/game';
+
 // import { peopleIcon, scheduleIcon } from './lineup-icons';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
 const enum SetupSteps {
-  CopyRoster,
+  // CopyRoster,
   CopyFormation,
   AdjustRoster,
   Captains,
@@ -33,8 +36,8 @@ interface SetupTask {
 
 function getStepName(step: SetupSteps): string {
   switch (step) {
-    case SetupSteps.CopyRoster:
-      return 'Copy roster from team';
+    // case SetupSteps.CopyRoster:
+    //   return 'Copy roster from team';
 
     case SetupSteps.CopyFormation:
       return 'Set formation';
@@ -55,8 +58,8 @@ function getStepName(step: SetupSteps): string {
 
 function isAutoStep(step: SetupSteps): boolean {
   switch (step) {
-    case SetupSteps.CopyRoster:
-      return true;
+    // case SetupSteps.CopyRoster:
+    //   return true;
 
     default:
       return false;
@@ -71,11 +74,22 @@ export class LineupGameSetup extends connect(store)(LitElement) {
       ${SharedStyles}
       <style>
         :host { display: block; }
+
+        div.formation {
+          display: none;
+        }
+
+        div.formation[active] {
+          display: block;
+        }
       </style>
       <div>
         ${repeat(tasks, (task: SetupTask) => task.step, (task: SetupTask) => html`
           <div class="task flex-equal-justified">
-            <div class="name">${getStepName(task.step)}</div>
+            <div class="name">
+              <a href="#"
+                 @click="${ (e: Event) => this._doStep(e, task.step)}">${getStepName(task.step)}</a>
+            </div>
             <div class="status">
             ${task.inProgress
               ? html`spinner here`
@@ -88,6 +102,14 @@ export class LineupGameSetup extends connect(store)(LitElement) {
             </div>
           </div>
         `)}
+        <div class="formation" ?active="${this._showFormation}">
+          <select
+            @change="${this._onFormationChange}"
+            value="">
+            <option value="">Not set</option>
+            <option value="F4_3_3">4-3-3</option>
+          </select>
+        </div>
       </div>`
   }
 
@@ -97,10 +119,16 @@ export class LineupGameSetup extends connect(store)(LitElement) {
   @property({ type: Object })
   private _tasks: SetupTask[] = this._initTasks();
 
+  @property({ type: Boolean })
+  private _showFormation = false;
+
   protected firstUpdated() {
   }
 
   stateChanged(state: RootState) {
+    const hasGS = !!state.game;
+    const hasGame = hasGS ? !!state.game!.game : false;
+    console.log(`l-g-s: stateChanged - hasGS = ${hasGS}, hasGame = ${hasGame}`);
     if (!state.game) {
       return;
     }
@@ -110,7 +138,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     }
   }
 
-  _initTasks(): SetupTask[] {
+  private _initTasks(): SetupTask[] {
     const tasks: SetupTask[] = [];
 
     // Copy formation
@@ -146,6 +174,36 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     });
 
     return tasks;
+  }
+
+  private _markStepComplete(step: SetupSteps) {
+    this._tasks[step].complete = true;
+    if (step >= this._tasks.length) {
+      return;
+    }
+    this._tasks[step + 1].pending = false;
+  }
+
+  private _doStep(e: Event, step: SetupSteps) {
+    switch (step) {
+      case SetupSteps.CopyFormation:
+        this._showFormation = true;
+        break;
+
+      default:
+        break;
+    }
+    e.preventDefault();
+    return false;
+  }
+
+  private _onFormationChange(e: Event) {
+    const select: HTMLSelectElement = e.target as HTMLSelectElement;
+
+    store.dispatch(setFormation(select.value));
+
+    this._markStepComplete(SetupSteps.CopyFormation);
+    this._showFormation = false;
   }
 
 }
