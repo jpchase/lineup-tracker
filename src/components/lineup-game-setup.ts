@@ -5,7 +5,7 @@
 import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 
-import { GameDetail } from '../models/game';
+import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
@@ -18,26 +18,6 @@ import { setFormation } from '../actions/game';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
-
-const enum SetupSteps {
-  // CopyRoster,
-  Formation,
-  Roster,
-  Captains,
-  Starters
-}
-
-const enum SetupStatus {
-  Pending,
-  Active,
-  InProgress,
-  Complete
-}
-
-interface SetupTask {
-  step: SetupSteps;
-  status: SetupStatus;
-}
 
 function getStepName(step: SetupSteps): string {
   switch (step) {

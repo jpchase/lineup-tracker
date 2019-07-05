@@ -40,3 +40,22 @@ export enum FormationType {
 export interface Formation {
   type: FormationType;
 }
+
+export enum SetupSteps {
+  Formation,
+  Roster,
+  Captains,
+  Starters
+}
+
+export enum SetupStatus {
+  Pending,
+  Active,
+  InProgress,
+  Complete
+}
+
+export interface SetupTask {
+  step: SetupSteps;
+  status: SetupStatus;
+}
