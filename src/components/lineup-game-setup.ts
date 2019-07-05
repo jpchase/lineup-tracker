@@ -122,7 +122,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
   private _game: GameDetail | undefined;
 
   @property({ type: Object })
-  private _tasks: SetupTask[] = this._initTasks();
+  private _tasks: SetupTask[] = [];
 
   @property({ type: Boolean })
   private _showFormation = false;
@@ -141,9 +141,10 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     if (!this._game) {
       return;
     }
+    this._tasks = this._buildTasks();
   }
 
-  private _initTasks(): SetupTask[] {
+  private _buildTasks(): SetupTask[] {
     const tasks: SetupTask[] = [];
 
     // Copy formation
