@@ -21,8 +21,8 @@ import { SharedStyles } from './shared-styles';
 
 const enum SetupSteps {
   // CopyRoster,
-  CopyFormation,
-  AdjustRoster,
+  Formation,
+  Roster,
   Captains,
   Starters
 }
@@ -44,10 +44,10 @@ function getStepName(step: SetupSteps): string {
     // case SetupSteps.CopyRoster:
     //   return 'Copy roster from team';
 
-    case SetupSteps.CopyFormation:
+    case SetupSteps.Formation:
       return 'Set formation';
 
-    case SetupSteps.AdjustRoster:
+    case SetupSteps.Roster:
       return 'Set game roster';
 
     case SetupSteps.Captains:
@@ -149,13 +149,13 @@ export class LineupGameSetup extends connect(store)(LitElement) {
 
     // Copy formation
     tasks.push({
-      step: SetupSteps.CopyFormation,
+      step: SetupSteps.Formation,
       status: SetupStatus.Active
     });
 
     // Adjust roster
     tasks.push({
-      step: SetupSteps.AdjustRoster,
+      step: SetupSteps.Roster,
       status: SetupStatus.Pending
     });
 
@@ -184,7 +184,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
 
   private _doStep(e: Event, step: SetupSteps) {
     switch (step) {
-      case SetupSteps.CopyFormation:
+      case SetupSteps.Formation:
         this._showFormation = true;
         break;
 
@@ -200,7 +200,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
 
     store.dispatch(setFormation(select.value));
 
-    this._markStepComplete(SetupSteps.CopyFormation);
+    this._markStepComplete(SetupSteps.Formation);
     this._showFormation = false;
   }
 
