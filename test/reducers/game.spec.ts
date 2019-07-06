@@ -176,7 +176,8 @@ describe('Games reducer', () => {
       game: {
         ...newGame,
         hasDetail: true,
-        roster: buildRoster([getStoredPlayer()])
+        roster: buildRoster([getStoredPlayer()]),
+        setupTasks: buildSetupTasks()
       }
     };
 
@@ -185,10 +186,15 @@ describe('Games reducer', () => {
       formationType: FormationType.F4_3_3
     });
 
+    const updatedTasks = buildSetupTasks();
+    updatedTasks[SetupSteps.Formation].status = SetupStatus.Complete;
+    updatedTasks[SetupSteps.Roster].status = SetupStatus.Active;
+
     const gameDetail: GameDetail = {
       ...newGame,
       hasDetail: true,
       roster: buildRoster([getStoredPlayer()]),
+      setupTasks: updatedTasks,
       formation: { type: FormationType.F4_3_3 }
     };
 

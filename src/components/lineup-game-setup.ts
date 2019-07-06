@@ -124,14 +124,6 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     this._tasks = this._game.setupTasks || [];
   }
 
-  private _markStepComplete(step: SetupSteps) {
-    this._tasks[step].status = SetupStatus.Complete;
-    if (step >= this._tasks.length) {
-      return;
-    }
-    this._tasks[step + 1].status = SetupStatus.Active;
-  }
-
   private _doStep(e: Event, step: SetupSteps) {
     switch (step) {
       case SetupSteps.Formation:
@@ -150,7 +142,6 @@ export class LineupGameSetup extends connect(store)(LitElement) {
 
     store.dispatch(setFormation(select.value));
 
-    this._markStepComplete(SetupSteps.Formation);
     this._showFormation = false;
   }
 

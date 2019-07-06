@@ -76,7 +76,7 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 
       if (gameDetail.status === GameStatus.New) {
         if (!gameDetail.setupTasks) {
-          gameDetail.setupTasks = buildTasks(/* gameDetail */);
+          gameDetail.setupTasks = buildTasks(gameDetail);
         }
       }
       newState.game = gameDetail;
@@ -97,6 +97,9 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         ...existingGame,
         formation: { type: action.formationType }
       };
+
+      gameWithFormation.setupTasks = buildTasks(gameWithFormation);
+
       newState.game = gameWithFormation;
       return newState;
 
@@ -107,19 +110,20 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 
 export default game;
 
-function buildTasks(/* gameDetail: GameDetail*/): SetupTask[] {
+function buildTasks(game: GameDetail): SetupTask[] {
   const tasks: SetupTask[] = [];
 
-  // Copy formation
+  // Formation
   tasks.push({
     step: SetupSteps.Formation,
-    status: SetupStatus.Active
+    status: !!game.formation ? SetupStatus.Complete : SetupStatus.Active
   });
 
-  // Adjust roster
+  // Roster
   tasks.push({
     step: SetupSteps.Roster,
-    status: SetupStatus.Pending
+    status: (tasks[tasks.length-1].status === SetupStatus.Complete) ?
+        SetupStatus.Active : SetupStatus.Pending
   });
 
   // Captains
@@ -128,7 +132,7 @@ function buildTasks(/* gameDetail: GameDetail*/): SetupTask[] {
     status: SetupStatus.Pending
   });
 
-  // Starting lineup
+  // Starters
   tasks.push({
     step: SetupSteps.Starters,
     status: SetupStatus.Pending
