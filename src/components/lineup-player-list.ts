@@ -8,6 +8,7 @@ import { repeat } from 'lit-html/directives/repeat';
 import { Player, Roster } from '../models/player';
 
 // These are the elements needed by this element.
+import '@material/mwc-button';
 import './lineup-player-card';
 
 import { EVENT_PLAYERLISTCANCEL } from './events';
