@@ -12,8 +12,10 @@ import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store, RootState } from '../store';
 
 // These are the actions needed by this element.
-import { setFormation } from '../actions/game';
+import { markRosterDone, setFormation } from '../actions/game';
 
+// These are the elements needed by this element.
+import '@material/mwc-button';
 // import { peopleIcon, scheduleIcon } from './lineup-icons';
 
 // These are the shared styles needed by this element.
@@ -21,9 +23,6 @@ import { SharedStyles } from './shared-styles';
 
 function getStepName(step: SetupSteps): string {
   switch (step) {
-    // case SetupSteps.CopyRoster:
-    //   return 'Copy roster from team';
-
     case SetupSteps.Formation:
       return 'Set formation';
 
@@ -43,8 +42,8 @@ function getStepName(step: SetupSteps): string {
 
 function isAutoStep(step: SetupSteps): boolean {
   switch (step) {
-    // case SetupSteps.CopyRoster:
-    //   return true;
+    case SetupSteps.Formation:
+      return true;
 
     default:
       return false;
@@ -82,7 +81,8 @@ export class LineupGameSetup extends connect(store)(LitElement) {
                 ? html`done icon here`
                 : (task.status === SetupStatus.Pending || isAutoStep(task.step))
                   ? html`pending icon/text here`
-                  : html`widget to mark done`
+                  : html`<mwc-button icon="check"
+                             @click="${(e: Event) => this._stepDone(e, task.step)}">Done</mwc-button>`
             }
             </div>
           </div>
@@ -128,6 +128,19 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     switch (step) {
       case SetupSteps.Formation:
         this._showFormation = true;
+        break;
+
+      default:
+        break;
+    }
+    e.preventDefault();
+    return false;
+  }
+
+  private _stepDone(e: Event, step: SetupSteps) {
+    switch (step) {
+      case SetupSteps.Roster:
+        store.dispatch(markRosterDone());
         break;
 
       default:
