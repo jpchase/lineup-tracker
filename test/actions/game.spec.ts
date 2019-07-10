@@ -479,6 +479,23 @@ describe('Game actions', () => {
     });
   }); // describe('addGame')
 
+  describe('markRosterDone', () => {
+    it('should return a function to dispatch the markRosterDone action', () => {
+      expect(typeof actions.markRosterDone()).toBe('function');
+    });
+
+    it('should dispatch an action to mark the roster as done', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.markRosterDone()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.ROSTER_DONE
+      }));
+    });
+  }); // describe('markRosterDone')
+
   describe('setFormation', () => {
     it('should return a function to dispatch the setFormation action', () => {
       expect(typeof actions.setFormation()).toBe('function');

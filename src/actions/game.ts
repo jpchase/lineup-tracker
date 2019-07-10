@@ -16,6 +16,7 @@ export const GET_GAME_REQUEST = 'GET_GAME_REQUEST';
 export const GET_GAME_SUCCESS = 'GET_GAME_SUCCESS';
 export const GET_GAME_FAIL = 'GET_GAME_FAIL';
 export const GET_GAMES = 'GET_GAMES';
+export const ROSTER_DONE = 'ROSTER_DONE';
 export const SET_FORMATION = 'SET_FORMATION';
 
 export interface GameActionAddGame extends Action<'ADD_GAME'> { game: Game };
@@ -23,8 +24,11 @@ export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { g
 export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail, teamRoster?: Roster };
 export interface GameActionGetGameFail extends Action<'GET_GAME_FAIL'> { error: string };
 export interface GameActionGetGames extends Action<'GET_GAMES'> { games: Games };
+export interface GameActionRosterDone extends Action<'ROSTER_DONE'> {};
 export interface GameActionSetFormation extends Action<'SET_FORMATION'> { formationType: FormationType };
-export type GameAction = GameActionAddGame | GameActionGetGameRequest | GameActionGetGameSuccess | GameActionGetGameFail | GameActionGetGames | GameActionSetFormation;
+export type GameAction = GameActionAddGame | GameActionGetGameRequest | GameActionGetGameSuccess |
+                         GameActionGetGameFail | GameActionGetGames | GameActionRosterDone |
+                         GameActionSetFormation;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
@@ -159,6 +163,12 @@ const getGameFail: ActionCreator<GameActionGetGameFail> = (error: string) => {
     type: GET_GAME_FAIL,
     error
   };
+};
+
+export const markRosterDone: ActionCreator<ThunkResult> = () => (dispatch) => {
+  dispatch({
+    type: ROSTER_DONE
+  });
 };
 
 export const setFormation: ActionCreator<ThunkResult> = (formationType: FormationType) => (dispatch) => {

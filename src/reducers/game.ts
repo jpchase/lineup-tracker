@@ -11,6 +11,7 @@ import {
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
   GET_GAMES,
+  ROSTER_DONE,
   SET_FORMATION
 } from '../actions/game';
 import { RootAction } from '../store';
@@ -91,6 +92,18 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       newState.detailLoading = false;
       return newState;
 
+    case ROSTER_DONE:
+      const incompleteRosterGame: GameDetail = newState.game!;
+      const gameWithRoster: GameDetail = {
+        ...incompleteRosterGame
+      };
+
+      gameWithRoster.setupTasks = buildTasks(gameWithRoster,
+                                incompleteRosterGame.setupTasks, SetupSteps.Roster);
+
+      newState.game = gameWithRoster;
+      return newState;
+
     case SET_FORMATION:
       const existingGame: GameDetail = newState.game!;
       const gameWithFormation: GameDetail = {
@@ -98,7 +111,7 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         formation: { type: action.formationType }
       };
 
-      gameWithFormation.setupTasks = buildTasks(gameWithFormation);
+      gameWithFormation.setupTasks = buildTasks(gameWithFormation, existingGame.setupTasks);
 
       newState.game = gameWithFormation;
       return newState;
@@ -110,32 +123,40 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 
 export default game;
 
-function buildTasks(game: GameDetail): SetupTask[] {
+function buildTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: SetupSteps) : SetupTask[] {
   const tasks: SetupTask[] = [];
 
   // Formation
+  //  - Complete status is based on the formation property being set.
+  const formationComplete = !!game.formation;
   tasks.push({
     step: SetupSteps.Formation,
-    status: !!game.formation ? SetupStatus.Complete : SetupStatus.Active
+    status: formationComplete ? SetupStatus.Complete : SetupStatus.Active
   });
 
-  // Roster
-  tasks.push({
-    step: SetupSteps.Roster,
-    status: (tasks[tasks.length-1].status === SetupStatus.Complete) ?
-        SetupStatus.Active : SetupStatus.Pending
-  });
+  // Other steps are manually set to complete, so can be handled generically.
+  const steps = [ SetupSteps.Roster, SetupSteps.Captains, SetupSteps.Starters ];
 
-  // Captains
-  tasks.push({
-    step: SetupSteps.Captains,
-    status: SetupStatus.Pending
-  });
+  let previousStepComplete = formationComplete;
+  steps.forEach((stepValue: SetupSteps) => {
+    // Set the step complete status from the explicit parameter or old tasks, if available.
+    // Otherwise, step status is later set based on whether the preceding step is complete.
+    let stepComplete = false;
+    if (stepValue === completedStep) {
+      stepComplete = true;
+    } else if (oldTasks) {
+      stepComplete = (oldTasks[stepValue].status === SetupStatus.Complete);
+    }
 
-  // Starters
-  tasks.push({
-    step: SetupSteps.Starters,
-    status: SetupStatus.Pending
+    tasks.push({
+      step: stepValue,
+      status: stepComplete ? SetupStatus.Complete :
+      (previousStepComplete ?
+        SetupStatus.Active : SetupStatus.Pending)
+    });
+
+    // Finally, save the complete status for the next step.
+    previousStepComplete = stepComplete;
   });
 
   return tasks;
