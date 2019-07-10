@@ -11,7 +11,9 @@ import {
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
   GET_GAMES,
+  CAPTAINS_DONE,
   ROSTER_DONE,
+  STARTERS_DONE,
   SET_FORMATION
 } from '../actions/game';
 import { RootAction } from '../store';
@@ -92,16 +94,19 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       newState.detailLoading = false;
       return newState;
 
+    case CAPTAINS_DONE:
     case ROSTER_DONE:
-      const incompleteRosterGame: GameDetail = newState.game!;
-      const gameWithRoster: GameDetail = {
-        ...incompleteRosterGame
+    case STARTERS_DONE:
+      const setupStepToMarkDone = getStepForAction(action.type);
+      const incompleteGame: GameDetail = newState.game!;
+      const gameWithStepDone: GameDetail = {
+        ...incompleteGame
       };
 
-      gameWithRoster.setupTasks = buildTasks(gameWithRoster,
-                                incompleteRosterGame.setupTasks, SetupSteps.Roster);
+      gameWithStepDone.setupTasks = buildTasks(gameWithStepDone,
+                                incompleteGame.setupTasks, setupStepToMarkDone);
 
-      newState.game = gameWithRoster;
+      newState.game = gameWithStepDone;
       return newState;
 
     case SET_FORMATION:
@@ -122,6 +127,19 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 };
 
 export default game;
+
+function getStepForAction(actionType: string) : SetupSteps | undefined {
+  switch (actionType) {
+    case CAPTAINS_DONE:
+      return SetupSteps.Captains;
+    case ROSTER_DONE:
+      return SetupSteps.Roster;
+    case STARTERS_DONE:
+      return SetupSteps.Starters;
+    default:
+      return undefined;
+  }
+}
 
 function buildTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: SetupSteps) : SetupTask[] {
   const tasks: SetupTask[] = [];

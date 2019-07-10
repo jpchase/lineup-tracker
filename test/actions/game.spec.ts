@@ -479,6 +479,23 @@ describe('Game actions', () => {
     });
   }); // describe('addGame')
 
+  describe('markCaptainsDone', () => {
+    it('should return a function to dispatch the markCaptainsDone action', () => {
+      expect(typeof actions.markCaptainsDone()).toBe('function');
+    });
+
+    it('should dispatch an action to mark the captains as done', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.markCaptainsDone()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.CAPTAINS_DONE
+      }));
+    });
+  }); // describe('markCaptainsDone')
+
   describe('markRosterDone', () => {
     it('should return a function to dispatch the markRosterDone action', () => {
       expect(typeof actions.markRosterDone()).toBe('function');
@@ -495,6 +512,23 @@ describe('Game actions', () => {
       }));
     });
   }); // describe('markRosterDone')
+
+  describe('markStartersDone', () => {
+    it('should return a function to dispatch the markStartersDone action', () => {
+      expect(typeof actions.markStartersDone()).toBe('function');
+    });
+
+    it('should dispatch an action to mark the starters as done', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.markStartersDone()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.STARTERS_DONE
+      }));
+    });
+  }); // describe('markStartersDone')
 
   describe('setFormation', () => {
     it('should return a function to dispatch the setFormation action', () => {

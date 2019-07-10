@@ -12,7 +12,7 @@ import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store, RootState } from '../store';
 
 // These are the actions needed by this element.
-import { markRosterDone, setFormation } from '../actions/game';
+import { markCaptainsDone, markRosterDone, markStartersDone, setFormation } from '../actions/game';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
@@ -139,8 +139,16 @@ export class LineupGameSetup extends connect(store)(LitElement) {
 
   private _stepDone(e: Event, step: SetupSteps) {
     switch (step) {
+      case SetupSteps.Captains:
+        store.dispatch(markCaptainsDone());
+        break;
+
       case SetupSteps.Roster:
         store.dispatch(markRosterDone());
+        break;
+
+      case SetupSteps.Starters:
+        store.dispatch(markStartersDone());
         break;
 
       default:

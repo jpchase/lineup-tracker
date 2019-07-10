@@ -6,7 +6,9 @@ import {
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
   GET_GAMES,
+  CAPTAINS_DONE,
   ROSTER_DONE,
+  STARTERS_DONE,
   SET_FORMATION
 } from '@app/actions/game';
 import game from '@app/reducers/game';
@@ -214,43 +216,118 @@ describe('Games reducer', () => {
     expect(newState.game).not.toBe(state.game);
   });
 
- describe('ROSTER_DONE', () => {
+  describe('CAPTAINS_DONE', () => {
 
-  it('should handle ROSTER_DONE', () => {
-    const state: GameState = {
-      ...GAME_INITIAL_STATE,
-      game: {
+    it('should handle CAPTAINS_DONE', () => {
+      const state: GameState = {
+        ...GAME_INITIAL_STATE,
+        game: {
+          ...newGame,
+          hasDetail: true,
+          roster: buildRoster([getStoredPlayer()]),
+          setupTasks: buildSetupTasks()
+        }
+      };
+
+      const newState = game(state, {
+        type: CAPTAINS_DONE
+      });
+
+      const updatedTasks = buildSetupTasks();
+      updatedTasks[SetupSteps.Captains].status = SetupStatus.Complete;
+      updatedTasks[SetupSteps.Starters].status = SetupStatus.Active;
+
+      const gameDetail: GameDetail = {
         ...newGame,
         hasDetail: true,
         roster: buildRoster([getStoredPlayer()]),
-        setupTasks: buildSetupTasks()
-      }
-    };
+        setupTasks: updatedTasks
+      };
 
-    const newState = game(state, {
-      type: ROSTER_DONE
+      expect(newState).toEqual(expect.objectContaining({
+        game: gameDetail,
+      }));
+
+      expect(newState).not.toBe(state);
+      expect(newState.game).not.toBe(state.game);
     });
 
-    const updatedTasks = buildSetupTasks();
-    updatedTasks[SetupSteps.Roster].status = SetupStatus.Complete;
-    updatedTasks[SetupSteps.Captains].status = SetupStatus.Active;
+  }); // describe('CAPTAINS_DONE')
 
-    const gameDetail: GameDetail = {
-      ...newGame,
-      hasDetail: true,
-      roster: buildRoster([getStoredPlayer()]),
-      setupTasks: updatedTasks
-    };
+  describe('ROSTER_DONE', () => {
 
-    expect(newState).toEqual(expect.objectContaining({
-      game: gameDetail,
-    }));
+    it('should handle ROSTER_DONE', () => {
+      const state: GameState = {
+        ...GAME_INITIAL_STATE,
+        game: {
+          ...newGame,
+          hasDetail: true,
+          roster: buildRoster([getStoredPlayer()]),
+          setupTasks: buildSetupTasks()
+        }
+      };
 
-    expect(newState).not.toBe(state);
-    expect(newState.game).not.toBe(state.game);
-  });
+      const newState = game(state, {
+        type: ROSTER_DONE
+      });
 
- }); // describe('ROSTER_DONE')
+      const updatedTasks = buildSetupTasks();
+      updatedTasks[SetupSteps.Roster].status = SetupStatus.Complete;
+      updatedTasks[SetupSteps.Captains].status = SetupStatus.Active;
+
+      const gameDetail: GameDetail = {
+        ...newGame,
+        hasDetail: true,
+        roster: buildRoster([getStoredPlayer()]),
+        setupTasks: updatedTasks
+      };
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: gameDetail,
+      }));
+
+      expect(newState).not.toBe(state);
+      expect(newState.game).not.toBe(state.game);
+    });
+
+  }); // describe('ROSTER_DONE')
+
+  describe('STARTERS_DONE', () => {
+
+    it('should handle STARTERS_DONE', () => {
+      const state: GameState = {
+        ...GAME_INITIAL_STATE,
+        game: {
+          ...newGame,
+          hasDetail: true,
+          roster: buildRoster([getStoredPlayer()]),
+          setupTasks: buildSetupTasks()
+        }
+      };
+
+      const newState = game(state, {
+        type: STARTERS_DONE
+      });
+
+      const updatedTasks = buildSetupTasks();
+      updatedTasks[SetupSteps.Starters].status = SetupStatus.Complete;
+
+      const gameDetail: GameDetail = {
+        ...newGame,
+        hasDetail: true,
+        roster: buildRoster([getStoredPlayer()]),
+        setupTasks: updatedTasks
+      };
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: gameDetail,
+      }));
+
+      expect(newState).not.toBe(state);
+      expect(newState.game).not.toBe(state.game);
+    });
+
+  }); // describe('STARTERS_DONE')
 
   it('should handle GET_GAMES', () => {
     const newState = game(GAME_INITIAL_STATE, {
