@@ -14,7 +14,8 @@ import {
   CAPTAINS_DONE,
   ROSTER_DONE,
   STARTERS_DONE,
-  SET_FORMATION
+  SET_FORMATION,
+  START_GAME,
 } from '../actions/game';
 import { RootAction } from '../store';
 
@@ -119,6 +120,17 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       gameWithFormation.setupTasks = buildTasks(gameWithFormation, existingGame.setupTasks);
 
       newState.game = gameWithFormation;
+      return newState;
+
+    case START_GAME:
+      const gameToBeStarted: GameDetail = newState.game!;
+      const startedGame: GameDetail = {
+        ...gameToBeStarted
+      };
+      startedGame.status = GameStatus.Start;
+      delete startedGame.setupTasks;
+
+      newState.game = startedGame;
       return newState;
 
     default:

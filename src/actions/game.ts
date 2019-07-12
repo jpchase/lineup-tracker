@@ -20,6 +20,7 @@ export const CAPTAINS_DONE = 'CAPTAINS_DONE';
 export const ROSTER_DONE = 'ROSTER_DONE';
 export const STARTERS_DONE = 'STARTERS_DONE';
 export const SET_FORMATION = 'SET_FORMATION';
+export const START_GAME = 'START_GAME';
 
 export interface GameActionAddGame extends Action<'ADD_GAME'> { game: Game };
 export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { gameId: string };
@@ -30,9 +31,11 @@ export interface GameActionCaptainsDone extends Action<'CAPTAINS_DONE'> {};
 export interface GameActionRosterDone extends Action<'ROSTER_DONE'> {};
 export interface GameActionStartersDone extends Action<'STARTERS_DONE'> {};
 export interface GameActionSetFormation extends Action<'SET_FORMATION'> { formationType: FormationType };
+export interface GameActionStartGame extends Action<'START_GAME'> {};
 export type GameAction = GameActionAddGame | GameActionGetGameRequest | GameActionGetGameSuccess |
                          GameActionGetGameFail | GameActionGetGames | GameActionCaptainsDone |
-                         GameActionRosterDone | GameActionStartersDone | GameActionSetFormation;
+                         GameActionRosterDone | GameActionStartersDone | GameActionSetFormation |
+                         GameActionStartGame;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
@@ -194,6 +197,13 @@ export const setFormation: ActionCreator<ThunkResult> = (formationType: Formatio
   dispatch({
     type: SET_FORMATION,
     formationType
+  });
+};
+
+export const startGame: ActionCreator<ThunkResult> = () => (dispatch) => {
+  // TODO: Save game to storage
+  dispatch({
+    type: START_GAME
   });
 };
 

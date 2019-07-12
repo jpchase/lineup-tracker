@@ -9,6 +9,7 @@ import {
   CAPTAINS_DONE,
   ROSTER_DONE,
   STARTERS_DONE,
+  START_GAME,
   SET_FORMATION
 } from '@app/actions/game';
 import game from '@app/reducers/game';
@@ -328,6 +329,44 @@ describe('Games reducer', () => {
     });
 
   }); // describe('STARTERS_DONE')
+
+  describe('START_GAME', () => {
+
+    it('should handle START_GAME', () => {
+      const completedTasks = buildSetupTasks();
+      completedTasks.forEach(task => {task.status = SetupStatus.Complete;})
+
+      const state: GameState = {
+        ...GAME_INITIAL_STATE,
+        game: {
+          ...newGame,
+          hasDetail: true,
+          roster: buildRoster([getStoredPlayer()]),
+          setupTasks: completedTasks
+        }
+      };
+
+      const newState = game(state, {
+        type: START_GAME
+      });
+
+      const gameDetail: GameDetail = {
+        ...newGame,
+        hasDetail: true,
+        roster: buildRoster([getStoredPlayer()]),
+        setupTasks: undefined
+      };
+      gameDetail.status = GameStatus.Start;
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: gameDetail,
+      }));
+
+      expect(newState).not.toBe(state);
+      expect(newState.game).not.toBe(state.game);
+    });
+
+  }); // describe('START_GAME')
 
   it('should handle GET_GAMES', () => {
     const newState = game(GAME_INITIAL_STATE, {

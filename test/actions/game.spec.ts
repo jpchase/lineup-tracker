@@ -559,4 +559,23 @@ describe('Game actions', () => {
     });
   }); // describe('setFormation')
 
+  describe('startGame', () => {
+    it('should return a function to dispatch the startGame action', () => {
+      expect(typeof actions.startGame()).toBe('function');
+    });
+
+    it('should dispatch an action to move the game to start status', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.startGame()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.START_GAME
+      }));
+
+      // TODO: Test that game is saved to storage
+    });
+  }); // describe('setFormation')
+
 }); // describe('Game actions')
