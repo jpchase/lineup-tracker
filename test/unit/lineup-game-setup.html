@@ -36,9 +36,16 @@
       // import {} from '../helpers/test_data.js';
 
       import { store } from '../../src/store.js';
-      import { GET_GAME_REQUEST, GET_GAME_SUCCESS } from '../../src/actions/game.js';
+      import {
+        GET_GAME_REQUEST,
+        GET_GAME_SUCCESS,
+        CAPTAINS_DONE,
+        ROSTER_DONE,
+        STARTERS_DONE,
+        SET_FORMATION
+      } from '../../src/actions/game.js';
 
-      // Need to load the reducer, as lineup-gane-setup relies on lineup-view-game-detail to do so.
+      // Need to load the reducer, as lineup-game-setup relies on lineup-view-game-detail to do so.
       import game from '../../src/reducers/game';
       store.addReducers({
         game
@@ -128,6 +135,37 @@
             // TODO: Verify elements/content in status div
           }
 
+        });
+
+        test('start game is disabled initially', async function() {
+          store.dispatch({type: GET_GAME_SUCCESS, game: getGameDetail()});
+          await el.updateComplete;
+
+          const startGame = el.shadowRoot.querySelector('div div.start mwc-button');
+          assert.isOk(startGame, 'Missing start game button');
+          assert.equal(startGame.disabled, true, 'Start game is not disabled');
+        });
+
+        test('start game is enabled after tasks are completed', async function() {
+          const game = getGameDetail();
+          game.setupTasks = getTasks();
+          store.dispatch({type: GET_GAME_SUCCESS, game});
+          await el.updateComplete;
+
+          let startGame = el.shadowRoot.querySelector('div div.start mwc-button');
+          assert.isOk(startGame, 'Missing start game button');
+          assert.equal(startGame.disabled, true, 'Start game should be disabled');
+
+          // Simulates the completion of all the setup tasks.
+          store.dispatch({type: SET_FORMATION, formationType: '4-3-3'});
+          store.dispatch({type: ROSTER_DONE});
+          store.dispatch({type: CAPTAINS_DONE});
+          store.dispatch({type: STARTERS_DONE});
+          await el.updateComplete;
+
+          startGame = el.shadowRoot.querySelector('div div.start mwc-button');
+          assert.isOk(startGame, 'Missing start game button');
+          assert.equal(startGame.disabled, false, 'Start game should be enabled');
         });
 
         test('a11y', function() {

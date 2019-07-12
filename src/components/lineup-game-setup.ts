@@ -87,6 +87,11 @@ export class LineupGameSetup extends connect(store)(LitElement) {
             </div>
           </div>
         `)}
+        <div class="start flex-equal-justified">
+          <mwc-button icon="play_arrow"
+                      ?disabled="${!this._tasksComplete}"
+                      @click="${this._startGame}">Start game</mwc-button>
+        </div>
         <div class="formation" ?active="${this._showFormation}">
           <select
             @change="${this._onFormationChange}"
@@ -103,6 +108,9 @@ export class LineupGameSetup extends connect(store)(LitElement) {
 
   @property({ type: Object })
   private _tasks: SetupTask[] = [];
+
+  @property({ type: Boolean })
+  private _tasksComplete = false;
 
   @property({ type: Boolean })
   private _showFormation = false;
@@ -122,6 +130,9 @@ export class LineupGameSetup extends connect(store)(LitElement) {
       return;
     }
     this._tasks = this._game.setupTasks || [];
+
+    const anyIncomplete = this._tasks.some(task => task.status !== SetupStatus.Complete);
+    this._tasksComplete = !anyIncomplete;
   }
 
   private _doStep(e: Event, step: SetupSteps) {
@@ -156,6 +167,10 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     }
     e.preventDefault();
     return false;
+  }
+
+  private _startGame() {
+    console.log('Start that game!');
   }
 
   private _onFormationChange(e: Event) {
