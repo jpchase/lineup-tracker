@@ -24,6 +24,7 @@ import { getGame } from '../actions/game';
 
 // These are the elements needed by this element.
 import './lineup-game-setup';
+import './lineup-on-player-list';
 import './lineup-player-list';
 
 // These are the shared styles needed by this element.
@@ -53,7 +54,7 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
       <div>
         <div id="live-on">
           <h5>${inProgress ? html`Playing` : html`Starters`}</h5>
-          <lineup-player-list mode="on" .roster="${roster}"></lineup-player-list>
+          <lineup-on-player-list .roster="${roster}"></lineup-on-player-list>
         </div>
         <div id="live-next" ?hidden=${setupRequired}>
           <h5>Next On</h5>
