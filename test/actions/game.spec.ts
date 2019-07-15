@@ -1,5 +1,6 @@
 import * as actions from '@app/actions/game';
-import { Game, GameDetail, GameMetadata, GameStatus, FormationType } from '@app/models/game';
+import { FormationType } from '@app/models/formation';
+import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
 import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />

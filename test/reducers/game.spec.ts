@@ -1,4 +1,5 @@
-import { Game, Games, GameDetail, GameStatus, FormationType, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
+import { FormationType } from '@app/models/formation';
+import { Game, Games, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 import { Player } from '@app/models/player';
 import {
   ADD_GAME,

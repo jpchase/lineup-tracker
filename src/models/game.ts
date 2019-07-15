@@ -1,6 +1,7 @@
 /**
 @license
 */
+import { FormationMetadata } from './formation';
 import { Roster } from './player';
 
 export interface GameMetadata {
@@ -26,20 +27,12 @@ export interface Game extends GameMetadata {
 
 export interface GameDetail extends Game {
   roster: Roster;
-  formation?: Formation;
+  formation?: FormationMetadata;
   setupTasks?: SetupTask[];
 }
 
 export interface Games {
   [index: string]: Game;
-}
-
-export enum FormationType {
-  F4_3_3 = '4-3-3',
-}
-
-export interface Formation {
-  type: FormationType;
 }
 
 export enum SetupSteps {

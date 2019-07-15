@@ -5,7 +5,8 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
-import { Game, Games, GameDetail, GameStatus, FormationType } from '../models/game';
+import { FormationType } from '../models/formation';
+import { Game, Games, GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
 import { firebaseRef } from '../firebase';
 import { buildNewDocumentData, loadGameRoster, loadTeamRoster, KEY_GAMES } from '../firestore-helpers';
