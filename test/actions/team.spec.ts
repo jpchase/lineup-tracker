@@ -1,11 +1,18 @@
 import * as actions from '@app/actions/team';
-import { Player, Roster } from '@app/models/player';
+import { Player } from '@app/models/player';
 import { Team, TeamData } from '@app/models/team';
 import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />
 import * as MockFirebase from 'mock-cloud-firestore';
-import { TEST_USER_ID, buildRoster, buildTeams, getMockAuthState, getPublicTeam, getPublicTeamData, getStoredTeam, MockAuthStateOptions } from '../helpers/test_data';
+import {
+  TEST_USER_ID,
+  buildRoster, buildTeams,
+  getMockAuthState,
+  getNewPlayer, getStoredPlayer,
+  getPublicTeam, getPublicTeamData, getStoredTeam,
+  MockAuthStateOptions
+} from '../helpers/test_data';
 
 jest.mock('@app/firebase');
 
@@ -320,10 +327,6 @@ describe('addTeam', () => {
 });
 
 describe('getRoster', () => {
-  const storedPlayer: Player = {
-    id: 'sp1', name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: 'OFF'
-  };
-
   it('should return a function to dispatch the getRoster action', () => {
     expect( typeof actions.getRoster() ).toBe('function');
   });
@@ -343,8 +346,7 @@ describe('getRoster', () => {
     const dispatchMock = jest.fn();
     const getStateMock = jest.fn();
 
-    const rosterData: Roster = {};
-    rosterData[storedPlayer.id] = storedPlayer;
+    const rosterData = buildRoster([getStoredPlayer()]);
 
     actions.getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
@@ -376,13 +378,6 @@ describe('getRoster', () => {
 }); // describe('getRoster')
 
 describe('addNewPlayer', () => {
-  const storedPlayer: Player = {
-      id: 'sp1', name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: 'OFF'
-  };
-  const newPlayer: Player = {
-      id: 'np1', name: 'New player 1', uniformNumber: 1, positions: ['CB'], status: 'OFF'
-  };
-
   it('should return a function to dispatch the action', () => {
     expect(typeof actions.addNewPlayer()).toBe('function');
   });
@@ -400,9 +395,9 @@ describe('addNewPlayer', () => {
 
   it('should dispatch an action to add a new player that is unique', () => {
     const dispatchMock = jest.fn();
-    const getStateMock = mockGetState([], undefined, undefined, [storedPlayer]);
+    const getStateMock = mockGetState([], undefined, undefined, [getStoredPlayer()]);
 
-    actions.addNewPlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+    actions.addNewPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
     expect(getStateMock).toBeCalled();
 
@@ -411,9 +406,9 @@ describe('addNewPlayer', () => {
 
   it('should do nothing with a new player that is not unique', () => {
     const dispatchMock = jest.fn();
-    const getStateMock = mockGetState([], undefined, undefined, [newPlayer]);
+    const getStateMock = mockGetState([], undefined, undefined, [getNewPlayer()]);
 
-    actions.addNewPlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+    actions.addNewPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
     expect(getStateMock).toBeCalled();
 
@@ -422,25 +417,15 @@ describe('addNewPlayer', () => {
 });
 
 describe('savePlayer', () => {
-    const storedPlayer: Player = {
-        id: 'sp1', name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: 'OFF'
-    };
-    const newPlayer: Player = {
-        id: 'np1', name: 'New player 1', uniformNumber: 1, positions: ['CB'], status: 'OFF'
-    };
-
-    beforeEach(() => {
-    });
-
     it('should return a function to dispatch the action', () => {
         expect(typeof actions.savePlayer()).toBe('function');
     });
 
     it('should dispatch an action to add player', async () => {
         const dispatchMock = jest.fn();
-        const getStateMock = mockGetState([], undefined, undefined, [storedPlayer]);
+        const getStateMock = mockGetState([], undefined, undefined, [getStoredPlayer()]);
 
-        actions.savePlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+        actions.savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
         // Waits for promises to resolve.
         await Promise.resolve();
@@ -461,9 +446,9 @@ describe('savePlayer', () => {
 
     it('should not dispatch an action when set() fails', async () => {
         const dispatchMock = jest.fn();
-        const getStateMock = mockGetState([], undefined, undefined, [storedPlayer]);
+        const getStateMock = mockGetState([], undefined, undefined, [getStoredPlayer()]);
 
-        actions.savePlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+        actions.savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
         // Waits for promises to resolve.
         await Promise.resolve();
@@ -482,10 +467,6 @@ describe('savePlayer', () => {
 });
 
 describe('addPlayer', () => {
-  const newPlayer: Player = {
-      id: 'np1', name: 'New player 1', uniformNumber: 1, positions: ['CB'], status: 'OFF'
-  };
-
   it('should return a function to dispatch the addPlayer action', () => {
     expect(typeof actions.addPlayer()).toBe('function');
   });
@@ -494,11 +475,11 @@ describe('addPlayer', () => {
     const dispatchMock = jest.fn();
     const getStateMock = jest.fn();
 
-    actions.addPlayer(newPlayer)(dispatchMock, getStateMock, undefined);
+    actions.addPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
     expect(dispatchMock).toBeCalledWith(expect.objectContaining({
       type: actions.ADD_PLAYER,
-      player: newPlayer,
+      player: getNewPlayer(),
     }));
   });
 

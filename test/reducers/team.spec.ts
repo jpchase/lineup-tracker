@@ -1,9 +1,12 @@
-import { Roster} from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
 import { ADD_TEAM, CHANGE_TEAM, GET_ROSTER, GET_TEAMS } from '@app/actions/team';
 import team from '@app/reducers/team';
 import { TeamState } from '@app/reducers/team';
-import { getFakeAction } from '../helpers/test_data';
+import {
+  buildRoster, buildTeams,
+  getFakeAction,
+  getStoredPlayer, getStoredTeam
+} from '../helpers/test_data';
 
 const TEAM_INITIAL_STATE: TeamState = {
   teams: {} as Teams,
@@ -14,9 +17,6 @@ const TEAM_INITIAL_STATE: TeamState = {
 };
 
 describe('Teams reducer', () => {
-  const existingTeam: Team = {
-      id: 'EX', name: 'Existing team'
-  };
   const newTeam: Team = {
       id: 'nt1', name: 'New team 1'
   };
@@ -28,8 +28,7 @@ describe('Teams reducer', () => {
   });
 
   it('should handle GET_TEAMS', () => {
-    const expectedTeams = {} as Teams;
-    expectedTeams[existingTeam.id] = existingTeam;
+    const expectedTeams = buildTeams([getStoredTeam()]);
 
     const newState = team(TEAM_INITIAL_STATE, {
         type: GET_TEAMS,
@@ -49,10 +48,7 @@ describe('Teams reducer', () => {
       ...TEAM_INITIAL_STATE,
       teams: {} as Teams
     } as TeamState;
-    state.teams[existingTeam.id] = existingTeam;
-    state.teams[newTeam.id] = newTeam;
-    state.teamId = existingTeam.id;
-    state.teamName = existingTeam.name;
+    state.teams = buildTeams([getStoredTeam(), newTeam]);
 
     const newState = team(state, {
       type: CHANGE_TEAM,
@@ -70,8 +66,7 @@ describe('Teams reducer', () => {
   });
 
   it('should handle ADD_TEAM with empty teams', () => {
-    const expectedTeams = {} as Teams;
-    expectedTeams[newTeam.id] = newTeam;
+    const expectedTeams = buildTeams([newTeam]);
 
     const newState = team(TEAM_INITIAL_STATE, {
         type: ADD_TEAM,
@@ -92,11 +87,9 @@ describe('Teams reducer', () => {
     const state: TeamState = {
       ...TEAM_INITIAL_STATE
     };
-    state.teams[existingTeam.id] = existingTeam;
+    state.teams = buildTeams([getStoredTeam()]);
 
-    const expectedTeams = {} as Teams;
-    expectedTeams[existingTeam.id] = existingTeam;
-    expectedTeams[newTeam.id] = newTeam;
+    const expectedTeams = buildTeams([getStoredTeam(), newTeam]);
 
     const newState = team(state, {
         type: ADD_TEAM,
@@ -124,12 +117,7 @@ describe('Roster reducer', () => {
   });
 
   it('should handle GET_ROSTER', () => {
-    const expectedRoster: Roster = {
-      'AB': {
-        id: 'AB', name: 'A Player', uniformNumber: 55, positions: ['CB'],
-        status: 'OFF'
-      }
-    };
+    const expectedRoster = buildRoster([getStoredPlayer()]);
 
     expect(
       team(TEAM_INITIAL_STATE, {

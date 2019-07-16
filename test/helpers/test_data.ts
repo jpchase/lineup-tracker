@@ -55,6 +55,14 @@ export function getStoredTeam(): Team {
   return { id: 'st1', ...getStoredTeamData() }
 };
 
+export function getNewPlayerData() {
+  return { name: 'New player 1', uniformNumber: 1, positions: ['FB'], status: 'OFF' }
+};
+
+export function getNewPlayer(): Player {
+  return { id: 'np1', ...getNewPlayerData() }
+};
+
 export function getStoredPlayerData() {
   return { name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: 'OFF' }
 };
