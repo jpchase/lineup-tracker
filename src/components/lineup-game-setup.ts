@@ -103,7 +103,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
             @change="${this._onFormationChange}"
             value="">
             <option value="">Not set</option>
-            <option value="F4_3_3">4-3-3</option>
+            <option value="4-3-3">4-3-3</option>
           </select>
         </div>
       </div>`
