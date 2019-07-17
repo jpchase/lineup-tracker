@@ -27,7 +27,7 @@
       import {axeReport} from 'pwa-helpers/axe-report.js';
       import '../../src/components/lineup-player-list.js';
 
-      function getRoster(numPlayers) {
+      function getRoster(numPlayers, status, otherStatus) {
         const size = numPlayers || 6;
         const roster = {};
         for (let i = 0; i < size; i++) {
@@ -52,8 +52,19 @@
             name: `Player ${i}`,
             uniformNumber: i + (i % 3) * 10,
             positions: pos,
-            status: 'OFF'
+            status: status.toUpperCase()
           };
+
+          if (otherStatus) {
+            const otherPlayerId = playerId + otherStatus;
+            roster[otherPlayerId] = {
+              id: otherPlayerId,
+              name: `Player ${i}-${otherStatus}`,
+              uniformNumber: i + (i % 4) * 10,
+              positions: pos,
+              status: otherStatus.toUpperCase()
+            };
+          }
         }
         return roster;
       }
@@ -78,20 +89,53 @@
           assert.isOk(placeholder, 'Missing empty placeholder element');
         });
 
-        for (const numPlayers of [1, 6]) {
-          const testName = numPlayers === 1 ? 'single player' : `multiple players`;
-          test(`renders list with ${testName}`, async function() {
-            const roster = getRoster(numPlayers);
-            const playerIds = Object.keys(roster);
-            el.mode = 'OFF';
+// TODO: Add test that players missing status are included in OFF mode
+
+        for (const listMode of ['next', 'off', 'out']) {
+          const testPrefix = `mode [${listMode}]`;
+
+          test(`${testPrefix}: shows no players placeholder when roster has no matching players`, async function() {
+            const otherStatus = (listMode === 'off') ? 'next' : 'off';
+            const roster = getRoster(2, otherStatus);
+
+            el.mode = listMode;
             el.roster = roster;
             await el.updateComplete;
 
-            const items = el.shadowRoot.querySelectorAll('div div lineup-player-card');
-            assert.isOk(items, 'Missing items for players');
-            assert.equal(items.length, numPlayers, 'Rendered player count');
+            const placeholder = el.shadowRoot.querySelector('div p.empty-list');
+            assert.isOk(placeholder, 'Missing empty placeholder element');
           });
-        }
+
+          for (const numPlayers of [1, 6]) {
+            const playersDesc = numPlayers === 1 ? 'single player' : `multiple players`;
+
+            test(`${testPrefix}: renders list with ${playersDesc} all matching mode`, async function() {
+              const roster = getRoster(numPlayers, listMode);
+
+              el.mode = listMode;
+              el.roster = roster;
+              await el.updateComplete;
+
+              const items = el.shadowRoot.querySelectorAll('div div lineup-player-card');
+              assert.isOk(items, 'Missing items for players');
+              assert.equal(items.length, numPlayers, 'Rendered player count');
+            });
+
+            test(`${testPrefix}: renders list with ${playersDesc} mixed with other status`, async function() {
+              const otherStatus = (listMode === 'off') ? 'next' : 'off';
+              const roster = getRoster(numPlayers, listMode, otherStatus);
+
+              el.mode = listMode;
+              el.roster = roster;
+              await el.updateComplete;
+
+              const items = el.shadowRoot.querySelectorAll('div div lineup-player-card');
+              assert.isOk(items, 'Missing items for players');
+              assert.equal(items.length, numPlayers, 'Rendered player count');
+            });
+
+          } // number of players
+        } // list modes
 
         test('a11y', function() {
           console.log('ally test');
