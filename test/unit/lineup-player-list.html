@@ -77,6 +77,17 @@
           return el.updateComplete;
         });
 
+        function verifyEmptyList() {
+          const placeholder = el.shadowRoot.querySelector('div p.empty-list');
+          assert.isOk(placeholder, 'Missing empty placeholder element');
+        }
+
+        function verifyPlayerCards(expectedCount) {
+          const items = el.shadowRoot.querySelectorAll('div div lineup-player-card');
+          assert.isOk(items, 'Missing items for players');
+          assert.equal(items.length, expectedCount, 'Rendered player count');
+        }
+
         test('starts empty', function() {
           assert.equal(el.mode, '');
           assert.equal(el.showCancel, false);
@@ -85,53 +96,62 @@
 
         test('shows no players placeholder for empty roster', function() {
           assert.equal(el.roster, undefined);
-          const placeholder = el.shadowRoot.querySelector('div p.empty-list');
-          assert.isOk(placeholder, 'Missing empty placeholder element');
+          verifyEmptyList();
         });
 
 // TODO: Add test that players missing status are included in OFF mode
+        const modeTests = [
+          {
+            listMode: 'next',
+            playerStatus: 'NEXT',
+            nonMatchingStatus: 'OFF',
+          },
+          {
+            listMode: 'off',
+            playerStatus: 'OFF',
+            nonMatchingStatus: 'NEXT',
+          },
+          {
+            listMode: 'out',
+            playerStatus: 'OUT',
+            nonMatchingStatus: 'OFF',
+          },
+        ];
 
-        for (const listMode of ['next', 'off', 'out']) {
-          const testPrefix = `mode [${listMode}]`;
+        for (const modeTest of modeTests) {
+          const testPrefix = `mode [${modeTest.listMode}]`;
 
           test(`${testPrefix}: shows no players placeholder when roster has no matching players`, async function() {
-            const otherStatus = (listMode === 'off') ? 'next' : 'off';
-            const roster = getRoster(2, otherStatus);
+            const roster = getRoster(2, modeTest.nonMatchingStatus);
 
-            el.mode = listMode;
+            el.mode = modeTest.listMode;
             el.roster = roster;
             await el.updateComplete;
 
-            const placeholder = el.shadowRoot.querySelector('div p.empty-list');
-            assert.isOk(placeholder, 'Missing empty placeholder element');
+            verifyEmptyList();
           });
 
           for (const numPlayers of [1, 6]) {
             const playersDesc = numPlayers === 1 ? 'single player' : `multiple players`;
 
             test(`${testPrefix}: renders list with ${playersDesc} all matching mode`, async function() {
-              const roster = getRoster(numPlayers, listMode);
+              const roster = getRoster(numPlayers, modeTest.listMode);
 
-              el.mode = listMode;
+              el.mode = modeTest.listMode;
               el.roster = roster;
               await el.updateComplete;
 
-              const items = el.shadowRoot.querySelectorAll('div div lineup-player-card');
-              assert.isOk(items, 'Missing items for players');
-              assert.equal(items.length, numPlayers, 'Rendered player count');
+              verifyPlayerCards(numPlayers);
             });
 
             test(`${testPrefix}: renders list with ${playersDesc} mixed with other status`, async function() {
-              const otherStatus = (listMode === 'off') ? 'next' : 'off';
-              const roster = getRoster(numPlayers, listMode, otherStatus);
+              const roster = getRoster(numPlayers, modeTest.listMode, modeTest.nonMatchingStatus);
 
-              el.mode = listMode;
+              el.mode = modeTest.listMode;
               el.roster = roster;
               await el.updateComplete;
 
-              const items = el.shadowRoot.querySelectorAll('div div lineup-player-card');
-              assert.isOk(items, 'Missing items for players');
-              assert.equal(items.length, numPlayers, 'Rendered player count');
+              verifyPlayerCards(numPlayers);
             });
 
           } // number of players
