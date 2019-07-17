@@ -13,14 +13,28 @@ import { EVENT_PLAYERSELECTED } from './events';
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
+export interface PlayerCardData {
+  id: string;
+  position: string;
+  player?: Player;
+}
+
 // This element is *not* connected to the Redux store.
 @customElement('lineup-player-card')
 export class LineupPlayerCard extends LitElement {
   protected render() {
-    if (!this.player) {
+    if (!this.data && !this.player) {
       return;
     }
-    const player = this.player!;
+    let currentPosition = '';
+    let player: Player | undefined;
+
+    if (this.data) {
+      currentPosition = this.data.position;
+      player = this.data.player;
+    } else {
+      player = this.player!;
+    }
     const positions: string[] = [];//player.positions || [];
     return html`
       ${SharedStyles}
@@ -45,9 +59,9 @@ export class LineupPlayerCard extends LitElement {
       </style>
 
       <span class="player ${this.mode}" @click="{this._toggleSelected}">
-        <span class="playerName">${player.name}</span>
-        <span class="uniformNumber">${player.uniformNumber}</span>
-        <span class="currentPosition">{player.currentPosition}</span>
+        <span class="playerName">${player ? player.name : ''}</span>
+        <span class="uniformNumber">${player ? player.uniformNumber: ''}</span>
+        <span class="currentPosition">${currentPosition}</span>
         <span class="playerPositions">${positions.join(', ')}</span>
         <span class="subFor">{player.replaces}</span>
         <span class="shiftTime"></span>
@@ -59,6 +73,9 @@ export class LineupPlayerCard extends LitElement {
   mode = '';
 
   @property({type: Object})
+  data: PlayerCardData|undefined = undefined;
+
+  @property({type: Object})
   player: Player|undefined = undefined;
 
   @property({type: Boolean})
@@ -66,9 +83,10 @@ export class LineupPlayerCard extends LitElement {
 
   _toggleSelected(e: CustomEvent) {
     console.log('_toggleSelected - ' + this.selected, e);
+    const player = this.data ? this.data!.player : this.player;
     this.dispatchEvent(new CustomEvent(EVENT_PLAYERSELECTED, {
       bubbles: true, composed: true,
-      detail: {player: this.player, selected: this.selected},
+      detail: {player: player, selected: this.selected},
     }));
   }
 }
