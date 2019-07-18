@@ -6,24 +6,19 @@ import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 
 import { Formation, FormationLine } from '../models/formation';
-import { Player, PlayerStatus, Roster } from '../models/player';
+import { PlayerStatus, Roster } from '../models/player';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
 import './lineup-player-card';
+import { PlayerCardData } from './lineup-player-card';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
-interface PlayerPosition {
-  id: string;
-  position: string;
-  player: Player;
-}
-
 interface PlayerLine extends FormationLine {
   id: string;
-  playerPositions: PlayerPosition[];
+  playerPositions: PlayerCardData[];
 }
 
 function getLineForPosition(lines: PlayerLine[], position: string): PlayerLine {
@@ -46,8 +41,8 @@ export class LineupOnPlayerList extends LitElement {
         <div class="list">
         ${repeat(lines, (line: PlayerLine) => line.id, (line: PlayerLine /*, index: number*/) => html`
           <div>
-          ${repeat(line.playerPositions, (position: PlayerPosition) => position.id, (position: PlayerPosition /*, index: number*/) => html`
-            <lineup-player-card .mode="ON" .player="${position.player}"></lineup-player-card>
+          ${repeat(line.playerPositions, (position: PlayerCardData) => position.id, (position: PlayerCardData /*, index: number*/) => html`
+            <lineup-player-card .mode="ON" .data="${position}"></lineup-player-card>
           `)}
           </div>
         `)}
@@ -99,7 +94,7 @@ export class LineupOnPlayerList extends LitElement {
       const currentPosition = player.positions ? player.positions[0] : 'S';
       const line = getLineForPosition(lines, currentPosition);
 
-      const position: PlayerPosition = {
+      const position: PlayerCardData = {
         id: line.id + currentPosition,
         position: currentPosition,
         player
