@@ -5,7 +5,7 @@
 import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 
-import { Player, Roster } from '../models/player';
+import { Player, PlayerStatus, Roster } from '../models/player';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
@@ -15,6 +15,10 @@ import { EVENT_PLAYERLISTCANCEL } from './events';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
+
+interface PlayerFilterFunc {
+    (player: Player): boolean;
+}
 
 // This element is *not* connected to the Redux store.
 @customElement('lineup-player-list')
@@ -54,29 +58,35 @@ export class LineupPlayerList extends LitElement {
   @property({type: Boolean})
   showCancel = false;
 
-  _getPlayerStatus(mode: string) {
+  _getPlayerFilter(mode: string): PlayerFilterFunc {
     let status = mode.toUpperCase();
     switch (status) {
-      case 'NEXT':
-      case 'OFF':
-      case 'ON':
-      case 'OUT':
-        return status;
+      case PlayerStatus.Next:
+      case PlayerStatus.Out:
+        return (player) => {
+          return (player.status === status);
+        };
+      case PlayerStatus.Off:
+        return (player) => {
+          return (!player.status || player.status === status);
+        };
       default:
-        console.log('Unsupported mode:', mode);
+        return () => {
+          console.log('Unsupported mode: ', mode);
+          return false;
+        };
     }
-    return status;
   }
 
   _getFilteredPlayers(): Player[] {
     if (!this.roster) {
       return [];
     }
-    const statusFilter = this._getPlayerStatus(this.mode);
+    const filterFunc = this._getPlayerFilter(this.mode);
     const roster = this.roster;
     return Object.keys(roster).reduce((result: Player[], key) => {
       const player = roster[key];
-      if (player.status === statusFilter) {
+      if (filterFunc(player)) {
         result.push(player);
       }
       return result;

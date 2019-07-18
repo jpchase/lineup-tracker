@@ -69,6 +69,18 @@
         return roster;
       }
 
+      function getRosterWithPlayersMissingStatus(numPlayers, status) {
+        const roster = getRoster(numPlayers, status);
+        const playerId = 'P<no status>';
+        roster[playerId] = {
+          id: playerId,
+          name: `Player with no status`,
+          uniformNumber: 99,
+          positions: ['GK']
+        };
+        return roster;
+      }
+
       suite('lineup-player-list tests', function() {
         let el;
         setup(function() {
@@ -99,7 +111,38 @@
           verifyEmptyList();
         });
 
-// TODO: Add test that players missing status are included in OFF mode
+        test(`mode [off]: includes players without status set`, async function() {
+          const roster = getRosterWithPlayersMissingStatus(2, 'off');
+
+          el.mode = 'off';
+          el.roster = roster;
+          await el.updateComplete;
+
+          // All the players in the roster should be shown, since they either have
+          // status of off, or are missing the status.
+          verifyPlayerCards(Object.keys(roster).length);
+        });
+
+        test(`mode [next]: excludes players without status set`, async function() {
+          const roster = getRosterWithPlayersMissingStatus(2, 'next');
+
+          el.mode = 'next';
+          el.roster = roster;
+          await el.updateComplete;
+
+          verifyPlayerCards(2);
+        });
+
+        test(`mode [out]: excludes players without status set`, async function() {
+          const roster = getRosterWithPlayersMissingStatus(2, 'out');
+
+          el.mode = 'out';
+          el.roster = roster;
+          await el.updateComplete;
+
+          verifyPlayerCards(2);
+        });
+
         const modeTests = [
           {
             listMode: 'next',
