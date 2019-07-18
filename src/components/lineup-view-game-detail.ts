@@ -6,6 +6,7 @@ import { html, customElement, property } from 'lit-element';
 import { PageViewElement } from './page-view-element';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 
+import { FormationBuilder } from '../models/formation';
 import { GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
 
@@ -43,6 +44,11 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
     const setupRequired = isNew;
 
     const roster: Roster = game.roster;
+    let formation = undefined;
+    if (game.formation) {
+      formation = FormationBuilder.create(game.formation.type);
+    }
+
     return html`
       <div toolbar>
         <span id="gameTimer">clock here</span>
@@ -54,7 +60,7 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
       <div>
         <div id="live-on">
           <h5>${inProgress ? html`Playing` : html`Starters`}</h5>
-          <lineup-on-player-list .roster="${roster}"></lineup-on-player-list>
+          <lineup-on-player-list .formation="${formation}" .roster="${roster}"></lineup-on-player-list>
         </div>
         <div id="live-next" ?hidden=${setupRequired}>
           <h5>Next On</h5>

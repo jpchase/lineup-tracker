@@ -27,6 +27,12 @@
       import {axeReport} from 'pwa-helpers/axe-report.js';
       import '../../src/components/lineup-on-player-list.js';
 
+      import { FormationBuilder, FormationType } from '../../src/models/formation.js';
+
+      function getFormation(formationType) {
+        return FormationBuilder.create(formationType);
+      }
+
       function getRoster(numPlayers) {
         const size = numPlayers || 6;
         const roster = {};
@@ -67,10 +73,12 @@
         });
 
         test('starts empty', function() {
+          assert.equal(el.formation, undefined);
           assert.equal(el.roster, undefined);
         });
 
-        test('shows no players placeholder for empty roster', function() {
+        test('shows no players placeholder for empty formation/roster', function() {
+          assert.equal(el.formation, undefined);
           assert.equal(el.roster, undefined);
           const placeholder = el.shadowRoot.querySelector('div p.empty-list');
           assert.isOk(placeholder, 'Missing empty placeholder element');
@@ -81,10 +89,11 @@
           test(`renders list with ${testName}`, async function() {
             const roster = getRoster(numPlayers);
             const playerIds = Object.keys(roster);
+            el.formation = getFormation(FormationType.F4_3_3);
             el.roster = roster;
             await el.updateComplete;
 
-            const items = el.shadowRoot.querySelectorAll('div div lineup-player-card');
+            const items = el.shadowRoot.querySelectorAll('div div.list div lineup-player-card');
             assert.isOk(items, 'Missing items for players');
             assert.equal(items.length, numPlayers, 'Rendered player count');
           });
