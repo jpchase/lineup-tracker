@@ -26,6 +26,10 @@ function getLineForPosition(lines: PlayerLine[], position: string): PlayerLine {
   return line ? line : lines[0];
 }
 
+function getOpenPositionInLine(line: PlayerLine, position: string): PlayerCardData | undefined {
+  return line.playerPositions.find(data => (data.position === position && !data.player));
+}
+
 // This element is *not* connected to the Redux store.
 @customElement('lineup-on-player-list')
 export class LineupOnPlayerList extends LitElement {
@@ -35,12 +39,21 @@ export class LineupOnPlayerList extends LitElement {
       ${SharedStyles}
       <style>
         :host { display: block; }
+
+        .line {
+          border: 1px;
+          border-style: solid;
+        }
+
+        .line lineup-player-card {
+          display: inline;
+        }
       </style>
       <div>
       ${lines.length > 0 ? html`
         <div class="list">
         ${repeat(lines, (line: PlayerLine) => line.id, (line: PlayerLine /*, index: number*/) => html`
-          <div>
+          <div class="line">
           ${repeat(line.playerPositions, (position: PlayerCardData) => position.id, (position: PlayerCardData /*, index: number*/) => html`
             <lineup-player-card .mode="ON" .data="${position}"></lineup-player-card>
           `)}
@@ -74,12 +87,19 @@ export class LineupOnPlayerList extends LitElement {
       formation.defense,
       formation.gk
     ].reduce((result: PlayerLine[], formationLine) => {
-      // TODO: Set placeholders for each position, so unfilled ones are visible
-      result.push({
+      const line = {
         id: formationLine.id,
         positions: formationLine.positions,
-        playerPositions: []
+        playerPositions: <PlayerCardData[]>[]
+      };
+      // Creates placeholders for each position in the formation.
+      formationLine.positions.forEach(position => {
+        line.playerPositions.push({
+          id: line.id + position,
+          position: position
+        });
       });
+      result.push(line);
       return result;
     }, []);
 
@@ -94,13 +114,12 @@ export class LineupOnPlayerList extends LitElement {
       const currentPosition = player.positions ? player.positions[0] : 'S';
       const line = getLineForPosition(lines, currentPosition);
 
-      const position: PlayerCardData = {
-        id: line.id + currentPosition,
-        position: currentPosition,
-        player
-      }
+      const cardData = getOpenPositionInLine(line, currentPosition);
 
-      line.playerPositions.push(position);
+      if (cardData)
+      {
+        cardData.player = player;
+      }
     });
 
     return lines;

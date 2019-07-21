@@ -33,23 +33,79 @@
         return FormationBuilder.create(formationType);
       }
 
+      function getPositions(formationType) {
+        const formation =  FormationBuilder.create(formationType);
+        const positions = {};
+
+        const lines = [
+          formation.forward1, formation.forward2,
+          formation.midfield1, formation.midfield2,
+          formation.defense,
+          formation.gk
+        ].forEach(line => {
+          line.positions.forEach(position => {
+            let count = positions[position];
+            if (count) {
+              count++;
+            } else {
+              count = 1;
+            }
+            positions[position] = count;
+          });
+        });
+        return positions;
+      }
+
       function getRoster(numPlayers) {
         const size = numPlayers || 6;
         const roster = {};
         for (let i = 0; i < size; i++) {
           const playerId = `P${i}`;
           let pos;
-          switch (i % 3) {
+          // TODO: Change this to set current position, when that property exists
+          switch (i) {
             case 0:
               pos = ['CB', 'FB', 'HM'];
               break;
 
             case 1:
-              pos = ['S', 'OM'];
+              pos = ['S', 'W'];
               break;
 
             case 2:
+              pos = ['AM', 'HM'];
+              break;
+
+            case 3:
+              pos = ['HM', 'CB'];
+              break;
+
+            case 4:
+              pos = ['W'];
+              break;
+
+            case 5:
+              pos = ['FB'];
+              break;
+
+            case 6:
+              pos = ['W'];
+              break;
+
+            case 7:
+              pos = ['CB'];
+              break;
+
+            case 8:
+              pos = ['FB'];
+              break;
+
+            case 9:
               pos = ['AM'];
+              break;
+
+            case 10:
+              pos = ['GK'];
               break;
           }
 
@@ -84,9 +140,33 @@
           assert.isOk(placeholder, 'Missing empty placeholder element');
         });
 
+        test('renders full formation with empty roster', async function() {
+          el.formation = getFormation(FormationType.F4_3_3);
+          el.roster = {};
+          await el.updateComplete;
+
+          const items = el.shadowRoot.querySelectorAll('div div.list div lineup-player-card');
+          assert.equal(items.length, 11, 'Rendered position count');
+
+          const expectedPositions = getPositions(FormationType.F4_3_3);
+          const actualPositions = {};
+          items.forEach(playerCard => {
+            const position = playerCard.data.position;
+            let count = actualPositions[position];
+            if (count) {
+              count++;
+            } else {
+              count = 1;
+            }
+            actualPositions[position] = count;
+          });
+
+          assert.deepEqual(actualPositions, expectedPositions, 'Positions in renderered formation');
+        });
+
         for (const numPlayers of [1, 6]) {
           const testName = numPlayers === 1 ? 'single player' : `multiple players`;
-          test(`renders list with ${testName}`, async function() {
+          test(`puts players in matching position with ${testName}`, async function() {
             const roster = getRoster(numPlayers);
             const playerIds = Object.keys(roster);
             el.formation = getFormation(FormationType.F4_3_3);
@@ -94,8 +174,29 @@
             await el.updateComplete;
 
             const items = el.shadowRoot.querySelectorAll('div div.list div lineup-player-card');
-            assert.isOk(items, 'Missing items for players');
-            assert.equal(items.length, numPlayers, 'Rendered player count');
+
+            Object.keys(roster).forEach(playerId => {
+              const player = roster[playerId];
+
+              let found = false;
+              for (let playerCard of items) {
+                if (playerCard.data.position !== player.positions[0]) {
+                  continue;
+                }
+
+                const cardPlayer = playerCard.data.player;
+                if (!cardPlayer) {
+                  continue;
+                }
+
+                if (cardPlayer.id === playerId && cardPlayer.uniformNumber === player.uniformNumber) {
+                  found = true;
+                  break;
+                }
+              };
+
+              assert.isOk(found, `Card containing roster player, id = ${playerId}`)
+            });
           });
         }
 
