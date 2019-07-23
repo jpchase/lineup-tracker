@@ -27,6 +27,8 @@
       import {axeReport} from 'pwa-helpers/axe-report.js';
       import '../../src/components/lineup-player-card.js';
 
+      import { EVENT_PLAYERSELECTED } from '../../src/components/events.js';
+
       suite('lineup-player-card tests', function() {
         let el;
         setup(function() {
@@ -45,9 +47,15 @@
           };
         }
 
-        function verifyPlayerElements(inputPlayer) {
-          const playerElement = el.shadowRoot.querySelector('span.player');
+        function getPlayerElement() {
+          const playerElement = el.shadowRoot.querySelector('.player');
           assert.isOk(playerElement, 'Missing main element for player');
+
+          return playerElement;
+        }
+
+        function verifyPlayerElements(inputPlayer) {
+          const playerElement = getPlayerElement();
 
           const numberElement = playerElement.querySelector('.uniformNumber');
           assert.isOk(numberElement, 'Missing number element');
@@ -111,12 +119,64 @@
           el.data = data;
           await el.updateComplete;
 
-          const playerElement = el.shadowRoot.querySelector('span.player');
-          assert.isOk(playerElement, 'Missing main element for player');
+          const playerElement = getPlayerElement();
 
           const positionElement = playerElement.querySelector('.currentPosition');
           assert.isOk(positionElement, 'Missing currentPosition element');
           assert.equal(positionElement.textContent, data.position);
+        });
+
+        test('fires event when player selected', async function() {
+          const player = getPlayer();
+          el.player = player;
+          await el.updateComplete;
+
+          let eventFired = false;
+          let eventPlayer = undefined;
+          let eventSelected = undefined;
+          const handler = function(event) {
+            eventFired = true;
+            eventPlayer = event.detail.player;
+            eventSelected = event.detail.selected;
+            window.removeEventListener(EVENT_PLAYERSELECTED, handler);
+          };
+
+          window.addEventListener(EVENT_PLAYERSELECTED, handler);
+
+          const playerElement = getPlayerElement();
+          playerElement.click();
+
+          await 0;
+          assert.isTrue(eventFired, 'Event playerselected should be fired');
+          assert.deepEqual(eventPlayer, player);
+          assert.isTrue(eventSelected, 'Card should now be selected');
+        });
+
+        test('fires event when player de-selected', async function() {
+          const player = getPlayer();
+          el.player = player;
+          el.selected = true;
+          await el.updateComplete;
+
+          let eventFired = false;
+          let eventPlayer = undefined;
+          let eventSelected = undefined;
+          const handler = function(event) {
+            eventFired = true;
+            eventPlayer = event.detail.player;
+            eventSelected = event.detail.selected;
+            window.removeEventListener(EVENT_PLAYERSELECTED, handler);
+          };
+
+          window.addEventListener(EVENT_PLAYERSELECTED, handler);
+
+          const playerElement = getPlayerElement();
+          playerElement.click();
+
+          await 0;
+          assert.isTrue(eventFired, 'Event playerselected should be fired');
+          assert.deepEqual(eventPlayer, player);
+          assert.isFalse(eventSelected, 'Card should no longer be selected');
         });
 
         test('a11y', function() {

@@ -58,7 +58,7 @@ export class LineupPlayerCard extends LitElement {
 
       </style>
 
-      <span class="player ${this.mode}" @click="{this._toggleSelected}">
+      <span class="player ${this.mode}" @click="${this._toggleSelected}">
         <span class="playerName">${player ? player.name : ''}</span>
         <span class="uniformNumber">${player ? player.uniformNumber: ''}</span>
         <span class="currentPosition">${currentPosition}</span>
@@ -83,6 +83,7 @@ export class LineupPlayerCard extends LitElement {
 
   _toggleSelected(e: CustomEvent) {
     console.log('_toggleSelected - ' + this.selected, e);
+    this.selected = !this.selected;
     const player = this.data ? this.data!.player : this.player;
     this.dispatchEvent(new CustomEvent(EVENT_PLAYERSELECTED, {
       bubbles: true, composed: true,
