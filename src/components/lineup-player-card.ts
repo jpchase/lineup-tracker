@@ -8,7 +8,7 @@ import { Player } from '../models/player';
 
 // These are the elements needed by this element.
 
-import { EVENT_PLAYERSELECTED } from './events';
+import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
@@ -84,10 +84,20 @@ export class LineupPlayerCard extends LitElement {
   _toggleSelected(e: CustomEvent) {
     console.log('_toggleSelected - ' + this.selected, e);
     this.selected = !this.selected;
-    const player = this.data ? this.data!.player : this.player;
-    this.dispatchEvent(new CustomEvent(EVENT_PLAYERSELECTED, {
-      bubbles: true, composed: true,
-      detail: {player: player, selected: this.selected},
-    }));
+
+    // Fires a position selected event, if no player provided. Otherwise, fires a
+    // player selected event.
+    if (this.data && !this.data.player) {
+      this.dispatchEvent(new CustomEvent(EVENT_POSITIONSELECTED, {
+        bubbles: true, composed: true,
+        detail: {position: this.data.position, selected: this.selected},
+      }));
+    } else {
+      const player = this.data ? this.data!.player : this.player;
+      this.dispatchEvent(new CustomEvent(EVENT_PLAYERSELECTED, {
+        bubbles: true, composed: true,
+        detail: {player: player, selected: this.selected},
+      }));
+    }
   }
 }
