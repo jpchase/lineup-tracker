@@ -28,6 +28,7 @@
       import '../../src/components/lineup-on-player-list.js';
 
       import { FormationBuilder, FormationType } from '../../src/models/formation.js';
+      import { PlayerStatus } from '../../src/models/player.js';
 
       function getFormation(formationType) {
         return FormationBuilder.create(formationType);
@@ -56,7 +57,7 @@
         return positions;
       }
 
-      function getRoster(numPlayers) {
+      function getRoster(numPlayers, status, otherStatus) {
         const size = numPlayers || 6;
         const roster = {};
         for (let i = 0; i < size; i++) {
@@ -107,6 +108,9 @@
             case 10:
               pos = ['GK'];
               break;
+
+            default:
+              break;
           }
 
           roster[playerId] = {
@@ -114,8 +118,19 @@
             name: `Player ${i}`,
             uniformNumber: i + (i % 3) * 10,
             positions: pos,
-            status: 'ON'
+            status: status || PlayerStatus.On
           };
+
+          if (otherStatus) {
+            const otherPlayerId = playerId + otherStatus;
+            roster[otherPlayerId] = {
+              id: otherPlayerId,
+              name: `Player ${i}-${otherStatus}`,
+              uniformNumber: i + (i % 4) * 10,
+              positions: pos,
+              status: otherStatus
+            };
+          }
         }
         return roster;
       }
@@ -127,6 +142,37 @@
           // Make tests wait until element is rendered.
           return el.updateComplete;
         });
+
+        function verifyPlayerCards(roster) {
+          const items = el.shadowRoot.querySelectorAll('div div.list div lineup-player-card');
+
+          Object.keys(roster).forEach(playerId => {
+            const player = roster[playerId];
+
+            let found = false;
+            for (let playerCard of items) {
+              if (playerCard.data.position !== player.positions[0]) {
+                continue;
+              }
+
+              const cardPlayer = playerCard.data.player;
+              if (!cardPlayer) {
+                continue;
+              }
+
+              if (cardPlayer.id === playerId && cardPlayer.uniformNumber === player.uniformNumber) {
+                found = true;
+                break;
+              }
+            };
+
+            if (player.status === PlayerStatus.On) {
+              assert.isTrue(found, `Card containing roster player, id = ${playerId}`)
+            } else {
+              assert.isFalse(found, `Card should not be found containing roster player, id = ${playerId}`)
+            }
+          });
+        }
 
         test('starts empty', function() {
           assert.equal(el.formation, undefined);
@@ -164,39 +210,62 @@
           assert.deepEqual(actualPositions, expectedPositions, 'Positions in renderered formation');
         });
 
+        test('renders full formation when roster has no matching players', async function() {
+          el.formation = getFormation(FormationType.F4_3_3);
+          el.roster = getRoster(2, PlayerStatus.Next);
+          await el.updateComplete;
+
+          const items = el.shadowRoot.querySelectorAll('div div.list div lineup-player-card');
+          assert.equal(items.length, 11, 'Rendered position count');
+
+          const expectedPositions = getPositions(FormationType.F4_3_3);
+          const actualPositions = {};
+          items.forEach(playerCard => {
+            assert.isOk(playerCard.data.position, 'Position is set');
+            assert.isNotOk(playerCard.data.player, 'Player should not be set');
+            const position = playerCard.data.position;
+            let count = actualPositions[position];
+            if (count) {
+              count++;
+            } else {
+              count = 1;
+            }
+            actualPositions[position] = count;
+          });
+
+          assert.deepEqual(actualPositions, expectedPositions, 'Positions in renderered formation');
+        });
+
+        test(`shows no player cards when roster has no matching players`, async function() {
+          const roster = getRoster(2, PlayerStatus.Next);
+          el.formation = getFormation(FormationType.F4_3_3);
+          el.roster = roster;
+          await el.updateComplete;
+
+          verifyPlayerCards(roster);
+        });
+
         for (const numPlayers of [1, 6]) {
           const testName = numPlayers === 1 ? 'single player' : `multiple players`;
           test(`puts players in matching position with ${testName}`, async function() {
             const roster = getRoster(numPlayers);
-            const playerIds = Object.keys(roster);
             el.formation = getFormation(FormationType.F4_3_3);
             el.roster = roster;
             await el.updateComplete;
 
-            const items = el.shadowRoot.querySelectorAll('div div.list div lineup-player-card');
+            verifyPlayerCards(roster);
+          });
 
-            Object.keys(roster).forEach(playerId => {
-              const player = roster[playerId];
+          test(`puts players in matching position with ${testName} mixed with other status`, async function() {
+            // Generates a roster with two players at each position, the first off, the second on.
+            // Ensures that if status is not filtered correctly, the non-matching 'OFF' player is
+            // processed first.
+            const roster = getRoster(numPlayers, PlayerStatus.Off, PlayerStatus.On);
+            el.formation = getFormation(FormationType.F4_3_3);
+            el.roster = roster;
+            await el.updateComplete;
 
-              let found = false;
-              for (let playerCard of items) {
-                if (playerCard.data.position !== player.positions[0]) {
-                  continue;
-                }
-
-                const cardPlayer = playerCard.data.player;
-                if (!cardPlayer) {
-                  continue;
-                }
-
-                if (cardPlayer.id === playerId && cardPlayer.uniformNumber === player.uniformNumber) {
-                  found = true;
-                  break;
-                }
-              };
-
-              assert.isOk(found, `Card containing roster player, id = ${playerId}`)
-            });
+            verifyPlayerCards(roster);
           });
         }
 

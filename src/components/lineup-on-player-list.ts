@@ -108,7 +108,7 @@ export class LineupOnPlayerList extends LitElement {
     Object.keys(roster).forEach((key) => {
       const player = roster[key];
       if (player.status !== PlayerStatus.On) {
-        // return;
+        return;
       }
       // TODO: Add player.currentPosition
       const currentPosition = player.positions ? player.positions[0] : 'S';
