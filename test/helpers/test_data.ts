@@ -1,6 +1,6 @@
 import { RootAction } from '@app/store';
 import { Game, Games } from '@app/models/game';
-import { Player, Roster } from '@app/models/player';
+import { Player, PlayerStatus, Roster } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
 
 export function getFakeAction(): RootAction {
@@ -56,7 +56,7 @@ export function getStoredTeam(): Team {
 };
 
 export function getNewPlayerData() {
-  return { name: 'New player 1', uniformNumber: 1, positions: ['FB'], status: 'OFF' }
+  return { name: 'New player 1', uniformNumber: 1, positions: ['FB'], status: PlayerStatus.Off }
 };
 
 export function getNewPlayer(): Player {
@@ -64,7 +64,7 @@ export function getNewPlayer(): Player {
 };
 
 export function getStoredPlayerData() {
-  return { name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: 'OFF' }
+  return { name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: PlayerStatus.Off }
 };
 
 export function getStoredPlayer(): Player {
