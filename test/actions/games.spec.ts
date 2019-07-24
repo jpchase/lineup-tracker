@@ -121,12 +121,8 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?:
   return jest.fn(() => {
     const mockState = {
       auth: getMockAuthState(options),
-      game: {
-        games: buildGames(games),
-        gameId: '',
-        game: undefined,
-        detailLoading: false,
-        detailFailure: false
+      games: {
+        games: buildGames(games)
       },
       team: undefined
     };

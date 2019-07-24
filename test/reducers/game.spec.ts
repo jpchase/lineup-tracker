@@ -1,12 +1,10 @@
 import { FormationType } from '@app/models/formation';
-import { Game, Games, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
+import { Game, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 import { Player } from '@app/models/player';
 import {
-  ADD_GAME,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
-  GET_GAMES,
   CAPTAINS_DONE,
   ROSTER_DONE,
   STARTERS_DONE,
@@ -15,10 +13,9 @@ import {
 } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
-import { getFakeAction, buildGames, buildRoster, getStoredPlayer, getStoredPlayerData } from '../helpers/test_data';
+import { getFakeAction, buildRoster, getStoredPlayer, getStoredPlayerData } from '../helpers/test_data';
 
 const GAME_INITIAL_STATE: GameState = {
-  games: {} as Games,
   gameId: '',
   game: undefined,
   detailLoading: false,
@@ -95,7 +92,8 @@ describe('Games reducer', () => {
 
     expect(newState).toEqual(expect.objectContaining({
       game: gameDetail,
-      games: buildGames([gameDetail]),
+      // TODO: Ensure games state has latest game detail
+      // games: buildGames([gameDetail]),
       detailLoading: false,
       detailFailure: false
     }));
@@ -128,7 +126,8 @@ describe('Games reducer', () => {
 
     expect(newState).toEqual(expect.objectContaining({
       game: gameDetail,
-      games: buildGames([gameDetail]),
+      // TODO: Ensure games state has latest game detail
+      // games: buildGames([gameDetail]),
       detailLoading: false,
       detailFailure: false,
     }));
@@ -157,7 +156,8 @@ describe('Games reducer', () => {
 
     expect(newState).toEqual(expect.objectContaining({
       game: gameDetail,
-      games: buildGames([gameDetail]),
+      // TODO: Ensure games state has latest game detail
+      // games: buildGames([gameDetail]),
       detailLoading: false,
       detailFailure: false
     }));
@@ -368,52 +368,5 @@ describe('Games reducer', () => {
     });
 
   }); // describe('START_GAME')
-
-  it('should handle GET_GAMES', () => {
-    const newState = game(GAME_INITIAL_STATE, {
-      type: GET_GAMES,
-      games: buildGames([existingGame])
-    });
-
-    expect(newState).toEqual(expect.objectContaining({
-      games: buildGames([existingGame]),
-    }));
-
-    expect(newState).not.toBe(GAME_INITIAL_STATE);
-    expect(newState.games).not.toBe(GAME_INITIAL_STATE.games);
-  });
-
-  it('should handle ADD_GAME with empty games', () => {
-    const newState = game(GAME_INITIAL_STATE, {
-      type: ADD_GAME,
-      game: newGame
-    });
-
-    expect(newState).toEqual(expect.objectContaining({
-      games: buildGames([newGame]),
-    }));
-
-    expect(newState).not.toBe(GAME_INITIAL_STATE);
-    expect(newState.games).not.toBe(GAME_INITIAL_STATE.games);
-  });
-
-  it('should handle ADD_GAME with existing games', () => {
-    const state: GameState = {
-      ...GAME_INITIAL_STATE
-    };
-    state.games = buildGames([existingGame]);
-
-    const newState = game(state, {
-      type: ADD_GAME,
-      game: newGame
-    });
-
-    expect(newState).toEqual(expect.objectContaining({
-      games: buildGames([existingGame, newGame]),
-    }));
-
-    expect(newState).not.toBe(state);
-    expect(newState.games).not.toBe(state.games);
-  });
 
 });

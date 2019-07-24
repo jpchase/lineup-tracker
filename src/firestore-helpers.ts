@@ -1,6 +1,7 @@
-import { FirebaseFirestore, DocumentData, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
+import { FirebaseFirestore, DocumentData, DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 import { RootState } from './store';
 import { Player, Roster } from './models/player';
+import { Game } from './models/game';
 import { currentUserIdSelector } from './reducers/auth';
 import { currentTeamIdSelector } from './reducers/team';
 
@@ -20,6 +21,20 @@ export function buildNewDocumentData(model: any, state: RootState, addTeamId?: b
   }
 
   return data;
+}
+
+export function extractGame(document: DocumentSnapshot): Game {
+  // Caller is responsible for ensuring data exists
+  const data: DocumentData = document.data()!;
+  const game: Game = {
+    id: document.id,
+    teamId: data.teamId,
+    status: data.status,
+    name: data.name,
+    date: data.date.toDate(),
+    opponent: data.opponent
+  };
+  return game;
 }
 
 export function buildGameRosterPath(gameId: string) {

@@ -3,14 +3,12 @@
 */
 
 import { Reducer } from 'redux';
-import { Games, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../models/game';
+import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 import { Player, Roster } from '../models/player';
 import {
-  ADD_GAME,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
-  GET_GAMES,
   CAPTAINS_DONE,
   ROSTER_DONE,
   STARTERS_DONE,
@@ -20,7 +18,6 @@ import {
 import { RootAction } from '../store';
 
 export interface GameState {
-  games: Games;
   gameId: string;
   game: GameDetail | undefined;
   detailLoading: boolean;
@@ -29,7 +26,6 @@ export interface GameState {
 }
 
 const INITIAL_STATE: GameState = {
-  games: {},
   gameId: '',
   game: undefined,
   detailLoading: false,
@@ -40,18 +36,9 @@ const INITIAL_STATE: GameState = {
 const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => {
   const newState: GameState = {
     ...state,
-    games: { ...state.games },
   };
   console.log(`game.ts - reducer: ${JSON.stringify(action)}, state = ${JSON.stringify(state)}`);
   switch (action.type) {
-    case ADD_GAME:
-      newState.games[action.game.id] = action.game;
-      return newState;
-
-    case GET_GAMES:
-      newState.games = action.games;
-      return newState;
-
     case GET_GAME_REQUEST:
       newState.gameId = action.gameId;
       newState.detailFailure = false;
@@ -84,7 +71,8 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         }
       }
       newState.game = gameDetail;
-      newState.games[action.game.id] = action.game;
+      // TODO: Ensure games state has latest game detail
+      // newState.games[action.game.id] = action.game;
       newState.detailFailure = false;
       newState.detailLoading = false;
       return newState;

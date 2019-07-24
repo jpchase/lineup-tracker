@@ -2,7 +2,7 @@ import { Game, Games, GameStatus } from '@app/models/game';
 import {
   ADD_GAME,
   GET_GAMES
-} from '@app/actions/game';
+} from '@app/actions/games';
 import games from '@app/reducers/games';
 import { GamesState } from '@app/reducers/games';
 import { getFakeAction, buildGames /*, getStoredPlayer, getStoredPlayerData */ } from '../helpers/test_data';
@@ -26,51 +26,55 @@ describe('Games reducer', () => {
       ).toEqual(GAMES_INITIAL_STATE);
   });
 
-  it('should handle GET_GAMES', () => {
-    const newState = games(GAMES_INITIAL_STATE, {
-      type: GET_GAMES,
-      games: buildGames([existingGame])
+  describe('GET_GAMES', () => {
+    it('should handle GET_GAMES', () => {
+      const newState = games(GAMES_INITIAL_STATE, {
+        type: GET_GAMES,
+        games: buildGames([existingGame])
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        games: buildGames([existingGame]),
+      }));
+
+      expect(newState).not.toBe(GAMES_INITIAL_STATE);
+      expect(newState.games).not.toBe(GAMES_INITIAL_STATE.games);
+    });
+  }); // describe('GET_GAMES')
+
+  describe('ADD_GAME', () => {
+    it('should handle ADD_GAME with empty games', () => {
+      const newState = games(GAMES_INITIAL_STATE, {
+        type: ADD_GAME,
+        game: newGame
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        games: buildGames([newGame]),
+      }));
+
+      expect(newState).not.toBe(GAMES_INITIAL_STATE);
+      expect(newState.games).not.toBe(GAMES_INITIAL_STATE.games);
     });
 
-    expect(newState).toEqual(expect.objectContaining({
-      games: buildGames([existingGame]),
-    }));
+    it('should handle ADD_GAME with existing games', () => {
+      const state: GamesState = {
+        ...GAMES_INITIAL_STATE
+      };
+      state.games = buildGames([existingGame]);
 
-    expect(newState).not.toBe(GAMES_INITIAL_STATE);
-    expect(newState.games).not.toBe(GAMES_INITIAL_STATE.games);
-  });
+      const newState = games(state, {
+        type: ADD_GAME,
+        game: newGame
+      });
 
-  it('should handle ADD_GAME with empty games', () => {
-    const newState = games(GAMES_INITIAL_STATE, {
-      type: ADD_GAME,
-      game: newGame
+      expect(newState).toEqual(expect.objectContaining({
+        games: buildGames([existingGame, newGame]),
+      }));
+
+      expect(newState).not.toBe(state);
+      expect(newState.games).not.toBe(state.games);
     });
-
-    expect(newState).toEqual(expect.objectContaining({
-      games: buildGames([newGame]),
-    }));
-
-    expect(newState).not.toBe(GAMES_INITIAL_STATE);
-    expect(newState.games).not.toBe(GAMES_INITIAL_STATE.games);
-  });
-
-  it('should handle ADD_GAME with existing games', () => {
-    const state: GamesState = {
-      ...GAMES_INITIAL_STATE
-    };
-    state.games = buildGames([existingGame]);
-
-    const newState = games(state, {
-      type: ADD_GAME,
-      game: newGame
-    });
-
-    expect(newState).toEqual(expect.objectContaining({
-      games: buildGames([existingGame, newGame]),
-    }));
-
-    expect(newState).not.toBe(state);
-    expect(newState.games).not.toBe(state.games);
-  });
+  }); // describe('ADD_GAME')
 
 });

@@ -7,17 +7,20 @@ import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { Game, Games, GameStatus } from '../models/game';
 import { firebaseRef } from '../firebase';
-import { buildNewDocumentData, KEY_GAMES } from '../firestore-helpers';
-import { CollectionReference, DocumentData, DocumentReference, DocumentSnapshot, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
+import { buildNewDocumentData, extractGame, KEY_GAMES } from '../firestore-helpers';
+import {
+  CollectionReference, DocumentReference,
+  Query, QuerySnapshot, QueryDocumentSnapshot
+} from '@firebase/firestore-types';
 
 export const ADD_GAME = 'ADD_GAME';
 export const GET_GAMES = 'GET_GAMES';
 
-export interface GameActionAddGame extends Action<'ADD_GAME'> { game: Game };
-export interface GameActionGetGames extends Action<'GET_GAMES'> { games: Games };
-export type GameAction = GameActionAddGame | GameActionGetGames;
+export interface GamesActionAddGame extends Action<'ADD_GAME'> { game: Game };
+export interface GamesActionGetGames extends Action<'GET_GAMES'> { games: Games };
+export type GamesAction = GamesActionAddGame | GamesActionGetGames;
 
-type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
+type ThunkResult = ThunkAction<void, RootState, undefined, GamesAction>;
 
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
@@ -25,20 +28,6 @@ const FIELD_TEAMID = 'teamId';
 
 function getGamesCollection(): CollectionReference {
   return firebaseRef.firestore().collection(KEY_GAMES);
-}
-
-function extractGame(document: DocumentSnapshot): Game {
-  // Caller is responsible for ensuring data exists
-  const data: DocumentData = document.data()!;
-  const game: Game = {
-    id: document.id,
-    teamId: data.teamId,
-    status: data.status,
-    name: data.name,
-    date: data.date.toDate(),
-    opponent: data.opponent
-  };
-  return game;
 }
 
 export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatch, getState) => {
@@ -85,7 +74,7 @@ export const addNewGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispat
   }
   const state = getState();
   // Verify that the game name is unique.
-  const gameState = state.game!;
+  const gameState = state.games!;
   if (gameState.games) {
     const hasMatch = Object.keys(gameState.games).some((key) => {
       const game = gameState.games[key];

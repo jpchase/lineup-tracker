@@ -23,10 +23,12 @@ import { lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer.js';
 import app, { AppState } from './reducers/app';
 import { AuthState } from './reducers/auth';
 import { GameState } from './reducers/game';
+import { GamesState } from './reducers/games';
 import { TeamState } from './reducers/team';
 import { AppAction } from './actions/app';
 import { AuthAction } from './actions/auth';
 import { GameAction } from './actions/game';
+import { GamesAction } from './actions/games';
 import { TeamAction } from './actions/team';
 
 // Overall state extends static states and partials lazy states.
@@ -34,10 +36,11 @@ export interface RootState {
   app?: AppState;
   auth?: AuthState;
   game?: GameState;
+  games?: GamesState;
   team?: TeamState;
 }
 
-export type RootAction = AppAction | AuthAction | GameAction | TeamAction;
+export type RootAction = AppAction | AuthAction | GameAction | GamesAction | TeamAction;
 
 // Sets up a Chrome extension for time travel debugging.
 // See https://github.com/zalmoxisus/redux-devtools-extension for more information.

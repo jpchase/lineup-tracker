@@ -13,7 +13,6 @@ import { PageViewElement } from './page-view-element';
 
 import { Games } from '../models/game';
 
-
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store, RootState } from '../store';
@@ -21,13 +20,13 @@ import { store, RootState } from '../store';
 import { TeamState } from '../reducers/team';
 
 // We are lazy loading its reducer.
-import game from '../reducers/game';
+import games from '../reducers/games';
 store.addReducers({
-  game
+  games
 });
 
 // These are the actions needed by this element.
-import { addNewGame, getGames } from '../actions/game';
+import { addNewGame, getGames } from '../actions/games';
 
 // These are the elements needed by this element.
 import '@material/mwc-fab';
@@ -98,7 +97,7 @@ export class LineupViewGames extends connect(store)(PageViewElement) {
 
   // This is called every time something is updated in the store.
   stateChanged(state: RootState) {
-    if (!state.team || !state.game) {
+    if (!state.team || !state.games) {
       return;
     }
     const teamState: TeamState = state.team!;
@@ -106,6 +105,6 @@ export class LineupViewGames extends connect(store)(PageViewElement) {
       this._teamId = teamState.teamId;
       store.dispatch(getGames(this._teamId));
     }
-    this._games = state.game!.games;
+    this._games = state.games!.games;
   }
 }
