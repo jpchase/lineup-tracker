@@ -10,8 +10,8 @@ import {
   STARTERS_DONE,
   START_GAME,
   SET_FORMATION,
-  PLAYER_SELECTED,
-  POSITION_SELECTED
+  SELECT_PLAYER,
+  SELECT_POSITION
 } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
@@ -391,9 +391,9 @@ describe('Games reducer', () => {
 
   }); // describe('START_GAME')
 
-  describe('PLAYER_SELECTED', () => {
+  describe('SELECT_PLAYER', () => {
 
-    it('should handle PLAYER_SELECTED', () => {
+    it('should handle SELECT_PLAYER', () => {
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: buildNewGameDetail()
@@ -401,7 +401,7 @@ describe('Games reducer', () => {
       expect(state.selectedPlayer).toBeUndefined();
 
       const newState = game(state, {
-        type: PLAYER_SELECTED,
+        type: SELECT_PLAYER,
         playerId: getStoredPlayer().id
       });
 
@@ -415,9 +415,9 @@ describe('Games reducer', () => {
 
   }); // describe('ROSTER_DONE')
 
-  describe('POSITION_SELECTED', () => {
+  describe('SELECT_POSITION', () => {
 
-    it('should handle POSITION_SELECTED', () => {
+    it('should handle SELECT_POSITION', () => {
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: buildNewGameDetail()
@@ -426,7 +426,7 @@ describe('Games reducer', () => {
 
       const selectedPosition: Position = { id: 'AM1', type: 'AM'};
       const newState = game(state, {
-        type: POSITION_SELECTED,
+        type: SELECT_POSITION,
         position: selectedPosition
       });
 

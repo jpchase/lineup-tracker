@@ -15,8 +15,8 @@ import {
   STARTERS_DONE,
   SET_FORMATION,
   START_GAME,
-  PLAYER_SELECTED,
-  POSITION_SELECTED
+  SELECT_PLAYER,
+  SELECT_POSITION
 } from '../actions/game';
 import { RootAction } from '../store';
 
@@ -128,11 +128,11 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       newState.game = startedGame;
       return newState;
 
-    case PLAYER_SELECTED:
+    case SELECT_PLAYER:
       newState.selectedPlayer = action.playerId;
       return newState;
 
-    case POSITION_SELECTED:
+    case SELECT_POSITION:
       newState.selectedPosition = action.position;
       return newState;
 

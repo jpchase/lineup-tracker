@@ -386,7 +386,7 @@ describe('Game actions', () => {
       actions.selectPlayer('player id')(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.PLAYER_SELECTED,
+        type: actions.SELECT_PLAYER,
         playerId: 'player id'
       }));
     });
@@ -416,7 +416,7 @@ describe('Game actions', () => {
       actions.selectPosition(position)(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.POSITION_SELECTED,
+        type: actions.SELECT_POSITION,
         position: position
       }));
     });

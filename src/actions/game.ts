@@ -20,8 +20,8 @@ export const ROSTER_DONE = 'ROSTER_DONE';
 export const STARTERS_DONE = 'STARTERS_DONE';
 export const SET_FORMATION = 'SET_FORMATION';
 export const START_GAME = 'START_GAME';
-export const PLAYER_SELECTED = 'PLAYER_SELECTED';
-export const POSITION_SELECTED = 'POSITION_SELECTED';
+export const SELECT_PLAYER = 'SELECT_PLAYER';
+export const SELECT_POSITION = 'SELECT_POSITION';
 
 export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { gameId: string };
 export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail, teamRoster?: Roster };
@@ -31,12 +31,12 @@ export interface GameActionRosterDone extends Action<'ROSTER_DONE'> {};
 export interface GameActionStartersDone extends Action<'STARTERS_DONE'> {};
 export interface GameActionSetFormation extends Action<'SET_FORMATION'> { formationType: FormationType };
 export interface GameActionStartGame extends Action<'START_GAME'> {};
-export interface GameActionPlayerSelected extends Action<'PLAYER_SELECTED'> { playerId: string };
-export interface GameActionPositionSelected extends Action<'POSITION_SELECTED'> { position: Position };
+export interface GameActionSelectPlayer extends Action<'SELECT_PLAYER'> { playerId: string };
+export interface GameActionSelectPosition extends Action<'SELECT_POSITION'> { position: Position };
 export type GameAction = GameActionGetGameRequest | GameActionGetGameSuccess |
                          GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
                          GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
-                         GameActionPlayerSelected | GameActionPositionSelected;
+                         GameActionSelectPlayer | GameActionSelectPosition;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
@@ -157,7 +157,7 @@ export const selectPlayer: ActionCreator<ThunkResult> = (playerId: string) => (d
     return;
   }
   dispatch({
-    type: PLAYER_SELECTED,
+    type: SELECT_PLAYER,
     playerId
   });
 };
@@ -167,7 +167,7 @@ export const selectPosition: ActionCreator<ThunkResult> = (position: Position) =
     return;
   }
   dispatch({
-    type: POSITION_SELECTED,
+    type: SELECT_POSITION,
     position
   });
 };
