@@ -21,13 +21,13 @@ interface PlayerLine extends FormationLine {
   playerPositions: PlayerCardData[];
 }
 
-function getLineForPosition(lines: PlayerLine[], position: string): PlayerLine {
-  const line = lines.find(line => line.positions.includes(position));
+function getLineForPosition(lines: PlayerLine[], positionType: string): PlayerLine {
+  const line = lines.find(line => line.positions.some(position => (position.type === positionType)));
   return line ? line : lines[0];
 }
 
-function getOpenPositionInLine(line: PlayerLine, position: string): PlayerCardData | undefined {
-  return line.playerPositions.find(data => (data.position === position && !data.player));
+function getOpenPositionInLine(line: PlayerLine, positionType: string): PlayerCardData | undefined {
+  return line.playerPositions.find(data => (!data.player && data.position.type === positionType));
 }
 
 // This element is *not* connected to the Redux store.
@@ -54,8 +54,8 @@ export class LineupOnPlayerList extends LitElement {
         <div class="list">
         ${repeat(lines, (line: PlayerLine) => line.id, (line: PlayerLine /*, index: number*/) => html`
           <div class="line">
-          ${repeat(line.playerPositions, (position: PlayerCardData) => position.id, (position: PlayerCardData /*, index: number*/) => html`
-            <lineup-player-card .mode="ON" .data="${position}"></lineup-player-card>
+          ${repeat(line.playerPositions, (cardData: PlayerCardData) => cardData.id, (cardData: PlayerCardData /*, index: number*/) => html`
+            <lineup-player-card .mode="ON" .data="${cardData}"></lineup-player-card>
           `)}
           </div>
         `)}
@@ -95,7 +95,7 @@ export class LineupOnPlayerList extends LitElement {
       // Creates placeholders for each position in the formation.
       formationLine.positions.forEach(position => {
         line.playerPositions.push({
-          id: line.id + position,
+          id: line.id + position.id,
           position: position
         });
       });

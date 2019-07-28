@@ -4,6 +4,7 @@
 
 import { LitElement, customElement, html, property } from 'lit-element';
 
+import { Position } from '../models/formation';
 import { Player } from '../models/player';
 
 // These are the elements needed by this element.
@@ -15,7 +16,7 @@ import { SharedStyles } from './shared-styles';
 
 export interface PlayerCardData {
   id: string;
-  position: string;
+  position: Position;
   player?: Player;
 }
 
@@ -30,7 +31,7 @@ export class LineupPlayerCard extends LitElement {
     let player: Player | undefined;
 
     if (this.data) {
-      currentPosition = this.data.position;
+      currentPosition = this.data.position.type;
       player = this.data.player;
     } else {
       player = this.player!;

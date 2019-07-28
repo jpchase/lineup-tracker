@@ -13,27 +13,38 @@ describe('FormationBuilder', () => {
       type: FormationType.F4_3_3,
       forward1: {
         id: 'FWD1',
-        positions: ['S']
+        positions: [{id: 'S', type: 'S'}]
       },
       forward2: {
         id: 'FWD2',
-        positions: ['W', 'W']
+        positions: [
+          {id: 'LW', type: 'W'},
+          {id: 'RW', type: 'W'}
+        ]
       },
       midfield1: {
         id: 'MID1',
-        positions: ['AM', 'AM']
+        positions: [
+          {id: 'AM1', type: 'AM'},
+          {id: 'AM2', type: 'AM'}
+        ]
       },
       midfield2: {
         id: 'MID2',
-        positions: ['HM']
+        positions: [{id: 'HM', type: 'HM'}]
       },
       defense: {
         id: 'DEF',
-        positions: ['FB', 'CB', 'CB', 'FB']
+        positions: [
+          {id: 'LFB', type: 'FB'},
+          {id: 'LCB', type: 'CB'},
+          {id: 'RCB', type: 'CB'},
+          {id: 'RFB', type: 'FB'},
+        ]
       },
       gk: {
         id: 'GK',
-        positions: ['GK']
+        positions: [{id: 'GK', type: 'GK'}]
       },
     };
 

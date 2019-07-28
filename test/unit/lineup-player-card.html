@@ -47,6 +47,17 @@
           };
         }
 
+        function getCardData(player) {
+          const data = {
+            id: 'test',
+            position: { id: 'HM', type: 'HM'}
+          };
+          if (player) {
+            data.player = player;
+          }
+          return data;
+        }
+
         function getPlayerElement() {
           const playerElement = el.shadowRoot.querySelector('.player');
           assert.isOk(playerElement, 'Missing main element for player');
@@ -93,11 +104,7 @@
 
         test('renders data.player properties', async function() {
           const player = getPlayer();
-          const data = {
-            id: 'test',
-            position: 'AM',
-            player: player
-          };
+          const data = getCardData(player);
           el.data = data;
           await el.updateComplete;
 
@@ -107,15 +114,12 @@
 
           const positionElement = playerElement.querySelector('.currentPosition');
           assert.isOk(positionElement, 'Missing currentPosition element');
-          assert.equal(positionElement.textContent, data.position);
+          assert.equal(positionElement.textContent, data.position.type);
 
         });
 
         test('renders data properties without player', async function() {
-          const data = {
-            id: 'test',
-            position: 'AM',
-          };
+          const data = getCardData();
           el.data = data;
           await el.updateComplete;
 
@@ -123,7 +127,7 @@
 
           const positionElement = playerElement.querySelector('.currentPosition');
           assert.isOk(positionElement, 'Missing currentPosition element');
-          assert.equal(positionElement.textContent, data.position);
+          assert.equal(positionElement.textContent, data.position.type);
         });
 
         test('fires event when player selected', async function() {
@@ -180,10 +184,7 @@
         });
 
         test('fires event when position selected without player', async function() {
-          const data = {
-            id: 'test',
-            position: 'AM',
-          };
+          const data = getCardData();
           el.data = data;
           await el.updateComplete;
 
@@ -209,10 +210,7 @@
         });
 
         test('fires event when position de-selected without player', async function() {
-          const data = {
-            id: 'test',
-            position: 'AM',
-          };
+          const data = getCardData();
           el.data = data;
           el.selected = true;
           await el.updateComplete;
