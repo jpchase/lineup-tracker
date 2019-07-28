@@ -151,3 +151,23 @@ export const startGame: ActionCreator<ThunkResult> = () => (dispatch) => {
     type: START_GAME
   });
 };
+
+export const selectPlayer: ActionCreator<ThunkResult> = (playerId: string) => (dispatch) => {
+  if (!playerId) {
+    return;
+  }
+  dispatch({
+    type: PLAYER_SELECTED,
+    playerId
+  });
+};
+
+export const selectPosition: ActionCreator<ThunkResult> = (position: Position) => (dispatch) => {
+  if (!position) {
+    return;
+  }
+  dispatch({
+    type: POSITION_SELECTED,
+    position
+  });
+};

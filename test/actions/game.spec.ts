@@ -1,5 +1,5 @@
 import * as actions from '@app/actions/game';
-import { FormationType } from '@app/models/formation';
+import { FormationType, Position } from '@app/models/formation';
 import { Game, GameDetail, GameStatus } from '@app/models/game';
 import { firebaseRef } from '@app/firebase';
 /// <reference path="mock-cloud-firestore.d.ts" />
@@ -361,6 +361,65 @@ describe('Game actions', () => {
 
       // TODO: Test that game is saved to storage
     });
-  }); // describe('setFormation')
+  }); // describe('startGame')
+
+  describe('selectPlayer', () => {
+    it('should return a function to dispatch the selectPlayer action', () => {
+      expect(typeof actions.selectPlayer()).toBe('function');
+    });
+
+    it('should do nothing if player input is missing', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.selectPlayer()(dispatchMock, getStateMock, undefined);
+
+      expect(getStateMock).not.toBeCalled();
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+    it('should dispatch an action to select the player', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.selectPlayer('player id')(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.PLAYER_SELECTED,
+        playerId: 'player id'
+      }));
+    });
+  }); // describe('selectPlayer')
+
+  describe('selectPosition', () => {
+    it('should return a function to dispatch the selectPlayer action', () => {
+      expect(typeof actions.selectPosition()).toBe('function');
+    });
+
+    it('should do nothing if position input is missing', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      actions.selectPosition()(dispatchMock, getStateMock, undefined);
+
+      expect(getStateMock).not.toBeCalled();
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+    it('should dispatch an action to select the position', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      const position: Position = { id: 'AM1', type: 'AM' };
+      actions.selectPosition(position)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.POSITION_SELECTED,
+        position: position
+      }));
+    });
+  }); // describe('selectPosition')
 
 }); // describe('Game actions')
