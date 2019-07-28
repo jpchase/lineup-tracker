@@ -5,7 +5,7 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
-import { FormationType } from '../models/formation';
+import { FormationType, Position } from '../models/formation';
 import { Game, GameDetail } from '../models/game';
 import { Roster } from '../models/player';
 import { firebaseRef } from '../firebase';
@@ -20,6 +20,8 @@ export const ROSTER_DONE = 'ROSTER_DONE';
 export const STARTERS_DONE = 'STARTERS_DONE';
 export const SET_FORMATION = 'SET_FORMATION';
 export const START_GAME = 'START_GAME';
+export const PLAYER_SELECTED = 'PLAYER_SELECTED';
+export const POSITION_SELECTED = 'POSITION_SELECTED';
 
 export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { gameId: string };
 export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail, teamRoster?: Roster };
@@ -29,9 +31,12 @@ export interface GameActionRosterDone extends Action<'ROSTER_DONE'> {};
 export interface GameActionStartersDone extends Action<'STARTERS_DONE'> {};
 export interface GameActionSetFormation extends Action<'SET_FORMATION'> { formationType: FormationType };
 export interface GameActionStartGame extends Action<'START_GAME'> {};
+export interface GameActionPlayerSelected extends Action<'PLAYER_SELECTED'> { playerId: string };
+export interface GameActionPositionSelected extends Action<'POSITION_SELECTED'> { position: Position };
 export type GameAction = GameActionGetGameRequest | GameActionGetGameSuccess |
                          GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
-                         GameActionStartersDone | GameActionSetFormation | GameActionStartGame;
+                         GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
+                         GameActionPlayerSelected | GameActionPositionSelected;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;

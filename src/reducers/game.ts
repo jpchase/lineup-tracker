@@ -3,6 +3,7 @@
 */
 
 import { Reducer } from 'redux';
+import { Position } from '../models/formation';
 import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 import { Player, Roster } from '../models/player';
 import {
@@ -14,12 +15,16 @@ import {
   STARTERS_DONE,
   SET_FORMATION,
   START_GAME,
+  PLAYER_SELECTED,
+  POSITION_SELECTED
 } from '../actions/game';
 import { RootAction } from '../store';
 
 export interface GameState {
   gameId: string;
-  game: GameDetail | undefined;
+  game?: GameDetail;
+  selectedPosition?: Position;
+  selectedPlayer?: string;
   detailLoading: boolean;
   detailFailure: boolean;
   error?: string;
@@ -28,6 +33,8 @@ export interface GameState {
 const INITIAL_STATE: GameState = {
   gameId: '',
   game: undefined,
+  selectedPosition: undefined,
+  selectedPlayer: undefined,
   detailLoading: false,
   detailFailure: false,
   error: ''
@@ -119,6 +126,14 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       delete startedGame.setupTasks;
 
       newState.game = startedGame;
+      return newState;
+
+    case PLAYER_SELECTED:
+      newState.selectedPlayer = action.playerId;
+      return newState;
+
+    case POSITION_SELECTED:
+      newState.selectedPosition = action.position;
       return newState;
 
     default:

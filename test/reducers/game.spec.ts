@@ -1,6 +1,6 @@
-import { FormationType } from '@app/models/formation';
+import { FormationType, Position } from '@app/models/formation';
 import { Game, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
-import { Player } from '@app/models/player';
+import { Player, Roster } from '@app/models/player';
 import {
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
@@ -9,7 +9,9 @@ import {
   ROSTER_DONE,
   STARTERS_DONE,
   START_GAME,
-  SET_FORMATION
+  SET_FORMATION,
+  PLAYER_SELECTED,
+  POSITION_SELECTED
 } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
@@ -18,10 +20,32 @@ import { getFakeAction, buildRoster, getStoredPlayer, getStoredPlayerData } from
 const GAME_INITIAL_STATE: GameState = {
   gameId: '',
   game: undefined,
+  selectedPlayer: undefined,
+  selectedPosition: undefined,
   detailLoading: false,
   detailFailure: false,
   error: ''
 };
+
+function buildNewGame(): Game {
+  return {
+    id: 'NG',
+    status: GameStatus.New,
+    name: 'New Game',
+    teamId: 'T1',
+    date: new Date(2016, 1, 10),
+    opponent: 'Opponent for new'
+  };
+}
+
+function buildNewGameDetail(roster?: Roster): GameDetail {
+  return {
+    ...buildNewGame(),
+    hasDetail: true,
+    roster: roster || {}
+  };
+
+}
 
 function buildSetupTasks(): SetupTask[] {
   return [
@@ -48,9 +72,7 @@ describe('Games reducer', () => {
   const existingGame: Game = {
     id: 'EX', status: GameStatus.Start, name: 'Existing Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Existing opponent'
   };
-  const newGame: Game = {
-    id: 'NG', status: GameStatus.New, name: 'New Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Opponent for new'
-  };
+  const newGame = buildNewGame();
 
   it('should return the initial state', () => {
     expect(
@@ -368,5 +390,54 @@ describe('Games reducer', () => {
     });
 
   }); // describe('START_GAME')
+
+  describe('PLAYER_SELECTED', () => {
+
+    it('should handle PLAYER_SELECTED', () => {
+      const state: GameState = {
+        ...GAME_INITIAL_STATE,
+        game: buildNewGameDetail()
+      };
+      expect(state.selectedPlayer).toBeUndefined();
+
+      const newState = game(state, {
+        type: PLAYER_SELECTED,
+        playerId: getStoredPlayer().id
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: buildNewGameDetail(),
+        selectedPlayer: getStoredPlayer().id
+      }));
+
+      expect(newState).not.toBe(state);
+    });
+
+  }); // describe('ROSTER_DONE')
+
+  describe('POSITION_SELECTED', () => {
+
+    it('should handle POSITION_SELECTED', () => {
+      const state: GameState = {
+        ...GAME_INITIAL_STATE,
+        game: buildNewGameDetail()
+      };
+      expect(state.selectedPosition).toBeUndefined();
+
+      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const newState = game(state, {
+        type: POSITION_SELECTED,
+        position: selectedPosition
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: buildNewGameDetail(),
+        selectedPosition: { id: 'AM1', type: 'AM'}
+      }));
+
+      expect(newState).not.toBe(state);
+    });
+
+  }); // describe('ROSTER_DONE')
 
 });
