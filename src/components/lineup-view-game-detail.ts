@@ -21,9 +21,10 @@ store.addReducers({
 });
 
 // These are the actions needed by this element.
-import { getGame } from '../actions/game';
+import { getGame, selectPlayer, selectPosition } from '../actions/game';
 
 // These are the elements needed by this element.
+import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events';
 import './lineup-game-setup';
 import './lineup-on-player-list';
 import './lineup-player-list';
@@ -105,6 +106,8 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
   private _game: GameDetail | undefined;
 
   protected firstUpdated() {
+    window.addEventListener(EVENT_PLAYERSELECTED, this._playerSelected.bind(this) as EventListener);
+    window.addEventListener(EVENT_POSITIONSELECTED, this._positionSelected.bind(this) as EventListener);
   }
 
   stateChanged(state: RootState) {
@@ -112,6 +115,14 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
           return;
       }
       this._game = state.game!.game;
+  }
+
+  private _playerSelected(e: CustomEvent) {
+    store.dispatch(selectPlayer(e.detail.player.id));
+  }
+
+  private _positionSelected(e: CustomEvent) {
+    store.dispatch(selectPosition(e.detail.position));
   }
 
   private _getName() {
