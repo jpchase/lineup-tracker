@@ -4,7 +4,11 @@
 
 import { Reducer } from 'redux';
 import { Position } from '../models/formation';
-import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../models/game';
+import {
+  GameDetail, GameStatus,
+  LivePlayer,
+  SetupStatus, SetupSteps, SetupTask
+} from '../models/game';
 import { Player, Roster } from '../models/player';
 import {
   GET_GAME_REQUEST,
@@ -25,6 +29,7 @@ export interface GameState {
   game?: GameDetail;
   selectedPosition?: Position;
   selectedPlayer?: string;
+  proposedStarter?: LivePlayer;
   detailLoading: boolean;
   detailFailure: boolean;
   error?: string;
@@ -35,6 +40,7 @@ const INITIAL_STATE: GameState = {
   game: undefined,
   selectedPosition: undefined,
   selectedPlayer: undefined,
+  proposedStarter: undefined,
   detailLoading: false,
   detailFailure: false,
   error: ''
@@ -44,7 +50,7 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
   const newState: GameState = {
     ...state,
   };
-  console.log(`game.ts - reducer: ${JSON.stringify(action)}, state = ${JSON.stringify(state)}`);
+  // console.log(`game.ts - reducer: ${JSON.stringify(action)}, state = ${JSON.stringify(state)}`);
   switch (action.type) {
     case GET_GAME_REQUEST:
       newState.gameId = action.gameId;
@@ -130,10 +136,16 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 
     case SELECT_PLAYER:
       newState.selectedPlayer = action.playerId;
+
+      prepareStarterIfPossible(newState);
+
       return newState;
 
     case SELECT_POSITION:
       newState.selectedPosition = action.position;
+
+      prepareStarterIfPossible(newState);
+
       return newState;
 
     default:
@@ -193,4 +205,20 @@ function buildTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: Se
   });
 
   return tasks;
+}
+
+function prepareStarterIfPossible(newState: GameState) {
+  if (!newState.selectedPosition || !newState.selectedPlayer) {
+    // Need both a position and player selected to setup a starter
+    return;
+  }
+
+  const player = newState.game!.roster[newState.selectedPlayer];
+
+  newState.proposedStarter = {
+    ...player,
+    currentPosition: {
+      ...newState.selectedPosition
+    }
+  }
 }

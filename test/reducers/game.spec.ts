@@ -1,5 +1,9 @@
 import { FormationType, Position } from '@app/models/formation';
-import { Game, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
+import {
+  Game, GameDetail, GameStatus,
+  LivePlayer,
+  SetupStatus, SetupSteps, SetupTask
+} from '@app/models/game';
 import { Player, Roster } from '@app/models/player';
 import {
   GET_GAME_REQUEST,
@@ -45,6 +49,10 @@ function buildNewGameDetail(roster?: Roster): GameDetail {
     roster: roster || {}
   };
 
+}
+
+function buildNewGameDetailAndRoster(): GameDetail {
+  return buildNewGameDetail(buildRoster([getStoredPlayer()]));
 }
 
 function buildSetupTasks(): SetupTask[] {
@@ -393,31 +401,67 @@ describe('Games reducer', () => {
 
   describe('SELECT_PLAYER', () => {
 
-    it('should handle SELECT_PLAYER', () => {
+    it('should only set selectedPlayer with nothing selected', () => {
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: buildNewGameDetail()
       };
       expect(state.selectedPlayer).toBeUndefined();
 
+      const selectedPlayer = getStoredPlayer();
+
       const newState = game(state, {
         type: SELECT_PLAYER,
-        playerId: getStoredPlayer().id
+        playerId: selectedPlayer.id
       });
 
       expect(newState).toEqual(expect.objectContaining({
         game: buildNewGameDetail(),
-        selectedPlayer: getStoredPlayer().id
+        selectedPlayer: selectedPlayer.id
+      }));
+      // Separate check as it causes a TS error inside objectContaining
+      expect(newState.proposedStarter).toBeUndefined();
+
+      expect(newState).not.toBe(state);
+    });
+
+    it('should set selectedPlayer and propose starter with position selected', () => {
+      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+
+      const state: GameState = {
+        ...GAME_INITIAL_STATE,
+        game: buildNewGameDetailAndRoster(),
+        selectedPosition: { ...selectedPosition }
+      };
+      expect(state.selectedPlayer).toBeUndefined();
+
+      const selectedPlayer = getStoredPlayer();
+
+      const newState = game(state, {
+        type: SELECT_PLAYER,
+        playerId: selectedPlayer.id
+      });
+
+      const starter: LivePlayer = {
+        ...selectedPlayer,
+        currentPosition: { ...selectedPosition }
+      }
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: buildNewGameDetailAndRoster(),
+        selectedPosition: { ...selectedPosition },
+        selectedPlayer: selectedPlayer.id,
+        proposedStarter: expect.objectContaining(starter)
       }));
 
       expect(newState).not.toBe(state);
     });
 
-  }); // describe('ROSTER_DONE')
+  }); // describe('SELECT_PLAYER')
 
   describe('SELECT_POSITION', () => {
 
-    it('should handle SELECT_POSITION', () => {
+    it('should only set selectedPosition with nothing selected', () => {
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: buildNewGameDetail()
@@ -432,12 +476,45 @@ describe('Games reducer', () => {
 
       expect(newState).toEqual(expect.objectContaining({
         game: buildNewGameDetail(),
-        selectedPosition: { id: 'AM1', type: 'AM'}
+        selectedPosition: { ...selectedPosition }
+      }));
+      // Separate check as it causes a TS error inside objectContaining
+      expect(newState.proposedStarter).toBeUndefined();
+
+      expect(newState).not.toBe(state);
+    });
+
+    it('should set selectedPosition and propose starter with player selected', () => {
+      const selectedPlayer = getStoredPlayer();
+
+      const state: GameState = {
+        ...GAME_INITIAL_STATE,
+        game: buildNewGameDetailAndRoster(),
+        selectedPlayer: selectedPlayer.id,
+      };
+      expect(state.selectedPosition).toBeUndefined();
+
+      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const newState = game(state, {
+        type: SELECT_POSITION,
+        position: selectedPosition
+      });
+
+      const starter: LivePlayer = {
+        ...selectedPlayer,
+        currentPosition: { ...selectedPosition }
+      }
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: buildNewGameDetailAndRoster(),
+        selectedPlayer: selectedPlayer.id,
+        selectedPosition: { ...selectedPosition },
+        proposedStarter: expect.objectContaining(starter)
       }));
 
       expect(newState).not.toBe(state);
     });
 
-  }); // describe('ROSTER_DONE')
+  }); // describe('SELECT_POSITION')
 
 });

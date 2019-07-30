@@ -1,8 +1,8 @@
 /**
 @license
 */
-import { FormationMetadata } from './formation';
-import { Roster } from './player';
+import { FormationMetadata, Position } from './formation';
+import { Player, Roster } from './player';
 
 export interface GameMetadata {
   name: string;
@@ -52,4 +52,8 @@ export enum SetupStatus {
 export interface SetupTask {
   step: SetupSteps;
   status: SetupStatus;
+}
+
+export interface LivePlayer extends Player {
+  currentPosition: Position;
 }
