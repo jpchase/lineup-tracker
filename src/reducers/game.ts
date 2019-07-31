@@ -27,6 +27,7 @@ import { RootAction } from '../store';
 export interface GameState {
   gameId: string;
   game?: GameDetail;
+  players?: LivePlayer[];
   selectedPosition?: Position;
   selectedPlayer?: string;
   proposedStarter?: LivePlayer;
@@ -38,6 +39,7 @@ export interface GameState {
 const INITIAL_STATE: GameState = {
   gameId: '',
   game: undefined,
+  players: undefined,
   selectedPosition: undefined,
   selectedPlayer: undefined,
   proposedStarter: undefined,
@@ -96,19 +98,22 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       newState.detailLoading = false;
       return newState;
 
-    case CAPTAINS_DONE:
     case ROSTER_DONE:
+      completeSetupStepForAction(newState, ROSTER_DONE);
+
+      // Setup live players from roster
+      const roster = newState.game!.roster;
+      const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
+        const player = roster[playerId];
+        return { ...player } as LivePlayer;
+      });
+
+      newState.players = players;
+      return newState;
+
+    case CAPTAINS_DONE:
     case STARTERS_DONE:
-      const setupStepToMarkDone = getStepForAction(action.type);
-      const incompleteGame: GameDetail = newState.game!;
-      const gameWithStepDone: GameDetail = {
-        ...incompleteGame
-      };
-
-      gameWithStepDone.setupTasks = buildTasks(gameWithStepDone,
-                                incompleteGame.setupTasks, setupStepToMarkDone);
-
-      newState.game = gameWithStepDone;
+      completeSetupStepForAction(newState, action.type);
       return newState;
 
     case SET_FORMATION:
@@ -154,6 +159,19 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 };
 
 export default game;
+
+function completeSetupStepForAction(newState: GameState, actionType: string) {
+  const setupStepToMarkDone = getStepForAction(actionType);
+  const incompleteGame: GameDetail = newState.game!;
+  const updatedGame: GameDetail = {
+    ...incompleteGame
+  };
+
+  updatedGame.setupTasks = buildTasks(updatedGame,
+    incompleteGame.setupTasks, setupStepToMarkDone);
+
+  newState.game = updatedGame;
+}
 
 function getStepForAction(actionType: string) : SetupSteps | undefined {
   switch (actionType) {

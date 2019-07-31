@@ -24,8 +24,10 @@ import { getFakeAction, buildRoster, getStoredPlayer, getStoredPlayerData } from
 const GAME_INITIAL_STATE: GameState = {
   gameId: '',
   game: undefined,
+  players: undefined,
   selectedPlayer: undefined,
   selectedPosition: undefined,
+  proposedStarter: undefined,
   detailLoading: false,
   detailFailure: false,
   error: ''
@@ -288,16 +290,19 @@ describe('Games reducer', () => {
 
   describe('ROSTER_DONE', () => {
 
-    it('should handle ROSTER_DONE', () => {
+    it('should update setup tasks and init live players from roster', () => {
+      const rosterPlayers = [getStoredPlayer()];
+
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: {
           ...newGame,
           hasDetail: true,
-          roster: buildRoster([getStoredPlayer()]),
+          roster: buildRoster(rosterPlayers),
           setupTasks: buildSetupTasks()
         }
       };
+      expect(state.players).toBeUndefined();
 
       const newState = game(state, {
         type: ROSTER_DONE
@@ -310,12 +315,17 @@ describe('Games reducer', () => {
       const gameDetail: GameDetail = {
         ...newGame,
         hasDetail: true,
-        roster: buildRoster([getStoredPlayer()]),
+        roster: buildRoster(rosterPlayers),
         setupTasks: updatedTasks
       };
 
+      const livePlayers = rosterPlayers.map(player => {
+        return { ...player } as LivePlayer;
+      });
+
       expect(newState).toEqual(expect.objectContaining({
         game: gameDetail,
+        players: livePlayers
       }));
 
       expect(newState).not.toBe(state);
