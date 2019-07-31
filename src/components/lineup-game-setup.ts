@@ -22,6 +22,7 @@ import {
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
+import '@material/mwc-icon';
 // import { peopleIcon, scheduleIcon } from './lineup-icons';
 
 // These are the shared styles needed by this element.
@@ -72,6 +73,10 @@ export class LineupGameSetup extends connect(store)(LitElement) {
         div.formation[active] {
           display: block;
         }
+
+        .status mwc-icon[done] {
+          color: green;
+        }
       </style>
       <div>
         ${repeat(tasks, (task: SetupTask) => task.step, (task: SetupTask) => html`
@@ -84,9 +89,9 @@ export class LineupGameSetup extends connect(store)(LitElement) {
             ${task.status === SetupStatus.InProgress
               ? html`spinner here`
               : task.status === SetupStatus.Complete
-                ? html`done icon here`
+                ? html`<mwc-icon done>done</mwc-icon>`
                 : (task.status === SetupStatus.Pending || isAutoStep(task.step))
-                  ? html`pending icon/text here`
+                  ? html`<mwc-icon>more_horiz</mwc-icon>`
                   : html`<mwc-button icon="check"
                              @click="${(e: Event) => this._stepDone(e, task.step)}">Done</mwc-button>`
             }
