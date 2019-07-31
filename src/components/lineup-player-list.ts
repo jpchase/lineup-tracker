@@ -5,7 +5,8 @@
 import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 
-import { Player, PlayerStatus, Roster } from '../models/player';
+import { LivePlayer } from '../models/game';
+import { PlayerStatus } from '../models/player';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
@@ -17,7 +18,7 @@ import { EVENT_PLAYERLISTCANCEL } from './events';
 import { SharedStyles } from './shared-styles';
 
 interface PlayerFilterFunc {
-    (player: Player): boolean;
+    (player: LivePlayer): boolean;
 }
 
 // This element is *not* connected to the Redux store.
@@ -33,7 +34,7 @@ export class LineupPlayerList extends LitElement {
       <div>
       ${filteredPlayers.length > 0 ? html`
         <div class="list">
-        ${repeat(filteredPlayers, (player: Player) => player.id, (player: Player /*, index: number*/) => html`
+        ${repeat(filteredPlayers, (player: LivePlayer) => player.id, (player: LivePlayer) => html`
           <lineup-player-card .mode="${this.mode}" .player="${player}"></lineup-player-card>
           ${this.showCancel
             ? html`<mwc-button icon="cancel" @click="${this._doCancel}">Save</mwc-button>`
@@ -53,7 +54,7 @@ export class LineupPlayerList extends LitElement {
   mode = '';
 
   @property({type: Object})
-  roster: Roster|undefined = undefined;
+  players: LivePlayer[] = [];
 
   @property({type: Boolean})
   showCancel = false;
@@ -78,19 +79,12 @@ export class LineupPlayerList extends LitElement {
     }
   }
 
-  _getFilteredPlayers(): Player[] {
-    if (!this.roster) {
+  _getFilteredPlayers(): LivePlayer[] {
+    if (!this.players) {
       return [];
     }
     const filterFunc = this._getPlayerFilter(this.mode);
-    const roster = this.roster;
-    return Object.keys(roster).reduce((result: Player[], key) => {
-      const player = roster[key];
-      if (filterFunc(player)) {
-        result.push(player);
-      }
-      return result;
-    }, []);
+    return this.players.filter(filterFunc);
   }
 
   _doCancel(e: CustomEvent) {

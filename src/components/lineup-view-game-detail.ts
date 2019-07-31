@@ -7,8 +7,7 @@ import { PageViewElement } from './page-view-element';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 
 import { FormationBuilder } from '../models/formation';
-import { GameDetail, GameStatus } from '../models/game';
-import { Roster } from '../models/player';
+import { GameDetail, GameStatus, LivePlayer } from '../models/game';
 
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
@@ -34,7 +33,7 @@ import { SharedStyles } from './shared-styles';
 
 @customElement('lineup-view-game-detail')
 export class LineupViewGameDetail extends connect(store)(PageViewElement) {
-  private _getDetailContent(game: GameDetail) {
+  private _getDetailContent(game: GameDetail, players: LivePlayer[]) {
     if (game.status === GameStatus.Done) {
       // Completed game
       return html`Game is done`;
@@ -44,7 +43,6 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
     const isNew = (game.status === GameStatus.New);
     const setupRequired = isNew;
 
-    const roster: Roster = game.roster;
     let formation = undefined;
     if (game.formation) {
       formation = FormationBuilder.create(game.formation.type);
@@ -61,19 +59,19 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
       <div>
         <div id="live-on">
           <h5>${inProgress ? html`Playing` : html`Starters`}</h5>
-          <lineup-on-player-list .formation="${formation}" .roster="${roster}"></lineup-on-player-list>
+          <lineup-on-player-list .formation="${formation}" .players="${players}"></lineup-on-player-list>
         </div>
         <div id="live-next" ?hidden=${setupRequired}>
           <h5>Next On</h5>
-          <lineup-player-list mode="next" .roster="${roster}"></lineup-player-list>
+          <lineup-player-list mode="next" .players="${players}"></lineup-player-list>
         </div>
         <div id="live-off">
           <h5>Subs</h5>
-          <lineup-player-list mode="off" .roster="${roster}"></lineup-player-list>
+          <lineup-player-list mode="off" .players="${players}"></lineup-player-list>
         </div>
         <div id="live-out" ?hidden=${setupRequired}>
           <h5>Unavailable</h5>
-          <lineup-player-list mode="out" .roster="${roster}"></lineup-player-list>
+          <lineup-player-list mode="out" .players="${players}"></lineup-player-list>
         </div>
       </div>
     `;
@@ -92,7 +90,7 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
       <section>
       ${this._game ? html`
         <div main-title>Live: ${this._getName()}</div>
-        ${this._getDetailContent(this._game)}
+        ${this._getDetailContent(this._game, this._players || [])}
       ` : html`
         <p class="empty-list">
           Game not found.
@@ -105,6 +103,9 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
   @property({ type: Object })
   private _game: GameDetail | undefined;
 
+  @property({type: Object})
+  private _players: LivePlayer[] | undefined;
+
   protected firstUpdated() {
     window.addEventListener(EVENT_PLAYERSELECTED, this._playerSelected.bind(this) as EventListener);
     window.addEventListener(EVENT_POSITIONSELECTED, this._positionSelected.bind(this) as EventListener);
@@ -115,6 +116,7 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
           return;
       }
       this._game = state.game!.game;
+      this._players = state.game!.players;
   }
 
   private _playerSelected(e: CustomEvent) {

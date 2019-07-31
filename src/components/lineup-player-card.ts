@@ -5,7 +5,7 @@
 import { LitElement, customElement, html, property } from 'lit-element';
 
 import { Position } from '../models/formation';
-import { Player } from '../models/player';
+import { LivePlayer } from '../models/game';
 
 // These are the elements needed by this element.
 
@@ -17,7 +17,7 @@ import { SharedStyles } from './shared-styles';
 export interface PlayerCardData {
   id: string;
   position: Position;
-  player?: Player;
+  player?: LivePlayer;
 }
 
 // This element is *not* connected to the Redux store.
@@ -28,13 +28,16 @@ export class LineupPlayerCard extends LitElement {
       return;
     }
     let currentPosition = '';
-    let player: Player | undefined;
+    let player: LivePlayer | undefined;
 
     if (this.data) {
       currentPosition = this.data.position.type;
       player = this.data.player;
     } else {
       player = this.player!;
+    }
+    if (player && player.currentPosition) {
+      currentPosition = player.currentPosition.type;
     }
     const positions: string[] = [];//player.positions || [];
     return html`
@@ -77,7 +80,7 @@ export class LineupPlayerCard extends LitElement {
   data: PlayerCardData|undefined = undefined;
 
   @property({type: Object})
-  player: Player|undefined = undefined;
+  player: LivePlayer|undefined = undefined;
 
   @property({type: Boolean})
   selected = false;

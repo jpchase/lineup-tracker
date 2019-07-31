@@ -27,9 +27,9 @@
       import {axeReport} from 'pwa-helpers/axe-report.js';
       import '../../src/components/lineup-player-list.js';
 
-      function getRoster(numPlayers, status, otherStatus) {
+      function getPlayers(numPlayers, status, otherStatus) {
         const size = numPlayers || 6;
-        const roster = {};
+        const players = [];
         for (let i = 0; i < size; i++) {
           const playerId = `P${i}`;
           let pos;
@@ -47,38 +47,36 @@
               break;
           }
 
-          roster[playerId] = {
+          players.push({
             id: playerId,
             name: `Player ${i}`,
             uniformNumber: i + (i % 3) * 10,
             positions: pos,
             status: status.toUpperCase()
-          };
+          });
 
           if (otherStatus) {
-            const otherPlayerId = playerId + otherStatus;
-            roster[otherPlayerId] = {
-              id: otherPlayerId,
+            players.push({
+              id: playerId + otherStatus,
               name: `Player ${i}-${otherStatus}`,
               uniformNumber: i + (i % 4) * 10,
               positions: pos,
               status: otherStatus.toUpperCase()
-            };
+            });
           }
         }
-        return roster;
+        return players;
       }
 
-      function getRosterWithPlayersMissingStatus(numPlayers, status) {
-        const roster = getRoster(numPlayers, status);
-        const playerId = 'P<no status>';
-        roster[playerId] = {
-          id: playerId,
+      function getPlayersWithSomeMissingStatus(numPlayers, status) {
+        const players = getPlayers(numPlayers, status);
+        players.push({
+          id: 'P<no status>',
           name: `Player with no status`,
           uniformNumber: 99,
           positions: ['GK']
-        };
-        return roster;
+        });
+        return players;
       }
 
       suite('lineup-player-list tests', function() {
@@ -103,41 +101,41 @@
         test('starts empty', function() {
           assert.equal(el.mode, '');
           assert.equal(el.showCancel, false);
-          assert.equal(el.roster, undefined);
+          assert.deepEqual(el.players, []);
         });
 
-        test('shows no players placeholder for empty roster', function() {
-          assert.equal(el.roster, undefined);
+        test('shows no players placeholder for empty list', function() {
+          assert.deepEqual(el.players, []);
           verifyEmptyList();
         });
 
         test(`mode [off]: includes players without status set`, async function() {
-          const roster = getRosterWithPlayersMissingStatus(2, 'off');
+          const players = getPlayersWithSomeMissingStatus(2, 'off');
 
           el.mode = 'off';
-          el.roster = roster;
+          el.players = players;
           await el.updateComplete;
 
-          // All the players in the roster should be shown, since they either have
+          // All the players in the list should be shown, since they either have
           // status of off, or are missing the status.
-          verifyPlayerCards(Object.keys(roster).length);
+          verifyPlayerCards(players.length);
         });
 
         test(`mode [next]: excludes players without status set`, async function() {
-          const roster = getRosterWithPlayersMissingStatus(2, 'next');
+          const players = getPlayersWithSomeMissingStatus(2, 'next');
 
           el.mode = 'next';
-          el.roster = roster;
+          el.players = players;
           await el.updateComplete;
 
           verifyPlayerCards(2);
         });
 
         test(`mode [out]: excludes players without status set`, async function() {
-          const roster = getRosterWithPlayersMissingStatus(2, 'out');
+          const players = getPlayersWithSomeMissingStatus(2, 'out');
 
           el.mode = 'out';
-          el.roster = roster;
+          el.players = players;
           await el.updateComplete;
 
           verifyPlayerCards(2);
@@ -164,11 +162,11 @@
         for (const modeTest of modeTests) {
           const testPrefix = `mode [${modeTest.listMode}]`;
 
-          test(`${testPrefix}: shows no players placeholder when roster has no matching players`, async function() {
-            const roster = getRoster(2, modeTest.nonMatchingStatus);
+          test(`${testPrefix}: shows no players placeholder when input list has no matching players`, async function() {
+            const players = getPlayers(2, modeTest.nonMatchingStatus);
 
             el.mode = modeTest.listMode;
-            el.roster = roster;
+            el.players = players;
             await el.updateComplete;
 
             verifyEmptyList();
@@ -178,20 +176,20 @@
             const playersDesc = numPlayers === 1 ? 'single player' : `multiple players`;
 
             test(`${testPrefix}: renders list with ${playersDesc} all matching mode`, async function() {
-              const roster = getRoster(numPlayers, modeTest.listMode);
+              const players = getPlayers(numPlayers, modeTest.listMode);
 
               el.mode = modeTest.listMode;
-              el.roster = roster;
+              el.players = players;
               await el.updateComplete;
 
               verifyPlayerCards(numPlayers);
             });
 
             test(`${testPrefix}: renders list with ${playersDesc} mixed with other status`, async function() {
-              const roster = getRoster(numPlayers, modeTest.listMode, modeTest.nonMatchingStatus);
+              const players = getPlayers(numPlayers, modeTest.listMode, modeTest.nonMatchingStatus);
 
               el.mode = modeTest.listMode;
-              el.roster = roster;
+              el.players = players;
               await el.updateComplete;
 
               verifyPlayerCards(numPlayers);

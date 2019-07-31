@@ -6,7 +6,8 @@ import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 
 import { Formation, FormationLine } from '../models/formation';
-import { PlayerStatus, Roster } from '../models/player';
+import { LivePlayer } from '../models/game';
+import { PlayerStatus } from '../models/player';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
@@ -69,13 +70,13 @@ export class LineupOnPlayerList extends LitElement {
   }
 
   @property({type: Object})
-  roster: Roster|undefined = undefined;
+  players: LivePlayer[] = [];
 
   @property({type: Object})
   formation: Formation|undefined = undefined;
 
   _getPlayerLines(): PlayerLine[] {
-    if (!this.roster || !this.formation) {
+    if (!this.players || !this.formation) {
       return [];
     }
 
@@ -104,9 +105,7 @@ export class LineupOnPlayerList extends LitElement {
     }, []);
 
     // Puts the on players into the appropriate line
-    const roster = this.roster;
-    Object.keys(roster).forEach((key) => {
-      const player = roster[key];
+    this.players.forEach((player) => {
       if (player.status !== PlayerStatus.On) {
         return;
       }
