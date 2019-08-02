@@ -4,8 +4,9 @@ import {
   LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '@app/models/game';
-import { Player, Roster } from '@app/models/player';
+import { Player, PlayerStatus, Roster } from '@app/models/player';
 import {
+  APPLY_STARTER,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
@@ -526,5 +527,61 @@ describe('Games reducer', () => {
     });
 
   }); // describe('SELECT_POSITION')
+
+  describe('APPLY_STARTER', () => {
+    let currentState: GameState;
+    let selectedPlayer: LivePlayer;
+    let selectedPosition: Position;
+
+    beforeEach(() => {
+      selectedPlayer = getStoredPlayer();
+      selectedPosition = { id: 'AM1', type: 'AM'};
+      const starter: LivePlayer = {
+        ...selectedPlayer,
+        currentPosition: { ...selectedPosition }
+      }
+
+      currentState = {
+        ...GAME_INITIAL_STATE,
+        game: buildNewGameDetailAndRoster(),
+        players: [getStoredPlayer()],
+        selectedPlayer: selectedPlayer.id,
+        selectedPosition: { ...selectedPosition },
+        proposedStarter: starter
+      };
+    });
+
+    it('should set live player to ON with currentPosition', () => {
+      const newState: GameState = game(currentState, {
+        type: APPLY_STARTER
+      });
+
+      expect(newState.players).toBeDefined();
+
+      const newPlayer = newState.players!.find(player => (player.id === selectedPlayer.id));
+      expect(newPlayer).toBeDefined();
+      expect(newPlayer).toEqual(expect.objectContaining({
+        id: selectedPlayer.id,
+        status: PlayerStatus.On,
+        currentPosition: { ...selectedPosition }
+      }));
+
+      expect(newState).not.toBe(currentState);
+      expect(newState.players).not.toBe(currentState.players);
+    });
+
+    it('should clear selected player/position and proposed starter', () => {
+      const newState = game(currentState, {
+        type: APPLY_STARTER
+      });
+
+      expect(newState.selectedPlayer).toBeUndefined();
+      expect(newState.selectedPosition).toBeUndefined();
+      expect(newState.proposedStarter).toBeUndefined();
+
+      expect(newState).not.toBe(currentState);
+    });
+
+  }); // describe('APPLY_STARTER')
 
 });

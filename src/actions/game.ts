@@ -17,6 +17,7 @@ export const GET_GAME_SUCCESS = 'GET_GAME_SUCCESS';
 export const GET_GAME_FAIL = 'GET_GAME_FAIL';
 export const CAPTAINS_DONE = 'CAPTAINS_DONE';
 export const ROSTER_DONE = 'ROSTER_DONE';
+export const APPLY_STARTER = 'APPLY_STARTER';
 export const STARTERS_DONE = 'STARTERS_DONE';
 export const SET_FORMATION = 'SET_FORMATION';
 export const START_GAME = 'START_GAME';
@@ -28,6 +29,7 @@ export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { g
 export interface GameActionGetGameFail extends Action<'GET_GAME_FAIL'> { error: string };
 export interface GameActionCaptainsDone extends Action<'CAPTAINS_DONE'> {};
 export interface GameActionRosterDone extends Action<'ROSTER_DONE'> {};
+export interface GameActionApplyStarter extends Action<'APPLY_STARTER'> {};
 export interface GameActionStartersDone extends Action<'STARTERS_DONE'> {};
 export interface GameActionSetFormation extends Action<'SET_FORMATION'> { formationType: FormationType };
 export interface GameActionStartGame extends Action<'START_GAME'> {};
@@ -36,7 +38,7 @@ export interface GameActionSelectPosition extends Action<'SELECT_POSITION'> { po
 export type GameAction = GameActionGetGameRequest | GameActionGetGameSuccess |
                          GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
                          GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
-                         GameActionSelectPlayer | GameActionSelectPosition;
+                         GameActionSelectPlayer | GameActionSelectPosition | GameActionApplyStarter;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
@@ -126,6 +128,16 @@ export const markCaptainsDone: ActionCreator<ThunkResult> = () => (dispatch) => 
 export const markRosterDone: ActionCreator<ThunkResult> = () => (dispatch) => {
   dispatch({
     type: ROSTER_DONE
+  });
+};
+
+export const applyStarter: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
+  const state = getState();
+  if (!(state.game && state.game.proposedStarter)) {
+    return;
+  }
+  dispatch({
+    type: APPLY_STARTER
   });
 };
 

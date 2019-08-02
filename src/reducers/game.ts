@@ -9,8 +9,9 @@ import {
   LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '../models/game';
-import { Player, Roster } from '../models/player';
+import { Player, PlayerStatus, Roster } from '../models/player';
 import {
+  APPLY_STARTER,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
@@ -150,6 +151,27 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       newState.selectedPosition = action.position;
 
       prepareStarterIfPossible(newState);
+
+      return newState;
+
+    case APPLY_STARTER:
+      const starter = newState.proposedStarter!;
+
+      newState.players = newState.players!.map(player => {
+        if (player.id !== starter.id) {
+          return player;
+        }
+
+        return {
+          ...player,
+          status: PlayerStatus.On,
+          currentPosition: { ...starter.currentPosition } as Position
+        }
+      });
+
+      delete newState.selectedPlayer;
+      delete newState.selectedPosition;
+      delete newState.proposedStarter;
 
       return newState;
 

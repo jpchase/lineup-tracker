@@ -1,10 +1,11 @@
 import * as actions from '@app/actions/game';
 import { FormationType, Position } from '@app/models/formation';
-import { Game, GameDetail, GameStatus } from '@app/models/game';
+import { Game, GameDetail, GameStatus, LivePlayer } from '@app/models/game';
+import { GameState } from '@app/reducers/game';
 import { firebaseRef } from '@app/firebase';
 /// <reference path="mock-cloud-firestore.d.ts" />
 import * as MockFirebase from 'mock-cloud-firestore';
-import { TEST_USER_ID, buildGames, buildRoster, getMockAuthState, getStoredTeam, getStoredTeamData, getStoredPlayer, getStoredPlayerData, MockAuthStateOptions } from '../helpers/test_data';
+import { TEST_USER_ID, buildGames, buildRoster, getMockAuthState, getStoredTeam, getStoredTeamData, getStoredPlayer, getStoredPlayerData } from '../helpers/test_data';
 
 jest.mock('@app/firebase');
 
@@ -88,12 +89,16 @@ const fixtureData = {
   }
 };
 
-function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?: any) {
+interface MockStateUpdateFunc {
+    (state: GameState): void;
+}
+
+function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
   return jest.fn(() => {
     const mockState = {
-      auth: getMockAuthState(options),
+      auth: getMockAuthState(),
       games: {
-        games: buildGames(games),
+        games: buildGames(games || []),
       },
       game: {
         gameId: '',
@@ -103,8 +108,8 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?:
       },
       team: undefined
     };
-    if (teamState) {
-      mockState.team = teamState;
+    if (updateFn) {
+      updateFn(mockState.game);
     }
     return mockState;
   });
@@ -297,6 +302,42 @@ describe('Game actions', () => {
       }));
     });
   }); // describe('markRosterDone')
+
+  describe('applyStarter', () => {
+    it('should return a function to dispatch the markStartersDone action', () => {
+      expect(typeof actions.applyStarter()).toBe('function');
+    });
+
+    it('should do nothing if proposed starter is missing', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState();
+
+      actions.applyStarter()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+    it('should dispatch an action to apply the starter', () => {
+      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const starter: LivePlayer = {
+        ...getStoredPlayer(),
+        currentPosition: { ...selectedPosition }
+      }
+
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState(undefined, (gameState) => {
+        gameState.selectedPlayer = 'foo';
+        gameState.selectedPosition = { id: 'id', type: 'foo' };
+        gameState.proposedStarter = starter;
+      });
+
+      actions.applyStarter()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.APPLY_STARTER
+      }));
+    });
+  }); // describe('applyStarter')
 
   describe('markStartersDone', () => {
     it('should return a function to dispatch the markStartersDone action', () => {
