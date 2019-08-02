@@ -7,7 +7,11 @@ import { LitElement, customElement, html, property } from 'lit-element';
 import { Roster } from '../models/player';
 
 // These are the elements needed by this element.
+import '@material/mwc-fab';
 import './lineup-roster-item';
+import './lineup-roster-modify';
+
+import { EVENT_NEWPLAYERCREATED, EVENT_NEWPLAYERCANCELLED } from './events';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
@@ -22,6 +26,14 @@ export class LineupRoster extends LitElement {
       ${SharedStyles}
       <style>
         :host { display: block; }
+
+        lineup-roster-modify {
+          display: none;
+        }
+
+        lineup-roster-modify[active] {
+          display: block;
+        }
       </style>
       <div>
       ${playerList.length > 0 ? html`
@@ -38,9 +50,38 @@ export class LineupRoster extends LitElement {
           No players in roster.
         </p>
       `}
+      <mwc-fab icon="person_add" label="Add Player" @click="${this._addButtonClicked}"></mwc-fab>
+      <lineup-roster-modify ?active="${this._showCreate}"></lineup-roster-modify>
+
       </div>`
   }
 
   @property({ type: Object })
   roster: Roster = {};
+
+  @property({ type: Boolean })
+  private _showCreate = false;
+
+  protected firstUpdated() {
+    window.addEventListener(EVENT_NEWPLAYERCREATED, this._newPlayerCreated.bind(this) as EventListener);
+    window.addEventListener(EVENT_NEWPLAYERCANCELLED, this._newPlayerCancelled.bind(this) as EventListener);
+  }
+
+  private _addButtonClicked() {
+    this._showCreate = true;
+  }
+
+  private _newPlayerCreated(e: CustomEvent) {
+    console.log(`New player: ${JSON.stringify(e.detail.player)}`);
+    // TODO: Need to re-fire the event, or will it bubble automatically
+    this._closePlayerModify();
+  }
+
+  private _newPlayerCancelled() {
+    this._closePlayerModify();
+  }
+
+  private _closePlayerModify() {
+    this._showCreate = false;
+  }
 }

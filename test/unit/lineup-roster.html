@@ -66,6 +66,22 @@
           return el.updateComplete;
         });
 
+        function getCreateElement() {
+          const element = el.shadowRoot.querySelector('lineup-roster-modify');
+          assert.isOk(element, 'Missing create widget');
+
+          return element;
+        }
+
+        function verifyVisibility(element, expectedDisplay) {
+          const display = getComputedStyle(element, null).display;
+          assert.equal(display, expectedDisplay, 'Element display (visibility)');
+        }
+
+        function sleep(milliseconds) {
+          return new Promise(resolve => setTimeout(resolve, milliseconds))
+        }
+
         test('starts empty', function() {
           assert.deepEqual(el.roster, {});
         });
@@ -89,6 +105,42 @@
             assert.equal(items.length, numPlayers, 'Rendered player count');
           });
         }
+
+        test('shows create widget when add clicked', async function() {
+          const createElement = getCreateElement();
+
+          verifyVisibility(createElement, 'none');
+
+          const addButton = el.shadowRoot.querySelector('mwc-fab');
+          addButton.click();
+          // TODO: Figure out better way than manual sleep
+          await sleep(50);
+          verifyVisibility(createElement, 'block');
+        });
+
+        test('creates new player when saved', function() {
+          assert.isTrue(true);
+        });
+
+        test('closes create widget when cancel clicked', function() {
+          assert.isTrue(true);
+        });
+
+        test('shows edit widget when edit clicked for player', function() {
+          assert.isTrue(true);
+        });
+
+        test('edit widget is populated with player details', function() {
+          assert.isTrue(true);
+        });
+
+        test('updates existing player when saved', function() {
+          assert.isTrue(true);
+        });
+
+        test('closes edit widget when cancel clicked', function() {
+          assert.isTrue(true);
+        });
 
         test('a11y', function() {
           console.log('ally test');
