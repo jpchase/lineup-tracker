@@ -8,7 +8,7 @@ import { RootState } from '../store';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import { firebaseRef } from '../firebase';
-import { saveNewDocument, loadTeamRoster, KEY_TEAMS } from '../firestore-helpers';
+import { saveNewDocument, loadTeamRoster, savePlayerToTeamRoster, KEY_TEAMS } from '../firestore-helpers';
 import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_TEAM = 'ADD_TEAM';
@@ -111,8 +111,8 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
   dispatch(saveTeam(newTeam));
 };
 
-// Saves the new team in local storage, before adding to the store
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
+  // Save the team to Firestore, before adding to the store.
   saveNewDocument(newTeam, getTeamsCollection(), getState());
   dispatch(addTeam(newTeam));
 };
@@ -154,19 +154,10 @@ export const addNewPlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (
   dispatch(savePlayer(newPlayer));
 };
 
-// Saves the new player in local storage, before adding to the store
-export const savePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch /*, getState*/) => {
-  // TODO: Duplicating logic here from that in reducers to add player to state?
-  // const teamState = getState().team;
-  // const roster = (teamState && teamState.roster) ? teamState.roster : {};
-
-  // roster[newPlayer.id] = newPlayer;
-
-  // set(KEY_ROSTER, roster).then(() => {
-    dispatch(addPlayer(newPlayer));
-  // }).catch((error: any) => {
-  //   console.log(`Storage of ${newPlayer} failed: ${error}`);
-  // });
+export const savePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
+  // Save the player to Firestore, before adding to the store.
+  savePlayerToTeamRoster(newPlayer, firebaseRef.firestore(), getState());
+  dispatch(addPlayer(newPlayer));
 };
 
 export const addPlayer: ActionCreator<ThunkResult> = (player: Player) => (dispatch) => {

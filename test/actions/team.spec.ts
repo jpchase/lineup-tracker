@@ -9,7 +9,7 @@ import {
   TEST_USER_ID,
   buildRoster, buildTeams,
   getMockAuthState,
-  getNewPlayer, getStoredPlayer,
+  getNewPlayer, getNewPlayerData, getStoredPlayer,
   getPublicTeam, getPublicTeamData, getStoredTeam,
   MockAuthStateOptions
 } from '../helpers/test_data';
@@ -60,6 +60,7 @@ const fixtureData = {
 };
 
 const KEY_TEAMS = 'teams';
+const KEY_ROSTER = 'roster';
 
 export function getNewTeamData() {
   return { name: 'New team 1' }
@@ -416,73 +417,84 @@ describe('addNewPlayer', () => {
   });
 });
 
-describe('savePlayer', () => {
+  describe('savePlayer', () => {
     it('should return a function to dispatch the action', () => {
-        expect(typeof actions.savePlayer()).toBe('function');
+      expect(typeof actions.savePlayer()).toBe('function');
     });
 
-    it('should dispatch an action to add player', async () => {
-        const dispatchMock = jest.fn();
-        const getStateMock = mockGetState([], undefined, undefined, [getStoredPlayer()]);
 
+    it('should save to storage and dispatch an action to add player', async () => {
+      const dispatchMock = jest.fn();
+
+      const team: Team = getStoredTeam();
+      const getStateMock = mockGetState([team], team, { signedIn: true, userId: TEST_USER_ID });
+
+      actions.savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      // Checks that the new player was saved to the database.
+      const newPlayerSaved = getNewPlayer();
+      const path = `${KEY_TEAMS}/${team.id}/${KEY_ROSTER}`;
+      const query: Query = mockFirebase.firestore().collection(path).where('name', '==', newPlayerSaved.name);
+      const result: QuerySnapshot = await query.get();
+      expect(result.size).toEqual(1);
+
+      const expectedData: any = {
+        ...getNewPlayerData(),
+        owner_uid: TEST_USER_ID
+      };
+
+      let id = '';
+      let data: DocumentData = {};
+      result.forEach((doc: QueryDocumentSnapshot) => {
+        id = doc.id;
+        data = doc.data();
+      });
+
+      expect(id).toBeTruthy();
+      expect(id).toMatch(/[A-Za-z0-9]+/);
+      expect(data).toEqual(expectedData);
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+      expect(dispatchMock).toBeCalledWith(expect.any(Function));
+    });
+
+    it('should not dispatch an action when storage access fails', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+      firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+
+      expect(() => {
         actions.savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+      }).toThrow();
 
-        // Waits for promises to resolve.
-        await Promise.resolve();
-/*
-        expect(getStateMock).toBeCalled();
+      // Waits for promises to resolve.
+      await Promise.resolve();
 
-        // Checks that set() was called to save players to storage.
-        const expectedPlayerData: Roster = {} as Roster;
-        expectedPlayerData[storedPlayer.id] = storedPlayer;
-        expectedPlayerData[newPlayer.id] = newPlayer;
+      expect(dispatchMock).not.toBeCalled();
+    });
+  }); // describe('savePlayer')
 
-        expect(mockedSet.mock.calls.length).toBe(1);
-        expect(mockedSet.mock.calls[0][0]).toBe(KEY_TEAMS);
-        expect(mockedSet.mock.calls[0][1]).toEqual(expectedPlayerData);
-*/
-        expect(dispatchMock).toBeCalledWith(expect.any(Function));
+  describe('addPlayer', () => {
+    it('should return a function to dispatch the addPlayer action', () => {
+      expect(typeof actions.addPlayer()).toBe('function');
     });
 
-    it('should not dispatch an action when set() fails', async () => {
-        const dispatchMock = jest.fn();
-        const getStateMock = mockGetState([], undefined, undefined, [getStoredPlayer()]);
+    it('should dispatch an action to add the player', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
 
-        actions.savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+      actions.addPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
-        // Waits for promises to resolve.
-        await Promise.resolve();
-/*
-        expect(getStateMock).toBeCalled();
-
-        // Checks that set() was called.
-        expect(mockedSet.mock.calls.length).toBe(1);
-        expect(mockedSet.mock.calls[0][0]).toBe(KEY_TEAMS);
-
-        expect(dispatchMock).not.toBeCalled();
-*/
-        // TODO: Remove when data saving logic implemented.
-        expect(dispatchMock).toBeCalledWith(expect.any(Function));
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.ADD_PLAYER,
+        player: getNewPlayer(),
+      }));
     });
-});
 
-describe('addPlayer', () => {
-  it('should return a function to dispatch the addPlayer action', () => {
-    expect(typeof actions.addPlayer()).toBe('function');
-  });
-
-  it('should dispatch an action to add the player', () => {
-    const dispatchMock = jest.fn();
-    const getStateMock = jest.fn();
-
-    actions.addPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
-
-    expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-      type: actions.ADD_PLAYER,
-      player: getNewPlayer(),
-    }));
-  });
-
-});
+  }); // describe('addPlayer')
 
 }); // describe('Team actions')

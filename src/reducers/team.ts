@@ -8,6 +8,7 @@ import { Teams } from '../models/team';
 import {
   ADD_TEAM,
   CHANGE_TEAM,
+  ADD_PLAYER,
   GET_ROSTER,
   GET_TEAMS
 } from '../actions/team';
@@ -31,14 +32,14 @@ const INITIAL_STATE: TeamState = {
 
 const team: Reducer<TeamState, RootAction> = (state = INITIAL_STATE, action) => {
   const newState: TeamState = {
-    ...state,
-    teams: { ...state.teams },
+    ...state
   };
   switch (action.type) {
     case ADD_TEAM:
       console.log(`team.ts - reducer: ${JSON.stringify(action)}, ${JSON.stringify(state)}`);
       newState.teamId = action.team.id;
       newState.teamName = action.team.name;
+      newState.teams = { ...newState.teams };
       newState.teams[action.team.id] = action.team;
       return newState;
 
@@ -46,6 +47,11 @@ const team: Reducer<TeamState, RootAction> = (state = INITIAL_STATE, action) => 
       newState.teamId = action.teamId;
       newState.teamName = state.teams[action.teamId].name;
       console.log(`team.ts - reducer: ${JSON.stringify(action)}, in = ${JSON.stringify(state)}, new = ${JSON.stringify(newState)}`);
+      return newState;
+
+    case ADD_PLAYER:
+      newState.roster = { ...newState.roster };
+      newState.roster[action.player.id] = action.player;
       return newState;
 
     case GET_ROSTER:

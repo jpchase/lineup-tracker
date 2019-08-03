@@ -1,10 +1,12 @@
+import { Player } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
-import { ADD_TEAM, CHANGE_TEAM, GET_ROSTER, GET_TEAMS } from '@app/actions/team';
+import { ADD_PLAYER, ADD_TEAM, CHANGE_TEAM, GET_ROSTER, GET_TEAMS } from '@app/actions/team';
 import team from '@app/reducers/team';
 import { TeamState } from '@app/reducers/team';
 import {
   buildRoster, buildTeams,
   getFakeAction,
+  getNewPlayer,
   getStoredPlayer, getStoredTeam
 } from '../helpers/test_data';
 
@@ -106,27 +108,65 @@ describe('Teams reducer', () => {
     expect(newState.teams).not.toBe(state.teams);
   });
 
-});
+  describe('GET_ROSTER', () => {
 
-describe('Roster reducer', () => {
+    it('should set the roster to the retrieved list', () => {
+      const expectedRoster = buildRoster([getStoredPlayer()]);
 
-  it('should return the initial state', () => {
-    expect(
-      team(TEAM_INITIAL_STATE, getFakeAction())
-    ).toEqual(TEAM_INITIAL_STATE);
-  });
+      expect(
+        team(TEAM_INITIAL_STATE, {
+            type: GET_ROSTER,
+            roster: expectedRoster
+          })
+      ).toEqual(expect.objectContaining({
+        roster: expectedRoster,
+      }));
 
-  it('should handle GET_ROSTER', () => {
-    const expectedRoster = buildRoster([getStoredPlayer()]);
+    });
+  }); // describe('GET_ROSTER')
 
-    expect(
-      team(TEAM_INITIAL_STATE, {
-          type: GET_ROSTER,
-          roster: expectedRoster
-        })
-    ).toEqual(expect.objectContaining({
-      roster: expectedRoster,
-    }));
+  describe('ADD_PLAYER', () => {
+    let newPlayer: Player;
+    let existingPlayer: Player;
 
-  });
+    beforeEach(() => {
+      newPlayer = getNewPlayer();
+      existingPlayer = getStoredPlayer();
+    });
+
+    it('should add new player to empty roster', () => {
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: ADD_PLAYER,
+        player: newPlayer
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        roster: buildRoster([newPlayer]),
+      }));
+
+      expect(newState).not.toBe(TEAM_INITIAL_STATE);
+      expect(newState.roster).not.toBe(TEAM_INITIAL_STATE.roster);
+    });
+
+    it('should add new player to roster with existing players', () => {
+      const state: TeamState = {
+        ...TEAM_INITIAL_STATE
+      };
+      state.roster = buildRoster([existingPlayer]);
+
+      const newState = team(state, {
+        type: ADD_PLAYER,
+        player: newPlayer
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        roster: buildRoster([existingPlayer, newPlayer]),
+      }));
+
+      expect(newState).not.toBe(state);
+      expect(newState.roster).not.toBe(state.roster);
+    });
+
+  }); // describe('ADD_PLAYER')
+
 });

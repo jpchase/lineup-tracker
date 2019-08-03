@@ -91,3 +91,13 @@ function loadRoster(firestore: FirebaseFirestore, collectionPath: string): Promi
     return roster;
   });
 }
+
+export function savePlayerToTeamRoster(newPlayer: Player, firestore: FirebaseFirestore, state: RootState) {
+  const teamId = currentTeamIdSelector(state)!;
+  savePlayerToRoster(newPlayer, firestore, buildTeamRosterPath(teamId), state);
+}
+
+function savePlayerToRoster(newPlayer: Player, firestore: FirebaseFirestore, collectionPath: string, state: RootState) {
+  const collection = firestore.collection(collectionPath);
+  saveNewDocument(newPlayer, collection, state);
+};
