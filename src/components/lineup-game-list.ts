@@ -6,7 +6,9 @@ import { LitElement, customElement, html, property } from 'lit-element';
 
 import { Games } from '../models/game';
 
-import { peopleIcon, scheduleIcon } from './lineup-icons';
+// These are the elements needed by this element.
+import '@material/mwc-icon';
+import { peopleIcon } from './lineup-icons';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
@@ -32,8 +34,8 @@ export class LineupGameList extends LitElement {
               <span class="opponent">${game.opponent}</span>
               <span class="gameDate">${game.date}</span>
             </div>
-            <a href="/game/${game.id}" title="view game">${scheduleIcon}</a>
-            <button title="view roster">${peopleIcon}</button>
+            <a href="/game/${game.id}" title="View game"><mwc-icon>playlist_play</mwc-icon></a>
+            <button title="View roster">${peopleIcon}</button>
           </div>
         `)}
         </div>
