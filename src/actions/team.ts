@@ -7,6 +7,7 @@ import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
+import { currentTeamIdSelector } from '../reducers/team';
 import { firebaseRef } from '../firebase';
 import { saveNewDocument, loadTeamRoster, savePlayerToTeamRoster, KEY_TEAMS } from '../firestore-helpers';
 import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
@@ -113,7 +114,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
   // Save the team to Firestore, before adding to the store.
-  saveNewDocument(newTeam, getTeamsCollection(), getState());
+  saveNewDocument(newTeam, getTeamsCollection(), getState(), { addUserId: true });
   dispatch(addTeam(newTeam));
 };
 
@@ -156,7 +157,8 @@ export const addNewPlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (
 
 export const savePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
-  savePlayerToTeamRoster(newPlayer, firebaseRef.firestore(), getState());
+  const teamId = currentTeamIdSelector(getState())!;
+  savePlayerToTeamRoster(newPlayer, firebaseRef.firestore(), teamId);
   dispatch(addPlayer(newPlayer));
 };
 

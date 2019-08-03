@@ -16,23 +16,28 @@ export const KEY_TEAMS = 'teams';
 
 export interface NewDocOptions {
   addTeamId?: boolean;
+  addUserId?: boolean;
 }
 
-export function buildNewDocumentData(model: any, state: RootState, options?: NewDocOptions): DocumentData {
+export function buildNewDocumentData(model: any, state?: RootState, options?: NewDocOptions): DocumentData {
   const data: DocumentData = {
     ...model,
-    owner_uid: currentUserIdSelector(state)
   };
   // Ensure there is no 'id' property, as that will prevent a unique id from being generated.
   delete data.id;
-  if (options && options.addTeamId) {
-    data.teamId = currentTeamIdSelector(state);
+  // Add parent ids, if necessary.
+  if (options && state) {
+    if (options.addTeamId) {
+      data.teamId = currentTeamIdSelector(state);
+    }
+    if (options.addUserId) {
+      data.owner_uid = currentUserIdSelector(state);
+    }
   }
-
   return data;
 }
 
-export function saveNewDocument(model: any, collection: CollectionReference, state: RootState, options?: NewDocOptions) {
+export function saveNewDocument(model: any, collection: CollectionReference, state?: RootState, options?: NewDocOptions) {
   const data = buildNewDocumentData(model, state, options);
 
   const doc: DocumentReference = collection.doc();
@@ -92,12 +97,11 @@ function loadRoster(firestore: FirebaseFirestore, collectionPath: string): Promi
   });
 }
 
-export function savePlayerToTeamRoster(newPlayer: Player, firestore: FirebaseFirestore, state: RootState) {
-  const teamId = currentTeamIdSelector(state)!;
-  savePlayerToRoster(newPlayer, firestore, buildTeamRosterPath(teamId), state);
+export function savePlayerToTeamRoster(newPlayer: Player, firestore: FirebaseFirestore, teamId: string) {
+  savePlayerToRoster(newPlayer, firestore, buildTeamRosterPath(teamId));
 }
 
-function savePlayerToRoster(newPlayer: Player, firestore: FirebaseFirestore, collectionPath: string, state: RootState) {
+function savePlayerToRoster(newPlayer: Player, firestore: FirebaseFirestore, collectionPath: string) {
   const collection = firestore.collection(collectionPath);
-  saveNewDocument(newPlayer, collection, state);
+  saveNewDocument(newPlayer, collection);
 };

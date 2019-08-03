@@ -442,8 +442,7 @@ describe('Team actions', () => {
       expect(result.size).toEqual(1);
 
       const expectedData: any = {
-        ...getNewPlayerData(),
-        owner_uid: TEST_USER_ID
+        ...getNewPlayerData()
       };
 
       let id = '';

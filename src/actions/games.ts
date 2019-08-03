@@ -92,7 +92,7 @@ export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch
   if (!newGame.status) {
     newGame.status = GameStatus.New;
   }
-  saveNewDocument(newGame, getGamesCollection(), getState(), { addTeamId: true });
+  saveNewDocument(newGame, getGamesCollection(), getState(), { addTeamId: true, addUserId: true });
   dispatch(addGame(newGame));
 };
 
