@@ -8,8 +8,8 @@ import { RootState } from '../store';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import { firebaseRef } from '../firebase';
-import { buildNewDocumentData, loadTeamRoster, KEY_TEAMS } from '../firestore-helpers';
-import { CollectionReference, DocumentData, DocumentReference, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
+import { saveNewDocument, loadTeamRoster, KEY_TEAMS } from '../firestore-helpers';
+import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 
 export const ADD_TEAM = 'ADD_TEAM';
 export const CHANGE_TEAM = 'CHANGE_TEAM';
@@ -40,10 +40,10 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
   // TODO: Extract into helper function somewhere?
   const currentUser = getState().auth!.user;
   if (currentUser && currentUser.id) {
-      console.log(`Get teams for owner = ${JSON.stringify(currentUser)}`);
+    console.log(`Get teams for owner = ${JSON.stringify(currentUser)}`);
     query = query.where(FIELD_OWNER, '==', currentUser.id);
   } else {
-      console.log(`Get public teams`);
+    console.log(`Get public teams`);
     query = query.where(FIELD_PUBLIC, '==', true);
   }
 
@@ -51,12 +51,12 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
     const teams = {} as Teams;
 
     value.forEach((result: QueryDocumentSnapshot) => {
-        const data: DocumentData = result.data();
-        const entry: Team = {
-            id: result.id,
-            name: data.name
-        };
-        teams[entry.id] = entry;
+      const data: DocumentData = result.data();
+      const entry: Team = {
+        id: result.id,
+        name: data.name
+      };
+      teams[entry.id] = entry;
     });
 
     console.log(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
@@ -67,8 +67,8 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
     });
 
   }).catch((error: any) => {
-      // TODO: Dispatch error?
-      console.log(`Loading of teams from storage failed: ${error}`);
+    // TODO: Dispatch error?
+    console.log(`Loading of teams from storage failed: ${error}`);
   });
 };
 
@@ -100,27 +100,21 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
   // Verify that the team name is unique.
   const teamState = state.team!;
   if (teamState.teams) {
-      const hasMatch = Object.keys(teamState.teams).some((key) => {
-          const team = teamState.teams[key];
-          return (team.name.localeCompare(newTeam.name, undefined, {sensitivity: 'base'}) == 0);
-      });
-      if (hasMatch) {
-          return;
-      }
+    const hasMatch = Object.keys(teamState.teams).some((key) => {
+      const team = teamState.teams[key];
+      return (team.name.localeCompare(newTeam.name, undefined, {sensitivity: 'base'}) == 0);
+    });
+    if (hasMatch) {
+      return;
+    }
   }
   dispatch(saveTeam(newTeam));
 };
 
 // Saves the new team in local storage, before adding to the store
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
-    const data = buildNewDocumentData(newTeam, getState());
-
-    const collection = getTeamsCollection();
-    const doc: DocumentReference = collection.doc();
-    doc.set(data);
-
-    newTeam.id = doc.id;
-    dispatch(addTeam(newTeam));
+  saveNewDocument(newTeam, getTeamsCollection(), getState());
+  dispatch(addTeam(newTeam));
 };
 
 export const addTeam: ActionCreator<ThunkResult> = (team: Team) => (dispatch) => {

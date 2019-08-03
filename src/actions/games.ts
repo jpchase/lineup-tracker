@@ -7,9 +7,9 @@ import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { Game, Games, GameStatus } from '../models/game';
 import { firebaseRef } from '../firebase';
-import { buildNewDocumentData, extractGame, KEY_GAMES } from '../firestore-helpers';
+import { saveNewDocument, extractGame, KEY_GAMES } from '../firestore-helpers';
 import {
-  CollectionReference, DocumentReference,
+  CollectionReference,
   Query, QuerySnapshot, QueryDocumentSnapshot
 } from '@firebase/firestore-types';
 
@@ -92,12 +92,7 @@ export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch
   if (!newGame.status) {
     newGame.status = GameStatus.New;
   }
-  const data = buildNewDocumentData(newGame, getState(), true);
-
-  const collection = getGamesCollection();
-  const doc: DocumentReference = collection.doc();
-  doc.set(data);
-  newGame.id = doc.id;
+  saveNewDocument(newGame, getGamesCollection(), getState(), { addTeamId: true });
   dispatch(addGame(newGame));
 };
 

@@ -1,4 +1,9 @@
-import { FirebaseFirestore, DocumentData, DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
+import {
+  FirebaseFirestore,
+  CollectionReference,
+  DocumentData, DocumentReference, DocumentSnapshot,
+  QueryDocumentSnapshot, QuerySnapshot
+} from '@firebase/firestore-types';
 import { RootState } from './store';
 import { Player, Roster } from './models/player';
 import { Game } from './models/game';
@@ -9,18 +14,30 @@ export const KEY_GAMES = 'games';
 export const KEY_ROSTER = 'roster';
 export const KEY_TEAMS = 'teams';
 
-export function buildNewDocumentData(model: any, state: RootState, addTeamId?: boolean): DocumentData {
+export interface NewDocOptions {
+  addTeamId?: boolean;
+}
+
+export function buildNewDocumentData(model: any, state: RootState, options?: NewDocOptions): DocumentData {
   const data: DocumentData = {
     ...model,
     owner_uid: currentUserIdSelector(state)
   };
   // Ensure there is no 'id' property, as that will prevent a unique id from being generated.
   delete data.id;
-  if (addTeamId) {
+  if (options && options.addTeamId) {
     data.teamId = currentTeamIdSelector(state);
   }
 
   return data;
+}
+
+export function saveNewDocument(model: any, collection: CollectionReference, state: RootState, options?: NewDocOptions) {
+  const data = buildNewDocumentData(model, state, options);
+
+  const doc: DocumentReference = collection.doc();
+  doc.set(data);
+  model.id = doc.id;
 }
 
 export function extractGame(document: DocumentSnapshot): Game {
