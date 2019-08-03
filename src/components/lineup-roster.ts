@@ -71,7 +71,7 @@ export class LineupRoster extends LitElement {
     this._showCreate = true;
   }
 
-  private _newPlayerCreated(e: CustomEvent) {
+  private _newPlayerCreated(/*e: CustomEvent*/) {
     // TODO: Event bubbles up, but is processed by parent first, could make it
     // awkward to close widget, before handling/spinner for db saving.
     this._closePlayerModify();
