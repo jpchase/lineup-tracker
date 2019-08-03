@@ -19,10 +19,12 @@ store.addReducers({
 });
 
 // These are the actions needed by this element.
-import { getRoster } from '../actions/team';
+import { addNewPlayer, getRoster } from '../actions/team';
 
 // These are the elements needed by this element.
 import './lineup-roster';
+
+import { EVENT_NEWPLAYERCREATED } from './events';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
@@ -48,6 +50,10 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
   @property({ type: Object })
   private _roster: Roster = {};
 
+  protected firstUpdated() {
+    window.addEventListener(EVENT_NEWPLAYERCREATED, this._newPlayerCreated.bind(this) as EventListener);
+  }
+
   // This is called every time something is updated in the store.
   stateChanged(state: RootState) {
     if (!state.team) {
@@ -60,6 +66,10 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
     }
     this._teamName = teamState.teamName;
     this._roster = teamState.roster;
+  }
+
+  private _newPlayerCreated(e: CustomEvent) {
+    store.dispatch(addNewPlayer(e.detail.player));
   }
 
 }

@@ -72,8 +72,8 @@ export class LineupRoster extends LitElement {
   }
 
   private _newPlayerCreated(e: CustomEvent) {
-    console.log(`New player: ${JSON.stringify(e.detail.player)}`);
-    // TODO: Need to re-fire the event, or will it bubble automatically
+    // TODO: Event bubbles up, but is processed by parent first, could make it
+    // awkward to close widget, before handling/spinner for db saving.
     this._closePlayerModify();
   }
 
