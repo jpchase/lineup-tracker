@@ -45,13 +45,13 @@
           formation.gk
         ].forEach(line => {
           line.positions.forEach(position => {
-            let count = positions[position.type];
+            let count = positions[position.id];
             if (count) {
               count++;
             } else {
               count = 1;
             }
-            positions[position.type] = count;
+            positions[position.id] = count;
           });
         });
         return positions;
@@ -62,50 +62,62 @@
         const players = [];
         for (let i = 0; i < size; i++) {
           const playerId = `P${i}`;
+          let currentPosition;
           let pos;
-          // TODO: Change this to set current position, when that property exists
+
           switch (i) {
             case 0:
+              currentPosition = { id: 'LCB', type: 'CB' };
               pos = ['CB', 'FB', 'HM'];
               break;
 
             case 1:
+              currentPosition = { id: 'S', type: 'S' };
               pos = ['S', 'W'];
               break;
 
             case 2:
+              currentPosition = { id: 'AM1', type: 'AM' };
               pos = ['AM', 'HM'];
               break;
 
             case 3:
+              currentPosition = { id: 'HM', type: 'HM' };
               pos = ['HM', 'CB'];
               break;
 
             case 4:
+              currentPosition = { id: 'RW', type: 'W' };
               pos = ['W'];
               break;
 
             case 5:
+              currentPosition = { id: 'RFB', type: 'FB' };
               pos = ['FB'];
               break;
 
             case 6:
+              currentPosition = { id: 'LW', type: 'W' };
               pos = ['W'];
               break;
 
             case 7:
+              currentPosition = { id: 'RCB', type: 'CB' };
               pos = ['CB'];
               break;
 
             case 8:
+              currentPosition = { id: 'LFB', type: 'FB' };
               pos = ['FB'];
               break;
 
             case 9:
+              currentPosition = { id: 'AM2', type: 'AM' };
               pos = ['AM'];
               break;
 
             case 10:
+              currentPosition = { id: 'GK', type: 'GK' };
               pos = ['GK'];
               break;
 
@@ -117,6 +129,7 @@
             id: playerId,
             name: `Player ${i}`,
             uniformNumber: i + (i % 3) * 10,
+            currentPosition: currentPosition,
             positions: pos,
             status: status || PlayerStatus.On
           });
@@ -126,6 +139,7 @@
               id: playerId + otherStatus,
               name: `Player ${i}-${otherStatus}`,
               uniformNumber: i + (i % 4) * 10,
+              currentPosition: currentPosition,
               positions: pos,
               status: otherStatus
             });
@@ -148,7 +162,7 @@
           players.forEach(player => {
             let found = false;
             for (let playerCard of items) {
-              if (playerCard.data.position.type !== player.positions[0]) {
+              if (playerCard.data.position.id !== player.currentPosition.id) {
                 continue;
               }
 
@@ -194,7 +208,7 @@
           const expectedPositions = getPositions(FormationType.F4_3_3);
           const actualPositions = {};
           items.forEach(playerCard => {
-            const position = playerCard.data.position.type;
+            const position = playerCard.data.position.id;
             let count = actualPositions[position];
             if (count) {
               count++;
@@ -220,7 +234,7 @@
           items.forEach(playerCard => {
             assert.isOk(playerCard.data.position, 'Position is set');
             assert.isNotOk(playerCard.data.player, 'Player should not be set');
-            const position = playerCard.data.position.type;
+            const position = playerCard.data.position.id;
             let count = actualPositions[position];
             if (count) {
               count++;

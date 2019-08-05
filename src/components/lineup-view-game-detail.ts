@@ -20,9 +20,10 @@ store.addReducers({
 });
 
 // These are the actions needed by this element.
-import { getGame, selectPlayer, selectPosition } from '../actions/game';
+import { getGame, selectPlayer, selectPosition, applyStarter } from '../actions/game';
 
 // These are the elements needed by this element.
+import '@material/mwc-button';
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events';
 import './lineup-game-setup';
 import './lineup-on-player-list';
@@ -43,6 +44,8 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
     const isNew = (game.status === GameStatus.New);
     const setupRequired = isNew;
 
+    // TODO: Turn this into a property, rather than creating new each time?
+    // Is it causing unnecessary updates?
     let formation = undefined;
     if (game.formation) {
       formation = FormationBuilder.create(game.formation.type);
@@ -61,6 +64,9 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
           <h5>${inProgress ? html`Playing` : html`Starters`}</h5>
           <lineup-on-player-list .formation="${formation}" .players="${players}"></lineup-on-player-list>
         </div>
+        <div id="confirm-change">
+        ${this._getConfirmStarter()}
+        </div>
         <div id="live-next" ?hidden=${setupRequired}>
           <h5>Next On</h5>
           <lineup-player-list mode="next" .players="${players}"></lineup-player-list>
@@ -73,6 +79,36 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
           <h5>Unavailable</h5>
           <lineup-player-list mode="out" .players="${players}"></lineup-player-list>
         </div>
+      </div>
+    `;
+  }
+
+  private _getConfirmStarter() {
+    if (!this._proposedStarter) {
+      return '';
+    }
+    const starter = this._proposedStarter;
+    const currentPosition = starter.currentPosition!;
+    let positionText = currentPosition.type;
+
+    if (currentPosition.id !== currentPosition.type) {
+      let addition = '';
+      if (currentPosition.id[0] === 'L') {
+        addition = 'Left';
+      } else if (currentPosition.id[0] === 'R') {
+        addition = 'Right';
+      } else if (currentPosition.id.length > currentPosition.type.length) {
+        addition = currentPosition.id.substring(currentPosition.type.length);
+      }
+      positionText += ` (${addition})`;
+    }
+
+    return html`
+      <div>
+        <h5>Confirm starter?</h5>
+        <span>${starter.name} #${starter.uniformNumber}</span>
+        <span>${positionText}</span>
+        <mwc-button autofocus @click="${this._applyStarter}">Apply</mwc-button>
       </div>
     `;
   }
@@ -106,17 +142,22 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
   @property({type: Object})
   private _players: LivePlayer[] | undefined;
 
+  @property({type: Object})
+  private _proposedStarter: LivePlayer | undefined;
+
   protected firstUpdated() {
     window.addEventListener(EVENT_PLAYERSELECTED, this._playerSelected.bind(this) as EventListener);
     window.addEventListener(EVENT_POSITIONSELECTED, this._positionSelected.bind(this) as EventListener);
   }
 
   stateChanged(state: RootState) {
-      if (!state.game) {
-          return;
-      }
-      this._game = state.game!.game;
-      this._players = state.game!.players;
+    if (!state.game) {
+        return;
+    }
+    const gameState = state.game!;
+    this._game = gameState.game;
+    this._players = gameState.players;
+    this._proposedStarter = gameState.proposedStarter;
   }
 
   private _playerSelected(e: CustomEvent) {
@@ -125,6 +166,10 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
 
   private _positionSelected(e: CustomEvent) {
     store.dispatch(selectPosition(e.detail.position));
+  }
+
+  private _applyStarter(/* e: CustomEvent */) {
+    store.dispatch(applyStarter());
   }
 
   private _getName() {

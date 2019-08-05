@@ -5,7 +5,7 @@
 import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 
-import { Formation, FormationLine } from '../models/formation';
+import { Formation, FormationLine, Position } from '../models/formation';
 import { LivePlayer } from '../models/game';
 import { PlayerStatus } from '../models/player';
 
@@ -22,13 +22,12 @@ interface PlayerLine extends FormationLine {
   playerPositions: PlayerCardData[];
 }
 
-function getLineForPosition(lines: PlayerLine[], positionType: string): PlayerLine {
-  const line = lines.find(line => line.positions.some(position => (position.type === positionType)));
-  return line ? line : lines[0];
+function getLineForPosition(lines: PlayerLine[], position: Position): PlayerLine | undefined {
+  return lines.find(line => line.positions.some(linePosition => (linePosition.id === position.id)));
 }
 
-function getOpenPositionInLine(line: PlayerLine, positionType: string): PlayerCardData | undefined {
-  return line.playerPositions.find(data => (!data.player && data.position.type === positionType));
+function getOpenPositionInLine(line: PlayerLine, position: Position): PlayerCardData | undefined {
+  return line.playerPositions.find(data => (!data.player && data.position.id === position.id));
 }
 
 // This element is *not* connected to the Redux store.
@@ -109,10 +108,13 @@ export class LineupOnPlayerList extends LitElement {
       if (player.status !== PlayerStatus.On) {
         return;
       }
-      // TODO: Add player.currentPosition
-      const currentPosition = player.positions ? player.positions[0] : 'S';
+
+      const currentPosition = player.currentPosition!;
       const line = getLineForPosition(lines, currentPosition);
 
+      if (!line) {
+        return;
+      }
       const cardData = getOpenPositionInLine(line, currentPosition);
 
       if (cardData)
