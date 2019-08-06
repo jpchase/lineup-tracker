@@ -183,16 +183,18 @@
           assert.isFalse(eventSelected, 'Card should no longer be selected');
         });
 
-        test('fires event when position selected without player', async function() {
+        test('fires event when position selected with data', async function() {
           const data = getCardData();
           el.data = data;
           await el.updateComplete;
 
           let eventFired = false;
+          let eventPlayer = undefined;
           let eventPosition = undefined;
           let eventSelected = undefined;
           const handler = function(event) {
             eventFired = true;
+            eventPlayer = event.detail.player;
             eventPosition = event.detail.position;
             eventSelected = event.detail.selected;
             window.removeEventListener(EVENT_POSITIONSELECTED, handler);
@@ -204,22 +206,25 @@
           playerElement.click();
 
           await 0;
-          assert.isTrue(eventFired, 'Event playerselected should be fired');
+          assert.isTrue(eventFired, `Event positionselected should be fired`);
+          assert.equal(eventPlayer, undefined, 'Event should not provide a player');
           assert.equal(eventPosition, data.position, 'Event should provide position');
           assert.isTrue(eventSelected, 'Card should now be selected');
         });
 
-        test('fires event when position de-selected without player', async function() {
+        test('fires event when position de-selected with data', async function() {
           const data = getCardData();
           el.data = data;
           el.selected = true;
           await el.updateComplete;
 
           let eventFired = false;
+          let eventPlayer = undefined;
           let eventPosition = undefined;
           let eventSelected = undefined;
           const handler = function(event) {
             eventFired = true;
+            eventPlayer = event.detail.player;
             eventPosition = event.detail.position;
             eventSelected = event.detail.selected;
             window.removeEventListener(EVENT_POSITIONSELECTED, handler);
@@ -231,7 +236,71 @@
           playerElement.click();
 
           await 0;
-          assert.isTrue(eventFired, 'Event playerselected should be fired');
+          assert.isTrue(eventFired, 'Event positionselected should be fired');
+          assert.equal(eventPlayer, undefined, 'Event should not provide a player');
+          assert.equal(eventPosition, data.position, 'Event should provide position');
+          assert.isFalse(eventSelected, 'Card should no longer be selected');
+        });
+
+        test('fires event when position selected with data and player', async function() {
+          const data = getCardData();
+          const player = getPlayer();
+          data.player = player;
+          el.data = data;
+          await el.updateComplete;
+
+          let eventFired = false;
+          let eventPlayer = undefined;
+          let eventPosition = undefined;
+          let eventSelected = undefined;
+          const handler = function(event) {
+            eventFired = true;
+            eventPlayer = event.detail.player;
+            eventPosition = event.detail.position;
+            eventSelected = event.detail.selected;
+            window.removeEventListener(EVENT_POSITIONSELECTED, handler);
+          };
+
+          window.addEventListener(EVENT_POSITIONSELECTED, handler);
+
+          const playerElement = getPlayerElement();
+          playerElement.click();
+
+          await 0;
+          assert.isTrue(eventFired, `Event positionselected should be fired`);
+          assert.equal(eventPlayer, data.player, 'Event should provide player');
+          assert.equal(eventPosition, data.position, 'Event should provide position');
+          assert.isTrue(eventSelected, 'Card should now be selected');
+        });
+
+        test('fires event when position de-selected with data and player', async function() {
+          const data = getCardData();
+          const player = getPlayer();
+          data.player = player;
+          el.data = data;
+          el.selected = true;
+          await el.updateComplete;
+
+          let eventFired = false;
+          let eventPlayer = undefined;
+          let eventPosition = undefined;
+          let eventSelected = undefined;
+          const handler = function(event) {
+            eventFired = true;
+            eventPlayer = event.detail.player;
+            eventPosition = event.detail.position;
+            eventSelected = event.detail.selected;
+            window.removeEventListener(EVENT_POSITIONSELECTED, handler);
+          };
+
+          window.addEventListener(EVENT_POSITIONSELECTED, handler);
+
+          const playerElement = getPlayerElement();
+          playerElement.click();
+
+          await 0;
+          assert.isTrue(eventFired, 'Event positionselected should be fired');
+          assert.equal(eventPlayer, data.player, 'Event should provide player');
           assert.equal(eventPosition, data.position, 'Event should provide position');
           assert.isFalse(eventSelected, 'Card should no longer be selected');
         });

@@ -21,7 +21,7 @@ import {
 } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
-import { getFakeAction, buildRoster, getStoredPlayer, getStoredPlayerData } from '../helpers/test_data';
+import { getFakeAction, buildRoster, getNewPlayer, getStoredPlayer, getStoredPlayerData } from '../helpers/test_data';
 
 const GAME_INITIAL_STATE: GameState = {
   gameId: '',
@@ -581,6 +581,40 @@ describe('Games reducer', () => {
       expect(newState.proposedStarter).toBeUndefined();
 
       expect(newState).not.toBe(currentState);
+    });
+
+    it('should replace player already in the position', () => {
+      const existingStarter: LivePlayer = {
+        ...getNewPlayer(),
+        status: PlayerStatus.On,
+        currentPosition: { ...selectedPosition }
+      }
+      currentState.players!.push(existingStarter);
+
+      const newState: GameState = game(currentState, {
+        type: APPLY_STARTER
+      });
+
+      expect(newState.players).toBeDefined();
+
+      const newPlayer = newState.players!.find(player => (player.id === selectedPlayer.id));
+      expect(newPlayer).toBeDefined();
+      expect(newPlayer).toEqual(expect.objectContaining({
+        id: selectedPlayer.id,
+        status: PlayerStatus.On,
+        currentPosition: { ...selectedPosition }
+      }));
+
+      const replacedPlayer = newState.players!.find(player => (player.id === existingStarter.id));
+      expect(replacedPlayer).toBeDefined();
+      expect(replacedPlayer).toEqual(expect.objectContaining({
+        id: existingStarter.id,
+        status: PlayerStatus.Off,
+      }));
+      expect(replacedPlayer!.currentPosition).not.toBeDefined();
+
+      expect(newState).not.toBe(currentState);
+      expect(newState.players).not.toBe(currentState.players);
     });
 
   }); // describe('APPLY_STARTER')

@@ -157,17 +157,28 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 
     case APPLY_STARTER:
       const starter = newState.proposedStarter!;
+      const positionId = starter.currentPosition!.id;
 
       newState.players = newState.players!.map(player => {
-        if (player.id !== starter.id) {
-          return player;
+        if (player.id === starter.id) {
+          return {
+            ...player,
+            status: PlayerStatus.On,
+            currentPosition: { ...starter.currentPosition } as Position
+          }
         }
 
-        return {
-          ...player,
-          status: PlayerStatus.On,
-          currentPosition: { ...starter.currentPosition } as Position
+        // Checks for an existing starter in the position.
+        if (player.status === PlayerStatus.On && player.currentPosition!.id === positionId) {
+          // Replace the starter, moving the player to off.
+          return {
+            ...player,
+            status: PlayerStatus.Off,
+            currentPosition: undefined
+          }
         }
+
+        return player;
       });
 
       clearProposedStarter(newState);

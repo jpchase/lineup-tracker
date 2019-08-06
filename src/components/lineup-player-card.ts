@@ -67,7 +67,7 @@ export class LineupPlayerCard extends LitElement {
         <span class="uniformNumber">${player ? player.uniformNumber: ''}</span>
         <span class="currentPosition">${currentPosition}</span>
         <span class="playerPositions">${positions.join(', ')}</span>
-        <span class="subFor">{player.replaces}</span>
+        <!-- <span class="subFor">{player.replaces}</span> -->
         <span class="shiftTime"></span>
       </span>
     `;
@@ -89,15 +89,15 @@ export class LineupPlayerCard extends LitElement {
     console.log('_toggleSelected - ' + this.selected, e);
     this.selected = !this.selected;
 
-    // Fires a position selected event, if no player provided. Otherwise, fires a
+    // Fires a position selected event, when |data| provided. Otherwise, fires a
     // player selected event.
-    if (this.data && !this.data.player) {
+    const player = this.data ? this.data!.player : this.player;
+    if (this.data) {
       this.dispatchEvent(new CustomEvent(EVENT_POSITIONSELECTED, {
         bubbles: true, composed: true,
-        detail: {position: this.data.position, selected: this.selected},
+        detail: {position: this.data.position, player: player, selected: this.selected},
       }));
     } else {
-      const player = this.data ? this.data!.player : this.player;
       this.dispatchEvent(new CustomEvent(EVENT_PLAYERSELECTED, {
         bubbles: true, composed: true,
         detail: {player: player, selected: this.selected},
