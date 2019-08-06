@@ -46,7 +46,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       chunksSortMode: 'none',
       template: 'index.html'
-    }),
+    }) /*,
     new WorkboxWebpackPlugin.GenerateSW({
       include: ['index.html', 'manifest.json', /\.js$/],
       exclude: [/\/@webcomponents\/webcomponentsjs\//],
@@ -64,6 +64,6 @@ module.exports = {
           handler: 'staleWhileRevalidate'
         }
       ]
-    })
+    }) */
   ]
 };
