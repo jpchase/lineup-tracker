@@ -12,6 +12,7 @@ import {
 import { Player, PlayerStatus, Roster } from '../models/player';
 import {
   APPLY_STARTER,
+  CANCEL_STARTER,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
@@ -169,9 +170,12 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         }
       });
 
-      delete newState.selectedPlayer;
-      delete newState.selectedPosition;
-      delete newState.proposedStarter;
+      clearProposedStarter(newState);
+
+      return newState;
+
+    case CANCEL_STARTER:
+      clearProposedStarter(newState);
 
       return newState;
 
@@ -261,4 +265,10 @@ function prepareStarterIfPossible(newState: GameState) {
       ...newState.selectedPosition
     }
   }
+}
+
+function clearProposedStarter(newState: GameState) {
+  delete newState.selectedPlayer;
+  delete newState.selectedPosition;
+  delete newState.proposedStarter;
 }

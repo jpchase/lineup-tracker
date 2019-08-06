@@ -303,21 +303,21 @@ describe('Game actions', () => {
     });
   }); // describe('markRosterDone')
 
-  describe('applyStarter', () => {
-    it('should return a function to dispatch the markStartersDone action', () => {
-      expect(typeof actions.applyStarter()).toBe('function');
+  describe('applyProposedStarter', () => {
+    it('should return a function to dispatch the applyProposedStarter action', () => {
+      expect(typeof actions.applyProposedStarter()).toBe('function');
     });
 
     it('should do nothing if proposed starter is missing', () => {
       const dispatchMock = jest.fn();
       const getStateMock = mockGetState();
 
-      actions.applyStarter()(dispatchMock, getStateMock, undefined);
+      actions.applyProposedStarter()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).not.toBeCalled();
     });
 
-    it('should dispatch an action to apply the starter', () => {
+    it('should dispatch an action to apply the proposed starter', () => {
       const selectedPosition: Position = { id: 'AM1', type: 'AM'};
       const starter: LivePlayer = {
         ...getStoredPlayer(),
@@ -331,13 +331,49 @@ describe('Game actions', () => {
         gameState.proposedStarter = starter;
       });
 
-      actions.applyStarter()(dispatchMock, getStateMock, undefined);
+      actions.applyProposedStarter()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
         type: actions.APPLY_STARTER
       }));
     });
-  }); // describe('applyStarter')
+  }); // describe('applyProposedStarter')
+
+  describe('cancelProposedStarter', () => {
+    it('should return a function to dispatch the cancelProposedStarter action', () => {
+      expect(typeof actions.cancelProposedStarter()).toBe('function');
+    });
+
+    it('should do nothing if proposed starter is missing', () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState();
+
+      actions.cancelProposedStarter()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+    it('should dispatch an action to cancel the proposed starter', () => {
+      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const starter: LivePlayer = {
+        ...getStoredPlayer(),
+        currentPosition: { ...selectedPosition }
+      }
+
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState(undefined, (gameState) => {
+        gameState.selectedPlayer = 'foo';
+        gameState.selectedPosition = { id: 'id', type: 'foo' };
+        gameState.proposedStarter = starter;
+      });
+
+      actions.cancelProposedStarter()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.CANCEL_STARTER
+      }));
+    });
+  }); // describe('cancelProposedStarter')
 
   describe('markStartersDone', () => {
     it('should return a function to dispatch the markStartersDone action', () => {

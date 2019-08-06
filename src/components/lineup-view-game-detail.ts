@@ -20,7 +20,7 @@ store.addReducers({
 });
 
 // These are the actions needed by this element.
-import { getGame, selectPlayer, selectPosition, applyStarter } from '../actions/game';
+import { getGame, selectPlayer, selectPosition, applyProposedStarter, cancelProposedStarter } from '../actions/game';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
@@ -108,6 +108,7 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
         <h5>Confirm starter?</h5>
         <span>${starter.name} #${starter.uniformNumber}</span>
         <span>${positionText}</span>
+        <mwc-button @click="${this._cancelStarter}">Cancel</mwc-button>
         <mwc-button autofocus @click="${this._applyStarter}">Apply</mwc-button>
       </div>
     `;
@@ -168,8 +169,12 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
     store.dispatch(selectPosition(e.detail.position));
   }
 
-  private _applyStarter(/* e: CustomEvent */) {
-    store.dispatch(applyStarter());
+  private _applyStarter() {
+    store.dispatch(applyProposedStarter());
+  }
+
+  private _cancelStarter() {
+    store.dispatch(cancelProposedStarter());
   }
 
   private _getName() {
