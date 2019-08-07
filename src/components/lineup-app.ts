@@ -298,6 +298,7 @@ export class LineupApp extends connect(store)(LitElement) {
       <lineup-view-home class="page" ?active="${this._page === 'viewHome'}"></lineup-view-home>
       <lineup-view-games class="page" ?active="${this._page === 'viewGames'}"></lineup-view-games>
       <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
+      <lineup-view-game-roster class="page" ?active="${this._page === 'gameroster'}"></lineup-view-game-roster>
       <lineup-view-roster class="page" ?active="${this._page === 'viewRoster'}"></lineup-view-roster>
       <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
     </main>
@@ -331,6 +332,7 @@ export class LineupApp extends connect(store)(LitElement) {
     'viewHome': { page: 'viewHome', label: 'Overview' },
     'viewGames': { page: 'viewGames', label: 'Games' },
     'game': { page: 'game', label: 'Game Detail' },
+    'gameroster': { page: 'gameroster', label: 'Game Roster' },
     'viewRoster': { page: 'viewRoster', label: 'Roster' },
     'view404': { page: 'view404', label: 'Page not found' },
   };

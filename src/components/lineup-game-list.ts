@@ -35,7 +35,7 @@ export class LineupGameList extends LitElement {
               <span class="gameDate">${game.date}</span>
             </div>
             <a href="/game/${game.id}" title="View game"><mwc-icon>playlist_play</mwc-icon></a>
-            <button title="View roster">${peopleIcon}</button>
+            <a href="/gameroster/${game.id}" title="View roster">${peopleIcon}</a>
           </div>
         `)}
         </div>
