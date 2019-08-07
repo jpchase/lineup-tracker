@@ -12,6 +12,7 @@ import {
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
   CAPTAINS_DONE,
+  ADD_PLAYER,
   ROSTER_DONE,
   STARTERS_DONE,
   START_GAME,
@@ -289,6 +290,58 @@ describe('Games reducer', () => {
     });
 
   }); // describe('CAPTAINS_DONE')
+
+  describe('ADD_PLAYER', () => {
+    let newPlayer: Player;
+    let existingPlayer: Player;
+    let currentState: GameState = GAME_INITIAL_STATE;
+
+    beforeEach(() => {
+      newPlayer = getNewPlayer();
+      existingPlayer = getStoredPlayer();
+
+      currentState = {
+        ...GAME_INITIAL_STATE,
+        game: {
+          ...newGame,
+          hasDetail: true,
+          roster: {},
+          setupTasks: buildSetupTasks()
+        }
+      };
+    });
+
+    it('should add new player to empty roster', () => {
+      const newState = game(currentState, {
+        type: ADD_PLAYER,
+        player: newPlayer
+      });
+
+      expect(newState.game).toEqual(expect.objectContaining({
+        roster: buildRoster([newPlayer]),
+      }));
+
+      expect(newState).not.toBe(currentState);
+      expect(newState.game!.roster).not.toBe(currentState.game!.roster);
+    });
+
+    it('should add new player to roster with existing players', () => {
+      currentState.game!.roster = buildRoster([existingPlayer]);
+
+      const newState = game(currentState, {
+        type: ADD_PLAYER,
+        player: newPlayer
+      });
+
+      expect(newState.game).toEqual(expect.objectContaining({
+        roster: buildRoster([existingPlayer, newPlayer]),
+      }));
+
+      expect(newState).not.toBe(currentState);
+      expect(newState.game!.roster).not.toBe(currentState.game!.roster);
+    });
+
+  }); // describe('ADD_PLAYER')
 
   describe('ROSTER_DONE', () => {
 

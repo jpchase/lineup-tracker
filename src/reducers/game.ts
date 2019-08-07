@@ -17,6 +17,7 @@ import {
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
   CAPTAINS_DONE,
+  ADD_PLAYER,
   ROSTER_DONE,
   STARTERS_DONE,
   SET_FORMATION,
@@ -24,7 +25,7 @@ import {
   SELECT_PLAYER,
   SELECT_POSITION
 } from '../actions/game';
-import { RootAction } from '../store';
+import { RootAction, RootState } from '../store';
 
 export interface GameState {
   gameId: string;
@@ -49,6 +50,8 @@ const INITIAL_STATE: GameState = {
   detailFailure: false,
   error: ''
 };
+
+export const currentGameIdSelector = (state: RootState) => state.game && state.game.gameId;
 
 const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => {
   const newState: GameState = {
@@ -98,6 +101,17 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       newState.error = action.error;
       newState.detailFailure = true;
       newState.detailLoading = false;
+      return newState;
+
+    case ADD_PLAYER:
+      const gameWithPlayer: GameDetail = {
+        ...newState.game!
+      };
+
+      gameWithPlayer.roster = { ...gameWithPlayer.roster };
+      gameWithPlayer.roster[action.player.id] = action.player;
+
+      newState.game = gameWithPlayer;
       return newState;
 
     case ROSTER_DONE:

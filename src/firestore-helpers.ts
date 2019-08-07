@@ -97,6 +97,10 @@ function loadRoster(firestore: FirebaseFirestore, collectionPath: string): Promi
   });
 }
 
+export function savePlayerToGameRoster(newPlayer: Player, firestore: FirebaseFirestore, gameId: string) {
+  savePlayerToRoster(newPlayer, firestore, buildGameRosterPath(gameId));
+}
+
 export function savePlayerToTeamRoster(newPlayer: Player, firestore: FirebaseFirestore, teamId: string) {
   savePlayerToRoster(newPlayer, firestore, buildTeamRosterPath(teamId));
 }

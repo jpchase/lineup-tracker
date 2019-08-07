@@ -7,9 +7,10 @@ import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { FormationType, Position } from '../models/formation';
 import { Game, GameDetail } from '../models/game';
-import { Roster } from '../models/player';
+import { Player, Roster } from '../models/player';
+import { currentGameIdSelector } from '../reducers/game';
 import { firebaseRef } from '../firebase';
-import { extractGame, loadGameRoster, loadTeamRoster, KEY_GAMES } from '../firestore-helpers';
+import { extractGame, loadGameRoster, loadTeamRoster, savePlayerToGameRoster, KEY_GAMES } from '../firestore-helpers';
 import { CollectionReference, DocumentReference, DocumentSnapshot } from '@firebase/firestore-types';
 
 export const GET_GAME_REQUEST = 'GET_GAME_REQUEST';
@@ -19,6 +20,7 @@ export const CAPTAINS_DONE = 'CAPTAINS_DONE';
 export const ROSTER_DONE = 'ROSTER_DONE';
 export const APPLY_STARTER = 'APPLY_STARTER';
 export const CANCEL_STARTER = 'CANCEL_STARTER';
+export const ADD_PLAYER = 'ADD_PLAYER';
 export const STARTERS_DONE = 'STARTERS_DONE';
 export const SET_FORMATION = 'SET_FORMATION';
 export const START_GAME = 'START_GAME';
@@ -29,6 +31,7 @@ export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { g
 export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail, teamRoster?: Roster };
 export interface GameActionGetGameFail extends Action<'GET_GAME_FAIL'> { error: string };
 export interface GameActionCaptainsDone extends Action<'CAPTAINS_DONE'> {};
+export interface GameActionAddPlayer extends Action<'ADD_PLAYER'> { player: Player };
 export interface GameActionRosterDone extends Action<'ROSTER_DONE'> {};
 export interface GameActionApplyStarter extends Action<'APPLY_STARTER'> {};
 export interface GameActionCancelStarter extends Action<'CANCEL_STARTER'> {};
@@ -41,7 +44,7 @@ export type GameAction = GameActionGetGameRequest | GameActionGetGameSuccess |
                          GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
                          GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
                          GameActionSelectPlayer | GameActionSelectPosition | GameActionApplyStarter |
-                         GameActionCancelStarter ;
+                         GameActionCancelStarter | GameActionAddPlayer;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
@@ -125,6 +128,33 @@ const getGameFail: ActionCreator<GameActionGetGameFail> = (error: string) => {
 export const markCaptainsDone: ActionCreator<ThunkResult> = () => (dispatch) => {
   dispatch({
     type: CAPTAINS_DONE
+  });
+};
+
+export const addNewGamePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
+  if (!newPlayer) {
+    return;
+  }
+  const state = getState();
+  // Verify that the player id is unique.
+  const gameState = state.game!;
+  if (gameState.game && gameState.game.roster[newPlayer.id]) {
+    return;
+  }
+  dispatch(saveGamePlayer(newPlayer));
+};
+
+export const saveGamePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
+  // Save the player to Firestore, before adding to the store.
+  const gameId = currentGameIdSelector(getState())!;
+  savePlayerToGameRoster(newPlayer, firebaseRef.firestore(), gameId);
+  dispatch(addGamePlayer(newPlayer));
+};
+
+export const addGamePlayer: ActionCreator<ThunkResult> = (player: Player) => (dispatch) => {
+  dispatch({
+    type: ADD_PLAYER,
+    player
   });
 };
 
