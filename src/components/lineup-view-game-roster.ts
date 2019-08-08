@@ -14,7 +14,7 @@ import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store, RootState } from '../store';
 
 // We are lazy loading its reducer.
-import game from '../reducers/team';
+import game from '../reducers/game';
 store.addReducers({
     game
 });

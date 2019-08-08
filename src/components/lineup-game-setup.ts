@@ -12,6 +12,7 @@ import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store, RootState } from '../store';
 
 // These are the actions needed by this element.
+import { navigate } from '../actions/app';
 import {
   markCaptainsDone,
   markRosterDone,
@@ -79,6 +80,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
         }
       </style>
       <div>
+      ${this._game ? html`
         ${repeat(tasks, (task: SetupTask) => task.step, (task: SetupTask) => html`
           <div class="task flex-equal-justified">
             <div class="name">
@@ -111,6 +113,11 @@ export class LineupGameSetup extends connect(store)(LitElement) {
             <option value="4-3-3">4-3-3</option>
           </select>
         </div>
+      ` : html`
+        <p class="empty-list">
+          Cannot setup - Game not set.
+        </p>
+      `}
       </div>`
   }
 
@@ -150,6 +157,11 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     switch (step) {
       case SetupSteps.Formation:
         this._showFormation = true;
+        break;
+
+      case SetupSteps.Roster:
+        window.history.pushState({}, '', `/gameroster/${this._game!.id}`);
+        store.dispatch(navigate(window.location));
         break;
 
       default:
