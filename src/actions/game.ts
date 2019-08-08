@@ -61,7 +61,12 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
 
   // Checks if the game has already been retrieved.
   const state = getState();
-  const existingGame: Game | undefined = state.games && state.games.games && state.games.games[gameId];
+  let existingGame: Game | undefined;
+  if (state.game && state.game.game && state.game.game.id === gameId) {
+    existingGame = state.game.game!;
+  } else {
+    existingGame = state.games && state.games.games && state.games.games[gameId];
+  }
   if (existingGame && existingGame.hasDetail) {
     dispatch(getGameSuccess(existingGame));
     // let the calling code know there's nothing to wait for.

@@ -174,7 +174,31 @@ describe('Game actions', () => {
       }));
     });
 
-    it('should use the already loaded game, without retrieving from storage', async () => {
+    it('should use the already loaded game from game detail in state, without retrieving from storage', async () => {
+      const dispatchMock = jest.fn();
+      const loadedGame: GameDetail = {
+        ...getStoredGameDetail(),
+        hasDetail: true
+      };
+      const getStateMock = mockGetState(undefined, (gameState) => {
+        gameState.gameId = loadedGame.id;
+        gameState.game = loadedGame;
+      });
+
+      await actions.getGame(getStoredGame().id)(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).toHaveBeenCalledTimes(2);
+
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.GET_GAME_SUCCESS,
+        game: loadedGame,
+      }));
+    });
+
+    it('should use the already loaded game from games list in state, without retrieving from storage', async () => {
       const dispatchMock = jest.fn();
       const loadedGame: GameDetail = {
         ...getStoredGameDetail(),
