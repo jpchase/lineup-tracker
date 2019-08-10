@@ -1,6 +1,7 @@
 import * as actions from '@app/actions/game';
 import { FormationType, Position } from '@app/models/formation';
 import { Game, GameDetail, GameStatus, LivePlayer } from '@app/models/game';
+import { Player, Roster } from '@app/models/player';
 import { GameState } from '@app/reducers/game';
 import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
@@ -185,7 +186,7 @@ describe('Game actions', () => {
         gameState.game = loadedGame;
       });
 
-      await actions.getGame(getStoredGame().id)(dispatchMock, getStateMock, undefined);
+      await actions.getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
       expect(firebaseRef.firestore).not.toHaveBeenCalled();
 
@@ -206,7 +207,7 @@ describe('Game actions', () => {
       };
       const getStateMock = mockGetState([loadedGame]);
 
-      await actions.getGame(getStoredGame().id)(dispatchMock, getStateMock, undefined);
+      await actions.getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
       expect(firebaseRef.firestore).not.toHaveBeenCalled();
 
@@ -301,6 +302,152 @@ describe('Game actions', () => {
 
   }); // describe('getGame')
 
+  describe('copyRoster', () => {
+
+    async function verifyStoredRoster(gameId: string, expectedRoster: Roster) {
+      const expectedIds = Object.keys(expectedRoster);
+      const path = `${KEY_GAMES}/${gameId}/${KEY_ROSTER}`;
+      const query: Query = mockFirebase.firestore().collection(path);
+      const result: QuerySnapshot = await query.get();
+      expect(result.size).toEqual(expectedIds.length);
+
+      let matchingCount = 0;
+      result.forEach((doc: QueryDocumentSnapshot) => {
+        const id = doc.id;
+
+        expect(id).toBeTruthy();
+        expect(id).toMatch(/[A-Za-z0-9]+/);
+
+        expect(expectedRoster[id]).toBeDefined();
+
+        const data = doc.data();
+        const matchingPlayer: Player = expectedRoster[id];
+
+        expect(data).toEqual(matchingPlayer);
+
+        matchingCount++;
+      });
+
+      // Checks that all of the expected players were found.
+      expect(matchingCount).toEqual(expectedIds.length);
+    }
+
+    it('should return a function to dispatch the copyRoster action', () => {
+      expect(typeof actions.copyRoster()).toBe('function');
+    });
+
+    it('should do nothing if game id is missing', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = jest.fn();
+
+      await actions.copyRoster()(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+    it('should do nothing when game id does not match loaded game', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState([]);
+
+      const gameId = 'nosuchgame';
+      await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+
+      expect(dispatchMock).not.toBeCalled();
+    });
+
+    it('should do nothing if game already loaded has a roster with players', async () => {
+      const dispatchMock = jest.fn();
+      const loadedGame: GameDetail = {
+        ...getStoredGameDetail(),
+        hasDetail: true
+      };
+      const getStateMock = mockGetState(undefined, (gameState) => {
+        gameState.gameId = loadedGame.id;
+        gameState.game = loadedGame;
+      });
+
+      await actions.copyRoster(loadedGame.id)(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).toHaveBeenCalledTimes(2);
+
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.COPY_ROSTER_SUCCESS,
+        gameId: loadedGame.id,
+      }));
+
+    });
+
+    it('should dispatch success action with team roster copied to game in storage', async () => {
+      const dispatchMock = jest.fn();
+      const loadedGame: GameDetail = {
+        ...getStoredGameDetail(),
+        hasDetail: true,
+        roster: {}
+      };
+      const getStateMock = mockGetState(undefined, (gameState) => {
+        gameState.gameId = loadedGame.id;
+        gameState.game = loadedGame;
+      });
+
+      const gameId = loadedGame.id;
+      await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).toHaveBeenCalledTimes(2);
+
+      expect(dispatchMock).toHaveBeenCalledTimes(2);
+
+      // Checks that first dispatch was the request action
+      expect(dispatchMock.mock.calls[0]).toEqual([expect.objectContaining({
+        type: actions.COPY_ROSTER_REQUEST,
+        gameId: gameId,
+      })]);
+
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.COPY_ROSTER_SUCCESS,
+        gameId: gameId,
+        gameRoster: buildRoster([getStoredPlayer()]),
+      }));
+
+      await verifyStoredRoster(gameId, buildRoster([getStoredPlayer()]));
+    });
+
+    it('should dispatch only request action when storage access fails', async () => {
+      const dispatchMock = jest.fn();
+      const loadedGame: GameDetail = {
+        ...getStoredGameDetail(),
+        hasDetail: true,
+        roster: {}
+      };
+      const getStateMock = mockGetState(undefined, (gameState) => {
+        gameState.gameId = loadedGame.id;
+        gameState.game = loadedGame;
+      });
+
+      const gameId = loadedGame.id;
+
+      firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+
+      expect(() => {
+        actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
+      }).toThrow();
+
+      expect(dispatchMock).toHaveBeenCalledTimes(1);
+
+      // Checks that first dispatch was the request action
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.COPY_ROSTER_REQUEST,
+        gameId: gameId,
+      }));
+    });
+  }); // describe('copyRoster')
+
   describe('markCaptainsDone', () => {
     it('should return a function to dispatch the markCaptainsDone action', () => {
       expect(typeof actions.markCaptainsDone()).toBe('function');
@@ -361,7 +508,7 @@ describe('Game actions', () => {
 
       expect(dispatchMock).not.toBeCalled();
     });
-  });
+  });  // describe('addNewGamePlayer')
 
   describe('saveGamePlayer', () => {
     it('should return a function to dispatch the action', () => {
@@ -443,7 +590,6 @@ describe('Game actions', () => {
         player: getNewPlayer(),
       }));
     });
-
   }); // describe('addGamePlayer')
 
   describe('markRosterDone', () => {

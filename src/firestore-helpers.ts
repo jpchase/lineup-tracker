@@ -17,6 +17,7 @@ export const KEY_TEAMS = 'teams';
 export interface NewDocOptions {
   addTeamId?: boolean;
   addUserId?: boolean;
+  keepExistingId?: boolean;
 }
 
 export function buildNewDocumentData(model: any, state?: RootState, options?: NewDocOptions): DocumentData {
@@ -24,7 +25,9 @@ export function buildNewDocumentData(model: any, state?: RootState, options?: Ne
     ...model,
   };
   // Ensure there is no 'id' property, as that will prevent a unique id from being generated.
-  delete data.id;
+  if (!options || !options.keepExistingId) {
+    delete data.id;
+  }
   // Add parent ids, if necessary.
   if (options && state) {
     if (options.addTeamId) {
@@ -40,7 +43,10 @@ export function buildNewDocumentData(model: any, state?: RootState, options?: Ne
 export function saveNewDocument(model: any, collection: CollectionReference, state?: RootState, options?: NewDocOptions) {
   const data = buildNewDocumentData(model, state, options);
 
-  const doc: DocumentReference = collection.doc();
+  // Unless requested to use model id, leave doc path empty, which will cause
+  // a new unique id to be generated.
+  const docPath = (options && options.keepExistingId) ? model.id : undefined;
+  const doc: DocumentReference = collection.doc(docPath);
   doc.set(data);
   model.id = doc.id;
 }
@@ -97,15 +103,15 @@ function loadRoster(firestore: FirebaseFirestore, collectionPath: string): Promi
   });
 }
 
-export function savePlayerToGameRoster(newPlayer: Player, firestore: FirebaseFirestore, gameId: string) {
-  savePlayerToRoster(newPlayer, firestore, buildGameRosterPath(gameId));
+export function savePlayerToGameRoster(newPlayer: Player, firestore: FirebaseFirestore, gameId: string, options?: NewDocOptions) {
+  savePlayerToRoster(newPlayer, firestore, buildGameRosterPath(gameId), options);
 }
 
 export function savePlayerToTeamRoster(newPlayer: Player, firestore: FirebaseFirestore, teamId: string) {
   savePlayerToRoster(newPlayer, firestore, buildTeamRosterPath(teamId));
 }
 
-function savePlayerToRoster(newPlayer: Player, firestore: FirebaseFirestore, collectionPath: string) {
+function savePlayerToRoster(newPlayer: Player, firestore: FirebaseFirestore, collectionPath: string, options?: NewDocOptions) {
   const collection = firestore.collection(collectionPath);
-  saveNewDocument(newPlayer, collection);
+  saveNewDocument(newPlayer, collection, undefined, options);
 };
