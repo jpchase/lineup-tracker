@@ -20,9 +20,10 @@ store.addReducers({
 });
 
 // These are the actions needed by this element.
-import { getGame, addNewGamePlayer } from '../actions/game';
+import { getGame, addNewGamePlayer, copyRoster } from '../actions/game';
 
 // These are the elements needed by this element.
+import '@material/mwc-button';
 import './lineup-roster';
 
 import { EVENT_NEWPLAYERCREATED } from './events';
@@ -37,7 +38,12 @@ export { getGame };
 export class LineupViewGameRoster extends connect(store)(PageViewElement) {
   // TODO: Extract common logic (duplicated from LineupViewGameDetail)
   protected render() {
-    if (this._game) {
+    const gameExists = !!this._game;
+    let rosterExists = false;
+
+    if (gameExists) {
+      rosterExists = (Object.keys(this._roster).length > 0);
+
       updateMetadata({
         title: `Game Roster - ${this._getName()}`,
         description: `Game roster for: ${this._getName()}`
@@ -47,9 +53,17 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
     return html`
       ${SharedStyles}
       <section>
-      ${this._game ? html`
+      ${gameExists ? html`
         <h2>Roster: ${this._getName()}</h2>
-        <lineup-roster .roster="${this._roster}"></lineup-roster>
+        ${rosterExists ? html`
+          <lineup-roster .roster="${this._roster}"></lineup-roster>
+        ` : html`
+          <p class="empty-list">
+            Roster is empty.
+          </p>
+          <mwc-button icon="copy"
+                             @click="${this._copyTeamRoster}">Copy Team Roster</mwc-button>
+        `}
       ` : html`
         <p class="empty-list">
           Game not found.
@@ -76,6 +90,10 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
     const gameState = state.game!;
     this._game = gameState.game;
     this._roster = gameState.game && gameState.game.roster || {};
+  }
+
+  private _copyTeamRoster() {
+    store.dispatch(copyRoster(this._game!.id));
   }
 
   private _newPlayerCreated(e: CustomEvent) {

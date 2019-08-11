@@ -74,20 +74,7 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 
     case GET_GAME_SUCCESS:
       const gameDetail: GameDetail = action.game;
-      // Copy team roster, if required.
-      let hasGameRoster = (Object.keys(gameDetail.roster).length > 0);
-      if (action.teamRoster && !hasGameRoster) {
-        const teamRoster = action.teamRoster!;
-        const roster: Roster = Object.keys(teamRoster).reduce((obj, key) => {
-          const teamPlayer: Player = teamRoster[key];
-          const player: Player = { ...teamPlayer};
-          obj[player.id] = player;
-          return obj;
-        }, {} as Roster);
-        gameDetail.roster = roster;
-        hasGameRoster = true;
-      }
-      gameDetail.hasDetail = hasGameRoster;
+      gameDetail.hasDetail = true;
       if (!gameDetail.status) {
         gameDetail.status = GameStatus.New;
       }

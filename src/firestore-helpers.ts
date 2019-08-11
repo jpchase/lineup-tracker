@@ -5,7 +5,7 @@ import {
   QueryDocumentSnapshot, QuerySnapshot
 } from '@firebase/firestore-types';
 import { RootState } from './store';
-import { Player, Roster } from './models/player';
+import { Player, PlayerStatus, Roster } from './models/player';
 import { Game } from './models/game';
 import { currentUserIdSelector } from './reducers/auth';
 import { currentTeamIdSelector } from './reducers/team';
@@ -115,5 +115,11 @@ export function savePlayerToTeamRoster(newPlayer: Player, firestore: FirebaseFir
 
 function savePlayerToRoster(newPlayer: Player, firestore: FirebaseFirestore, collectionPath: string, options?: NewDocOptions) {
   const collection = firestore.collection(collectionPath);
+  if (!newPlayer.status) {
+    newPlayer.status = PlayerStatus.Off;
+  }
+  if (!newPlayer.positions) {
+    newPlayer.positions = [];
+  }
   saveNewDocument(newPlayer, collection, undefined, options);
 };

@@ -113,7 +113,9 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
         gameId: '',
         game: undefined,
         detailLoading: false,
-        detailFailure: false
+        detailFailure: false,
+        rosterLoading: false,
+        rosterFailure: false
       },
       team: undefined
     };
@@ -172,6 +174,27 @@ describe('Game actions', () => {
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
         type: actions.GET_GAME_SUCCESS,
         game: getStoredGameDetail(),
+      }));
+    });
+
+    it('should dispatch success action when game roster is empty', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState([]);
+
+      await actions.getGame(OTHER_STORED_GAME_ID)(dispatchMock, getStateMock, undefined);
+
+      expect(firebaseRef.firestore).toHaveBeenCalledTimes(2);
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).toHaveBeenCalledTimes(2);
+
+      const storedGame: GameDetail = {
+        ...getOtherStoredGameWithoutDetail(),
+        roster: {}
+      }
+      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+        type: actions.GET_GAME_SUCCESS,
+        game: storedGame
       }));
     });
 
@@ -237,28 +260,6 @@ describe('Game actions', () => {
       }));
     });
 
-    it('should retrieve team roster from storage when game roster is empty', async () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = mockGetState([]);
-
-      await actions.getGame(OTHER_STORED_GAME_ID)(dispatchMock, getStateMock, undefined);
-
-      expect(firebaseRef.firestore).toHaveBeenCalledTimes(3);
-
-      // The request action is dispatched, regardless.
-      expect(dispatchMock).toHaveBeenCalledTimes(2);
-
-      const storedGame: GameDetail = {
-        ...getOtherStoredGameWithoutDetail(),
-        roster: {}
-      }
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.GET_GAME_SUCCESS,
-        game: storedGame,
-        teamRoster: getTeamRoster()
-      }));
-    });
-
     it('should fail when game not found in storage', async () => {
       const dispatchMock = jest.fn();
       const getStateMock = mockGetState([]);
@@ -299,7 +300,6 @@ describe('Game actions', () => {
         gameId: gameId,
       }));
     });
-
   }); // describe('getGame')
 
   describe('copyRoster', () => {

@@ -25,7 +25,7 @@ import {
 } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
-import { getFakeAction, buildRoster, getNewPlayer, getStoredPlayer, getStoredPlayerData } from '../helpers/test_data';
+import { getFakeAction, buildRoster, getNewPlayer, getStoredPlayer } from '../helpers/test_data';
 
 const GAME_INITIAL_STATE: GameState = {
   gameId: '',
@@ -145,55 +145,20 @@ describe('Games reducer', () => {
       expect(newState.game).not.toBe(GAME_INITIAL_STATE.game);
     });
 
-    it('should ignore team roster when game roster already set', () => {
-      const gamePlayer: Player = {
-        ...getStoredPlayerData(),
-        id: 'gp1'
-      };
-      const inputGame: GameDetail = {
-        ...existingGame,
-        roster: buildRoster([gamePlayer])
-      };
-
-      const newState = game(GAME_INITIAL_STATE, {
-        type: GET_GAME_SUCCESS,
-        game: inputGame,
-        teamRoster: buildRoster([getStoredPlayer()])
-      });
-
-      const gameDetail: GameDetail = {
-        ...existingGame,
-        hasDetail: true,
-        roster: buildRoster([gamePlayer])
-      };
-
-      expect(newState).toEqual(expect.objectContaining({
-        game: gameDetail,
-        // TODO: Ensure games state has latest game detail
-        // games: buildGames([gameDetail]),
-        detailLoading: false,
-        detailFailure: false,
-      }));
-
-      expect(newState).not.toBe(GAME_INITIAL_STATE);
-      expect(newState.game).not.toBe(GAME_INITIAL_STATE.game);
-    });
-
-    it('should copy team roster to game roster', () => {
+    it('should set hasDetail when game roster is empty', () => {
       const inputGame: GameDetail = {
         ...newGame,
         roster: {}
       };
       const newState = game(GAME_INITIAL_STATE, {
         type: GET_GAME_SUCCESS,
-        game: inputGame,
-        teamRoster: buildRoster([getStoredPlayer()])
+        game: inputGame
       });
 
       const gameDetail: GameDetail = {
         ...newGame,
         hasDetail: true,
-        roster: buildRoster([getStoredPlayer()]),
+        roster: {},
         setupTasks: buildSetupTasks()
       };
 

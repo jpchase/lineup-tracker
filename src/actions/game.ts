@@ -31,7 +31,7 @@ export const SELECT_PLAYER = 'SELECT_PLAYER';
 export const SELECT_POSITION = 'SELECT_POSITION';
 
 export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { gameId: string };
-export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail, teamRoster?: Roster };
+export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail };
 export interface GameActionGetGameFail extends Action<'GET_GAME_FAIL'> { error: string };
 export interface GameActionCopyRosterRequest extends Action<'COPY_ROSTER_REQUEST'> { gameId: string };
 export interface GameActionCopyRosterSuccess extends Action<'COPY_ROSTER_SUCCESS'> { gameId: string, gameRoster?: Roster };
@@ -81,8 +81,6 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
   }
 
   let game: Game;
-  let gameRoster: Roster;
-  let gameRosterExists = false;
   const docRef: DocumentReference = getGamesCollection().doc(gameId);
   return docRef.get().then((value: DocumentSnapshot) => {
     if (!value.exists) {
@@ -93,23 +91,12 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
   .then(() => {
     return loadGameRoster(firebaseRef.firestore(), gameId);
   })
-  .then((roster: Roster) => {
-    // Checks if the game roster has been populated.
-    gameRoster = roster;
-    gameRosterExists = (Object.keys(roster).length > 0);
-    if (gameRosterExists) {
-      return {};
-    }
-    // No roster yet, load the team roster.
-    // TODO: Move this to a manual step on game roster page?
-    return loadTeamRoster(firebaseRef.firestore(), game.teamId);
-  })
-  .then((teamRoster: Roster) => {
+  .then((gameRoster: Roster) => {
     const gameDetail: GameDetail = {
       ...game,
       roster: gameRoster
     };
-    dispatch(getGameSuccess(gameDetail, teamRoster));
+    dispatch(getGameSuccess(gameDetail));
   })
   .catch((error: any) => {
     dispatch(getGameFail(error.toString()));
@@ -123,11 +110,10 @@ const getGameRequest: ActionCreator<GameActionGetGameRequest> = (gameId: string)
   };
 };
 
-const getGameSuccess: ActionCreator<GameActionGetGameSuccess> = (game: GameDetail, teamRoster?: Roster) => {
+const getGameSuccess: ActionCreator<GameActionGetGameSuccess> = (game: GameDetail) => {
   return {
     type: GET_GAME_SUCCESS,
-    game,
-    teamRoster
+    game
   };
 };
 
@@ -184,7 +170,7 @@ export const copyRoster: ActionCreator<ThunkPromise<void>> = (gameId: string) =>
     dispatch(copyRosterSuccess(gameId, roster));
   })
   .catch((error: any) => {
-    dispatch(getGameFail(error.toString()));
+    dispatch(copyRosterFail(error.toString()));
   });
 }
 
@@ -202,14 +188,14 @@ const copyRosterSuccess: ActionCreator<GameActionCopyRosterSuccess> = (gameId: s
     gameRoster
   };
 };
-/*
+
 const copyRosterFail: ActionCreator<GameActionCopyRosterFail> = (error: string) => {
   return {
     type: COPY_ROSTER_FAIL,
     error
   };
 };
-*/
+
 export const markCaptainsDone: ActionCreator<ThunkResult> = () => (dispatch) => {
   dispatch({
     type: CAPTAINS_DONE
