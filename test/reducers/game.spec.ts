@@ -12,6 +12,9 @@ import {
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
   CAPTAINS_DONE,
+  COPY_ROSTER_REQUEST,
+  COPY_ROSTER_SUCCESS,
+  COPY_ROSTER_FAIL,
   ADD_PLAYER,
   ROSTER_DONE,
   STARTERS_DONE,
@@ -33,6 +36,8 @@ const GAME_INITIAL_STATE: GameState = {
   proposedStarter: undefined,
   detailLoading: false,
   detailFailure: false,
+  rosterLoading: false,
+  rosterFailure: false,
   error: ''
 };
 
@@ -299,8 +304,110 @@ describe('Games reducer', () => {
       expect(newState).not.toBe(state);
       expect(newState.game).not.toBe(state.game);
     });
-
   }); // describe('CAPTAINS_DONE')
+
+  describe('COPY_ROSTER_REQUEST', () => {
+    it('should set copying flag', () => {
+      const newState = game(GAME_INITIAL_STATE, {
+        type: COPY_ROSTER_REQUEST,
+        gameId: newGame.id
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        gameId: newGame.id,
+        rosterLoading: true,
+        rosterFailure: false
+      }));
+
+      expect(newState).not.toBe(GAME_INITIAL_STATE);
+      expect(newState.gameId).not.toBe(GAME_INITIAL_STATE.gameId);
+    });
+  }); // describe('COPY_ROSTER_REQUEST')
+
+  describe('COPY_ROSTER_SUCCESS', () => {
+    let currentState: GameState = GAME_INITIAL_STATE;
+
+    beforeEach(() => {
+      currentState = {
+        ...GAME_INITIAL_STATE,
+        game: {
+          ...newGame,
+          hasDetail: true,
+          roster: {}
+        }
+      };
+    });
+
+    it('should only update flags when roster already set', () => {
+      currentState.game!.roster = buildRoster([getStoredPlayer()]);
+
+      const newState = game(currentState, {
+        type: COPY_ROSTER_SUCCESS,
+        gameId: currentState.game!.id
+      });
+
+      const gameDetail: GameDetail = {
+        ...currentState.game as GameDetail
+      };
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: gameDetail,
+        rosterLoading: false,
+        rosterFailure: false
+      }));
+
+      expect(newState).not.toBe(currentState);
+      expect(newState.game).toBe(currentState.game);
+      expect(newState.game!.roster).toBe(currentState.game!.roster);
+    });
+
+    it('should set roster and update flags', () => {
+      const rosterPlayers = [getStoredPlayer()];
+
+      expect(currentState.game!.roster).toEqual({});
+
+      const newState = game(currentState, {
+        type: COPY_ROSTER_SUCCESS,
+        gameId: currentState.game!.id,
+        gameRoster: buildRoster(rosterPlayers)
+      });
+
+      const gameDetail: GameDetail = {
+        ...newGame,
+        hasDetail: true,
+        roster: buildRoster(rosterPlayers)
+      };
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: gameDetail,
+        rosterLoading: false,
+        rosterFailure: false
+      }));
+
+      expect(newState).not.toBe(currentState);
+      expect(newState.game).not.toBe(currentState.game);
+      expect(newState.game!.roster).not.toBe(currentState.game!.roster);
+    });
+  }); // describe('COPY_ROSTER_SUCCESS')
+
+  describe('COPY_ROSTER_FAIL', () => {
+    it('should set failure flag and error message', () => {
+
+      const newState = game(GAME_INITIAL_STATE, {
+        type: COPY_ROSTER_FAIL,
+        error: 'What a roster failure!'
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        error: 'What a roster failure!',
+        rosterLoading: false,
+        rosterFailure: true
+      }));
+
+      expect(newState).not.toBe(GAME_INITIAL_STATE);
+      expect(newState.error).not.toBe(GAME_INITIAL_STATE.error);
+    });
+  }); // describe('COPY_ROSTER_FAIL')
 
   describe('ADD_PLAYER', () => {
     let newPlayer: Player;

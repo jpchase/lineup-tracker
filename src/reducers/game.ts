@@ -17,6 +17,9 @@ import {
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
   CAPTAINS_DONE,
+  COPY_ROSTER_REQUEST,
+  COPY_ROSTER_SUCCESS,
+  COPY_ROSTER_FAIL,
   ADD_PLAYER,
   ROSTER_DONE,
   STARTERS_DONE,
@@ -36,6 +39,8 @@ export interface GameState {
   proposedStarter?: LivePlayer;
   detailLoading: boolean;
   detailFailure: boolean;
+  rosterLoading: boolean;
+  rosterFailure: boolean;
   error?: string;
 }
 
@@ -48,6 +53,8 @@ const INITIAL_STATE: GameState = {
   proposedStarter: undefined,
   detailLoading: false,
   detailFailure: false,
+  rosterLoading: false,
+  rosterFailure: false,
   error: ''
 };
 
@@ -101,6 +108,43 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       newState.error = action.error;
       newState.detailFailure = true;
       newState.detailLoading = false;
+      return newState;
+
+    case COPY_ROSTER_REQUEST:
+      newState.gameId = action.gameId;
+      newState.rosterFailure = false;
+      newState.rosterLoading = true;
+      return newState;
+
+    case COPY_ROSTER_SUCCESS:
+      // Set new roster, if required.
+      if (action.gameRoster && (Object.keys(newState.game!.roster).length === 0)) {
+        const gameRoster = action.gameRoster!;
+        const roster: Roster = {};
+        Object.keys(gameRoster).forEach((key) => {
+          const teamPlayer: Player = gameRoster[key];
+          const player: Player = { ...teamPlayer};
+          roster[player.id] = player;
+        });
+        const gameWithRoster: GameDetail = {
+          ...newState.game!,
+          hasDetail: true,
+          roster: roster
+        };
+        newState.game = gameWithRoster;
+        // TODO: Ensure games state has latest game detail
+        // newState.games[action.game.id] = gameWithRoster;
+
+      }
+
+      newState.rosterFailure = false;
+      newState.rosterLoading = false;
+      return newState;
+
+    case COPY_ROSTER_FAIL:
+      newState.error = action.error;
+      newState.rosterFailure = true;
+      newState.rosterLoading = false;
       return newState;
 
     case ADD_PLAYER:
