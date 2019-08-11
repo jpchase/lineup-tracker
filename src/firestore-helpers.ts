@@ -43,10 +43,12 @@ export function buildNewDocumentData(model: any, state?: RootState, options?: Ne
 export function saveNewDocument(model: any, collection: CollectionReference, state?: RootState, options?: NewDocOptions) {
   const data = buildNewDocumentData(model, state, options);
 
-  // Unless requested to use model id, leave doc path empty, which will cause
-  // a new unique id to be generated.
-  const docPath = (options && options.keepExistingId) ? model.id : undefined;
-  const doc: DocumentReference = collection.doc(docPath);
+  // Unless requested to use model id, omit the doc path, which will cause a new unique id to be
+  // generated.
+  // NOTE: Firestore requires the parameter to be omitted entirely, it will throw for any value
+  // that is not a non-empty string.
+  const doc: DocumentReference = (options && options.keepExistingId && model.id) ?
+      collection.doc(model.id) : collection.doc();
   doc.set(data);
   model.id = doc.id;
 }
