@@ -25,7 +25,7 @@ const games: Reducer<GamesState, RootAction> = (state = INITIAL_STATE, action) =
     ...state,
     games: { ...state.games },
   };
-  console.log(`games.ts - reducer: ${JSON.stringify(action)}, state = ${JSON.stringify(state)}`);
+  // console.log(`games.ts - reducer: ${JSON.stringify(action)}, state = ${JSON.stringify(state)}`);
   switch (action.type) {
     case ADD_GAME:
       newState.games[action.game.id] = action.game;
