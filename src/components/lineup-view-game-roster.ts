@@ -63,7 +63,7 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
             Roster is empty.
           </p>
           ${this._getLoadingContent()}
-          <mwc-button icon="copy"
+          <mwc-button icon="copy" ?disabled="${this._copyingInProgress}"
                              @click="${this._copyTeamRoster}">Copy Team Roster</mwc-button>
         `}
       ` : html`
@@ -82,7 +82,7 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
 
     return html`
       <div>
-        <span>Copying from team roster...</span>
+        <div>Copying from team roster...</div>
         <paper-spinner active></paper-spinner>
       </div>
     `;
@@ -111,7 +111,8 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
     this._copyingInProgress = gameState.rosterLoading;
   }
 
-  private _copyTeamRoster() {
+  private _copyTeamRoster(e: Event) {
+    if (e.target) { (e.target as HTMLInputElement).disabled = true; }
     store.dispatch(copyRoster(this._game!.id));
   }
 
