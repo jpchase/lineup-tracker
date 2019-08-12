@@ -59,12 +59,12 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
         ${rosterExists ? html`
           <lineup-roster .roster="${this._roster}"></lineup-roster>
         ` : html`
-          <p class="empty-list">
-            Roster is empty.
-          </p>
-          ${this._getLoadingContent()}
-          <mwc-button icon="copy" ?disabled="${this._copyingInProgress}"
-                             @click="${this._copyTeamRoster}">Copy Team Roster</mwc-button>
+          <div class="empty-list">
+            <div>Roster is empty.</div>
+            <mwc-button icon="file_copy" ?disabled="${this._copyingInProgress}"
+                             @click="${this._copyTeamRoster}">Copy From Team</mwc-button>
+            ${this._getLoadingContent()}
+          </div>
         `}
       ` : html`
         <p class="empty-list">
