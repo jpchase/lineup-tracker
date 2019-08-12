@@ -24,6 +24,7 @@ import { getGame, addNewGamePlayer, copyRoster } from '../actions/game';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
+import '@polymer/paper-spinner/paper-spinner.js';
 import './lineup-roster';
 
 import { EVENT_NEWPLAYERCREATED } from './events';
@@ -61,6 +62,7 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
           <p class="empty-list">
             Roster is empty.
           </p>
+          ${this._getLoadingContent()}
           <mwc-button icon="copy"
                              @click="${this._copyTeamRoster}">Copy Team Roster</mwc-button>
         `}
@@ -73,11 +75,27 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
     `;
   }
 
+  private _getLoadingContent() {
+    if (!this._copyingInProgress) {
+      return '';
+    }
+
+    return html`
+      <div>
+        <span>Copying from team roster...</span>
+        <paper-spinner active></paper-spinner>
+      </div>
+    `;
+  }
+
   @property({ type: Object })
   private _game: GameDetail | undefined;
 
   @property({ type: Object })
   private _roster: Roster = {};
+
+  @property({ type: Boolean })
+  private _copyingInProgress = false;
 
   protected firstUpdated() {
     window.addEventListener(EVENT_NEWPLAYERCREATED, this._newPlayerCreated.bind(this) as EventListener);
@@ -90,6 +108,7 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
     const gameState = state.game!;
     this._game = gameState.game;
     this._roster = gameState.game && gameState.game.roster || {};
+    this._copyingInProgress = gameState.rosterLoading;
   }
 
   private _copyTeamRoster() {
