@@ -4,6 +4,7 @@
   "repository": "github:jpchase/lineup-tracker",
   "scripts": {
     "start": "npm run start:webpack",
+    "start:esds": "tsc && es-dev-server --node-resolve --app-index local.index.html",
     "start:webpack": "tsc && webpack-dev-server --mode development",
     "serve:tmp": "npm run build:static && firebase serve",
     "build": "tsc && npm run build:prpl-server && npm run build:static",
@@ -62,6 +63,7 @@
     "chai": "^4.1.2",
     "copy-webpack-plugin": "^4.6.0",
     "del": "^3.0.0",
+    "es-dev-server": "^1.10.6",
     "fake-indexeddb": "^2.1.0",
     "gulp": "^4.0.0",
     "gulp-print": "^5.0.0",
