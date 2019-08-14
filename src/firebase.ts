@@ -2,7 +2,10 @@ import * as firebase_app from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 
-export const firebaseRef = (window as any)['firebase'] || firebase_app;
+// TODO: Log bug against Firebase? The cjs module does this to ensure the default export is usable, but the esm module does not.
+function _interopDefault (ex: any) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+export const firebaseRef = (window as any)['firebase'] || _interopDefault(firebase_app);
 
 // Initialize Firebase
 const config = {
