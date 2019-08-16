@@ -4,6 +4,7 @@
 
 import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
+import { ifDefined } from 'lit-html/directives/if-defined';
 
 import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 
@@ -67,6 +68,17 @@ export class LineupGameSetup extends connect(store)(LitElement) {
       <style>
         :host { display: block; }
 
+        a.step:not([href]) {
+          color: currentColor;
+          cursor: not-allowed;
+          text-decoration: none;
+        }
+
+        a.step:link, a.step:hover, a.step:visited {
+          /* Enabled link styles */
+          color: currentColor;
+        }
+
         div.formation {
           display: none;
         }
@@ -84,8 +96,8 @@ export class LineupGameSetup extends connect(store)(LitElement) {
         ${repeat(tasks, (task: SetupTask) => task.step, (task: SetupTask) => html`
           <div class="task flex-equal-justified">
             <div class="name">
-              <a href="#"
-                 @click="${ (e: Event) => this._doStep(e, task.step)}">${getStepName(task.step)}</a>
+              <a class="step" href="${ifDefined(this._getStepHref(task))}"
+                 @click="${ (e: Event) => this._doStep(e, task)}">${getStepName(task.step)}</a>
             </div>
             <div class="status">
             ${task.status === SetupStatus.InProgress
@@ -153,19 +165,30 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     this._tasksComplete = !anyIncomplete;
   }
 
-  private _doStep(e: Event, step: SetupSteps) {
-    switch (step) {
-      case SetupSteps.Formation:
-        this._showFormation = true;
-        break;
+  private _getStepHref(task: SetupTask) {
+    // Only active steps should have an href.
+    if (task.status === SetupStatus.Active) {
+      return '#';
+    }
+    return undefined;
+  }
 
-      case SetupSteps.Roster:
-        window.history.pushState({}, '', `/gameroster/${this._game!.id}`);
-        store.dispatch(navigate(window.location));
-        break;
+  private _doStep(e: Event, task: SetupTask) {
+    // Only do the step if it's currently active.
+    if (task.status === SetupStatus.Active) {
+      switch (task.step) {
+        case SetupSteps.Formation:
+          this._showFormation = true;
+          break;
 
-      default:
-        break;
+        case SetupSteps.Roster:
+          window.history.pushState({}, '', `/gameroster/${this._game!.id}`);
+          store.dispatch(navigate(window.location));
+          break;
+
+        default:
+          break;
+      }
     }
     e.preventDefault();
     return false;
@@ -201,6 +224,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
 
     store.dispatch(setFormation(select.value));
 
+  // TODO: Clear select after setting, otherwise will be pre-filled on other games
     this._showFormation = false;
   }
 

@@ -137,6 +137,10 @@
 
         });
 
+        test('task links are disabled unless task is active', async function() {
+          assert.equal(true, false);
+        });
+
         test('start game is disabled initially', async function() {
           store.dispatch({type: GET_GAME_SUCCESS, game: getGameDetail()});
           await el.updateComplete;
