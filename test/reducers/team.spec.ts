@@ -7,7 +7,7 @@ import {
   buildRoster, buildTeams,
   getFakeAction,
   getNewPlayer,
-  getStoredPlayer, getStoredTeam
+  getStoredPlayer, getStoredTeam, getPublicTeam
 } from '../helpers/test_data';
 
 const TEAM_INITIAL_STATE: TeamState = {
@@ -41,6 +41,71 @@ describe('Teams reducer', () => {
       expect(newState).toEqual(expect.objectContaining({
         teams: expectedTeams,
       }));
+
+      expect(newState).not.toBe(TEAM_INITIAL_STATE);
+      expect(newState.teams).not.toBe(TEAM_INITIAL_STATE.teams);
+    });
+
+    it('should set the current team when cachedTeamId provided', () => {
+      const storedTeam = getStoredTeam();
+      const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
+
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: GET_TEAMS,
+        teams: expectedTeams,
+        cachedTeamId: storedTeam.id
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        teams: expectedTeams,
+        teamId: storedTeam.id,
+        teamName: storedTeam.name
+      }));
+
+      expect(newState).not.toBe(TEAM_INITIAL_STATE);
+      expect(newState.teams).not.toBe(TEAM_INITIAL_STATE.teams);
+    });
+
+    it('should ignore the cachedTeamId when current team already set', () => {
+      const storedTeam = getStoredTeam();
+      const currentState: TeamState = {
+        ...TEAM_INITIAL_STATE,
+        teamId: storedTeam.id,
+        teamName: storedTeam.name
+      }
+      const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
+
+      const newState = team(currentState, {
+        type: GET_TEAMS,
+        teams: expectedTeams,
+        cachedTeamId: getPublicTeam().id
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        teams: expectedTeams,
+        teamId: storedTeam.id,
+        teamName: storedTeam.name
+      }));
+
+      expect(newState).not.toBe(TEAM_INITIAL_STATE);
+      expect(newState.teams).not.toBe(TEAM_INITIAL_STATE.teams);
+    });
+
+    it('should ignore the cachedTeamId when not in the team list', () => {
+      const storedTeam = getStoredTeam();
+      const expectedTeams = buildTeams([storedTeam]);
+
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: GET_TEAMS,
+        teams: expectedTeams,
+        cachedTeamId: getPublicTeam().id
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        teams: expectedTeams
+      }));
+      expect(newState.teamId).toBeFalsy();
+      expect(newState.teamName).toBeFalsy();
 
       expect(newState).not.toBe(TEAM_INITIAL_STATE);
       expect(newState.teams).not.toBe(TEAM_INITIAL_STATE.teams);

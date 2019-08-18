@@ -5,6 +5,8 @@ import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 /// <reference path="mock-cloud-firestore.d.ts" />
 import * as MockFirebase from 'mock-cloud-firestore';
+import { get, set } from 'idb-keyval';
+
 import {
   TEST_USER_ID,
   buildRoster, buildTeams,
@@ -15,6 +17,10 @@ import {
 } from '../helpers/test_data';
 
 jest.mock('@app/firebase');
+jest.mock('idb-keyval',);
+
+const mockedIDBGet = get as unknown as jest.Mock;//<typeof get>;
+const mockedIDBSet = set as unknown as jest.Mock;//<typeof set>;
 
 const fixtureData = {
   __collection__: {
@@ -60,6 +66,7 @@ const fixtureData = {
 };
 
 const KEY_TEAMS = 'teams';
+const KEY_TEAMID = 'teamId';
 const KEY_ROSTER = 'roster';
 
 export function getNewTeamData() {
@@ -103,6 +110,8 @@ describe('Team actions', () => {
     firebaseRef.firestore.mockImplementation(() => {
       return mockFirebase.firestore();
     });
+
+    mockedIDBSet.mockResolvedValue(undefined);
   });
 
   describe('getTeams', () => {
@@ -110,9 +119,49 @@ describe('Team actions', () => {
       expect(typeof actions.getTeams()).toBe('function');
     });
 
-    it('should dispatch an action with owned teams returned from storage', async () => {
+    it('should dispatch an action with owned teams returned from storage, without cached team id', async () => {
       const dispatchMock = jest.fn();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
+      mockedIDBGet.mockResolvedValue(undefined);
+
+      actions.getTeams()(dispatchMock, getStateMock, undefined);
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      // Checks that the cached team id was retrieved from IDB.
+      expect(mockedIDBGet).toBeCalledTimes(1)
+      expect(mockedIDBGet).toBeCalledWith(KEY_TEAMID);
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.GET_TEAMS,
+        teams: buildTeams([getStoredTeam()]),
+      }));
+    });
+
+    it('should dispatch an action with owned teams returned from storage, with cached team id', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
+      const previousTeam = getStoredTeam();
+      mockedIDBGet.mockResolvedValue(previousTeam.id);
+
+      actions.getTeams()(dispatchMock, getStateMock, undefined);
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+        type: actions.GET_TEAMS,
+        teams: buildTeams([getStoredTeam()]),
+        cachedTeamId: previousTeam.id
+      }));
+    });
+
+    it('should dispatch an action with owned teams returned from storage, with already selected team', async () => {
+      const dispatchMock = jest.fn();
+      const getStateMock = mockGetState([], getStoredTeam(), { signedIn: true, userId: TEST_USER_ID })
+      const previousTeam = getStoredTeam();
+      mockedIDBGet.mockResolvedValue(previousTeam.id);
 
       actions.getTeams()(dispatchMock, getStateMock, undefined);
 
@@ -133,6 +182,8 @@ describe('Team actions', () => {
 
       // Waits for promises to resolve.
       await Promise.resolve();
+
+      expect(mockedIDBGet).not.toBeCalled();
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
         type: actions.GET_TEAMS,
@@ -156,7 +207,7 @@ describe('Team actions', () => {
       expect(dispatchMock).not.toBeCalled();
     });
 
-  });
+  }); // describe('getTeams')
 
   describe('changeTeam', () => {
     it('should return a function to dispatch the action', () => {
@@ -206,12 +257,15 @@ describe('Team actions', () => {
 
       expect(getStateMock).toBeCalled();
 
+      // Checks that the changed team was cached in IDB.
+      expect(mockedIDBSet).toBeCalledWith(KEY_TEAMID, newTeamSaved.id);
+
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
         type: actions.CHANGE_TEAM,
         teamId: newTeamSaved.id,
       }));
     });
-  });
+  }); // describe('changeTeam')
 
   describe('addNewTeam', () => {
     it('should return a function to dispatch the action', () => {
@@ -250,7 +304,7 @@ describe('Team actions', () => {
 
       expect(dispatchMock).not.toBeCalled();
     });
-  });
+  }); // describe('addNewTeam')
 
   describe('saveTeam', () => {
     it('should return a function to dispatch the action', () => {
@@ -262,9 +316,6 @@ describe('Team actions', () => {
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
 
       actions.saveTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
 
       // Checks that the new team was saved to the database.
       const query: Query = mockFirebase.firestore().collection(KEY_TEAMS).where('name', '==', newTeamSaved.name);
@@ -287,8 +338,9 @@ describe('Team actions', () => {
       expect(id).toMatch(/[A-Za-z0-9]+/);
       expect(data).toEqual(expectedData);
 
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      // Checks that the new selected team was cached in IDB.
+      expect(mockedIDBSet).toBeCalledWith(KEY_TEAMID, id);
+
       expect(dispatchMock).toBeCalledWith(expect.any(Function));
     });
 
@@ -306,7 +358,7 @@ describe('Team actions', () => {
 
       expect(dispatchMock).not.toBeCalled();
     });
-  });
+  }); // describe('saveTeam')
 
   describe('addTeam', () => {
     it('should return a function to dispatch the addTeam action', () => {
@@ -325,7 +377,7 @@ describe('Team actions', () => {
       }));
     });
 
-  });
+  }); // describe('addTeam')
 
   describe('getRoster', () => {
     it('should return a function to dispatch the getRoster action', () => {
@@ -415,7 +467,7 @@ describe('Team actions', () => {
 
       expect(dispatchMock).not.toBeCalled();
     });
-  });
+  }); // describe('addNewPlayer')
 
   describe('savePlayer', () => {
     it('should return a function to dispatch the action', () => {

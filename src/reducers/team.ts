@@ -36,17 +36,13 @@ const team: Reducer<TeamState, RootAction> = (state = INITIAL_STATE, action) => 
   };
   switch (action.type) {
     case ADD_TEAM:
-      console.log(`team.ts - reducer: ${JSON.stringify(action)}, ${JSON.stringify(state)}`);
-      newState.teamId = action.team.id;
-      newState.teamName = action.team.name;
       newState.teams = { ...newState.teams };
       newState.teams[action.team.id] = action.team;
+      setCurrentTeam(newState, action.team.id);
       return newState;
 
     case CHANGE_TEAM:
-      newState.teamId = action.teamId;
-      newState.teamName = state.teams[action.teamId].name;
-      console.log(`team.ts - reducer: ${JSON.stringify(action)}, in = ${JSON.stringify(state)}, new = ${JSON.stringify(newState)}`);
+      setCurrentTeam(newState, action.teamId);
       return newState;
 
     case ADD_PLAYER:
@@ -55,19 +51,26 @@ const team: Reducer<TeamState, RootAction> = (state = INITIAL_STATE, action) => 
       return newState;
 
     case GET_ROSTER:
-      console.log(`team.ts - reducer: ${JSON.stringify(action)}, ${JSON.stringify(state)}`);
       newState.roster = action.roster;
       return newState;
 
     case GET_TEAMS:
-      console.log(`team.ts - reducer: ${JSON.stringify(action)}, ${JSON.stringify(state)}`);
       newState.teams = action.teams;
+      if (!newState.teamId && action.cachedTeamId && newState.teams[action.cachedTeamId]) {
+        setCurrentTeam(newState, action.cachedTeamId);
+      }
       return newState;
 
     default:
       return state;
   }
 };
+
+function setCurrentTeam(newState: TeamState, teamId: string) {
+  const team = newState.teams[teamId];
+  newState.teamId = team.id;
+  newState.teamName = team.name;
+}
 
 export default team;
 

@@ -11,6 +11,7 @@ import { currentTeamIdSelector } from '../reducers/team';
 import { firebaseRef } from '../firebase';
 import { saveNewDocument, loadTeamRoster, savePlayerToTeamRoster, KEY_TEAMS } from '../firestore-helpers';
 import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
+import { get, set } from 'idb-keyval';
 
 export const ADD_TEAM = 'ADD_TEAM';
 export const CHANGE_TEAM = 'CHANGE_TEAM';
@@ -20,7 +21,7 @@ export const ADD_PLAYER = 'ADD_PLAYER';
 
 export interface TeamActionAddTeam extends Action<'ADD_TEAM'> { team: Team };
 export interface TeamActionChangeTeam extends Action<'CHANGE_TEAM'> { teamId: string };
-export interface TeamActionGetTeams extends Action<'GET_TEAMS'> { teams: Teams };
+export interface TeamActionGetTeams extends Action<'GET_TEAMS'> { teams: Teams, cachedTeamId?: string };
 export interface TeamActionGetRoster extends Action<'GET_ROSTER'> { roster: Roster };
 export interface TeamActionAddPlayer extends Action<'ADD_PLAYER'> { player: Player };
 export type TeamAction = TeamActionAddTeam | TeamActionChangeTeam | TeamActionGetTeams | TeamActionGetRoster | TeamActionAddPlayer;
@@ -29,9 +30,15 @@ type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
+const KEY_TEAMID = 'teamId';
 
 function getTeamsCollection(): CollectionReference {
   return firebaseRef.firestore().collection(KEY_TEAMS);
+}
+
+// Caches the currently selected team, for return visits.
+function cacheTeamId(teamId: string) {
+  set(KEY_TEAMID, teamId).then();
 }
 
 export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
@@ -40,9 +47,21 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
   // Show the user's teams, when signed in. Otherwise, only show public data.
   // TODO: Extract into helper function somewhere?
   const currentUser = getState().auth!.user;
+  let cachedTeamId: string;
   if (currentUser && currentUser.id) {
     console.log(`Get teams for owner = ${JSON.stringify(currentUser)}`);
     query = query.where(FIELD_OWNER, '==', currentUser.id);
+
+    const teamId = currentTeamIdSelector(getState());
+    if (!teamId) {
+      // No team id selected, which happens on initial load. Check for a 
+      // cached team id from previous visits.
+      get(KEY_TEAMID).then((value) => {
+        if (value) {
+          cachedTeamId = value as string;
+        }
+      });
+    }
   } else {
     console.log(`Get public teams`);
     query = query.where(FIELD_PUBLIC, '==', true);
@@ -64,7 +83,8 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
 
     dispatch({
       type: GET_TEAMS,
-      teams
+      teams,
+      cachedTeamId
     });
 
   }).catch((error: any) => {
@@ -87,6 +107,7 @@ export const changeTeam: ActionCreator<ThunkResult> = (teamId: string) => (dispa
   if (teamState.teamId === teamId) {
     return;
   }
+  cacheTeamId(teamId);
   dispatch({
     type: CHANGE_TEAM,
     teamId
@@ -115,6 +136,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
   // Save the team to Firestore, before adding to the store.
   saveNewDocument(newTeam, getTeamsCollection(), getState(), { addUserId: true });
+  cacheTeamId(newTeam.id);
   dispatch(addTeam(newTeam));
 };
 
