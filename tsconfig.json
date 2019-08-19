@@ -17,13 +17,17 @@
     "plugins": [
       {
         "name": "typescript-lit-html-plugin"
+      },
+      {
+        "name": "typescript-tslint-plugin",
       }
     ]
   },
   "include": [
     "config.json.d.ts",
     "src/**/*.ts",
-    "test/helpers/mock-cloud-firestore.d.ts"
+    "test/helpers/mock-cloud-firestore.d.ts",
+    "test/**/*.ts"
   ],
   "exclude": [],
 }
