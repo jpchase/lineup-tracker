@@ -1,5 +1,5 @@
 import { RootAction } from '@app/store';
-import { Game, Games } from '@app/models/game';
+import { Game, GameDetail, Games, GameStatus } from '@app/models/game';
 import { Player, PlayerStatus, Roster } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
 
@@ -70,6 +70,36 @@ export function getStoredPlayerData() {
 export function getStoredPlayer(): Player {
   return { id: 'sp1', ...getStoredPlayerData() }
 };
+
+export function getNewGame(): Game {
+  return {
+    id: 'NG',
+    status: GameStatus.New,
+    name: 'New Game',
+    teamId: 'T1',
+    date: new Date(2016, 1, 10),
+    opponent: 'Opponent for new'
+  };
+}
+
+export function getNewGameDetail(roster?: Roster): GameDetail {
+  return {
+    ...getNewGame(),
+    hasDetail: true,
+    roster: roster || {}
+  };
+}
+
+export function getStoredGame(): Game {
+  return {
+    id: 'EX',
+    status: GameStatus.Start,
+    name: 'Existing Game',
+    teamId: 'T1',
+    date: new Date(2016, 1, 10),
+    opponent: 'Existing opponent'
+  };
+}
 
 export function buildGames(games: Game[]): Games {
   return games.reduce((obj, game) => {

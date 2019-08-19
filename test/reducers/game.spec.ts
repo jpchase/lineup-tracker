@@ -1,10 +1,10 @@
 import { FormationType, Position } from '@app/models/formation';
 import {
-  Game, GameDetail, GameStatus,
+  GameDetail, GameStatus,
   LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '@app/models/game';
-import { Player, PlayerStatus, Roster } from '@app/models/player';
+import { Player, PlayerStatus } from '@app/models/player';
 import {
   APPLY_STARTER,
   CANCEL_STARTER,
@@ -25,7 +25,7 @@ import {
 } from '@app/actions/game';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
-import { getFakeAction, buildRoster, getNewPlayer, getStoredPlayer } from '../helpers/test_data';
+import { getFakeAction, getNewGame, getNewGameDetail, buildRoster, getNewPlayer, getStoredPlayer, getStoredGame } from '../helpers/test_data';
 
 const GAME_INITIAL_STATE: GameState = {
   gameId: '',
@@ -41,28 +41,8 @@ const GAME_INITIAL_STATE: GameState = {
   error: ''
 };
 
-function buildNewGame(): Game {
-  return {
-    id: 'NG',
-    status: GameStatus.New,
-    name: 'New Game',
-    teamId: 'T1',
-    date: new Date(2016, 1, 10),
-    opponent: 'Opponent for new'
-  };
-}
-
-function buildNewGameDetail(roster?: Roster): GameDetail {
-  return {
-    ...buildNewGame(),
-    hasDetail: true,
-    roster: roster || {}
-  };
-
-}
-
 function buildNewGameDetailAndRoster(): GameDetail {
-  return buildNewGameDetail(buildRoster([getStoredPlayer()]));
+  return getNewGameDetail(buildRoster([getStoredPlayer()]));
 }
 
 function buildSetupTasks(): SetupTask[] {
@@ -87,10 +67,6 @@ function buildSetupTasks(): SetupTask[] {
 }
 
 describe('Games reducer', () => {
-  const existingGame: Game = {
-    id: 'EX', status: GameStatus.Start, name: 'Existing Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Existing opponent'
-  };
-  const newGame = buildNewGame();
 
   it('should return the initial state', () => {
     expect(
@@ -100,13 +76,14 @@ describe('Games reducer', () => {
 
   describe('GET_GAME_REQUEST', () => {
     it('should set game id and loading flag', () => {
+      const gameId = 'idfornewgame';
       const newState = game(GAME_INITIAL_STATE, {
         type: GET_GAME_REQUEST,
-        gameId: newGame.id
+        gameId: gameId
       });
 
       expect(newState).toEqual(expect.objectContaining({
-        gameId: newGame.id,
+        gameId: gameId,
         detailLoading: true,
         detailFailure: false
       }));
@@ -118,6 +95,7 @@ describe('Games reducer', () => {
 
   describe('GET_GAME_SUCCESS', () => {
     it('should set game to given game with full detail', () => {
+      const existingGame = getStoredGame();
       const inputGame: GameDetail = {
         ...existingGame,
         roster: buildRoster([getStoredPlayer()])
@@ -146,8 +124,9 @@ describe('Games reducer', () => {
     });
 
     it('should set hasDetail when game roster is empty', () => {
+      const currentGame = getNewGame();
       const inputGame: GameDetail = {
-        ...newGame,
+        ...currentGame,
         roster: {}
       };
       const newState = game(GAME_INITIAL_STATE, {
@@ -156,7 +135,7 @@ describe('Games reducer', () => {
       });
 
       const gameDetail: GameDetail = {
-        ...newGame,
+        ...currentGame,
         hasDetail: true,
         roster: {},
         setupTasks: buildSetupTasks()
@@ -197,11 +176,11 @@ describe('Games reducer', () => {
   describe('SET_FORMATION', () => {
 
     it('should set formation type and update setup tasks to mark formation complete', () => {
-
+      const currentGame = getNewGame();
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...newGame,
+          ...currentGame,
           hasDetail: true,
           roster: buildRoster([getStoredPlayer()]),
           setupTasks: buildSetupTasks()
@@ -218,7 +197,7 @@ describe('Games reducer', () => {
       updatedTasks[SetupSteps.Roster].status = SetupStatus.Active;
 
       const gameDetail: GameDetail = {
-        ...newGame,
+        ...currentGame,
         hasDetail: true,
         roster: buildRoster([getStoredPlayer()]),
         setupTasks: updatedTasks,
@@ -237,10 +216,11 @@ describe('Games reducer', () => {
   describe('CAPTAINS_DONE', () => {
 
     it('should update setup tasks to mark captains complete and next active', () => {
+      const currentGame = getNewGame();
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...newGame,
+          ...currentGame,
           hasDetail: true,
           roster: buildRoster([getStoredPlayer()]),
           setupTasks: buildSetupTasks()
@@ -256,7 +236,7 @@ describe('Games reducer', () => {
       updatedTasks[SetupSteps.Starters].status = SetupStatus.Active;
 
       const gameDetail: GameDetail = {
-        ...newGame,
+        ...currentGame,
         hasDetail: true,
         roster: buildRoster([getStoredPlayer()]),
         setupTasks: updatedTasks
@@ -273,13 +253,14 @@ describe('Games reducer', () => {
 
   describe('COPY_ROSTER_REQUEST', () => {
     it('should set copying flag', () => {
+      const gameId = 'agameid';
       const newState = game(GAME_INITIAL_STATE, {
         type: COPY_ROSTER_REQUEST,
-        gameId: newGame.id
+        gameId: gameId
       });
 
       expect(newState).toEqual(expect.objectContaining({
-        gameId: newGame.id,
+        gameId: gameId,
         rosterLoading: true,
         rosterFailure: false
       }));
@@ -291,12 +272,13 @@ describe('Games reducer', () => {
 
   describe('COPY_ROSTER_SUCCESS', () => {
     let currentState: GameState = GAME_INITIAL_STATE;
+    let currentGame = getNewGame();
 
     beforeEach(() => {
       currentState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...newGame,
+          ...currentGame,
           hasDetail: true,
           roster: {}
         }
@@ -338,7 +320,7 @@ describe('Games reducer', () => {
       });
 
       const gameDetail: GameDetail = {
-        ...newGame,
+        ...currentGame,
         hasDetail: true,
         roster: buildRoster(rosterPlayers)
       };
@@ -386,7 +368,7 @@ describe('Games reducer', () => {
       currentState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...newGame,
+          ...getNewGame(),
           hasDetail: true,
           roster: {},
           setupTasks: buildSetupTasks()
@@ -430,10 +412,11 @@ describe('Games reducer', () => {
     it('should update setup tasks and init live players from roster', () => {
       const rosterPlayers = [getStoredPlayer()];
 
+      const currentGame = getNewGame();
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...newGame,
+          ...currentGame,
           hasDetail: true,
           roster: buildRoster(rosterPlayers),
           setupTasks: buildSetupTasks()
@@ -450,7 +433,7 @@ describe('Games reducer', () => {
       updatedTasks[SetupSteps.Captains].status = SetupStatus.Active;
 
       const gameDetail: GameDetail = {
-        ...newGame,
+        ...currentGame,
         hasDetail: true,
         roster: buildRoster(rosterPlayers),
         setupTasks: updatedTasks
@@ -473,10 +456,11 @@ describe('Games reducer', () => {
   describe('STARTERS_DONE', () => {
 
     it('should update setup tasks to mark starters complete', () => {
+      const currentGame = getNewGame();
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...newGame,
+          ...currentGame,
           hasDetail: true,
           roster: buildRoster([getStoredPlayer()]),
           setupTasks: buildSetupTasks()
@@ -491,7 +475,7 @@ describe('Games reducer', () => {
       updatedTasks[SetupSteps.Starters].status = SetupStatus.Complete;
 
       const gameDetail: GameDetail = {
-        ...newGame,
+        ...currentGame,
         hasDetail: true,
         roster: buildRoster([getStoredPlayer()]),
         setupTasks: updatedTasks
@@ -512,10 +496,11 @@ describe('Games reducer', () => {
       const completedTasks = buildSetupTasks();
       completedTasks.forEach(task => {task.status = SetupStatus.Complete;})
 
+      const currentGame = getNewGame();
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...newGame,
+          ...currentGame,
           hasDetail: true,
           roster: buildRoster([getStoredPlayer()]),
           setupTasks: completedTasks
@@ -527,7 +512,7 @@ describe('Games reducer', () => {
       });
 
       const gameDetail: GameDetail = {
-        ...newGame,
+        ...currentGame,
         hasDetail: true,
         roster: buildRoster([getStoredPlayer()]),
         setupTasks: undefined
@@ -548,7 +533,7 @@ describe('Games reducer', () => {
     it('should only set selectedPlayer with nothing selected', () => {
       const state: GameState = {
         ...GAME_INITIAL_STATE,
-        game: buildNewGameDetail()
+        game: getNewGameDetail()
       };
       expect(state.selectedPlayer).toBeUndefined();
 
@@ -560,7 +545,7 @@ describe('Games reducer', () => {
       });
 
       expect(newState).toEqual(expect.objectContaining({
-        game: buildNewGameDetail(),
+        game: getNewGameDetail(),
         selectedPlayer: selectedPlayer.id
       }));
       // Separate check as it causes a TS error inside objectContaining
@@ -607,7 +592,7 @@ describe('Games reducer', () => {
     it('should only set selectedPosition with nothing selected', () => {
       const state: GameState = {
         ...GAME_INITIAL_STATE,
-        game: buildNewGameDetail()
+        game: getNewGameDetail()
       };
       expect(state.selectedPosition).toBeUndefined();
 
@@ -618,7 +603,7 @@ describe('Games reducer', () => {
       });
 
       expect(newState).toEqual(expect.objectContaining({
-        game: buildNewGameDetail(),
+        game: getNewGameDetail(),
         selectedPosition: { ...selectedPosition }
       }));
       // Separate check as it causes a TS error inside objectContaining
