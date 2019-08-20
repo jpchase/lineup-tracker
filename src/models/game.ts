@@ -29,10 +29,17 @@ export interface GameDetail extends Game {
   roster: Roster;
   formation?: FormationMetadata;
   setupTasks?: SetupTask[];
+  liveDetail?: LiveGame;
 }
 
 export interface Games {
   [index: string]: Game;
+}
+
+export interface LiveGame {
+  id: string;
+  players?: LivePlayer[];
+  setupTasks?: SetupTask[];
 }
 
 export enum SetupSteps {

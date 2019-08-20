@@ -1,5 +1,5 @@
 import { RootAction } from '@app/store';
-import { Game, GameDetail, Games, GameStatus } from '@app/models/game';
+import { Game, GameDetail, Games, GameStatus, SetupTask } from '@app/models/game';
 import { Player, PlayerStatus, Roster } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
 
@@ -88,6 +88,21 @@ export function getNewGameDetail(roster?: Roster): GameDetail {
     hasDetail: true,
     roster: roster || {}
   };
+}
+
+export function getNewGameWithLiveDetail(roster?: Roster, tasks?: SetupTask[]): GameDetail {
+  const game: GameDetail = {
+    ...getNewGameDetail(roster)
+  };
+  game.liveDetail = {
+    id: game.id,
+  };
+  if (tasks) {
+    game.liveDetail.setupTasks = tasks;
+    // TODO: Cleanup when Game.setupTasks removed.
+    game.setupTasks = tasks;
+  }
+  return game;
 }
 
 export function getStoredGame(): Game {

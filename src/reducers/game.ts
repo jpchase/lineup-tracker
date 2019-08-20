@@ -80,8 +80,11 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       }
 
       if (gameDetail.status === GameStatus.New) {
-        if (!gameDetail.setupTasks) {
-          gameDetail.setupTasks = buildTasks(gameDetail);
+        if (!gameDetail.liveDetail) {
+          gameDetail.liveDetail = {
+            id: gameDetail.id
+          }
+          updateTasks(gameDetail);
         }
       }
       newState.game = gameDetail;
@@ -170,7 +173,7 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         formation: { type: action.formationType }
       };
 
-      gameWithFormation.setupTasks = buildTasks(gameWithFormation, existingGame.setupTasks);
+      updateTasks(gameWithFormation, existingGame.setupTasks);
 
       newState.game = gameWithFormation;
       return newState;
@@ -249,8 +252,7 @@ function completeSetupStepForAction(newState: GameState, actionType: string) {
     ...incompleteGame
   };
 
-  updatedGame.setupTasks = buildTasks(updatedGame,
-    incompleteGame.setupTasks, setupStepToMarkDone);
+  updateTasks(updatedGame, incompleteGame.setupTasks, setupStepToMarkDone);
 
   newState.game = updatedGame;
 }
@@ -268,7 +270,14 @@ function getStepForAction(actionType: string) : SetupSteps | undefined {
   }
 }
 
-function buildTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: SetupSteps) : SetupTask[] {
+function updateTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: SetupSteps) {
+  if (!game.liveDetail) {
+    // It's a bug to call this without liveDetail initialized. Just log, rather
+    // than throw an error or something.
+    console.log(`The liveDetail property should be initialized for game: ${JSON.stringify(game)}`);
+    return;
+  }
+
   const tasks: SetupTask[] = [];
 
   // Formation
@@ -304,7 +313,9 @@ function buildTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: Se
     previousStepComplete = stepComplete;
   });
 
-  return tasks;
+  game.liveDetail.setupTasks = tasks;
+  // TODO: Remove when all components are using liveDetail instead.
+  game.setupTasks = tasks;
 }
 
 function prepareStarterIfPossible(newState: GameState) {
