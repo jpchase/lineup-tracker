@@ -157,7 +157,7 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
     }
     const gameState = state.game!;
     this._game = gameState.game;
-    this._players = gameState.players;
+    this._players = this._game && this._game.liveDetail && this._game.liveDetail.players;
     this._proposedStarter = gameState.proposedStarter;
   }
 

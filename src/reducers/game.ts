@@ -6,7 +6,7 @@ import { Reducer } from 'redux';
 import { Position } from '../models/formation';
 import {
   GameDetail, GameStatus,
-  LivePlayer,
+  LiveGame, LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '../models/game';
 import { Player, PlayerStatus, Roster } from '../models/player';
@@ -33,7 +33,6 @@ import { RootAction, RootState } from '../store';
 export interface GameState {
   gameId: string;
   game?: GameDetail;
-  players?: LivePlayer[];
   selectedPosition?: Position;
   selectedPlayer?: string;
   proposedStarter?: LivePlayer;
@@ -47,7 +46,6 @@ export interface GameState {
 const INITIAL_STATE: GameState = {
   gameId: '',
   game: undefined,
-  players: undefined,
   selectedPosition: undefined,
   selectedPlayer: undefined,
   proposedStarter: undefined,
@@ -158,7 +156,7 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         return { ...player } as LivePlayer;
       });
 
-      newState.players = players;
+      newState.game!.liveDetail!.players = players;
       return newState;
 
     case CAPTAINS_DONE:
@@ -185,6 +183,9 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       };
       startedGame.status = GameStatus.Start;
       if (startedGame.liveDetail) {
+        startedGame.liveDetail = {
+          ...startedGame.liveDetail
+        };
         delete startedGame.liveDetail.setupTasks;
       }
 
@@ -209,7 +210,8 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
       const starter = newState.proposedStarter!;
       const positionId = starter.currentPosition!.id;
 
-      newState.players = newState.players!.map(player => {
+      const detail = newState.game!.liveDetail!;
+      const updatedPlayers = detail.players!.map(player => {
         if (player.id === starter.id) {
           return {
             ...player,
@@ -230,6 +232,13 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
 
         return player;
       });
+      newState.game = {
+        ...newState.game!,
+        liveDetail: {
+          ...newState.game!.liveDetail,
+          players: updatedPlayers
+        } as LiveGame
+      }
 
       clearProposedStarter(newState);
 
@@ -315,7 +324,10 @@ function updateTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: S
     previousStepComplete = stepComplete;
   });
 
-  game.liveDetail.setupTasks = tasks;
+  game.liveDetail = {
+    ...game.liveDetail,
+    setupTasks: tasks
+  };
 }
 
 function prepareStarterIfPossible(newState: GameState) {

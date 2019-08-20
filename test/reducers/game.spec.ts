@@ -34,7 +34,6 @@ import {
 const GAME_INITIAL_STATE: GameState = {
   gameId: '',
   game: undefined,
-  players: undefined,
   selectedPlayer: undefined,
   selectedPosition: undefined,
   proposedStarter: undefined,
@@ -46,7 +45,7 @@ const GAME_INITIAL_STATE: GameState = {
 };
 
 function buildNewGameDetailAndRoster(): GameDetail {
-  return getNewGameDetail(buildRoster([getStoredPlayer()]));
+  return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]));
 }
 
 function buildSetupTasks(): SetupTask[] {
@@ -242,6 +241,7 @@ describe('Games reducer', () => {
 
       expect(newState).not.toBe(state);
       expect(newState.game).not.toBe(state.game);
+      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
     });
   }); // describe('SET_FORMATION')
 
@@ -272,6 +272,7 @@ describe('Games reducer', () => {
 
       expect(newState).not.toBe(state);
       expect(newState.game).not.toBe(state.game);
+      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
     });
   }); // describe('CAPTAINS_DONE')
 
@@ -440,7 +441,8 @@ describe('Games reducer', () => {
           ...currentGame,
         }
       };
-      expect(state.players).toBeUndefined();
+      expect(state.game!.liveDetail).toBeDefined();
+      expect(state.game!.liveDetail!.players).toBeUndefined();
 
       const newState = game(state, {
         type: ROSTER_DONE
@@ -451,18 +453,17 @@ describe('Games reducer', () => {
       updatedTasks[SetupSteps.Captains].status = SetupStatus.Active;
 
       const gameDetail = getNewGameWithLiveDetail(buildRoster(rosterPlayers), updatedTasks);
-
-      const livePlayers = rosterPlayers.map(player => {
+      gameDetail.liveDetail!.players = rosterPlayers.map(player => {
         return { ...player } as LivePlayer;
       });
 
       expect(newState).toEqual(expect.objectContaining({
-        game: gameDetail,
-        players: livePlayers
+        game: gameDetail
       }));
 
       expect(newState).not.toBe(state);
       expect(newState.game).not.toBe(state.game);
+      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
     });
   }); // describe('ROSTER_DONE')
 
@@ -492,6 +493,7 @@ describe('Games reducer', () => {
 
       expect(newState).not.toBe(state);
       expect(newState.game).not.toBe(state.game);
+      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
     });
   }); // describe('STARTERS_DONE')
 
@@ -522,6 +524,7 @@ describe('Games reducer', () => {
 
       expect(newState).not.toBe(state);
       expect(newState.game).not.toBe(state.game);
+      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
     });
   }); // describe('START_GAME')
 
@@ -657,11 +660,11 @@ describe('Games reducer', () => {
       currentState = {
         ...GAME_INITIAL_STATE,
         game: buildNewGameDetailAndRoster(),
-        players: [getStoredPlayer()],
         selectedPlayer: selectedPlayer.id,
         selectedPosition: { ...selectedPosition },
         proposedStarter: starter
       };
+      currentState.game!.liveDetail!.players = [getStoredPlayer()];
     });
 
     it('should set live player to ON with currentPosition', () => {
@@ -669,9 +672,10 @@ describe('Games reducer', () => {
         type: APPLY_STARTER
       });
 
-      expect(newState.players).toBeDefined();
+      expect(newState.game!.liveDetail!.players).toBeDefined();
+      const newPlayers = newState.game!.liveDetail!.players!;
 
-      const newPlayer = newState.players!.find(player => (player.id === selectedPlayer.id));
+      const newPlayer = newPlayers.find(player => (player.id === selectedPlayer.id));
       expect(newPlayer).toBeDefined();
       expect(newPlayer).toEqual(expect.objectContaining({
         id: selectedPlayer.id,
@@ -680,7 +684,9 @@ describe('Games reducer', () => {
       }));
 
       expect(newState).not.toBe(currentState);
-      expect(newState.players).not.toBe(currentState.players);
+      expect(newState.game).not.toBe(currentState.game);
+      expect(newState.game!.liveDetail).not.toBe(currentState.game!.liveDetail);
+      expect(newPlayers).not.toBe(currentState.game!.liveDetail!.players);
     });
 
     it('should clear selected player/position and proposed starter', () => {
@@ -701,15 +707,16 @@ describe('Games reducer', () => {
         status: PlayerStatus.On,
         currentPosition: { ...selectedPosition }
       }
-      currentState.players!.push(existingStarter);
+      currentState.game!.liveDetail!.players!.push(existingStarter);
 
       const newState: GameState = game(currentState, {
         type: APPLY_STARTER
       });
 
-      expect(newState.players).toBeDefined();
+      expect(newState.game!.liveDetail!.players).toBeDefined();
+      const newPlayers = newState.game!.liveDetail!.players!;
 
-      const newPlayer = newState.players!.find(player => (player.id === selectedPlayer.id));
+      const newPlayer = newPlayers.find(player => (player.id === selectedPlayer.id));
       expect(newPlayer).toBeDefined();
       expect(newPlayer).toEqual(expect.objectContaining({
         id: selectedPlayer.id,
@@ -717,7 +724,7 @@ describe('Games reducer', () => {
         currentPosition: { ...selectedPosition }
       }));
 
-      const replacedPlayer = newState.players!.find(player => (player.id === existingStarter.id));
+      const replacedPlayer = newPlayers.find(player => (player.id === existingStarter.id));
       expect(replacedPlayer).toBeDefined();
       expect(replacedPlayer).toEqual(expect.objectContaining({
         id: existingStarter.id,
@@ -726,7 +733,9 @@ describe('Games reducer', () => {
       expect(replacedPlayer!.currentPosition).not.toBeDefined();
 
       expect(newState).not.toBe(currentState);
-      expect(newState.players).not.toBe(currentState.players);
+      expect(newState.game).not.toBe(currentState.game);
+      expect(newState.game!.liveDetail).not.toBe(currentState.game!.liveDetail);
+      expect(newPlayers).not.toBe(currentState.game!.liveDetail!.players);
     });
   }); // describe('APPLY_STARTER')
 
@@ -746,11 +755,11 @@ describe('Games reducer', () => {
       currentState = {
         ...GAME_INITIAL_STATE,
         game: buildNewGameDetailAndRoster(),
-        players: [getStoredPlayer()],
         selectedPlayer: selectedPlayer.id,
         selectedPosition: { ...selectedPosition },
         proposedStarter: starter
       };
+      currentState.game!.liveDetail!.players = [getStoredPlayer()];
     });
 
     it('should clear selected player/position and proposed starter', () => {
