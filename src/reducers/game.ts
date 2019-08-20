@@ -173,7 +173,7 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         formation: { type: action.formationType }
       };
 
-      updateTasks(gameWithFormation, existingGame.setupTasks);
+      updateTasks(gameWithFormation, existingGame.liveDetail!.setupTasks);
 
       newState.game = gameWithFormation;
       return newState;
@@ -184,7 +184,11 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         ...gameToBeStarted
       };
       startedGame.status = GameStatus.Start;
+      // TODO: Remove when all components are using liveDetail instead.
       delete startedGame.setupTasks;
+      if (startedGame.liveDetail) {
+        delete startedGame.liveDetail.setupTasks;
+      }
 
       newState.game = startedGame;
       return newState;
@@ -252,7 +256,7 @@ function completeSetupStepForAction(newState: GameState, actionType: string) {
     ...incompleteGame
   };
 
-  updateTasks(updatedGame, incompleteGame.setupTasks, setupStepToMarkDone);
+  updateTasks(updatedGame, incompleteGame.liveDetail!.setupTasks, setupStepToMarkDone);
 
   newState.game = updatedGame;
 }

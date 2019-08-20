@@ -508,14 +508,11 @@ describe('Games reducer', () => {
       const completedTasks = buildSetupTasks();
       completedTasks.forEach(task => {task.status = SetupStatus.Complete;})
 
-      const currentGame = getNewGame();
+      const currentGame = getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), completedTasks);
       const state: GameState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...currentGame,
-          hasDetail: true,
-          roster: buildRoster([getStoredPlayer()]),
-          setupTasks: completedTasks
+          ...currentGame
         }
       };
 
@@ -523,12 +520,7 @@ describe('Games reducer', () => {
         type: START_GAME
       });
 
-      const gameDetail: GameDetail = {
-        ...currentGame,
-        hasDetail: true,
-        roster: buildRoster([getStoredPlayer()]),
-        setupTasks: undefined
-      };
+      const gameDetail = getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), undefined);
       gameDetail.status = GameStatus.Start;
 
       expect(newState).toEqual(expect.objectContaining({

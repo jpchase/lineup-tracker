@@ -159,7 +159,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
     if (!this._game) {
       return;
     }
-    this._tasks = this._game.setupTasks || [];
+    this._tasks = this._game.liveDetail && this._game.liveDetail.setupTasks || [];
 
     const anyIncomplete = this._tasks.some(task => task.status !== SetupStatus.Complete);
     this._tasksComplete = !anyIncomplete;
