@@ -28,7 +28,6 @@ export interface Game extends GameMetadata {
 export interface GameDetail extends Game {
   roster: Roster;
   formation?: FormationMetadata;
-  setupTasks?: SetupTask[];
   liveDetail?: LiveGame;
 }
 

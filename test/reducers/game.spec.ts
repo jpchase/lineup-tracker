@@ -142,8 +142,6 @@ describe('Games reducer', () => {
         ...currentGame,
         hasDetail: true,
         roster: {},
-        // TODO: Cleanup when Game.setupTasks removed.
-        setupTasks: buildSetupTasks(),
         liveDetail: {
           id: currentGame.id,
           setupTasks: buildSetupTasks()
@@ -177,8 +175,6 @@ describe('Games reducer', () => {
         ...currentGame,
         hasDetail: true,
         roster: buildRoster([getStoredPlayer()]),
-        // TODO: Cleanup when Game.setupTasks removed.
-        setupTasks: buildSetupTasks(),
         liveDetail: {
           id: currentGame.id,
           setupTasks: buildSetupTasks()
@@ -396,10 +392,7 @@ describe('Games reducer', () => {
       currentState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...getNewGame(),
-          hasDetail: true,
-          roster: {},
-          setupTasks: buildSetupTasks()
+          ...getNewGameWithLiveDetail(undefined, buildSetupTasks())
         }
       };
     });

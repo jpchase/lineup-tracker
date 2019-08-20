@@ -99,8 +99,6 @@ export function getNewGameWithLiveDetail(roster?: Roster, tasks?: SetupTask[]): 
   };
   if (tasks) {
     game.liveDetail.setupTasks = tasks;
-    // TODO: Cleanup when Game.setupTasks removed.
-    game.setupTasks = tasks;
   }
   return game;
 }

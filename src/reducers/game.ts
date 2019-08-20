@@ -184,8 +184,6 @@ const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => 
         ...gameToBeStarted
       };
       startedGame.status = GameStatus.Start;
-      // TODO: Remove when all components are using liveDetail instead.
-      delete startedGame.setupTasks;
       if (startedGame.liveDetail) {
         delete startedGame.liveDetail.setupTasks;
       }
@@ -318,8 +316,6 @@ function updateTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: S
   });
 
   game.liveDetail.setupTasks = tasks;
-  // TODO: Remove when all components are using liveDetail instead.
-  game.setupTasks = tasks;
 }
 
 function prepareStarterIfPossible(newState: GameState) {
