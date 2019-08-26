@@ -1,0 +1,20 @@
+/**
+@license
+*/
+
+export const GET_GAME_REQUEST = 'GET_GAME_REQUEST';
+export const GET_GAME_SUCCESS = 'GET_GAME_SUCCESS';
+export const GET_GAME_FAIL = 'GET_GAME_FAIL';
+export const CAPTAINS_DONE = 'CAPTAINS_DONE';
+export const COPY_ROSTER_REQUEST = 'COPY_ROSTER_REQUEST';
+export const COPY_ROSTER_SUCCESS = 'COPY_ROSTER_SUCCESS';
+export const COPY_ROSTER_FAIL = 'COPY_ROSTER_FAIL';
+export const ADD_PLAYER = 'ADD_PLAYER';
+export const ROSTER_DONE = 'ROSTER_DONE';
+export const APPLY_STARTER = 'APPLY_STARTER';
+export const CANCEL_STARTER = 'CANCEL_STARTER';
+export const STARTERS_DONE = 'STARTERS_DONE';
+export const SET_FORMATION = 'SET_FORMATION';
+export const START_GAME = 'START_GAME';
+export const SELECT_PLAYER = 'SELECT_PLAYER';
+export const SELECT_POSITION = 'SELECT_POSITION';

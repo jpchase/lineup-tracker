@@ -1,4 +1,5 @@
 import * as actions from '@app/actions/game';
+import * as actionTypes from '@app/actions/game-types';
 import { FormationType, Position } from '@app/models/formation';
 import { Game, GameDetail, GameStatus, LivePlayer } from '@app/models/game';
 import { Player, Roster } from '@app/models/player';
@@ -167,12 +168,12 @@ describe('Game actions', () => {
 
       // Checks that first dispatch was the request action
       expect(dispatchMock.mock.calls[0]).toEqual([expect.objectContaining({
-        type: actions.GET_GAME_REQUEST,
+        type: actionTypes.GET_GAME_REQUEST,
         gameId: gameId,
       })]);
 
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.GET_GAME_SUCCESS,
+        type: actionTypes.GET_GAME_SUCCESS,
         game: getStoredGameDetail(),
       }));
     });
@@ -193,7 +194,7 @@ describe('Game actions', () => {
         roster: {}
       }
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.GET_GAME_SUCCESS,
+        type: actionTypes.GET_GAME_SUCCESS,
         game: storedGame
       }));
     });
@@ -217,7 +218,7 @@ describe('Game actions', () => {
       expect(dispatchMock).toHaveBeenCalledTimes(2);
 
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.GET_GAME_SUCCESS,
+        type: actionTypes.GET_GAME_SUCCESS,
         game: loadedGame,
       }));
     });
@@ -238,7 +239,7 @@ describe('Game actions', () => {
       expect(dispatchMock).toHaveBeenCalledTimes(2);
 
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.GET_GAME_SUCCESS,
+        type: actionTypes.GET_GAME_SUCCESS,
         game: loadedGame,
       }));
     });
@@ -255,7 +256,7 @@ describe('Game actions', () => {
       expect(dispatchMock).toHaveBeenCalledTimes(2);
 
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.GET_GAME_SUCCESS,
+        type: actionTypes.GET_GAME_SUCCESS,
         game: getStoredGameDetail(),
       }));
     });
@@ -271,12 +272,12 @@ describe('Game actions', () => {
 
       // Checks that first dispatch was the request action
       expect(dispatchMock.mock.calls[0]).toEqual([expect.objectContaining({
-        type: actions.GET_GAME_REQUEST,
+        type: actionTypes.GET_GAME_REQUEST,
         gameId: gameId,
       })]);
 
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.GET_GAME_FAIL,
+        type: actionTypes.GET_GAME_FAIL,
         error: `Error: Game not found: ${gameId}`,
       }));
     });
@@ -296,7 +297,7 @@ describe('Game actions', () => {
 
       // Checks that first dispatch was the request action
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.GET_GAME_REQUEST,
+        type: actionTypes.GET_GAME_REQUEST,
         gameId: gameId,
       }));
     });
@@ -378,7 +379,7 @@ describe('Game actions', () => {
       expect(dispatchMock).toHaveBeenCalledTimes(2);
 
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.COPY_ROSTER_SUCCESS,
+        type: actionTypes.COPY_ROSTER_SUCCESS,
         gameId: loadedGame.id,
       }));
 
@@ -405,12 +406,12 @@ describe('Game actions', () => {
 
       // Checks that first dispatch was the request action
       expect(dispatchMock.mock.calls[0]).toEqual([expect.objectContaining({
-        type: actions.COPY_ROSTER_REQUEST,
+        type: actionTypes.COPY_ROSTER_REQUEST,
         gameId: gameId,
       })]);
 
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.COPY_ROSTER_SUCCESS,
+        type: actionTypes.COPY_ROSTER_SUCCESS,
         gameId: gameId,
         gameRoster: buildRoster([getStoredPlayer()]),
       }));
@@ -442,7 +443,7 @@ describe('Game actions', () => {
 
       // Checks that first dispatch was the request action
       expect(dispatchMock).lastCalledWith(expect.objectContaining({
-        type: actions.COPY_ROSTER_REQUEST,
+        type: actionTypes.COPY_ROSTER_REQUEST,
         gameId: gameId,
       }));
     });
@@ -460,7 +461,7 @@ describe('Game actions', () => {
       actions.markCaptainsDone()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.CAPTAINS_DONE
+        type: actionTypes.CAPTAINS_DONE
       }));
     });
   }); // describe('markCaptainsDone')
@@ -586,7 +587,7 @@ describe('Game actions', () => {
       actions.addGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.ADD_PLAYER,
+        type: actionTypes.ADD_PLAYER,
         player: getNewPlayer(),
       }));
     });
@@ -604,7 +605,7 @@ describe('Game actions', () => {
       actions.markRosterDone()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.ROSTER_DONE
+        type: actionTypes.ROSTER_DONE
       }));
     });
   }); // describe('markRosterDone')
@@ -640,7 +641,7 @@ describe('Game actions', () => {
       actions.applyProposedStarter()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.APPLY_STARTER
+        type: actionTypes.APPLY_STARTER
       }));
     });
   }); // describe('applyProposedStarter')
@@ -676,7 +677,7 @@ describe('Game actions', () => {
       actions.cancelProposedStarter()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.CANCEL_STARTER
+        type: actionTypes.CANCEL_STARTER
       }));
     });
   }); // describe('cancelProposedStarter')
@@ -693,7 +694,7 @@ describe('Game actions', () => {
       actions.markStartersDone()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.STARTERS_DONE
+        type: actionTypes.STARTERS_DONE
       }));
     });
   }); // describe('markStartersDone')
@@ -721,7 +722,7 @@ describe('Game actions', () => {
       actions.setFormation(FormationType.F4_3_3)(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.SET_FORMATION,
+        type: actionTypes.SET_FORMATION,
         formationType: FormationType.F4_3_3,
       }));
     });
@@ -739,7 +740,7 @@ describe('Game actions', () => {
       actions.startGame()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.START_GAME
+        type: actionTypes.START_GAME
       }));
 
       // TODO: Test that game is saved to storage
@@ -769,7 +770,7 @@ describe('Game actions', () => {
       actions.selectPlayer('player id')(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.SELECT_PLAYER,
+        type: actionTypes.SELECT_PLAYER,
         playerId: 'player id'
       }));
     });
@@ -799,7 +800,7 @@ describe('Game actions', () => {
       actions.selectPosition(position)(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.SELECT_POSITION,
+        type: actionTypes.SELECT_POSITION,
         position: position
       }));
     });

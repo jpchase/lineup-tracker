@@ -27,7 +27,7 @@ import {
   START_GAME,
   SELECT_PLAYER,
   SELECT_POSITION
-} from '../actions/game';
+} from '../actions/game-types';
 import { RootAction, RootState } from '../store';
 
 export interface GameState {

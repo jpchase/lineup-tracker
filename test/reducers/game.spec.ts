@@ -22,7 +22,7 @@ import {
   SET_FORMATION,
   SELECT_PLAYER,
   SELECT_POSITION
-} from '@app/actions/game';
+} from '@app/actions/game-types';
 import game from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
 import {

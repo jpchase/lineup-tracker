@@ -13,39 +13,41 @@ import { firebaseRef } from '../firebase';
 import { extractGame, loadGameRoster, loadTeamRoster, savePlayerToGameRoster, KEY_GAMES } from '../firestore-helpers';
 import { CollectionReference, DocumentReference, DocumentSnapshot } from '@firebase/firestore-types';
 
-export const GET_GAME_REQUEST = 'GET_GAME_REQUEST';
-export const GET_GAME_SUCCESS = 'GET_GAME_SUCCESS';
-export const GET_GAME_FAIL = 'GET_GAME_FAIL';
-export const CAPTAINS_DONE = 'CAPTAINS_DONE';
-export const COPY_ROSTER_REQUEST = 'COPY_ROSTER_REQUEST';
-export const COPY_ROSTER_SUCCESS = 'COPY_ROSTER_SUCCESS';
-export const COPY_ROSTER_FAIL = 'COPY_ROSTER_FAIL';
-export const ADD_PLAYER = 'ADD_PLAYER';
-export const ROSTER_DONE = 'ROSTER_DONE';
-export const APPLY_STARTER = 'APPLY_STARTER';
-export const CANCEL_STARTER = 'CANCEL_STARTER';
-export const STARTERS_DONE = 'STARTERS_DONE';
-export const SET_FORMATION = 'SET_FORMATION';
-export const START_GAME = 'START_GAME';
-export const SELECT_PLAYER = 'SELECT_PLAYER';
-export const SELECT_POSITION = 'SELECT_POSITION';
+import {
+  GET_GAME_REQUEST,
+  GET_GAME_SUCCESS,
+  GET_GAME_FAIL,
+  CAPTAINS_DONE,
+  COPY_ROSTER_REQUEST,
+  COPY_ROSTER_SUCCESS,
+  COPY_ROSTER_FAIL,
+  ADD_PLAYER,
+  ROSTER_DONE,
+  APPLY_STARTER,
+  CANCEL_STARTER,
+  STARTERS_DONE,
+  SET_FORMATION,
+  START_GAME,
+  SELECT_PLAYER,
+  SELECT_POSITION
+} from '../actions/game-types';
 
-export interface GameActionGetGameRequest extends Action<'GET_GAME_REQUEST'> { gameId: string };
-export interface GameActionGetGameSuccess extends Action<'GET_GAME_SUCCESS'> { game: GameDetail };
-export interface GameActionGetGameFail extends Action<'GET_GAME_FAIL'> { error: string };
-export interface GameActionCopyRosterRequest extends Action<'COPY_ROSTER_REQUEST'> { gameId: string };
-export interface GameActionCopyRosterSuccess extends Action<'COPY_ROSTER_SUCCESS'> { gameId: string, gameRoster?: Roster };
-export interface GameActionCopyRosterFail extends Action<'COPY_ROSTER_FAIL'> { error: string };
-export interface GameActionCaptainsDone extends Action<'CAPTAINS_DONE'> {};
-export interface GameActionAddPlayer extends Action<'ADD_PLAYER'> { player: Player };
-export interface GameActionRosterDone extends Action<'ROSTER_DONE'> {};
-export interface GameActionApplyStarter extends Action<'APPLY_STARTER'> {};
-export interface GameActionCancelStarter extends Action<'CANCEL_STARTER'> {};
-export interface GameActionStartersDone extends Action<'STARTERS_DONE'> {};
-export interface GameActionSetFormation extends Action<'SET_FORMATION'> { formationType: FormationType };
-export interface GameActionStartGame extends Action<'START_GAME'> {};
-export interface GameActionSelectPlayer extends Action<'SELECT_PLAYER'> { playerId: string };
-export interface GameActionSelectPosition extends Action<'SELECT_POSITION'> { position: Position };
+export interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
+export interface GameActionGetGameSuccess extends Action<typeof GET_GAME_SUCCESS> { game: GameDetail };
+export interface GameActionGetGameFail extends Action<typeof GET_GAME_FAIL> { error: string };
+export interface GameActionCopyRosterRequest extends Action<typeof COPY_ROSTER_REQUEST> { gameId: string };
+export interface GameActionCopyRosterSuccess extends Action<typeof COPY_ROSTER_SUCCESS> { gameId: string, gameRoster?: Roster };
+export interface GameActionCopyRosterFail extends Action<typeof COPY_ROSTER_FAIL> { error: string };
+export interface GameActionCaptainsDone extends Action<typeof CAPTAINS_DONE> {};
+export interface GameActionAddPlayer extends Action<typeof ADD_PLAYER> { player: Player };
+export interface GameActionRosterDone extends Action<typeof ROSTER_DONE> {};
+export interface GameActionApplyStarter extends Action<typeof APPLY_STARTER> {};
+export interface GameActionCancelStarter extends Action<typeof CANCEL_STARTER> {};
+export interface GameActionStartersDone extends Action<typeof STARTERS_DONE> {};
+export interface GameActionSetFormation extends Action<typeof SET_FORMATION> { formationType: FormationType };
+export interface GameActionStartGame extends Action<typeof START_GAME> {};
+export interface GameActionSelectPlayer extends Action<typeof SELECT_PLAYER> { playerId: string };
+export interface GameActionSelectPosition extends Action<typeof SELECT_POSITION> { position: Position };
 export type GameAction = GameActionGetGameRequest | GameActionGetGameSuccess |
                          GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
                          GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
