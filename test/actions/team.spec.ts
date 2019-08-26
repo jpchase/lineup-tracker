@@ -1,4 +1,5 @@
 import * as actions from '@app/actions/team';
+import * as actionTypes from '@app/actions/team-types';
 import { Player } from '@app/models/player';
 import { Team, TeamData } from '@app/models/team';
 import { firebaseRef } from '@app/firebase';
@@ -134,7 +135,7 @@ describe('Team actions', () => {
       expect(mockedIDBGet).toBeCalledWith(KEY_TEAMID);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.GET_TEAMS,
+        type: actionTypes.GET_TEAMS,
         teams: buildTeams([getStoredTeam()]),
       }));
     });
@@ -151,7 +152,7 @@ describe('Team actions', () => {
       await Promise.resolve();
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.GET_TEAMS,
+        type: actionTypes.GET_TEAMS,
         teams: buildTeams([getStoredTeam()]),
         cachedTeamId: previousTeam.id
       }));
@@ -169,7 +170,7 @@ describe('Team actions', () => {
       await Promise.resolve();
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.GET_TEAMS,
+        type: actionTypes.GET_TEAMS,
         teams: buildTeams([getStoredTeam()]),
       }));
     });
@@ -186,7 +187,7 @@ describe('Team actions', () => {
       expect(mockedIDBGet).not.toBeCalled();
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.GET_TEAMS,
+        type: actionTypes.GET_TEAMS,
         teams: buildTeams([getPublicTeam()]),
       }));
     });
@@ -261,7 +262,7 @@ describe('Team actions', () => {
       expect(mockedIDBSet).toBeCalledWith(KEY_TEAMID, newTeamSaved.id);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.CHANGE_TEAM,
+        type: actionTypes.CHANGE_TEAM,
         teamId: newTeamSaved.id,
       }));
     });
@@ -372,7 +373,7 @@ describe('Team actions', () => {
       actions.addTeam(newTeamSaved)(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.ADD_TEAM,
+        type: actionTypes.ADD_TEAM,
         team: newTeamSaved,
       }));
     });
@@ -407,7 +408,7 @@ describe('Team actions', () => {
       await Promise.resolve();
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.GET_ROSTER,
+        type: actionTypes.GET_ROSTER,
         roster: rosterData,
       }));
     });
@@ -541,7 +542,7 @@ describe('Team actions', () => {
       actions.addPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-        type: actions.ADD_PLAYER,
+        type: actionTypes.ADD_PLAYER,
         player: getNewPlayer(),
       }));
     });

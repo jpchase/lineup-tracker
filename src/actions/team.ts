@@ -13,17 +13,19 @@ import { saveNewDocument, loadTeamRoster, savePlayerToTeamRoster, KEY_TEAMS } fr
 import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
 import { get, set } from 'idb-keyval';
 
-export const ADD_TEAM = 'ADD_TEAM';
-export const CHANGE_TEAM = 'CHANGE_TEAM';
-export const GET_TEAMS = 'GET_TEAMS';
-export const GET_ROSTER = 'GET_ROSTER';
-export const ADD_PLAYER = 'ADD_PLAYER';
+import {
+  ADD_TEAM,
+  CHANGE_TEAM,
+  ADD_PLAYER,
+  GET_ROSTER,
+  GET_TEAMS
+} from './team-types';
 
-export interface TeamActionAddTeam extends Action<'ADD_TEAM'> { team: Team };
-export interface TeamActionChangeTeam extends Action<'CHANGE_TEAM'> { teamId: string };
-export interface TeamActionGetTeams extends Action<'GET_TEAMS'> { teams: Teams, cachedTeamId?: string };
-export interface TeamActionGetRoster extends Action<'GET_ROSTER'> { roster: Roster };
-export interface TeamActionAddPlayer extends Action<'ADD_PLAYER'> { player: Player };
+export interface TeamActionAddTeam extends Action<typeof ADD_TEAM> { team: Team };
+export interface TeamActionChangeTeam extends Action<typeof CHANGE_TEAM> { teamId: string };
+export interface TeamActionGetTeams extends Action<typeof GET_TEAMS> { teams: Teams, cachedTeamId?: string };
+export interface TeamActionGetRoster extends Action<typeof GET_ROSTER> { roster: Roster };
+export interface TeamActionAddPlayer extends Action<typeof ADD_PLAYER> { player: Player };
 export type TeamAction = TeamActionAddTeam | TeamActionChangeTeam | TeamActionGetTeams | TeamActionGetRoster | TeamActionAddPlayer;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
@@ -54,7 +56,7 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
 
     const teamId = currentTeamIdSelector(getState());
     if (!teamId) {
-      // No team id selected, which happens on initial load. Check for a 
+      // No team id selected, which happens on initial load. Check for a
       // cached team id from previous visits.
       get(KEY_TEAMID).then((value) => {
         if (value) {

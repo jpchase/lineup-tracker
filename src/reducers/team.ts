@@ -11,7 +11,7 @@ import {
   ADD_PLAYER,
   GET_ROSTER,
   GET_TEAMS
-} from '../actions/team';
+} from '../actions/team-types';
 import { RootAction, RootState } from '../store';
 
 export interface TeamState {
