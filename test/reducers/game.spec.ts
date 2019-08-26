@@ -302,6 +302,7 @@ describe('Games reducer', () => {
     beforeEach(() => {
       currentState = {
         ...GAME_INITIAL_STATE,
+        rosterLoading: true,
         game: {
           ...currentGame,
           hasDetail: true,

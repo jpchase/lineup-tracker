@@ -3,10 +3,11 @@
 */
 
 import { Reducer } from 'redux';
+import { createReducer } from 'redux-starter-kit';
 import { Position } from '../models/formation';
 import {
   GameDetail, GameStatus,
-  LiveGame, LivePlayer,
+  LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '../models/game';
 import { Player, PlayerStatus, Roster } from '../models/player';
@@ -58,214 +59,158 @@ const INITIAL_STATE: GameState = {
 
 export const currentGameIdSelector = (state: RootState) => state.game && state.game.gameId;
 
-const game: Reducer<GameState, RootAction> = (state = INITIAL_STATE, action) => {
-  const newState: GameState = {
-    ...state,
-  };
-  // console.log(`game.ts - reducer: ${JSON.stringify(action)}, state = ${JSON.stringify(state)}`);
-  switch (action.type) {
-    case GET_GAME_REQUEST:
-      newState.gameId = action.gameId;
-      newState.detailFailure = false;
-      newState.detailLoading = true;
-      return newState;
+const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE, {
+  [GET_GAME_REQUEST]: (newState, action) => {
+    newState.gameId = action.gameId;
+    newState.detailFailure = false;
+    newState.detailLoading = true;
+  },
 
-    case GET_GAME_SUCCESS:
-      const gameDetail: GameDetail = action.game;
-      gameDetail.hasDetail = true;
-      if (!gameDetail.status) {
-        gameDetail.status = GameStatus.New;
-      }
+  [GET_GAME_SUCCESS]: (newState, action) => {
+    const gameDetail: GameDetail = action.game;
+    gameDetail.hasDetail = true;
+    if (!gameDetail.status) {
+      gameDetail.status = GameStatus.New;
+    }
 
-      if (gameDetail.status === GameStatus.New) {
-        if (!gameDetail.liveDetail) {
-          gameDetail.liveDetail = {
-            id: gameDetail.id
-          }
-          updateTasks(gameDetail);
+    if (gameDetail.status === GameStatus.New) {
+      if (!gameDetail.liveDetail) {
+        gameDetail.liveDetail = {
+          id: gameDetail.id
         }
+        updateTasks(gameDetail);
       }
-      newState.game = gameDetail;
+    }
+    newState.game = gameDetail;
+    // TODO: Ensure games state has latest game detail
+    // newState.games[action.game.id] = action.game;
+    newState.detailFailure = false;
+    newState.detailLoading = false;
+  },
+
+  [GET_GAME_FAIL]: (newState, action) => {
+    newState.error = action.error;
+    newState.detailFailure = true;
+    newState.detailLoading = false;
+  },
+
+  [COPY_ROSTER_REQUEST]: (newState, action) => {
+    newState.gameId = action.gameId;
+    newState.rosterFailure = false;
+    newState.rosterLoading = true;
+  },
+
+  [COPY_ROSTER_SUCCESS]: (newState, action) => {
+    // Set new roster, if required.
+    if (action.gameRoster && (Object.keys(newState.game!.roster).length === 0)) {
+      const gameRoster = action.gameRoster!;
+      const roster: Roster = {};
+      Object.keys(gameRoster).forEach((key) => {
+        const teamPlayer: Player = gameRoster[key];
+        const player: Player = { ...teamPlayer };
+        roster[player.id] = player;
+      });
+      newState.game!.roster = roster;
       // TODO: Ensure games state has latest game detail
-      // newState.games[action.game.id] = action.game;
-      newState.detailFailure = false;
-      newState.detailLoading = false;
-      return newState;
+      // newState.games[action.game.id] = gameWithRoster;
 
-    case GET_GAME_FAIL:
-      newState.error = action.error;
-      newState.detailFailure = true;
-      newState.detailLoading = false;
-      return newState;
+    }
 
-    case COPY_ROSTER_REQUEST:
-      newState.gameId = action.gameId;
-      newState.rosterFailure = false;
-      newState.rosterLoading = true;
-      return newState;
+    newState.rosterFailure = false;
+    newState.rosterLoading = false;
+  },
 
-    case COPY_ROSTER_SUCCESS:
-      // Set new roster, if required.
-      if (action.gameRoster && (Object.keys(newState.game!.roster).length === 0)) {
-        const gameRoster = action.gameRoster!;
-        const roster: Roster = {};
-        Object.keys(gameRoster).forEach((key) => {
-          const teamPlayer: Player = gameRoster[key];
-          const player: Player = { ...teamPlayer};
-          roster[player.id] = player;
-        });
-        const gameWithRoster: GameDetail = {
-          ...newState.game!,
-          hasDetail: true,
-          roster: roster
-        };
-        newState.game = gameWithRoster;
-        // TODO: Ensure games state has latest game detail
-        // newState.games[action.game.id] = gameWithRoster;
+  [COPY_ROSTER_FAIL]: (newState, action) => {
+    newState.error = action.error;
+    newState.rosterFailure = true;
+    newState.rosterLoading = false;
+  },
 
+  [ADD_PLAYER]: (newState, action) => {
+    newState.game!.roster[action.player.id] = action.player;
+  },
+
+  [ROSTER_DONE]: (newState, action) => {
+    completeSetupStepForAction(newState, action.type);
+
+    // Setup live players from roster
+    const roster = newState.game!.roster;
+    const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
+      const player = roster[playerId];
+      return { ...player } as LivePlayer;
+    });
+
+    newState.game!.liveDetail!.players = players;
+  },
+
+  [CAPTAINS_DONE]: (newState, action) => {
+    completeSetupStepForAction(newState, action.type);
+  },
+
+  [STARTERS_DONE]: (newState, action) => {
+    completeSetupStepForAction(newState, action.type);
+  },
+
+  [SET_FORMATION]: (newState, action) => {
+    const game = newState.game!;
+    game.formation = { type: action.formationType };
+    updateTasks(game, game.liveDetail!.setupTasks);
+  },
+
+  [START_GAME]: (newState) => {
+    const game = newState.game!;
+    game.status = GameStatus.Start;
+    if (game.liveDetail) {
+      delete game.liveDetail.setupTasks;
+    }
+  },
+
+  [SELECT_PLAYER]: (newState, action) => {
+    newState.selectedPlayer = action.playerId;
+
+    prepareStarterIfPossible(newState);
+  },
+
+  [SELECT_POSITION]: (newState, action) => {
+    newState.selectedPosition = action.position;
+
+    prepareStarterIfPossible(newState);
+  },
+
+  [APPLY_STARTER]: (newState) => {
+    const starter = newState.proposedStarter!;
+    const positionId = starter.currentPosition!.id;
+
+    newState.game!.liveDetail!.players!.forEach(player => {
+      if (player.id === starter.id) {
+        player.status = PlayerStatus.On;
+        player.currentPosition = starter.currentPosition;
+        return;
       }
 
-      newState.rosterFailure = false;
-      newState.rosterLoading = false;
-      return newState;
-
-    case COPY_ROSTER_FAIL:
-      newState.error = action.error;
-      newState.rosterFailure = true;
-      newState.rosterLoading = false;
-      return newState;
-
-    case ADD_PLAYER:
-      const gameWithPlayer: GameDetail = {
-        ...newState.game!
-      };
-
-      gameWithPlayer.roster = { ...gameWithPlayer.roster };
-      gameWithPlayer.roster[action.player.id] = action.player;
-
-      newState.game = gameWithPlayer;
-      return newState;
-
-    case ROSTER_DONE:
-      completeSetupStepForAction(newState, ROSTER_DONE);
-
-      // Setup live players from roster
-      const roster = newState.game!.roster;
-      const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
-        const player = roster[playerId];
-        return { ...player } as LivePlayer;
-      });
-
-      newState.game!.liveDetail!.players = players;
-      return newState;
-
-    case CAPTAINS_DONE:
-    case STARTERS_DONE:
-      completeSetupStepForAction(newState, action.type);
-      return newState;
-
-    case SET_FORMATION:
-      const existingGame: GameDetail = newState.game!;
-      const gameWithFormation: GameDetail = {
-        ...existingGame,
-        formation: { type: action.formationType }
-      };
-
-      updateTasks(gameWithFormation, existingGame.liveDetail!.setupTasks);
-
-      newState.game = gameWithFormation;
-      return newState;
-
-    case START_GAME:
-      const gameToBeStarted: GameDetail = newState.game!;
-      const startedGame: GameDetail = {
-        ...gameToBeStarted
-      };
-      startedGame.status = GameStatus.Start;
-      if (startedGame.liveDetail) {
-        startedGame.liveDetail = {
-          ...startedGame.liveDetail
-        };
-        delete startedGame.liveDetail.setupTasks;
+      // Checks for an existing starter in the position.
+      if (player.status === PlayerStatus.On && player.currentPosition!.id === positionId) {
+        // Replace the starter, moving the player to off.
+        player.status = PlayerStatus.Off;
+        player.currentPosition = undefined;
       }
+    });
 
-      newState.game = startedGame;
-      return newState;
+    clearProposedStarter(newState);
+  },
 
-    case SELECT_PLAYER:
-      newState.selectedPlayer = action.playerId;
-
-      prepareStarterIfPossible(newState);
-
-      return newState;
-
-    case SELECT_POSITION:
-      newState.selectedPosition = action.position;
-
-      prepareStarterIfPossible(newState);
-
-      return newState;
-
-    case APPLY_STARTER:
-      const starter = newState.proposedStarter!;
-      const positionId = starter.currentPosition!.id;
-
-      const detail = newState.game!.liveDetail!;
-      const updatedPlayers = detail.players!.map(player => {
-        if (player.id === starter.id) {
-          return {
-            ...player,
-            status: PlayerStatus.On,
-            currentPosition: { ...starter.currentPosition } as Position
-          }
-        }
-
-        // Checks for an existing starter in the position.
-        if (player.status === PlayerStatus.On && player.currentPosition!.id === positionId) {
-          // Replace the starter, moving the player to off.
-          return {
-            ...player,
-            status: PlayerStatus.Off,
-            currentPosition: undefined
-          }
-        }
-
-        return player;
-      });
-      newState.game = {
-        ...newState.game!,
-        liveDetail: {
-          ...newState.game!.liveDetail,
-          players: updatedPlayers
-        } as LiveGame
-      }
-
-      clearProposedStarter(newState);
-
-      return newState;
-
-    case CANCEL_STARTER:
-      clearProposedStarter(newState);
-
-      return newState;
-
-    default:
-      return state;
-  }
-};
+  [CANCEL_STARTER]: (newState) => {
+    clearProposedStarter(newState);
+  },
+});
 
 export default game;
 
 function completeSetupStepForAction(newState: GameState, actionType: string) {
   const setupStepToMarkDone = getStepForAction(actionType);
-  const incompleteGame: GameDetail = newState.game!;
-  const updatedGame: GameDetail = {
-    ...incompleteGame
-  };
+  const game = newState.game!;
 
-  updateTasks(updatedGame, incompleteGame.liveDetail!.setupTasks, setupStepToMarkDone);
-
-  newState.game = updatedGame;
+  updateTasks(game, game.liveDetail!.setupTasks, setupStepToMarkDone);
 }
 
 function getStepForAction(actionType: string) : SetupSteps | undefined {
@@ -324,10 +269,7 @@ function updateTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: S
     previousStepComplete = stepComplete;
   });
 
-  game.liveDetail = {
-    ...game.liveDetail,
-    setupTasks: tasks
-  };
+  game.liveDetail.setupTasks = tasks;
 }
 
 function prepareStarterIfPossible(newState: GameState) {
