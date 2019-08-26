@@ -184,15 +184,17 @@ describe('Teams reducer', () => {
     it('should set the roster to the retrieved list', () => {
       const expectedRoster = buildRoster([getStoredPlayer()]);
 
-      expect(
-        team(TEAM_INITIAL_STATE, {
-          type: GET_ROSTER,
-          roster: expectedRoster
-        })
-      ).toEqual(expect.objectContaining({
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: GET_ROSTER,
+        roster: expectedRoster
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
         roster: expectedRoster,
       }));
 
+      expect(newState).not.toBe(TEAM_INITIAL_STATE);
+      expect(newState.roster).not.toBe(TEAM_INITIAL_STATE.roster);
     });
   }); // describe('GET_ROSTER')
 
