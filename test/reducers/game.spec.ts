@@ -44,8 +44,8 @@ const GAME_INITIAL_STATE: GameState = {
   error: ''
 };
 
-function buildNewGameDetailAndRoster(): GameDetail {
-  return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]));
+function buildNewGameDetailAndRoster(tasks?: SetupTask[]): GameDetail {
+  return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), tasks);
 }
 
 function buildSetupTasks(): SetupTask[] {
@@ -97,13 +97,24 @@ describe('Games reducer', () => {
   }); // describe('GET_GAME_REQUEST')
 
   describe('GET_GAME_SUCCESS', () => {
+    let currentState: GameState = GAME_INITIAL_STATE;
+
+    beforeEach(() => {
+      currentState = {
+        ...GAME_INITIAL_STATE,
+        detailLoading: true,
+      };
+    });
+
     it('should set game to given game with full detail', () => {
       const existingGame = getStoredGame();
       const inputGame: GameDetail = {
         ...existingGame,
         roster: buildRoster([getStoredPlayer()])
       };
-      const newState = game(GAME_INITIAL_STATE, {
+
+      currentState.gameId = inputGame.id;
+      const newState = game(currentState, {
         type: GET_GAME_SUCCESS,
         game: inputGame
       });
@@ -122,8 +133,8 @@ describe('Games reducer', () => {
         detailFailure: false
       }));
 
-      expect(newState).not.toBe(GAME_INITIAL_STATE);
-      expect(newState.game).not.toBe(GAME_INITIAL_STATE.game);
+      expect(newState).not.toBe(currentState);
+      expect(newState.game).not.toBe(currentState.game);
     });
 
     it('should initialize detail when game roster is empty', () => {
@@ -132,7 +143,9 @@ describe('Games reducer', () => {
         ...currentGame,
         roster: {}
       };
-      const newState = game(GAME_INITIAL_STATE, {
+
+      currentState.gameId = inputGame.id;
+      const newState = game(currentState, {
         type: GET_GAME_SUCCESS,
         game: inputGame
       });
@@ -155,8 +168,8 @@ describe('Games reducer', () => {
         detailFailure: false
       }));
 
-      expect(newState).not.toBe(GAME_INITIAL_STATE);
-      expect(newState.game).not.toBe(GAME_INITIAL_STATE.game);
+      expect(newState).not.toBe(currentState);
+      expect(newState.game).not.toBe(currentState.game);
     });
 
     it('should initialize live detail for new game', () => {
@@ -165,7 +178,9 @@ describe('Games reducer', () => {
         ...currentGame,
         roster: buildRoster([getStoredPlayer()])
       };
-      const newState = game(GAME_INITIAL_STATE, {
+
+      currentState.gameId = inputGame.id;
+      const newState = game(currentState, {
         type: GET_GAME_SUCCESS,
         game: inputGame
       });
@@ -188,8 +203,40 @@ describe('Games reducer', () => {
         detailFailure: false
       }));
 
-      expect(newState).not.toBe(GAME_INITIAL_STATE);
-      expect(newState.game).not.toBe(GAME_INITIAL_STATE.game);
+      expect(newState).not.toBe(currentState);
+      expect(newState.game).not.toBe(currentState.game);
+    });
+
+    it('should only update loading flag when game set to current game', () => {
+      const currentGame = buildNewGameDetailAndRoster(buildSetupTasks());
+      currentState.gameId = currentGame.id;
+      currentState.game = currentGame;
+
+      const newState = game(currentState, {
+        type: GET_GAME_SUCCESS,
+        game: currentGame
+      });
+
+      const gameDetail: GameDetail = {
+        ...currentGame,
+        liveDetail: {
+          id: currentGame.id,
+          setupTasks: buildSetupTasks()
+        }
+      };
+
+      expect(newState).toEqual(expect.objectContaining({
+        game: gameDetail,
+        // TODO: Ensure games state has latest game detail
+        // games: buildGames([gameDetail]),
+        detailLoading: false,
+        detailFailure: false
+      }));
+
+      expect(newState).not.toBe(currentState);
+      expect(newState.game).toBe(currentState.game);
+      expect(newState.game!.liveDetail).toBe(currentState.game!.liveDetail);
+      expect(newState.game!.roster).toBe(currentState.game!.roster);
     });
   }); // describe('GET_GAME_SUCCESS')
 

@@ -30,6 +30,7 @@ import {
   SELECT_POSITION
 } from '../actions/game-types';
 import { RootAction, RootState } from '../store';
+import { GameActionGetGameSuccess } from '@app/actions/game';
 
 export interface GameState {
   gameId: string;
@@ -66,8 +67,17 @@ const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE, {
     newState.detailLoading = true;
   },
 
-  [GET_GAME_SUCCESS]: (newState, action) => {
-    const gameDetail: GameDetail = action.game;
+  [GET_GAME_SUCCESS]: (newState, action: GameActionGetGameSuccess) => {
+    newState.detailFailure = false;
+    newState.detailLoading = false;
+
+    if (newState.game && newState.game.id === action.game.id) {
+      // Game has already been retrieved.
+      return;
+    }
+    const gameDetail: GameDetail = {
+      ...action.game
+    };
     gameDetail.hasDetail = true;
     if (!gameDetail.status) {
       gameDetail.status = GameStatus.New;
@@ -84,8 +94,6 @@ const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE, {
     newState.game = gameDetail;
     // TODO: Ensure games state has latest game detail
     // newState.games[action.game.id] = action.game;
-    newState.detailFailure = false;
-    newState.detailLoading = false;
   },
 
   [GET_GAME_FAIL]: (newState, action) => {
