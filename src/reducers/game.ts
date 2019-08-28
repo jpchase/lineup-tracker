@@ -59,8 +59,9 @@ const INITIAL_STATE: GameState = {
 };
 
 export const currentGameIdSelector = (state: RootState) => state.game && state.game.gameId;
+export const currentGameSelector = (state: RootState) => state.game && state.game.game;
 
-const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE, {
+export const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE, {
   [GET_GAME_REQUEST]: (newState, action) => {
     newState.gameId = action.gameId;
     newState.detailFailure = false;
@@ -211,8 +212,6 @@ const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE, {
     clearProposedStarter(newState);
   },
 });
-
-export default game;
 
 function completeSetupStepForAction(newState: GameState, actionType: string) {
   const setupStepToMarkDone = getStepForAction(actionType);

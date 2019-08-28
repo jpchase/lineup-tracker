@@ -23,7 +23,7 @@ import {
   SELECT_PLAYER,
   SELECT_POSITION
 } from '@app/actions/game-types';
-import game from '@app/reducers/game';
+import { game } from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
 import {
   getFakeAction,

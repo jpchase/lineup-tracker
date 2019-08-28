@@ -15,10 +15,11 @@ import {
   applyMiddleware,
   combineReducers,
   Reducer,
+  Store,
   StoreEnhancer
 } from 'redux';
-import thunk, { ThunkMiddleware } from 'redux-thunk';
-import { lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer.js';
+import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk';
+import { LazyStore, lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer.js';
 
 import app, { AppState } from './reducers/app';
 import { AuthState } from './reducers/auth';
@@ -42,6 +43,10 @@ export interface RootState {
 
 export type RootAction = AppAction | AuthAction | GameAction | GamesAction | TeamAction;
 
+export type RootStore = Store<RootState, RootAction> & LazyStore & {
+  dispatch: ThunkDispatch<RootState, undefined, RootAction>;
+};
+
 // Sets up a Chrome extension for time travel debugging.
 // See https://github.com/zalmoxisus/redux-devtools-extension for more information.
 const devCompose: <Ext0, Ext1, StateExt0, StateExt1>(
@@ -54,7 +59,7 @@ const devCompose: <Ext0, Ext1, StateExt0, StateExt1>(
 // that you can dispatch async actions). See the "Redux and state management"
 // section of the wiki for more details:
 // https://github.com/Polymer/pwa-starter-kit/wiki/4.-Redux-and-state-management
-export const store = createStore(
+export const store: RootStore = createStore(
   state => state as Reducer<RootState, RootAction>,
   devCompose(
     lazyReducerEnhancer(combineReducers),

@@ -11,13 +11,11 @@ import { GameDetail, GameStatus, LivePlayer } from '../models/game';
 
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { store, RootState } from '../store';
+import { RootState } from '../store';
 
-// We are lazy loading its reducer.
-import game from '../reducers/game';
-store.addReducers({
-  game
-});
+// Get the game-specific store, which handles initialization/lazy-loading.
+import { getGameStore } from '../slices/game-store';
+const store = getGameStore();
 
 // These are the actions needed by this element.
 import { getGame, selectPlayer, selectPosition, applyProposedStarter, cancelProposedStarter } from '../actions/game';
