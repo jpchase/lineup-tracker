@@ -6,7 +6,7 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { FormationType, Position } from '../models/formation';
-import { Game, GameDetail } from '../models/game';
+import { Game, GameDetail, Games } from '../models/game';
 import { Player, Roster } from '../models/player';
 import { currentGameIdSelector } from '../reducers/game';
 import { firebaseRef } from '../firebase';
@@ -14,6 +14,7 @@ import { extractGame, loadGameRoster, loadTeamRoster, savePlayerToGameRoster, KE
 import { CollectionReference, DocumentReference, DocumentSnapshot } from '@firebase/firestore-types';
 
 import {
+  GAME_HYDRATE,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   GET_GAME_FAIL,
@@ -32,6 +33,7 @@ import {
   SELECT_POSITION
 } from '../actions/game-types';
 
+export interface GameActionHydrate extends Action<typeof GAME_HYDRATE> { gameId?: string, games: Games };
 export interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
 export interface GameActionGetGameSuccess extends Action<typeof GET_GAME_SUCCESS> { game: GameDetail };
 export interface GameActionGetGameFail extends Action<typeof GET_GAME_FAIL> { error: string };
@@ -48,7 +50,7 @@ export interface GameActionSetFormation extends Action<typeof SET_FORMATION> { f
 export interface GameActionStartGame extends Action<typeof START_GAME> {};
 export interface GameActionSelectPlayer extends Action<typeof SELECT_PLAYER> { playerId: string };
 export interface GameActionSelectPosition extends Action<typeof SELECT_POSITION> { position: Position };
-export type GameAction = GameActionGetGameRequest | GameActionGetGameSuccess |
+export type GameAction = GameActionHydrate | GameActionGetGameRequest | GameActionGetGameSuccess |
                          GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
                          GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
                          GameActionSelectPlayer | GameActionSelectPosition | GameActionApplyStarter |
@@ -62,12 +64,21 @@ function getGamesCollection(): CollectionReference {
   return firebaseRef.firestore().collection(KEY_GAMES);
 }
 
+export const hydrateGame: ActionCreator<GameActionHydrate> = (games: Games, gameId?: string) => {
+  return {
+    type: GAME_HYDRATE,
+    gameId,
+    games
+  }
+};
+
 export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (dispatch, getState) => {
   if (!gameId) {
     return Promise.reject();
   }
   dispatch(getGameRequest(gameId));
 
+  // TODO: Check for game cached in IDB (similar to getTeams action)
   // Checks if the game has already been retrieved.
   const state = getState();
   let existingGame: Game | undefined;

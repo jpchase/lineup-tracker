@@ -12,6 +12,7 @@ import {
 } from '../models/game';
 import { Player, PlayerStatus, Roster } from '../models/player';
 import {
+  GAME_HYDRATE,
   APPLY_STARTER,
   CANCEL_STARTER,
   GET_GAME_REQUEST,
@@ -30,9 +31,10 @@ import {
   SELECT_POSITION
 } from '../actions/game-types';
 import { RootAction, RootState } from '../store';
-import { GameActionGetGameSuccess } from '@app/actions/game';
+import { GameActionGetGameSuccess, GameActionHydrate } from '@app/actions/game';
 
 export interface GameState {
+  hydrated: boolean;
   gameId: string;
   game?: GameDetail;
   selectedPosition?: Position;
@@ -46,6 +48,7 @@ export interface GameState {
 }
 
 const INITIAL_STATE: GameState = {
+  hydrated: false,
   gameId: '',
   game: undefined,
   selectedPosition: undefined,
@@ -62,6 +65,22 @@ export const currentGameIdSelector = (state: RootState) => state.game && state.g
 export const currentGameSelector = (state: RootState) => state.game && state.game.game;
 
 export const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE, {
+  [GAME_HYDRATE]: (newState, action: GameActionHydrate) => {
+    if (newState.hydrated) {
+      return;
+    }
+    newState.hydrated = true;
+    if (!action.gameId) {
+      return;
+    }
+    const cachedGame = action.games[action.gameId];
+    if (!cachedGame || !cachedGame.hasDetail) {
+      return;
+    }
+    newState.gameId = cachedGame.id;
+    newState.game = cachedGame as GameDetail;
+  },
+
   [GET_GAME_REQUEST]: (newState, action) => {
     newState.gameId = action.gameId;
     newState.detailFailure = false;

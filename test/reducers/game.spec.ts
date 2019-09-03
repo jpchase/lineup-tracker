@@ -1,11 +1,12 @@
 import { FormationType, Position } from '@app/models/formation';
 import {
-  GameDetail, GameStatus,
+  GameDetail, Games, GameStatus,
   LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '@app/models/game';
 import { Player, PlayerStatus } from '@app/models/player';
 import {
+  GAME_HYDRATE,
   APPLY_STARTER,
   CANCEL_STARTER,
   GET_GAME_REQUEST,
@@ -32,6 +33,7 @@ import {
 } from '../helpers/test_data';
 
 const GAME_INITIAL_STATE: GameState = {
+  hydrated: false,
   gameId: '',
   game: undefined,
   selectedPlayer: undefined,
@@ -76,6 +78,83 @@ describe('Games reducer', () => {
       game(GAME_INITIAL_STATE, getFakeAction())
       ).toEqual(GAME_INITIAL_STATE);
   });
+
+  describe('GAME_HYDRATE', () => {
+    let currentState: GameState = GAME_INITIAL_STATE;
+
+    beforeEach(() => {
+      currentState = {
+        ...GAME_INITIAL_STATE,
+      };
+    });
+
+    it('should set game to given cached game', () => {
+      const inputGame = buildNewGameDetailAndRoster(buildSetupTasks());
+      const inputGames: Games = {};
+      inputGames[inputGame.id] = inputGame;
+
+      const newState = game(currentState, {
+        type: GAME_HYDRATE,
+        gameId: inputGame.id,
+        games: inputGames
+      });
+
+      const gameDetail: GameDetail = {
+        ...inputGame,
+      };
+
+      expect(newState).toEqual(expect.objectContaining({
+        hydrated: true,
+        gameId: inputGame.id,
+        game: gameDetail,
+      }));
+
+      expect(newState).not.toBe(currentState);
+      expect(newState.game).not.toBe(currentState.game);
+    });
+
+    it('should set hydrated flag when cached values are missing', () => {
+      const newState = game(currentState, {
+        type: GAME_HYDRATE,
+        games: {}
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        hydrated: true,
+      }));
+      expect(newState.gameId).toBeFalsy();
+      expect(newState.game).toBeUndefined();
+
+      expect(newState).not.toBe(currentState);
+    });
+
+    it('should ignored cached values when hydrated flag already set', () => {
+      const currentGame = buildNewGameDetailAndRoster(buildSetupTasks());
+      currentState.gameId = currentGame.id;
+      currentState.game = currentGame;
+      currentState.hydrated = true;
+
+      const inputGame = getStoredGame();
+      const inputGames: Games = {};
+      inputGames[inputGame.id] = inputGame;
+
+      expect(inputGame.id).not.toEqual(currentGame.id);
+
+      const newState = game(currentState, {
+        type: GAME_HYDRATE,
+        gameId: inputGame.id,
+        games: inputGames
+      });
+
+      expect(newState).toEqual(expect.objectContaining({
+        hydrated: true,
+        game: currentGame,
+      }));
+
+      expect(newState).toBe(currentState);
+      expect(newState.game).toBe(currentState.game);
+    });
+  }); // describe('GAME_HYDRATE')
 
   describe('GET_GAME_REQUEST', () => {
     it('should set game id and loading flag', () => {

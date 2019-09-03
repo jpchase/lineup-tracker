@@ -111,6 +111,7 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
         games: buildGames(games || []),
       },
       game: {
+        hydrated: false,
         gameId: '',
         game: undefined,
         detailLoading: false,

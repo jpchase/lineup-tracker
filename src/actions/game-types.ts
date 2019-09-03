@@ -2,6 +2,7 @@
 @license
 */
 
+export const GAME_HYDRATE = 'GAME_HYDRATE';
 export const GET_GAME_REQUEST = 'GET_GAME_REQUEST';
 export const GET_GAME_SUCCESS = 'GET_GAME_SUCCESS';
 export const GET_GAME_FAIL = 'GET_GAME_FAIL';
