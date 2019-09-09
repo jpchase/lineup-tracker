@@ -359,17 +359,21 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   protected firstUpdated() {
-    installRouter((location) => store.dispatch(navigate(location)));
+    window.addEventListener(EVENT_NEWTEAMCREATED, this._newTeamCreated.bind(this) as EventListener);
+
     installOfflineWatcher((offline) => store.dispatch(updateOffline(offline)));
     installMediaQueryWatcher(`(min-width: 460px)`,
         () => store.dispatch(updateDrawerState(false)));
 
-    window.addEventListener(EVENT_NEWTEAMCREATED, this._newTeamCreated.bind(this) as EventListener);
-
     // Get the authenticated user (if signed in), and then load the teams for
     // that user.
     store.dispatch(getUser()).then(() => {
+      // TODO: Make getTeams return a promise as well? Then can use finally() instead of dupe call in catch?
       store.dispatch(getTeams());
+      installRouter((location) => store.dispatch(navigate(location)));
+    }).catch(() => {
+      // Wait for the loading actions to complete, before any navigation.
+      installRouter((location) => store.dispatch(navigate(location)));
     });
   }
 
