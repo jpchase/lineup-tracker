@@ -1,4 +1,5 @@
 import * as actions from '@app/actions/auth';
+import * as actionTypes from '@app/slices/auth-types';
 import { User } from '@app/models/auth';
 import { authRef /*, provider */ } from "@app/firebase";
 import { Error as FirebaseError, User as FirebaseUser, UserCredential } from '@firebase/auth-types';
@@ -68,7 +69,7 @@ describe('getUser', () => {
     };
 
     expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-      type: actions.GET_USER,
+      type: actionTypes.GET_USER_SUCCESS,
       user: signedInUser,
     }));
   });
@@ -92,7 +93,7 @@ describe('getUser', () => {
     expect(changedSpy.mock.calls.length).toBe(1);
 
     expect(dispatchMock).toBeCalledWith(expect.objectContaining({
-      type: actions.GET_USER,
+      type: actionTypes.GET_USER_SUCCESS,
       user: {},
     }));
   });

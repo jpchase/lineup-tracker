@@ -10,9 +10,9 @@ import { User } from '../models/auth';
 import { User as FirebaseUser } from '@firebase/auth-types';
 import { authRef, provider } from "../firebase";
 
-export const GET_USER = 'GET_USER';
+import { GET_USER_SUCCESS } from "../slices/auth-types";
 
-export interface AuthActionGetUser extends Action<'GET_USER'> { user: User };
+export interface AuthActionGetUser extends Action<typeof GET_USER_SUCCESS> { user: User };
 export type AuthAction = AuthActionGetUser;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AuthAction>;
@@ -29,14 +29,14 @@ export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) =>
         if (user) {
           console.log(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
             dispatch({
-                type: GET_USER,
+                type: GET_USER_SUCCESS,
                 user: getUserFromFirebaseUser(user)
             });
           resolveFunc(true);
         } else {
           console.log(`onAuthStateChanged: user = ${user}`);
           dispatch({
-                type: GET_USER,
+                type: GET_USER_SUCCESS,
                 user: {} as User
             });
           resolveFunc(false);

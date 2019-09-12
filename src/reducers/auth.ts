@@ -6,8 +6,8 @@ import { Reducer } from 'redux';
 import { createSelector } from 'reselect';
 import { User } from '../models/auth';
 import {
-  GET_USER
-} from '../actions/auth';
+  GET_USER_SUCCESS
+} from '../slices/auth-types';
 import { RootAction, RootState } from '../store';
 
 export interface AuthState {
@@ -22,7 +22,7 @@ const INITIAL_STATE: AuthState = {
 
 const auth: Reducer<AuthState, RootAction> = (state = INITIAL_STATE, action) => {
   switch (action.type) {
-    case GET_USER:
+    case GET_USER_SUCCESS:
       console.log(`auth.ts - reducer: ${JSON.stringify(action)}, ${state}`);
       return {
         user: action.user,
