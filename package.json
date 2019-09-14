@@ -12,7 +12,7 @@
     "build:webpack": "rm -rf dist && webpack --config webpack.config.js",
     "serve:static": "polymer serve --port 5000 build/es5-bundled",
     "serve:webpack": "polymer serve --port 3000 dist",
-    "test": "npm run test:unit_coverage && npm run test:unit && npm run test:integration",
+    "test": "npm run test:unit_coverage && npm run test:karma && npm run test:unit && npm run test:integration",
     "test:integration": "tsc && mocha test/integration --timeout=15000",
     "test:unit": "tsc && polymer test --module-resolution=node --npm",
     "test:unit_single": "tsc && jest test/reducers/game.spec.ts",
