@@ -13,10 +13,13 @@
 	"settings": {
 		"workbench.panel.defaultLocation": "right",
 		"editor.minimap.enabled": false,
-		"typescript.tsserver.log": "normal",
 		"editor.tabSize": 2,
 		"files.exclude": {
-			"test/**/*.spec.js": true
-		}
+			"**/*.spec.js": true,
+			"*/**/*.js": true
+		},
+		"files.enableTrash": false,
+		"files.trimFinalNewlines": true,
+		"files.trimTrailingWhitespace": true
 	}
 }
