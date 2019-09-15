@@ -7,7 +7,15 @@ import { LineupRosterItem } from '../../src/components/lineup-roster-item.js';
 import { Player, PlayerStatus } from '../../src/models/player';
 
 describe('lineup-roster-item tests', () => {
+  const player: Player = {
+    id: 'AC',
+    name: 'Amanda',
+    uniformNumber: 2,
+    positions: ['CB', 'FB', 'HM'],
+    status: PlayerStatus.Off
+  };
   let el: LineupRosterItem;
+
   beforeEach(async () => {
     el = await fixture('<lineup-roster-item></lineup-roster-item>');
   });
@@ -18,13 +26,6 @@ describe('lineup-roster-item tests', () => {
   });
 
   it('renders player properties', async function () {
-    const player: Player = {
-      id: 'AC',
-      name: 'Amanda',
-      uniformNumber: 2,
-      positions: ['CB', 'FB', 'HM'],
-      status: PlayerStatus.Off
-    };
     el.player = player;
     await el.updateComplete;
 
@@ -40,7 +41,26 @@ describe('lineup-roster-item tests', () => {
     const positionsElement = el.shadowRoot!.querySelector('paper-icon-item paper-item-body div[secondary]');
     assert.isOk(positionsElement, 'Missing positions element');
     assert.equal(positionsElement!.textContent, 'CB, FB, HM');
+  });
 
+  it('shows stats in team mode', async function () {
+    el.player = player;
+    el.isGame = false;
+    await el.updateComplete;
+
+    const actionsElement = el.shadowRoot!.querySelector('paper-icon-item paper-item-body .flex-equal-justified div + div');
+    assert.isOk(actionsElement, 'Missing actions element');
+    assert.equal(actionsElement!.textContent!.trim(), 'NN games');
+  });
+
+  it('shows actions in game mode', async function () {
+    el.player = player;
+    el.isGame = true;
+    await el.updateComplete;
+
+    const actionsElement = el.shadowRoot!.querySelector('paper-icon-item paper-item-body .flex-equal-justified div + div');
+    assert.isOk(actionsElement, 'Missing actions element');
+    assert.equal(actionsElement!.textContent!.trim(), 'actions here');
   });
 
   it('a11y', function () {

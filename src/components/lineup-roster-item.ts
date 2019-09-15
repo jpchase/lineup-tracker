@@ -21,7 +21,7 @@ export class LineupRosterItem extends LitElement {
       return;
     }
     const player = this.player!;
-    const positions = player.positions || [];
+    const positions = player.positions;
     return html`
       ${SharedStyles}
       <style>
