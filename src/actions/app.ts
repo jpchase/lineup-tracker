@@ -32,6 +32,7 @@ export const navigate: ActionCreator<ThunkResult> = (location: Location) => (dis
   const parts = pathname.slice(1).split('/');
   let page = parts[0] || 'viewHome';
 
+console.log(`navigate: got page = ${page} from location`, location);
   // Game views have path: /{view}/{gameId}
   const gameId = parts[1];
 
@@ -42,6 +43,7 @@ export const navigate: ActionCreator<ThunkResult> = (location: Location) => (dis
 };
 
 const loadPage: ActionCreator<ThunkResult> = (page: string, gameId: string) => async (dispatch) => {
+console.log(`loadPage: page = ${page}, gameId = ${gameId}`);
   switch(page) {
     case 'viewHome':
       import('../components/lineup-view-home').then(() => {
