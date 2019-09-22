@@ -1,10 +1,9 @@
-import { fixture, assert } from '@open-wc/testing';
+import { fixture, assert, expect } from '@open-wc/testing';
 import 'axe-core/axe.min.js';
 import { axeReport } from 'pwa-helpers/axe-report.js';
-// TODO: Figure out why can't use @app prefix
-import '../../src/components/lineup-roster-item.js';
-import { LineupRosterItem } from '../../src/components/lineup-roster-item.js';
-import { Player, PlayerStatus } from '../../src/models/player';
+import '@app/components/lineup-roster-item.js';
+import { LineupRosterItem } from '@app/components/lineup-roster-item';
+import { Player, PlayerStatus } from '@app/models/player';
 
 describe('lineup-roster-item tests', () => {
   const player: Player = {
@@ -65,5 +64,9 @@ describe('lineup-roster-item tests', () => {
 
   it('a11y', function () {
     return axeReport(el);
+  });
+
+  it('accessibility', async () => {
+    await expect(el).to.be.accessible();
   });
 });

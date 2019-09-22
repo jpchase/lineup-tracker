@@ -16,6 +16,19 @@ module.exports = config => {
 
       esm: {
         nodeResolve: true,
+        babelConfig:
+        {
+          plugins: [
+            [
+              "module-resolver",
+              {
+                "alias": {
+                  "@app": "./src"
+                }
+              }
+            ]
+          ]
+        }
       },
 
       // TODO: Remove/change back to 80 after improving tests
