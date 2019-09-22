@@ -1,3 +1,4 @@
+import { expect } from '@open-wc/testing';
 import { Formation, FormationBuilder, FormationType} from '@app/models/formation';
 
 describe('FormationBuilder', () => {
@@ -5,7 +6,7 @@ describe('FormationBuilder', () => {
   it('create should throw for unknown formation type', () => {
     expect(() => {
       FormationBuilder.create(<FormationType>'no such formation');
-    }).toThrow();
+    }).to.throw();
   });
 
   it('create should handle 4-3-3', () => {
@@ -50,7 +51,7 @@ describe('FormationBuilder', () => {
 
     const new4_3_3: Formation = FormationBuilder.create(FormationType.F4_3_3);
 
-    expect(new4_3_3).toEqual(expectedFormation);
+    expect(new4_3_3).to.deep.equal(expectedFormation);
   });
 
 });
