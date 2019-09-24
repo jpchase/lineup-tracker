@@ -3,7 +3,7 @@
 */
 
 import { Reducer } from 'redux';
-import { createReducer } from 'redux-starter-kit';
+import { createReducer } from './createReducer'; // 'redux-starter-kit';
 import { Position } from '../models/formation';
 import {
   GameDetail, GameStatus,
