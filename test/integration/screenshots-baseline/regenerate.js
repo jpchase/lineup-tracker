@@ -9,17 +9,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 const puppeteer = require('puppeteer');
-const {startServer} = require('polyserve');
+const { createConfig, startServer } = require('es-dev-server');
 const path = require('path');
 const fs = require('fs');
 
 const baselineDir = `${process.cwd()}/test/integration/screenshots-baseline`;
 
 describe('🎁 regenerate screenshots', function() {
-  let polyserve, browser, page;
+  let server, browser, page;
 
   before(async function() {
-    polyserve = await startServer({port:4444, root:path.join(__dirname, '../../../dist'), moduleResolution:'node'});
+    const config = createConfig({
+      port: 4444,
+      nodeResolve: true,
+      appIndex: 'local.index.html',
+    });
+    ({ server } = await startServer(config));
 
     // Create the test directory if needed.
     if (!fs.existsSync(baselineDir)){
@@ -34,7 +39,7 @@ describe('🎁 regenerate screenshots', function() {
     }
   });
 
-  after((done) => polyserve.close(done));
+  after(() => server.close());
 
   beforeEach(async function() {
     browser = await puppeteer.launch();
