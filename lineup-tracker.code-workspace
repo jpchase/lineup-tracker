@@ -16,7 +16,8 @@
 		"editor.tabSize": 2,
 		"files.exclude": {
 			"**/*.spec.js": true,
-			"*/**/*.js": true
+			"src/**/*.js": true,
+			"test/**/*.js": true
 		},
 		"files.enableTrash": false,
 		"files.trimFinalNewlines": true,
