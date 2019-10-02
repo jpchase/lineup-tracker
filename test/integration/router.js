@@ -15,13 +15,13 @@ const path = require('path');
 const appUrl = 'http://127.0.0.1:4444';
 
 describe('routing tests', function() {
-  let polyserve, browser, page;
+  let server, browser, page;
 
   before(async function() {
-    polyserve = await startServer({port:4444, root:path.join(__dirname, '../../dist'), moduleResolution:'node'});
+    server = await startServer({port:4444, root:path.join(__dirname, '../../dist'), moduleResolution:'node'});
   });
 
-  after((done) => polyserve.close(done));
+  after((done) => server.close(done));
 
   beforeEach(async function() {
     browser = await puppeteer.launch();
@@ -42,22 +42,6 @@ describe('routing tests', function() {
   it('the page selector switches pages in a different way', async function() {
     await page.goto(`${appUrl}`);
     await page.waitForSelector('lineup-app', {visible: true});
-
-    // Setup
-    await page.evaluate(() => {
-      window.deepQuerySelector = function(query) {
-        const parts = query.split('::shadow');
-        let el = document;
-        for (let i = 0; i < parts.length; i++) {
-          el = el.querySelector(parts[i]);
-          if (i % 2 === 0) {
-            el = el.shadowRoot;
-          }
-        }
-        return el === document ? null : el;
-      }
-      console.log(window.deepQuerySelector);
-    });
 
     await testNavigationInADifferentWay(page, 'viewGames', 'Games');
     await testNavigationInADifferentWay(page, 'viewRoster', 'Roster');
@@ -82,19 +66,36 @@ async function testNavigation(page, href, linkText) {
   expect(await myText).equal(linkText);
 
   // Does the click take you to the right page?
-  await page.evaluate(doShadowRootClick, myApp, selector);
+  const [response] = await Promise.all([
+    page.waitForNavigation(), // The promise resolves after navigation has finished
+    page.evaluate(doShadowRootClick, myApp, selector),
+  ]);
   const newUrl = await page.evaluate('window.location.href')
   expect(newUrl).equal(`${appUrl}/${href}`);
 }
 
 async function testNavigationInADifferentWay(page, href, linkText) {
+  const deepQuerySelector = (query) => {
+    const parts = query.split('::shadow');
+    let el = document;
+    for (let i = 0; i < parts.length; i++) {
+      el = el.querySelector(parts[i]);
+      if (i % 2 === 0) {
+        el = el.shadowRoot;
+      }
+    }
+    return el === document ? null : el;
+  };
   const query = `lineup-app::shadow a[href="/${href}"]`;
 
-  const linkHandle = await page.evaluateHandle((query) => window.deepQuerySelector(query), query);
+  const linkHandle = await page.evaluateHandle(deepQuerySelector, query);
   const text = await page.evaluate((el) => el.textContent, linkHandle);
   expect(text).equal(linkText);
 
-  await page.evaluate((el) => el.click(), linkHandle);
+  const [response] = await Promise.all([
+    page.waitForNavigation(), // The promise resolves after navigation has finished
+    page.evaluate((el) => el.click(), linkHandle), // Clicking the link will indirectly cause a navigation
+  ]);
   let newUrl = await page.evaluate('window.location.href')
   expect(newUrl).equal(`${appUrl}/${href}`);
 }
