@@ -25,10 +25,10 @@ const breakpoints = [
 ];
 
 describe('👀 page screenshots are correct', function() {
-  let polyserve, browser, page;
+  let server, browser, page;
 
   before(async function() {
-    polyserve = await startServer({port:4444, root:path.join(__dirname, '../../dist'), moduleResolution:'node'});
+    server = await startServer({port:4444, root:path.join(__dirname, '../../dist'), moduleResolution:'node'});
 
     // Create the test directory if needed.
     if (!fs.existsSync(currentDir)){
@@ -43,7 +43,7 @@ describe('👀 page screenshots are correct', function() {
     }
   });
 
-  after((done) => polyserve.close(done));
+  after((done) => server.close(done));
 
   beforeEach(async function() {
     browser = await puppeteer.launch();
@@ -73,7 +73,7 @@ describe('👀 page screenshots are correct', function() {
         return takeAndCompareScreenshot(page, 'viewHome', prefix);
       });
       it('/viewGames', async function() {
-        return takeAndCompareScreenshot(page, 'viewGames', prefix);
+        return takeAndCompareScreenshot(page, 'viewGames', prefix, null, null, 'lineup-view-games');
       });
       it('/viewRoster', async function() {
         return takeAndCompareScreenshot(page, 'viewRoster', prefix, null, null, 'lineup-view-roster');
