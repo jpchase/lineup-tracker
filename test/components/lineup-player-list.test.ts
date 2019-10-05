@@ -1,38 +1,17 @@
-<!--
-@license
--->
-
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>lineup-player-list</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/chai/chai.js"></script>
-    <script src="../../node_modules/mocha/mocha.js"></script>
-    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
-  </head>
-  <body>
-    <test-fixture id="basic">
-      <template>
-        <lineup-player-list></lineup-player-list>
-      </template>
-    </test-fixture>
-
-    <script type="module">
-      import '@polymer/test-fixture';
+import { fixture, assert, expect } from '@open-wc/testing';
       import 'axe-core/axe.min.js';
       import {axeReport} from 'pwa-helpers/axe-report.js';
-      import '../../src/components/lineup-player-list.js';
+      import '@app/components/lineup-player-list.js';
+import { LineupPlayerList } from '@app/components/lineup-player-list';
+import { LivePlayer } from '@app/models/game';
+import { PlayerStatus } from '@app/models/player';
 
-      function getPlayers(numPlayers, status, otherStatus) {
+      function getPlayers(numPlayers: number, status: PlayerStatus, otherStatus?: PlayerStatus): LivePlayer[] {
         const size = numPlayers || 6;
-        const players = [];
+        const players: LivePlayer[] = [];
         for (let i = 0; i < size; i++) {
           const playerId = `P${i}`;
-          let pos;
+          let pos: string[] = [];
           switch (i % 3) {
             case 0:
               pos = ['CB', 'FB', 'HM'];
@@ -52,7 +31,7 @@
             name: `Player ${i}`,
             uniformNumber: i + (i % 3) * 10,
             positions: pos,
-            status: status.toUpperCase()
+            status: status
           });
 
           if (otherStatus) {
@@ -61,56 +40,54 @@
               name: `Player ${i}-${otherStatus}`,
               uniformNumber: i + (i % 4) * 10,
               positions: pos,
-              status: otherStatus.toUpperCase()
+              status: otherStatus
             });
           }
         }
         return players;
       }
 
-      function getPlayersWithSomeMissingStatus(numPlayers, status) {
+      function getPlayersWithSomeMissingStatus(numPlayers: number, status: PlayerStatus): LivePlayer[] {
         const players = getPlayers(numPlayers, status);
         players.push({
           id: 'P<no status>',
           name: `Player with no status`,
           uniformNumber: 99,
           positions: ['GK']
-        });
+        } as LivePlayer);
         return players;
       }
 
-      suite('lineup-player-list tests', function() {
-        let el;
-        setup(function() {
-          el = fixture('basic');
-          // Make tests wait until element is rendered.
-          return el.updateComplete;
+      describe('lineup-player-list tests', function() {
+        let el: LineupPlayerList;
+        beforeEach(async () => {
+          el = await fixture('<lineup-player-list></lineup-player-list>');
         });
 
         function verifyEmptyList() {
-          const placeholder = el.shadowRoot.querySelector('div p.empty-list');
+          const placeholder = el.shadowRoot!.querySelector('div p.empty-list');
           assert.isOk(placeholder, 'Missing empty placeholder element');
         }
 
-        function verifyPlayerCards(expectedCount) {
-          const items = el.shadowRoot.querySelectorAll('div div lineup-player-card');
+        function verifyPlayerCards(expectedCount: number) {
+          const items = el.shadowRoot!.querySelectorAll('div div lineup-player-card');
           assert.isOk(items, 'Missing items for players');
           assert.equal(items.length, expectedCount, 'Rendered player count');
         }
 
-        test('starts empty', function() {
+        it('starts empty', function() {
           assert.equal(el.mode, '');
           assert.equal(el.showCancel, false);
           assert.deepEqual(el.players, []);
         });
 
-        test('shows no players placeholder for empty list', function() {
+        it('shows no players placeholder for empty list', function() {
           assert.deepEqual(el.players, []);
           verifyEmptyList();
         });
 
-        test(`mode [off]: includes players without status set`, async function() {
-          const players = getPlayersWithSomeMissingStatus(2, 'off');
+        it(`mode [off]: includes players without status set`, async function() {
+          const players = getPlayersWithSomeMissingStatus(2, PlayerStatus.Off);
 
           el.mode = 'off';
           el.players = players;
@@ -121,8 +98,8 @@
           verifyPlayerCards(players.length);
         });
 
-        test(`mode [next]: excludes players without status set`, async function() {
-          const players = getPlayersWithSomeMissingStatus(2, 'next');
+        it(`mode [next]: excludes players without status set`, async function() {
+          const players = getPlayersWithSomeMissingStatus(2, PlayerStatus.Next);
 
           el.mode = 'next';
           el.players = players;
@@ -131,8 +108,8 @@
           verifyPlayerCards(2);
         });
 
-        test(`mode [out]: excludes players without status set`, async function() {
-          const players = getPlayersWithSomeMissingStatus(2, 'out');
+        it(`mode [out]: excludes players without status set`, async function() {
+          const players = getPlayersWithSomeMissingStatus(2, PlayerStatus.Out);
 
           el.mode = 'out';
           el.players = players;
@@ -144,25 +121,25 @@
         const modeTests = [
           {
             listMode: 'next',
-            playerStatus: 'NEXT',
-            nonMatchingStatus: 'OFF',
+            playerStatus: PlayerStatus.Next,
+            nonMatchingStatus: PlayerStatus.Off,
           },
           {
             listMode: 'off',
-            playerStatus: 'OFF',
-            nonMatchingStatus: 'NEXT',
+            playerStatus: PlayerStatus.Off,
+            nonMatchingStatus: PlayerStatus.Next,
           },
           {
             listMode: 'out',
-            playerStatus: 'OUT',
-            nonMatchingStatus: 'OFF',
+            playerStatus: PlayerStatus.Out,
+            nonMatchingStatus: PlayerStatus.Off,
           },
         ];
 
         for (const modeTest of modeTests) {
           const testPrefix = `mode [${modeTest.listMode}]`;
 
-          test(`${testPrefix}: shows no players placeholder when input list has no matching players`, async function() {
+          it(`${testPrefix}: shows no players placeholder when input list has no matching players`, async function() {
             const players = getPlayers(2, modeTest.nonMatchingStatus);
 
             el.mode = modeTest.listMode;
@@ -175,8 +152,8 @@
           for (const numPlayers of [1, 6]) {
             const playersDesc = numPlayers === 1 ? 'single player' : `multiple players`;
 
-            test(`${testPrefix}: renders list with ${playersDesc} all matching mode`, async function() {
-              const players = getPlayers(numPlayers, modeTest.listMode);
+            it(`${testPrefix}: renders list with ${playersDesc} all matching mode`, async function() {
+              const players = getPlayers(numPlayers, modeTest.playerStatus);
 
               el.mode = modeTest.listMode;
               el.players = players;
@@ -185,8 +162,8 @@
               verifyPlayerCards(numPlayers);
             });
 
-            test(`${testPrefix}: renders list with ${playersDesc} mixed with other status`, async function() {
-              const players = getPlayers(numPlayers, modeTest.listMode, modeTest.nonMatchingStatus);
+            it(`${testPrefix}: renders list with ${playersDesc} mixed with other status`, async function() {
+              const players = getPlayers(numPlayers, modeTest.playerStatus, modeTest.nonMatchingStatus);
 
               el.mode = modeTest.listMode;
               el.players = players;
@@ -198,11 +175,12 @@
           } // number of players
         } // list modes
 
-        test('a11y', function() {
+        it('a11y', function() {
           console.log('ally test');
           return axeReport(el);
         });
+
+        it('accessibility', async () => {
+          await expect(el).to.be.accessible();
+        });
       });
-    </script>
-  </body>
-</html>

@@ -1,44 +1,26 @@
-<!--
-@license
--->
+import { fixture, assert, expect } from '@open-wc/testing';
+import 'axe-core/axe.min.js';
+import { axeReport } from 'pwa-helpers/axe-report.js';
+import '@app/components/lineup-on-player-list.js';
+import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
+import { LineupPlayerCard } from '@app/components/lineup-player-card';
+import { LivePlayer } from '@app/models/game';
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>lineup-on-player-list</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+      import { FormationBuilder, FormationType } from '@app/models/formation';
+      import { PlayerStatus } from '@app/models/player';
 
-    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/chai/chai.js"></script>
-    <script src="../../node_modules/mocha/mocha.js"></script>
-    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
-  </head>
-  <body>
-    <test-fixture id="basic">
-      <template>
-        <lineup-on-player-list></lineup-on-player-list>
-      </template>
-    </test-fixture>
-
-    <script type="module">
-      import '@polymer/test-fixture';
-      import 'axe-core/axe.min.js';
-      import {axeReport} from 'pwa-helpers/axe-report.js';
-      import '../../src/components/lineup-on-player-list.js';
-
-      import { FormationBuilder, FormationType } from '../../src/models/formation.js';
-      import { PlayerStatus } from '../../src/models/player.js';
-
-      function getFormation(formationType) {
+interface PositionCounter {
+  [index: string]: number;
+}
+      function getFormation(formationType: FormationType) {
         return FormationBuilder.create(formationType);
       }
 
-      function getPositions(formationType) {
+      function getPositions(formationType: FormationType) {
         const formation =  FormationBuilder.create(formationType);
-        const positions = {};
+        const positions: PositionCounter = {};
 
-        const lines = [
+        [
           formation.forward1, formation.forward2,
           formation.midfield1, formation.midfield2,
           formation.defense,
@@ -57,13 +39,13 @@
         return positions;
       }
 
-      function getPlayers(numPlayers, status, otherStatus) {
+      function getPlayers(numPlayers: number, status?: PlayerStatus, otherStatus?: PlayerStatus): LivePlayer[] {
         const size = numPlayers || 6;
-        const players = [];
+        const players: LivePlayer[] = [];
         for (let i = 0; i < size; i++) {
           const playerId = `P${i}`;
           let currentPosition;
-          let pos;
+          let pos: string[] = [];
 
           switch (i) {
             case 0:
@@ -148,25 +130,24 @@
         return players;
       }
 
-      suite('lineup-on-player-list tests', function() {
-        let el;
-        setup(function() {
-          el = fixture('basic');
-          // Make tests wait until element is rendered.
-          return el.updateComplete;
+      describe('lineup-on-player-list tests', function() {
+        let el: LineupOnPlayerList;
+        beforeEach(async () => {
+          el = await fixture('<lineup-on-player-list></lineup-on-player-list>');
         });
 
-        function verifyPlayerCards(players) {
-          const items = el.shadowRoot.querySelectorAll('div div.list div lineup-player-card');
+        function verifyPlayerCards(players: LivePlayer[]) {
+          const items = el.shadowRoot!.querySelectorAll('div div.list div lineup-player-card');
 
           players.forEach(player => {
             let found = false;
-            for (let playerCard of items) {
-              if (playerCard.data.position.id !== player.currentPosition.id) {
+            for (let element of Array.from(items)) {
+              const playerCard = element as LineupPlayerCard;
+              if (playerCard.data!.position.id !== player.currentPosition!.id) {
                 continue;
               }
 
-              const cardPlayer = playerCard.data.player;
+              const cardPlayer = playerCard.data!.player;
               if (!cardPlayer) {
                 continue;
               }
@@ -185,30 +166,31 @@
           });
         }
 
-        test('starts empty', function() {
+        it('starts empty', function() {
           assert.equal(el.formation, undefined);
           assert.deepEqual(el.players, []);
         });
 
-        test('shows no players placeholder for empty formation/players', function() {
+        it('shows no players placeholder for empty formation/players', function() {
           assert.equal(el.formation, undefined);
           assert.deepEqual(el.players, []);
-          const placeholder = el.shadowRoot.querySelector('div p.empty-list');
+          const placeholder = el.shadowRoot!.querySelector('div p.empty-list');
           assert.isOk(placeholder, 'Missing empty placeholder element');
         });
 
-        test('renders full formation with empty input list', async function() {
+        it('renders full formation with empty input list', async function() {
           el.formation = getFormation(FormationType.F4_3_3);
           el.players = [];
           await el.updateComplete;
 
-          const items = el.shadowRoot.querySelectorAll('div div.list div lineup-player-card');
+          const items = el.shadowRoot!.querySelectorAll('div div.list div lineup-player-card');
           assert.equal(items.length, 11, 'Rendered position count');
 
           const expectedPositions = getPositions(FormationType.F4_3_3);
-          const actualPositions = {};
-          items.forEach(playerCard => {
-            const position = playerCard.data.position.id;
+          const actualPositions: PositionCounter = {};
+          items.forEach(element => {
+            const playerCard = element as LineupPlayerCard;
+            const position = playerCard.data!.position.id;
             let count = actualPositions[position];
             if (count) {
               count++;
@@ -221,20 +203,21 @@
           assert.deepEqual(actualPositions, expectedPositions, 'Positions in renderered formation');
         });
 
-        test('renders full formation when input list has no matching players', async function() {
+        it('renders full formation when input list has no matching players', async function() {
           el.formation = getFormation(FormationType.F4_3_3);
           el.players = getPlayers(2, PlayerStatus.Next);
           await el.updateComplete;
 
-          const items = el.shadowRoot.querySelectorAll('div div.list div lineup-player-card');
+          const items = el.shadowRoot!.querySelectorAll('div div.list div lineup-player-card');
           assert.equal(items.length, 11, 'Rendered position count');
 
           const expectedPositions = getPositions(FormationType.F4_3_3);
-          const actualPositions = {};
-          items.forEach(playerCard => {
-            assert.isOk(playerCard.data.position, 'Position is set');
-            assert.isNotOk(playerCard.data.player, 'Player should not be set');
-            const position = playerCard.data.position.id;
+          const actualPositions: PositionCounter = {};
+          items.forEach(element => {
+            const playerCard = element as LineupPlayerCard;
+            assert.isOk(playerCard.data!.position, 'Position is set');
+            assert.isNotOk(playerCard.data!.player, 'Player should not be set');
+            const position = playerCard.data!.position.id;
             let count = actualPositions[position];
             if (count) {
               count++;
@@ -247,7 +230,7 @@
           assert.deepEqual(actualPositions, expectedPositions, 'Positions in renderered formation');
         });
 
-        test(`shows no player cards when input list has no matching players`, async function() {
+        it(`shows no player cards when input list has no matching players`, async function() {
           const players = getPlayers(2, PlayerStatus.Next);
           el.formation = getFormation(FormationType.F4_3_3);
           el.players = players;
@@ -258,7 +241,7 @@
 
         for (const numPlayers of [1, 6]) {
           const testName = numPlayers === 1 ? 'single player' : `multiple players`;
-          test(`puts players in matching position with ${testName}`, async function() {
+          it(`puts players in matching position with ${testName}`, async function() {
             const players = getPlayers(numPlayers);
             el.formation = getFormation(FormationType.F4_3_3);
             el.players = players;
@@ -267,7 +250,7 @@
             verifyPlayerCards(players);
           });
 
-          test(`puts players in matching position with ${testName} mixed with other status`, async function() {
+          it(`puts players in matching position with ${testName} mixed with other status`, async function() {
             // Generates a list with two players at each position, the first off, the second on.
             // Ensures that if status is not filtered correctly, the non-matching 'OFF' player is
             // processed first.
@@ -280,11 +263,12 @@
           });
         }
 
-        test('a11y', function() {
+        it('a11y', function() {
           console.log('ally test');
           return axeReport(el);
         });
+
+        it('accessibility', async () => {
+          await expect(el).to.be.accessible();
+        });
       });
-    </script>
-  </body>
-</html>
