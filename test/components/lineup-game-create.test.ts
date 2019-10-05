@@ -1,62 +1,37 @@
-<!--
-@license
--->
-
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>lineup-game-create</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/chai/chai.js"></script>
-    <script src="../../node_modules/mocha/mocha.js"></script>
-    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
-  </head>
-  <body>
-    <test-fixture id="basic">
-      <template>
-        <lineup-game-create></lineup-game-create>
-      </template>
-    </test-fixture>
-
-    <script type="module">
-      import '@polymer/test-fixture';
+import { fixture, assert } from '@open-wc/testing';
       import 'axe-core/axe.min.js';
       import {axeReport} from 'pwa-helpers/axe-report.js';
-      import '../../src/components/lineup-game-create.js';
+      import '@app/components/lineup-game-create.js';
+import { LineupGameCreate } from '@app/components/lineup-game-create';
 
-      suite('lineup-game-create tests', function() {
-        let el;
-        setup(function() {
-          el = fixture('basic');
-          // Make tests wait until element is rendered.
-          return el.updateComplete;
+      describe('lineup-game-create tests', function() {
+        let el: LineupGameCreate;
+        beforeEach(async () => {
+          el = await fixture('<lineup-game-create></lineup-game-create>');
         });
 
-        function getInputField(fieldId) {
-          const field = el.shadowRoot.querySelector(`#${fieldId} > input`);
+        function getInputField(fieldId: string) {
+          const field = el.shadowRoot!.querySelector(`#${fieldId} > input`);
           assert.isOk(field, `Missing field: ${fieldId}`);
-          return field;
+          return field as HTMLInputElement;
         }
 
-        function sleep(milliseconds) {
+        function sleep(milliseconds: number) {
           return new Promise(resolve => setTimeout(resolve, milliseconds))
         }
 
-        test('starts empty', function() {
+        it('starts empty', function() {
           const dateField = getInputField('dateField');
 
           assert.equal(dateField.value, '', 'Date field should be empty');
         });
 
-        test('clears fields when cancelled', function() {
+        it('clears fields when cancelled', function() {
           // TODO: Implement when cancel handling is implemented.
           assert.isTrue(true);
         });
 
-        test('creates new game when saved', async function() {
+        it('creates new game when saved', async function() {
           // TODO: Figure out better way to wait for component to be rendered
           await sleep(50);
 
@@ -75,15 +50,16 @@
 
           let eventFired = false;
           let newGame = null;
-          const handler = function(event) {
+          const handler = function (firedEvent: Event) {
             eventFired = true;
+            const event = firedEvent as CustomEvent;
             newGame = event.detail.game;
             window.removeEventListener('newgamecreated', handler);
           };
 
           window.addEventListener('newgamecreated', handler);
 
-          const saveButton = el.shadowRoot.querySelector('mwc-button.save');
+          const saveButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
           saveButton.click();
           // TODO: Figure out better way than manual sleep
           await sleep(50);
@@ -98,10 +74,7 @@
             });
         });
 
-        test('a11y', function() {
+        it('a11y', function() {
           return axeReport(el);
         });
       });
-    </script>
-  </body>
-</html>
