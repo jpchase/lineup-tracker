@@ -1,63 +1,34 @@
-<!--
-@license
-Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>lineup-team-selector</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/chai/chai.js"></script>
-    <script src="../../node_modules/mocha/mocha.js"></script>
-    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
-  </head>
-  <body>
-    <test-fixture id="basic">
-      <template>
-        <lineup-team-selector></lineup-team-selector>
-      </template>
-    </test-fixture>
-
-    <script type="module">
-      import '@polymer/test-fixture';
+import { fixture, assert } from '@open-wc/testing';
       import 'axe-core/axe.min.js';
-      import {axeReport} from 'pwa-helpers/axe-report.js';
-      import '../../src/components/lineup-team-selector.js';
+      // import {axeReport} from 'pwa-helpers/axe-report.js';
+      import '@app/components/lineup-team-selector.js';
+import { LineupTeamSelector } from '@app/components/lineup-team-selector';
+import { buildTeams } from '../helpers/test_data';
+import { PaperListboxElement } from '@polymer/paper-listbox';
 
-      suite('lineup-team-selector tests', function() {
-        let el;
-        setup(function() {
-          el = fixture('basic');
-          // Make tests wait until element is rendered.
-          return el.updateComplete;
+      describe('lineup-team-selector tests', function() {
+        let el: LineupTeamSelector;
+        beforeEach(async () => {
+          el = await fixture('<lineup-team-selector></lineup-team-selector>');
         });
 
         function getItems() {
-          const items = el.shadowRoot.querySelectorAll('paper-dropdown-menu paper-listbox paper-item');
+          const items = el.shadowRoot!.querySelectorAll('paper-dropdown-menu paper-listbox paper-item');
           assert.isOk(items, 'Missing items for teams');
           return items;
         }
 
-        test('starts empty', function() {
+        it('starts empty', function() {
           assert.equal(el.teamId, '', 'teamId');
           assert.deepEqual(el.teams, {}, 'teams');
         });
 
-        test('renders items for each team', async function() {
+        it('renders items for each team', async function() {
           const teams = [{
             id: 't1',
             name: 'First team',
           }];
-          el.teams = teams;
+          el.teams = buildTeams(teams);
           await el.updateComplete;
 
           const items = getItems();
@@ -69,25 +40,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(firstTeam.textContent, teams[0].name, 'Team name');
         });
 
-        test('fires event when team selected', async function() {
+        it('fires event when team selected', async function() {
           const teams = [{
             id: 't1',
             name: 'First team',
           }];
-          el.teams = teams;
+          el.teams = buildTeams(teams);
           await el.updateComplete;
 
           let eventFired = false;
           let eventTeamId = null;
-          const handler = function(event) {
+          const handler = function (firedEvent: Event) {
             eventFired = true;
+            const event = firedEvent as CustomEvent;
             eventTeamId = event.detail.teamId;
             window.removeEventListener('team-changed', handler);
           };
 
           window.addEventListener('team-changed', handler);
 
-          const list = el.shadowRoot.querySelector('paper-dropdown-menu paper-listbox')
+          const list = el.shadowRoot!.querySelector('paper-dropdown-menu paper-listbox') as PaperListboxElement;
           list.select(teams[0].id);
 
           await 0;
@@ -95,7 +67,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.deepEqual(eventTeamId, teams[0].id);
         });
 
-        test('renders item to add new team when empty', async function() {
+        it('renders item to add new team when empty', async function() {
           await el.updateComplete;
           const items = getItems();
           const addTeam = items[0];
@@ -103,12 +75,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(addTeam.textContent, '+ Add team', 'Add new team item');
         });
 
-        test('renders item to add new team with existing teams', async function() {
+        it('renders item to add new team with existing teams', async function() {
           const teams = [{
             id: 't1',
             name: 'First team',
           }];
-          el.teams = teams;
+          el.teams = buildTeams(teams);
           await el.updateComplete;
 
           const items = getItems();
@@ -117,7 +89,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(addTeam.textContent, '+ Add team', 'Add new team item');
         });
 
-        test('fires event to add new team', async function() {
+        it('fires event to add new team', async function() {
           await el.updateComplete;
 
           let eventFired = false;
@@ -128,7 +100,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           window.addEventListener('add-new-team', handler);
 
-          const list = el.shadowRoot.querySelector('paper-dropdown-menu paper-listbox')
+          const list = el.shadowRoot!.querySelector('paper-dropdown-menu paper-listbox') as PaperListboxElement;
           list.select('addnewteam');
 
           await 0;
@@ -140,6 +112,3 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         //   return axeReport(el);
         // });
       });
-    </script>
-  </body>
-</html>
