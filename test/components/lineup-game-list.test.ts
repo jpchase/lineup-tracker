@@ -1,40 +1,20 @@
-<!--
-@license
--->
-
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>lineup-game-list</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/chai/chai.js"></script>
-    <script src="../../node_modules/mocha/mocha.js"></script>
-    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
-  </head>
-  <body>
-    <test-fixture id="basic">
-      <template>
-        <lineup-game-list></lineup-game-list>
-      </template>
-    </test-fixture>
-
-    <script type="module">
-      import '@polymer/test-fixture';
+import { fixture, assert } from '@open-wc/testing';
       import 'axe-core/axe.min.js';
       import {axeReport} from 'pwa-helpers/axe-report.js';
-      import '../../src/components/lineup-game-list.js';
+      import '@app/components/lineup-game-list.js';
 
-      function getGames(numGames) {
+import { LineupGameList } from '@app/components/lineup-game-list';
+import { Games, GameStatus } from '@app/models/game';
+
+      function getGames(numGames: number): Games {
         const size = numGames || 6;
-        const games = {};
+        const games: Games = {};
         for (let i = 0; i < size; i++) {
           const gameId = `G${i}`;
 
           games[gameId] = {
             id: gameId,
+            status: GameStatus.New,
             teamId: 'T1',
             name: `Game ${i}`,
             opponent: `Other team ${i}`,
@@ -44,32 +24,30 @@
         return games;
       }
 
-      suite('lineup-game-list tests', function() {
-        let el;
-        setup(function() {
-          el = fixture('basic');
-          // Make tests wait until element is rendered.
-          return el.updateComplete;
+      describe('lineup-game-list tests', function() {
+        let el: LineupGameList;
+        beforeEach(async () => {
+          el = await fixture('<lineup-game-list></lineup-game-list>');
         });
 
-        test('starts empty', function() {
+        it('starts empty', function() {
           assert.deepEqual(el.games, {});
         });
 
-        test('shows no games placeholder for empty list', function() {
+        it('shows no games placeholder for empty list', function() {
           assert.deepEqual(el.games, {});
-          const placeholder = el.shadowRoot.querySelector('div p.empty-list');
+          const placeholder = el.shadowRoot!.querySelector('div p.empty-list');
           assert.isOk(placeholder, 'Missing empty placeholder element');
         });
 
         for (const numGames of [1, 6]) {
           const testName = numGames === 1 ? 'single game' : `multiple games`;
-          test(`renders list with ${testName}`, async function() {
+          it(`renders list with ${testName}`, async function() {
             const games = getGames(numGames);
             el.games = games;
             await el.updateComplete;
 
-            const items = el.shadowRoot.querySelectorAll('div div div.game');
+            const items = el.shadowRoot!.querySelectorAll('div div div.game');
             assert.isOk(items, 'Missing items for games');
             assert.equal(items.length, numGames, 'Rendered game count');
 
@@ -81,15 +59,15 @@
 
               const nameElement = gameElement.querySelector('.name');
               assert.isOk(nameElement, 'Missing name element');
-              assert.equal(nameElement.textContent, game.name);
+              assert.equal(nameElement!.textContent, game.name);
 
               const opponentElement = gameElement.querySelector('.opponent');
               assert.isOk(opponentElement, 'Missing opponent element');
-              assert.equal(opponentElement.textContent, game.opponent);
+              assert.equal(opponentElement!.textContent, game.opponent);
 
               const dateElement = gameElement.querySelector('.gameDate');
               assert.isOk(dateElement, 'Missing gameDate element');
-              assert.equal(dateElement.textContent, game.date.toString());
+              assert.equal(dateElement!.textContent, game.date.toString());
 
               index++;
             }
@@ -97,11 +75,8 @@
           });
         }
 
-        test('a11y', function() {
+        it('a11y', function() {
           console.log('ally test');
           return axeReport(el);
         });
       });
-    </script>
-  </body>
-</html>
