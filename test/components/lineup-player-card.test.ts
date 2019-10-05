@@ -1,54 +1,30 @@
-<!--
-@license
--->
+import { fixture, assert, expect } from '@open-wc/testing';
+import 'axe-core/axe.min.js';
+import { axeReport } from 'pwa-helpers/axe-report.js';
+import '@app/components/lineup-player-card.js';
+import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-card';
+import { Player, PlayerStatus } from '@app/models/player';
+      import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '@app/components/events';
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>lineup-roster-item</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+      describe('lineup-player-card tests', () => {
+        let el: LineupPlayerCard;
 
-    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/chai/chai.js"></script>
-    <script src="../../node_modules/mocha/mocha.js"></script>
-    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
-  </head>
-  <body>
-    <test-fixture id="basic">
-      <template>
-        <lineup-player-card></lineup-player-card>
-      </template>
-    </test-fixture>
-
-    <script type="module">
-      import '@polymer/test-fixture';
-      import 'axe-core/axe.min.js';
-      import {axeReport} from 'pwa-helpers/axe-report.js';
-      import '../../src/components/lineup-player-card.js';
-
-      import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '../../src/components/events.js';
-
-      suite('lineup-player-card tests', function() {
-        let el;
-        setup(function() {
-          el = fixture('basic');
-          // Make tests wait until element is rendered.
-          return el.updateComplete;
+        beforeEach(async () => {
+          el = await fixture('<lineup-player-card></lineup-player-card>');
         });
 
-        function getPlayer() {
+        function getPlayer(): Player {
           return {
             id: 'AC',
             name: 'Amanda',
             uniformNumber: 2,
             positions: ['CB', 'FB', 'HM'],
-            status: 'OFF'
+            status: PlayerStatus.Off
           };
         }
 
-        function getCardData(player) {
-          const data = {
+        function getCardData(player?: Player) {
+          const data: PlayerCardData = {
             id: 'test',
             position: { id: 'HM', type: 'HM'}
           };
@@ -58,23 +34,23 @@
           return data;
         }
 
-        function getPlayerElement() {
-          const playerElement = el.shadowRoot.querySelector('.player');
+        function getPlayerElement(): HTMLDivElement {
+          const playerElement = el.shadowRoot!.querySelector('.player');
           assert.isOk(playerElement, 'Missing main element for player');
 
-          return playerElement;
+          return playerElement as HTMLDivElement;
         }
 
-        function verifyPlayerElements(inputPlayer) {
+        function verifyPlayerElements(inputPlayer: Player) {
           const playerElement = getPlayerElement();
 
           const numberElement = playerElement.querySelector('.uniformNumber');
           assert.isOk(numberElement, 'Missing number element');
-          assert.equal(numberElement.textContent, inputPlayer.uniformNumber);
+          assert.equal(numberElement!.textContent, inputPlayer.uniformNumber);
 
           const nameElement = playerElement.querySelector('.playerName');
           assert.isOk(nameElement, 'Missing name element');
-          assert.equal(nameElement.textContent, inputPlayer.name);
+          assert.equal(nameElement!.textContent, inputPlayer.name);
 
           // const positionsElement = playerElement.querySelector('paper-icon-item paper-item-body div[secondary]');
           // assert.isOk(positionsElement, 'Missing positions element');
@@ -83,7 +59,7 @@
           return playerElement;
         }
 
-        test('starts empty', function() {
+        it('starts empty', function() {
           console.log('empty test');
 
           assert.equal(el.mode, '');
@@ -92,7 +68,7 @@
           assert.equal(el.player, undefined);
         });
 
-        test('renders player properties', async function() {
+        it('renders player properties', async function() {
           const player = getPlayer();
           el.player = player;
           await el.updateComplete;
@@ -102,23 +78,23 @@
           verifyPlayerElements(player);
         });
 
-        test('renders data.player properties', async function() {
+        it('renders data.player properties', async function() {
           const player = getPlayer();
           const data = getCardData(player);
           el.data = data;
           await el.updateComplete;
 
-          assert.equal(el.data.player.uniformNumber, 2);
+          assert.equal(el.data.player!.uniformNumber, 2);
 
           const playerElement = verifyPlayerElements(player);
 
           const positionElement = playerElement.querySelector('.currentPosition');
           assert.isOk(positionElement, 'Missing currentPosition element');
-          assert.equal(positionElement.textContent, data.position.type);
+          assert.equal(positionElement!.textContent, data.position.type);
 
         });
 
-        test('renders data properties without player', async function() {
+        it('renders data properties without player', async function() {
           const data = getCardData();
           el.data = data;
           await el.updateComplete;
@@ -127,10 +103,10 @@
 
           const positionElement = playerElement.querySelector('.currentPosition');
           assert.isOk(positionElement, 'Missing currentPosition element');
-          assert.equal(positionElement.textContent, data.position.type);
+          assert.equal(positionElement!.textContent, data.position.type);
         });
 
-        test('fires event when player selected', async function() {
+        it('fires event when player selected', async function() {
           const player = getPlayer();
           el.player = player;
           await el.updateComplete;
@@ -138,8 +114,9 @@
           let eventFired = false;
           let eventPlayer = undefined;
           let eventSelected = undefined;
-          const handler = function(event) {
+          const handler = function(firedEvent: Event) {
             eventFired = true;
+            const event = firedEvent as CustomEvent;
             eventPlayer = event.detail.player;
             eventSelected = event.detail.selected;
             window.removeEventListener(EVENT_PLAYERSELECTED, handler);
@@ -156,7 +133,7 @@
           assert.isTrue(eventSelected, 'Card should now be selected');
         });
 
-        test('fires event when player de-selected', async function() {
+        it('fires event when player de-selected', async function() {
           const player = getPlayer();
           el.player = player;
           el.selected = true;
@@ -165,8 +142,9 @@
           let eventFired = false;
           let eventPlayer = undefined;
           let eventSelected = undefined;
-          const handler = function(event) {
+          const handler = function(firedEvent: Event) {
             eventFired = true;
+            const event = firedEvent as CustomEvent;
             eventPlayer = event.detail.player;
             eventSelected = event.detail.selected;
             window.removeEventListener(EVENT_PLAYERSELECTED, handler);
@@ -183,7 +161,7 @@
           assert.isFalse(eventSelected, 'Card should no longer be selected');
         });
 
-        test('fires event when position selected with data', async function() {
+        it('fires event when position selected with data', async function() {
           const data = getCardData();
           el.data = data;
           await el.updateComplete;
@@ -192,8 +170,9 @@
           let eventPlayer = undefined;
           let eventPosition = undefined;
           let eventSelected = undefined;
-          const handler = function(event) {
+          const handler = function(firedEvent: Event) {
             eventFired = true;
+            const event = firedEvent as CustomEvent;
             eventPlayer = event.detail.player;
             eventPosition = event.detail.position;
             eventSelected = event.detail.selected;
@@ -212,7 +191,7 @@
           assert.isTrue(eventSelected, 'Card should now be selected');
         });
 
-        test('fires event when position de-selected with data', async function() {
+        it('fires event when position de-selected with data', async function() {
           const data = getCardData();
           el.data = data;
           el.selected = true;
@@ -222,8 +201,9 @@
           let eventPlayer = undefined;
           let eventPosition = undefined;
           let eventSelected = undefined;
-          const handler = function(event) {
+          const handler = function(firedEvent: Event) {
             eventFired = true;
+            const event = firedEvent as CustomEvent;
             eventPlayer = event.detail.player;
             eventPosition = event.detail.position;
             eventSelected = event.detail.selected;
@@ -242,7 +222,7 @@
           assert.isFalse(eventSelected, 'Card should no longer be selected');
         });
 
-        test('fires event when position selected with data and player', async function() {
+        it('fires event when position selected with data and player', async function() {
           const data = getCardData();
           const player = getPlayer();
           data.player = player;
@@ -253,8 +233,9 @@
           let eventPlayer = undefined;
           let eventPosition = undefined;
           let eventSelected = undefined;
-          const handler = function(event) {
+          const handler = function(firedEvent: Event) {
             eventFired = true;
+            const event = firedEvent as CustomEvent;
             eventPlayer = event.detail.player;
             eventPosition = event.detail.position;
             eventSelected = event.detail.selected;
@@ -273,7 +254,7 @@
           assert.isTrue(eventSelected, 'Card should now be selected');
         });
 
-        test('fires event when position de-selected with data and player', async function() {
+        it('fires event when position de-selected with data and player', async function() {
           const data = getCardData();
           const player = getPlayer();
           data.player = player;
@@ -285,8 +266,9 @@
           let eventPlayer = undefined;
           let eventPosition = undefined;
           let eventSelected = undefined;
-          const handler = function(event) {
+          const handler = function(firedEvent: Event) {
             eventFired = true;
+            const event = firedEvent as CustomEvent;
             eventPlayer = event.detail.player;
             eventPosition = event.detail.position;
             eventSelected = event.detail.selected;
@@ -305,11 +287,13 @@
           assert.isFalse(eventSelected, 'Card should no longer be selected');
         });
 
-        test('a11y', function() {
+        it('a11y', function() {
           console.log('ally test');
           return axeReport(el);
         });
+
+        it('accessibility', async () => {
+          await expect(el).to.be.accessible();
+        });
+
       });
-    </script>
-  </body>
-</html>
