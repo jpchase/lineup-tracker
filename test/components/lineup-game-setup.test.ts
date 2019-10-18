@@ -1,60 +1,43 @@
-<!--
-@license
--->
-
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>lineup-game-list</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <script>
-      // Redux assumes `process.env.NODE_ENV` exists in the ES module build.
-      // https://github.com/reactjs/redux/issues/2907
-      window.process = { env: { NODE_ENV: 'production' } };
-    </script>
-
-    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-    <script src="../../node_modules/chai/chai.js"></script>
-    <script src="../../node_modules/mocha/mocha.js"></script>
-    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
-  </head>
-  <body>
-    <test-fixture id="basic">
-      <template>
-        <lineup-game-setup></lineup-game-setup>
-      </template>
-    </test-fixture>
-
-    <script type="module">
-      import '@polymer/test-fixture';
+/*
+import { fixture, assert } from '@open-wc/testing';
       import 'axe-core/axe.min.js';
       import {axeReport} from 'pwa-helpers/axe-report.js';
-      import '../../src/components/lineup-game-setup.js';
+      import '@app/components/lineup-game-setup.js';
+import { LineupGameSetup } from '@app/components/lineup-game-setup';
+import { Button } from '@material/mwc-button';
+import { GameDetail, SetupStatus, SetupTask, SetupSteps } from '@app/models/game';
+import { FormationType } from '@app/models/formation';
+import { getNewGameWithLiveDetail, buildRoster, getStoredPlayer } from '../helpers/test_data';
 
       // import {} from '../helpers/test_data.js';
+          // @ts-ignore
+          window.process = { env: { NODE_ENV: 'production' } };
 
-      import { store } from '../../src/store.js';
+      import { store } from '@app/store';
       import {
-        GET_GAME_REQUEST,
+        // GET_GAME_REQUEST,
         GET_GAME_SUCCESS,
         CAPTAINS_DONE,
         ROSTER_DONE,
         STARTERS_DONE,
         SET_FORMATION
-      } from '../../src/actions/game.js';
+      } from '@app/actions/game-types';
 
       // Need to load the reducer, as lineup-game-setup relies on lineup-view-game-detail to do so.
-      import game from '../../src/reducers/game';
-      store.addReducers({
-        game
-      });
+      import { game } from '@app/reducers/game';
+      // store.addReducers({
+      //   game
+      // });
 
-      function getGameDetail() {
+interface TestSetupTask extends SetupTask {
+  expectedName?: string;
+}
+      function getGameDetail(): GameDetail {
+        /*
         return {
           id: 'G1',
           teamId: 'T1',
+          status: GameStatus.New,
           name: `G01`,
           opponent: `Other team`,
           date: new Date(2016, 1, 1),
@@ -67,53 +50,58 @@
             }
           ]
         };
+        * /
+       return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]));
       }
 
-      function getTasks() {
+      function getTasks(): TestSetupTask[] {
         return [
           {
-            step: 0 /* Formation */,
-            status: 1 /* SetupStatus.Active */,
+            step: SetupSteps.Formation,
+            status: SetupStatus.Active,
             expectedName: 'Set formation'
           },
           {
-            step: 1 /* Roster */,
-            status: 0 /* SetupStatus.Pending */,
+            step: SetupSteps.Roster,
+            status: SetupStatus.Pending,
             expectedName: 'Set game roster'
           },
           {
-            step: 2 /* Captains */,
-            status: 0 /* SetupStatus.Pending */,
+            step: SetupSteps.Captains,
+            status: SetupStatus.Pending,
             expectedName: 'Set captains'
           },
           {
-            step: 3 /* Starters */,
-            status: 0 /* SetupStatus.Pending */,
+            step: SetupSteps.Starters,
+            status: SetupStatus.Pending,
             expectedName: 'Setup the starting lineup'
           },
         ];
       }
 
-      suite('lineup-game-setup tests', function() {
-        let el;
-        setup(function() {
-          el = fixture('basic');
-          // Make tests wait until element is rendered.
-          return el.updateComplete;
+      describe('lineup-game-setup tests', function() {
+        let el: LineupGameSetup;
+        beforeEach(async () => {
+          // @ts-ignore
+          // window.process = { env: { NODE_ENV: 'production' } };
+          store.addReducers({
+            game
+          });
+          el = await fixture('<lineup-game-setup></lineup-game-setup>');
         });
 
-        test('starts empty', function() {
-          assert.equal(el._game, undefined);
-          const items = el.shadowRoot.querySelectorAll('div div.task');
+        it('starts empty', function() {
+          // assert.equal(el._game, undefined);
+          const items = el.shadowRoot!.querySelectorAll('div div.task');
           assert.isOk(items, 'Missing items for tasks');
           assert.equal(items.length, 0, 'Should be no rendered tasks');
         });
 
-        test('renders all the tasks', async function() {
+        it('renders all the tasks', async function() {
           store.dispatch({type: GET_GAME_SUCCESS, game: getGameDetail()});
           await el.updateComplete;
 
-          const items = el.shadowRoot.querySelectorAll('div div.task');
+          const items = el.shadowRoot!.querySelectorAll('div div.task');
           assert.isOk(items, 'Missing items for tasks');
           assert.equal(items.length, 4, 'Rendered task count');
 
@@ -126,9 +114,9 @@
             const nameElement = taskElement.querySelector('.name');
             assert.isOk(nameElement, 'Missing name element');
 
-            const nameAnchor = nameElement.querySelector('a');
+            const nameAnchor = nameElement!.querySelector('a');
             assert.isOk(nameAnchor, 'Missing name nameAnchor');
-            assert.equal(nameAnchor.textContent, task.expectedName);
+            assert.equal(nameAnchor!.textContent, task.expectedName);
 
             const statusElement = taskElement.querySelector('.status');
             assert.isOk(statusElement, 'Missing status element');
@@ -137,46 +125,44 @@
 
         });
 
-        test('task links are disabled unless task is active', async function() {
+        it('task links are disabled unless task is active', async function() {
           assert.equal(true, false);
         });
 
-        test('start game is disabled initially', async function() {
+        it('start game is disabled initially', async function() {
           store.dispatch({type: GET_GAME_SUCCESS, game: getGameDetail()});
           await el.updateComplete;
 
-          const startGame = el.shadowRoot.querySelector('div div.start mwc-button');
+          const startGame = el.shadowRoot!.querySelector('div div.start mwc-button') as Button;
           assert.isOk(startGame, 'Missing start game button');
           assert.equal(startGame.disabled, true, 'Start game is not disabled');
         });
 
-        test('start game is enabled after tasks are completed', async function() {
+        it('start game is enabled after tasks are completed', async function() {
           const game = getGameDetail();
-          game.setupTasks = getTasks();
+          game.liveDetail!.setupTasks = getTasks();
           store.dispatch({type: GET_GAME_SUCCESS, game});
           await el.updateComplete;
 
-          let startGame = el.shadowRoot.querySelector('div div.start mwc-button');
+          let startGame = el.shadowRoot!.querySelector('div div.start mwc-button') as Button;
           assert.isOk(startGame, 'Missing start game button');
           assert.equal(startGame.disabled, true, 'Start game should be disabled');
 
           // Simulates the completion of all the setup tasks.
-          store.dispatch({type: SET_FORMATION, formationType: '4-3-3'});
+          store.dispatch({type: SET_FORMATION, formationType: FormationType.F4_3_3});
           store.dispatch({type: ROSTER_DONE});
           store.dispatch({type: CAPTAINS_DONE});
           store.dispatch({type: STARTERS_DONE});
           await el.updateComplete;
 
-          startGame = el.shadowRoot.querySelector('div div.start mwc-button');
+          startGame = el.shadowRoot!.querySelector('div div.start mwc-button') as Button;
           assert.isOk(startGame, 'Missing start game button');
           assert.equal(startGame.disabled, false, 'Start game should be enabled');
         });
 
-        test('a11y', function() {
+        it('a11y', function() {
           console.log('ally test');
           return axeReport(el);
         });
       });
-    </script>
-  </body>
-</html>
+*/
