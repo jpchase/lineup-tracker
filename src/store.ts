@@ -2,6 +2,8 @@
 @license
 */
 
+/// <reference path="./redux-mjs.d.ts" />
+
 declare global {
   interface Window {
     process?: Object;
@@ -17,7 +19,7 @@ import {
   Reducer,
   Store,
   StoreEnhancer
-} from 'redux';
+} from 'redux/es/redux.mjs.js';
 import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk';
 import { LazyStore, lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer.js';
 

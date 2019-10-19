@@ -1,4 +1,3 @@
-/*
 import { fixture, assert } from '@open-wc/testing';
       import 'axe-core/axe.min.js';
       import {axeReport} from 'pwa-helpers/axe-report.js';
@@ -8,10 +7,6 @@ import { Button } from '@material/mwc-button';
 import { GameDetail, SetupStatus, SetupTask, SetupSteps } from '@app/models/game';
 import { FormationType } from '@app/models/formation';
 import { getNewGameWithLiveDetail, buildRoster, getStoredPlayer } from '../helpers/test_data';
-
-      // import {} from '../helpers/test_data.js';
-          // @ts-ignore
-          window.process = { env: { NODE_ENV: 'production' } };
 
       import { store } from '@app/store';
       import {
@@ -33,25 +28,7 @@ interface TestSetupTask extends SetupTask {
   expectedName?: string;
 }
       function getGameDetail(): GameDetail {
-        /*
-        return {
-          id: 'G1',
-          teamId: 'T1',
-          status: GameStatus.New,
-          name: `G01`,
-          opponent: `Other team`,
-          date: new Date(2016, 1, 1),
-          roster: [
-            {
-              id: 'AC',
-              name: 'Amanda',
-              uniformNumber: 2,
-              positions: ['CB', 'FB', 'HM'],
-            }
-          ]
-        };
-        * /
-       return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]));
+        return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), getTasks());
       }
 
       function getTasks(): TestSetupTask[] {
@@ -82,8 +59,6 @@ interface TestSetupTask extends SetupTask {
       describe('lineup-game-setup tests', function() {
         let el: LineupGameSetup;
         beforeEach(async () => {
-          // @ts-ignore
-          // window.process = { env: { NODE_ENV: 'production' } };
           store.addReducers({
             game
           });
@@ -91,7 +66,6 @@ interface TestSetupTask extends SetupTask {
         });
 
         it('starts empty', function() {
-          // assert.equal(el._game, undefined);
           const items = el.shadowRoot!.querySelectorAll('div div.task');
           assert.isOk(items, 'Missing items for tasks');
           assert.equal(items.length, 0, 'Should be no rendered tasks');
@@ -165,4 +139,3 @@ interface TestSetupTask extends SetupTask {
           return axeReport(el);
         });
       });
-*/
