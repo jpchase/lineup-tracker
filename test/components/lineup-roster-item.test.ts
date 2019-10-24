@@ -1,9 +1,9 @@
-import { fixture, assert, expect } from '@open-wc/testing';
+import { LineupRosterItem } from '@app/components/lineup-roster-item';
+import '@app/components/lineup-roster-item.js';
+import { Player, PlayerStatus } from '@app/models/player';
+import { assert, expect, fixture } from '@open-wc/testing';
 import 'axe-core/axe.min.js';
 import { axeReport } from 'pwa-helpers/axe-report.js';
-import '@app/components/lineup-roster-item.js';
-import { LineupRosterItem } from '@app/components/lineup-roster-item';
-import { Player, PlayerStatus } from '@app/models/player';
 
 describe('lineup-roster-item tests', () => {
   const player: Player = {
@@ -19,12 +19,12 @@ describe('lineup-roster-item tests', () => {
     el = await fixture('<lineup-roster-item></lineup-roster-item>');
   });
 
-  it('starts empty', function () {
+  it('starts empty', () => {
     assert.equal(el.isGame, false);
     assert.equal(el.player, undefined);
   });
 
-  it('renders player properties', async function () {
+  it('renders player properties', async () => {
     el.player = player;
     await el.updateComplete;
 
@@ -42,7 +42,7 @@ describe('lineup-roster-item tests', () => {
     assert.equal(positionsElement!.textContent, 'CB, FB, HM');
   });
 
-  it('shows stats in team mode', async function () {
+  it('shows stats in team mode', async () => {
     el.player = player;
     el.isGame = false;
     await el.updateComplete;
@@ -52,7 +52,7 @@ describe('lineup-roster-item tests', () => {
     assert.equal(actionsElement!.textContent!.trim(), 'NN games');
   });
 
-  it('shows actions in game mode', async function () {
+  it('shows actions in game mode', async () => {
     el.player = player;
     el.isGame = true;
     await el.updateComplete;
@@ -62,7 +62,7 @@ describe('lineup-roster-item tests', () => {
     assert.equal(actionsElement!.textContent!.trim(), 'actions here');
   });
 
-  it('a11y', function () {
+  it('a11y', () => {
     return axeReport(el);
   });
 

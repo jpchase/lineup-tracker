@@ -1,10 +1,10 @@
-import { fixture, assert, expect } from '@open-wc/testing';
+import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '@app/components/events';
+import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-card';
+import '@app/components/lineup-player-card.js';
+import { Player, PlayerStatus } from '@app/models/player';
+import { assert, expect, fixture } from '@open-wc/testing';
 import 'axe-core/axe.min.js';
 import { axeReport } from 'pwa-helpers/axe-report.js';
-import '@app/components/lineup-player-card.js';
-import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-card';
-import { Player, PlayerStatus } from '@app/models/player';
-import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '@app/components/events';
 
 describe('lineup-player-card tests', () => {
   let el: LineupPlayerCard;
@@ -59,7 +59,7 @@ describe('lineup-player-card tests', () => {
     return playerElement;
   }
 
-  it('starts empty', function () {
+  it('starts empty', () => {
     console.log('empty test');
 
     assert.equal(el.mode, '');
@@ -68,7 +68,7 @@ describe('lineup-player-card tests', () => {
     assert.equal(el.player, undefined);
   });
 
-  it('renders player properties', async function () {
+  it('renders player properties', async () => {
     const player = getPlayer();
     el.player = player;
     await el.updateComplete;
@@ -78,7 +78,7 @@ describe('lineup-player-card tests', () => {
     verifyPlayerElements(player);
   });
 
-  it('renders data.player properties', async function () {
+  it('renders data.player properties', async () => {
     const player = getPlayer();
     const data = getCardData(player);
     el.data = data;
@@ -94,7 +94,7 @@ describe('lineup-player-card tests', () => {
 
   });
 
-  it('renders data properties without player', async function () {
+  it('renders data properties without player', async () => {
     const data = getCardData();
     el.data = data;
     await el.updateComplete;
@@ -106,7 +106,7 @@ describe('lineup-player-card tests', () => {
     assert.equal(positionElement!.textContent, data.position.type);
   });
 
-  it('fires event when player selected', async function () {
+  it('fires event when player selected', async () => {
     const player = getPlayer();
     el.player = player;
     await el.updateComplete;
@@ -133,7 +133,7 @@ describe('lineup-player-card tests', () => {
     assert.isTrue(eventSelected, 'Card should now be selected');
   });
 
-  it('fires event when player de-selected', async function () {
+  it('fires event when player de-selected', async () => {
     const player = getPlayer();
     el.player = player;
     el.selected = true;
@@ -161,7 +161,7 @@ describe('lineup-player-card tests', () => {
     assert.isFalse(eventSelected, 'Card should no longer be selected');
   });
 
-  it('fires event when position selected with data', async function () {
+  it('fires event when position selected with data', async () => {
     const data = getCardData();
     el.data = data;
     await el.updateComplete;
@@ -191,7 +191,7 @@ describe('lineup-player-card tests', () => {
     assert.isTrue(eventSelected, 'Card should now be selected');
   });
 
-  it('fires event when position de-selected with data', async function () {
+  it('fires event when position de-selected with data', async () => {
     const data = getCardData();
     el.data = data;
     el.selected = true;
@@ -222,7 +222,7 @@ describe('lineup-player-card tests', () => {
     assert.isFalse(eventSelected, 'Card should no longer be selected');
   });
 
-  it('fires event when position selected with data and player', async function () {
+  it('fires event when position selected with data and player', async () => {
     const data = getCardData();
     const player = getPlayer();
     data.player = player;
@@ -254,7 +254,7 @@ describe('lineup-player-card tests', () => {
     assert.isTrue(eventSelected, 'Card should now be selected');
   });
 
-  it('fires event when position de-selected with data and player', async function () {
+  it('fires event when position de-selected with data and player', async () => {
     const data = getCardData();
     const player = getPlayer();
     data.player = player;
@@ -287,7 +287,7 @@ describe('lineup-player-card tests', () => {
     assert.isFalse(eventSelected, 'Card should no longer be selected');
   });
 
-  it('a11y', function () {
+  it('a11y', () => {
     console.log('ally test');
     return axeReport(el);
   });
