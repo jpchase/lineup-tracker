@@ -94,7 +94,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
       <div>
       ${this._game ? html`
         ${repeat(tasks, (task: SetupTask) => task.step, (task: SetupTask) => html`
-          <div class="task flex-equal-justified">
+          <div class="task flex-equal-justified step${task.step}">
             <div class="name">
               <a class="step" href="${ifDefined(this._getStepHref(task))}"
                  @click="${ (e: Event) => this._doStep(e, task)}">${getStepName(task.step)}</a>
@@ -106,7 +106,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
                 ? html`<mwc-icon done>done</mwc-icon>`
                 : (task.status === SetupStatus.Pending || isAutoStep(task.step))
                   ? html`<mwc-icon>more_horiz</mwc-icon>`
-                  : html`<mwc-button icon="check"
+                  : html`<mwc-button class="finish" icon="check"
                              @click="${(e: Event) => this._stepDone(e, task.step)}">Done</mwc-button>`
             }
             </div>
