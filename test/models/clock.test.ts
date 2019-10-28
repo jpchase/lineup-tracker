@@ -1,87 +1,85 @@
-import {CurrentTimeProvider,ManualTimeProvider,Duration,Timer} from '@app/models/clock';
+import { CurrentTimeProvider, Duration, ManualTimeProvider, Timer } from '@app/models/clock';
+import { expect } from '@open-wc/testing';
+import * as sinon from 'sinon';
 
 declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeTime(expected: number): R;
-      toBeInitialized(): R;
-      toHaveElapsed(expected: any): R;
-    }
+  export namespace Chai {
+      interface Assertion {
+          elapsed(expected: number[]): Assertion;
+      }
   }
 }
 
-const toBeTimeMatcher = {
-  toBeTime: function() {
-    return {
-      compare: function(actual: number, expected: number) {
-        const pass: boolean = actual === expected || actual === expected + 1;
+function isTimeEqual(actual: number, expected: number) {
+  return actual === expected || actual === expected + 1;
+}
 
-        return {
-          pass,
-          message: `expected ${actual} ${pass ? 'not ': ''} to be ${expected}`
-        };
-      }
-    };
-  }
-};
+chai.use(function(chai /*, utils*/) {
+  chai.Assertion.addMethod("time", function (this: any, expected: number) {
+    const actual = this._obj;
+    this.assert(
+      actual && isTimeEqual(actual, expected),
+      'expected #{this} to be #{exp}',
+      'expected #{this} to not be #{exp}',
+      expected
+    );
+  });
+});
 
 describe('CurrentTimeProvider', () => {
   let provider: CurrentTimeProvider;
 
   beforeEach(() => {
     provider = new CurrentTimeProvider();
-
-    jasmine.addMatchers(toBeTimeMatcher);
-
   });
 
   it('should not be frozen by default', () => {
-    expect(provider.isFrozen).toBe(false);
+    expect(provider.isFrozen).to.be.false;
   });
 
   it('should return the current time', () => {
     const expectedTime = Date.now();
     const actualTime = provider.getCurrentTime();
-    expect(actualTime).toBeTime(expectedTime);
+    expect(actualTime).to.be.time(expectedTime);
   });
 
   it('should throw for repeated calls to freeze()', () => {
-    expect(provider.isFrozen).toBe(false);
+    expect(provider.isFrozen).to.be.false;
     provider.freeze();
-    expect(provider.isFrozen).toBe(true);
+    expect(provider.isFrozen).to.be.true;
     expect(() => {
       provider.freeze();
-    }).toThrowError('Cannot freeze when already frozen');
+    }).to.throw('Cannot freeze when already frozen');
   });
 
   it('should throw for repeated calls to unfreeze()', () => {
-    expect(provider.isFrozen).toBe(false);
+    expect(provider.isFrozen).to.be.false;
     provider.freeze();
-    expect(provider.isFrozen).toBe(true);
+    expect(provider.isFrozen).to.be.true;
     provider.unfreeze();
-    expect(provider.isFrozen).toBe(false);
+    expect(provider.isFrozen).to.be.false;
     expect(() => {
       provider.unfreeze();
-    }).toThrowError('Cannot unfreeze when not frozen');
+    }).to.throw('Cannot unfreeze when not frozen');
   });
 
   it('should return the frozen time', () => {
-    const time1 = new Date(2016, 0, 1, 14, 0, 0);
-    const time2 = new Date(2016, 0, 1, 14, 1, 0);
+    const time1 = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    const time2 = new Date(2016, 0, 1, 14, 1, 0).getTime();
 
-    spyOn(provider, 'getTimeInternal').and.returnValues(time1, time2);
+    sinon.stub(provider, 'getTimeInternal').onFirstCall().returns(time1).onSecondCall().returns(time2);
 
     provider.freeze();
 
     const actualTime1 = provider.getCurrentTime();
-    expect(actualTime1).toEqual(time1);
+    expect(actualTime1).to.equal(time1);
     const actualTime2 = provider.getCurrentTime();
-    expect(actualTime2).toEqual(time1);
+    expect(actualTime2).to.equal(time1);
 
     provider.unfreeze();
 
     const actualTime3 = provider.getCurrentTime();
-    expect(actualTime3).toEqual(time2);
+    expect(actualTime3).to.equal(time2);
   });
 });
 
@@ -90,15 +88,12 @@ describe('ManualTimeProvider', () => {
 
   beforeEach(() => {
     provider = new ManualTimeProvider();
-
-    jasmine.addMatchers(toBeTimeMatcher);
-
   });
 
   it('should return the current time when not manually set', () => {
     const expectedTime = Date.now();
     const actualTime = provider.getCurrentTime();
-    expect(actualTime).toBeTime(expectedTime);
+    expect(actualTime).to.be.time(expectedTime);
   });
 
   it('should return the set time', () => {
@@ -108,19 +103,19 @@ describe('ManualTimeProvider', () => {
     provider.setCurrentTime(time1);
 
     const actualTime1 = provider.getCurrentTime();
-    expect(actualTime1).toEqual(time1);
+    expect(actualTime1).to.equal(time1);
     const actualTime2 = provider.getCurrentTime();
-    expect(actualTime2).toEqual(time1);
+    expect(actualTime2).to.equal(time1);
 
     provider.setCurrentTime(time2);
 
     const actualTime3 = provider.getCurrentTime();
-    expect(actualTime3).toEqual(time2);
+    expect(actualTime3).to.equal(time2);
 
     provider.setCurrentTime(time1);
 
     const actualTime4 = provider.getCurrentTime();
-    expect(actualTime4).toEqual(time1);
+    expect(actualTime4).to.equal(time1);
   });
 
   it('should return the incremented time', () => {
@@ -131,17 +126,17 @@ describe('ManualTimeProvider', () => {
     provider.setCurrentTime(time1);
 
     const actualTime1 = provider.getCurrentTime();
-    expect(actualTime1).toEqual(time1);
+    expect(actualTime1).to.equal(time1);
 
     provider.incrementCurrentTime([1,0]);
 
     const actualTime2 = provider.getCurrentTime();
-    expect(actualTime2).toEqual(time2);
+    expect(actualTime2).to.equal(time2);
 
     provider.incrementCurrentTime([1,15]);
 
     const actualTime3 = provider.getCurrentTime();
-    expect(actualTime3).toEqual(time3);
+    expect(actualTime3).to.equal(time3);
   });
 
 });
@@ -149,7 +144,7 @@ describe('ManualTimeProvider', () => {
 describe('Duration', () => {
 
   it('should return initialized array for zero', () => {
-    expect(Duration.zero()).toEqual([0,0]);
+    expect(Duration.zero()).to.deep.equal([0,0]);
   });
 
   describe('add', () => {
@@ -166,27 +161,27 @@ describe('Duration', () => {
     }
 
     it('should return zero for both inputs zero', () => {
-      expect(Duration.add(Duration.zero(), Duration.zero())).toEqual(Duration.zero());
+      expect(Duration.add(Duration.zero(), Duration.zero())).to.deep.equal(Duration.zero());
 
-      expect(Duration.add(Duration.zero(), [0,0])).toEqual(Duration.zero());
+      expect(Duration.add(Duration.zero(), [0,0])).to.deep.equal(Duration.zero());
 
-      expect(Duration.add([0,0], Duration.zero())).toEqual(Duration.zero());
+      expect(Duration.add([0,0], Duration.zero())).to.deep.equal(Duration.zero());
     });
 
     function addTest(left: number[], right: number[], expectedSum: number[]) {
       it('should return correct sum for zero + ' + formatDuration(left), () => {
         const actualSum = Duration.add(Duration.zero(), left);
-        expect(actualSum).toEqual(left);
+        expect(actualSum).to.deep.equal(left);
       });
 
       it('should return correct sum for ' + formatDuration(left) + ' + zero', () => {
         const actualSum = Duration.add(left, Duration.zero());
-        expect(actualSum).toEqual(left);
+        expect(actualSum).to.deep.equal(left);
       });
 
       it('should return correct sum for ' + formatDuration(left) + ' + ' + formatDuration(right), () => {
         const actualSum = Duration.add(left, right);
-        expect(actualSum).toEqual(expectedSum);
+        expect(actualSum).to.deep.equal(expectedSum);
       });
     }
 
@@ -204,7 +199,16 @@ describe('Timer', () => {
 
   function mockTimeProvider(t0: number, t1?: number, t2?: number, t3?: number) {
     let provider = new CurrentTimeProvider();
-    spyOn(provider, 'getTimeInternal').and.returnValues(t0, t1, t2, t3);
+    const stub = sinon.stub(provider, 'getTimeInternal').returns(t0);
+    if (t1) {
+      stub.onCall(1).returns(t1);
+    }
+    if (t2) {
+      stub.onCall(2).returns(t2);
+    }
+    if (t3) {
+      stub.onCall(3).returns(t3);
+    }
     return provider;
   }
 
@@ -232,54 +236,47 @@ describe('Timer', () => {
     return true;
   }
 
-  beforeEach(() => {
-    jasmine.addMatchers({
-      toBeInitialized: function () {
-        return {
-          compare: function (actual: any) {
-            let timer = actual;
-
-            return {
-              pass: timer && !timer.isRunning && !timer.startTime &&
-                    timer.duration && timer.duration[0] === 0 && timer.duration[1] === 0,
-              message: `expected timer not to be running, without start time, and duration [0,0]`
-            };
-          }
-        };
-      },
-      toHaveElapsed: function () {
-        return {
-          compare: function (actual: any, expected: any) {
-            const timer = actual;
-            const elapsed = timer ? timer.getElapsed() : null;
-
-            return {
-              pass: elapsed && isElapsedEqual(elapsed, expected),
-              message: `expected timer elapsed ${elapsed} to be ${expected}`
-            };
-          }
-        };
-      },
+  chai.use(function(chai /*, utils*/) {
+    chai.Assertion.addMethod("initialized", function (this: any) {
+      const timer = this._obj;
+      const pass = timer && !timer.isRunning && !timer.startTime &&
+          timer.duration && timer.duration[0] === 0 && timer.duration[1] === 0;
+      this.assert(
+        pass,
+        'expected #{this} to be stopped, without start time, and duration [0,0]',
+        'expected #{this} to not be stopped, with a start time, or not duration [0,0]'
+      );
     });
 
+    chai.Assertion.addMethod("elapsed", function (this: any, expected: number[]) {
+      const timer = this._obj;
+      const elapsed = timer ? timer.getElapsed() : null;
+      this.assert(
+        elapsed && isElapsedEqual(elapsed, expected),
+        `expected ${JSON.stringify(timer)} elapsed #{act} to be #{exp}`,
+        `expected ${JSON.stringify(timer)} elapsed #{act} to not be #{exp}`,
+        expected,
+        elapsed
+      );
+    });
   });
 
   it('should not be running for new instance', () => {
     let timer = new Timer();
-    expect(timer.isRunning).toBe(false);
+    expect(timer.isRunning).to.be.false;
   });
 
   it('should be running after start', () => {
     let timer = new Timer();
     timer.start();
-    expect(timer.isRunning).toBe(true);
+    expect(timer.isRunning).to.be.true;
   });
 
   it('should not be running after stop', () => {
     let timer = new Timer();
     timer.start();
     timer.stop();
-    expect(timer.isRunning).toBe(false);
+    expect(timer.isRunning).to.be.false;
   });
 
   it('should be empty after reset', () => {
@@ -288,23 +285,23 @@ describe('Timer', () => {
     timer.start();
     timer.stop();
     timer.reset();
-    expect(timer).toBeInitialized();
+    expect(timer).to.be.initialized();
   });
 
   describe('Elapsed time', () => {
 
     it('should have 0 elapsed for new instance', () => {
       let timer = new Timer();
-      expect(timer).toBeInitialized();
+      expect(timer).to.be.initialized();
     });
 
     it('should have correct elapsed when running', () => {
       const provider = mockTimeProvider(startTime, time1, time1);
       let timer = new Timer(null, provider);
       timer.start();
-      expect(timer).toHaveElapsed([0, 5]);
+      expect(timer).to.have.elapsed([0, 5]);
       timer.start();
-      expect(timer).toHaveElapsed([0, 5]);
+      expect(timer).to.have.elapsed([0, 5]);
     });
 
     it('should have correct elapsed when running for more than an hour', () => {
@@ -313,13 +310,13 @@ describe('Timer', () => {
       timer.start();
 
       provider.incrementCurrentTime([0,5]);
-      expect(timer).toHaveElapsed([0, 5]);
+      expect(timer).to.have.elapsed([0, 5]);
 
       provider.incrementCurrentTime([59,59]);
-      expect(timer).toHaveElapsed([60, 4]);
+      expect(timer).to.have.elapsed([60, 4]);
 
       provider.incrementCurrentTime([31,0]);
-      expect(timer).toHaveElapsed([91, 4]);
+      expect(timer).to.have.elapsed([91, 4]);
     });
 
     it('should have correct elapsed after stopped', () => {
@@ -327,9 +324,9 @@ describe('Timer', () => {
       let timer = new Timer(null, provider);
       timer.start();
       timer.stop();
-      expect(timer).toHaveElapsed([0, 10]);
+      expect(timer).to.have.elapsed([0, 10]);
       timer.stop();
-      expect(timer).toHaveElapsed([0, 10]);
+      expect(timer).to.have.elapsed([0, 10]);
     });
 
     it('should have correct elapsed after restarting', () => {
@@ -338,7 +335,7 @@ describe('Timer', () => {
       timer.start();
       timer.stop();
       timer.start();
-      expect(timer).toHaveElapsed([0, 15]);
+      expect(timer).to.have.elapsed([0, 15]);
     });
 
     it('should have correct elapsed after restarted and stopped', () => {
@@ -348,7 +345,7 @@ describe('Timer', () => {
       timer.stop();
       timer.start();
       timer.stop();
-      expect(timer).toHaveElapsed([0, 20]);
+      expect(timer).to.have.elapsed([0, 20]);
     });
 
     it('should have correct elapsed when added seconds equal exactly 1 minute', () => {
@@ -358,7 +355,7 @@ describe('Timer', () => {
       timer.stop();
       timer.start();
       timer.stop();
-      expect(timer).toHaveElapsed([2, 0]);
+      expect(timer).to.have.elapsed([2, 0]);
     });
 
     it('should have correct elapsed when added seconds total more than 1 minute', () => {
@@ -368,7 +365,7 @@ describe('Timer', () => {
       timer.stop();
       timer.start();
       timer.stop();
-      expect(timer).toHaveElapsed([2, 5]);
+      expect(timer).to.have.elapsed([2, 5]);
     });
 
   }); // describe('Elapsed time')
@@ -379,20 +376,20 @@ describe('Timer', () => {
       let timer = new Timer(null);
       const serialized = JSON.stringify(timer);
       let timerData = JSON.parse(serialized);
-      expect(timerData.isRunning).toBe(false);
-      expect(timerData.startTime).toBe(null);
-      expect(timerData.duration).toEqual([0, 0]);
-      expect(timerData.provider).toBe(undefined);
+      expect(timerData.isRunning).to.be.false;
+      expect(timerData.startTime).to.be.null;
+      expect(timerData.duration).to.deep.equal([0, 0]);
+      expect(timerData.provider).to.be.undefined;
     });
 
     it('should be initialized correctly for null data', () => {
       let timer = new Timer(null);
-      expect(timer).toBeInitialized();
+      expect(timer).to.be.initialized();
     });
 
     it('should be initialized correctly for empty data', () => {
       let timer = new Timer({});
-      expect(timer).toBeInitialized();
+      expect(timer).to.be.initialized();
     });
 
     it('should be initialized correctly from stopped data', () => {
@@ -402,9 +399,9 @@ describe('Timer', () => {
         duration: [3, 4],
       }
       let timer = new Timer(expected);
-      expect(timer.startTime).toBe(expected.startTime);
-      expect(timer.isRunning).toBe(expected.isRunning);
-      expect(timer).toHaveElapsed(expected.duration);
+      expect(timer.startTime).to.equal(expected.startTime);
+      expect(timer.isRunning).to.equal(expected.isRunning);
+      expect(timer).to.have.elapsed(expected.duration);
     });
 
     it('should be initialized correctly from running data', () => {
@@ -416,9 +413,9 @@ describe('Timer', () => {
       const provider = mockTimeProvider(time3);
 
       let timer = new Timer(expected, provider);
-      expect(timer.startTime).toBe(expected.startTime);
-      expect(timer.isRunning).toBe(expected.isRunning);
-      expect(timer).toHaveElapsed([4, 59]);
+      expect(timer.startTime).to.equal(expected.startTime);
+      expect(timer.isRunning).to.equal(expected.isRunning);
+      expect(timer).to.have.elapsed([4, 59]);
     });
 
   }); // describe('Existing data')
