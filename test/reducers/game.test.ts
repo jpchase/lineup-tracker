@@ -26,6 +26,7 @@ import {
 } from '@app/actions/game-types';
 import { game } from '@app/reducers/game';
 import { GameState } from '@app/reducers/game';
+import { expect } from '@open-wc/testing';
 import {
   getFakeAction,
   getNewGame, getNewGameDetail, getNewGameWithLiveDetail,
@@ -76,7 +77,7 @@ describe('Games reducer', () => {
   it('should return the initial state', () => {
     expect(
       game(GAME_INITIAL_STATE, getFakeAction())
-      ).toEqual(GAME_INITIAL_STATE);
+      ).to.equal(GAME_INITIAL_STATE);
   });
 
   describe('GAME_HYDRATE', () => {
@@ -103,14 +104,14 @@ describe('Games reducer', () => {
         ...inputGame,
       };
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         hydrated: true,
         gameId: inputGame.id,
         game: gameDetail,
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game).not.toBe(currentState.game);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
     });
 
     it('should set hydrated flag when cached values are missing', () => {
@@ -119,13 +120,13 @@ describe('Games reducer', () => {
         games: {}
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.include({
         hydrated: true,
-      }));
-      expect(newState.gameId).toBeFalsy();
-      expect(newState.game).toBeUndefined();
+      });
+      expect(newState.gameId, 'gameId should not be set').to.not.be.ok;
+      expect(newState.game).to.be.undefined;
 
-      expect(newState).not.toBe(currentState);
+      expect(newState).not.to.equal(currentState);
     });
 
     it('should ignored cached values when hydrated flag already set', () => {
@@ -138,7 +139,7 @@ describe('Games reducer', () => {
       const inputGames: Games = {};
       inputGames[inputGame.id] = inputGame;
 
-      expect(inputGame.id).not.toEqual(currentGame.id);
+      expect(inputGame.id).not.to.equal(currentGame.id);
 
       const newState = game(currentState, {
         type: GAME_HYDRATE,
@@ -146,13 +147,13 @@ describe('Games reducer', () => {
         games: inputGames
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.include({
         hydrated: true,
         game: currentGame,
-      }));
+      });
 
-      expect(newState).toBe(currentState);
-      expect(newState.game).toBe(currentState.game);
+      expect(newState).to.equal(currentState);
+      expect(newState.game).to.equal(currentState.game);
     });
   }); // describe('GAME_HYDRATE')
 
@@ -164,14 +165,14 @@ describe('Games reducer', () => {
         gameId: gameId
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.include({
         gameId: gameId,
         detailLoading: true,
         detailFailure: false
-      }));
+      });
 
-      expect(newState).not.toBe(GAME_INITIAL_STATE);
-      expect(newState.gameId).not.toBe(GAME_INITIAL_STATE.gameId);
+      expect(newState).not.to.equal(GAME_INITIAL_STATE);
+      expect(newState.gameId).not.to.equal(GAME_INITIAL_STATE.gameId);
     });
   }); // describe('GET_GAME_REQUEST')
 
@@ -204,16 +205,16 @@ describe('Games reducer', () => {
         roster: buildRoster([getStoredPlayer()])
       };
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
         // TODO: Ensure games state has latest game detail
         // games: buildGames([gameDetail]),
         detailLoading: false,
         detailFailure: false
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game).not.toBe(currentState.game);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
     });
 
     it('should initialize detail when game roster is empty', () => {
@@ -239,16 +240,16 @@ describe('Games reducer', () => {
         }
       };
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
         // TODO: Ensure games state has latest game detail
         // games: buildGames([gameDetail]),
         detailLoading: false,
         detailFailure: false
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game).not.toBe(currentState.game);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
     });
 
     it('should initialize live detail for new game', () => {
@@ -274,16 +275,16 @@ describe('Games reducer', () => {
         }
       };
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
         // TODO: Ensure games state has latest game detail
         // games: buildGames([gameDetail]),
         detailLoading: false,
         detailFailure: false
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game).not.toBe(currentState.game);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
     });
 
     it('should only update loading flag when game set to current game', () => {
@@ -304,18 +305,18 @@ describe('Games reducer', () => {
         }
       };
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
         // TODO: Ensure games state has latest game detail
         // games: buildGames([gameDetail]),
         detailLoading: false,
         detailFailure: false
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game).toBe(currentState.game);
-      expect(newState.game!.liveDetail).toBe(currentState.game!.liveDetail);
-      expect(newState.game!.roster).toBe(currentState.game!.roster);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).to.equal(currentState.game);
+      expect(newState.game!.liveDetail).to.equal(currentState.game!.liveDetail);
+      expect(newState.game!.roster).to.equal(currentState.game!.roster);
     });
   }); // describe('GET_GAME_SUCCESS')
 
@@ -327,14 +328,14 @@ describe('Games reducer', () => {
         error: 'What a game failure!'
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.include({
         error: 'What a game failure!',
         detailLoading: false,
         detailFailure: true
-      }));
+      });
 
-      expect(newState).not.toBe(GAME_INITIAL_STATE);
-      expect(newState.error).not.toBe(GAME_INITIAL_STATE.error);
+      expect(newState).not.to.equal(GAME_INITIAL_STATE);
+      expect(newState.error).not.to.equal(GAME_INITIAL_STATE.error);
     });
   }); // describe('GET_GAME_FAIL')
 
@@ -361,13 +362,13 @@ describe('Games reducer', () => {
       const gameDetail = getNewGameWithLiveDetail(undefined, updatedTasks);
       gameDetail.formation = { type: FormationType.F4_3_3 };
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
-      }));
+      });
 
-      expect(newState).not.toBe(state);
-      expect(newState.game).not.toBe(state.game);
-      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
+      expect(newState).not.to.equal(state);
+      expect(newState.game).not.to.equal(state.game);
+      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
     });
   }); // describe('SET_FORMATION')
 
@@ -392,13 +393,13 @@ describe('Games reducer', () => {
 
       const gameDetail = getNewGameWithLiveDetail(undefined, updatedTasks);
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
-      }));
+      });
 
-      expect(newState).not.toBe(state);
-      expect(newState.game).not.toBe(state.game);
-      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
+      expect(newState).not.to.equal(state);
+      expect(newState.game).not.to.equal(state.game);
+      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
     });
   }); // describe('CAPTAINS_DONE')
 
@@ -410,14 +411,14 @@ describe('Games reducer', () => {
         gameId: gameId
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.include({
         gameId: gameId,
         rosterLoading: true,
         rosterFailure: false
-      }));
+      });
 
-      expect(newState).not.toBe(GAME_INITIAL_STATE);
-      expect(newState.gameId).not.toBe(GAME_INITIAL_STATE.gameId);
+      expect(newState).not.to.equal(GAME_INITIAL_STATE);
+      expect(newState.gameId).not.to.equal(GAME_INITIAL_STATE.gameId);
     });
   }); // describe('COPY_ROSTER_REQUEST')
 
@@ -449,21 +450,21 @@ describe('Games reducer', () => {
         ...currentState.game as GameDetail
       };
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
         rosterLoading: false,
         rosterFailure: false
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game).toBe(currentState.game);
-      expect(newState.game!.roster).toBe(currentState.game!.roster);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).to.equal(currentState.game);
+      expect(newState.game!.roster).to.equal(currentState.game!.roster);
     });
 
     it('should set roster and update flags', () => {
       const rosterPlayers = [getStoredPlayer()];
 
-      expect(currentState.game!.roster).toEqual({});
+      expect(currentState.game!.roster).to.deep.equal({});
 
       const newState = game(currentState, {
         type: COPY_ROSTER_SUCCESS,
@@ -477,15 +478,15 @@ describe('Games reducer', () => {
         roster: buildRoster(rosterPlayers)
       };
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
         rosterLoading: false,
         rosterFailure: false
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game).not.toBe(currentState.game);
-      expect(newState.game!.roster).not.toBe(currentState.game!.roster);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
+      expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
     });
   }); // describe('COPY_ROSTER_SUCCESS')
 
@@ -497,14 +498,14 @@ describe('Games reducer', () => {
         error: 'What a roster failure!'
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.include({
         error: 'What a roster failure!',
         rosterLoading: false,
         rosterFailure: true
-      }));
+      });
 
-      expect(newState).not.toBe(GAME_INITIAL_STATE);
-      expect(newState.error).not.toBe(GAME_INITIAL_STATE.error);
+      expect(newState).not.to.equal(GAME_INITIAL_STATE);
+      expect(newState.error).not.to.equal(GAME_INITIAL_STATE.error);
     });
   }); // describe('COPY_ROSTER_FAIL')
 
@@ -531,12 +532,12 @@ describe('Games reducer', () => {
         player: newPlayer
       });
 
-      expect(newState.game).toEqual(expect.objectContaining({
+      expect(newState.game).to.deep.include({
         roster: buildRoster([newPlayer]),
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game!.roster).not.toBe(currentState.game!.roster);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
     });
 
     it('should add new player to roster with existing players', () => {
@@ -547,12 +548,12 @@ describe('Games reducer', () => {
         player: newPlayer
       });
 
-      expect(newState.game).toEqual(expect.objectContaining({
+      expect(newState.game).to.deep.include({
         roster: buildRoster([existingPlayer, newPlayer]),
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game!.roster).not.toBe(currentState.game!.roster);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
     });
   }); // describe('ADD_PLAYER')
 
@@ -568,8 +569,8 @@ describe('Games reducer', () => {
           ...currentGame,
         }
       };
-      expect(state.game!.liveDetail).toBeDefined();
-      expect(state.game!.liveDetail!.players).toBeUndefined();
+      expect(state.game!.liveDetail).to.not.be.undefined;
+      expect(state.game!.liveDetail!.players).to.be.undefined;
 
       const newState = game(state, {
         type: ROSTER_DONE
@@ -584,13 +585,13 @@ describe('Games reducer', () => {
         return { ...player } as LivePlayer;
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail
-      }));
+      });
 
-      expect(newState).not.toBe(state);
-      expect(newState.game).not.toBe(state.game);
-      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
+      expect(newState).not.to.equal(state);
+      expect(newState.game).not.to.equal(state.game);
+      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
     });
   }); // describe('ROSTER_DONE')
 
@@ -614,13 +615,13 @@ describe('Games reducer', () => {
 
       const gameDetail = getNewGameWithLiveDetail(undefined, updatedTasks);
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
-      }));
+      });
 
-      expect(newState).not.toBe(state);
-      expect(newState.game).not.toBe(state.game);
-      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
+      expect(newState).not.to.equal(state);
+      expect(newState.game).not.to.equal(state.game);
+      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
     });
   }); // describe('STARTERS_DONE')
 
@@ -645,13 +646,13 @@ describe('Games reducer', () => {
       const gameDetail = getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), undefined);
       gameDetail.status = GameStatus.Start;
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: gameDetail,
-      }));
+      });
 
-      expect(newState).not.toBe(state);
-      expect(newState.game).not.toBe(state.game);
-      expect(newState.game!.liveDetail).not.toBe(state.game!.liveDetail);
+      expect(newState).not.to.equal(state);
+      expect(newState.game).not.to.equal(state.game);
+      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
     });
   }); // describe('START_GAME')
 
@@ -662,7 +663,7 @@ describe('Games reducer', () => {
         ...GAME_INITIAL_STATE,
         game: getNewGameDetail()
       };
-      expect(state.selectedPlayer).toBeUndefined();
+      expect(state.selectedPlayer).to.be.undefined;
 
       const selectedPlayer = getStoredPlayer();
 
@@ -671,14 +672,13 @@ describe('Games reducer', () => {
         playerId: selectedPlayer.id
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: getNewGameDetail(),
-        selectedPlayer: selectedPlayer.id
-      }));
-      // Separate check as it causes a TS error inside objectContaining
-      expect(newState.proposedStarter).toBeUndefined();
+        selectedPlayer: selectedPlayer.id,
+        proposedStarter: undefined
+      });
 
-      expect(newState).not.toBe(state);
+      expect(newState).not.to.equal(state);
     });
 
     it('should set selectedPlayer and propose starter with position selected', () => {
@@ -689,7 +689,7 @@ describe('Games reducer', () => {
         game: buildNewGameDetailAndRoster(),
         selectedPosition: { ...selectedPosition }
       };
-      expect(state.selectedPlayer).toBeUndefined();
+      expect(state.selectedPlayer).to.be.undefined;
 
       const selectedPlayer = getStoredPlayer();
 
@@ -703,14 +703,14 @@ describe('Games reducer', () => {
         currentPosition: { ...selectedPosition }
       }
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: buildNewGameDetailAndRoster(),
         selectedPosition: { ...selectedPosition },
         selectedPlayer: selectedPlayer.id,
-        proposedStarter: expect.objectContaining(starter)
-      }));
+        proposedStarter: starter
+      });
 
-      expect(newState).not.toBe(state);
+      expect(newState).not.to.equal(state);
     });
   }); // describe('SELECT_PLAYER')
 
@@ -721,7 +721,7 @@ describe('Games reducer', () => {
         ...GAME_INITIAL_STATE,
         game: getNewGameDetail()
       };
-      expect(state.selectedPosition).toBeUndefined();
+      expect(state.selectedPosition).to.be.undefined;
 
       const selectedPosition: Position = { id: 'AM1', type: 'AM'};
       const newState = game(state, {
@@ -729,14 +729,13 @@ describe('Games reducer', () => {
         position: selectedPosition
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: getNewGameDetail(),
-        selectedPosition: { ...selectedPosition }
-      }));
-      // Separate check as it causes a TS error inside objectContaining
-      expect(newState.proposedStarter).toBeUndefined();
+        selectedPosition: { ...selectedPosition },
+        proposedStarter: undefined
+      });
 
-      expect(newState).not.toBe(state);
+      expect(newState).not.to.equal(state);
     });
 
     it('should set selectedPosition and propose starter with player selected', () => {
@@ -747,7 +746,7 @@ describe('Games reducer', () => {
         game: buildNewGameDetailAndRoster(),
         selectedPlayer: selectedPlayer.id,
       };
-      expect(state.selectedPosition).toBeUndefined();
+      expect(state.selectedPosition).to.be.undefined;
 
       const selectedPosition: Position = { id: 'AM1', type: 'AM'};
       const newState = game(state, {
@@ -760,14 +759,14 @@ describe('Games reducer', () => {
         currentPosition: { ...selectedPosition }
       }
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         game: buildNewGameDetailAndRoster(),
         selectedPlayer: selectedPlayer.id,
         selectedPosition: { ...selectedPosition },
-        proposedStarter: expect.objectContaining(starter)
-      }));
+        proposedStarter: starter
+      });
 
-      expect(newState).not.toBe(state);
+      expect(newState).not.to.equal(state);
     });
   }); // describe('SELECT_POSITION')
 
@@ -799,21 +798,21 @@ describe('Games reducer', () => {
         type: APPLY_STARTER
       });
 
-      expect(newState.game!.liveDetail!.players).toBeDefined();
+      expect(newState.game!.liveDetail!.players).to.not.be.undefined;
       const newPlayers = newState.game!.liveDetail!.players!;
 
       const newPlayer = newPlayers.find(player => (player.id === selectedPlayer.id));
-      expect(newPlayer).toBeDefined();
-      expect(newPlayer).toEqual(expect.objectContaining({
+      expect(newPlayer).to.not.be.undefined;
+      expect(newPlayer).to.deep.include({
         id: selectedPlayer.id,
         status: PlayerStatus.On,
         currentPosition: { ...selectedPosition }
-      }));
+      });
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game).not.toBe(currentState.game);
-      expect(newState.game!.liveDetail).not.toBe(currentState.game!.liveDetail);
-      expect(newPlayers).not.toBe(currentState.game!.liveDetail!.players);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
+      expect(newState.game!.liveDetail).not.to.equal(currentState.game!.liveDetail);
+      expect(newPlayers).not.to.equal(currentState.game!.liveDetail!.players);
     });
 
     it('should clear selected player/position and proposed starter', () => {
@@ -821,11 +820,11 @@ describe('Games reducer', () => {
         type: APPLY_STARTER
       });
 
-      expect(newState.selectedPlayer).toBeUndefined();
-      expect(newState.selectedPosition).toBeUndefined();
-      expect(newState.proposedStarter).toBeUndefined();
+      expect(newState.selectedPlayer).to.be.undefined;
+      expect(newState.selectedPosition).to.be.undefined;
+      expect(newState.proposedStarter).to.be.undefined;
 
-      expect(newState).not.toBe(currentState);
+      expect(newState).not.to.equal(currentState);
     });
 
     it('should replace player already in the position', () => {
@@ -840,29 +839,29 @@ describe('Games reducer', () => {
         type: APPLY_STARTER
       });
 
-      expect(newState.game!.liveDetail!.players).toBeDefined();
+      expect(newState.game!.liveDetail!.players).to.not.be.undefined;
       const newPlayers = newState.game!.liveDetail!.players!;
 
       const newPlayer = newPlayers.find(player => (player.id === selectedPlayer.id));
-      expect(newPlayer).toBeDefined();
-      expect(newPlayer).toEqual(expect.objectContaining({
+      expect(newPlayer).to.not.be.undefined;
+      expect(newPlayer).to.deep.include({
         id: selectedPlayer.id,
         status: PlayerStatus.On,
         currentPosition: { ...selectedPosition }
-      }));
+      });
 
       const replacedPlayer = newPlayers.find(player => (player.id === existingStarter.id));
-      expect(replacedPlayer).toBeDefined();
-      expect(replacedPlayer).toEqual(expect.objectContaining({
+      expect(replacedPlayer).to.not.be.undefined;
+      expect(replacedPlayer).to.include({
         id: existingStarter.id,
         status: PlayerStatus.Off,
-      }));
-      expect(replacedPlayer!.currentPosition).not.toBeDefined();
+      });
+      expect(replacedPlayer!.currentPosition).to.be.undefined;
 
-      expect(newState).not.toBe(currentState);
-      expect(newState.game).not.toBe(currentState.game);
-      expect(newState.game!.liveDetail).not.toBe(currentState.game!.liveDetail);
-      expect(newPlayers).not.toBe(currentState.game!.liveDetail!.players);
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
+      expect(newState.game!.liveDetail).not.to.equal(currentState.game!.liveDetail);
+      expect(newPlayers).not.to.equal(currentState.game!.liveDetail!.players);
     });
   }); // describe('APPLY_STARTER')
 
@@ -894,11 +893,11 @@ describe('Games reducer', () => {
         type: CANCEL_STARTER
       });
 
-      expect(newState.selectedPlayer).toBeUndefined();
-      expect(newState.selectedPosition).toBeUndefined();
-      expect(newState.proposedStarter).toBeUndefined();
+      expect(newState.selectedPlayer).to.be.undefined;
+      expect(newState.selectedPosition).to.be.undefined;
+      expect(newState.proposedStarter).to.be.undefined;
 
-      expect(newState).not.toBe(currentState);
+      expect(newState).not.to.equal(currentState);
     });
   }); // describe('CANCEL_STARTER')
 
