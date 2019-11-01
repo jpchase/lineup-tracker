@@ -2,8 +2,9 @@ import * as actions from '@app/actions/games';
 import { Game, GameMetadata, GameStatus } from '@app/models/game';
 import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
-/// <reference path="mock-cloud-firestore.d.ts" />
-import * as MockFirebase from 'mock-cloud-firestore';
+import { expect } from '@open-wc/testing';
+import MockFirebase from 'mock-cloud-firestore';
+import * as sinon from 'sinon';
 import {
   TEST_USER_ID,
   buildGames,
@@ -12,8 +13,6 @@ import {
   getStoredPlayerData,
   MockAuthStateOptions
 } from '../helpers/test_data';
-
-jest.mock('@app/firebase');
 
 const PUBLIC_GAME_ID = 'pg1';
 
@@ -118,7 +117,7 @@ const fixtureData = {
 };
 
 function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?: any) {
-  return jest.fn(() => {
+  return sinon.fake(() => {
     const mockState = {
       auth: getMockAuthState(options),
       games: {
@@ -133,36 +132,36 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?:
   });
 }
 
-
 describe('Game actions', () => {
   const mockFirebase = new MockFirebase(fixtureData);
+  let firestoreAccessorStub: sinon.SinonStub;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    sinon.restore();
 
-    firebaseRef.firestore.mockImplementation(() => {
+    firestoreAccessorStub = sinon.stub(firebaseRef, 'firestore').callsFake(() => {
       return mockFirebase.firestore();
     });
   });
 
   describe('getGames', () => {
     it('should return a function to dispatch the getGames action', () => {
-      expect( typeof actions.getGames() ).toBe('function');
+      expect( typeof actions.getGames() ).to.equal('function');
     });
 
     it('should do nothing if team id is missing', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.getGames()(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+      expect(firebaseRef.firestore).to.not.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch an action with owned games for team returned from storage', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID });
 
       actions.getGames(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
@@ -170,14 +169,14 @@ describe('Game actions', () => {
       // Waits for promises to resolve.
       await Promise.resolve();
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actions.GET_GAMES,
         games: buildGames([getStoredGame(), getOtherStoredGameWithoutDetail()]),
-      }));
+      });
     });
 
     it('should dispatch an action with public games when not signed in', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], { signedIn: false });
 
       actions.getGames(getPublicTeam().id)(dispatchMock, getStateMock, undefined);
@@ -185,76 +184,76 @@ describe('Game actions', () => {
       // Waits for promises to resolve.
       await Promise.resolve();
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actions.GET_GAMES,
         games: buildGames([getPublicGame()]),
-      }));
+      });
     });
 
     it('should not dispatch an action when storage access fails', async () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
-      firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+      firestoreAccessorStub.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.getGames(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
-      }).toThrow();
+      }).to.throw();
 
       // Waits for promises to resolve.
       await Promise.resolve();
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
   }); // describe('getGames')
 
   describe('addNewGame', () => {
     it('should return a function to dispatch the action', () => {
-      expect(typeof actions.addNewGame()).toBe('function');
+      expect(typeof actions.addNewGame()).to.equal('function');
     });
 
     it('should do nothing if new game is missing', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.addNewGame()(dispatchMock, getStateMock, undefined);
 
-      expect(getStateMock).not.toBeCalled();
+      expect(getStateMock).to.not.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch an action to add a new game that is unique', () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([getStoredGame()]);
 
       actions.addNewGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
 
-      expect(getStateMock).toBeCalled();
+      expect(getStateMock).to.have.been.called;
 
-      expect(dispatchMock).toBeCalledWith(expect.any(Function));
+      expect(dispatchMock).to.have.been.calledWith(sinon.match.instanceOf(Function));
     });
 
     it('should do nothing with a new game that is not unique', () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([getNewGameSaved()]);
 
       actions.addNewGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
 
-      expect(getStateMock).toBeCalled();
+      expect(getStateMock).to.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
   });  // describe('addNewGame')
 
   describe('saveGame', () => {
     it('should return a function to dispatch the action', () => {
-      expect(typeof actions.saveGame()).toBe('function');
+      expect(typeof actions.saveGame()).to.equal('function');
     });
 
     it('should save to storage and dispatch an action to add game', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID }, getMockTeamState([], getStoredTeam()));
 
       actions.saveGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
@@ -266,7 +265,7 @@ describe('Game actions', () => {
       const newGame = getNewGameMetadata();
       const query: Query = mockFirebase.firestore().collection('games').where('name', '==', newGame.name);
       const result: QuerySnapshot = await query.get();
-      expect(result.size).toEqual(1);
+      expect(result.size).to.equal(1);
 
       const expectedData: any = {
         ...newGame,
@@ -284,48 +283,49 @@ describe('Game actions', () => {
         data = doc.data();
       });
 
-      expect(id).toBeTruthy();
-      expect(id).toMatch(/[A-Za-z0-9]+/);
-      expect(data).toEqual(expect.objectContaining(expectedData));
-      expect(data.date.toDate()).toEqual(newGame.date);
+      expect(id).to.be.ok;
+      expect(id).to.match(/[A-Za-z0-9]+/);
+      expect(data).to.deep.include(expectedData);
+      expect(data.date.toDate()).to.deep.equal(newGame.date);
 
       // Waits for promises to resolve.
       await Promise.resolve();
-      expect(dispatchMock).toBeCalledWith(expect.any(Function));
+      expect(dispatchMock).to.have.been.calledWith(sinon.match.instanceOf(Function));
     });
 
     it('should not dispatch an action when storage access fails', async () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
-      firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
+
+      firestoreAccessorStub.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.saveGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
-      }).toThrow();
+      }).to.throw();
 
       // Waits for promises to resolve.
       await Promise.resolve();
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
   }); // describe('saveGame')
 
   describe('addGame', () => {
     it('should return a function to dispatch the addGame action', () => {
-      expect(typeof actions.addGame()).toBe('function');
+      expect(typeof actions.addGame()).to.equal('function');
     });
 
     it('should dispatch an action to add the team', () => {
       const newGameSaved = getNewGameSaved();
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.addGame(newGameSaved)(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actions.ADD_GAME,
         game: newGameSaved,
-      }));
+      });
     });
   }); // describe('addGame')
 }); // describe('Game actions')
