@@ -5,6 +5,7 @@ import {
 } from '@app/actions/games';
 import games from '@app/reducers/games';
 import { GamesState } from '@app/reducers/games';
+import { expect } from '@open-wc/testing';
 import { getFakeAction, buildGames /*, getStoredPlayer, getStoredPlayerData */ } from '../helpers/test_data';
 
 const GAMES_INITIAL_STATE: GamesState = {
@@ -23,7 +24,13 @@ describe('Games reducer', () => {
   it('should return the initial state', () => {
     expect(
       games(GAMES_INITIAL_STATE, getFakeAction())
-      ).toEqual(GAMES_INITIAL_STATE);
+      ).to.equal(GAMES_INITIAL_STATE);
+  });
+
+  it('should return the initial state when none provided', () => {
+    expect(
+      games(undefined, getFakeAction())
+      ).to.deep.equal(GAMES_INITIAL_STATE);
   });
 
   describe('GET_GAMES', () => {
@@ -33,12 +40,12 @@ describe('Games reducer', () => {
         games: buildGames([existingGame])
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         games: buildGames([existingGame]),
-      }));
+      });
 
-      expect(newState).not.toBe(GAMES_INITIAL_STATE);
-      expect(newState.games).not.toBe(GAMES_INITIAL_STATE.games);
+      expect(newState).to.not.equal(GAMES_INITIAL_STATE);
+      expect(newState.games).to.not.equal(GAMES_INITIAL_STATE.games);
     });
   }); // describe('GET_GAMES')
 
@@ -49,12 +56,12 @@ describe('Games reducer', () => {
         game: newGame
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         games: buildGames([newGame]),
-      }));
+      });
 
-      expect(newState).not.toBe(GAMES_INITIAL_STATE);
-      expect(newState.games).not.toBe(GAMES_INITIAL_STATE.games);
+      expect(newState).to.not.equal(GAMES_INITIAL_STATE);
+      expect(newState.games).to.not.equal(GAMES_INITIAL_STATE.games);
     });
 
     it('should handle ADD_GAME with existing games', () => {
@@ -68,12 +75,12 @@ describe('Games reducer', () => {
         game: newGame
       });
 
-      expect(newState).toEqual(expect.objectContaining({
+      expect(newState).to.deep.include({
         games: buildGames([existingGame, newGame]),
-      }));
+      });
 
-      expect(newState).not.toBe(state);
-      expect(newState.games).not.toBe(state.games);
+      expect(newState).to.not.equal(state);
+      expect(newState.games).to.not.equal(state.games);
     });
   }); // describe('ADD_GAME')
 
