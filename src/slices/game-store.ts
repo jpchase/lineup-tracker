@@ -1,6 +1,6 @@
 import { store, RootStore, RootState, RootAction } from '../store';
 import { Store } from 'redux';
-import { get, set } from 'idb-keyval';
+import { idb } from '../storage/idb-wrapper';
 import { Games } from '../models/game';
 import { hydrateGame } from '../actions/game';
 import { game, currentGameSelector } from '../reducers/game';
@@ -35,7 +35,7 @@ export function getGameStore(): RootStore {
 
 export function hydrateGameState(storeInstance: Store<RootState, RootAction>) {
   console.log('hydrateGameState: start');
-  get(KEY_CACHED_GAMES).then((value) => {
+  idb.get(KEY_CACHED_GAMES).then((value) => {
     if (!value) {
       console.log('hydrateGameState: nothing in idb');
       return;
@@ -75,7 +75,7 @@ export function persistGameState(storeInstance: Store<RootState, RootAction>) {
   };
   newCache.games[currentGame.id] = currentGame;
   newCache.currentGameId = currentGame.id;
-  set(KEY_CACHED_GAMES, newCache).then(() => {
+  idb.set(KEY_CACHED_GAMES, newCache).then(() => {
     console.log(`persistGameState: idb updated for: ${currentGame.id}`);
     cachedGames = newCache;
   });

@@ -11,7 +11,7 @@ import { currentTeamIdSelector } from '../reducers/team';
 import { firebaseRef } from '../firebase';
 import { saveNewDocument, loadTeamRoster, savePlayerToTeamRoster, KEY_TEAMS } from '../firestore-helpers';
 import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
-import { get, set } from 'idb-keyval';
+import { idb } from '../storage/idb-wrapper';
 
 import {
   ADD_TEAM,
@@ -40,7 +40,7 @@ function getTeamsCollection(): CollectionReference {
 
 // Caches the currently selected team, for return visits.
 function cacheTeamId(teamId: string) {
-  set(KEY_TEAMID, teamId).then();
+  idb.set(KEY_TEAMID, teamId).then();
 }
 
 export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
@@ -58,7 +58,7 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
     if (!teamId) {
       // No team id selected, which happens on initial load. Check for a
       // cached team id from previous visits.
-      get(KEY_TEAMID).then((value) => {
+      idb.get(KEY_TEAMID).then((value) => {
         if (value) {
           cachedTeamId = value as string;
         }
