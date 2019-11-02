@@ -1,0 +1,14 @@
+import { LineupView404 } from '@app/components/lineup-view404';
+import '@app/components/lineup-view404.js';
+import { expect, fixture } from '@open-wc/testing';
+
+describe('lineup-view404 tests', () => {
+  let el: LineupView404;
+  beforeEach(async () => {
+    el = await fixture('<lineup-view404 active></lineup-view404>');
+  });
+
+  it('a11y', async () => {
+    await expect(el).to.be.accessible();
+  });
+});
