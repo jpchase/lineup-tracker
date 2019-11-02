@@ -1,20 +1,19 @@
 import * as actions from '@app/actions/game';
 import * as actionTypes from '@app/actions/game-types';
+import { firebaseRef } from '@app/firebase';
 import { FormationType, Position } from '@app/models/formation';
 import { Game, GameDetail, GameStatus, LivePlayer } from '@app/models/game';
 import { Player, Roster } from '@app/models/player';
 import { GameState } from '@app/reducers/game';
-import { firebaseRef } from '@app/firebase';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
-/// <reference path="mock-cloud-firestore.d.ts" />
-import * as MockFirebase from 'mock-cloud-firestore';
+import { expect } from '@open-wc/testing';
+import MockFirebase from 'mock-cloud-firestore';
+import * as sinon from 'sinon';
 import {
   TEST_USER_ID, buildGames, buildRoster, getMockAuthState,
   getStoredTeam, getStoredTeamData,
   getNewPlayer, getNewPlayerData, getStoredPlayer, getStoredPlayerData
 } from '../helpers/test_data';
-
-jest.mock('@app/firebase');
 
 function getStoredGameData(): any {
   return {
@@ -104,7 +103,7 @@ interface MockStateUpdateFunc {
 }
 
 function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
-  return jest.fn(() => {
+  return sinon.fake(() => {
     const mockState = {
       auth: getMockAuthState(),
       games: {
@@ -131,77 +130,78 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
 
 describe('Game actions', () => {
   const mockFirebase = new MockFirebase(fixtureData);
+  let firestoreAccessorMock: sinon.SinonStub;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    sinon.restore();
 
-    firebaseRef.firestore.mockImplementation(() => {
+    firestoreAccessorMock = sinon.stub(firebaseRef, 'firestore').callsFake(() => {
       return mockFirebase.firestore();
     });
   });
 
   describe('getGame', () => {
     it('should return a function to dispatch the getGame action', () => {
-      expect(typeof actions.getGame()).toBe('function');
+      expect(actions.getGame()).to.be.instanceof(Function);
     });
 
     it('should do nothing if game id is missing', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.getGame()(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+      expect(firebaseRef.firestore).to.not.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch success action with game returned from storage', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([]);
 
       const gameId = getStoredGame().id;
       await actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).toHaveBeenCalledTimes(2);
+      expect(firebaseRef.firestore).to.have.callCount(2);
 
-      expect(dispatchMock).toHaveBeenCalledTimes(2);
+      expect(dispatchMock).to.have.callCount(2);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock.mock.calls[0]).toEqual([expect.objectContaining({
+      expect(dispatchMock.firstCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_REQUEST,
         gameId: gameId,
-      })]);
+      });
 
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_SUCCESS,
         game: getStoredGameDetail(),
-      }));
+      });
     });
 
     it('should dispatch success action when game roster is empty', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([]);
 
       await actions.getGame(OTHER_STORED_GAME_ID)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).toHaveBeenCalledTimes(2);
+      expect(firebaseRef.firestore).to.have.callCount(2);
 
       // The request action is dispatched, regardless.
-      expect(dispatchMock).toHaveBeenCalledTimes(2);
+      expect(dispatchMock).to.have.callCount(2);
 
       const storedGame: GameDetail = {
         ...getOtherStoredGameWithoutDetail(),
         roster: {}
       }
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_SUCCESS,
         game: storedGame
-      }));
+      });
     });
 
     it('should use the already loaded game from game detail in state, without retrieving from storage', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const loadedGame: GameDetail = {
         ...getStoredGameDetail(),
         hasDetail: true
@@ -213,19 +213,19 @@ describe('Game actions', () => {
 
       await actions.getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+      expect(firebaseRef.firestore).to.not.have.been.called;
 
       // The request action is dispatched, regardless.
-      expect(dispatchMock).toHaveBeenCalledTimes(2);
+      expect(dispatchMock).to.have.callCount(2);
 
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_SUCCESS,
         game: loadedGame,
-      }));
+      });
     });
 
     it('should use the already loaded game from games list in state, without retrieving from storage', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const loadedGame: GameDetail = {
         ...getStoredGameDetail(),
         hasDetail: true
@@ -234,73 +234,73 @@ describe('Game actions', () => {
 
       await actions.getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+      expect(firebaseRef.firestore).to.not.have.been.called;
 
       // The request action is dispatched, regardless.
-      expect(dispatchMock).toHaveBeenCalledTimes(2);
+      expect(dispatchMock).to.have.callCount(2);
 
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_SUCCESS,
         game: loadedGame,
-      }));
+      });
     });
 
     it('should retrieve from storage when already loaded game is missing detail', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([getStoredGame()]);
 
       await actions.getGame(getStoredGame().id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).toHaveBeenCalledTimes(2);
+      expect(firebaseRef.firestore).to.have.callCount(2);
 
       // The request action is dispatched, regardless.
-      expect(dispatchMock).toHaveBeenCalledTimes(2);
+      expect(dispatchMock).to.have.callCount(2);
 
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_SUCCESS,
         game: getStoredGameDetail(),
-      }));
+      });
     });
 
     it('should fail when game not found in storage', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([]);
 
       const gameId = 'nosuchgame';
       await actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toHaveBeenCalledTimes(2);
+      expect(dispatchMock).to.have.callCount(2);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock.mock.calls[0]).toEqual([expect.objectContaining({
+      expect(dispatchMock.firstCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_REQUEST,
         gameId: gameId,
-      })]);
+      });
 
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_FAIL,
         error: `Error: Game not found: ${gameId}`,
-      }));
+      });
     });
 
     it('should dispatch only request action when storage access fails', async () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
       const gameId = getStoredGame().id;
 
-      firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+      firestoreAccessorMock.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
-      }).toThrow();
+      }).to.throw();
 
-      expect(dispatchMock).toHaveBeenCalledTimes(1);
+      expect(dispatchMock).to.have.callCount(1);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_REQUEST,
         gameId: gameId,
-      }));
+      });
     });
   }); // describe('getGame')
 
@@ -311,58 +311,58 @@ describe('Game actions', () => {
       const path = `${KEY_GAMES}/${gameId}/${KEY_ROSTER}`;
       const query: Query = mockFirebase.firestore().collection(path);
       const result: QuerySnapshot = await query.get();
-      expect(result.size).toEqual(expectedIds.length);
+      expect(result.size).to.equal(expectedIds.length);
 
       let matchingCount = 0;
       result.forEach((doc: QueryDocumentSnapshot) => {
         const id = doc.id;
 
-        expect(id).toBeTruthy();
-        expect(id).toMatch(/[A-Za-z0-9]+/);
+        expect(id).to.be.ok;
+        expect(id).to.match(/[A-Za-z0-9]+/);
 
-        expect(expectedRoster[id]).toBeDefined();
+        expect(expectedRoster[id]).to.not.be.undefined;
 
         const data = doc.data();
         const matchingPlayer: Player = expectedRoster[id];
 
-        expect(data).toEqual(matchingPlayer);
+        expect(data).to.deep.equal(matchingPlayer);
 
         matchingCount++;
       });
 
       // Checks that all of the expected players were found.
-      expect(matchingCount).toEqual(expectedIds.length);
+      expect(matchingCount).to.equal(expectedIds.length);
     }
 
     it('should return a function to dispatch the copyRoster action', () => {
-      expect(typeof actions.copyRoster()).toBe('function');
+      expect(actions.copyRoster()).to.be.instanceof(Function);
     });
 
     it('should do nothing if game id is missing', async () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       await actions.copyRoster()(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+      expect(firebaseRef.firestore).to.not.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should do nothing when game id does not match loaded game', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([]);
 
       const gameId = 'nosuchgame';
       await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+      expect(firebaseRef.firestore).to.not.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should do nothing if game already loaded has a roster with players', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const loadedGame: GameDetail = {
         ...getStoredGameDetail(),
         hasDetail: true
@@ -374,20 +374,20 @@ describe('Game actions', () => {
 
       await actions.copyRoster(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).not.toHaveBeenCalled();
+      expect(firebaseRef.firestore).to.not.have.been.called;
 
       // The request action is dispatched, regardless.
-      expect(dispatchMock).toHaveBeenCalledTimes(2);
+      expect(dispatchMock).to.have.callCount(2);
 
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWithMatch({
         type: actionTypes.COPY_ROSTER_SUCCESS,
         gameId: loadedGame.id,
-      }));
+      });
 
     });
 
     it('should dispatch success action with team roster copied to game in storage', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const loadedGame: GameDetail = {
         ...getStoredGameDetail(),
         hasDetail: true,
@@ -401,27 +401,27 @@ describe('Game actions', () => {
       const gameId = loadedGame.id;
       await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).toHaveBeenCalledTimes(2);
+      expect(firebaseRef.firestore).to.have.callCount(2);
 
-      expect(dispatchMock).toHaveBeenCalledTimes(2);
+      expect(dispatchMock).to.have.callCount(2);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock.mock.calls[0]).toEqual([expect.objectContaining({
+      expect(dispatchMock.firstCall).to.have.been.calledWith({
         type: actionTypes.COPY_ROSTER_REQUEST,
         gameId: gameId,
-      })]);
+      });
 
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.COPY_ROSTER_SUCCESS,
         gameId: gameId,
         gameRoster: buildRoster([getStoredPlayer()]),
-      }));
+      });
 
       await verifyStoredRoster(gameId, buildRoster([getStoredPlayer()]));
     });
 
     it('should dispatch only request action when storage access fails', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const loadedGame: GameDetail = {
         ...getStoredGameDetail(),
         hasDetail: true,
@@ -434,57 +434,57 @@ describe('Game actions', () => {
 
       const gameId = loadedGame.id;
 
-      firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+      firestoreAccessorMock.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
-      }).toThrow();
+      }).to.throw();
 
-      expect(dispatchMock).toHaveBeenCalledTimes(1);
+      expect(dispatchMock).to.have.callCount(1);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock).lastCalledWith(expect.objectContaining({
+      expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.COPY_ROSTER_REQUEST,
         gameId: gameId,
-      }));
+      });
     });
   }); // describe('copyRoster')
 
   describe('markCaptainsDone', () => {
     it('should return a function to dispatch the markCaptainsDone action', () => {
-      expect(typeof actions.markCaptainsDone()).toBe('function');
+      expect(actions.markCaptainsDone()).to.be.instanceof(Function);
     });
 
     it('should dispatch an action to mark the captains as done', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.markCaptainsDone()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.CAPTAINS_DONE
-      }));
+      });
     });
   }); // describe('markCaptainsDone')
 
   describe('addNewGamePlayer', () => {
     it('should return a function to dispatch the action', () => {
-      expect(typeof actions.addNewGamePlayer()).toBe('function');
+      expect(actions.addNewGamePlayer()).to.be.instanceof(Function);
     });
 
     it('should do nothing if new player is missing', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.addNewGamePlayer()(dispatchMock, getStateMock, undefined);
 
-      expect(getStateMock).not.toBeCalled();
+      expect(getStateMock).to.not.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch an action to add a new player that is unique', () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState(undefined, (gameState) => {
         gameState.gameId = STORED_GAME_ID;
         gameState.game = getStoredGameDetail();
@@ -492,13 +492,13 @@ describe('Game actions', () => {
 
       actions.addNewGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
-      expect(getStateMock).toBeCalled();
+      expect(getStateMock).to.have.been.called;
 
-      expect(dispatchMock).toBeCalledWith(expect.any(Function));
+      expect(dispatchMock).to.have.been.calledWith(sinon.match.func);
     });
 
     it('should do nothing with a new player that is not unique', () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState(undefined, (gameState) => {
         gameState.gameId = STORED_GAME_ID;
         gameState.game = getStoredGameDetail();
@@ -506,20 +506,20 @@ describe('Game actions', () => {
 
       actions.addNewGamePlayer(getStoredPlayer())(dispatchMock, getStateMock, undefined);
 
-      expect(getStateMock).toBeCalled();
+      expect(getStateMock).to.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
   });  // describe('addNewGamePlayer')
 
   describe('saveGamePlayer', () => {
     it('should return a function to dispatch the action', () => {
-      expect(typeof actions.saveGamePlayer()).toBe('function');
+      expect(actions.saveGamePlayer()).to.be.instanceof(Function);
     });
 
 
     it('should save to storage and dispatch an action to add player', async () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
 
       // const team: Team = getStoredTeam();
       // const getStateMock = mockGetState([team], team, { signedIn: true, userId: TEST_USER_ID });
@@ -538,7 +538,7 @@ describe('Game actions', () => {
       const path = `${KEY_GAMES}/${STORED_GAME_ID}/${KEY_ROSTER}`;
       const query: Query = mockFirebase.firestore().collection(path).where('name', '==', newPlayerSaved.name);
       const result: QuerySnapshot = await query.get();
-      expect(result.size).toEqual(1);
+      expect(result.size).to.equal(1);
 
       const expectedData: any = {
         ...getNewPlayerData()
@@ -551,78 +551,78 @@ describe('Game actions', () => {
         data = doc.data();
       });
 
-      expect(id).toBeTruthy();
-      expect(id).toMatch(/[A-Za-z0-9]+/);
-      expect(data).toEqual(expectedData);
+      expect(id).to.be.ok;
+      expect(id).to.match(/[A-Za-z0-9]+/);
+      expect(data).to.deep.equal(expectedData);
 
       // Waits for promises to resolve.
       await Promise.resolve();
-      expect(dispatchMock).toBeCalledWith(expect.any(Function));
+      expect(dispatchMock).to.have.been.calledWith(sinon.match.func);
     });
 
     it('should not dispatch an action when storage access fails', async () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
-      firebaseRef.firestore.mockImplementationOnce(() => { throw new Error('Storage failed with some error'); });
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
+      firestoreAccessorMock.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.saveGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
-      }).toThrow();
+      }).to.throw();
 
       // Waits for promises to resolve.
       await Promise.resolve();
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
   }); // describe('saveGamePlayer')
 
   describe('addGamePlayer', () => {
     it('should return a function to dispatch the addGamePlayer action', () => {
-      expect(typeof actions.addGamePlayer()).toBe('function');
+      expect(actions.addGamePlayer()).to.be.instanceof(Function);
     });
 
     it('should dispatch an action to add the player', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.addGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.ADD_PLAYER,
         player: getNewPlayer(),
-      }));
+      });
     });
   }); // describe('addGamePlayer')
 
   describe('markRosterDone', () => {
     it('should return a function to dispatch the markRosterDone action', () => {
-      expect(typeof actions.markRosterDone()).toBe('function');
+      expect(actions.markRosterDone()).to.be.instanceof(Function);
     });
 
     it('should dispatch an action to mark the roster as done', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.markRosterDone()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.ROSTER_DONE
-      }));
+      });
     });
   }); // describe('markRosterDone')
 
   describe('applyProposedStarter', () => {
     it('should return a function to dispatch the applyProposedStarter action', () => {
-      expect(typeof actions.applyProposedStarter()).toBe('function');
+      expect(actions.applyProposedStarter()).to.be.instanceof(Function);
     });
 
     it('should do nothing if proposed starter is missing', () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState();
 
       actions.applyProposedStarter()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch an action to apply the proposed starter', () => {
@@ -632,7 +632,7 @@ describe('Game actions', () => {
         currentPosition: { ...selectedPosition }
       }
 
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState(undefined, (gameState) => {
         gameState.selectedPlayer = 'foo';
         gameState.selectedPosition = { id: 'id', type: 'foo' };
@@ -641,24 +641,24 @@ describe('Game actions', () => {
 
       actions.applyProposedStarter()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.APPLY_STARTER
-      }));
+      });
     });
   }); // describe('applyProposedStarter')
 
   describe('cancelProposedStarter', () => {
     it('should return a function to dispatch the cancelProposedStarter action', () => {
-      expect(typeof actions.cancelProposedStarter()).toBe('function');
+      expect(actions.cancelProposedStarter()).to.be.instanceof(Function);
     });
 
     it('should do nothing if proposed starter is missing', () => {
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState();
 
       actions.cancelProposedStarter()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch an action to cancel the proposed starter', () => {
@@ -668,7 +668,7 @@ describe('Game actions', () => {
         currentPosition: { ...selectedPosition }
       }
 
-      const dispatchMock = jest.fn();
+      const dispatchMock = sinon.stub();
       const getStateMock = mockGetState(undefined, (gameState) => {
         gameState.selectedPlayer = 'foo';
         gameState.selectedPosition = { id: 'id', type: 'foo' };
@@ -677,72 +677,72 @@ describe('Game actions', () => {
 
       actions.cancelProposedStarter()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.CANCEL_STARTER
-      }));
+      });
     });
   }); // describe('cancelProposedStarter')
 
   describe('markStartersDone', () => {
     it('should return a function to dispatch the markStartersDone action', () => {
-      expect(typeof actions.markStartersDone()).toBe('function');
+      expect(actions.markStartersDone()).to.be.instanceof(Function);
     });
 
     it('should dispatch an action to mark the starters as done', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.markStartersDone()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.STARTERS_DONE
-      }));
+      });
     });
   }); // describe('markStartersDone')
 
   describe('setFormation', () => {
     it('should return a function to dispatch the setFormation action', () => {
-      expect(typeof actions.setFormation()).toBe('function');
+      expect(actions.setFormation()).to.be.instanceof(Function);
     });
 
     it('should do nothing if formation input is missing', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.setFormation()(dispatchMock, getStateMock, undefined);
 
-      expect(getStateMock).not.toBeCalled();
+      expect(getStateMock).to.not.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch an action to set the formation', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.setFormation(FormationType.F4_3_3)(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.SET_FORMATION,
         formationType: FormationType.F4_3_3,
-      }));
+      });
     });
   }); // describe('setFormation')
 
   describe('startGame', () => {
     it('should return a function to dispatch the startGame action', () => {
-      expect(typeof actions.startGame()).toBe('function');
+      expect(actions.startGame()).to.be.instanceof(Function);
     });
 
     it('should dispatch an action to move the game to start status', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.startGame()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.START_GAME
-      }));
+      });
 
       // TODO: Test that game is saved to storage
     });
@@ -750,60 +750,60 @@ describe('Game actions', () => {
 
   describe('selectPlayer', () => {
     it('should return a function to dispatch the selectPlayer action', () => {
-      expect(typeof actions.selectPlayer()).toBe('function');
+      expect(actions.selectPlayer()).to.be.instanceof(Function);
     });
 
     it('should do nothing if player input is missing', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.selectPlayer()(dispatchMock, getStateMock, undefined);
 
-      expect(getStateMock).not.toBeCalled();
+      expect(getStateMock).to.not.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch an action to select the player', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.selectPlayer('player id')(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.SELECT_PLAYER,
         playerId: 'player id'
-      }));
+      });
     });
   }); // describe('selectPlayer')
 
   describe('selectPosition', () => {
     it('should return a function to dispatch the selectPlayer action', () => {
-      expect(typeof actions.selectPosition()).toBe('function');
+      expect(actions.selectPosition()).to.be.instanceof(Function);
     });
 
     it('should do nothing if position input is missing', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       actions.selectPosition()(dispatchMock, getStateMock, undefined);
 
-      expect(getStateMock).not.toBeCalled();
+      expect(getStateMock).to.not.have.been.called;
 
-      expect(dispatchMock).not.toBeCalled();
+      expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch an action to select the position', () => {
-      const dispatchMock = jest.fn();
-      const getStateMock = jest.fn();
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
 
       const position: Position = { id: 'AM1', type: 'AM' };
       actions.selectPosition(position)(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).toBeCalledWith(expect.objectContaining({
+      expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.SELECT_POSITION,
         position: position
-      }));
+      });
     });
   }); // describe('selectPosition')
 
