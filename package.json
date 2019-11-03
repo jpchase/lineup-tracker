@@ -12,9 +12,8 @@
     "build:webpack": "rm -rf dist && webpack --config webpack.config.js",
     "serve:static": "polymer serve --port 5000 build/es5-bundled",
     "serve:webpack": "polymer serve --port 3000 dist",
-    "test": "npm run test:unit_coverage && npm run test:karma && npm run test:unit && npm run test:integration",
+    "test": "npm run test:unit_coverage && npm run test:karma && npm run test:integration",
     "test:integration": "tsc && mocha test/integration --timeout=15000",
-    "test:unit": "tsc && polymer test --module-resolution=node --npm",
     "test:unit_single": "tsc && jest test/reducers/game.spec.ts",
     "test:unit_redux": "tsc && jest",
     "test:unit_coverage": "tsc && jest --coverage",
@@ -67,7 +66,6 @@
     "@open-wc/testing": "^2.0.0",
     "@open-wc/testing-karma": "^3.0.0",
     "@open-wc/testing-karma-bs": "^1.0.0",
-    "@polymer/test-fixture": "^4.0.2",
     "@types/jest": "^24.0.17",
     "@types/sinon-chai": "^3.2.3",
     "axe-core": "^3.0.0",
@@ -99,16 +97,10 @@
     "superstatic": "^6.0.4",
     "ts-jest": "^24.0.2",
     "typescript": "^3.6.4",
-    "wct-mocha": "^1.0.0",
     "webpack": "4.28.4",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.4",
     "webpack-merge": "^4.1.5",
     "workbox-webpack-plugin": "^3.6.3"
-  },
-  "localDependencies": {
-    "@material/mwc-select": "../../material-components-web-components/packages/select",
-    "@material/mwc-list": "../../material-components-web-components/packages/list",
-    "@material/mwc-menu": "../../material-components-web-components/packages/menu"
   }
 }
