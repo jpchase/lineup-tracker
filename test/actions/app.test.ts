@@ -1,10 +1,11 @@
 import * as actions from '@app/actions/app';
+import { expect } from '@open-wc/testing';
 
 describe('App actions', () => {
 
   describe('navigate', () => {
     it('should return a function to dispatch the navigate action', () => {
-      expect(typeof actions.navigate()).toBe('function');
+      expect(actions.navigate()).to.be.instanceof(Function);
     });
 
   }); // describe('navigate')
