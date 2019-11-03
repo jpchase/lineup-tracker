@@ -144,17 +144,13 @@ describe('lineup-game-setup tests', () => {
     // maintained across tests, and GET_GAME_SUCCESS will not store the game if it
     // has the id already stored.
     modgame.id = 'somenewidfordonetest';
-    console.log('game - before', JSON.stringify(modgame));
     modgame.liveDetail!.setupTasks![0].status = SetupStatus.Complete;
     modgame.liveDetail!.setupTasks![1].status = SetupStatus.Active;
-
-    console.log('game - after', JSON.stringify(modgame));
 
     store.dispatch({ type: GET_GAME_SUCCESS, game: modgame });
     await el.updateComplete;
 
     const taskElement = getTaskElement(1, SetupSteps.Roster);
-    console.log(taskElement.innerHTML);
 
     const doneStub = stub(el, <any>'_stepDone');
 
