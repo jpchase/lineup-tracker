@@ -2,7 +2,7 @@ import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '@app/components/ev
 import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-card';
 import '@app/components/lineup-player-card.js';
 import { Player, PlayerStatus } from '@app/models/player';
-import { assert, expect, fixture } from '@open-wc/testing';
+import { assert, expect, fixture, oneEvent } from '@open-wc/testing';
 import 'axe-core/axe.min.js';
 import { axeReport } from 'pwa-helpers/axe-report.js';
 
@@ -139,26 +139,13 @@ describe('lineup-player-card tests', () => {
     el.selected = true;
     await el.updateComplete;
 
-    let eventFired = false;
-    let eventPlayer = undefined;
-    let eventSelected = undefined;
-    const handler = function (firedEvent: Event) {
-      eventFired = true;
-      const event = firedEvent as CustomEvent;
-      eventPlayer = event.detail.player;
-      eventSelected = event.detail.selected;
-      window.removeEventListener(EVENT_PLAYERSELECTED, handler);
-    };
-
-    window.addEventListener(EVENT_PLAYERSELECTED, handler);
-
     const playerElement = getPlayerElement();
-    playerElement.click();
+    setTimeout(() => playerElement.click());
 
-    await 0;
-    assert.isTrue(eventFired, 'Event playerselected should be fired');
-    assert.deepEqual(eventPlayer, player);
-    assert.isFalse(eventSelected, 'Card should no longer be selected');
+    const { detail } = await oneEvent(el, EVENT_PLAYERSELECTED);
+
+    assert.deepEqual(detail.player, player);
+    assert.isFalse(detail.selected, 'Card should no longer be selected');
   });
 
   it('fires event when position selected with data', async () => {
