@@ -11,7 +11,7 @@ import { FormationType } from '@app/models/formation';
 import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 // Need to load the reducer, as lineup-game-setup relies on lineup-view-game-detail to do so.
 import { game } from '@app/reducers/game';
-import { store } from '@app/store';
+import { store, resetState } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture } from '@open-wc/testing';
 import 'axe-core/axe.min.js';
@@ -58,6 +58,9 @@ describe('lineup-game-setup tests', () => {
     store.addReducers({
       game
     });
+    // Resets to the initial store state.
+    store.dispatch(resetState());
+
     el = await fixture('<lineup-game-setup></lineup-game-setup>');
   });
 
@@ -83,8 +86,7 @@ describe('lineup-game-setup tests', () => {
   }
 
   it('starts empty', () => {
-    const items = el.shadowRoot!.querySelectorAll('div div.task');
-    assert.isOk(items, 'Missing items for tasks');
+    const items = getTaskElements();
     assert.equal(items.length, 0, 'Should be no rendered tasks');
   });
 
@@ -92,8 +94,7 @@ describe('lineup-game-setup tests', () => {
     store.dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
     await el.updateComplete;
 
-    const items = el.shadowRoot!.querySelectorAll('div div.task');
-    assert.isOk(items, 'Missing items for tasks');
+    const items = getTaskElements();
     assert.equal(items.length, 4, 'Rendered task count');
 
     const tasks = getTasks();
@@ -139,15 +140,11 @@ describe('lineup-game-setup tests', () => {
 
   it('step done handler dispatches action', async () => {
     // Makes the Roster step active, as the Formation step doesn't show a done button.
-    const modgame = getGameDetail();
-    // TODO: Figure out a way to reset the state for each test. Currently, state is
-    // maintained across tests, and GET_GAME_SUCCESS will not store the game if it
-    // has the id already stored.
-    modgame.id = 'somenewidfordonetest';
-    modgame.liveDetail!.setupTasks![0].status = SetupStatus.Complete;
-    modgame.liveDetail!.setupTasks![1].status = SetupStatus.Active;
+    const game = getGameDetail();
+    game.liveDetail!.setupTasks![0].status = SetupStatus.Complete;
+    game.liveDetail!.setupTasks![1].status = SetupStatus.Active;
 
-    store.dispatch({ type: GET_GAME_SUCCESS, game: modgame });
+    store.dispatch({ type: GET_GAME_SUCCESS, game: game });
     await el.updateComplete;
 
     const taskElement = getTaskElement(1, SetupSteps.Roster);
