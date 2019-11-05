@@ -27,7 +27,9 @@ export interface Game extends GameMetadata {
 
 export interface GameDetail extends Game {
   roster: Roster;
+  // TODO: Move formation to LiveGame
   formation?: FormationMetadata;
+  // TODO: Remove when separate reducer/actions implemented
   liveDetail?: LiveGame;
 }
 
@@ -35,10 +37,22 @@ export interface Games {
   [index: string]: Game;
 }
 
+// TODO: Move all the live game/setup stuff to separate model file?
 export interface LiveGame {
   id: string;
   players?: LivePlayer[];
   setupTasks?: SetupTask[];
+}
+
+export class LiveGameBuilder {
+  static create(game: Game): LiveGame {
+    if (!game) {
+      throw new Error(`Argument 'game' is missing or undefined`);
+    }
+    return {
+      id: game.id,
+    };
+  }
 }
 
 export enum SetupSteps {
