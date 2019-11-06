@@ -1,4 +1,5 @@
-import { GET_GAME_SUCCESS } from '@app/actions/game-types';
+import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/actions/game-types';
+import { FormationType } from '@app/models/formation';
 import { GameDetail, LiveGame } from '@app/models/game';
 import { liveGame, LiveGameState } from '@app/reducers/live-game';
 import { expect } from '@open-wc/testing';
@@ -84,4 +85,33 @@ describe('Live Game reducer', () => {
 
   }); // describe('GET_GAME_SUCCESS')
 
+  describe('SET_FORMATION', () => {
+
+    it('should set formation type and update setup tasks to mark formation complete', () => {
+      const currentGame = getNewGame();
+      const state: LiveGameState = {
+        ...LIVEGAME_INITIAL_STATE,
+        liveGame: {
+          id: currentGame.id
+        }
+      };
+
+      const newState = liveGame(state, {
+        type: SET_FORMATION,
+        formationType: FormationType.F4_3_3
+      });
+
+      const liveDetail: LiveGame = {
+        id: currentGame.id,
+        formation: { type: FormationType.F4_3_3 }
+      }
+
+      expect(newState).to.deep.include({
+        liveGame: liveDetail,
+      });
+
+      expect(newState).not.to.equal(state);
+      expect(newState.liveGame).not.to.equal(state.liveGame);
+    });
+  }); // describe('SET_FORMATION')
 });

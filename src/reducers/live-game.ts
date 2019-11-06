@@ -3,7 +3,7 @@
 */
 
 import { Reducer } from 'redux';
-import { GET_GAME_SUCCESS } from '../actions/game-types';
+import { GET_GAME_SUCCESS, SET_FORMATION } from '../actions/game-types';
 import { LiveGame, LiveGameBuilder } from '../models/game';
 import { RootAction } from '../store';
 import { createReducer } from './createReducer';
@@ -30,4 +30,10 @@ export const liveGame: Reducer<LiveGameState, RootAction> = createReducer(INITIA
 
     newState.liveGame = game;
   },
+
+  [SET_FORMATION]: (newState, action) => {
+    const game = newState.liveGame!;
+    game.formation = { type: action.formationType };
+  },
+
 });

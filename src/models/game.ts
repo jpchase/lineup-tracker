@@ -40,6 +40,7 @@ export interface Games {
 // TODO: Move all the live game/setup stuff to separate model file?
 export interface LiveGame {
   id: string;
+  formation?: FormationMetadata;
   players?: LivePlayer[];
   setupTasks?: SetupTask[];
 }
