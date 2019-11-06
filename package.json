@@ -70,7 +70,7 @@
     "chai": "^4.1.2",
     "copy-webpack-plugin": "^4.6.0",
     "del": "^3.0.0",
-    "es-dev-server": "^1.10.6",
+    "es-dev-server": "^1.23.0",
     "eslint": "^6.5.0",
     "eslint-config-google": "^0.13.0",
     "fake-indexeddb": "^2.1.0",
