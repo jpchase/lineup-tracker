@@ -1,5 +1,5 @@
 {
-	"extends": "google",
+	"extends": ["eslint:recommended", "google"],
 	"rules": {
     "comma-dangle": [2, "only-multiline"],
     "spaced-comment": [2, "always", { "markers": ["!"], "exceptions": ["*"] }],
@@ -19,8 +19,12 @@
     "pad0": false,
     "Stopwatch": false
 	},
+	"parserOptions": {
+		"ecmaVersion": 2017
+	},
 	"env":{
 		"browser": true,
+		"es2017": true,
 		"node": true
 	}
 }
