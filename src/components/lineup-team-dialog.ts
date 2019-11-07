@@ -7,7 +7,7 @@ import { LitElement, customElement, html, property } from 'lit-element';
 import { Team } from '../models/team';
 
 // These are the elements needed by this element.
-import '@polymer/paper-button/paper-button.js';
+import '@material/mwc-button';
 import '@polymer/paper-dialog/paper-dialog.js';
 import '@material/mwc-textfield';
 import { TextField } from '@material/mwc-textfield';
@@ -45,8 +45,8 @@ export class LineupTeamDialog extends LitElement {
         <mwc-textfield id="team-name" label="Team Name" required>
         </mwc-textfield>
         <div class="buttons">
-          <paper-button dialog-dismiss>Cancel</paper-button>
-          <paper-button dialog-confirm autofocus>Save</paper-button>
+          <mwc-button dialog-dismiss>Cancel</mwc-button>
+          <mwc-button raised dialog-confirm autofocus>Save</mwc-button>
         </div>
       </paper-dialog>
     `;

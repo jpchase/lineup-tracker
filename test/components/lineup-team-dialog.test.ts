@@ -62,7 +62,7 @@ describe('lineup-team-dialog tests', () => {
     const nameField = getInputField('team-name');
     nameField.value = 'Cancel team 01'
 
-    const cancelButton = el.shadowRoot!.querySelector('paper-dialog paper-button[dialog-dismiss]') as HTMLElement;
+    const cancelButton = el.shadowRoot!.querySelector('paper-dialog mwc-button[dialog-dismiss]') as HTMLElement;
     cancelButton.click();
     // TODO: Figure out better way than manual sleep
     await sleep(50);
@@ -96,7 +96,7 @@ describe('lineup-team-dialog tests', () => {
 
     window.addEventListener('new-team-created', handler);
 
-    const saveButton = el.shadowRoot!.querySelector('paper-dialog paper-button[dialog-confirm]') as HTMLElement;
+    const saveButton = el.shadowRoot!.querySelector('paper-dialog mwc-button[dialog-confirm]') as HTMLElement;
     saveButton.click();
     // TODO: Figure out better way than manual sleep
     await sleep(50);
