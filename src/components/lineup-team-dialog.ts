@@ -9,9 +9,9 @@ import { Team } from '../models/team';
 // These are the elements needed by this element.
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-dialog/paper-dialog.js';
-import '@polymer/paper-input/paper-input.js';
+import '@material/mwc-textfield';
+import { TextField } from '@material/mwc-textfield';
 import { PaperDialogElement } from '@polymer/paper-dialog/paper-dialog.js';
-import { PaperInputElement } from '@polymer/paper-input/paper-input.js';
 
 import { EVENT_NEWTEAMCREATED } from './events';
 
@@ -42,8 +42,8 @@ export class LineupTeamDialog extends LitElement {
       </style>
       <paper-dialog id="teams-dialog" modal @opened-changed="${this._onOpenedChanged}">
         <h2>Add new team</h2>
-        <paper-input id="team-name" label="Team Name">
-        </paper-input>
+        <mwc-textfield id="team-name" label="Team Name" required>
+        </mwc-textfield>
         <div class="buttons">
           <paper-button dialog-dismiss>Cancel</paper-button>
           <paper-button dialog-confirm autofocus>Save</paper-button>
@@ -94,10 +94,10 @@ export class LineupTeamDialog extends LitElement {
 
     console.log('actually closed');
 
-    const nameField = this.shadowRoot!.querySelector('paper-dialog paper-input#team-name') as PaperInputElement;
+    const nameField = this.shadowRoot!.querySelector('#team-name') as TextField;
     const newTeam: Team = {
       id: '',
-      name: nameField.value!.trim()
+      name: nameField.value.trim()
     };
 
     // This event will be handled by lineup-app.

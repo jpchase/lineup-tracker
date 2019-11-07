@@ -16,6 +16,12 @@ describe('lineup-team-dialog tests', () => {
     return dialog!;
   }
 
+  function getInputField(fieldId: string) {
+    const field = el.shadowRoot!.querySelector(`#${fieldId} > input`);
+    assert.isOk(field, `Missing field: ${fieldId}`);
+    return field as HTMLInputElement;
+  }
+
   function sleep(milliseconds: number) {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
@@ -23,7 +29,6 @@ describe('lineup-team-dialog tests', () => {
   it('starts empty', () => {
     assert.isArray(el.teams, 'teams');
     assert.equal(el.teams.length, 0, 'teams array length');
-    // assert.isUndefined(el.newTeam, 'newTeam');
   });
 
   it('starts closed', () => {
@@ -42,7 +47,8 @@ describe('lineup-team-dialog tests', () => {
     const display = getComputedStyle(dialog, null).display;
     assert.equal(display, 'block', 'Dialog display');
 
-    assert.isOk(el.shadowRoot!.querySelector('paper-dialog paper-input#team-name'), 'name field');
+    // Gets and asserts the input field.
+    getInputField('team-name');
   });
 
   it('closes dialog when cancelled', async () => {
@@ -53,7 +59,7 @@ describe('lineup-team-dialog tests', () => {
 
     assert.isTrue(el.opened, 'should be opened');
 
-    const nameField = el.shadowRoot!.querySelector('paper-dialog paper-input#team-name') as HTMLInputElement;
+    const nameField = getInputField('team-name');
     nameField.value = 'Cancel team 01'
 
     const cancelButton = el.shadowRoot!.querySelector('paper-dialog paper-button[dialog-dismiss]') as HTMLElement;
@@ -66,8 +72,6 @@ describe('lineup-team-dialog tests', () => {
     const dialog = getDialog();
     const display = getComputedStyle(dialog, null).display;
     assert.equal(display, 'none', 'Dialog display');
-
-    // assert.isUndefined(el.newTeam, 'newTeam');
   });
 
   it('creates new team when dialog saved', async () => {
@@ -78,7 +82,7 @@ describe('lineup-team-dialog tests', () => {
 
     assert.isTrue(el.opened, 'should be opened');
 
-    const nameField = el.shadowRoot!.querySelector('paper-dialog paper-input#team-name') as HTMLInputElement;
+    const nameField = getInputField('team-name');
     nameField.value = ' Club team 01 '
 
     let eventFired = false;
