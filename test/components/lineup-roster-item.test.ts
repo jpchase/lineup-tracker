@@ -2,8 +2,6 @@ import { LineupRosterItem } from '@app/components/lineup-roster-item';
 import '@app/components/lineup-roster-item.js';
 import { Player, PlayerStatus } from '@app/models/player';
 import { assert, expect, fixture } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
 
 describe('lineup-roster-item tests', () => {
   const player: Player = {
@@ -62,11 +60,7 @@ describe('lineup-roster-item tests', () => {
     assert.equal(actionsElement!.textContent!.trim(), 'actions here');
   });
 
-  it('a11y', () => {
-    return axeReport(el);
-  });
-
-  it('accessibility', async () => {
+  it('a11y', async () => {
     await expect(el).to.be.accessible();
   });
 });

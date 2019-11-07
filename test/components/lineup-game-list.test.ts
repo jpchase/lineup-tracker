@@ -1,9 +1,7 @@
 import { LineupGameList } from '@app/components/lineup-game-list';
 import '@app/components/lineup-game-list.js';
 import { Games, GameStatus } from '@app/models/game';
-import { assert, fixture } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
+import { assert, expect, fixture } from '@open-wc/testing';
 
 function getGames(numGames: number): Games {
   const size = numGames || 6;
@@ -73,8 +71,7 @@ describe('lineup-game-list tests', () => {
     });
   }
 
-  it('a11y', () => {
-    console.log('ally test');
-    return axeReport(el);
+  it('a11y', async () => {
+    await expect(el).to.be.accessible();
   });
 });

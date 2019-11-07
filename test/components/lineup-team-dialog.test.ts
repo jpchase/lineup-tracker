@@ -1,8 +1,6 @@
 import { LineupTeamDialog } from '@app/components/lineup-team-dialog';
 import '@app/components/lineup-team-dialog.js';
-import { assert, fixture } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
+import { assert, expect, fixture } from '@open-wc/testing';
 
 describe('lineup-team-dialog tests', () => {
   let el: LineupTeamDialog;
@@ -116,7 +114,7 @@ describe('lineup-team-dialog tests', () => {
       });
   });
 
-  it('a11y', () => {
-    return axeReport(el);
+  it('a11y', async () => {
+    await expect(el).to.be.accessible();
   });
 });

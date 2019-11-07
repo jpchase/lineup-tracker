@@ -1,8 +1,6 @@
 import { LineupGameCreate } from '@app/components/lineup-game-create';
 import '@app/components/lineup-game-create.js';
-import { assert, fixture } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
+import { assert, expect, fixture } from '@open-wc/testing';
 
 describe('lineup-game-create tests', () => {
   let el: LineupGameCreate;
@@ -74,7 +72,7 @@ describe('lineup-game-create tests', () => {
       });
   });
 
-  it('a11y', () => {
-    return axeReport(el);
+  it('a11y', async () => {
+    await expect(el).to.be.accessible();
   });
 });

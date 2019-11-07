@@ -2,8 +2,6 @@ import { LineupRoster } from '@app/components/lineup-roster';
 import '@app/components/lineup-roster.js';
 import { PlayerStatus, Roster } from '@app/models/player';
 import { assert, expect, fixture } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
 
 function getRoster(numPlayers: number): Roster {
   const size = numPlayers || 6;
@@ -117,11 +115,7 @@ describe('lineup-roster tests', () => {
     assert.isTrue(true);
   });
 
-  it('a11y', () => {
-    console.log('ally test');
-    return axeReport(el);
-  });
-  it('accessibility', async () => {
+  it('a11y', async () => {
     await expect(el).to.be.accessible();
   });
 });

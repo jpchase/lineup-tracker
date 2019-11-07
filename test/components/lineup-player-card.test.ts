@@ -3,8 +3,6 @@ import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-
 import '@app/components/lineup-player-card.js';
 import { Player, PlayerStatus } from '@app/models/player';
 import { assert, expect, fixture, oneEvent } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
 
 describe('lineup-player-card tests', () => {
   let el: LineupPlayerCard;
@@ -274,12 +272,7 @@ describe('lineup-player-card tests', () => {
     assert.isFalse(eventSelected, 'Card should no longer be selected');
   });
 
-  it('a11y', () => {
-    console.log('ally test');
-    return axeReport(el);
-  });
-
-  it('accessibility', async () => {
+  it('a11y', async () => {
     await expect(el).to.be.accessible();
   });
 

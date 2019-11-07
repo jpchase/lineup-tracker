@@ -3,8 +3,6 @@ import '@app/components/lineup-player-list.js';
 import { LivePlayer } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
 import { assert, expect, fixture } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
 
 function getPlayers(numPlayers: number, status: PlayerStatus, otherStatus?: PlayerStatus): LivePlayer[] {
   const size = numPlayers || 6;
@@ -175,12 +173,7 @@ describe('lineup-player-list tests', () => {
     } // number of players
   } // list modes
 
-  it('a11y', () => {
-    console.log('ally test');
-    return axeReport(el);
-  });
-
-  it('accessibility', async () => {
+  it('a11y', async () => {
     await expect(el).to.be.accessible();
   });
 });

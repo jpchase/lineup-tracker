@@ -5,8 +5,6 @@ import { FormationBuilder, FormationType } from '@app/models/formation';
 import { LivePlayer } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
 import { assert, expect, fixture } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
 
 interface PositionCounter {
   [index: string]: number;
@@ -263,12 +261,7 @@ describe('lineup-on-player-list tests', () => {
     });
   }
 
-  it('a11y', () => {
-    console.log('ally test');
-    return axeReport(el);
-  });
-
-  it('accessibility', async () => {
+  it('a11y', async () => {
     await expect(el).to.be.accessible();
   });
 });

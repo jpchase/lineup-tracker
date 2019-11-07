@@ -14,8 +14,6 @@ import { game } from '@app/reducers/game';
 import { store, resetState } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
 import { stub } from 'sinon';
 import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer } from '../helpers/test_data';
 
@@ -192,8 +190,7 @@ describe('lineup-game-setup tests', () => {
     assert.equal(startGame.disabled, false, 'Start game should be enabled');
   });
 
-  it('a11y', () => {
-    console.log('ally test');
-    return axeReport(el);
+  it('a11y', async () => {
+    await expect(el).to.be.accessible();
   });
 });

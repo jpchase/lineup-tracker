@@ -3,8 +3,6 @@ import { LineupRosterModify } from '@app/components/lineup-roster-modify';
 import '@app/components/lineup-roster-modify.js';
 import { PlayerStatus } from '@app/models/player';
 import { assert, expect, fixture } from '@open-wc/testing';
-import 'axe-core/axe.min.js';
-import { axeReport } from 'pwa-helpers/axe-report.js';
 
 describe('lineup-roster-modify tests', () => {
   let el: LineupRosterModify;
@@ -71,11 +69,7 @@ describe('lineup-roster-modify tests', () => {
       });
   });
 
-  it('a11y', () => {
-    return axeReport(el);
-  });
-
-  it('accessibility', async () => {
+  it('a11y', async () => {
     await expect(el).to.be.accessible();
   });
 });
