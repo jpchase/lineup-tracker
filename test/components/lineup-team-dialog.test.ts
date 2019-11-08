@@ -1,6 +1,6 @@
 import { LineupTeamDialog } from '@app/components/lineup-team-dialog';
 import '@app/components/lineup-team-dialog.js';
-import { assert, expect, fixture } from '@open-wc/testing';
+import { assert, expect, fixture, nextFrame } from '@open-wc/testing';
 
 describe('lineup-team-dialog tests', () => {
   let el: LineupTeamDialog;
@@ -15,13 +15,9 @@ describe('lineup-team-dialog tests', () => {
   }
 
   function getInputField(fieldId: string) {
-    const field = el.shadowRoot!.querySelector(`#${fieldId} > input`);
+    const field = el.shadowRoot!.querySelector(`#${fieldId}`);
     assert.isOk(field, `Missing field: ${fieldId}`);
     return field as HTMLInputElement;
-  }
-
-  function sleep(milliseconds: number) {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
 
   it('starts empty', () => {
@@ -36,8 +32,9 @@ describe('lineup-team-dialog tests', () => {
   it('shows dialog when opened', async () => {
     el.open();
     await el.updateComplete;
-    // TODO: Figure out better way than manual sleep
-    await sleep(150);
+
+    // Waits a frame, to allow the dialog to be shown.
+    await nextFrame();
 
     assert.isTrue(el.opened, 'should be opened');
 
@@ -52,8 +49,9 @@ describe('lineup-team-dialog tests', () => {
   it('closes dialog when cancelled', async () => {
     el.open();
     await el.updateComplete;
-    // TODO: Figure out better way than manual sleep
-    await sleep(0);
+
+    // Waits a frame, to allow the dialog to be shown.
+    await nextFrame();
 
     assert.isTrue(el.opened, 'should be opened');
 
@@ -62,8 +60,9 @@ describe('lineup-team-dialog tests', () => {
 
     const cancelButton = el.shadowRoot!.querySelector('paper-dialog mwc-button[dialog-dismiss]') as HTMLElement;
     cancelButton.click();
-    // TODO: Figure out better way than manual sleep
-    await sleep(50);
+
+    // Waits a frame, to allow the dialog to be closed.
+    await nextFrame();
 
     assert.isFalse(el.opened, 'should be closed');
 
@@ -75,8 +74,6 @@ describe('lineup-team-dialog tests', () => {
   it('creates new team when dialog saved', async () => {
     el.open();
     await el.updateComplete;
-    // TODO: Figure out better way than manual sleep
-    await sleep(0);
 
     assert.isTrue(el.opened, 'should be opened');
 
@@ -96,8 +93,6 @@ describe('lineup-team-dialog tests', () => {
 
     const saveButton = el.shadowRoot!.querySelector('paper-dialog mwc-button[dialog-confirm]') as HTMLElement;
     saveButton.click();
-    // TODO: Figure out better way than manual sleep
-    await sleep(50);
 
     assert.isFalse(el.opened, 'should be closed');
 
