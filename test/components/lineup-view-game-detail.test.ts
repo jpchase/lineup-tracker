@@ -2,10 +2,10 @@ import { GET_GAME_SUCCESS } from '@app/actions/game-types';
 import { LineupViewGameDetail } from '@app/components/lineup-view-game-detail';
 import '@app/components/lineup-view-game-detail.js';
 import { GameDetail, GameStatus } from '@app/models/game';
-import { game } from '@app/reducers/game';
 import { resetState, store } from '@app/store';
-import { expect, fixture } from '@open-wc/testing';
+import { expect, fixture, html } from '@open-wc/testing';
 import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer } from '../helpers/test_data';
+import { getGameStoreConfigurator } from '@app/slices/game-store';
 
 function getGameDetail(): GameDetail {
   return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]));
@@ -14,13 +14,11 @@ function getGameDetail(): GameDetail {
 describe('lineup-view-game-detail tests', () => {
   let el: LineupViewGameDetail;
   beforeEach(async () => {
-    store.addReducers({
-      game
-    });
     // Resets to the initial store state.
     store.dispatch(resetState());
 
-    el = await fixture('<lineup-view-game-detail active></lineup-view-game-detail>');
+    const template = html`<lineup-view-game-detail active .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-view-game-detail>`;
+    el = await fixture(template);
   });
 
   function getPlayerSection(mode: string): HTMLDivElement {

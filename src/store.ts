@@ -53,6 +53,10 @@ export type RootStore = Store<RootState, RootAction> & LazyStore & {
   dispatch: ThunkDispatch<RootState, undefined, RootAction>;
 };
 
+export interface SliceStoreConfigurator {
+  (storeInstance?: RootStore, ...rest: any[]): RootStore;
+}
+
 // Action creator to cause the store to be reset (primarily intended for testing).
 export const resetState = (): RootActionReset => ({type: RESET_STATE});
 

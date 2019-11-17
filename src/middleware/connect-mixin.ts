@@ -3,7 +3,7 @@
 */
 
 import { Unsubscribe } from 'redux';
-import { RootState, RootAction, RootStore } from '../store';
+import { RootState, RootAction, RootStore, SliceStoreConfigurator } from '../store';
 import { ThunkAction } from 'redux-thunk';
 
 type Constructor<T> = new(...args: any[]) => T;
@@ -26,23 +26,7 @@ export const connectStore =
   class extends baseElement {
     private _storeUnsubscribe!: Unsubscribe;
     store?: RootStore;
-
-    // TODO: Get rid of this if possible. Either with a property setter, or ideally
-    // figuring how to set in tests before connectedCallback.
-    setStore(storeInstance?: RootStore) {
-      if (this._storeUnsubscribe) {
-        this._storeUnsubscribe();
-      }
-      this.store = storeInstance;
-      if (storeInstance) {
-        // Connect the element to the store.
-        const store = storeInstance;
-        this._storeUnsubscribe = store.subscribe(() => {
-          this.stateChanged(store.getState());
-        });
-        this.stateChanged(store.getState());
-      }
-    }
+    storeConfigurator?: SliceStoreConfigurator;
 
     connectedCallback() {
       console.log(`connectStore.connectedCallback: store is set ${this.store ? true : false}`);
@@ -50,6 +34,14 @@ export const connectStore =
         super.connectedCallback();
       }
 
+      // Configure the store, to allow for lazy loading.
+      if (this.storeConfigurator) {
+        if (this.store) {
+          this.storeConfigurator(this.store);
+        } else {
+          this.store = this.storeConfigurator(this.store);
+        }
+      }
       const store = this.store;
       if (store) {
         // Connect the element to the store.

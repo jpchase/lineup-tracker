@@ -10,12 +10,11 @@ import { FormationBuilder } from '../models/formation';
 import { GameDetail, GameStatus, LivePlayer } from '../models/game';
 
 // This element is connected to the Redux store.
-import { connect } from 'pwa-helpers/connect-mixin.js';
-import { RootState } from '../store';
+import { connectStore } from '../middleware/connect-mixin';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 
-// Get the game-specific store, which handles initialization/lazy-loading.
+// The game-specific store configurator, which handles initialization/lazy-loading.
 import { getGameStore } from '../slices/game-store';
-const store = getGameStore();
 
 // These are the actions needed by this element.
 import { getGame, selectPlayer, selectPosition, applyProposedStarter, cancelProposedStarter } from '../actions/game';
@@ -31,7 +30,7 @@ import './lineup-player-list';
 import { SharedStyles } from './shared-styles';
 
 @customElement('lineup-view-game-detail')
-export class LineupViewGameDetail extends connect(store)(PageViewElement) {
+export class LineupViewGameDetail extends connectStore()(PageViewElement) {
   private _getDetailContent(game: GameDetail, players: LivePlayer[]) {
     if (game.status === GameStatus.Done) {
       // Completed game
@@ -136,6 +135,12 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
   }
 
   @property({ type: Object })
+  store?: RootStore;
+
+  @property({ type: Object })
+  storeConfigurator?: SliceStoreConfigurator = getGameStore;
+
+  @property({ type: Object })
   private _game: GameDetail | undefined;
 
   @property({type: Object})
@@ -160,19 +165,19 @@ export class LineupViewGameDetail extends connect(store)(PageViewElement) {
   }
 
   private _playerSelected(e: CustomEvent) {
-    store.dispatch(selectPlayer(e.detail.player.id));
+    this.dispatch(selectPlayer(e.detail.player.id));
   }
 
   private _positionSelected(e: CustomEvent) {
-    store.dispatch(selectPosition(e.detail.position));
+    this.dispatch(selectPosition(e.detail.position));
   }
 
   private _applyStarter() {
-    store.dispatch(applyProposedStarter());
+    this.dispatch(applyProposedStarter());
   }
 
   private _cancelStarter() {
-    store.dispatch(cancelProposedStarter());
+    this.dispatch(cancelProposedStarter());
   }
 
   private _getName() {

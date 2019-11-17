@@ -1,4 +1,4 @@
-import { store, RootStore, RootState, RootAction } from '../store';
+import { store as globalStore, RootStore, RootState, RootAction, SliceStoreConfigurator } from '../store';
 import { Store } from 'redux';
 import { idb } from '../storage/idb-wrapper';
 import { Games } from '../models/game';
@@ -13,8 +13,9 @@ interface CachedGames {
 let initialized = false;
 let cachedGames: CachedGames = { games: {} };
 
-export function getGameStore(): RootStore {
-  console.log('getGameStore called');
+export function getGameStore(storeInstance?: RootStore, hydrate: boolean = true): RootStore {
+  console.log(`getGameStore called: storeInstance is set ${storeInstance ? true : false}`);
+  const store = storeInstance || globalStore;
   if (!initialized) {
     console.log('getGameStore: first call, do initialization');
     // Lazy load the reducer
@@ -22,15 +23,24 @@ export function getGameStore(): RootStore {
       game
     });
 
-    hydrateGameState(store);
+    if (hydrate) {
+      console.log('getGameStore: setup hydration');
+      hydrateGameState(store);
 
-    store.subscribe(() => {
-      console.log('getGameStore: in store.subscribe()');
-      persistGameState(store);
-    });
+      store.subscribe(() => {
+        console.log('getGameStore: in store.subscribe()');
+        persistGameState(store);
+      });
+    }
     initialized = true;
   }
   return store;
+}
+
+export function getGameStoreConfigurator(hydrate: boolean): SliceStoreConfigurator {
+  return (storeInstance?: RootStore) => {
+    return getGameStore(storeInstance, hydrate);
+  };
 }
 
 export function hydrateGameState(storeInstance: Store<RootState, RootAction>) {
