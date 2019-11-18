@@ -2,7 +2,7 @@
 const { createDefaultConfig } = require('@open-wc/testing-karma');
 const merge = require('webpack-merge');
 
-module.exports = config => {
+module.exports = (config) => {
   config.set(
     merge(createDefaultConfig(config), {
       files: [
@@ -20,10 +20,10 @@ module.exports = config => {
         {
           plugins: [
             [
-              "module-resolver",
+              'module-resolver',
               {
-                "alias": {
-                  "@app": "./src"
+                'alias': {
+                  '@app': './src'
                 }
               }
             ]
@@ -33,14 +33,10 @@ module.exports = config => {
 
       // TODO: Remove/change back to 80 after improving tests
       coverageIstanbulReporter: {
-        // TODO: Remove emitWarning after all Redux tests converted
-        emitWarning: true,
+        emitWarning: false,
         thresholds: {
           global: {
-            statements: 60,
-            lines: 60,
-            branches: 55,
-            functions: 45
+            branches: 70,
           }
         }
       }
