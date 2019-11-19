@@ -9,11 +9,10 @@ import { LineupGameSetup } from '@app/components/lineup-game-setup';
 import '@app/components/lineup-game-setup.js';
 import { FormationType } from '@app/models/formation';
 import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
-// Need to load the reducer, as lineup-game-setup relies on lineup-view-game-detail to do so.
-import { game } from '@app/reducers/game';
-import { store, resetState } from '@app/store';
+import { getGameStoreConfigurator } from '@app/slices/game-store';
+import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
-import { assert, expect, fixture } from '@open-wc/testing';
+import { assert, expect, fixture, html } from '@open-wc/testing';
 import { stub } from 'sinon';
 import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer } from '../helpers/test_data';
 
@@ -53,13 +52,11 @@ function getTasks(): TestSetupTask[] {
 describe('lineup-game-setup tests', () => {
   let el: LineupGameSetup;
   beforeEach(async () => {
-    store.addReducers({
-      game
-    });
     // Resets to the initial store state.
     store.dispatch(resetState());
 
-    el = await fixture('<lineup-game-setup></lineup-game-setup>');
+    const template = html`<lineup-game-setup .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-game-setup>`;
+    el = await fixture(template);
   });
 
   function getTaskElements() {

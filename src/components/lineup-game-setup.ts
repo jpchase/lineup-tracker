@@ -9,8 +9,8 @@ import { ifDefined } from 'lit-html/directives/if-defined';
 import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 
 // This element is connected to the Redux store.
-import { connect } from 'pwa-helpers/connect-mixin.js';
-import { store, RootState } from '../store';
+import { connectStore } from '../middleware/connect-mixin';
+import { RootState, RootStore } from '../store';
 
 // These are the actions needed by this element.
 import { navigate } from '../actions/app';
@@ -60,7 +60,7 @@ function isAutoStep(step: SetupSteps): boolean {
 }
 
 @customElement('lineup-game-setup')
-export class LineupGameSetup extends connect(store)(LitElement) {
+export class LineupGameSetup extends connectStore()(LitElement) {
   protected render() {
     const tasks = this._tasks;
     return html`
@@ -134,6 +134,9 @@ export class LineupGameSetup extends connect(store)(LitElement) {
   }
 
   @property({ type: Object })
+  store?: RootStore;
+
+  @property({ type: Object })
   private _game: GameDetail | undefined;
 
   @property({ type: Object })
@@ -183,7 +186,7 @@ export class LineupGameSetup extends connect(store)(LitElement) {
 
         case SetupSteps.Roster:
           window.history.pushState({}, '', `/gameroster/${this._game!.id}`);
-          store.dispatch(navigate(window.location));
+          this.dispatch(navigate(window.location));
           break;
 
         default:
@@ -197,15 +200,15 @@ export class LineupGameSetup extends connect(store)(LitElement) {
   private _stepDone(e: Event, step: SetupSteps) {
     switch (step) {
       case SetupSteps.Captains:
-        store.dispatch(markCaptainsDone());
+        this.dispatch(markCaptainsDone());
         break;
 
       case SetupSteps.Roster:
-        store.dispatch(markRosterDone());
+        this.dispatch(markRosterDone());
         break;
 
       case SetupSteps.Starters:
-        store.dispatch(markStartersDone());
+        this.dispatch(markStartersDone());
         break;
 
       default:
@@ -216,13 +219,13 @@ export class LineupGameSetup extends connect(store)(LitElement) {
   }
 
   private _startGame() {
-    store.dispatch(startGame());
+    this.dispatch(startGame());
   }
 
   private _onFormationChange(e: Event) {
     const select: HTMLSelectElement = e.target as HTMLSelectElement;
 
-    store.dispatch(setFormation(select.value));
+    this.dispatch(setFormation(select.value));
 
   // TODO: Clear select after setting, otherwise will be pre-filled on other games
     this._showFormation = false;
