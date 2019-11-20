@@ -17,11 +17,10 @@ import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import { getGameStore } from '../slices/game-store';
 
 // These are the actions needed by this element.
-import { getGame, selectPlayer, selectPosition, applyProposedStarter, cancelProposedStarter } from '../actions/game';
+import { getGame } from '../actions/game';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
-import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events';
 import './lineup-game-setup';
 import './lineup-on-player-list';
 import './lineup-player-list';
@@ -37,7 +36,7 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
       return html`Game is done`;
     }
 
-    const inProgress = (game.status === GameStatus.Live || game.status === GameStatus.Break);
+    // const inProgress = (game.status === GameStatus.Live || game.status === GameStatus.Break);
     const isNew = (game.status === GameStatus.New);
     const setupRequired = isNew;
 
@@ -58,11 +57,8 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
       }
       <div>
         <div id="live-on">
-          <h5>${inProgress ? html`Playing` : html`Starters`}</h5>
+          <h5>Playing</h5>
           <lineup-on-player-list .formation="${formation}" .players="${players}"></lineup-on-player-list>
-        </div>
-        <div id="confirm-change">
-        ${this._getConfirmStarter()}
         </div>
         <div id="live-next" ?hidden=${setupRequired}>
           <h5>Next On</h5>
@@ -76,37 +72,6 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
           <h5>Unavailable</h5>
           <lineup-player-list mode="out" .players="${players}"></lineup-player-list>
         </div>
-      </div>
-    `;
-  }
-
-  private _getConfirmStarter() {
-    if (!this._proposedStarter) {
-      return '';
-    }
-    const starter = this._proposedStarter;
-    const currentPosition = starter.currentPosition!;
-    let positionText = currentPosition.type;
-
-    if (currentPosition.id !== currentPosition.type) {
-      let addition = '';
-      if (currentPosition.id[0] === 'L') {
-        addition = 'Left';
-      } else if (currentPosition.id[0] === 'R') {
-        addition = 'Right';
-      } else if (currentPosition.id.length > currentPosition.type.length) {
-        addition = currentPosition.id.substring(currentPosition.type.length);
-      }
-      positionText += ` (${addition})`;
-    }
-
-    return html`
-      <div>
-        <h5>Confirm starter?</h5>
-        <span>${starter.name} #${starter.uniformNumber}</span>
-        <span>${positionText}</span>
-        <mwc-button @click="${this._cancelStarter}">Cancel</mwc-button>
-        <mwc-button autofocus @click="${this._applyStarter}">Apply</mwc-button>
       </div>
     `;
   }
@@ -146,14 +111,6 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
   @property({type: Object})
   private _players: LivePlayer[] | undefined;
 
-  @property({type: Object})
-  private _proposedStarter: LivePlayer | undefined;
-
-  protected firstUpdated() {
-    window.addEventListener(EVENT_PLAYERSELECTED, this._playerSelected.bind(this) as EventListener);
-    window.addEventListener(EVENT_POSITIONSELECTED, this._positionSelected.bind(this) as EventListener);
-  }
-
   stateChanged(state: RootState) {
     if (!state.game) {
         return;
@@ -161,23 +118,6 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
     const gameState = state.game!;
     this._game = gameState.game;
     this._players = this._game && this._game.liveDetail && this._game.liveDetail.players;
-    this._proposedStarter = gameState.proposedStarter;
-  }
-
-  private _playerSelected(e: CustomEvent) {
-    this.dispatch(selectPlayer(e.detail.player.id));
-  }
-
-  private _positionSelected(e: CustomEvent) {
-    this.dispatch(selectPosition(e.detail.position));
-  }
-
-  private _applyStarter() {
-    this.dispatch(applyProposedStarter());
-  }
-
-  private _cancelStarter() {
-    this.dispatch(cancelProposedStarter());
   }
 
   private _getName() {

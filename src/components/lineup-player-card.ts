@@ -62,7 +62,7 @@ export class LineupPlayerCard extends LitElement {
 
       </style>
 
-      <span class="player ${this.mode}" @click="${this._toggleSelected}">
+      <span class="player ${this.mode}">
         <span class="playerName">${player ? player.name : ''}</span>
         <span class="uniformNumber">${player ? player.uniformNumber: ''}</span>
         <span class="currentPosition">${currentPosition}</span>
@@ -85,7 +85,12 @@ export class LineupPlayerCard extends LitElement {
   @property({type: Boolean})
   selected = false;
 
-  _toggleSelected(e: CustomEvent) {
+  protected firstUpdated() {
+    // Handles clicks anywhere on this component (i.e. not just on the contained span).
+    this.addEventListener('click', this._toggleSelected);
+  }
+
+  _toggleSelected(e: Event) {
     console.log('_toggleSelected - ' + this.selected, e);
     this.selected = !this.selected;
 

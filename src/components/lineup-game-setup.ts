@@ -6,18 +6,26 @@ import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 import { ifDefined } from 'lit-html/directives/if-defined';
 
-import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '../models/game';
+import { FormationBuilder } from '../models/formation';
+import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 
 // This element is connected to the Redux store.
 import { connectStore } from '../middleware/connect-mixin';
-import { RootState, RootStore } from '../store';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store';
+
+// The game-specific store configurator, which handles initialization/lazy-loading.
+import { getGameStore } from '../slices/game-store';
 
 // These are the actions needed by this element.
 import { navigate } from '../actions/app';
 import {
+  applyProposedStarter,
+  cancelProposedStarter,
   markCaptainsDone,
   markRosterDone,
   markStartersDone,
+  selectPlayer,
+  selectPosition,
   setFormation,
   startGame
 } from '../actions/game';
@@ -26,6 +34,8 @@ import {
 import '@material/mwc-button';
 import '@material/mwc-icon';
 // import { peopleIcon, scheduleIcon } from './lineup-icons';
+import './lineup-on-player-list';
+import './lineup-player-list';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
@@ -63,6 +73,15 @@ function isAutoStep(step: SetupSteps): boolean {
 export class LineupGameSetup extends connectStore()(LitElement) {
   protected render() {
     const tasks = this._tasks;
+    const players = this._players;
+
+    // TODO: Turn this into a property, rather than creating new each time?
+    // Is it causing unnecessary updates?
+    let formation = undefined;
+    if (this._game && this._game.formation) {
+      formation = FormationBuilder.create(this._game.formation.type);
+    }
+
     return html`
       ${SharedStyles}
       <style>
@@ -125,6 +144,19 @@ export class LineupGameSetup extends connectStore()(LitElement) {
             <option value="4-3-3">4-3-3</option>
           </select>
         </div>
+        <div id="live-on">
+          <h5>Starters</h5>
+          <lineup-on-player-list .formation="${formation}" .players="${players}"
+                                 @positionselected="${this._positionSelected}"></lineup-on-player-list>
+        </div>
+        <div id="confirm-change">
+        ${this._getConfirmStarter()}
+        </div>
+        <div id="live-off">
+          <h5>Subs</h5>
+          <lineup-player-list mode="off" .players="${players}"
+                              @playerselected="${this._playerSelected}"></lineup-player-list>
+        </div>
       ` : html`
         <p class="empty-list">
           Cannot setup - Game not set.
@@ -133,8 +165,42 @@ export class LineupGameSetup extends connectStore()(LitElement) {
       </div>`
   }
 
+  private _getConfirmStarter() {
+    if (!this._proposedStarter) {
+      return '';
+    }
+    const starter = this._proposedStarter;
+    const currentPosition = starter.currentPosition!;
+    let positionText = currentPosition.type;
+
+    if (currentPosition.id !== currentPosition.type) {
+      let addition = '';
+      if (currentPosition.id[0] === 'L') {
+        addition = 'Left';
+      } else if (currentPosition.id[0] === 'R') {
+        addition = 'Right';
+      } else if (currentPosition.id.length > currentPosition.type.length) {
+        addition = currentPosition.id.substring(currentPosition.type.length);
+      }
+      positionText += ` (${addition})`;
+    }
+
+    return html`
+      <div>
+        <h5>Confirm starter?</h5>
+        <span>${starter.name} #${starter.uniformNumber}</span>
+        <span>${positionText}</span>
+        <mwc-button @click="${this._cancelStarter}">Cancel</mwc-button>
+        <mwc-button autofocus @click="${this._applyStarter}">Apply</mwc-button>
+      </div>
+    `;
+  }
+
   @property({ type: Object })
   store?: RootStore;
+
+  @property({ type: Object })
+  storeConfigurator?: SliceStoreConfigurator = getGameStore;
 
   @property({ type: Object })
   private _game: GameDetail | undefined;
@@ -147,6 +213,12 @@ export class LineupGameSetup extends connectStore()(LitElement) {
 
   @property({ type: Boolean })
   private _showFormation = false;
+
+  @property({type: Object})
+  private _players: LivePlayer[] | undefined;
+
+  @property({type: Object})
+  private _proposedStarter: LivePlayer | undefined;
 
   protected firstUpdated() {
   }
@@ -166,6 +238,9 @@ export class LineupGameSetup extends connectStore()(LitElement) {
 
     const anyIncomplete = this._tasks.some(task => task.status !== SetupStatus.Complete);
     this._tasksComplete = !anyIncomplete;
+
+    this._players = this._game.liveDetail && this._game.liveDetail.players || [];
+    this._proposedStarter = state.game!.proposedStarter;
   }
 
   private _getStepHref(task: SetupTask) {
@@ -229,6 +304,22 @@ export class LineupGameSetup extends connectStore()(LitElement) {
 
   // TODO: Clear select after setting, otherwise will be pre-filled on other games
     this._showFormation = false;
+  }
+
+  private _playerSelected(e: CustomEvent) {
+    this.dispatch(selectPlayer(e.detail.player.id));
+  }
+
+  private _positionSelected(e: CustomEvent) {
+    this.dispatch(selectPosition(e.detail.position));
+  }
+
+  private _applyStarter() {
+    this.dispatch(applyProposedStarter());
+  }
+
+  private _cancelStarter() {
+    this.dispatch(cancelProposedStarter());
   }
 
 }
