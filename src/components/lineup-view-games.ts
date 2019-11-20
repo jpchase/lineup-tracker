@@ -33,8 +33,6 @@ import '@material/mwc-fab';
 import './lineup-game-create';
 import './lineup-game-list';
 
-import { EVENT_NEWGAMECREATED, EVENT_NEWGAMECANCELLED } from './events';
-
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
@@ -62,7 +60,9 @@ export class LineupViewGames extends connect(store)(PageViewElement) {
       <section>
         <lineup-game-list .games="${this._games}"></lineup-game-list>
         <mwc-fab icon="add" label="Add Game" @click="${this._addButtonClicked}"></mwc-fab>
-        <lineup-game-create ?active="${this._showCreate}"></lineup-game-create>
+        <lineup-game-create ?active="${this._showCreate}"
+            @newgamecreated="${this._newGameCreated}"
+            @newgamecancelled="${this._newGameCancelled}"></lineup-game-create>
       </section>
     `;
   }
@@ -88,11 +88,6 @@ export class LineupViewGames extends connect(store)(PageViewElement) {
 
   private _newGameCancelled() {
     this._showCreate = false;
-  }
-
-  protected firstUpdated() {
-    window.addEventListener(EVENT_NEWGAMECREATED, this._newGameCreated.bind(this) as EventListener);
-    window.addEventListener(EVENT_NEWGAMECANCELLED, this._newGameCancelled.bind(this) as EventListener);
   }
 
   // This is called every time something is updated in the store.
