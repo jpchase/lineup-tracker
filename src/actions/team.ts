@@ -19,7 +19,7 @@ import {
   ADD_PLAYER,
   GET_ROSTER,
   GET_TEAMS
-} from './team-types';
+} from '../slices/team-types';
 
 export interface TeamActionAddTeam extends Action<typeof ADD_TEAM> { team: Team };
 export interface TeamActionChangeTeam extends Action<typeof CHANGE_TEAM> { teamId: string };

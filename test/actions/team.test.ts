@@ -1,5 +1,5 @@
 import * as actions from '@app/actions/team';
-import * as actionTypes from '@app/actions/team-types';
+import * as actionTypes from '@app/slices/team-types';
 import { firebaseRef } from '@app/firebase';
 import { Player } from '@app/models/player';
 import { Team, TeamData } from '@app/models/team';

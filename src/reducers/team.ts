@@ -12,7 +12,7 @@ import {
   ADD_PLAYER,
   GET_ROSTER,
   GET_TEAMS
-} from '../actions/team-types';
+} from '../slices/team-types';
 import { RootAction, RootState } from '../store';
 import { TeamActionAddTeam } from '@app/actions/team';
 

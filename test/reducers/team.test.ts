@@ -1,6 +1,6 @@
 import { Player } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
-import { ADD_PLAYER, ADD_TEAM, CHANGE_TEAM, GET_ROSTER, GET_TEAMS } from '@app/actions/team-types';
+import { ADD_PLAYER, ADD_TEAM, CHANGE_TEAM, GET_ROSTER, GET_TEAMS } from '@app/slices/team-types';
 import team from '@app/reducers/team';
 import { TeamState } from '@app/reducers/team';
 import { expect } from '@open-wc/testing';
