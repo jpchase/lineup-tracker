@@ -2,6 +2,8 @@ import {
   CAPTAINS_DONE,
   GET_GAME_SUCCESS,
   ROSTER_DONE,
+  SELECT_PLAYER,
+  SELECT_POSITION,
   SET_FORMATION,
   STARTERS_DONE
 } from '@app/actions/game-types';
@@ -402,7 +404,80 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
     });
 
-  }); // describe('New game')
+    it('shows confirm starter UI when proposed starter exists', async () => {
+      const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
+      expect(foundPlayer, 'Missing player with off status').to.be.ok;
+      const player = foundPlayer!;
+
+      store.dispatch({ type: SELECT_PLAYER, playerId: player.id });
+      store.dispatch({ type: SELECT_POSITION, position: {id: 'AM1', type: 'AM'} });
+      await el.updateComplete;
+
+      const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
+      expect(confirmSection, 'Missing confirm starter div').to.be.ok;
+
+      // TODO: Use Karma snapshots?
+      const playerElement = confirmSection!.querySelector('.proposed-player');
+      expect(playerElement, 'Missing proposed player element').to.be.ok;
+
+      const positionElement = confirmSection!.querySelector('.proposed-position');
+      expect(positionElement, 'Missing proposed position element').to.be.ok;
+      expect(positionElement!.textContent!.trim()).to.equal('AM (1)');
+    });
+
+    it('dispatches apply starter action when confirmed', async () => {
+      const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
+      expect(foundPlayer, 'Missing player with off status').to.be.ok;
+      const player = foundPlayer!;
+
+      store.dispatch({ type: SELECT_PLAYER, playerId: player.id });
+      store.dispatch({ type: SELECT_POSITION, position: {id: 'LW', type: 'W'} });
+      await el.updateComplete;
+
+      const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
+      expect(confirmSection, 'Missing confirm starter div').to.be.ok;
+
+      const positionElement = confirmSection!.querySelector('.proposed-position');
+      expect(positionElement, 'Missing proposed position element').to.be.ok;
+      expect(positionElement!.textContent!.trim()).to.equal('W (Left)');
+
+      const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      expect(applyButton, 'Missing apply button').to.be.ok;
+
+      applyButton.click();
+
+      // Verifies that the apply starter action was dispatched.
+      // TODO: Verify that thunk action actually dispatches the right action.
+      expect(dispatchStub).to.have.callCount(1);
+    });
+
+    it('dispatches cancel starter action when cancelled', async () => {
+      const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
+      expect(foundPlayer, 'Missing player with off status').to.be.ok;
+      const player = foundPlayer!;
+
+      store.dispatch({ type: SELECT_PLAYER, playerId: player.id });
+      store.dispatch({ type: SELECT_POSITION, position: {id: 'RW', type: 'W'} });
+      await el.updateComplete;
+
+      const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
+      expect(confirmSection, 'Missing confirm starter div').to.be.ok;
+
+      const positionElement = confirmSection!.querySelector('.proposed-position');
+      expect(positionElement, 'Missing proposed position element').to.be.ok;
+      expect(positionElement!.textContent!.trim()).to.equal('W (Right)');
+
+      const cancelButton = confirmSection!.querySelector('mwc-button.cancel') as Button;
+      expect(cancelButton, 'Missing cancel button').to.be.ok;
+
+      cancelButton.click();
+
+      // Verifies that the cancel starter action was dispatched.
+      // TODO: Verify that thunk action actually dispatches the right action.
+      expect(dispatchStub).to.have.callCount(1);
+    });
+
+  }); // describe('Starters')
 
   it('a11y', async () => {
     await expect(el).to.be.accessible();

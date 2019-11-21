@@ -149,7 +149,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
           <lineup-on-player-list .formation="${formation}" .players="${players}"
                                  @positionselected="${this._positionSelected}"></lineup-on-player-list>
         </div>
-        <div id="confirm-change">
+        <div id="confirm-starter">
         ${this._getConfirmStarter()}
         </div>
         <div id="live-off">
@@ -188,10 +188,10 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     return html`
       <div>
         <h5>Confirm starter?</h5>
-        <span>${starter.name} #${starter.uniformNumber}</span>
-        <span>${positionText}</span>
-        <mwc-button @click="${this._cancelStarter}">Cancel</mwc-button>
-        <mwc-button autofocus @click="${this._applyStarter}">Apply</mwc-button>
+        <span class="proposed-player">${starter.name} #${starter.uniformNumber}</span>
+        <span class="proposed-position">${positionText}</span>
+        <mwc-button class="cancel" @click="${this._cancelStarter}">Cancel</mwc-button>
+        <mwc-button class="ok" autofocus @click="${this._applyStarter}">Apply</mwc-button>
       </div>
     `;
   }
