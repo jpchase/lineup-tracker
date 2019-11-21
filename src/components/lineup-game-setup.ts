@@ -116,7 +116,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
           <div class="task flex-equal-justified step${task.step}">
             <div class="name">
               <a class="step" href="${ifDefined(this._getStepHref(task))}"
-                 @click="${ (e: Event) => this._doStep(e, task)}">${getStepName(task.step)}</a>
+                 @click="${ (e: Event) => this._performStep(e, task)}">${getStepName(task.step)}</a>
             </div>
             <div class="status">
             ${task.status === SetupStatus.InProgress
@@ -126,7 +126,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
                 : (task.status === SetupStatus.Pending || isAutoStep(task.step))
                   ? html`<mwc-icon>more_horiz</mwc-icon>`
                   : html`<mwc-button class="finish" icon="check"
-                             @click="${(e: Event) => this._stepDone(e, task.step)}">Done</mwc-button>`
+                             @click="${(e: Event) => this._finishStep(e, task.step)}">Done</mwc-button>`
             }
             </div>
           </div>
@@ -224,9 +224,6 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   stateChanged(state: RootState) {
-    const hasGS = !!state.game;
-    const hasGame = hasGS ? !!state.game!.game : false;
-    console.log(`l-g-s: stateChanged - hasGS = ${hasGS}, hasGame = ${hasGame}`);
     if (!state.game) {
       return;
     }
@@ -251,7 +248,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     return undefined;
   }
 
-  private _doStep(e: Event, task: SetupTask) {
+  private _performStep(e: Event, task: SetupTask) {
     // Only do the step if it's currently active.
     if (task.status === SetupStatus.Active) {
       switch (task.step) {
@@ -272,7 +269,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     return false;
   }
 
-  private _stepDone(e: Event, step: SetupSteps) {
+  private _finishStep(e: Event, step: SetupSteps) {
     switch (step) {
       case SetupSteps.Captains:
         this.dispatch(markCaptainsDone());

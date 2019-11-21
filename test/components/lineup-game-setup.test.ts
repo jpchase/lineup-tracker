@@ -194,30 +194,103 @@ describe('lineup-game-setup tests', () => {
     assert.equal(pendingTaskAnchor.href, '');
   });
 
-  it('step done handler dispatches action', async () => {
-    // Makes the Roster step active, as the Formation step doesn't show a done button.
-    const game = getGameDetail();
-    game.liveDetail!.setupTasks![0].status = SetupStatus.Complete;
-    game.liveDetail!.setupTasks![1].status = SetupStatus.Active;
+  describe('Setup steps', () => {
+    let newGame: GameDetail;
 
-    store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-    await el.updateComplete;
+    beforeEach(async () => {
+      newGame = getGameDetail();
+      expect(newGame.status).to.equal(GameStatus.New);
+    });
 
-    const taskElement = getTaskElement(1, SetupSteps.Roster);
+    const stepTests = [
+      {
+        step: SetupSteps.Formation,
+        hasDoneButton: false,
+      },
+      {
+        step: SetupSteps.Roster,
+        hasDoneButton: true,
+      },
+      {
+        step: SetupSteps.Captains,
+        hasDoneButton: true,
+      },
+      {
+        step: SetupSteps.Starters,
+        hasDoneButton: true,
+      },
+    ];
 
-    // Spies on the handler, because we want it to execute to verify dispatch of actions.
-    const doneSpy = spy(el, <any>'_stepDone');
+    for (const stepTest of stepTests) {
+      const stepName = SetupSteps[stepTest.step];
+      describe(stepName, () => {
 
-    // Simulates a click on the done button.
-    const doneButton = taskElement.querySelector('.status mwc-button.finish') as Button;
-    assert.isOk(doneButton, 'Missing done button for task');
-    doneButton.click();
+        beforeEach(async () => {
+          // Sets up the current step as active.
+          for (let index = 0; index < stepTest.step; index++) {
+            newGame.liveDetail!.setupTasks![index].status = SetupStatus.Complete;
+          }
+          newGame.liveDetail!.setupTasks![stepTest.step].status = SetupStatus.Active;
 
-    // Verifies that action dispatched.
-    expect(doneSpy).to.have.callCount(1);
-    // TODO: Verify param to dispatch call when it's a simple action instead of a thunk.
-    expect(dispatchStub).to.have.callCount(1);
-  });
+          store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
+          await el.updateComplete;
+          newGame = store.getState().game!.game!;
+        });
+
+        it('perform handler fires only when active', async () => {
+          const taskElement = getTaskElement(stepTest.step, stepTest.step);
+
+          // Spies on the handler, because we want it to execute to verify other behaviour.
+          const performSpy = spy(el, <any>'_performStep');
+
+          // Simulates a click on the step link.
+          const stepLink = taskElement.querySelector('a.step') as HTMLAnchorElement;
+          assert.isOk(stepLink, 'Missing perform link for task');
+          stepLink.click();
+
+          // Verifies that handler executed.
+          expect(performSpy).to.have.callCount(1);
+
+          if (stepTest.step === SetupSteps.Formation) {
+            // Verifies that the formation selector is now showing.
+            await el.updateComplete;
+            const formationSection = el.shadowRoot!.querySelector('.formation');
+            expect(formationSection, 'Missing formation selector widget').to.be.ok;
+            expect(formationSection!.hasAttribute('active'), 'Should have active attribute').to.be.true;
+
+          } else if (stepTest.step === SetupSteps.Roster) {
+            // Verifies that it navigated to the roster page.
+            await el.updateComplete;
+            // TODO: Verify param to dispatch call when it's a simple action instead of a thunk.
+            expect(dispatchStub).to.have.callCount(1);
+          } else {
+            // Other steps should do nothing (they don't have an href on the link).
+            expect(dispatchStub).to.not.have.been.called;
+          }
+        });
+
+        if (stepTest.hasDoneButton) {
+          it('done handler dispatches action', async () => {
+          const taskElement = getTaskElement(stepTest.step, stepTest.step);
+
+          // Spies on the handler, because we want it to execute to verify dispatch of actions.
+          const doneSpy = spy(el, <any>'_finishStep');
+
+          // Simulates a click on the done button.
+          const doneButton = taskElement.querySelector('.status mwc-button.finish') as Button;
+          assert.isOk(doneButton, 'Missing done button for task');
+          doneButton.click();
+
+          // Verifies that action dispatched.
+          expect(doneSpy).to.have.callCount(1);
+          // TODO: Verify param to dispatch call when it's a simple action instead of a thunk.
+          expect(dispatchStub).to.have.callCount(1);
+          });
+        }
+
+      }); // describe(stepName)
+    } // for each stepTest
+  }); // describe('Setup steps')
 
   it('start game button is disabled initially', async () => {
     store.dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
