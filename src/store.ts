@@ -29,6 +29,7 @@ import { AuthAction } from './actions/auth';
 import { GameAction } from './actions/game';
 import { GamesAction } from './actions/games';
 import { TeamAction } from './actions/team';
+import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import app, { AppState } from './reducers/app';
 import { AuthState } from './reducers/auth';
 import { GameState } from './reducers/game';
@@ -89,7 +90,7 @@ export const store: RootStore = createStore(
   state => state as Reducer<RootState, RootAction>,
   devCompose(
     lazyReducerEnhancer(combineReducersWithReset),
-    applyMiddleware(thunk as ThunkMiddleware<RootState, RootAction>))
+    applyMiddleware(thunk as ThunkMiddleware<RootState, RootAction>, dynamicMiddlewares))
 );
 
 // Initially loaded reducers.

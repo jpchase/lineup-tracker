@@ -1,10 +1,13 @@
 import {
+  APPLY_STARTER,
+  CANCEL_STARTER,
   CAPTAINS_DONE,
   GET_GAME_SUCCESS,
   ROSTER_DONE,
   SELECT_PLAYER,
   SELECT_POSITION,
   SET_FORMATION,
+  START_GAME,
   STARTERS_DONE
 } from '@app/actions/game-types';
 import { LineupGameSetup } from '@app/components/lineup-game-setup';
@@ -12,6 +15,7 @@ import '@app/components/lineup-game-setup.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
 import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { LineupPlayerList } from '@app/components/lineup-player-list';
+import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares';
 import { FormationType } from '@app/models/formation';
 import { GameDetail, GameStatus, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
@@ -19,8 +23,14 @@ import { getGameStoreConfigurator } from '@app/slices/game-store';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture, html } from '@open-wc/testing';
-import { SinonSpy, spy, stub } from 'sinon';
+import { SinonSpy, spy } from 'sinon';
 import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer } from '../helpers/test_data';
+
+let actions: string[] = [];
+const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
+  actions.push(action);
+  return next(action);
+}
 
 interface TestSetupTask extends SetupTask {
   expectedName?: string;
@@ -62,9 +72,16 @@ describe('lineup-game-setup tests', () => {
     // Resets to the initial store state.
     store.dispatch(resetState());
 
+    actions = [];
+    addMiddleware(actionLoggerMiddleware);
+
     const template = html`<lineup-game-setup .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-game-setup>`;
     el = await fixture(template);
-    dispatchStub = stub(el, 'dispatch');
+    dispatchStub = spy(el, 'dispatch');
+  });
+
+  afterEach(async () => {
+    removeMiddleware(actionLoggerMiddleware);
   });
 
   function getPlayerElement(list: LineupPlayerList, player: LivePlayer): LineupPlayerCard {
@@ -212,14 +229,17 @@ describe('lineup-game-setup tests', () => {
       {
         step: SetupSteps.Roster,
         hasDoneButton: true,
+        doneActionType: ROSTER_DONE,
       },
       {
         step: SetupSteps.Captains,
         hasDoneButton: true,
+        doneActionType: CAPTAINS_DONE,
       },
       {
         step: SetupSteps.Starters,
         hasDoneButton: true,
+        doneActionType: STARTERS_DONE,
       },
     ];
 
@@ -341,8 +361,10 @@ describe('lineup-game-setup tests', () => {
     startGameButton.click();
 
     // Verifies that the start game action was dispatched.
-    // TODO: Verify that thunk action actually dispatches the right action.
     expect(dispatchStub).to.have.callCount(1);
+
+    expect(actions).to.have.lengthOf.at.least(1);
+    expect(actions[actions.length - 1]).to.include({ type: START_GAME });
   });
 
   describe('Starters', () => {
@@ -388,8 +410,10 @@ describe('lineup-game-setup tests', () => {
       playerElement.click();
 
       // Verifies that the player selected action was dispatched.
-      // TODO: Verify param to dispatch call when it's a simple action instead of a thunk.
       expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.include({ type: SELECT_PLAYER });
     });
 
     it('dispatches position selected action when card in formation selected', async () => {
@@ -399,9 +423,11 @@ describe('lineup-game-setup tests', () => {
       // Simulates selection of the position.
       playerElement.click();
 
-      // Verifies that the player selected action was dispatched.
-      // TODO: Verify param to dispatch call when it's a simple action instead of a thunk.
+      // Verifies that the position selected action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.include({ type: SELECT_POSITION });
     });
 
     it('shows confirm starter UI when proposed starter exists', async () => {
@@ -447,9 +473,11 @@ describe('lineup-game-setup tests', () => {
       applyButton.click();
 
       // Verifies that the apply starter action was dispatched.
-      // TODO: Verify that thunk action actually dispatches the right action.
       expect(dispatchStub).to.have.callCount(1);
-    });
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.include({ type: APPLY_STARTER });
+      });
 
     it('dispatches cancel starter action when cancelled', async () => {
       const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
@@ -473,8 +501,10 @@ describe('lineup-game-setup tests', () => {
       cancelButton.click();
 
       // Verifies that the cancel starter action was dispatched.
-      // TODO: Verify that thunk action actually dispatches the right action.
       expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.include({ type: CANCEL_STARTER });
     });
 
   }); // describe('Starters')
