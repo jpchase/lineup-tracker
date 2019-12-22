@@ -31,7 +31,7 @@ import {
   START_GAME,
   SELECT_PLAYER,
   SELECT_POSITION
-} from '../actions/game-types';
+} from '../slices/game-types';
 
 export interface GameActionHydrate extends Action<typeof GAME_HYDRATE> { gameId?: string, games: Games };
 export interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };

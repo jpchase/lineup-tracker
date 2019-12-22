@@ -1,8 +1,8 @@
-import { GET_GAME_SUCCESS } from '@app/actions/game-types';
 import { LineupViewGameDetail } from '@app/components/lineup-view-game-detail';
 import '@app/components/lineup-view-game-detail.js';
 import { GameDetail, GameStatus } from '@app/models/game';
 import { getGameStoreConfigurator } from '@app/slices/game-store';
+import { GET_GAME_SUCCESS } from '@app/slices/game-types';
 import { resetState, store } from '@app/store';
 import { expect, fixture, html } from '@open-wc/testing';
 import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer } from '../helpers/test_data';

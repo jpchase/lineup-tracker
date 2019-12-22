@@ -1,7 +1,7 @@
-import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/actions/game-types';
 import { FormationType } from '@app/models/formation';
 import { GameDetail, LiveGame } from '@app/models/game';
 import { liveGame, LiveGameState } from '@app/reducers/live-game';
+import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
 import { expect } from '@open-wc/testing';
 import {
   buildRoster,

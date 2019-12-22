@@ -1,18 +1,19 @@
 import * as actions from '@app/actions/game';
-import * as actionTypes from '@app/actions/game-types';
 import { firebaseRef } from '@app/firebase';
 import { FormationType, Position } from '@app/models/formation';
 import { Game, GameDetail, GameStatus, LivePlayer } from '@app/models/game';
 import { Player, Roster } from '@app/models/player';
 import { GameState } from '@app/reducers/game';
+import * as actionTypes from '@app/slices/game-types';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 import { expect } from '@open-wc/testing';
 import MockFirebase from 'mock-cloud-firestore';
 import * as sinon from 'sinon';
 import {
-  TEST_USER_ID, buildGames, buildRoster, getMockAuthState,
+  buildGames, buildRoster, getMockAuthState,
+  getNewPlayer, getNewPlayerData, getStoredPlayer, getStoredPlayerData,
   getStoredTeam, getStoredTeamData,
-  getNewPlayer, getNewPlayerData, getStoredPlayer, getStoredPlayerData
+  TEST_USER_ID
 } from '../helpers/test_data';
 
 function getStoredGameData(): any {

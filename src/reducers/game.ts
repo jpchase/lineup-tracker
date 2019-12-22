@@ -2,8 +2,8 @@
 @license
 */
 
+import { GameActionGetGameSuccess, GameActionHydrate } from '@app/actions/game';
 import { Reducer } from 'redux';
-import { createReducer } from './createReducer'; // 'redux-starter-kit';
 import { Position } from '../models/formation';
 import {
   GameDetail, GameStatus,
@@ -12,26 +12,26 @@ import {
 } from '../models/game';
 import { Player, PlayerStatus, Roster } from '../models/player';
 import {
-  GAME_HYDRATE,
+  ADD_PLAYER,
   APPLY_STARTER,
   CANCEL_STARTER,
-  GET_GAME_REQUEST,
-  GET_GAME_SUCCESS,
-  GET_GAME_FAIL,
   CAPTAINS_DONE,
+  COPY_ROSTER_FAIL,
   COPY_ROSTER_REQUEST,
   COPY_ROSTER_SUCCESS,
-  COPY_ROSTER_FAIL,
-  ADD_PLAYER,
+  GAME_HYDRATE,
+  GET_GAME_FAIL,
+  GET_GAME_REQUEST,
+  GET_GAME_SUCCESS,
   ROSTER_DONE,
-  STARTERS_DONE,
-  SET_FORMATION,
-  START_GAME,
   SELECT_PLAYER,
-  SELECT_POSITION
-} from '../actions/game-types';
+  SELECT_POSITION,
+  SET_FORMATION,
+  STARTERS_DONE,
+  START_GAME
+} from '../slices/game-types';
 import { RootAction, RootState } from '../store';
-import { GameActionGetGameSuccess, GameActionHydrate } from '@app/actions/game';
+import { createReducer } from './createReducer'; // 'redux-starter-kit';
 
 export interface GameState {
   hydrated: boolean;

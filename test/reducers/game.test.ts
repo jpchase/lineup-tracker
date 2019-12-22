@@ -5,32 +5,32 @@ import {
   SetupStatus, SetupSteps, SetupTask
 } from '@app/models/game';
 import { Player, PlayerStatus } from '@app/models/player';
+import { game, GameState } from '@app/reducers/game';
 import {
-  GAME_HYDRATE,
+  ADD_PLAYER,
   APPLY_STARTER,
   CANCEL_STARTER,
-  GET_GAME_REQUEST,
-  GET_GAME_SUCCESS,
-  GET_GAME_FAIL,
   CAPTAINS_DONE,
+  COPY_ROSTER_FAIL,
   COPY_ROSTER_REQUEST,
   COPY_ROSTER_SUCCESS,
-  COPY_ROSTER_FAIL,
-  ADD_PLAYER,
+  GAME_HYDRATE,
+  GET_GAME_FAIL,
+  GET_GAME_REQUEST,
+  GET_GAME_SUCCESS,
   ROSTER_DONE,
-  STARTERS_DONE,
-  START_GAME,
-  SET_FORMATION,
   SELECT_PLAYER,
-  SELECT_POSITION
-} from '@app/actions/game-types';
-import { game } from '@app/reducers/game';
-import { GameState } from '@app/reducers/game';
+  SELECT_POSITION,
+  SET_FORMATION,
+  STARTERS_DONE,
+  START_GAME
+} from '@app/slices/game-types';
 import { expect } from '@open-wc/testing';
 import {
+  buildRoster,
   getFakeAction,
   getNewGame, getNewGameDetail, getNewGameWithLiveDetail,
-  buildRoster, getNewPlayer, getStoredPlayer, getStoredGame
+  getNewPlayer, getStoredGame, getStoredPlayer
 } from '../helpers/test_data';
 
 const GAME_INITIAL_STATE: GameState = {

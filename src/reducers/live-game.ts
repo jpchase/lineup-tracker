@@ -3,8 +3,8 @@
 */
 
 import { Reducer } from 'redux';
-import { GET_GAME_SUCCESS, SET_FORMATION } from '../actions/game-types';
 import { LiveGame, LiveGameBuilder } from '../models/game';
+import { GET_GAME_SUCCESS, SET_FORMATION } from '../slices/game-types';
 import { RootAction } from '../store';
 import { createReducer } from './createReducer';
 

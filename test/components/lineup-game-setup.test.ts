@@ -1,15 +1,3 @@
-import {
-  APPLY_STARTER,
-  CANCEL_STARTER,
-  CAPTAINS_DONE,
-  GET_GAME_SUCCESS,
-  ROSTER_DONE,
-  SELECT_PLAYER,
-  SELECT_POSITION,
-  SET_FORMATION,
-  START_GAME,
-  STARTERS_DONE
-} from '@app/actions/game-types';
 import { LineupGameSetup } from '@app/components/lineup-game-setup';
 import '@app/components/lineup-game-setup.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
@@ -20,6 +8,18 @@ import { FormationType } from '@app/models/formation';
 import { GameDetail, GameStatus, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
 import { getGameStoreConfigurator } from '@app/slices/game-store';
+import {
+  APPLY_STARTER,
+  CANCEL_STARTER,
+  CAPTAINS_DONE,
+  GET_GAME_SUCCESS,
+  ROSTER_DONE,
+  SELECT_PLAYER,
+  SELECT_POSITION,
+  SET_FORMATION,
+  STARTERS_DONE,
+  START_GAME
+} from '@app/slices/game-types';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture, html } from '@open-wc/testing';
