@@ -34,6 +34,8 @@ describe('lineup-view-game-detail tests', () => {
 
     const placeholder = el.shadowRoot!.querySelector('section p.empty-list');
     expect(placeholder, 'Missing empty placeholder element').to.be.ok;
+
+    expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('shows all player sections for started game', async () => {
@@ -54,6 +56,8 @@ describe('lineup-view-game-detail tests', () => {
 
     const outPlayers = getPlayerSection('out');
     expect(outPlayers.hidden, 'Section for out should be shown').to.be.false;
+
+    expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('a11y', async () => {

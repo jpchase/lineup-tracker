@@ -1,6 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const { createDefaultConfig } = require('@open-wc/testing-karma');
 const merge = require('webpack-merge');
+const path = require('path');
 
 module.exports = (config) => {
   config.set(
@@ -29,6 +30,12 @@ module.exports = (config) => {
             ]
           ]
         }
+      },
+
+      snapshot: {
+        pathResolver(basePath, suiteName) {
+          return path.join(basePath, 'test', '__snapshots__', `${suiteName}.md`);
+        },
       },
 
       // TODO: Remove/change back to 80 after improving tests

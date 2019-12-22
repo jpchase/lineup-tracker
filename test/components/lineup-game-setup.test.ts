@@ -163,6 +163,8 @@ describe('lineup-game-setup tests', () => {
   it('starts empty', () => {
     const items = getTaskElements();
     assert.equal(items.length, 0, 'Should be no rendered tasks');
+
+    expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('renders all the tasks', async () => {
@@ -189,6 +191,8 @@ describe('lineup-game-setup tests', () => {
       assert.isOk(statusElement, 'Missing status element');
       // TODO: Verify elements/content in status div
     }
+
+    expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('task links are disabled unless task is active', async () => {
