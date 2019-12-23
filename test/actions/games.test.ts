@@ -3,30 +3,13 @@ import { firebaseRef } from '@app/firebase';
 import { Game, GameMetadata, GameStatus } from '@app/models/game';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 import { expect } from '@open-wc/testing';
-import MockFirebase from 'mock-cloud-firestore';
 import * as sinon from 'sinon';
+import { getMockFirebase, mockFirestoreAccessor } from '../helpers/mock-firebase-factory';
 import {
-  buildGames, getMockAuthState, getMockTeamState, getPublicTeam,
-  getStoredGame, getStoredGameData, getStoredPlayerData,
-  getStoredTeam, getStoredTeamData,
-  MockAuthStateOptions, OTHER_STORED_GAME_ID, STORED_GAME_ID, TEST_USER_ID
+  buildGames, getMockAuthState, getMockTeamState,
+  getPublicGame, getPublicTeam, getStoredGame, getStoredGameData, getStoredTeam,
+  MockAuthStateOptions, OTHER_STORED_GAME_ID, TEST_USER_ID
 } from '../helpers/test_data';
-
-const PUBLIC_GAME_ID = 'pg1';
-
-function getPublicGameData(): any {
-  return {
-    teamId: getPublicTeam().id,
-    status: GameStatus.Done,
-    name: 'Public G',
-    date: new Date(2016, 1, 10),
-    opponent: 'Public Opponent'
-  };
-};
-
-function getPublicGame(): Game {
-  return { id: PUBLIC_GAME_ID, ...getPublicGameData() };
-};
 
 function getOtherStoredGameWithoutDetail(): Game {
   return { id: OTHER_STORED_GAME_ID, ...getStoredGameData() };
@@ -45,60 +28,6 @@ function getNewGameSaved(): Game {
   return { ...getNewGameMetadata(), id: 'theGameId', teamId: getStoredTeam().id, status: GameStatus.New };
 }
 
-const fixtureData = {
-  __collection__: {
-    games: {
-      __doc__: {
-        [STORED_GAME_ID]: {
-          ...getStoredGameData(),
-          owner_uid: TEST_USER_ID,
-
-          __collection__: {
-            roster: {
-              __doc__: {
-                sp1: {
-                  ...getStoredPlayerData()
-                }
-              }
-            }
-          }
-        },
-        [OTHER_STORED_GAME_ID]: {
-          ...getStoredGameData(),
-          owner_uid: TEST_USER_ID,
-        },
-        sgOther: {
-          ...getStoredGameData(),
-          teamId: 'otherTeam',
-          owner_uid: TEST_USER_ID,
-        },
-        [PUBLIC_GAME_ID]: {
-          ...getPublicGameData(),
-          public: true,
-        },
-      }
-    },
-    teams: {
-      __doc__: {
-        st1: {
-          ...getStoredTeamData(),
-          owner_uid: TEST_USER_ID,
-
-          __collection__: {
-            roster: {
-              __doc__: {
-                sp1: {
-                  ...getStoredPlayerData()
-                }
-              }
-            }
-          }
-        },
-      }
-    }
-  }
-};
-
 function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?: any) {
   return sinon.fake(() => {
     const mockState = {
@@ -116,15 +45,13 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?:
 }
 
 describe('Game actions', () => {
-  const mockFirebase = new MockFirebase(fixtureData);
+  const mockFirebase = getMockFirebase();
   let firestoreAccessorStub: sinon.SinonStub;
 
   beforeEach(() => {
     sinon.restore();
 
-    firestoreAccessorStub = sinon.stub(firebaseRef, 'firestore').callsFake(() => {
-      return mockFirebase.firestore();
-    });
+    firestoreAccessorStub = mockFirestoreAccessor(mockFirebase);
   });
 
   describe('getGames', () => {

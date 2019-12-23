@@ -10,13 +10,13 @@ import {
   Query, QueryDocumentSnapshot, QuerySnapshot
 } from '@firebase/firestore-types';
 import { expect } from '@open-wc/testing';
-import MockFirebase from 'mock-cloud-firestore';
 import * as sinon from 'sinon';
+import { getMockFirebase, mockFirestoreAccessor } from '../helpers/mock-firebase-factory';
 import {
   buildGames, buildRoster, getMockAuthState,
-  getNewPlayer, getNewPlayerData, getStoredGame, getStoredGameData,
-  getStoredPlayer, getStoredPlayerData, getStoredTeamData,
-  OTHER_STORED_GAME_ID, STORED_GAME_ID, TEST_USER_ID
+  getNewPlayer, getNewPlayerData,
+  getStoredGame, getStoredGameData, getStoredPlayer,
+  OTHER_STORED_GAME_ID, STORED_GAME_ID
 } from '../helpers/test_data';
 
 function getOtherStoredGameWithoutDetail(): Game {
@@ -36,56 +36,6 @@ function getStoredGameDetail(): GameDetail {
 
 const KEY_GAMES = 'games';
 const KEY_ROSTER = 'roster';
-
-const fixtureData = {
-  __collection__: {
-    games: {
-      __doc__: {
-        [STORED_GAME_ID]: {
-          ...getStoredGameData(),
-          owner_uid: TEST_USER_ID,
-
-          __collection__: {
-            roster: {
-              __doc__: {
-                sp1: {
-                  ...getStoredPlayerData()
-                }
-              }
-            }
-          }
-        },
-        [OTHER_STORED_GAME_ID]: {
-          ...getStoredGameData(),
-          owner_uid: TEST_USER_ID,
-        },
-        sgOther: {
-          ...getStoredGameData(),
-          teamId: 'otherTeam',
-          owner_uid: TEST_USER_ID,
-        },
-      }
-    },
-    teams: {
-      __doc__: {
-        st1: {
-          ...getStoredTeamData(),
-          owner_uid: TEST_USER_ID,
-
-          __collection__: {
-            roster: {
-              __doc__: {
-                sp1: {
-                  ...getStoredPlayerData()
-                }
-              }
-            }
-          }
-        },
-      }
-    }
-  }
-};
 
 interface MockStateUpdateFunc {
     (state: GameState): void;
@@ -118,15 +68,13 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
 
 
 describe('Game actions', () => {
-  const mockFirebase = new MockFirebase(fixtureData);
+  const mockFirebase = getMockFirebase();
   let firestoreAccessorMock: sinon.SinonStub;
 
   beforeEach(() => {
     sinon.restore();
 
-    firestoreAccessorMock = sinon.stub(firebaseRef, 'firestore').callsFake(() => {
-      return mockFirebase.firestore();
-    });
+    firestoreAccessorMock = mockFirestoreAccessor(mockFirebase);
   });
 
   describe('getGame', () => {

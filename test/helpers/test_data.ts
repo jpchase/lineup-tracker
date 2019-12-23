@@ -105,6 +105,7 @@ export function getNewGameWithLiveDetail(roster?: Roster, tasks?: SetupTask[]): 
 
 export const STORED_GAME_ID = 'sg1';
 export const OTHER_STORED_GAME_ID = 'sg2';
+export const PUBLIC_GAME_ID = 'pg1';
 
 export function getStoredGameData(status?: GameStatus): any {
   return {
@@ -122,6 +123,20 @@ export function getStoredGame(status?: GameStatus): Game {
     ...getStoredGameData(status)
   };
 }
+
+export function getPublicGameData(): any {
+  return {
+    teamId: getPublicTeam().id,
+    status: GameStatus.Done,
+    name: 'Public G',
+    date: new Date(2016, 1, 10),
+    opponent: 'Public Opponent'
+  };
+};
+
+export function getPublicGame(): Game {
+  return { id: PUBLIC_GAME_ID, ...getPublicGameData() };
+};
 
 export function buildGames(games: Game[]): Games {
   return games.reduce((obj, game) => {

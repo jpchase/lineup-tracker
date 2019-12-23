@@ -1,7 +1,10 @@
 import { firebaseRef } from '@app/firebase';
 import MockFirebase from 'mock-cloud-firestore';
 import * as sinon from 'sinon';
-import { getStoredGameData, getStoredPlayerData, getStoredTeamData, OTHER_STORED_GAME_ID, STORED_GAME_ID, TEST_USER_ID } from './test_data';
+import {
+  getPublicGameData, getPublicTeamData, getStoredGameData, getStoredPlayerData, getStoredTeamData,
+  OTHER_STORED_GAME_ID, PUBLIC_GAME_ID, STORED_GAME_ID, TEST_USER_ID
+} from './test_data';
 
 const mockFirebaseData = {
   __collection__: {
@@ -30,6 +33,10 @@ const mockFirebaseData = {
           teamId: 'otherTeam',
           owner_uid: TEST_USER_ID,
         },
+        [PUBLIC_GAME_ID]: {
+          ...getPublicGameData(),
+          public: true,
+        },
       }
     },
     teams: {
@@ -43,6 +50,23 @@ const mockFirebaseData = {
               __doc__: {
                 sp1: {
                   ...getStoredPlayerData()
+                }
+              }
+            }
+          }
+        },
+        pt1: {
+          ...getPublicTeamData(),
+          public: true,
+
+          __collection__: {
+            roster: {
+              __doc__: {
+                pp1: {
+                  name: 'Public player 1',
+                  uniformNumber: 5,
+                  positions: ['CB'],
+                  status: 'OFF'
                 }
               }
             }
