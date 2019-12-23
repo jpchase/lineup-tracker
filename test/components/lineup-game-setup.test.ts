@@ -12,6 +12,7 @@ import {
   APPLY_STARTER,
   CANCEL_STARTER,
   CAPTAINS_DONE,
+  GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   ROSTER_DONE,
   SELECT_PLAYER,
@@ -23,8 +24,9 @@ import {
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture, html } from '@open-wc/testing';
-import { SinonSpy, spy } from 'sinon';
-import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer } from '../helpers/test_data';
+import * as sinon from 'sinon';
+import { mockFirestoreAccessor } from '../helpers/mock-firebase-factory';
+import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
@@ -67,17 +69,19 @@ function getTasks(): TestSetupTask[] {
 
 describe('lineup-game-setup tests', () => {
   let el: LineupGameSetup;
-  let dispatchStub: SinonSpy;
+  let dispatchStub: sinon.SinonSpy;
   beforeEach(async () => {
     // Resets to the initial store state.
     store.dispatch(resetState());
+
+    sinon.restore();
 
     actions = [];
     addMiddleware(actionLoggerMiddleware);
 
     const template = html`<lineup-game-setup .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-game-setup>`;
     el = await fixture(template);
-    dispatchStub = spy(el, 'dispatch');
+    dispatchStub = sinon.spy(el, 'dispatch');
   });
 
   afterEach(async () => {
@@ -267,7 +271,7 @@ describe('lineup-game-setup tests', () => {
           const taskElement = getTaskElement(stepTest.step, stepTest.step);
 
           // Spies on the handler, because we want it to execute to verify other behaviour.
-          const performSpy = spy(el, <any>'_performStep');
+          const performSpy = sinon.spy(el, <any>'_performStep');
 
           // Simulates a click on the step link.
           const stepLink = taskElement.querySelector('a.step') as HTMLAnchorElement;
@@ -300,7 +304,7 @@ describe('lineup-game-setup tests', () => {
           const taskElement = getTaskElement(stepTest.step, stepTest.step);
 
           // Spies on the handler, because we want it to execute to verify dispatch of actions.
-          const doneSpy = spy(el, <any>'_finishStep');
+          const doneSpy = sinon.spy(el, <any>'_finishStep');
 
           // Simulates a click on the done button.
           const doneButton = taskElement.querySelector('.status mwc-button.finish') as Button;
@@ -349,12 +353,16 @@ describe('lineup-game-setup tests', () => {
   });
 
   it('dispatches start game action when start button clicked', async () => {
+    mockFirestoreAccessor();
+
     const newGame = getGameDetail();
+    newGame.id = STORED_GAME_ID;
     newGame.liveDetail!.setupTasks![SetupSteps.Formation].status = SetupStatus.Complete;
     newGame.liveDetail!.setupTasks![SetupSteps.Roster].status = SetupStatus.Complete;
     newGame.liveDetail!.setupTasks![SetupSteps.Captains].status = SetupStatus.Complete;
     newGame.liveDetail!.setupTasks![SetupSteps.Starters].status = SetupStatus.Complete;
 
+    store.dispatch({ type: GET_GAME_REQUEST, gameId: newGame.id });
     store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
     await el.updateComplete;
 

@@ -261,7 +261,7 @@ describe('Game actions', () => {
       // Waits for promises to resolve.
       await Promise.resolve();
 
-      // Checks that the new team was saved to the database.
+      // Checks that the new game was saved to the database.
       const newGame = getNewGameMetadata();
       const query: Query = mockFirebase.firestore().collection('games').where('name', '==', newGame.name);
       const result: QuerySnapshot = await query.get();

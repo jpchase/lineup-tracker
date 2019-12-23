@@ -6,7 +6,7 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { FormationType, Position } from '../models/formation';
-import { Game, GameDetail, Games } from '../models/game';
+import { Game, GameDetail, Games, GameStatus } from '../models/game';
 import { Player, Roster } from '../models/player';
 import { currentGameIdSelector } from '../reducers/game';
 import { firebaseRef } from '../firebase';
@@ -284,8 +284,14 @@ export const setFormation: ActionCreator<ThunkResult> = (formationType: Formatio
   });
 };
 
-export const startGame: ActionCreator<ThunkResult> = () => (dispatch) => {
-  // TODO: Save game to storage
+export const startGame: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
+  // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
+  //       so don't have to duplicate logic.
+  const gameId = currentGameIdSelector(getState())!;
+  const doc: DocumentReference = getGamesCollection().doc(gameId);
+  doc.update({
+    status: GameStatus.Start
+  });
   dispatch({
     type: START_GAME
   });
