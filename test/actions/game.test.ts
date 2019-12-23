@@ -14,26 +14,11 @@ import MockFirebase from 'mock-cloud-firestore';
 import * as sinon from 'sinon';
 import {
   buildGames, buildRoster, getMockAuthState,
-  getNewPlayer, getNewPlayerData, getStoredPlayer, getStoredPlayerData,
-  getStoredTeam, getStoredTeamData,
-  TEST_USER_ID
+  getNewPlayer, getNewPlayerData, getStoredGame, getStoredGameData,
+  getStoredPlayer, getStoredPlayerData, getStoredTeamData,
+  OTHER_STORED_GAME_ID, STORED_GAME_ID, TEST_USER_ID
 } from '../helpers/test_data';
 
-function getStoredGameData(): any {
-  return {
-    teamId: getStoredTeam().id,
-    status: GameStatus.New,
-    name: 'Stored G',
-    date: new Date(2016, 1, 10),
-    opponent: 'Stored Game Opponent'
-  };
-};
-
-const STORED_GAME_ID = 'sg1';
-function getStoredGame(): Game {
-  return { id: STORED_GAME_ID, ...getStoredGameData() };
-};
-const OTHER_STORED_GAME_ID = 'sg2';
 function getOtherStoredGameWithoutDetail(): Game {
   return { id: OTHER_STORED_GAME_ID, ...getStoredGameData() };
 };

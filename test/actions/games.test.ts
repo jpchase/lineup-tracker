@@ -1,17 +1,15 @@
 import * as actions from '@app/actions/games';
-import { Game, GameMetadata, GameStatus } from '@app/models/game';
 import { firebaseRef } from '@app/firebase';
+import { Game, GameMetadata, GameStatus } from '@app/models/game';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 import { expect } from '@open-wc/testing';
 import MockFirebase from 'mock-cloud-firestore';
 import * as sinon from 'sinon';
 import {
-  TEST_USER_ID,
-  buildGames,
-  getMockAuthState, getMockTeamState,
-  getPublicTeam, getStoredTeam, getStoredTeamData,
-  getStoredPlayerData,
-  MockAuthStateOptions
+  buildGames, getMockAuthState, getMockTeamState, getPublicTeam,
+  getStoredGame, getStoredGameData, getStoredPlayerData,
+  getStoredTeam, getStoredTeamData,
+  MockAuthStateOptions, OTHER_STORED_GAME_ID, STORED_GAME_ID, TEST_USER_ID
 } from '../helpers/test_data';
 
 const PUBLIC_GAME_ID = 'pg1';
@@ -30,21 +28,6 @@ function getPublicGame(): Game {
   return { id: PUBLIC_GAME_ID, ...getPublicGameData() };
 };
 
-function getStoredGameData(): any {
-  return {
-    teamId: getStoredTeam().id,
-    status: GameStatus.New,
-    name: 'Stored G',
-    date: new Date(2016, 1, 10),
-    opponent: 'Stored Game Opponent'
-  };
-};
-
-const STORED_GAME_ID = 'sg1';
-function getStoredGame(): Game {
-  return { id: STORED_GAME_ID, ...getStoredGameData() };
-};
-const OTHER_STORED_GAME_ID = 'sg2';
 function getOtherStoredGameWithoutDetail(): Game {
   return { id: OTHER_STORED_GAME_ID, ...getStoredGameData() };
 };

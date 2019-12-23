@@ -1,12 +1,8 @@
-import { Game, Games, GameStatus } from '@app/models/game';
-import {
-  ADD_GAME,
-  GET_GAMES
-} from '@app/actions/games';
-import games from '@app/reducers/games';
-import { GamesState } from '@app/reducers/games';
+import { ADD_GAME, GET_GAMES } from '@app/actions/games';
+import { Games } from '@app/models/game';
+import games, { GamesState } from '@app/reducers/games';
 import { expect } from '@open-wc/testing';
-import { getFakeAction, buildGames /*, getStoredPlayer, getStoredPlayerData */ } from '../helpers/test_data';
+import { buildGames, getFakeAction, getNewGame, getStoredGame } from '../helpers/test_data';
 
 const GAMES_INITIAL_STATE: GamesState = {
   games: {} as Games,
@@ -14,12 +10,8 @@ const GAMES_INITIAL_STATE: GamesState = {
 };
 
 describe('Games reducer', () => {
-  const existingGame: Game = {
-    id: 'EX', status: GameStatus.Start, name: 'Existing Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Existing opponent'
-  };
-  const newGame: Game = {
-    id: 'NG', status: GameStatus.New, name: 'New Game', teamId: 'T1', date: new Date(2016, 1, 10), opponent: 'Opponent for new'
-  };
+  const existingGame = getStoredGame();
+  const newGame = getNewGame();
 
   it('should return the initial state', () => {
     expect(
