@@ -50,9 +50,21 @@ export class LiveGameBuilder {
     if (!game) {
       throw new Error(`Argument 'game' is missing or undefined`);
     }
-    return {
+
+    const liveGame: LiveGame = {
       id: game.id,
     };
+
+    // Setup live players from roster
+    if (game.hasDetail) {
+      const detail = game as GameDetail;
+      const players: LivePlayer[] = Object.keys(detail.roster).map((playerId) => {
+        const player = detail.roster[playerId];
+        return { ...player } as LivePlayer;
+      });
+      liveGame.players = players;
+    }
+    return liveGame;
   }
 }
 

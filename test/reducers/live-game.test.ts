@@ -4,6 +4,7 @@ import { liveGame, LiveGameState } from '@app/reducers/live-game';
 import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
 import { expect } from '@open-wc/testing';
 import {
+  buildLivePlayers,
   buildRoster,
   getFakeAction,
   getNewGame,
@@ -37,6 +38,7 @@ describe('Live Game reducer', () => {
       const existingGame = getStoredGame();
       const inputGame: GameDetail = {
         ...existingGame,
+        hasDetail: true,
         roster: buildRoster([getStoredPlayer()])
       };
 
@@ -47,7 +49,8 @@ describe('Live Game reducer', () => {
       });
 
       const liveDetail: LiveGame = {
-        id: existingGame.id
+        id: existingGame.id,
+        players: buildLivePlayers([getStoredPlayer()])
       };
 
       expect(newState).to.deep.include({

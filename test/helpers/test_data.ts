@@ -1,7 +1,7 @@
-import { RootAction } from '@app/store';
-import { Game, GameDetail, Games, GameStatus, SetupTask } from '@app/models/game';
+import { Game, GameDetail, Games, GameStatus, LivePlayer, SetupTask } from '@app/models/game';
 import { Player, PlayerStatus, Roster } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
+import { RootAction } from '@app/store';
 
 export function getFakeAction(): RootAction {
     // This must be a real action type, due to type checking. Using the offline
@@ -160,4 +160,14 @@ export function buildRoster(players?: Player[]): Roster {
     obj[player.id] = player;
     return obj;
   }, {} as Roster);
+}
+
+export function buildLivePlayers(players?: Player[]): LivePlayer[] {
+  if (!players) {
+    return [];
+  }
+  return players.reduce((obj, player) => {
+    obj.push(player);
+    return obj;
+  }, [] as LivePlayer[]);
 }

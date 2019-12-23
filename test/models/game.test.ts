@@ -1,6 +1,9 @@
 import { Game, LiveGame, LiveGameBuilder } from '@app/models/game';
 import { expect } from '@open-wc/testing';
-import { getNewGame } from '../helpers/test_data';
+import {
+  buildLivePlayers, buildRoster,
+  getNewGame, getNewGameDetail, getNewPlayer, getStoredPlayer
+} from '../helpers/test_data';
 
 describe('LiveGameBuilder', () => {
 
@@ -21,6 +24,18 @@ describe('LiveGameBuilder', () => {
     const game = getNewGame();
     const expected: LiveGame = {
       id: game.id
+    };
+
+    const newLiveGame = LiveGameBuilder.create(game);
+
+    expect(newLiveGame).to.deep.equal(expected);
+  });
+
+  it('create should handle game with roster', () => {
+    const game = getNewGameDetail(buildRoster([getNewPlayer(), getStoredPlayer()]));
+    const expected: LiveGame = {
+      id: game.id,
+      players: buildLivePlayers([getNewPlayer(), getStoredPlayer()])
     };
 
     const newLiveGame = LiveGameBuilder.create(game);
