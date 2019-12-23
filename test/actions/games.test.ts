@@ -44,13 +44,14 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?:
   });
 }
 
-describe('Game actions', () => {
-  const mockFirebase = getMockFirebase();
+describe('Games actions', () => {
+  let mockFirebase: any;
   let firestoreAccessorStub: sinon.SinonStub;
 
   beforeEach(() => {
     sinon.restore();
 
+    mockFirebase = getMockFirebase();
     firestoreAccessorStub = mockFirestoreAccessor(mockFirebase);
   });
 

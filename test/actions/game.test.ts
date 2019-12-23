@@ -68,12 +68,13 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
 
 
 describe('Game actions', () => {
-  const mockFirebase = getMockFirebase();
+  let mockFirebase: any;
   let firestoreAccessorMock: sinon.SinonStub;
 
   beforeEach(() => {
     sinon.restore();
 
+    mockFirebase = getMockFirebase();
     firestoreAccessorMock = mockFirestoreAccessor(mockFirebase);
   });
 

@@ -6,79 +6,81 @@ import {
   OTHER_STORED_GAME_ID, PUBLIC_GAME_ID, STORED_GAME_ID, TEST_USER_ID
 } from './test_data';
 
-const mockFirebaseData = {
-  __collection__: {
-    games: {
-      __doc__: {
-        [STORED_GAME_ID]: {
-          ...getStoredGameData(),
-          owner_uid: TEST_USER_ID,
+function getMockFirebaseData(): any {
+  return {
+    __collection__: {
+      games: {
+        __doc__: {
+          [STORED_GAME_ID]: {
+            ...getStoredGameData(),
+            owner_uid: TEST_USER_ID,
 
-          __collection__: {
-            roster: {
-              __doc__: {
-                sp1: {
-                  ...getStoredPlayerData()
+            __collection__: {
+              roster: {
+                __doc__: {
+                  sp1: {
+                    ...getStoredPlayerData()
+                  }
                 }
               }
             }
-          }
-        },
-        [OTHER_STORED_GAME_ID]: {
-          ...getStoredGameData(),
-          owner_uid: TEST_USER_ID,
-        },
-        sgOther: {
-          ...getStoredGameData(),
-          teamId: 'otherTeam',
-          owner_uid: TEST_USER_ID,
-        },
-        [PUBLIC_GAME_ID]: {
-          ...getPublicGameData(),
-          public: true,
-        },
-      }
-    },
-    teams: {
-      __doc__: {
-        st1: {
-          ...getStoredTeamData(),
-          owner_uid: TEST_USER_ID,
+          },
+          [OTHER_STORED_GAME_ID]: {
+            ...getStoredGameData(),
+            owner_uid: TEST_USER_ID,
+          },
+          sgOther: {
+            ...getStoredGameData(),
+            teamId: 'otherTeam',
+            owner_uid: TEST_USER_ID,
+          },
+          [PUBLIC_GAME_ID]: {
+            ...getPublicGameData(),
+            public: true,
+          },
+        }
+      },
+      teams: {
+        __doc__: {
+          st1: {
+            ...getStoredTeamData(),
+            owner_uid: TEST_USER_ID,
 
-          __collection__: {
-            roster: {
-              __doc__: {
-                sp1: {
-                  ...getStoredPlayerData()
+            __collection__: {
+              roster: {
+                __doc__: {
+                  sp1: {
+                    ...getStoredPlayerData()
+                  }
                 }
               }
             }
-          }
-        },
-        pt1: {
-          ...getPublicTeamData(),
-          public: true,
+          },
+          pt1: {
+            ...getPublicTeamData(),
+            public: true,
 
-          __collection__: {
-            roster: {
-              __doc__: {
-                pp1: {
-                  name: 'Public player 1',
-                  uniformNumber: 5,
-                  positions: ['CB'],
-                  status: 'OFF'
+            __collection__: {
+              roster: {
+                __doc__: {
+                  pp1: {
+                    name: 'Public player 1',
+                    uniformNumber: 5,
+                    positions: ['CB'],
+                    status: 'OFF'
+                  }
                 }
               }
             }
-          }
-        },
+          },
+        }
       }
     }
-  }
-};
+  };
+}
 
 export function getMockFirebase(): any {
-  return new MockFirebase(mockFirebaseData);
+  return new MockFirebase(getMockFirebaseData());
 }
 
 export function mockFirestoreAccessor(mockFirebase?: any): sinon.SinonStub {
