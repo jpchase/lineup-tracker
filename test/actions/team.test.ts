@@ -1,64 +1,17 @@
 import * as actions from '@app/actions/team';
-import * as actionTypes from '@app/slices/team-types';
 import { firebaseRef } from '@app/firebase';
 import { Player } from '@app/models/player';
 import { Team, TeamData } from '@app/models/team';
+import * as actionTypes from '@app/slices/team-types';
 import { idb } from '@app/storage/idb-wrapper';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 import { expect, nextFrame } from '@open-wc/testing';
-import MockFirebase from 'mock-cloud-firestore';
 import * as sinon from 'sinon';
+import { getMockFirebase, mockFirestoreAccessor } from '../helpers/mock-firebase-factory';
 import {
-  TEST_USER_ID,
-  buildRoster, buildTeams,
-  getMockAuthState,
-  getNewPlayer, getNewPlayerData, getStoredPlayer,
-  getPublicTeam, getPublicTeamData, getStoredTeam,
-  MockAuthStateOptions
+  buildRoster, buildTeams, getMockAuthState, getNewPlayer, getNewPlayerData, getPublicTeam,
+  getStoredPlayer, getStoredTeam, MockAuthStateOptions, TEST_USER_ID
 } from '../helpers/test_data';
-
-const fixtureData = {
-  __collection__: {
-    teams: {
-      __doc__: {
-        st1: {
-          name: 'Stored team 1',
-          owner_uid: TEST_USER_ID,
-
-          __collection__: {
-            roster: {
-              __doc__: {
-                sp1: {
-                  name: 'Stored player 1',
-                  uniformNumber: 5,
-                  positions: ['CB'],
-                  status: 'OFF'
-                }
-              }
-            }
-          }
-        },
-        pt1: {
-          ...getPublicTeamData(),
-          public: true,
-
-          __collection__: {
-            roster: {
-              __doc__: {
-                pp1: {
-                  name: 'Public player 1',
-                  uniformNumber: 5,
-                  positions: ['CB'],
-                  status: 'OFF'
-                }
-              }
-            }
-          }
-        },
-      }
-    }
-  }
-};
 
 const KEY_TEAMS = 'teams';
 const KEY_TEAMID = 'teamId';
@@ -97,7 +50,7 @@ function mockGetState(teams: Team[], currentTeam?: Team, options?: MockAuthState
 }
 
 describe('Team actions', () => {
-  const mockFirebase = new MockFirebase(fixtureData);
+  let mockFirebase: any;
   let firestoreAccessorStub: sinon.SinonStub;
   let mockedIDBGet: sinon.SinonStub;
   let mockedIDBSet: sinon.SinonStub;
@@ -105,9 +58,8 @@ describe('Team actions', () => {
   beforeEach(() => {
     sinon.restore();
 
-    firestoreAccessorStub = sinon.stub(firebaseRef, 'firestore').callsFake(() => {
-      return mockFirebase.firestore();
-    });
+    mockFirebase = getMockFirebase();
+    firestoreAccessorStub = mockFirestoreAccessor(mockFirebase);
 
     mockedIDBGet = sinon.stub(idb, 'get').resolves(undefined);
     mockedIDBSet = sinon.stub(idb, 'set').resolves(undefined);
