@@ -72,7 +72,7 @@ function buildSetupTasks(): SetupTask[] {
   ]
 }
 
-describe('Games reducer', () => {
+describe('Game reducer', () => {
 
   it('should return the initial state', () => {
     expect(
@@ -187,7 +187,7 @@ describe('Games reducer', () => {
     });
 
     it('should set game to given game with full detail', () => {
-      const existingGame = getStoredGame();
+      const existingGame = getStoredGame(GameStatus.Start);
       const inputGame: GameDetail = {
         ...existingGame,
         roster: buildRoster([getStoredPlayer()])

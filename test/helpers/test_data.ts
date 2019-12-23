@@ -106,24 +106,20 @@ export function getNewGameWithLiveDetail(roster?: Roster, tasks?: SetupTask[]): 
 export const STORED_GAME_ID = 'sg1';
 export const OTHER_STORED_GAME_ID = 'sg2';
 
-export function getStoredGameData(): any {
+export function getStoredGameData(status?: GameStatus): any {
   return {
     teamId: getStoredTeam().id,
-    status: GameStatus.New,
+    status: status ? status : GameStatus.New,
     name: 'Stored G',
     date: new Date(2016, 1, 10),
     opponent: 'Stored Game Opponent'
   };
 };
 
-export function getStoredGame(): Game {
+export function getStoredGame(status?: GameStatus): Game {
   return {
-    id: 'EX',
-    status: GameStatus.Start,
-    name: 'Existing Game',
-    teamId: 'T1',
-    date: new Date(2016, 1, 10),
-    opponent: 'Existing opponent'
+    id: STORED_GAME_ID,
+    ...getStoredGameData(status)
   };
 }
 
