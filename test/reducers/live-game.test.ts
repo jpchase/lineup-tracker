@@ -2,7 +2,9 @@ import { FormationType } from '@app/models/formation';
 import { GameDetail, LiveGame } from '@app/models/game';
 import { liveGame, LiveGameState } from '@app/reducers/live-game';
 import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
+import { SELECT_PLAYER } from '@app/slices/live-game-types';
 import { expect } from '@open-wc/testing';
+import { getLiveGame } from '../helpers/test-live-game-data';
 import {
   buildLivePlayers,
   buildRoster,
@@ -15,6 +17,7 @@ import {
 const LIVEGAME_INITIAL_STATE: LiveGameState = {
   gameId: '',
   liveGame: undefined,
+  selectedPlayer: undefined,
 };
 
 describe('Live Game reducer', () => {
@@ -87,6 +90,31 @@ describe('Live Game reducer', () => {
     });
 
   }); // describe('GET_GAME_SUCCESS')
+
+  describe('SELECT_PLAYER', () => {
+
+    it('should only set selectedPlayer with nothing selected', () => {
+      const state: LiveGameState = {
+        ...LIVEGAME_INITIAL_STATE,
+        liveGame: getLiveGame()
+      };
+      expect(state.selectedPlayer).to.be.undefined;
+
+      const selectedPlayer = getStoredPlayer();
+
+      const newState = liveGame(state, {
+        type: SELECT_PLAYER,
+        playerId: selectedPlayer.id
+      });
+
+      expect(newState).to.deep.include({
+        liveGame: getLiveGame(),
+        selectedPlayer: selectedPlayer.id,
+      });
+
+      expect(newState).not.to.equal(state);
+    });
+  }); // describe('SELECT_PLAYER')
 
   describe('SET_FORMATION', () => {
 

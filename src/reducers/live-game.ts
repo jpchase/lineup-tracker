@@ -5,12 +5,14 @@
 import { Reducer } from 'redux';
 import { LiveGame, LiveGameBuilder } from '../models/game';
 import { GET_GAME_SUCCESS, SET_FORMATION } from '../slices/game-types';
+import { SELECT_PLAYER } from '../slices/live-game-types';
 import { RootAction } from '../store';
 import { createReducer } from './createReducer';
 
 export interface LiveGameState {
   gameId: string;
   liveGame?: LiveGame;
+  selectedPlayer?: string;
 }
 
 const INITIAL_STATE: LiveGameState = {
@@ -34,6 +36,10 @@ export const liveGame: Reducer<LiveGameState, RootAction> = createReducer(INITIA
   [SET_FORMATION]: (newState, action) => {
     const game = newState.liveGame!;
     game.formation = { type: action.formationType };
+  },
+
+  [SELECT_PLAYER]: (newState, action) => {
+    newState.selectedPlayer = action.playerId;
   },
 
 });
