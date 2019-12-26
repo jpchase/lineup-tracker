@@ -1,8 +1,8 @@
 import { FormationType } from '@app/models/formation';
 import { GameDetail, LiveGame } from '@app/models/game';
-import { liveGame, LiveGameState } from '@app/reducers/live-game';
+import { liveGame, LiveState } from '@app/reducers/live';
 import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
-import { SELECT_PLAYER } from '@app/slices/live-game-types';
+import { SELECT_PLAYER } from '@app/slices/live-types';
 import { expect } from '@open-wc/testing';
 import { getLiveGame } from '../helpers/test-live-game-data';
 import {
@@ -14,7 +14,7 @@ import {
   getStoredPlayer
 } from '../helpers/test_data';
 
-const LIVEGAME_INITIAL_STATE: LiveGameState = {
+const LIVE_INITIAL_STATE: LiveState = {
   gameId: '',
   liveGame: undefined,
   selectedPlayer: undefined,
@@ -24,16 +24,16 @@ describe('Live Game reducer', () => {
 
   it('should return the initial state', () => {
     expect(
-      liveGame(LIVEGAME_INITIAL_STATE, getFakeAction())
-      ).to.equal(LIVEGAME_INITIAL_STATE);
+      liveGame(LIVE_INITIAL_STATE, getFakeAction())
+      ).to.equal(LIVE_INITIAL_STATE);
   });
 
   describe('GET_GAME_SUCCESS', () => {
-    let currentState: LiveGameState = LIVEGAME_INITIAL_STATE;
+    let currentState: LiveState = LIVE_INITIAL_STATE;
 
     beforeEach(() => {
       currentState = {
-        ...LIVEGAME_INITIAL_STATE,
+        ...LIVE_INITIAL_STATE,
       };
     });
 
@@ -94,8 +94,8 @@ describe('Live Game reducer', () => {
   describe('SELECT_PLAYER', () => {
 
     it('should only set selectedPlayer with nothing selected', () => {
-      const state: LiveGameState = {
-        ...LIVEGAME_INITIAL_STATE,
+      const state: LiveState = {
+        ...LIVE_INITIAL_STATE,
         liveGame: getLiveGame()
       };
       expect(state.selectedPlayer).to.be.undefined;
@@ -120,8 +120,8 @@ describe('Live Game reducer', () => {
 
     it('should set formation type and update setup tasks to mark formation complete', () => {
       const currentGame = getNewGame();
-      const state: LiveGameState = {
-        ...LIVEGAME_INITIAL_STATE,
+      const state: LiveState = {
+        ...LIVE_INITIAL_STATE,
         liveGame: {
           id: currentGame.id
         }

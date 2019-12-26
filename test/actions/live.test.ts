@@ -1,5 +1,5 @@
 import * as actions from '@app/actions/live';
-import * as actionTypes from '@app/slices/live-game-types';
+import * as actionTypes from '@app/slices/live-types';
 import { expect } from '@open-wc/testing';
 import * as sinon from 'sinon';
 

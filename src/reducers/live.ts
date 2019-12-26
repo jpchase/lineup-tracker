@@ -5,22 +5,22 @@
 import { Reducer } from 'redux';
 import { LiveGame, LiveGameBuilder } from '../models/game';
 import { GET_GAME_SUCCESS, SET_FORMATION } from '../slices/game-types';
-import { SELECT_PLAYER } from '../slices/live-game-types';
+import { SELECT_PLAYER } from '../slices/live-types';
 import { RootAction } from '../store';
 import { createReducer } from './createReducer';
 
-export interface LiveGameState {
+export interface LiveState {
   gameId: string;
   liveGame?: LiveGame;
   selectedPlayer?: string;
 }
 
-const INITIAL_STATE: LiveGameState = {
+const INITIAL_STATE: LiveState = {
   gameId: '',
   liveGame: undefined,
 };
 
-export const liveGame: Reducer<LiveGameState, RootAction> = createReducer(INITIAL_STATE, {
+export const liveGame: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE, {
   [GET_GAME_SUCCESS]: (newState, action) => {
 
     if (newState.liveGame && newState.liveGame.id === action.game.id) {

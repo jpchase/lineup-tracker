@@ -1,6 +1,6 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { SELECT_PLAYER } from '../slices/live-game-types';
+import { SELECT_PLAYER } from '../slices/live-types';
 import { RootState } from '../store';
 
 export interface LiveActionSelectPlayer extends Action<typeof SELECT_PLAYER> { playerId: string };
