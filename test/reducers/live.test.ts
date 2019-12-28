@@ -1,6 +1,6 @@
 import { FormationType } from '@app/models/formation';
 import { GameDetail, LiveGame } from '@app/models/game';
-import { liveGame, LiveState } from '@app/reducers/live';
+import { live, LiveState } from '@app/reducers/live';
 import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
 import { SELECT_PLAYER } from '@app/slices/live-types';
 import { expect } from '@open-wc/testing';
@@ -20,11 +20,11 @@ const LIVE_INITIAL_STATE: LiveState = {
   selectedPlayer: undefined,
 };
 
-describe('Live Game reducer', () => {
+describe('Live reducer', () => {
 
   it('should return the initial state', () => {
     expect(
-      liveGame(LIVE_INITIAL_STATE, getFakeAction())
+      live(LIVE_INITIAL_STATE, getFakeAction())
       ).to.equal(LIVE_INITIAL_STATE);
   });
 
@@ -46,7 +46,7 @@ describe('Live Game reducer', () => {
       };
 
       currentState.gameId = inputGame.id;
-      const newState = liveGame(currentState, {
+      const newState = live(currentState, {
         type: GET_GAME_SUCCESS,
         game: inputGame
       });
@@ -72,7 +72,7 @@ describe('Live Game reducer', () => {
       };
 
       currentState.gameId = inputGame.id;
-      const newState = liveGame(currentState, {
+      const newState = live(currentState, {
         type: GET_GAME_SUCCESS,
         game: inputGame
       });
@@ -102,7 +102,7 @@ describe('Live Game reducer', () => {
 
       const selectedPlayer = getStoredPlayer();
 
-      const newState = liveGame(state, {
+      const newState = live(state, {
         type: SELECT_PLAYER,
         playerId: selectedPlayer.id
       });
@@ -127,7 +127,7 @@ describe('Live Game reducer', () => {
         }
       };
 
-      const newState = liveGame(state, {
+      const newState = live(state, {
         type: SET_FORMATION,
         formationType: FormationType.F4_3_3
       });

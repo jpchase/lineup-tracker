@@ -20,9 +20,8 @@ const INITIAL_STATE: LiveState = {
   liveGame: undefined,
 };
 
-export const liveGame: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE, {
+export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE, {
   [GET_GAME_SUCCESS]: (newState, action) => {
-
     if (newState.liveGame && newState.liveGame.id === action.game.id) {
       // Game has already been initialized.
       return;

@@ -28,12 +28,14 @@ import { AppAction } from './actions/app';
 import { AuthAction } from './actions/auth';
 import { GameAction } from './actions/game';
 import { GamesAction } from './actions/games';
+import { LiveAction } from './actions/live';
 import { TeamAction } from './actions/team';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import app, { AppState } from './reducers/app';
 import { AuthState } from './reducers/auth';
 import { GameState } from './reducers/game';
 import { GamesState } from './reducers/games';
+import { LiveState } from './reducers/live';
 import { TeamState } from './reducers/team';
 
 // Overall state extends static states and partials lazy states.
@@ -42,13 +44,14 @@ export interface RootState {
   auth?: AuthState;
   game?: GameState;
   games?: GamesState;
+  live?: LiveState;
   team?: TeamState;
 }
 
 const RESET_STATE = 'RESET_STATE';
 export interface RootActionReset extends Action<typeof RESET_STATE> {};
 
-export type RootAction = AppAction | AuthAction | GameAction | GamesAction | TeamAction | RootActionReset;
+export type RootAction = AppAction | AuthAction | GameAction | GamesAction | LiveAction | TeamAction | RootActionReset;
 
 export type RootStore = Store<RootState, RootAction> & LazyStore & {
   dispatch: ThunkDispatch<RootState, undefined, RootAction>;
