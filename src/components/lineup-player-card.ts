@@ -49,7 +49,12 @@ export class LineupPlayerCard extends LitElement {
           border-style: dashed;
           display: inline-block;
           height: 45px;
-          width: 40px;
+          width: 100px;
+        }
+
+        .player[selected] {
+          border: 2px;
+          border-style: solid;
         }
 
         .player.on .playerPositions,
@@ -62,7 +67,7 @@ export class LineupPlayerCard extends LitElement {
 
       </style>
 
-      <span class="player ${this.mode}">
+      <span ?selected="${this.selected}" class="player ${this.mode}">
         <span class="playerName">${player ? player.name : ''}</span>
         <span class="uniformNumber">${player ? player.uniformNumber: ''}</span>
         <span class="currentPosition">${currentPosition}</span>
