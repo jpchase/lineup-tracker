@@ -21,13 +21,6 @@ describe('lineup-view-game-detail tests', () => {
     el = await fixture(template);
   });
 
-  function getPlayerSection(mode: string): HTMLDivElement {
-    const section = el.shadowRoot!.querySelector(`#live-${mode}`);
-    expect(section, `Missing section for mode ${mode}`).to.be.ok;
-
-    return section as HTMLDivElement;
-  }
-
   it('shows no game placeholder when no current game', () => {
     expect(store.getState().game).to.be.ok;
     expect(store.getState().game!.game, 'GameState should have game unset').to.not.be.ok;
@@ -38,24 +31,28 @@ describe('lineup-view-game-detail tests', () => {
     expect(el).shadowDom.to.equalSnapshot();
   });
 
-  it('shows all player sections for started game', async () => {
+  it('shows setup component for new game', async () => {
+    const game = getGameDetail();
+    game.status = GameStatus.New;
+
+    store.dispatch({ type: GET_GAME_SUCCESS, game });
+    await el.updateComplete;
+
+    const setupElement = el.shadowRoot!.querySelector('section lineup-game-setup');
+    expect(setupElement, 'Live element should be shown').to.be.ok;
+
+    expect(el).shadowDom.to.equalSnapshot();
+  });
+
+  it('shows live component for started game', async () => {
     const game = getGameDetail();
     game.status = GameStatus.Start;
 
     store.dispatch({ type: GET_GAME_SUCCESS, game });
     await el.updateComplete;
 
-    const onPlayers = getPlayerSection('on');
-    expect(onPlayers.hidden, 'Section for on should be shown').to.be.false;
-
-    const nextPlayers = getPlayerSection('next');
-    expect(nextPlayers.hidden, 'Section for next should be shown').to.be.false;
-
-    const offPlayers = getPlayerSection('off');
-    expect(offPlayers.hidden, 'Section for off should be shown').to.be.false;
-
-    const outPlayers = getPlayerSection('out');
-    expect(outPlayers.hidden, 'Section for out should be shown').to.be.false;
+    const liveElement = el.shadowRoot!.querySelector('section lineup-game-live');
+    expect(liveElement, 'Live element should be shown').to.be.ok;
 
     expect(el).shadowDom.to.equalSnapshot();
   });

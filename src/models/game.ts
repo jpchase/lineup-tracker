@@ -56,8 +56,8 @@ export class LiveGameBuilder {
     };
 
     // Setup live players from roster
-    if (game.hasDetail) {
-      const detail = game as GameDetail;
+    const detail = game as GameDetail;
+    if (detail.roster) {
       const players: LivePlayer[] = Object.keys(detail.roster).map((playerId) => {
         const player = detail.roster[playerId];
         return { ...player } as LivePlayer;

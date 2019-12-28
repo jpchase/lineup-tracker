@@ -68,7 +68,7 @@ describe('Live reducer', () => {
       const currentGame = getNewGame();
       const inputGame: GameDetail = {
         ...currentGame,
-        roster: buildRoster([getStoredPlayer()])
+        roster: {}
       };
 
       currentState.gameId = inputGame.id;
@@ -78,7 +78,8 @@ describe('Live reducer', () => {
       });
 
       const liveDetail: LiveGame = {
-        id: currentGame.id
+        id: currentGame.id,
+        players: []
       };
 
       expect(newState).to.deep.include({
