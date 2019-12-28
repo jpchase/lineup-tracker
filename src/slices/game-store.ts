@@ -14,7 +14,6 @@ let initialized = false;
 let cachedGames: CachedGames = { games: {} };
 
 export function getGameStore(storeInstance?: RootStore, hydrate: boolean = true): RootStore {
-  console.log(`getGameStore called: storeInstance is set ${storeInstance ? true : false}`);
   const store = storeInstance || globalStore;
   if (!initialized) {
     console.log('getGameStore: first call, do initialization');

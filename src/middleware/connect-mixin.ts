@@ -29,7 +29,6 @@ export const connectStore =
     storeConfigurator?: SliceStoreConfigurator;
 
     connectedCallback() {
-      console.log(`connectStore.connectedCallback: store is set ${this.store ? true : false}`);
       if (super.connectedCallback) {
         super.connectedCallback();
       }
