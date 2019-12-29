@@ -94,7 +94,7 @@ function loadRoster(firestore: FirebaseFirestore, collectionPath: string): Promi
         id: result.id,
         name: data.name,
         uniformNumber: data.uniformNumber,
-        positions: data.positions,
+        positions: data.positions || [],
         status: data.status
       };
       roster[player.id] = player;

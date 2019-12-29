@@ -73,34 +73,38 @@ describe('👀 page screenshots are correct', function() {
         return takeAndCompareScreenshot(page, 'viewHome', prefix);
       });
       it('/viewGames', async function() {
-        return takeAndCompareScreenshot(page, 'viewGames', prefix, null, null, 'lineup-view-games');
+        return takeAndCompareScreenshot(page, 'viewGames?team=test_team1', prefix, 'viewGames', null, 'lineup-view-games');
       });
       it('/viewRoster', async function() {
-        return takeAndCompareScreenshot(page, 'viewRoster', prefix, null, null, 'lineup-view-roster');
+        return takeAndCompareScreenshot(page, 'viewRoster?team=test_team1', prefix, 'viewRoster', null, 'lineup-view-roster');
       });
       it('/404', async function() {
         return takeAndCompareScreenshot(page, 'batmanNotAView', prefix);
       });
 
       it('add new team', async function() {
-        return takeAndCompareScreenshot(page, '', prefix, 'addNewTeam', async () => {
-          await page.evaluate(() => {
-            const app = document.querySelector('lineup-app');
-            const selector = app.shadowRoot.querySelector('lineup-team-selector');
-            const list = selector.shadowRoot.querySelector('paper-dropdown-menu paper-listbox');
-            list.select('addnewteam');
-          });
+        return takeAndCompareScreenshot(page, '', prefix, 'addNewTeam', async (currentPage) => {
+          await selectTeam(currentPage, 'addnewteam');
         });
       });
 
       it('/game', async function() {
-        return takeAndCompareScreenshot(page, 'game', prefix, 'viewGameDetail');
+        return takeAndCompareScreenshot(page, 'game/test_game1?team=test_team1', prefix, 'viewGameDetail', null, 'lineup-view-game-detail');
       });
 
-    });
+    }); // describe(`${breakpoint.name} screen`)
   }
 
 });
+
+async function selectTeam(page, teamId) {
+  await page.evaluate((teamId) => {
+    const app = document.querySelector('lineup-app');
+    const selector = app.shadowRoot.querySelector('lineup-team-selector');
+    const list = selector.shadowRoot.querySelector('paper-dropdown-menu paper-listbox');
+    list.select(teamId);
+  }, teamId);
+}
 
 async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setup, waitForSelector) {
   // If you didn't specify a file, use the name of the route.

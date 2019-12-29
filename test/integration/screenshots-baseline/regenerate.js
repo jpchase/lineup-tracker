@@ -76,23 +76,28 @@ async function generateBaselineScreenshots(page, prefix, breakpoint) {
     await page.goto('http://127.0.0.1:4444/');
     await page.screenshot({path: `${baselineDir}/${prefix}/index.png`});
     // Views.
-    const views = ['Home', 'GameDetail', 'Games', 'Roster'];
+    const views = [
+      { name: 'Home' },
+      // TODO: Remove sleep hack to avoid blank page in screenshot
+      { name: 'GameDetail', route: 'game/test_game1', setTeam: true, wait: 1000 },
+      // TODO: Remove sleep hack to avoid missing icon on FAB in screenshot
+      { name: 'Games', setTeam: true, wait: 1000 },
+      // TODO: Remove sleep hack to avoid blank page in screenshot
+      { name: 'Roster', setTeam: true, wait: 1000 }
+    ];
     for (const view of views) {
-      const route = (view === 'GameDetail') ? 'game' : `view${view}`;
-      console.log(`View: ${view}, route: ${route}`);
+      let route = view.route ? view.route : `view${view.name}`;
+      if (view.setTeam) {
+        route += '?team=test_team1';
+      }
+      console.log(`View: ${view.name}, route: ${route}`);
       await page.goto(`http://127.0.0.1:4444/${route}`);
-      if (view === 'Games') {
-        console.log(`Wait extra for Games view to load fonts`);
-        // TODO: Remove sleep hack to avoid missing icon on FAB in screenshot
-        await page.waitFor(1000);
+      if (view.wait) {
+        console.log(`Wait extra for ${view.name} view`);
+        await page.waitFor(view.wait);
       }
-      if (view === 'Roster') {
-        console.log(`Wait extra for Roster view`);
-        // TODO: Remove sleep hack to avoid blank page in screenshot
-        await page.waitFor(1000);
-      }
-      console.log(`Screenshot for view: ${view}`);
-      await page.screenshot({path: `${baselineDir}/${prefix}/view${view}.png`});
+      console.log(`Screenshot for view: ${view.name}`);
+      await page.screenshot({path: `${baselineDir}/${prefix}/view${view.name}.png`});
     }
     // 404.
     console.log(`Screenshot for 404`);
