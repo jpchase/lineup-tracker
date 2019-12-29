@@ -95,7 +95,7 @@ describe('Team actions', () => {
       const previousTeam = getStoredTeam();
       mockedIDBGet.onFirstCall().resolves(previousTeam.id);
 
-      actions.getTeams()(dispatchMock, getStateMock, undefined);
+      actions.getTeams(null)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -104,6 +104,24 @@ describe('Team actions', () => {
         type: actionTypes.GET_TEAMS,
         teams: buildTeams([getStoredTeam()]),
         cachedTeamId: previousTeam.id
+      }));
+    });
+
+    it('should dispatch an action with owned teams returned from storage, with override to cached team id', async () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
+      const previousTeam = getStoredTeam();
+      mockedIDBGet.onFirstCall().resolves(previousTeam.id);
+
+      actions.getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.GET_TEAMS,
+        teams: buildTeams([getStoredTeam()]),
+        cachedTeamId: 'idfromurl'
       }));
     });
 
@@ -128,7 +146,7 @@ describe('Team actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: false })
 
-      actions.getTeams()(dispatchMock, getStateMock, undefined);
+      actions.getTeams(null)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -138,6 +156,24 @@ describe('Team actions', () => {
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
         teams: buildTeams([getPublicTeam()]),
+      }));
+    });
+
+    it('should dispatch an action with public teams when not signed in, with selected team id', async () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([], undefined, { signedIn: false })
+
+      actions.getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      expect(mockedIDBGet).to.not.have.been.called;
+
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.GET_TEAMS,
+        teams: buildTeams([getPublicTeam()]),
+        cachedTeamId: 'idfromurl'
       }));
     });
 

@@ -360,6 +360,7 @@ export class LineupApp extends connect(store)(LitElement) {
 
   protected firstUpdated() {
     window.addEventListener(EVENT_NEWTEAMCREATED, this._newTeamCreated.bind(this) as EventListener);
+    const urlParams = new URLSearchParams(location.search);
 
     installOfflineWatcher((offline) => store.dispatch(updateOffline(offline)));
     installMediaQueryWatcher(`(min-width: 460px)`,
@@ -369,7 +370,7 @@ export class LineupApp extends connect(store)(LitElement) {
     // that user.
     store.dispatch(getUser()).then(() => {
       // TODO: Make getTeams return a promise as well? Then can use finally() instead of dupe call in catch?
-      store.dispatch(getTeams());
+      store.dispatch(getTeams(urlParams.get('team')));
       installRouter((location) => store.dispatch(navigate(location)));
     }).catch(() => {
       // Wait for the loading actions to complete, before any navigation.

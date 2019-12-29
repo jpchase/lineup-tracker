@@ -43,7 +43,7 @@ function cacheTeamId(teamId: string) {
   idb.set(KEY_TEAMID, teamId).then();
 }
 
-export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
+export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) => (dispatch, getState) => {
   // TODO: Add try/catch for firestore/collection/get calls?
   let query: Query = getTeamsCollection();
   // Show the user's teams, when signed in. Otherwise, only show public data.
@@ -51,7 +51,7 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
   const currentUser = getState().auth!.user;
   let cachedTeamId: string;
   if (currentUser && currentUser.id) {
-    console.log(`Get teams for owner = ${JSON.stringify(currentUser)}`);
+    console.log(`Get teams for owner = ${JSON.stringify(currentUser)}, selected = ${selectedTeamId}`);
     query = query.where(FIELD_OWNER, '==', currentUser.id);
 
     const teamId = currentTeamIdSelector(getState());
@@ -65,7 +65,7 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
       });
     }
   } else {
-    console.log(`Get public teams`);
+    console.log(`Get public teams, selected = ${selectedTeamId}`);
     query = query.where(FIELD_PUBLIC, '==', true);
   }
 
@@ -80,6 +80,11 @@ export const getTeams: ActionCreator<ThunkResult> = () => (dispatch, getState) =
       };
       teams[entry.id] = entry;
     });
+
+    // Override the team to be selected, only if provided.
+    if (selectedTeamId) {
+      cachedTeamId = selectedTeamId;
+    }
 
     console.log(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
 
