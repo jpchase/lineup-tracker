@@ -3,7 +3,8 @@
 */
 
 import { Reducer } from 'redux';
-import { LiveGame, LiveGameBuilder } from '../models/game';
+import { LiveGame } from '../models/game';
+import { LiveGameBuilder } from '../models/live';
 import { GET_GAME_SUCCESS, SET_FORMATION } from '../slices/game-types';
 import { SELECT_PLAYER } from '../slices/live-types';
 import { RootAction } from '../store';
@@ -31,6 +32,8 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
 
     newState.liveGame = game;
   },
+
+// TODO: Need to handle start game to get starters?
 
   [SET_FORMATION]: (newState, action) => {
     const game = newState.liveGame!;
