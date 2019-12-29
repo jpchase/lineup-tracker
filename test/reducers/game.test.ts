@@ -573,7 +573,8 @@ describe('Game reducer', () => {
       expect(state.game!.liveDetail!.players).to.be.undefined;
 
       const newState = game(state, {
-        type: ROSTER_DONE
+        type: ROSTER_DONE,
+        roster: currentGame.roster
       });
 
       const updatedTasks = buildSetupTasks();

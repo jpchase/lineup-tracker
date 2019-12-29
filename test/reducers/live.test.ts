@@ -1,7 +1,7 @@
 import { FormationType } from '@app/models/formation';
 import { GameDetail, LiveGame } from '@app/models/game';
 import { live, LiveState } from '@app/reducers/live';
-import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
+import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '@app/slices/game-types';
 import { SELECT_PLAYER } from '@app/slices/live-types';
 import { expect } from '@open-wc/testing';
 import { getLiveGame } from '../helpers/test-live-game-data';
@@ -91,6 +91,37 @@ describe('Live reducer', () => {
     });
 
   }); // describe('GET_GAME_SUCCESS')
+
+  describe('ROSTER_DONE', () => {
+
+    it('should init live players from roster', () => {
+      const rosterPlayers = [getStoredPlayer()];
+
+      const state: LiveState = {
+        ...LIVE_INITIAL_STATE,
+        liveGame: getLiveGame()
+      };
+      expect(state.liveGame).to.not.be.undefined;
+      expect(state.liveGame!.players, 'players should be empty').to.deep.equal([]);
+
+      const newState = live(state, {
+        type: ROSTER_DONE,
+        roster: buildRoster(rosterPlayers)
+      });
+
+      const liveDetail: LiveGame = {
+        id: state.liveGame!.id,
+        players: buildLivePlayers(rosterPlayers)
+      };
+
+      expect(newState).to.deep.include({
+        liveGame: liveDetail
+      });
+
+      expect(newState).not.to.equal(state);
+      expect(newState.liveGame).not.to.equal(state.liveGame);
+    });
+  }); // describe('ROSTER_DONE')
 
   describe('SELECT_PLAYER', () => {
 

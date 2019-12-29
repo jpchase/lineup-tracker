@@ -8,7 +8,7 @@ import { RootState } from '../store';
 import { FormationType, Position } from '../models/formation';
 import { Game, GameDetail, Games, GameStatus } from '../models/game';
 import { Player, Roster } from '../models/player';
-import { currentGameIdSelector } from '../reducers/game';
+import { currentGameIdSelector, currentGameSelector } from '../reducers/game';
 import { firebaseRef } from '../firebase';
 import { extractGame, loadGameRoster, loadTeamRoster, savePlayerToGameRoster, KEY_GAMES } from '../firestore-helpers';
 import { CollectionReference, DocumentReference, DocumentSnapshot } from '@firebase/firestore-types';
@@ -42,7 +42,7 @@ export interface GameActionCopyRosterSuccess extends Action<typeof COPY_ROSTER_S
 export interface GameActionCopyRosterFail extends Action<typeof COPY_ROSTER_FAIL> { error: string };
 export interface GameActionCaptainsDone extends Action<typeof CAPTAINS_DONE> {};
 export interface GameActionAddPlayer extends Action<typeof ADD_PLAYER> { player: Player };
-export interface GameActionRosterDone extends Action<typeof ROSTER_DONE> {};
+export interface GameActionRosterDone extends Action<typeof ROSTER_DONE> { roster: Roster };
 export interface GameActionApplyStarter extends Action<typeof APPLY_STARTER> {};
 export interface GameActionCancelStarter extends Action<typeof CANCEL_STARTER> {};
 export interface GameActionStartersDone extends Action<typeof STARTERS_DONE> {};
@@ -242,9 +242,14 @@ export const addGamePlayer: ActionCreator<ThunkResult> = (player: Player) => (di
   });
 };
 
-export const markRosterDone: ActionCreator<ThunkResult> = () => (dispatch) => {
+export const markRosterDone: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
+  const game = currentGameSelector(getState());
+  if (!game) {
+    return;
+  }
   dispatch({
-    type: ROSTER_DONE
+    type: ROSTER_DONE,
+    roster: game.roster
   });
 };
 

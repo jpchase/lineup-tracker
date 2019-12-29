@@ -3,9 +3,9 @@
 */
 
 import { Reducer } from 'redux';
-import { LiveGame } from '../models/game';
+import { LiveGame, LivePlayer } from '../models/game';
 import { LiveGameBuilder } from '../models/live';
-import { GET_GAME_SUCCESS, SET_FORMATION } from '../slices/game-types';
+import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../slices/game-types';
 import { SELECT_PLAYER } from '../slices/live-types';
 import { RootAction } from '../store';
 import { createReducer } from './createReducer';
@@ -33,7 +33,16 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
     newState.liveGame = game;
   },
 
-// TODO: Need to handle start game to get starters?
+  [ROSTER_DONE]: (newState, action) => {
+    // Setup live players from roster
+    const roster = action.roster;
+    const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
+      const player = roster[playerId];
+      return { ...player } as LivePlayer;
+    });
+
+    newState.liveGame!.players = players;
+  },
 
   [SET_FORMATION]: (newState, action) => {
     const game = newState.liveGame!;

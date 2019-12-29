@@ -457,9 +457,6 @@ describe('Game actions', () => {
 
     it('should save to storage and dispatch an action to add player', async () => {
       const dispatchMock = sinon.stub();
-
-      // const team: Team = getStoredTeam();
-      // const getStateMock = mockGetState([team], team, { signedIn: true, userId: TEST_USER_ID });
       const getStateMock = mockGetState(undefined, (gameState) => {
         gameState.gameId = STORED_GAME_ID;
         gameState.game = getStoredGameDetail();
@@ -538,12 +535,16 @@ describe('Game actions', () => {
 
     it('should dispatch an action to mark the roster as done', () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
+      const getStateMock = mockGetState(undefined, (gameState) => {
+        gameState.gameId = STORED_GAME_ID;
+        gameState.game = getStoredGameDetail();
+      });
 
       actions.markRosterDone()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ROSTER_DONE
+        type: actionTypes.ROSTER_DONE,
+        roster: getTeamRoster()
       });
     });
   }); // describe('markRosterDone')

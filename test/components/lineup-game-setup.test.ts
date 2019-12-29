@@ -342,7 +342,7 @@ describe('lineup-game-setup tests', () => {
 
     // Simulates the completion of all the setup tasks.
     store.dispatch({ type: SET_FORMATION, formationType: FormationType.F4_3_3 });
-    store.dispatch({ type: ROSTER_DONE });
+    store.dispatch({ type: ROSTER_DONE, roster: game.roster });
     store.dispatch({ type: CAPTAINS_DONE });
     store.dispatch({ type: STARTERS_DONE });
     await el.updateComplete;
@@ -393,7 +393,7 @@ describe('lineup-game-setup tests', () => {
 
       // Simulates the completion of the setup tasks need to work on starters.
       store.dispatch({ type: SET_FORMATION, formationType: FormationType.F4_3_3 });
-      store.dispatch({ type: ROSTER_DONE });
+      store.dispatch({ type: ROSTER_DONE, roster: newGame.roster });
       await el.updateComplete;
       newGame = store.getState().game!.game!;
     });
