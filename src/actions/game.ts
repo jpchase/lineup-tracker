@@ -5,7 +5,7 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
-import { FormationType, Position } from '../models/formation';
+import { FormationType } from '../models/formation';
 import { Game, GameDetail, Games, GameStatus } from '../models/game';
 import { Player, Roster } from '../models/player';
 import { currentGameIdSelector, currentGameSelector } from '../reducers/game';
@@ -24,13 +24,9 @@ import {
   COPY_ROSTER_FAIL,
   ADD_PLAYER,
   ROSTER_DONE,
-  APPLY_STARTER,
-  CANCEL_STARTER,
   STARTERS_DONE,
   SET_FORMATION,
-  START_GAME,
-  SELECT_PLAYER,
-  SELECT_POSITION
+  START_GAME
 } from '../slices/game-types';
 
 export interface GameActionHydrate extends Action<typeof GAME_HYDRATE> { gameId?: string, games: Games };
@@ -43,18 +39,13 @@ export interface GameActionCopyRosterFail extends Action<typeof COPY_ROSTER_FAIL
 export interface GameActionCaptainsDone extends Action<typeof CAPTAINS_DONE> {};
 export interface GameActionAddPlayer extends Action<typeof ADD_PLAYER> { player: Player };
 export interface GameActionRosterDone extends Action<typeof ROSTER_DONE> { roster: Roster };
-export interface GameActionApplyStarter extends Action<typeof APPLY_STARTER> {};
-export interface GameActionCancelStarter extends Action<typeof CANCEL_STARTER> {};
 export interface GameActionStartersDone extends Action<typeof STARTERS_DONE> {};
 export interface GameActionSetFormation extends Action<typeof SET_FORMATION> { formationType: FormationType };
 export interface GameActionStartGame extends Action<typeof START_GAME> {};
-export interface GameActionSelectPlayer extends Action<typeof SELECT_PLAYER> { playerId: string };
-export interface GameActionSelectPosition extends Action<typeof SELECT_POSITION> { position: Position };
 export type GameAction = GameActionHydrate | GameActionGetGameRequest | GameActionGetGameSuccess |
                          GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
                          GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
-                         GameActionSelectPlayer | GameActionSelectPosition | GameActionApplyStarter |
-                         GameActionCancelStarter | GameActionAddPlayer | GameActionCopyRosterRequest |
+                         GameActionAddPlayer | GameActionCopyRosterRequest |
                          GameActionCopyRosterSuccess | GameActionCopyRosterFail;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
@@ -253,26 +244,6 @@ export const markRosterDone: ActionCreator<ThunkResult> = () => (dispatch, getSt
   });
 };
 
-export const applyProposedStarter: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
-  const state = getState();
-  if (!(state.game && state.game.proposedStarter)) {
-    return;
-  }
-  dispatch({
-    type: APPLY_STARTER
-  });
-};
-
-export const cancelProposedStarter: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
-  const state = getState();
-  if (!(state.game && state.game.proposedStarter)) {
-    return;
-  }
-  dispatch({
-    type: CANCEL_STARTER
-  });
-};
-
 export const markStartersDone: ActionCreator<ThunkResult> = () => (dispatch) => {
   dispatch({
     type: STARTERS_DONE
@@ -299,25 +270,5 @@ export const startGame: ActionCreator<ThunkResult> = () => (dispatch, getState) 
   });
   dispatch({
     type: START_GAME
-  });
-};
-
-export const selectPlayer: ActionCreator<ThunkResult> = (playerId: string) => (dispatch) => {
-  if (!playerId) {
-    return;
-  }
-  dispatch({
-    type: SELECT_PLAYER,
-    playerId
-  });
-};
-
-export const selectPosition: ActionCreator<ThunkResult> = (position: Position) => (dispatch) => {
-  if (!position) {
-    return;
-  }
-  dispatch({
-    type: SELECT_POSITION,
-    position
   });
 };

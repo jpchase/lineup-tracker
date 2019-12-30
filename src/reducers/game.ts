@@ -4,17 +4,14 @@
 
 import { GameActionGetGameSuccess, GameActionHydrate } from '@app/actions/game';
 import { Reducer } from 'redux';
-import { Position } from '../models/formation';
 import {
   GameDetail, GameStatus,
   LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '../models/game';
-import { Player, PlayerStatus, Roster } from '../models/player';
+import { Player, Roster } from '../models/player';
 import {
   ADD_PLAYER,
-  APPLY_STARTER,
-  CANCEL_STARTER,
   CAPTAINS_DONE,
   COPY_ROSTER_FAIL,
   COPY_ROSTER_REQUEST,
@@ -24,8 +21,6 @@ import {
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   ROSTER_DONE,
-  SELECT_PLAYER,
-  SELECT_POSITION,
   SET_FORMATION,
   STARTERS_DONE,
   START_GAME
@@ -37,9 +32,6 @@ export interface GameState {
   hydrated: boolean;
   gameId: string;
   game?: GameDetail;
-  selectedPosition?: Position;
-  selectedPlayer?: string;
-  proposedStarter?: LivePlayer;
   detailLoading: boolean;
   detailFailure: boolean;
   rosterLoading: boolean;
@@ -51,9 +43,6 @@ const INITIAL_STATE: GameState = {
   hydrated: false,
   gameId: '',
   game: undefined,
-  selectedPosition: undefined,
-  selectedPlayer: undefined,
-  proposedStarter: undefined,
   detailLoading: false,
   detailFailure: false,
   rosterLoading: false,
@@ -161,6 +150,7 @@ export const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE,
   [ROSTER_DONE]: (newState, action) => {
     completeSetupStepForAction(newState, action.type);
 
+// TODO: Should this move to the live reducer?
     // Setup live players from roster
     const roster = newState.game!.roster;
     const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
@@ -193,43 +183,6 @@ export const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE,
     }
   },
 
-  [SELECT_PLAYER]: (newState, action) => {
-    newState.selectedPlayer = action.playerId;
-
-    prepareStarterIfPossible(newState);
-  },
-
-  [SELECT_POSITION]: (newState, action) => {
-    newState.selectedPosition = action.position;
-
-    prepareStarterIfPossible(newState);
-  },
-
-  [APPLY_STARTER]: (newState) => {
-    const starter = newState.proposedStarter!;
-    const positionId = starter.currentPosition!.id;
-
-    newState.game!.liveDetail!.players!.forEach(player => {
-      if (player.id === starter.id) {
-        player.status = PlayerStatus.On;
-        player.currentPosition = starter.currentPosition;
-        return;
-      }
-
-      // Checks for an existing starter in the position.
-      if (player.status === PlayerStatus.On && player.currentPosition!.id === positionId) {
-        // Replace the starter, moving the player to off.
-        player.status = PlayerStatus.Off;
-        player.currentPosition = undefined;
-      }
-    });
-
-    clearProposedStarter(newState);
-  },
-
-  [CANCEL_STARTER]: (newState) => {
-    clearProposedStarter(newState);
-  },
 });
 
 function completeSetupStepForAction(newState: GameState, actionType: string) {
@@ -296,26 +249,4 @@ function updateTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: S
   });
 
   game.liveDetail.setupTasks = tasks;
-}
-
-function prepareStarterIfPossible(newState: GameState) {
-  if (!newState.selectedPosition || !newState.selectedPlayer) {
-    // Need both a position and player selected to setup a starter
-    return;
-  }
-
-  const player = newState.game!.roster[newState.selectedPlayer];
-
-  newState.proposedStarter = {
-    ...player,
-    currentPosition: {
-      ...newState.selectedPosition
-    }
-  }
-}
-
-function clearProposedStarter(newState: GameState) {
-  delete newState.selectedPlayer;
-  delete newState.selectedPosition;
-  delete newState.proposedStarter;
 }

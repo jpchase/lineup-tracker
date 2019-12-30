@@ -13,22 +13,25 @@ import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../m
 import { connectStore } from '../middleware/connect-mixin';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 
-// The game-specific store configurator, which handles initialization/lazy-loading.
+// The specific store configurator, which handles initialization/lazy-loading.
 import { getGameStore } from '../slices/game-store';
+import { getLiveStore } from '../slices/live-store';
 
 // These are the actions needed by this element.
 import { navigate } from '../actions/app';
 import {
-  applyProposedStarter,
-  cancelProposedStarter,
   markCaptainsDone,
   markRosterDone,
   markStartersDone,
-  selectPlayer,
-  selectPosition,
   setFormation,
   startGame
 } from '../actions/game';
+import {
+  applyProposedStarter,
+  cancelProposedStarter,
+  selectStarter,
+  selectStarterPosition
+} from '../actions/live';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
@@ -200,7 +203,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   store?: RootStore;
 
   @property({ type: Object })
-  storeConfigurator?: SliceStoreConfigurator = getGameStore;
+  storeConfigurator?: SliceStoreConfigurator = getLiveStore;
 
   @property({ type: Object })
   private _game: GameDetail | undefined;
@@ -221,10 +224,11 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private _proposedStarter: LivePlayer | undefined;
 
   protected firstUpdated() {
+    getGameStore(this.store);
   }
 
   stateChanged(state: RootState) {
-    if (!state.game) {
+    if (!state.game || !state.live) {
       return;
     }
     this._game = state.game!.game;
@@ -237,7 +241,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     this._tasksComplete = !anyIncomplete;
 
     this._players = this._game.liveDetail && this._game.liveDetail.players || [];
-    this._proposedStarter = state.game!.proposedStarter;
+    this._proposedStarter = state.live!.proposedStarter;
   }
 
   private _getStepHref(task: SetupTask) {
@@ -304,11 +308,11 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   private _playerSelected(e: CustomEvent) {
-    this.dispatch(selectPlayer(e.detail.player.id));
+    this.dispatch(selectStarter(e.detail.player.id));
   }
 
   private _positionSelected(e: CustomEvent) {
-    this.dispatch(selectPosition(e.detail.position));
+    this.dispatch(selectStarterPosition(e.detail.position));
   }
 
   private _applyStarter() {

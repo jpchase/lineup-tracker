@@ -1,15 +1,13 @@
-import { FormationType, Position } from '@app/models/formation';
+import { FormationType } from '@app/models/formation';
 import {
   GameDetail, Games, GameStatus,
   LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '@app/models/game';
-import { Player, PlayerStatus } from '@app/models/player';
+import { Player } from '@app/models/player';
 import { game, GameState } from '@app/reducers/game';
 import {
   ADD_PLAYER,
-  APPLY_STARTER,
-  CANCEL_STARTER,
   CAPTAINS_DONE,
   COPY_ROSTER_FAIL,
   COPY_ROSTER_REQUEST,
@@ -19,8 +17,6 @@ import {
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   ROSTER_DONE,
-  SELECT_PLAYER,
-  SELECT_POSITION,
   SET_FORMATION,
   STARTERS_DONE,
   START_GAME
@@ -29,7 +25,7 @@ import { expect } from '@open-wc/testing';
 import {
   buildRoster,
   getFakeAction,
-  getNewGame, getNewGameDetail, getNewGameWithLiveDetail,
+  getNewGame, getNewGameWithLiveDetail,
   getNewPlayer, getStoredGame, getStoredPlayer
 } from '../helpers/test_data';
 
@@ -37,9 +33,6 @@ const GAME_INITIAL_STATE: GameState = {
   hydrated: false,
   gameId: '',
   game: undefined,
-  selectedPlayer: undefined,
-  selectedPosition: undefined,
-  proposedStarter: undefined,
   detailLoading: false,
   detailFailure: false,
   rosterLoading: false,
@@ -656,250 +649,5 @@ describe('Game reducer', () => {
       expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
     });
   }); // describe('START_GAME')
-
-  describe('SELECT_PLAYER', () => {
-
-    it('should only set selectedPlayer with nothing selected', () => {
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: getNewGameDetail()
-      };
-      expect(state.selectedPlayer).to.be.undefined;
-
-      const selectedPlayer = getStoredPlayer();
-
-      const newState = game(state, {
-        type: SELECT_PLAYER,
-        playerId: selectedPlayer.id
-      });
-
-      expect(newState).to.deep.include({
-        game: getNewGameDetail(),
-        selectedPlayer: selectedPlayer.id,
-        proposedStarter: undefined
-      });
-
-      expect(newState).not.to.equal(state);
-    });
-
-    it('should set selectedPlayer and propose starter with position selected', () => {
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
-
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: buildNewGameDetailAndRoster(),
-        selectedPosition: { ...selectedPosition }
-      };
-      expect(state.selectedPlayer).to.be.undefined;
-
-      const selectedPlayer = getStoredPlayer();
-
-      const newState = game(state, {
-        type: SELECT_PLAYER,
-        playerId: selectedPlayer.id
-      });
-
-      const starter: LivePlayer = {
-        ...selectedPlayer,
-        currentPosition: { ...selectedPosition }
-      }
-
-      expect(newState).to.deep.include({
-        game: buildNewGameDetailAndRoster(),
-        selectedPosition: { ...selectedPosition },
-        selectedPlayer: selectedPlayer.id,
-        proposedStarter: starter
-      });
-
-      expect(newState).not.to.equal(state);
-    });
-  }); // describe('SELECT_PLAYER')
-
-  describe('SELECT_POSITION', () => {
-
-    it('should only set selectedPosition with nothing selected', () => {
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: getNewGameDetail()
-      };
-      expect(state.selectedPosition).to.be.undefined;
-
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
-      const newState = game(state, {
-        type: SELECT_POSITION,
-        position: selectedPosition
-      });
-
-      expect(newState).to.deep.include({
-        game: getNewGameDetail(),
-        selectedPosition: { ...selectedPosition },
-        proposedStarter: undefined
-      });
-
-      expect(newState).not.to.equal(state);
-    });
-
-    it('should set selectedPosition and propose starter with player selected', () => {
-      const selectedPlayer = getStoredPlayer();
-
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: buildNewGameDetailAndRoster(),
-        selectedPlayer: selectedPlayer.id,
-      };
-      expect(state.selectedPosition).to.be.undefined;
-
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
-      const newState = game(state, {
-        type: SELECT_POSITION,
-        position: selectedPosition
-      });
-
-      const starter: LivePlayer = {
-        ...selectedPlayer,
-        currentPosition: { ...selectedPosition }
-      }
-
-      expect(newState).to.deep.include({
-        game: buildNewGameDetailAndRoster(),
-        selectedPlayer: selectedPlayer.id,
-        selectedPosition: { ...selectedPosition },
-        proposedStarter: starter
-      });
-
-      expect(newState).not.to.equal(state);
-    });
-  }); // describe('SELECT_POSITION')
-
-  describe('APPLY_STARTER', () => {
-    let currentState: GameState;
-    let selectedPlayer: LivePlayer;
-    let selectedPosition: Position;
-
-    beforeEach(() => {
-      selectedPlayer = getStoredPlayer();
-      selectedPosition = { id: 'AM1', type: 'AM'};
-      const starter: LivePlayer = {
-        ...selectedPlayer,
-        currentPosition: { ...selectedPosition }
-      }
-
-      currentState = {
-        ...GAME_INITIAL_STATE,
-        game: buildNewGameDetailAndRoster(),
-        selectedPlayer: selectedPlayer.id,
-        selectedPosition: { ...selectedPosition },
-        proposedStarter: starter
-      };
-      currentState.game!.liveDetail!.players = [getStoredPlayer()];
-    });
-
-    it('should set live player to ON with currentPosition', () => {
-      const newState: GameState = game(currentState, {
-        type: APPLY_STARTER
-      });
-
-      expect(newState.game!.liveDetail!.players).to.not.be.undefined;
-      const newPlayers = newState.game!.liveDetail!.players!;
-
-      const newPlayer = newPlayers.find(player => (player.id === selectedPlayer.id));
-      expect(newPlayer).to.not.be.undefined;
-      expect(newPlayer).to.deep.include({
-        id: selectedPlayer.id,
-        status: PlayerStatus.On,
-        currentPosition: { ...selectedPosition }
-      });
-
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game).not.to.equal(currentState.game);
-      expect(newState.game!.liveDetail).not.to.equal(currentState.game!.liveDetail);
-      expect(newPlayers).not.to.equal(currentState.game!.liveDetail!.players);
-    });
-
-    it('should clear selected player/position and proposed starter', () => {
-      const newState = game(currentState, {
-        type: APPLY_STARTER
-      });
-
-      expect(newState.selectedPlayer).to.be.undefined;
-      expect(newState.selectedPosition).to.be.undefined;
-      expect(newState.proposedStarter).to.be.undefined;
-
-      expect(newState).not.to.equal(currentState);
-    });
-
-    it('should replace player already in the position', () => {
-      const existingStarter: LivePlayer = {
-        ...getNewPlayer(),
-        status: PlayerStatus.On,
-        currentPosition: { ...selectedPosition }
-      }
-      currentState.game!.liveDetail!.players!.push(existingStarter);
-
-      const newState: GameState = game(currentState, {
-        type: APPLY_STARTER
-      });
-
-      expect(newState.game!.liveDetail!.players).to.not.be.undefined;
-      const newPlayers = newState.game!.liveDetail!.players!;
-
-      const newPlayer = newPlayers.find(player => (player.id === selectedPlayer.id));
-      expect(newPlayer).to.not.be.undefined;
-      expect(newPlayer).to.deep.include({
-        id: selectedPlayer.id,
-        status: PlayerStatus.On,
-        currentPosition: { ...selectedPosition }
-      });
-
-      const replacedPlayer = newPlayers.find(player => (player.id === existingStarter.id));
-      expect(replacedPlayer).to.not.be.undefined;
-      expect(replacedPlayer).to.include({
-        id: existingStarter.id,
-        status: PlayerStatus.Off,
-      });
-      expect(replacedPlayer!.currentPosition).to.be.undefined;
-
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game).not.to.equal(currentState.game);
-      expect(newState.game!.liveDetail).not.to.equal(currentState.game!.liveDetail);
-      expect(newPlayers).not.to.equal(currentState.game!.liveDetail!.players);
-    });
-  }); // describe('APPLY_STARTER')
-
-  describe('CANCEL_STARTER', () => {
-    let currentState: GameState;
-    let selectedPlayer: LivePlayer;
-    let selectedPosition: Position;
-
-    beforeEach(() => {
-      selectedPlayer = getStoredPlayer();
-      selectedPosition = { id: 'AM1', type: 'AM'};
-      const starter: LivePlayer = {
-        ...selectedPlayer,
-        currentPosition: { ...selectedPosition }
-      }
-
-      currentState = {
-        ...GAME_INITIAL_STATE,
-        game: buildNewGameDetailAndRoster(),
-        selectedPlayer: selectedPlayer.id,
-        selectedPosition: { ...selectedPosition },
-        proposedStarter: starter
-      };
-      currentState.game!.liveDetail!.players = [getStoredPlayer()];
-    });
-
-    it('should clear selected player/position and proposed starter', () => {
-      const newState = game(currentState, {
-        type: CANCEL_STARTER
-      });
-
-      expect(newState.selectedPlayer).to.be.undefined;
-      expect(newState.selectedPosition).to.be.undefined;
-      expect(newState.proposedStarter).to.be.undefined;
-
-      expect(newState).not.to.equal(currentState);
-    });
-  }); // describe('CANCEL_STARTER')
 
 });

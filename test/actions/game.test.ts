@@ -1,10 +1,11 @@
 import * as actions from '@app/actions/game';
 import { firebaseRef } from '@app/firebase';
-import { FormationType, Position } from '@app/models/formation';
-import { Game, GameDetail, GameStatus, LivePlayer } from '@app/models/game';
+import { FormationType } from '@app/models/formation';
+import { Game, GameDetail, GameStatus } from '@app/models/game';
 import { Player, Roster } from '@app/models/player';
 import { GameState } from '@app/reducers/game';
 import * as actionTypes from '@app/slices/game-types';
+import { RootState } from '@app/store';
 import {
   DocumentData, DocumentReference, DocumentSnapshot,
   Query, QueryDocumentSnapshot, QuerySnapshot
@@ -43,7 +44,7 @@ interface MockStateUpdateFunc {
 
 function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
   return sinon.fake(() => {
-    const mockState = {
+    const mockState: RootState = {
       auth: getMockAuthState(),
       games: {
         games: buildGames(games || []),
@@ -60,7 +61,7 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
       team: undefined
     };
     if (updateFn) {
-      updateFn(mockState.game);
+      updateFn(mockState.game!);
     }
     return mockState;
   });
@@ -549,78 +550,6 @@ describe('Game actions', () => {
     });
   }); // describe('markRosterDone')
 
-  describe('applyProposedStarter', () => {
-    it('should return a function to dispatch the applyProposedStarter action', () => {
-      expect(actions.applyProposedStarter()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if proposed starter is missing', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState();
-
-      actions.applyProposedStarter()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should dispatch an action to apply the proposed starter', () => {
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
-      const starter: LivePlayer = {
-        ...getStoredPlayer(),
-        currentPosition: { ...selectedPosition }
-      }
-
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.selectedPlayer = 'foo';
-        gameState.selectedPosition = { id: 'id', type: 'foo' };
-        gameState.proposedStarter = starter;
-      });
-
-      actions.applyProposedStarter()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.APPLY_STARTER
-      });
-    });
-  }); // describe('applyProposedStarter')
-
-  describe('cancelProposedStarter', () => {
-    it('should return a function to dispatch the cancelProposedStarter action', () => {
-      expect(actions.cancelProposedStarter()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if proposed starter is missing', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState();
-
-      actions.cancelProposedStarter()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should dispatch an action to cancel the proposed starter', () => {
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
-      const starter: LivePlayer = {
-        ...getStoredPlayer(),
-        currentPosition: { ...selectedPosition }
-      }
-
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.selectedPlayer = 'foo';
-        gameState.selectedPosition = { id: 'id', type: 'foo' };
-        gameState.proposedStarter = starter;
-      });
-
-      actions.cancelProposedStarter()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.CANCEL_STARTER
-      });
-    });
-  }); // describe('cancelProposedStarter')
-
   describe('markStartersDone', () => {
     it('should return a function to dispatch the markStartersDone action', () => {
       expect(actions.markStartersDone()).to.be.instanceof(Function);
@@ -737,64 +666,5 @@ describe('Game actions', () => {
       expect(dispatchMock).to.not.have.been.called;
     });
   }); // describe('startGame')
-
-  describe('selectPlayer', () => {
-    it('should return a function to dispatch the selectPlayer action', () => {
-      expect(actions.selectPlayer()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if player input is missing', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.selectPlayer()(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.not.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should dispatch an action to select the player', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.selectPlayer('player id')(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.SELECT_PLAYER,
-        playerId: 'player id'
-      });
-    });
-  }); // describe('selectPlayer')
-
-  describe('selectPosition', () => {
-    it('should return a function to dispatch the selectPlayer action', () => {
-      expect(actions.selectPosition()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if position input is missing', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.selectPosition()(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.not.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should dispatch an action to select the position', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      const position: Position = { id: 'AM1', type: 'AM' };
-      actions.selectPosition(position)(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.SELECT_POSITION,
-        position: position
-      });
-    });
-  }); // describe('selectPosition')
 
 }); // describe('Game actions')

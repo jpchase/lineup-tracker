@@ -9,18 +9,20 @@ import { GameDetail, GameStatus, LivePlayer, SetupStatus, SetupSteps, SetupTask 
 import { PlayerStatus } from '@app/models/player';
 import { getGameStoreConfigurator } from '@app/slices/game-store';
 import {
-  APPLY_STARTER,
-  CANCEL_STARTER,
   CAPTAINS_DONE,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
   ROSTER_DONE,
-  SELECT_PLAYER,
-  SELECT_POSITION,
   SET_FORMATION,
   STARTERS_DONE,
   START_GAME
 } from '@app/slices/game-types';
+import {
+  APPLY_STARTER,
+  CANCEL_STARTER,
+  SELECT_STARTER,
+  SELECT_STARTER_POSITION
+} from '@app/slices/live-types';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture, html } from '@open-wc/testing';
@@ -410,7 +412,7 @@ describe('lineup-game-setup tests', () => {
       expect(offHeader!.textContent!.trim()).to.equal('Subs');
     });
 
-    it('dispatches player selected action when sub selected', async () => {
+    it('dispatches starter selected action when sub selected', async () => {
       const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
@@ -425,10 +427,10 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: SELECT_PLAYER });
+      expect(actions[actions.length - 1]).to.include({ type: SELECT_STARTER });
     });
 
-    it('dispatches position selected action when card in formation selected', async () => {
+    it('dispatches starter position selected action when card in formation selected', async () => {
       const startersList = getStartersList();
       const playerElement = getPositionElement(startersList, 'S');
 
@@ -439,7 +441,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: SELECT_POSITION });
+      expect(actions[actions.length - 1]).to.include({ type: SELECT_STARTER_POSITION });
     });
 
     it('shows confirm starter UI when proposed starter exists', async () => {
@@ -447,8 +449,8 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_PLAYER, playerId: player.id });
-      store.dispatch({ type: SELECT_POSITION, position: {id: 'AM1', type: 'AM'} });
+      store.dispatch({ type: SELECT_STARTER, playerId: player.id });
+      store.dispatch({ type: SELECT_STARTER_POSITION, position: {id: 'AM1', type: 'AM'} });
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -468,8 +470,8 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_PLAYER, playerId: player.id });
-      store.dispatch({ type: SELECT_POSITION, position: {id: 'LW', type: 'W'} });
+      store.dispatch({ type: SELECT_STARTER, playerId: player.id });
+      store.dispatch({ type: SELECT_STARTER_POSITION, position: {id: 'LW', type: 'W'} });
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -496,8 +498,8 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_PLAYER, playerId: player.id });
-      store.dispatch({ type: SELECT_POSITION, position: {id: 'RW', type: 'W'} });
+      store.dispatch({ type: SELECT_STARTER, playerId: player.id });
+      store.dispatch({ type: SELECT_STARTER_POSITION, position: {id: 'RW', type: 'W'} });
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
