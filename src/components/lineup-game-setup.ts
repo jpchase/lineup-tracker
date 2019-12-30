@@ -240,7 +240,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     const anyIncomplete = this._tasks.some(task => task.status !== SetupStatus.Complete);
     this._tasksComplete = !anyIncomplete;
 
-    this._players = this._game.liveDetail && this._game.liveDetail.players || [];
+    this._players = state.live.liveGame && state.live.liveGame.players || [];
     this._proposedStarter = state.live!.proposedStarter;
   }
 

@@ -7,7 +7,6 @@ import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlew
 import { FormationType } from '@app/models/formation';
 import { GameDetail, GameStatus, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
-import { getGameStoreConfigurator } from '@app/slices/game-store';
 import {
   CAPTAINS_DONE,
   GET_GAME_REQUEST,
@@ -17,6 +16,7 @@ import {
   STARTERS_DONE,
   START_GAME
 } from '@app/slices/game-types';
+import { getLiveStoreConfigurator } from '@app/slices/live-store';
 import {
   APPLY_STARTER,
   CANCEL_STARTER,
@@ -81,7 +81,7 @@ describe('lineup-game-setup tests', () => {
     actions = [];
     addMiddleware(actionLoggerMiddleware);
 
-    const template = html`<lineup-game-setup .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-game-setup>`;
+    const template = html`<lineup-game-setup .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-setup>`;
     el = await fixture(template);
     dispatchStub = sinon.spy(el, 'dispatch');
   });
