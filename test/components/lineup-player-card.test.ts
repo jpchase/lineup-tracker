@@ -1,7 +1,8 @@
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '@app/components/events';
 import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-card';
 import '@app/components/lineup-player-card.js';
-import { Player, PlayerStatus } from '@app/models/player';
+import { LivePlayer } from '@app/models/game';
+import { PlayerStatus } from '@app/models/player';
 import { assert, expect, fixture, oneEvent } from '@open-wc/testing';
 
 describe('lineup-player-card tests', () => {
@@ -11,7 +12,7 @@ describe('lineup-player-card tests', () => {
     el = await fixture('<lineup-player-card></lineup-player-card>');
   });
 
-  function getPlayer(): Player {
+  function getPlayer(): LivePlayer {
     return {
       id: 'AC',
       name: 'Amanda',
@@ -21,7 +22,7 @@ describe('lineup-player-card tests', () => {
     };
   }
 
-  function getCardData(player?: Player) {
+  function getCardData(player?: LivePlayer) {
     const data: PlayerCardData = {
       id: 'test',
       position: { id: 'HM', type: 'HM' }
@@ -39,7 +40,7 @@ describe('lineup-player-card tests', () => {
     return playerElement as HTMLDivElement;
   }
 
-  function verifyPlayerElements(inputPlayer: Player) {
+  function verifyPlayerElements(inputPlayer: LivePlayer) {
     const playerElement = getPlayerElement();
 
     const numberElement = playerElement.querySelector('.uniformNumber');
@@ -57,13 +58,25 @@ describe('lineup-player-card tests', () => {
     return playerElement;
   }
 
-  it('starts empty', () => {
-    console.log('empty test');
+  function verifySelected() {
+    const playerElement = getPlayerElement();
 
+    expect(playerElement!.hasAttribute('selected'), 'Should have selected attribute').to.be.true;
+  }
+
+  it('starts empty', () => {
     assert.equal(el.mode, '');
     assert.equal(el.selected, false);
     assert.equal(el.data, undefined);
     assert.equal(el.player, undefined);
+    expect(el).shadowDom.to.equalSnapshot();
+  });
+
+  it('uses selected value set directly by property', async () => {
+    expect(el.selected, 'Card should initially not be selected').to.be.false;
+    el.selected = true;
+    await el.updateComplete;
+    expect(el.selected, 'Card should be selected').to.be.true;
   });
 
   it('renders player properties', async () => {
@@ -74,6 +87,19 @@ describe('lineup-player-card tests', () => {
     assert.equal(el.player.uniformNumber, 2);
 
     verifyPlayerElements(player);
+    expect(el).shadowDom.to.equalSnapshot();
+  });
+
+  it('renders selected from player property', async () => {
+    const player = getPlayer();
+    player.selected = true;
+    el.selected = false;
+    el.player = player;
+    await el.updateComplete;
+
+    expect(el.selected, 'Card should be selected').to.be.true;
+
+    verifySelected();
   });
 
   it('renders data.player properties', async () => {
@@ -89,7 +115,20 @@ describe('lineup-player-card tests', () => {
     const positionElement = playerElement.querySelector('.currentPosition');
     assert.isOk(positionElement, 'Missing currentPosition element');
     assert.equal(positionElement!.textContent, data.position.type);
+    expect(el).shadowDom.to.equalSnapshot();
+  });
 
+  it('renders selected from data.player property', async () => {
+    const player = getPlayer();
+    player.selected = true;
+    const data = getCardData(player);
+    el.selected = false;
+    el.data = data;
+    await el.updateComplete;
+
+    expect(el.selected, 'Card should be selected').to.be.true;
+
+    verifySelected();
   });
 
   it('renders data properties without player', async () => {
@@ -102,6 +141,7 @@ describe('lineup-player-card tests', () => {
     const positionElement = playerElement.querySelector('.currentPosition');
     assert.isOk(positionElement, 'Missing currentPosition element');
     assert.equal(positionElement!.textContent, data.position.type);
+    expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('fires event when player selected', async () => {
@@ -109,26 +149,13 @@ describe('lineup-player-card tests', () => {
     el.player = player;
     await el.updateComplete;
 
-    let eventFired = false;
-    let eventPlayer = undefined;
-    let eventSelected = undefined;
-    const handler = function (firedEvent: Event) {
-      eventFired = true;
-      const event = firedEvent as CustomEvent;
-      eventPlayer = event.detail.player;
-      eventSelected = event.detail.selected;
-      window.removeEventListener(EVENT_PLAYERSELECTED, handler);
-    };
-
-    window.addEventListener(EVENT_PLAYERSELECTED, handler);
-
     const playerElement = getPlayerElement();
-    playerElement.click();
+    setTimeout(() => playerElement.click());
 
-    await 0;
-    assert.isTrue(eventFired, 'Event playerselected should be fired');
-    assert.deepEqual(eventPlayer, player);
-    assert.isTrue(eventSelected, 'Card should now be selected');
+    const { detail } = await oneEvent(el, EVENT_PLAYERSELECTED);
+
+    assert.deepEqual(detail.player, player);
+    assert.isTrue(detail.selected, 'Card should now be selected');
   });
 
   it('fires event when player de-selected', async () => {
@@ -151,29 +178,14 @@ describe('lineup-player-card tests', () => {
     el.data = data;
     await el.updateComplete;
 
-    let eventFired = false;
-    let eventPlayer = undefined;
-    let eventPosition = undefined;
-    let eventSelected = undefined;
-    const handler = function (firedEvent: Event) {
-      eventFired = true;
-      const event = firedEvent as CustomEvent;
-      eventPlayer = event.detail.player;
-      eventPosition = event.detail.position;
-      eventSelected = event.detail.selected;
-      window.removeEventListener(EVENT_POSITIONSELECTED, handler);
-    };
-
-    window.addEventListener(EVENT_POSITIONSELECTED, handler);
-
     const playerElement = getPlayerElement();
-    playerElement.click();
+    setTimeout(() => playerElement.click());
 
-    await 0;
-    assert.isTrue(eventFired, `Event positionselected should be fired`);
-    assert.equal(eventPlayer, undefined, 'Event should not provide a player');
-    assert.equal(eventPosition, data.position, 'Event should provide position');
-    assert.isTrue(eventSelected, 'Card should now be selected');
+    const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+
+    assert.equal(detail.player, undefined, 'Event should not provide a player');
+    assert.equal(detail.position, data.position, 'Event should provide position');
+    assert.isTrue(detail.selected, 'Card should now be selected');
   });
 
   it('fires event when position de-selected with data', async () => {
@@ -182,29 +194,14 @@ describe('lineup-player-card tests', () => {
     el.selected = true;
     await el.updateComplete;
 
-    let eventFired = false;
-    let eventPlayer = undefined;
-    let eventPosition = undefined;
-    let eventSelected = undefined;
-    const handler = function (firedEvent: Event) {
-      eventFired = true;
-      const event = firedEvent as CustomEvent;
-      eventPlayer = event.detail.player;
-      eventPosition = event.detail.position;
-      eventSelected = event.detail.selected;
-      window.removeEventListener(EVENT_POSITIONSELECTED, handler);
-    };
-
-    window.addEventListener(EVENT_POSITIONSELECTED, handler);
-
     const playerElement = getPlayerElement();
-    playerElement.click();
+    setTimeout(() => playerElement.click());
 
-    await 0;
-    assert.isTrue(eventFired, 'Event positionselected should be fired');
-    assert.equal(eventPlayer, undefined, 'Event should not provide a player');
-    assert.equal(eventPosition, data.position, 'Event should provide position');
-    assert.isFalse(eventSelected, 'Card should no longer be selected');
+    const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+
+    assert.equal(detail.player, undefined, 'Event should not provide a player');
+    assert.equal(detail.position, data.position, 'Event should provide position');
+    assert.isFalse(detail.selected, 'Card should no longer be selected');
   });
 
   it('fires event when position selected with data and player', async () => {
@@ -214,29 +211,14 @@ describe('lineup-player-card tests', () => {
     el.data = data;
     await el.updateComplete;
 
-    let eventFired = false;
-    let eventPlayer = undefined;
-    let eventPosition = undefined;
-    let eventSelected = undefined;
-    const handler = function (firedEvent: Event) {
-      eventFired = true;
-      const event = firedEvent as CustomEvent;
-      eventPlayer = event.detail.player;
-      eventPosition = event.detail.position;
-      eventSelected = event.detail.selected;
-      window.removeEventListener(EVENT_POSITIONSELECTED, handler);
-    };
-
-    window.addEventListener(EVENT_POSITIONSELECTED, handler);
-
     const playerElement = getPlayerElement();
-    playerElement.click();
+    setTimeout(() => playerElement.click());
 
-    await 0;
-    assert.isTrue(eventFired, `Event positionselected should be fired`);
-    assert.equal(eventPlayer, data.player, 'Event should provide player');
-    assert.equal(eventPosition, data.position, 'Event should provide position');
-    assert.isTrue(eventSelected, 'Card should now be selected');
+    const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+
+    assert.equal(detail.player, data.player, 'Event should provide player');
+    assert.equal(detail.position, data.position, 'Event should provide position');
+    assert.isTrue(detail.selected, 'Card should now be selected');
   });
 
   it('fires event when position de-selected with data and player', async () => {
@@ -247,29 +229,14 @@ describe('lineup-player-card tests', () => {
     el.selected = true;
     await el.updateComplete;
 
-    let eventFired = false;
-    let eventPlayer = undefined;
-    let eventPosition = undefined;
-    let eventSelected = undefined;
-    const handler = function (firedEvent: Event) {
-      eventFired = true;
-      const event = firedEvent as CustomEvent;
-      eventPlayer = event.detail.player;
-      eventPosition = event.detail.position;
-      eventSelected = event.detail.selected;
-      window.removeEventListener(EVENT_POSITIONSELECTED, handler);
-    };
-
-    window.addEventListener(EVENT_POSITIONSELECTED, handler);
-
     const playerElement = getPlayerElement();
-    playerElement.click();
+    setTimeout(() => playerElement.click());
 
-    await 0;
-    assert.isTrue(eventFired, 'Event positionselected should be fired');
-    assert.equal(eventPlayer, data.player, 'Event should provide player');
-    assert.equal(eventPosition, data.position, 'Event should provide position');
-    assert.isFalse(eventSelected, 'Card should no longer be selected');
+    const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+
+    assert.equal(detail.player, data.player, 'Event should provide player');
+    assert.equal(detail.position, data.position, 'Event should provide position');
+    assert.isFalse(detail.selected, 'Card should no longer be selected');
   });
 
   it('a11y', async () => {

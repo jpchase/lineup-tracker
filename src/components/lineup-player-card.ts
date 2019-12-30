@@ -88,7 +88,23 @@ export class LineupPlayerCard extends LitElement {
   player: LivePlayer|undefined = undefined;
 
   @property({type: Boolean})
-  selected = false;
+  public get selected(): boolean {
+    if (this._selected) {
+      return true;
+    }
+    const player = this._getPlayer();
+    return player ? !!player.selected : false;
+  }
+  public set selected(value: boolean) {
+    const oldValue = this.selected;
+    this._selected = value;
+    this.requestUpdate('selected', oldValue);
+  }
+  private _selected = false;
+
+  private _getPlayer() {
+    return this.data ? this.data!.player : this.player;
+  }
 
   protected firstUpdated() {
     // Handles clicks anywhere on this component (i.e. not just on the contained span).
@@ -97,20 +113,20 @@ export class LineupPlayerCard extends LitElement {
 
   _toggleSelected(e: Event) {
     console.log('_toggleSelected - ' + this.selected, e);
-    this.selected = !this.selected;
+    const newSelected = !this.selected;
 
     // Fires a position selected event, when |data| provided. Otherwise, fires a
     // player selected event.
-    const player = this.data ? this.data!.player : this.player;
+    const player = this._getPlayer();
     if (this.data) {
       this.dispatchEvent(new CustomEvent(EVENT_POSITIONSELECTED, {
         bubbles: true, composed: true,
-        detail: {position: this.data.position, player: player, selected: this.selected},
+        detail: {position: this.data.position, player: player, selected: newSelected},
       }));
     } else {
       this.dispatchEvent(new CustomEvent(EVENT_PLAYERSELECTED, {
         bubbles: true, composed: true,
-        detail: {player: player, selected: this.selected},
+        detail: {player: player, selected: newSelected},
       }));
     }
   }

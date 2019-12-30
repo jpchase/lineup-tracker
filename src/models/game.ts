@@ -66,4 +66,5 @@ export interface SetupTask {
 
 export interface LivePlayer extends Player {
   currentPosition?: Position;
+  selected?: boolean;
 }

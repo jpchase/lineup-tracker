@@ -1,3 +1,4 @@
+import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { LineupPlayerList } from '@app/components/lineup-player-list';
 import '@app/components/lineup-player-list.js';
 import { LivePlayer } from '@app/models/game';
@@ -71,6 +72,7 @@ describe('lineup-player-list tests', () => {
     const items = el.shadowRoot!.querySelectorAll('div div lineup-player-card');
     assert.isOk(items, 'Missing items for players');
     assert.equal(items.length, expectedCount, 'Rendered player count');
+    return items;
   }
 
   it('starts empty', () => {
@@ -82,6 +84,23 @@ describe('lineup-player-list tests', () => {
   it('shows no players placeholder for empty list', () => {
     assert.deepEqual(el.players, []);
     verifyEmptyList();
+    expect(el).shadowDom.to.equalSnapshot();
+  });
+
+  it('sets selected on each card from player.selected', async () => {
+    const players = getPlayers(2, PlayerStatus.Off);
+    players[0].selected = true;
+    players[1].selected = false;
+
+    el.mode = 'off';
+    el.players = players;
+    await el.updateComplete;
+
+    const items = verifyPlayerCards(2);
+    let cardElement = items[0] as LineupPlayerCard;
+    expect(cardElement.selected, 'First card should be marked selected').to.be.true;
+    cardElement = items[1] as LineupPlayerCard;
+    expect(cardElement.selected, 'Second card should not be marked selected').to.be.false;
   });
 
   it(`mode [off]: includes players without status set`, async () => {
@@ -94,6 +113,7 @@ describe('lineup-player-list tests', () => {
     // All the players in the list should be shown, since they either have
     // status of off, or are missing the status.
     verifyPlayerCards(players.length);
+    expect(el).shadowDom.to.equalSnapshot();
   });
 
   it(`mode [next]: excludes players without status set`, async () => {
@@ -145,6 +165,7 @@ describe('lineup-player-list tests', () => {
       await el.updateComplete;
 
       verifyEmptyList();
+      expect(el).shadowDom.to.equalSnapshot();
     });
 
     for (const numPlayers of [1, 6]) {
