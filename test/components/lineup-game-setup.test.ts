@@ -449,7 +449,7 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_STARTER, playerId: player.id });
+      store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
       store.dispatch({ type: SELECT_STARTER_POSITION, position: {id: 'AM1', type: 'AM'} });
       await el.updateComplete;
 
@@ -470,7 +470,7 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_STARTER, playerId: player.id });
+      store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
       store.dispatch({ type: SELECT_STARTER_POSITION, position: {id: 'LW', type: 'W'} });
       await el.updateComplete;
 
@@ -498,7 +498,7 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_STARTER, playerId: player.id });
+      store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
       store.dispatch({ type: SELECT_STARTER_POSITION, position: {id: 'RW', type: 'W'} });
       await el.updateComplete;
 

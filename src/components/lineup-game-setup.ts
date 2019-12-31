@@ -308,7 +308,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   private _playerSelected(e: CustomEvent) {
-    this.dispatch(selectStarter(e.detail.player.id));
+    this.dispatch(selectStarter(e.detail.player.id, e.detail.selected));
   }
 
   private _positionSelected(e: CustomEvent) {

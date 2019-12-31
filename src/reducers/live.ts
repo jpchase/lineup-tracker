@@ -2,6 +2,7 @@
 @license
 */
 
+import { LiveActionSelectStarter } from '@app/actions/live';
 import { Reducer } from 'redux';
 import { Position } from '../models/formation';
 import { LiveGame, LivePlayer } from '../models/game';
@@ -57,7 +58,19 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
     game.formation = { type: action.formationType };
   },
 
-  [SELECT_STARTER]: (newState, action) => {
+  [SELECT_STARTER]: (newState, action: LiveActionSelectStarter) => {
+    const selectedPlayer = findPlayer(newState, action.playerId);
+    if (selectedPlayer) {
+      selectedPlayer.selected = !!action.selected;
+    }
+
+    // Handles de-selection.
+    if (!action.selected) {
+      if (newState.selectedStarterPlayer === action.playerId) {
+        newState.selectedStarterPlayer = undefined;
+      }
+      return;
+    }
     newState.selectedStarterPlayer = action.playerId;
 
     prepareStarterIfPossible(newState);
@@ -75,6 +88,7 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
 
     newState.liveGame!.players!.forEach(player => {
       if (player.id === starter.id) {
+        player.selected = false;
         player.status = PlayerStatus.On;
         player.currentPosition = starter.currentPosition;
         return;
@@ -92,6 +106,10 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
   },
 
   [CANCEL_STARTER]: (newState) => {
+    const selectedPlayer = findPlayer(newState, newState.selectedStarterPlayer!);
+    if (selectedPlayer && selectedPlayer.selected) {
+      selectedPlayer.selected = false;
+    }
     clearProposedStarter(newState);
   },
 
@@ -107,7 +125,7 @@ function prepareStarterIfPossible(newState: LiveState) {
     return;
   }
 
-  const player = newState.liveGame!.players!.find(p => p.id === newState.selectedStarterPlayer);
+  const player = findPlayer(newState, newState.selectedStarterPlayer);
   if (!player) {
     return;
   }
@@ -124,4 +142,8 @@ function clearProposedStarter(newState: LiveState) {
   delete newState.selectedStarterPlayer;
   delete newState.selectedStarterPosition;
   delete newState.proposedStarter;
+}
+
+function findPlayer(newState: LiveState, playerId: string) {
+  return newState.liveGame!.players!.find(player => player.id === playerId);
 }

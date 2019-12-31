@@ -29,6 +29,13 @@ function buildLiveGameWithPlayers(): LiveGame {
   return getLiveGame([getStoredPlayer()]);
 }
 
+function buildLiveGameWithPlayersSelected(playerId: string, selected: boolean): LiveGame {
+  const game = buildLiveGameWithPlayers();
+  const selectedPlayer = game.players!.find(player => (player.id === playerId));
+  selectedPlayer!.selected = selected;
+  return game;
+}
+
 describe('Live reducer', () => {
 
   it('should return the initial state', () => {
@@ -145,12 +152,38 @@ describe('Live reducer', () => {
 
       const newState = live(state, {
         type: SELECT_STARTER,
-        playerId: selectedStarter.id
+        playerId: selectedStarter.id,
+        selected: true
       });
 
       expect(newState).to.deep.include({
-        liveGame: buildLiveGameWithPlayers(),
+        liveGame: buildLiveGameWithPlayersSelected(selectedStarter.id, true),
         selectedStarterPlayer: selectedStarter.id,
+        proposedStarter: undefined
+      });
+
+      expect(newState).not.to.equal(state);
+    });
+
+    it('should clear selectedStarterPlayer when de-selected', () => {
+      const selectedStarter = getStoredPlayer();
+
+      const state: LiveState = {
+        ...LIVE_INITIAL_STATE,
+        liveGame: buildLiveGameWithPlayersSelected(selectedStarter.id, true),
+        selectedStarterPlayer: selectedStarter.id
+      };
+      expect(state.liveGame!.players![0].selected).to.be.true;
+
+      const newState = live(state, {
+        type: SELECT_STARTER,
+        playerId: selectedStarter.id,
+        selected: false
+      });
+
+      expect(newState).to.deep.include({
+        liveGame: buildLiveGameWithPlayersSelected(selectedStarter.id, false),
+        selectedStarterPlayer: undefined,
         proposedStarter: undefined
       });
 
@@ -171,16 +204,18 @@ describe('Live reducer', () => {
 
       const newState = live(state, {
         type: SELECT_STARTER,
-        playerId: selectedStarter.id
+        playerId: selectedStarter.id,
+        selected: true
       });
 
       const starter: LivePlayer = {
         ...selectedStarter,
+        selected: true,
         currentPosition: { ...selectedPosition }
       }
 
       expect(newState).to.deep.include({
-        liveGame: buildLiveGameWithPlayers(),
+        liveGame: buildLiveGameWithPlayersSelected(selectedStarter.id, true),
         selectedStarterPosition: { ...selectedPosition },
         selectedStarterPlayer: selectedStarter.id,
         proposedStarter: starter
@@ -219,7 +254,7 @@ describe('Live reducer', () => {
 
       const state: LiveState = {
         ...LIVE_INITIAL_STATE,
-        liveGame: buildLiveGameWithPlayers(),
+        liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, true),
         selectedStarterPlayer: selectedPlayer.id,
       };
       expect(state.selectedStarterPosition).to.be.undefined;
@@ -232,11 +267,12 @@ describe('Live reducer', () => {
 
       const starter: LivePlayer = {
         ...selectedPlayer,
+        selected: true,
         currentPosition: { ...selectedPosition }
       }
 
       expect(newState).to.deep.include({
-        liveGame: buildLiveGameWithPlayers(),
+        liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, true),
         selectedStarterPlayer: selectedPlayer.id,
         selectedStarterPosition: { ...selectedPosition },
         proposedStarter: starter
@@ -261,7 +297,7 @@ describe('Live reducer', () => {
 
       currentState = {
         ...LIVE_INITIAL_STATE,
-        liveGame: buildLiveGameWithPlayers(),
+        liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, true),
         selectedStarterPlayer: selectedPlayer.id,
         selectedStarterPosition: { ...selectedPosition },
         proposedStarter: starter
@@ -283,6 +319,7 @@ describe('Live reducer', () => {
         status: PlayerStatus.On,
         currentPosition: { ...selectedPosition }
       });
+      expect(newPlayer!.selected, 'Player should no longer be selected').to.not.be.ok;
 
       expect(newState).not.to.equal(currentState);
       expect(newState.liveGame).not.to.equal(currentState.liveGame);
@@ -323,6 +360,7 @@ describe('Live reducer', () => {
         status: PlayerStatus.On,
         currentPosition: { ...selectedPosition }
       });
+      expect(newPlayer!.selected, 'Player should no longer be selected').to.not.be.ok;
 
       const replacedPlayer = newPlayers.find(player => (player.id === existingStarter.id));
       expect(replacedPlayer).to.not.be.undefined;
@@ -353,7 +391,7 @@ describe('Live reducer', () => {
 
       currentState = {
         ...LIVE_INITIAL_STATE,
-        liveGame: buildLiveGameWithPlayers(),
+        liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, true),
         selectedStarterPlayer: selectedPlayer.id,
         selectedStarterPosition: { ...selectedPosition },
         proposedStarter: starter
@@ -364,6 +402,10 @@ describe('Live reducer', () => {
       const newState = live(currentState, {
         type: CANCEL_STARTER
       });
+
+      const cancelledPlayer = newState.liveGame!.players!.find(player => (player.id === selectedPlayer.id));
+      expect(cancelledPlayer).to.not.be.undefined;
+      expect(cancelledPlayer!.selected, 'Player should no longer be selected').to.not.be.ok;
 
       expect(newState.selectedPlayer).to.be.undefined;
       expect(newState.selectedStarterPosition).to.be.undefined;

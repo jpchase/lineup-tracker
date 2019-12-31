@@ -6,7 +6,7 @@ import * as actionTypes from '@app/slices/live-types';
 import { RootState } from '@app/store';
 import { expect } from '@open-wc/testing';
 import * as sinon from 'sinon';
-import { getMockAuthState, getStoredPlayer } from 'test/helpers/test_data';
+import { getMockAuthState, getStoredPlayer } from '../helpers/test_data';
 
 interface MockStateUpdateFunc {
   (state: LiveState): void;
@@ -78,11 +78,25 @@ describe('Live actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
+      actions.selectStarter('player id', true)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.SELECT_STARTER,
+        playerId: 'player id',
+        selected: true
+      });
+    });
+
+    it('should dispatch an action to de-select the starter', () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
+
       actions.selectStarter('player id')(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.SELECT_STARTER,
-        playerId: 'player id'
+        playerId: 'player id',
+        selected: false
       });
     });
   }); // describe('selectStarter')
