@@ -49,11 +49,25 @@ describe('Live actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
+      actions.selectPlayer('player id', true)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.SELECT_PLAYER,
+        playerId: 'player id',
+        selected: true
+      });
+    });
+
+    it('should dispatch an action to de-select the player', () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
+
       actions.selectPlayer('player id')(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.SELECT_PLAYER,
-        playerId: 'player id'
+        playerId: 'player id',
+        selected: false
       });
     });
   }); // describe('selectPlayer')

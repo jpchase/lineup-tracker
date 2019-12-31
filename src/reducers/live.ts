@@ -114,7 +114,19 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
   },
 
   [SELECT_PLAYER]: (newState, action) => {
-    newState.selectedPlayer = action.playerId;
+    const selectedPlayer = findPlayer(newState, action.playerId);
+    if (selectedPlayer) {
+      selectedPlayer.selected = !!action.selected;
+    }
+
+    if (action.selected) {
+      newState.selectedPlayer = action.playerId;
+    } else {
+      // De-selection.
+      if (newState.selectedPlayer === action.playerId) {
+        newState.selectedPlayer = undefined;
+      }
+    }
   },
 
 });

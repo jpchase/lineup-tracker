@@ -103,6 +103,6 @@ export class LineupGameLive extends connectStore()(LitElement) {
   }
 
   private _playerSelected(e: CustomEvent) {
-    this.dispatch(selectPlayer(e.detail.player.id));
+    this.dispatch(selectPlayer(e.detail.player.id, e.detail.selected));
   }
 }

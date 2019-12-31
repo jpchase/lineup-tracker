@@ -12,7 +12,7 @@ import { RootState } from '../store';
 
 export interface LiveActionApplyStarter extends Action<typeof APPLY_STARTER> {};
 export interface LiveActionCancelStarter extends Action<typeof CANCEL_STARTER> {};
-export interface LiveActionSelectPlayer extends Action<typeof SELECT_PLAYER> { playerId: string };
+export interface LiveActionSelectPlayer extends Action<typeof SELECT_PLAYER> { playerId: string; selected: boolean };
 export interface LiveActionSelectStarter extends Action<typeof SELECT_STARTER> { playerId: string; selected: boolean };
 export interface LiveActionSelectStarterPosition extends Action<typeof SELECT_STARTER_POSITION> { position: Position };
 
@@ -20,13 +20,14 @@ export type LiveAction = LiveActionApplyStarter | LiveActionCancelStarter | Live
 
 type ThunkResult = ThunkAction<void, RootState, undefined, LiveAction>;
 
-export const selectPlayer: ActionCreator<ThunkResult> = (playerId: string) => (dispatch) => {
+export const selectPlayer: ActionCreator<ThunkResult> = (playerId: string, selected: boolean) => (dispatch) => {
   if (!playerId) {
     return;
   }
   dispatch({
     type: SELECT_PLAYER,
-    playerId
+    playerId,
+    selected: !!selected
   });
 };
 
