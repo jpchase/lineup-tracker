@@ -22,7 +22,8 @@ const LIVE_INITIAL_STATE: LiveState = {
   selectedStarterPlayer: undefined,
   selectedStarterPosition: undefined,
   proposedStarter: undefined,
-  selectedPlayer: undefined,
+  selectedOffPlayer: undefined,
+  selectedOnPlayer: undefined,
 };
 
 function buildLiveGameWithPlayers(): LiveGame {
@@ -404,7 +405,7 @@ describe('Live reducer', () => {
       expect(cancelledPlayer).to.not.be.undefined;
       expect(cancelledPlayer!.selected, 'Player should no longer be selected').to.not.be.ok;
 
-      expect(newState.selectedPlayer).to.be.undefined;
+      expect(newState.selectedStarterPlayer).to.be.undefined;
       expect(newState.selectedStarterPosition).to.be.undefined;
       expect(newState.proposedStarter).to.be.undefined;
 
@@ -413,6 +414,7 @@ describe('Live reducer', () => {
   }); // describe('CANCEL_STARTER')
 
   describe('SELECT_PLAYER', () => {
+    const selectedPlayerId = getStoredPlayer().id;
     let currentState: LiveState;
     let selectedPlayer: LivePlayer;
 
@@ -425,44 +427,137 @@ describe('Live reducer', () => {
       };
     });
 
-    it('should only set selectedPlayer with nothing selected', () => {
-      expect(currentState.selectedPlayer).to.be.undefined;
+    function setPlayerStatus(game: LiveGame, playerId: string, status: PlayerStatus) {
+      const player = game.players!.find(p => (p.id === playerId));
+      if (player) {
+        player.status = status;
+      }
+    }
 
-      const newState = live(currentState, {
-        type: SELECT_PLAYER,
-        playerId: selectedPlayer.id,
-        selected: true
-      });
+    function buildLiveGameForSelected(status: PlayerStatus, selected: boolean): LiveGame {
+      const game = buildLiveGameWithPlayers();
+      const player = game.players!.find(p => (p.id === selectedPlayerId));
+      if (player) {
+        player.status = status;
+        player.selected = selected;
+      }
+      return game;
+    }
 
-      expect(newState).to.deep.include({
-        liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, true),
-        selectedPlayer: selectedPlayer.id
-      });
+    function setTrackedPlayer(state: LiveState, status: PlayerStatus) {
+      switch (status) {
+        case PlayerStatus.Off:
+          state.selectedOffPlayer = selectedPlayerId;
+          break;
+        case PlayerStatus.On:
+          state.selectedOnPlayer = selectedPlayerId;
+          break;
+      }
+    }
 
-      expect(newState).not.to.equal(currentState);
+    const trackedStatuses = [PlayerStatus.On, PlayerStatus.Off];
+    const flagOnlyStatuses = [PlayerStatus.Next, PlayerStatus.Out];
+
+    it('All statuses are covered by selected tests', () => {
+      expect(trackedStatuses.length + flagOnlyStatuses.length, 'Selected tests for every status').to.equal(Object.values(PlayerStatus).length);
     });
 
-    it('should clear selectedPlayer when de-selected', () => {
-      const state: LiveState = {
-        ...LIVE_INITIAL_STATE,
-        liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, true),
-        selectedPlayer: selectedPlayer.id
-      };
-      expect(state.liveGame!.players![0].selected).to.be.true;
+    for (const status of trackedStatuses) {
 
-      const newState = live(state, {
-        type: SELECT_PLAYER,
-        playerId: selectedPlayer.id,
-        selected: false
+      describe(`Status: ${status}`, () => {
+        beforeEach(async () => {
+          setPlayerStatus(currentState.liveGame!, selectedPlayer.id, status);
+        });
+
+        it(`should only set selectedPlayer with no other player selected`, () => {
+          const newState = live(currentState, {
+            type: SELECT_PLAYER,
+            playerId: selectedPlayer.id,
+            selected: true
+          });
+
+          const expectedState: LiveState = {
+            ...LIVE_INITIAL_STATE,
+            liveGame: buildLiveGameForSelected(status, true),
+          };
+          setTrackedPlayer(expectedState, status);
+
+          expect(newState).to.deep.include(expectedState);
+
+          expect(newState).not.to.equal(currentState);
+        });
+
+        it(`should clear selectedPlayer when de-selected`, () => {
+          const state: LiveState = {
+            ...LIVE_INITIAL_STATE,
+            liveGame: buildLiveGameForSelected(status, true)
+          };
+          setTrackedPlayer(state, status);
+
+          const newState = live(state, {
+            type: SELECT_PLAYER,
+            playerId: selectedPlayer.id,
+            selected: false
+          });
+
+          // Uses LIVE_INITIAL_STATE to set all the tracking properties to undefined.
+          expect(newState).to.deep.include({
+            ...LIVE_INITIAL_STATE,
+            liveGame: buildLiveGameForSelected(status, false),
+          });
+
+          expect(newState).not.to.equal(state);
+        });
       });
+    } // for (const status of trackedStatuses)
 
-      expect(newState).to.deep.include({
-        liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, false),
-        selectedPlayer: undefined
+    for (const status of flagOnlyStatuses) {
+
+      describe(`Status: ${status}`, () => {
+        beforeEach(async () => {
+          setPlayerStatus(currentState.liveGame!, selectedPlayer.id, status);
+        });
+
+        it(`should select individual player only`, () => {
+          const newState = live(currentState, {
+            type: SELECT_PLAYER,
+            playerId: selectedPlayer.id,
+            selected: true
+          });
+
+          const expectedGame = buildLiveGameForSelected(status, true);
+
+          expect(newState).to.deep.include({
+            liveGame: expectedGame,
+          });
+          expect(newState.selectedOffPlayer).to.be.undefined;
+          expect(newState.selectedOnPlayer).to.be.undefined;
+
+          expect(newState).not.to.equal(currentState);
+        });
+
+        it(`should de-select individual player only`, () => {
+          currentState.selectedOffPlayer = 'other off';
+          currentState.selectedOnPlayer = 'other on';
+
+          const newState = live(currentState, {
+            type: SELECT_PLAYER,
+            playerId: selectedPlayer.id,
+            selected: false
+          });
+
+          const expectedGame = buildLiveGameForSelected(status, false);
+
+          expect(newState).to.deep.include({
+            liveGame: expectedGame,
+            selectedOffPlayer: 'other off',
+            selectedOnPlayer: 'other on',
+          });
+
+          expect(newState).not.to.equal(currentState);
+        });
       });
-
-      expect(newState).not.to.equal(state);
-    });
+    } // for (const status of flagOnlyStatuses)
   }); // describe('SELECT_PLAYER')
 
   describe('SET_FORMATION', () => {

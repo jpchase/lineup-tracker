@@ -19,7 +19,8 @@ export interface LiveState {
   selectedStarterPlayer?: string;
   selectedStarterPosition?: Position;
   proposedStarter?: LivePlayer;
-  selectedPlayer?: string;
+  selectedOffPlayer?: string;
+  selectedOnPlayer?: string;
 }
 
 const INITIAL_STATE: LiveState = {
@@ -28,6 +29,8 @@ const INITIAL_STATE: LiveState = {
   selectedStarterPlayer: undefined,
   selectedStarterPosition: undefined,
   proposedStarter: undefined,
+  selectedOffPlayer: undefined,
+  selectedOnPlayer: undefined,
 };
 
 export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE, {
@@ -115,16 +118,25 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
 
   [SELECT_PLAYER]: (newState, action) => {
     const selectedPlayer = findPlayer(newState, action.playerId);
-    if (selectedPlayer) {
-      selectedPlayer.selected = !!action.selected;
+    if (!selectedPlayer) {
+      return;
     }
 
+    // Always sets the selected flag to true/false as appropriate.
+    selectedPlayer.selected = !!action.selected;
+
+    // Only On and Off statuses need further handling.
+    if (selectedPlayer.status !== PlayerStatus.On && selectedPlayer.status !== PlayerStatus.Off) {
+      return;
+    }
+
+    const status = selectedPlayer.status;
     if (action.selected) {
-      newState.selectedPlayer = action.playerId;
+      setCurrentSelected(newState, status, action.playerId);
     } else {
       // De-selection.
-      if (newState.selectedPlayer === action.playerId) {
-        newState.selectedPlayer = undefined;
+      if (getCurrentSelected(newState, status) === action.playerId) {
+        setCurrentSelected(newState, status, undefined);
       }
     }
   },
@@ -158,4 +170,27 @@ function clearProposedStarter(newState: LiveState) {
 
 function findPlayer(newState: LiveState, playerId: string) {
   return newState.liveGame!.players!.find(player => player.id === playerId);
+}
+
+function getCurrentSelected(newState: LiveState, status: PlayerStatus) {
+  switch (status) {
+    case PlayerStatus.Off:
+      return newState.selectedOffPlayer;
+    case PlayerStatus.On:
+      return newState.selectedOnPlayer;
+  }
+  throw new Error(`Unsupported status: ${status}`);
+}
+
+function setCurrentSelected(newState: LiveState, status: PlayerStatus, value: string | undefined) {
+  switch (status) {
+    case PlayerStatus.Off:
+      newState.selectedOffPlayer = value;
+      break;
+    case PlayerStatus.On:
+      newState.selectedOnPlayer = value;
+      break;
+    default:
+      throw new Error(`Unsupported status: ${status}`);
+  }
 }
