@@ -4,8 +4,10 @@ const merge = require('webpack-merge');
 const path = require('path');
 
 module.exports = (config) => {
+  process.env.CHROME_BIN = require('puppeteer').executablePath();
   config.set(
     merge(createDefaultConfig(config), {
+      logLevel: config.LOG_DEBUG,
       files: [
         // runs all files ending with .test in the test folder,
         // can be overwritten by passing a --grep flag. examples:
