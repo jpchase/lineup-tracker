@@ -1,6 +1,7 @@
 build/
 coverage/
-node_modules/
+node_modules/*
+!node_modules/.hooks/
 test/integration/screenshots-current/
 src/**/*.js
 test/**/*.js
