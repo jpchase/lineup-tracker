@@ -124,7 +124,9 @@ async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setu
   if (setup) {
     await setup(page);
   }
-  if (waitForSelector) {
+  // TEMP, to see if timing is causing issues with screenshots on linux
+  // eslint-disable-next-line no-constant-condition
+  if (true) { // waitForSelector) {
     // await page.waitForSelector(waitForSelector);
     await page.waitFor(1000);
   }
