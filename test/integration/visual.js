@@ -8,9 +8,11 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
+/* global after, afterEach, before, beforeEach, describe, it */
+
 const puppeteer = require('puppeteer');
 const expect = require('chai').expect;
-const {startServer} = require('polyserve');
+const { startServer } = require('polyserve');
 const path = require('path');
 const fs = require('fs');
 const PNG = require('pngjs').PNG;
@@ -20,38 +22,38 @@ const currentDir = `${process.cwd()}/test/integration/screenshots-current`;
 const baselineDir = `${process.cwd()}/test/integration/screenshots-baseline`;
 
 const breakpoints = [
-  { name: 'wide', viewPort: {width: 800, height: 600} },
-  { name: 'narrow', viewPort: {width: 375, height: 667} },
+  { name: 'wide', viewPort: { width: 800, height: 600 } },
+  { name: 'narrow', viewPort: { width: 375, height: 667 } },
 ];
 
-describe('👀 page screenshots are correct', function() {
+describe('👀 page screenshots are correct', function () {
   let server, browser, page;
 
-  before(async function() {
-    server = await startServer({port:4444, root:path.join(__dirname, '../../dist'), moduleResolution:'node'});
+  before(async function () {
+    server = await startServer({ port: 4444, root: path.join(__dirname, '../../dist'), moduleResolution: 'node' });
 
     // Create the test directory if needed.
-    if (!fs.existsSync(currentDir)){
+    if (!fs.existsSync(currentDir)) {
       fs.mkdirSync(currentDir);
     }
     // And it's subdirectories.
-    if (!fs.existsSync(`${currentDir}/wide`)){
+    if (!fs.existsSync(`${currentDir}/wide`)) {
       fs.mkdirSync(`${currentDir}/wide`);
     }
-    if (!fs.existsSync(`${currentDir}/narrow`)){
+    if (!fs.existsSync(`${currentDir}/narrow`)) {
       fs.mkdirSync(`${currentDir}/narrow`);
     }
   });
 
   after((done) => server.close(done));
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     browser = await puppeteer.launch();
     page = await browser.newPage();
 
-    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
 
-    page.on('requestfailed', request => {
+    page.on('requestfailed', (request) => {
       console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure().errorText);
     });
   });
@@ -59,42 +61,40 @@ describe('👀 page screenshots are correct', function() {
   afterEach(() => browser.close());
 
   for (const breakpoint of breakpoints) {
-    describe(`${breakpoint.name} screen`, function() {
+    describe(`${breakpoint.name} screen`, function () {
       const prefix = breakpoint.name;
 
-      beforeEach(async function() {
+      beforeEach(async function () {
         return page.setViewport(breakpoint.viewPort);
       });
 
-      it('/index.html', async function() {
+      it('/index.html', async function () {
         return takeAndCompareScreenshot(page, '', prefix);
       });
-      it('/viewHome', async function() {
+      it('/viewHome', async function () {
         return takeAndCompareScreenshot(page, 'viewHome', prefix);
       });
-      it('/viewGames', async function() {
+      it('/viewGames', async function () {
         return takeAndCompareScreenshot(page, 'viewGames?team=test_team1', prefix, 'viewGames', null, 'lineup-view-games');
       });
-      it('/viewRoster', async function() {
+      it('/viewRoster', async function () {
         return takeAndCompareScreenshot(page, 'viewRoster?team=test_team1', prefix, 'viewRoster', null, 'lineup-view-roster');
       });
-      it('/404', async function() {
+      it('/404', async function () {
         return takeAndCompareScreenshot(page, 'batmanNotAView', prefix);
       });
 
-      it('add new team', async function() {
+      it('add new team', async function () {
         return takeAndCompareScreenshot(page, '', prefix, 'addNewTeam', async (currentPage) => {
           await selectTeam(currentPage, 'addnewteam');
         });
       });
 
-      it('/game', async function() {
+      it('/game', async function () {
         return takeAndCompareScreenshot(page, 'game/test_game1?team=test_team1', prefix, 'viewGameDetail', null, 'lineup-view-game-detail');
       });
-
     }); // describe(`${breakpoint.name} screen`)
   }
-
 });
 
 async function selectTeam(page, teamId) {
@@ -108,7 +108,7 @@ async function selectTeam(page, teamId) {
 
 async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setup, waitForSelector) {
   // If you didn't specify a file, use the name of the route.
-  let fileName = filePrefix + '/' + (setupName ? setupName : (route ? route : 'index'));
+  const fileName = filePrefix + '/' + (setupName ? setupName : (route ? route : 'index'));
 
   await page.goto(`http://127.0.0.1:4444/${route}`);
   if (setup) {
@@ -118,7 +118,7 @@ async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setu
     // await page.waitForSelector(waitForSelector);
     await page.waitFor(1000);
   }
-  await page.screenshot({path: `${currentDir}/${fileName}.png`});
+  await page.screenshot({ path: `${currentDir}/${fileName}.png` });
   return compareScreenshots(fileName);
 }
 
@@ -145,7 +145,7 @@ function compareScreenshots(view) {
       expect(img1.height, 'image heights are the same').equal(img2.height);
 
       // Do the visual diff.
-      const diff = new PNG({width: img1.width, height: img1.height});
+      const diff = new PNG({ width: img1.width, height: img1.height });
 
       // Skip the bottom/rightmost row of pixels, since it seems to be
       // noise on some machines :/
@@ -153,14 +153,14 @@ function compareScreenshots(view) {
       const height = img1.height - 1;
 
       const numDiffPixels = pixelmatch(img1.data, img2.data, diff.data,
-          width, height, {threshold: 0.2});
-      const percentDiff = numDiffPixels/(width * height)*100;
+          width, height, { threshold: 0.2 });
+      const percentDiff = numDiffPixels / (width * height) * 100;
 
       const stats = fs.statSync(`${currentDir}/${view}.png`);
       const fileSizeInBytes = stats.size;
       console.log(`📸 ${view}.png => ${fileSizeInBytes} bytes, ${percentDiff}% different`);
 
-      //diff.pack().pipe(fs.createWriteStream(`${currentDir}/${view}-diff.png`));
+      // diff.pack().pipe(fs.createWriteStream(`${currentDir}/${view}-diff.png`));
       expect(numDiffPixels, 'number of different pixels').equal(0);
       resolve();
     }

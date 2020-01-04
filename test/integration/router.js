@@ -8,40 +8,42 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
+/* global after, afterEach, before, beforeEach, describe, it */
+
 const puppeteer = require('puppeteer');
 const expect = require('chai').expect;
-const {startServer} = require('polyserve');
+const { startServer } = require('polyserve');
 const path = require('path');
 const appUrl = 'http://127.0.0.1:4444';
 
-describe('routing tests', function() {
+describe('routing tests', function () {
   let server, browser, page;
 
-  before(async function() {
-    server = await startServer({port:4444, root:path.join(__dirname, '../../dist'), moduleResolution:'node'});
+  before(async function () {
+    server = await startServer({ port: 4444, root: path.join(__dirname, '../../dist'), moduleResolution: 'node' });
   });
 
   after((done) => server.close(done));
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     browser = await puppeteer.launch();
     page = await browser.newPage();
   });
 
   afterEach(() => browser.close());
 
-  it('the page selector switches pages', async function() {
+  it('the page selector switches pages', async function () {
     await page.goto(`${appUrl}`);
-    await page.waitForSelector('lineup-app', {visible: true});
+    await page.waitForSelector('lineup-app', { visible: true });
 
     await testNavigation(page, 'viewGames', 'Games');
     await testNavigation(page, 'viewRoster', 'Roster');
     await testNavigation(page, 'viewHome', 'Overview');
   });
 
-  it('the page selector switches pages in a different way', async function() {
+  it('the page selector switches pages in a different way', async function () {
     await page.goto(`${appUrl}`);
-    await page.waitForSelector('lineup-app', {visible: true});
+    await page.waitForSelector('lineup-app', { visible: true });
 
     await testNavigationInADifferentWay(page, 'viewGames', 'Games');
     await testNavigationInADifferentWay(page, 'viewRoster', 'Roster');
@@ -66,6 +68,7 @@ async function testNavigation(page, href, linkText) {
   expect(await myText).equal(linkText);
 
   // Does the click take you to the right page?
+  // eslint-disable-next-line no-unused-vars
   const [response] = await Promise.all([
     page.waitForNavigation(), // The promise resolves after navigation has finished
     page.evaluate(doShadowRootClick, myApp, selector),
@@ -92,10 +95,11 @@ async function testNavigationInADifferentWay(page, href, linkText) {
   const text = await page.evaluate((el) => el.textContent, linkHandle);
   expect(text).equal(linkText);
 
+  // eslint-disable-next-line no-unused-vars
   const [response] = await Promise.all([
     page.waitForNavigation(), // The promise resolves after navigation has finished
     page.evaluate((el) => el.click(), linkHandle), // Clicking the link will indirectly cause a navigation
   ]);
-  let newUrl = await page.evaluate('window.location.href')
+  const newUrl = await page.evaluate('window.location.href')
   expect(newUrl).equal(`${appUrl}/${href}`);
 }

@@ -1,30 +1,38 @@
 {
-	"extends": ["eslint:recommended", "google"],
-	"rules": {
+  "extends": ["eslint:recommended", "google"],
+  "rules": {
     "comma-dangle": [2, "only-multiline"],
+    "max-len": 0,
+    "object-curly-spacing": ["error", "always"],
+    "one-var": 0,
+    "space-before-function-paren": ["error", {
+      "anonymous": "always",
+      "named": "never",
+      "asyncArrow": "always"
+    }],
     "spaced-comment": [2, "always", { "markers": ["!"], "exceptions": ["*"] }],
     "require-jsdoc": ["error", { "require": { "FunctionDeclaration": false } }],
     "no-console": 0,
-		"no-alert": 0,
-		"no-bitwise": 0,
-		"camelcase": 1,
-		"curly": 1,
-		"no-eq-null": 1,
-		"guard-for-in": 1,
-		"no-empty": 1
-	},
-	"globals": {
+    "no-alert": 0,
+    "no-bitwise": 0,
+    "camelcase": 1,
+    "curly": 1,
+    "no-eq-null": 1,
+    "guard-for-in": 1,
+    "no-empty": 1
+  },
+  "globals": {
     "calculateElapsed": false,
     "clearChildren": false,
     "pad0": false,
     "Stopwatch": false
-	},
-	"parserOptions": {
-		"ecmaVersion": 2017
-	},
-	"env":{
-		"browser": true,
-		"es2017": true,
-		"node": true
-	}
+  },
+  "parserOptions": {
+    "ecmaVersion": 2017
+  },
+  "env":{
+    "browser": true,
+    "es2017": true,
+    "node": true
+  }
 }
