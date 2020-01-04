@@ -46,16 +46,12 @@ describe('👀 page screenshots are correct', function () {
   before(async function () {
     server = await startServer({ port: 4444, root: path.join(__dirname, '../../dist'), moduleResolution: 'node' });
 
-    // Create the test directory if needed.
-    if (!fs.existsSync(currentDir)) {
-      fs.mkdirSync(currentDir);
-    }
-    // And it's subdirectories.
-    if (!fs.existsSync(`${currentDir}/wide`)) {
-      fs.mkdirSync(`${currentDir}/wide`);
-    }
-    if (!fs.existsSync(`${currentDir}/narrow`)) {
-      fs.mkdirSync(`${currentDir}/narrow`);
+    // Create the test directories if needed.
+    for (const breakpoint of breakpoints) {
+      const dir = path.join(currentDir, breakpoint.name);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
     }
   });
 
