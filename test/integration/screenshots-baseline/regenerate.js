@@ -14,8 +14,14 @@ const puppeteer = require('puppeteer');
 const { createConfig, startServer } = require('es-dev-server');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
-const baselineDir = `${process.cwd()}/test/integration/screenshots-baseline`;
+let platformName = os.type().toLowerCase();
+if (platformName === 'darwin') {
+  platformName = 'macos';
+}
+
+const baselineDir = path.join(process.cwd(), 'test/integration/screenshots-baseline', platformName);
 
 describe('🎁 regenerate screenshots', function () {
   let server, browser, page;

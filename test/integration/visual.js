@@ -15,16 +15,30 @@ const expect = require('chai').expect;
 const { startServer } = require('polyserve');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const PNG = require('pngjs').PNG;
 const pixelmatch = require('pixelmatch');
 
-const currentDir = `${process.cwd()}/test/integration/screenshots-current`;
-const baselineDir = `${process.cwd()}/test/integration/screenshots-baseline`;
+let platformName = os.type().toLowerCase();
+if (platformName === 'darwin') {
+  platformName = 'macos';
+}
+
+const currentDir = path.join(process.cwd(), 'test/integration/screenshots-current', platformName);
+const baselineDir = path.join(process.cwd(), 'test/integration/screenshots-baseline', platformName);
 
 const breakpoints = [
   { name: 'wide', viewPort: { width: 800, height: 600 } },
   { name: 'narrow', viewPort: { width: 375, height: 667 } },
 ];
+
+function getBaselineFile(view) {
+  return path.join(baselineDir, `${view}.png`);
+}
+
+function getCurrentFile(view) {
+  return path.join(currentDir, `${view}.png`);
+}
 
 describe('👀 page screenshots are correct', function () {
   let server, browser, page;
@@ -48,7 +62,7 @@ describe('👀 page screenshots are correct', function () {
   after((done) => server.close(done));
 
   beforeEach(async function () {
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({ args: ['--font-render-hinting=none'] });
     page = await browser.newPage();
 
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
@@ -108,7 +122,7 @@ async function selectTeam(page, teamId) {
 
 async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setup, waitForSelector) {
   // If you didn't specify a file, use the name of the route.
-  const fileName = filePrefix + '/' + (setupName ? setupName : (route ? route : 'index'));
+  const fileName = path.join(filePrefix, (setupName ? setupName : (route ? route : 'index')));
 
   await page.goto(`http://127.0.0.1:4444/${route}`);
   if (setup) {
@@ -118,22 +132,25 @@ async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setu
     // await page.waitForSelector(waitForSelector);
     await page.waitFor(1000);
   }
-  await page.screenshot({ path: `${currentDir}/${fileName}.png` });
+  await page.screenshot({ path: getCurrentFile(fileName) });
   return compareScreenshots(fileName);
 }
 
 function compareScreenshots(view) {
+  const baselineFile = getBaselineFile(view);
+  const currentFile = getCurrentFile(view);
+
   return new Promise((resolve, reject) => {
     // Note: for debugging, you can dump the screenshotted img as base64.
-    // fs.createReadStream(`${currentDir}/${view}.png`, { encoding: 'base64' })
+    // fs.createReadStream(currentFile, { encoding: 'base64' })
     //   .on('data', function (data) {
     //     console.log('got data', data)
     //   })
     //   .on('end', function () {
     //     console.log('\n\n')
     //   });
-    const img1 = fs.createReadStream(`${currentDir}/${view}.png`).pipe(new PNG()).on('parsed', doneReading);
-    const img2 = fs.createReadStream(`${baselineDir}/${view}.png`).pipe(new PNG()).on('parsed', doneReading);
+    const img1 = fs.createReadStream(currentFile).pipe(new PNG()).on('parsed', doneReading);
+    const img2 = fs.createReadStream(baselineFile).pipe(new PNG()).on('parsed', doneReading);
 
     let filesRead = 0;
     function doneReading() {
@@ -156,7 +173,7 @@ function compareScreenshots(view) {
           width, height, { threshold: 0.2 });
       const percentDiff = numDiffPixels / (width * height) * 100;
 
-      const stats = fs.statSync(`${currentDir}/${view}.png`);
+      const stats = fs.statSync(currentFile);
       const fileSizeInBytes = stats.size;
       console.log(`📸 ${view}.png => ${fileSizeInBytes} bytes, ${percentDiff}% different`);
 
