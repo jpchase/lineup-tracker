@@ -104,3 +104,35 @@
 
 ```
 
+## `Starters`
+
+####   `shows confirm starter UI when proposed starter exists`
+
+```html
+<div id="confirm-starter">
+  <div>
+    <h5>
+      Confirm starter?
+    </h5>
+    <span class="proposed-player">
+      Stored player 1
+      #
+      5
+    </span>
+    <span class="proposed-position">
+      AM (1)
+    </span>
+    <mwc-button class="cancel">
+      Cancel
+    </mwc-button>
+    <mwc-button
+      autofocus=""
+      class="ok"
+    >
+      Apply
+    </mwc-button>
+  </div>
+</div>
+
+```
+

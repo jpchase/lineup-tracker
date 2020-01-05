@@ -1,3 +1,4 @@
+import { EVENT_POSITIONSELECTED } from '@app/components/events';
 import { LineupGameSetup } from '@app/components/lineup-game-setup';
 import '@app/components/lineup-game-setup.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
@@ -25,7 +26,7 @@ import {
 } from '@app/slices/live-types';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
-import { assert, expect, fixture, html } from '@open-wc/testing';
+import { assert, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import * as sinon from 'sinon';
 import { mockFirestoreAccessor } from '../helpers/mock-firebase-factory';
 import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
@@ -444,6 +445,21 @@ describe('lineup-game-setup tests', () => {
       expect(actions[actions.length - 1]).to.include({ type: SELECT_STARTER_POSITION });
     });
 
+    it('position card is selected after selection is processed', async () => {
+      const startersList = getStartersList();
+      const playerElement = getPositionElement(startersList, 'S');
+
+      // Simulates selection of the position.
+      playerElement.click();
+
+      setTimeout(() => playerElement.click());
+
+      const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+
+      expect(startersList.selectedPosition).to.equal(detail.position);
+      expect(playerElement.selected, 'Position card should be selected').to.be.true;
+    });
+
     it('shows confirm starter UI when proposed starter exists', async () => {
       const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
@@ -456,13 +472,7 @@ describe('lineup-game-setup tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
       expect(confirmSection, 'Missing confirm starter div').to.be.ok;
 
-      // TODO: Use Karma snapshots?
-      const playerElement = confirmSection!.querySelector('.proposed-player');
-      expect(playerElement, 'Missing proposed player element').to.be.ok;
-
-      const positionElement = confirmSection!.querySelector('.proposed-position');
-      expect(positionElement, 'Missing proposed position element').to.be.ok;
-      expect(positionElement!.textContent!.trim()).to.equal('AM (1)');
+      expect(confirmSection).dom.to.equalSnapshot();
     });
 
     it('dispatches apply starter action when confirmed', async () => {

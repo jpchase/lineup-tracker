@@ -201,6 +201,27 @@ describe('lineup-on-player-list tests', () => {
     assert.deepEqual(actualPositions, expectedPositions, 'Positions in renderered formation');
   });
 
+  it('sets selected position with empty input list', async () => {
+    el.formation = getFormation(FormationType.F4_3_3);
+    el.players = [];
+    el.selectedPosition = { id: 'HM', type: 'HM' };
+    await el.updateComplete;
+
+    const items = el.shadowRoot!.querySelectorAll('div div.list div lineup-player-card');
+    assert.equal(items.length, 11, 'Rendered position count');
+
+    let selectedCards: LineupPlayerCard[] = [];
+    items.forEach(element => {
+      const playerCard = element as LineupPlayerCard;
+      if (playerCard.selected) {
+        selectedCards.push(playerCard);
+      }
+    });
+    expect(selectedCards).to.have.lengthOf(1);
+    expect(selectedCards[0].data!.position).to.deep.equal(
+      { id: 'HM', type: 'HM', selected: true });
+  });
+
   it('renders full formation when input list has no matching players', async () => {
     el.formation = getFormation(FormationType.F4_3_3);
     el.players = getPlayers(2, PlayerStatus.Next);

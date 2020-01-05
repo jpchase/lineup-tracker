@@ -93,7 +93,13 @@ export class LineupPlayerCard extends LitElement {
       return true;
     }
     const player = this._getPlayer();
-    return player ? !!player.selected : false;
+    if (player && player.selected) {
+      return true;
+    }
+    if (this.data && this.data.position && this.data.position.selected) {
+      return true;
+    }
+    return false;
   }
   public set selected(value: boolean) {
     const oldValue = this.selected;

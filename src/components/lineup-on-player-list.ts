@@ -74,6 +74,9 @@ export class LineupOnPlayerList extends LitElement {
   @property({type: Object})
   formation: Formation|undefined = undefined;
 
+  @property({type: Object})
+  selectedPosition: Position|undefined = undefined;
+
   _getPlayerLines(): PlayerLine[] {
     if (!this.players || !this.formation) {
       return [];
@@ -81,6 +84,7 @@ export class LineupOnPlayerList extends LitElement {
 
     // Inits the player lines structure from the formation.
     const formation = this.formation;
+    const selectedPositionId = this.selectedPosition ? this.selectedPosition.id : null;
     const lines: PlayerLine[] = [
       formation.forward1, formation.forward2,
       formation.midfield1, formation.midfield2,
@@ -94,9 +98,10 @@ export class LineupOnPlayerList extends LitElement {
       };
       // Creates placeholders for each position in the formation.
       formationLine.positions.forEach(position => {
+        const selected = position.id === selectedPositionId;
         line.playerPositions.push({
           id: line.id + position.id,
-          position: position
+          position: { ...position, selected }
         });
       });
       result.push(line);

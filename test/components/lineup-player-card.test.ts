@@ -85,6 +85,7 @@ describe('lineup-player-card tests', () => {
     await el.updateComplete;
 
     assert.equal(el.player.uniformNumber, 2);
+    expect(el.selected, 'Card should not be selected').to.be.false;
 
     verifyPlayerElements(player);
     expect(el).shadowDom.to.equalSnapshot();
@@ -109,6 +110,7 @@ describe('lineup-player-card tests', () => {
     await el.updateComplete;
 
     assert.equal(el.data.player!.uniformNumber, 2);
+    expect(el.selected, 'Card should not be selected').to.be.false;
 
     const playerElement = verifyPlayerElements(player);
 
@@ -142,6 +144,32 @@ describe('lineup-player-card tests', () => {
     assert.isOk(positionElement, 'Missing currentPosition element');
     assert.equal(positionElement!.textContent, data.position.type);
     expect(el).shadowDom.to.equalSnapshot();
+  });
+
+  it('renders selected from data.position without player', async () => {
+    const data = getCardData();
+    data.position.selected = true;
+    el.selected = false;
+    el.data = data;
+    await el.updateComplete;
+
+    expect(el.selected, 'Card should be selected').to.be.true;
+
+    verifySelected();
+  });
+
+  it('renders selected from data.position with player not selected', async () => {
+    const player = getPlayer();
+    player.selected = false;
+    const data = getCardData(player);
+    data.position.selected = true;
+    el.selected = false;
+    el.data = data;
+    await el.updateComplete;
+
+    expect(el.selected, 'Card should be selected').to.be.true;
+
+    verifySelected();
   });
 
   it('fires event when player selected', async () => {

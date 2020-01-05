@@ -28,6 +28,7 @@ export interface Formation extends FormationMetadata {
 export interface Position {
   id: string;
   type: string;
+  selected?: boolean;
 }
 
 export class FormationBuilder {

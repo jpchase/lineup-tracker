@@ -6,7 +6,7 @@ import { LitElement, customElement, html, property } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 import { ifDefined } from 'lit-html/directives/if-defined';
 
-import { FormationBuilder } from '../models/formation';
+import { FormationBuilder, Position } from '../models/formation';
 import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 
 // This element is connected to the Redux store.
@@ -150,6 +150,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
         <div id="live-on">
           <h5>Starters</h5>
           <lineup-on-player-list .formation="${formation}" .players="${players}"
+                                 .selectedPosition="${this._selectedStarterPosition}"
                                  @positionselected="${this._positionSelected}"></lineup-on-player-list>
         </div>
         <div id="confirm-starter">
@@ -221,6 +222,9 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private _players: LivePlayer[] | undefined;
 
   @property({type: Object})
+  private _selectedStarterPosition: Position | undefined;
+
+  @property({type: Object})
   private _proposedStarter: LivePlayer | undefined;
 
   protected firstUpdated() {
@@ -241,7 +245,8 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     this._tasksComplete = !anyIncomplete;
 
     this._players = state.live.liveGame && state.live.liveGame.players || [];
-    this._proposedStarter = state.live!.proposedStarter;
+    this._selectedStarterPosition = state.live.selectedStarterPosition;
+    this._proposedStarter = state.live.proposedStarter;
   }
 
   private _getStepHref(task: SetupTask) {
