@@ -24,6 +24,7 @@ const LIVE_INITIAL_STATE: LiveState = {
   proposedStarter: undefined,
   selectedOffPlayer: undefined,
   selectedOnPlayer: undefined,
+  proposedSub: undefined,
 };
 
 function buildLiveGameWithPlayers(): LiveGame {
@@ -414,7 +415,7 @@ describe('Live reducer', () => {
   }); // describe('CANCEL_STARTER')
 
   describe('SELECT_PLAYER', () => {
-    const selectedPlayerId = testlive.getLivePlayer().id;
+    const selectedPlayerId = 'P0';
     let currentState: LiveState;
     let selectedPlayer: LivePlayer;
 
@@ -434,9 +435,10 @@ describe('Live reducer', () => {
       }
     }
 
-    function buildLiveGameForSelected(status: PlayerStatus, selected: boolean): LiveGame {
+    function buildLiveGameForSelected(status: PlayerStatus, selected: boolean, playerId?: string): LiveGame {
       const game = buildLiveGameWithPlayers();
-      const player = game.players!.find(p => (p.id === selectedPlayerId));
+      const lookupId = playerId || selectedPlayerId;
+      const player = game.players!.find(p => (p.id === lookupId));
       if (player) {
         player.status = status;
         player.selected = selected;
@@ -558,6 +560,86 @@ describe('Live reducer', () => {
         });
       });
     } // for (const status of flagOnlyStatuses)
+
+    describe('Propose sub', () => {
+      const offPlayerId = 'P1';
+      const onPlayerId = 'P2';
+      let offPlayer: LivePlayer;
+      let onPlayer: LivePlayer;
+
+      beforeEach(async () => {
+        offPlayer = currentState.liveGame!.players!.find(p => (p.id === offPlayerId))!;
+        offPlayer.status = PlayerStatus.Off;
+        onPlayer = currentState.liveGame!.players!.find(p => (p.id === onPlayerId))!;
+        onPlayer.status = PlayerStatus.On;
+      });
+
+      it(`should propose sub when OFF player selected after ON player already selected`, () => {
+        // Sets an already selected ON player.
+        currentState.selectedOnPlayer = onPlayerId;
+        onPlayer.selected = true;
+
+        const newState = live(currentState, {
+          type: SELECT_PLAYER,
+          playerId: offPlayerId,
+          selected: true
+        });
+
+        const expectedState: LiveState = {
+          ...LIVE_INITIAL_STATE,
+          liveGame: buildLiveGameForSelected(PlayerStatus.Off, true, offPlayerId),
+          selectedOffPlayer: offPlayerId,
+          selectedOnPlayer: onPlayerId,
+          proposedSub: {
+            ...offPlayer,
+            selected: true,
+            currentPosition: onPlayer.currentPosition,
+            replaces: onPlayerId
+          } as LivePlayer
+        };
+        // Sets an already selected ON player to match the input state.
+        const expectedOnPlayer = expectedState.liveGame!.players!.find(p => (p.id === onPlayerId))!;
+        expectedOnPlayer.status = PlayerStatus.On;
+        expectedOnPlayer.selected = true;
+
+        expect(newState).to.deep.include(expectedState);
+
+        expect(newState).not.to.equal(currentState);
+      });
+
+      it(`should propose sub when ON player selected after OFF player already selected`, () => {
+        // Sets an already selected OFF player.
+        currentState.selectedOffPlayer = offPlayerId;
+        offPlayer.selected = true;
+
+        const newState = live(currentState, {
+          type: SELECT_PLAYER,
+          playerId: onPlayerId,
+          selected: true
+        });
+
+        const expectedState: LiveState = {
+          ...LIVE_INITIAL_STATE,
+          liveGame: buildLiveGameForSelected(PlayerStatus.Off, true, offPlayerId),
+          selectedOffPlayer: offPlayerId,
+          selectedOnPlayer: onPlayerId,
+          proposedSub: {
+            ...offPlayer,
+            selected: true,
+            currentPosition: onPlayer.currentPosition,
+            replaces: onPlayerId
+          } as LivePlayer
+        };
+        // Sets an already selected On player to match the input state.
+        const expectedOnPlayer = expectedState.liveGame!.players!.find(p => (p.id === onPlayerId))!;
+        expectedOnPlayer.status = PlayerStatus.On;
+        expectedOnPlayer.selected = true;
+
+        expect(newState).to.deep.include(expectedState);
+
+        expect(newState).not.to.equal(currentState);
+      });
+    }); // describe('Propose sub')
   }); // describe('SELECT_PLAYER')
 
   describe('SET_FORMATION', () => {

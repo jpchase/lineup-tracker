@@ -21,6 +21,7 @@ export interface LiveState {
   proposedStarter?: LivePlayer;
   selectedOffPlayer?: string;
   selectedOnPlayer?: string;
+  proposedSub?: LivePlayer;
 }
 
 const INITIAL_STATE: LiveState = {
@@ -31,6 +32,7 @@ const INITIAL_STATE: LiveState = {
   proposedStarter: undefined,
   selectedOffPlayer: undefined,
   selectedOnPlayer: undefined,
+  proposedSub: undefined,
 };
 
 export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE, {
@@ -126,13 +128,15 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
     selectedPlayer.selected = !!action.selected;
 
     // Only On and Off statuses need further handling.
-    if (selectedPlayer.status !== PlayerStatus.On && selectedPlayer.status !== PlayerStatus.Off) {
+    if (selectedPlayer.status !== PlayerStatus.On &&
+        selectedPlayer.status !== PlayerStatus.Off) {
       return;
     }
 
     const status = selectedPlayer.status;
     if (action.selected) {
       setCurrentSelected(newState, status, action.playerId);
+      prepareSubIfPossible(newState);
     } else {
       // De-selection.
       if (getCurrentSelected(newState, status) === action.playerId) {
@@ -166,6 +170,30 @@ function clearProposedStarter(newState: LiveState) {
   delete newState.selectedStarterPlayer;
   delete newState.selectedStarterPosition;
   delete newState.proposedStarter;
+}
+
+function prepareSubIfPossible(newState: LiveState) {
+  if (!newState.selectedOffPlayer || !newState.selectedOnPlayer) {
+    // Need both an On and Off player selected to set up a sub
+    return;
+  }
+
+  const offPlayer = findPlayer(newState, newState.selectedOffPlayer);
+  if (!offPlayer) {
+    return;
+  }
+  const onPlayer = findPlayer(newState, newState.selectedOnPlayer);
+  if (!onPlayer) {
+    return;
+  }
+
+  newState.proposedSub = {
+    ...offPlayer,
+    currentPosition: {
+      ...onPlayer.currentPosition!
+    },
+    replaces: onPlayer.id
+  }
 }
 
 function findPlayer(newState: LiveState, playerId: string) {

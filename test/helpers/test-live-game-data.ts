@@ -46,69 +46,69 @@ export function getLivePlayers(numPlayers: number, status?: PlayerStatus): LiveP
 }
 
 function setPositions(player: LivePlayer, playerIndex: number) {
-    let currentPosition;
-    let pos: string[] = [];
+  let currentPosition;
+  let pos: string[] = [];
 
-    switch (playerIndex % 11) {
-      case 0:
-        currentPosition = { id: 'LCB', type: 'CB' };
-        pos = ['CB', 'FB', 'HM'];
-        break;
+  switch (playerIndex % 11) {
+    case 0:
+      currentPosition = { id: 'LCB', type: 'CB' };
+      pos = ['CB', 'FB', 'HM'];
+      break;
 
-      case 1:
-        currentPosition = { id: 'S', type: 'S' };
-        pos = ['S', 'W'];
-        break;
+    case 1:
+      currentPosition = { id: 'S', type: 'S' };
+      pos = ['S', 'W'];
+      break;
 
-      case 2:
-        currentPosition = { id: 'AM1', type: 'AM' };
-        pos = ['AM', 'HM'];
-        break;
+    case 2:
+      currentPosition = { id: 'AM1', type: 'AM' };
+      pos = ['AM', 'HM'];
+      break;
 
-      case 3:
-        currentPosition = { id: 'HM', type: 'HM' };
-        pos = ['HM', 'CB'];
-        break;
+    case 3:
+      currentPosition = { id: 'HM', type: 'HM' };
+      pos = ['HM', 'CB'];
+      break;
 
-      case 4:
-        currentPosition = { id: 'RW', type: 'W' };
-        pos = ['W'];
-        break;
+    case 4:
+      currentPosition = { id: 'RW', type: 'W' };
+      pos = ['W'];
+      break;
 
-      case 5:
-        currentPosition = { id: 'RFB', type: 'FB' };
-        pos = ['FB'];
-        break;
+    case 5:
+      currentPosition = { id: 'RFB', type: 'FB' };
+      pos = ['FB'];
+      break;
 
-      case 6:
-        currentPosition = { id: 'LW', type: 'W' };
-        pos = ['W'];
-        break;
+    case 6:
+      currentPosition = { id: 'LW', type: 'W' };
+      pos = ['W'];
+      break;
 
-      case 7:
-        currentPosition = { id: 'RCB', type: 'CB' };
-        pos = ['CB'];
-        break;
+    case 7:
+      currentPosition = { id: 'RCB', type: 'CB' };
+      pos = ['CB'];
+      break;
 
-      case 8:
-        currentPosition = { id: 'LFB', type: 'FB' };
-        pos = ['FB'];
-        break;
+    case 8:
+      currentPosition = { id: 'LFB', type: 'FB' };
+      pos = ['FB'];
+      break;
 
-      case 9:
-        currentPosition = { id: 'AM2', type: 'AM' };
-        pos = ['AM'];
-        break;
+    case 9:
+      currentPosition = { id: 'AM2', type: 'AM' };
+      pos = ['AM'];
+      break;
 
-      case 10:
-        currentPosition = { id: 'GK', type: 'GK' };
-        pos = ['GK'];
-        break;
+    case 10:
+      currentPosition = { id: 'GK', type: 'GK' };
+      pos = ['GK'];
+      break;
 
-      default:
-        break;
-    }
+    default:
+      break;
+  }
 
-    player.currentPosition = currentPosition;
-    player.positions = pos;
+  player.currentPosition = currentPosition;
+  player.positions = pos;
 }
