@@ -5,7 +5,7 @@ import { live, LiveState } from '@app/reducers/live';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '@app/slices/game-types';
 import { APPLY_STARTER, CANCEL_STARTER, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
 import { expect } from '@open-wc/testing';
-import { getLiveGame } from '../helpers/test-live-game-data';
+import * as testlive from '../helpers/test-live-game-data';
 import {
   buildLivePlayers,
   buildRoster,
@@ -27,7 +27,7 @@ const LIVE_INITIAL_STATE: LiveState = {
 };
 
 function buildLiveGameWithPlayers(): LiveGame {
-  return getLiveGame([getStoredPlayer()]);
+  return testlive.getLiveGame(testlive.getLivePlayers(18));
 }
 
 function buildLiveGameWithPlayersSelected(playerId: string, selected: boolean): LiveGame {
@@ -116,7 +116,7 @@ describe('Live reducer', () => {
 
       const state: LiveState = {
         ...LIVE_INITIAL_STATE,
-        liveGame: getLiveGame()
+        liveGame: testlive.getLiveGame()
       };
       expect(state.liveGame).to.not.be.undefined;
       expect(state.liveGame!.players, 'players should be empty').to.deep.equal([]);
@@ -145,7 +145,7 @@ describe('Live reducer', () => {
     let selectedStarter: LivePlayer;
 
     beforeEach(() => {
-      selectedStarter = getStoredPlayer();
+      selectedStarter = testlive.getLivePlayer();
 
       currentState = {
         ...LIVE_INITIAL_STATE,
@@ -248,7 +248,7 @@ describe('Live reducer', () => {
     });
 
     it('should set selectedPosition and propose starter with player selected', () => {
-      const selectedPlayer = getStoredPlayer();
+      const selectedPlayer = testlive.getLivePlayer();
 
       const state: LiveState = {
         ...LIVE_INITIAL_STATE,
@@ -286,7 +286,7 @@ describe('Live reducer', () => {
     let selectedPosition: Position;
 
     beforeEach(() => {
-      selectedPlayer = getStoredPlayer();
+      selectedPlayer = testlive.getLivePlayer();
       selectedPosition = { id: 'AM1', type: 'AM'};
       const starter: LivePlayer = {
         ...selectedPlayer,
@@ -380,7 +380,7 @@ describe('Live reducer', () => {
     let selectedPosition: Position;
 
     beforeEach(() => {
-      selectedPlayer = getStoredPlayer();
+      selectedPlayer = testlive.getLivePlayer();
       selectedPosition = { id: 'AM1', type: 'AM'};
       const starter: LivePlayer = {
         ...selectedPlayer,
@@ -414,12 +414,12 @@ describe('Live reducer', () => {
   }); // describe('CANCEL_STARTER')
 
   describe('SELECT_PLAYER', () => {
-    const selectedPlayerId = getStoredPlayer().id;
+    const selectedPlayerId = testlive.getLivePlayer().id;
     let currentState: LiveState;
     let selectedPlayer: LivePlayer;
 
     beforeEach(() => {
-      selectedPlayer = getStoredPlayer();
+      selectedPlayer = testlive.getLivePlayer();
 
       currentState = {
         ...LIVE_INITIAL_STATE,
