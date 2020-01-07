@@ -3,7 +3,7 @@ import { GameDetail, LiveGame, LivePlayer } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
 import { live, LiveState } from '@app/reducers/live';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '@app/slices/game-types';
-import { APPLY_STARTER, CANCEL_STARTER, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
+import { APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
 import { expect } from '@open-wc/testing';
 import * as testlive from '../helpers/test-live-game-data';
 import {
@@ -585,24 +585,12 @@ describe('Live reducer', () => {
           selected: true
         });
 
-        const expectedState: LiveState = {
-          ...LIVE_INITIAL_STATE,
-          liveGame: buildLiveGameForSelected(PlayerStatus.Off, true, offPlayerId),
-          selectedOffPlayer: offPlayerId,
-          selectedOnPlayer: onPlayerId,
-          proposedSub: {
-            ...offPlayer,
-            selected: true,
-            currentPosition: onPlayer.currentPosition,
-            replaces: onPlayerId
-          } as LivePlayer
-        };
-        // Sets an already selected ON player to match the input state.
-        const expectedOnPlayer = expectedState.liveGame!.players!.find(p => (p.id === onPlayerId))!;
-        expectedOnPlayer.status = PlayerStatus.On;
-        expectedOnPlayer.selected = true;
-
-        expect(newState).to.deep.include(expectedState);
+        expect(newState.proposedSub).to.deep.include({
+          ...offPlayer,
+          selected: true,
+          currentPosition: onPlayer.currentPosition,
+          replaces: onPlayerId
+        });
 
         expect(newState).not.to.equal(currentState);
       });
@@ -618,29 +606,113 @@ describe('Live reducer', () => {
           selected: true
         });
 
-        const expectedState: LiveState = {
-          ...LIVE_INITIAL_STATE,
-          liveGame: buildLiveGameForSelected(PlayerStatus.Off, true, offPlayerId),
-          selectedOffPlayer: offPlayerId,
-          selectedOnPlayer: onPlayerId,
-          proposedSub: {
-            ...offPlayer,
-            selected: true,
-            currentPosition: onPlayer.currentPosition,
-            replaces: onPlayerId
-          } as LivePlayer
-        };
-        // Sets an already selected On player to match the input state.
-        const expectedOnPlayer = expectedState.liveGame!.players!.find(p => (p.id === onPlayerId))!;
-        expectedOnPlayer.status = PlayerStatus.On;
-        expectedOnPlayer.selected = true;
-
-        expect(newState).to.deep.include(expectedState);
+        expect(newState.proposedSub).to.deep.include({
+          ...offPlayer,
+          selected: true,
+          currentPosition: onPlayer.currentPosition,
+          replaces: onPlayerId
+        });
 
         expect(newState).not.to.equal(currentState);
       });
     }); // describe('Propose sub')
   }); // describe('SELECT_PLAYER')
+
+  describe('Proposed Subs', () => {
+    const offPlayerId = 'P1';
+    const onPlayerId = 'P2';
+    let offPlayer: LivePlayer;
+    let onPlayer: LivePlayer;
+    let currentState: LiveState;
+
+    beforeEach(async () => {
+      const game = buildLiveGameWithPlayers();
+      offPlayer = game.players!.find(p => (p.id === offPlayerId))!;
+      offPlayer.status = PlayerStatus.Off;
+      offPlayer.selected = true;
+      onPlayer = game.players!.find(p => (p.id === onPlayerId))!;
+      onPlayer.status = PlayerStatus.On;
+      onPlayer.selected = true;
+
+      const sub: LivePlayer = {
+        ...offPlayer,
+        currentPosition: { ...onPlayer.currentPosition! },
+        replaces: onPlayer.id
+      }
+
+      currentState = {
+        ...LIVE_INITIAL_STATE,
+        liveGame: game,
+        selectedOffPlayer: offPlayerId,
+        selectedOnPlayer: onPlayerId,
+        proposedSub: sub
+      };
+    });
+
+    describe('CONFIRM_SUB', () => {
+
+      it('should set off player to NEXT with currentPosition', () => {
+        const newState: LiveState = live(currentState, {
+          type: CONFIRM_SUB
+        });
+
+        expect(newState.liveGame!.players).to.not.be.undefined;
+        const newPlayers = newState.liveGame!.players!;
+
+        const newPlayer = newPlayers.find(player => (player.id === offPlayerId));
+        expect(newPlayer).to.not.be.undefined;
+        expect(newPlayer).to.deep.include({
+          status: PlayerStatus.Next,
+          currentPosition: { ...onPlayer.currentPosition },
+          replaces: onPlayerId
+        });
+        expect(newPlayer!.selected, 'Off player should no longer be selected').to.not.be.ok;
+
+        expect(newState).not.to.equal(currentState);
+        expect(newState.liveGame).not.to.equal(currentState.liveGame);
+        expect(newPlayers).not.to.equal(currentState.liveGame!.players);
+      });
+
+      it('should clear selected players and proposed sub', () => {
+        const newState = live(currentState, {
+          type: CONFIRM_SUB
+        });
+
+        const newPlayer = newState.liveGame!.players!.find(player => (player.id === onPlayerId));
+        expect(newPlayer).to.not.be.undefined;
+        expect(newPlayer!.selected, 'On player should no longer be selected').to.not.be.ok;
+
+        expect(newState.selectedOffPlayer).to.be.undefined;
+        expect(newState.selectedOnPlayer).to.be.undefined;
+        expect(newState.proposedSub).to.be.undefined;
+
+        expect(newState).not.to.equal(currentState);
+      });
+    }); // describe('CONFIRM_SUB')
+
+    describe('CANCEL_SUB', () => {
+
+      it('should clear selected players and proposed sub', () => {
+        const newState = live(currentState, {
+          type: CANCEL_SUB
+        });
+
+        const cancelledOffPlayer = newState.liveGame!.players!.find(player => (player.id === offPlayerId));
+        expect(cancelledOffPlayer).to.not.be.undefined;
+        expect(cancelledOffPlayer!.selected, 'Off player should no longer be selected').to.not.be.ok;
+
+        const cancelledOnPlayer = newState.liveGame!.players!.find(player => (player.id === onPlayerId));
+        expect(cancelledOnPlayer).to.not.be.undefined;
+        expect(cancelledOnPlayer!.selected, 'On player should no longer be selected').to.not.be.ok;
+
+        expect(newState.selectedOffPlayer).to.be.undefined;
+        expect(newState.selectedOnPlayer).to.be.undefined;
+        expect(newState.proposedSub).to.be.undefined;
+
+        expect(newState).not.to.equal(currentState);
+      });
+    }); // describe('CANCEL_SUB')
+  }); // describe('Proposed Subs')
 
   describe('SET_FORMATION', () => {
 

@@ -9,8 +9,8 @@ import { LiveGame, LivePlayer } from '../models/game';
 import { LiveGameBuilder } from '../models/live';
 import { PlayerStatus } from '../models/player';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../slices/game-types';
-import { APPLY_STARTER, CANCEL_STARTER, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
-import { RootAction } from '../store';
+import { APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
+import { RootAction, RootState } from '../store';
 import { createReducer } from './createReducer';
 
 export interface LiveState {
@@ -34,6 +34,8 @@ const INITIAL_STATE: LiveState = {
   selectedOnPlayer: undefined,
   proposedSub: undefined,
 };
+
+export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 
 export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE, {
   [GET_GAME_SUCCESS]: (newState, action) => {
@@ -145,6 +147,36 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
     }
   },
 
+  [CONFIRM_SUB]: (newState) => {
+    const sub = newState.proposedSub!;
+
+    newState.liveGame!.players!.forEach(player => {
+      if (player.id === sub.id) {
+        player.selected = false;
+        player.status = PlayerStatus.Next;
+        player.currentPosition = sub.currentPosition;
+        player.replaces = sub.replaces;
+        return;
+      }
+      if (player.id === sub.replaces) {
+        player.selected = false;
+      }
+    });
+
+    clearProposedSub(newState);
+  },
+
+  [CANCEL_SUB]: (newState) => {
+    const cancelIds = [newState.selectedOffPlayer!, newState.selectedOnPlayer!];
+    for (const playerId of cancelIds) {
+      const selectedPlayer = findPlayer(newState, playerId);
+      if (selectedPlayer && selectedPlayer.selected) {
+        selectedPlayer.selected = false;
+      }
+    }
+    clearProposedSub(newState);
+  },
+
 });
 
 function prepareStarterIfPossible(newState: LiveState) {
@@ -194,6 +226,12 @@ function prepareSubIfPossible(newState: LiveState) {
     },
     replaces: onPlayer.id
   }
+}
+
+function clearProposedSub(newState: LiveState) {
+  delete newState.selectedOffPlayer;
+  delete newState.selectedOnPlayer;
+  delete newState.proposedSub;
 }
 
 function findPlayer(newState: LiveState, playerId: string) {

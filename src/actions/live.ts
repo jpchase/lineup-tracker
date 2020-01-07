@@ -4,6 +4,8 @@ import { Position } from '../models/formation';
 import {
   APPLY_STARTER,
   CANCEL_STARTER,
+  CANCEL_SUB,
+  CONFIRM_SUB,
   SELECT_PLAYER,
   SELECT_STARTER,
   SELECT_STARTER_POSITION
@@ -12,11 +14,13 @@ import { RootState } from '../store';
 
 export interface LiveActionApplyStarter extends Action<typeof APPLY_STARTER> {};
 export interface LiveActionCancelStarter extends Action<typeof CANCEL_STARTER> {};
+export interface LiveActionCancelSub extends Action<typeof CANCEL_SUB> {};
+export interface LiveActionConfirmSub extends Action<typeof CONFIRM_SUB> {};
 export interface LiveActionSelectPlayer extends Action<typeof SELECT_PLAYER> { playerId: string; selected: boolean };
 export interface LiveActionSelectStarter extends Action<typeof SELECT_STARTER> { playerId: string; selected: boolean };
 export interface LiveActionSelectStarterPosition extends Action<typeof SELECT_STARTER_POSITION> { position: Position };
 
-export type LiveAction = LiveActionApplyStarter | LiveActionCancelStarter | LiveActionSelectPlayer | LiveActionSelectStarter | LiveActionSelectStarterPosition;
+export type LiveAction = LiveActionApplyStarter | LiveActionCancelStarter | LiveActionCancelSub | LiveActionConfirmSub | LiveActionSelectPlayer | LiveActionSelectStarter | LiveActionSelectStarterPosition;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, LiveAction>;
 
