@@ -1,6 +1,7 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { Position } from '../models/formation';
+import { proposedSubSelector } from '../reducers/live';
 import {
   APPLY_STARTER,
   CANCEL_STARTER,
@@ -32,6 +33,24 @@ export const selectPlayer: ActionCreator<ThunkResult> = (playerId: string, selec
     type: SELECT_PLAYER,
     playerId,
     selected: !!selected
+  });
+};
+
+export const confirmProposedSub: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
+  if (!proposedSubSelector(getState())) {
+    return;
+  }
+  dispatch({
+    type: CONFIRM_SUB
+  });
+};
+
+export const cancelProposedSub: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
+  if (!proposedSubSelector(getState())) {
+    return;
+  }
+  dispatch({
+    type: CANCEL_SUB
   });
 };
 

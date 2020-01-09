@@ -1,13 +1,16 @@
 import { LivePlayer, LiveGame } from '@app/models/game';
 import { Player, PlayerStatus } from '@app/models/player';
-import { /* getStoredGame,*/ STORED_GAME_ID } from './test_data';
+import { STORED_GAME_ID } from './test_data';
 
-export function getLiveGame(players?: Player[] /*, status?: GameStatus */): LiveGame {
+export function getLiveGame(players?: Player[]): LiveGame {
   return {
     id: STORED_GAME_ID,
-    // ...getStoredGame(status),
     players: buildLivePlayers(players)
   };
+}
+
+export function getLiveGameWithPlayers(): LiveGame {
+  return getLiveGame(getLivePlayers(18));
 }
 
 export function buildLivePlayers(players?: Player[]): LivePlayer[] {

@@ -72,6 +72,76 @@ describe('Live actions', () => {
     });
   }); // describe('selectPlayer')
 
+  describe('applyProposedSub', () => {
+    it('should return a function to dispatch the applyProposedSub action', () => {
+      expect(actions.confirmProposedSub()).to.be.instanceof(Function);
+    });
+
+    it('should do nothing if proposed sub is missing', () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState();
+
+      actions.confirmProposedSub()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.not.have.been.called;
+    });
+
+    it('should dispatch an action to apply the proposed sub', () => {
+      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const sub: LivePlayer = {
+        ...getStoredPlayer(),
+        currentPosition: { ...selectedPosition },
+        replaces: 'foo'
+      }
+
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState((liveState) => {
+        liveState.proposedSub = sub;
+      });
+
+      actions.confirmProposedSub()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.CONFIRM_SUB
+      });
+    });
+  }); // describe('applyProposedSub')
+
+  describe('cancelProposedSub', () => {
+    it('should return a function to dispatch the cancelProposedSub action', () => {
+      expect(actions.cancelProposedSub()).to.be.instanceof(Function);
+    });
+
+    it('should do nothing if proposed sub is missing', () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState();
+
+      actions.cancelProposedSub()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.not.have.been.called;
+    });
+
+    it('should dispatch an action to cancel the proposed sub', () => {
+      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const sub: LivePlayer = {
+        ...getStoredPlayer(),
+        currentPosition: { ...selectedPosition },
+        replaces: 'foo'
+      }
+
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState((liveState) => {
+        liveState.proposedSub = sub;
+      });
+
+      actions.cancelProposedSub()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.CANCEL_SUB
+      });
+    });
+  }); // describe('cancelProposedSub')
+
   describe('selectStarter', () => {
     it('should return a function to dispatch the selectStarter action', () => {
       expect(actions.selectStarter()).to.be.instanceof(Function);

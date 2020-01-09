@@ -34,6 +34,8 @@
     <lineup-player-list mode="next">
     </lineup-player-list>
   </div>
+  <div id="confirm-sub">
+  </div>
   <div id="live-off">
     <h5>
       Subs
@@ -47,6 +49,41 @@
     </h5>
     <lineup-player-list mode="out">
     </lineup-player-list>
+  </div>
+</div>
+
+```
+
+## `Subs`
+
+####   `shows confirm sub UI when proposed sub exists`
+
+```html
+<div id="confirm-sub">
+  <div>
+    <h5>
+      Confirm sub?
+    </h5>
+    <span class="proposed-player">
+      Player 1
+      #
+      11
+    </span>
+    <span class="proposed-position">
+      CB (Left)
+    </span>
+    <span class="replaced">
+      Player 0
+    </span>
+    <mwc-button class="cancel">
+      Cancel
+    </mwc-button>
+    <mwc-button
+      autofocus=""
+      class="ok"
+    >
+      Confirm
+    </mwc-button>
   </div>
 </div>
 

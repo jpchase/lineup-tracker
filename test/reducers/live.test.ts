@@ -28,7 +28,7 @@ const LIVE_INITIAL_STATE: LiveState = {
 };
 
 function buildLiveGameWithPlayers(): LiveGame {
-  return testlive.getLiveGame(testlive.getLivePlayers(18));
+  return testlive.getLiveGameWithPlayers();
 }
 
 function buildLiveGameWithPlayersSelected(playerId: string, selected: boolean): LiveGame {

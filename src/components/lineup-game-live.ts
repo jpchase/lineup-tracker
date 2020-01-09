@@ -15,7 +15,8 @@ import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import { getLiveStore } from '../slices/live-store';
 
 // These are the actions needed by this element.
-import { selectPlayer } from '../actions/live';
+import { cancelProposedSub, confirmProposedSub, selectPlayer } from '../actions/live';
+import { proposedSubSelector } from '../reducers/live';
 
 // These are the elements needed by this element.
 import '@material/mwc-button';
@@ -61,11 +62,14 @@ export class LineupGameLive extends connectStore()(LitElement) {
       <div id="live-on">
         <h5>Playing</h5>
         <lineup-on-player-list .formation="${formation}" .players="${players}"
-                                ></lineup-on-player-list>
+                               @positionselected="${this._playerSelected}"></lineup-on-player-list>
       </div>
       <div id="live-next">
         <h5>Next On</h5>
         <lineup-player-list mode="next" .players="${players}"></lineup-player-list>
+      </div>
+      <div id="confirm-sub">
+      ${this._getConfirmSub()}
       </div>
       <div id="live-off">
         <h5>Subs</h5>
@@ -76,6 +80,39 @@ export class LineupGameLive extends connectStore()(LitElement) {
         <h5>Unavailable</h5>
         <lineup-player-list mode="out" .players="${players}"></lineup-player-list>
       </div>`
+  }
+
+  private _getConfirmSub() {
+    if (!this._proposedSub) {
+      return '';
+    }
+    const sub = this._proposedSub;
+    const replaced = this._findPlayer(sub.replaces!)!;
+    const currentPosition = sub.currentPosition!;
+    let positionText = currentPosition.type;
+
+    if (currentPosition.id !== currentPosition.type) {
+      let addition = '';
+      if (currentPosition.id[0] === 'L') {
+        addition = 'Left';
+      } else if (currentPosition.id[0] === 'R') {
+        addition = 'Right';
+      } else if (currentPosition.id.length > currentPosition.type.length) {
+        addition = currentPosition.id.substring(currentPosition.type.length);
+      }
+      positionText += ` (${addition})`;
+    }
+
+    return html`
+      <div>
+        <h5>Confirm sub?</h5>
+        <span class="proposed-player">${sub.name} #${sub.uniformNumber}</span>
+        <span class="proposed-position">${positionText}</span>
+        <span class="replaced">${replaced.name}</span>
+        <mwc-button class="cancel" @click="${this._cancelSub}">Cancel</mwc-button>
+        <mwc-button class="ok" autofocus @click="${this._confirmSub}">Confirm</mwc-button>
+      </div>
+    `;
   }
 
   @property({ type: Object })
@@ -90,6 +127,9 @@ export class LineupGameLive extends connectStore()(LitElement) {
   @property({type: Object})
   private _players: LivePlayer[] | undefined;
 
+  @property({type: Object})
+  private _proposedSub: LivePlayer | undefined;
+
   stateChanged(state: RootState) {
     if (!state.live) {
       return;
@@ -100,9 +140,22 @@ export class LineupGameLive extends connectStore()(LitElement) {
     }
 
     this._players = this._game.players || [];
+    this._proposedSub = proposedSubSelector(state);
   }
 
   private _playerSelected(e: CustomEvent) {
     this.dispatch(selectPlayer(e.detail.player.id, e.detail.selected));
+  }
+
+  private _confirmSub() {
+    this.dispatch(confirmProposedSub());
+  }
+
+  private _cancelSub() {
+    this.dispatch(cancelProposedSub());
+  }
+
+  private _findPlayer(playerId: string) {
+    return this._players!.find(player => (player.id === playerId));
   }
 }
