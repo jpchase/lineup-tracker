@@ -95,7 +95,7 @@
     "prpl-server": "^1.2.0",
     "puppeteer": "^1.5.0",
     "sinon": "^7.5.0",
-    "sinon-chai": "^3.3.0",
+    "sinon-chai": "^3.4.0",
     "superstatic": "^6.0.4",
     "typescript": "^3.6.4",
     "webpack": "^4.41.2",
