@@ -6,10 +6,10 @@ import { LiveActionSelectStarter } from '@app/actions/live';
 import { Reducer } from 'redux';
 import { Position } from '../models/formation';
 import { LiveGame, LivePlayer } from '../models/game';
-import { LiveGameBuilder } from '../models/live';
+import { getPlayer, LiveGameBuilder } from '../models/live';
 import { PlayerStatus } from '../models/player';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../slices/game-types';
-import { APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
+import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
 import { RootAction, RootState } from '../store';
 import { createReducer } from './createReducer';
 
@@ -177,6 +177,31 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
     clearProposedSub(newState);
   },
 
+  [APPLY_NEXT]: (newState, action) => {
+    const nextPlayers = findPlayersByStatus(newState, PlayerStatus.Next, action.playerIds);
+    nextPlayers.forEach(player => {
+      const replacedPlayer = findPlayer(newState, player.replaces!);
+      if (!(replacedPlayer && replacedPlayer.status === PlayerStatus.On)) {
+        return;
+      }
+
+      player.status = PlayerStatus.On;
+      player.replaces = undefined;
+
+      replacedPlayer.status = PlayerStatus.Off;
+      replacedPlayer.currentPosition = undefined;
+    });
+  },
+
+  [DISCARD_NEXT]: (newState, action) => {
+    const nextPlayers = findPlayersByStatus(newState, PlayerStatus.Next, action.playerIds);
+    nextPlayers.forEach(player => {
+      player.status = PlayerStatus.Off;
+      player.replaces = undefined;
+      player.currentPosition = undefined;
+    });
+  },
+
 });
 
 function prepareStarterIfPossible(newState: LiveState) {
@@ -235,7 +260,24 @@ function clearProposedSub(newState: LiveState) {
 }
 
 function findPlayer(newState: LiveState, playerId: string) {
-  return newState.liveGame!.players!.find(player => player.id === playerId);
+  return getPlayer(newState.liveGame!, playerId);
+}
+
+function findPlayersByStatus(newState: LiveState, status: PlayerStatus, filterIds?: string[]) {
+  const useFilter = filterIds && filterIds.length > 0;
+
+  let matches: LivePlayer[] = [];
+  newState.liveGame!.players!.forEach(player => {
+    if (player.status !== status) {
+      return;
+    }
+    if (useFilter && !filterIds!.includes(player.id)) {
+      return;
+    }
+
+    matches.push(player);
+  });
+  return matches;
 }
 
 function getCurrentSelected(newState: LiveState, status: PlayerStatus) {

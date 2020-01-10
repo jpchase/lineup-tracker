@@ -1,9 +1,10 @@
 import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, LiveGame, LivePlayer } from '@app/models/game';
+import { getPlayer } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
 import { live, LiveState } from '@app/reducers/live';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '@app/slices/game-types';
-import { APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
+import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
 import { expect } from '@open-wc/testing';
 import * as testlive from '../helpers/test-live-game-data';
 import {
@@ -713,6 +714,209 @@ describe('Live reducer', () => {
       });
     }); // describe('CANCEL_SUB')
   }); // describe('Proposed Subs')
+
+  describe('Next Subs', () => {
+    const nextPlayerIds = ['P1', 'P2', 'P3'];
+    const onPlayerIds = ['P4', 'P5', 'P6'];
+    let currentState: LiveState;
+
+    beforeEach(async () => {
+      const game = buildLiveGameWithPlayers();
+
+      for (let i = 0; i < nextPlayerIds.length; i++) {
+        const nextId = nextPlayerIds[i];
+        const nextPlayer = getPlayer(game, nextId)!;
+        const onId = onPlayerIds[i];
+        const onPlayer = getPlayer(game, onId)!;
+
+        onPlayer.status = PlayerStatus.On;
+
+        nextPlayer.status = PlayerStatus.Next;
+        nextPlayer.currentPosition = { ...onPlayer.currentPosition! };
+        nextPlayer.replaces = onPlayer.id;
+      }
+
+      currentState = {
+        ...LIVE_INITIAL_STATE,
+        liveGame: game
+      };
+    });
+
+    function getIdsByStatus(game: LiveGame) {
+      let nextIds = [];
+      let offIds = [];
+      let onIds = [];
+      for (const newPlayer of game.players!) {
+        switch (newPlayer.status) {
+          case PlayerStatus.Next:
+            nextIds.push(newPlayer.id);
+            break;
+
+          case PlayerStatus.Off:
+            offIds.push(newPlayer.id);
+            // expect(subbedOffIds.has(newPlayer.id), `Player ${newPlayer.id} should now be OFF, not still ON`).to.be.false;
+            // nowPlayingIds.delete(newPlayer.id);
+            break;
+
+          case PlayerStatus.On:
+            onIds.push(newPlayer.id);
+            // expect(subbedOffIds.has(newPlayer.id), `Player ${newPlayer.id} should now be OFF, not still ON`).to.be.false;
+            // expect(shouldBeOffIds, `Player ${newPlayer.id} should now be OFF, not still ON`).to.not.include(newPlayer.id);
+            // nowPlayingIds.delete(newPlayer.id);
+            break;
+        }
+      }
+      return {
+        [PlayerStatus.Next]: nextIds,
+        [PlayerStatus.Off]: offIds,
+        [PlayerStatus.On]: onIds
+      };
+    }
+
+    describe('APPLY_NEXT', () => {
+
+      it('should sub all next players, when no ids given', () => {
+        const newState: LiveState = live(currentState, {
+          type: APPLY_NEXT
+        });
+
+        const newIds = getIdsByStatus(newState.liveGame!);
+
+        expect(newIds[PlayerStatus.On]).to.contain.members(nextPlayerIds, 'All next players should now be on');
+        expect(newIds[PlayerStatus.Off]).to.contain.members(onPlayerIds, 'All replaced players should now be off');
+        expect(newIds[PlayerStatus.Next], 'No next players should remain').to.be.empty;
+
+        expect(newState).not.to.equal(currentState);
+        expect(newState.liveGame).not.to.equal(currentState.liveGame);
+        expect(newState.liveGame!.players).not.to.equal(currentState.liveGame!.players);
+      });
+
+      it('should sub only given next players', () => {
+        // Apply 2 of the 3 pending subs (> 1 to test it will actually sub multiple, not just first)
+        const nowPlayingIds = ['P1', 'P3'];
+        const stillNextIds = ['P2'];
+        const subbedOffIds = ['P4', 'P6'];
+        const stillOnIds = ['P5'];
+
+        const newState = live(currentState, {
+          type: APPLY_NEXT,
+          playerIds: nowPlayingIds
+        });
+
+        const newIds = getIdsByStatus(newState.liveGame!);
+
+        expect(newIds[PlayerStatus.On]).to.contain.members(nowPlayingIds, 'Specified next players should now be on');
+        expect(newIds[PlayerStatus.On]).to.contain.members(stillOnIds, 'Players not yet replaced should still be on');
+        expect(newIds[PlayerStatus.Off]).to.contain.members(subbedOffIds, 'Specified replaced players should now be off');
+        expect(newIds[PlayerStatus.Next]).to.have.members(stillNextIds, 'Next players not specified should remain');
+
+        for (const onId of nowPlayingIds) {
+          const player = getPlayer(newState.liveGame!, onId)!;
+
+          expect(player.replaces, 'Now playing, the replaces property should be cleared').to.not.be.ok;
+          expect(player.currentPosition, 'Now playing, the currentPosition property should still be set').to.be.ok;
+        }
+
+        for (const nextId of stillNextIds) {
+          const player = getPlayer(newState.liveGame!, nextId)!;
+
+          expect(player.replaces).to.equal('P5', 'Still next, the replaces property should still be set');
+          expect(player.currentPosition, 'Still next, the currentPosition property should still be set').to.be.ok;
+        }
+
+        for (const offId of subbedOffIds) {
+          const player = getPlayer(newState.liveGame!, offId)!;
+
+          expect(player.currentPosition, 'Now off, the currentPosition property should be cleared').to.not.be.ok;
+        }
+
+        expect(newState).not.to.equal(currentState);
+      });
+
+      it('ignores players that are not next', () => {
+        // Attempt to sub players that aren't actually next, as well as valid subs.
+        const nowPlayingIds = ['P1', 'P3'];
+        const invalidNextIds = ['P7'];
+        const attemptedIds = ['P1', 'P3', 'P7'];
+        const stillNextIds = ['P2'];
+        const subbedOffIds = ['P4', 'P6'];
+        const stillOnIds = ['P5'];
+
+        const newState = live(currentState, {
+          type: APPLY_NEXT,
+          playerIds: attemptedIds
+        });
+
+        const newIds = getIdsByStatus(newState.liveGame!);
+
+        expect(newIds[PlayerStatus.On]).to.contain.members(nowPlayingIds, 'Specified, and valid, next players should now be on');
+        expect(newIds[PlayerStatus.On]).to.contain.members(stillOnIds, 'Players not yet replaced should still be on');
+        expect(newIds[PlayerStatus.Off]).to.contain.members(subbedOffIds, 'Specified replaced players should now be off');
+        expect(newIds[PlayerStatus.Off]).to.contain.members(invalidNextIds, 'Invalid players should remain off');
+        expect(newIds[PlayerStatus.Next]).to.have.members(stillNextIds, 'Next players not specified should remain');
+
+        expect(newState).not.to.equal(currentState);
+      });
+
+    }); // describe('APPLY_NEXT')
+
+    describe('DISCARD_NEXT', () => {
+
+      it('should reset all next players to off, when no ids given', () => {
+        const nowOffIds = ['P1', 'P2', 'P3'];
+        const stillOnIds = ['P4', 'P5', 'P6'];
+
+        const newState = live(currentState, {
+          type: DISCARD_NEXT
+        });
+
+        const newIds = getIdsByStatus(newState.liveGame!);
+
+        expect(newIds[PlayerStatus.On]).to.contain.members(stillOnIds, 'All to be replaced players should still be on');
+        expect(newIds[PlayerStatus.Off]).to.contain.members(nowOffIds, 'All next players should now be off');
+        expect(newIds[PlayerStatus.Next], 'No next players should remain').to.be.empty;
+
+        expect(newState).not.to.equal(currentState);
+        expect(newState.liveGame).not.to.equal(currentState.liveGame);
+        expect(newState.liveGame!.players).not.to.equal(currentState.liveGame!.players);
+      });
+
+      it('should reset only given next players to off', () => {
+        // Discard 2 of the 3 pending subs (> 1 to test it will actually sub multiple, not just first)
+        const nowOffIds = ['P1', 'P3'];
+        const stillNextIds = ['P2'];
+        const stillOnIds = ['P4', 'P5', 'P6'];
+
+        const newState = live(currentState, {
+          type: DISCARD_NEXT,
+          playerIds: nowOffIds
+        });
+
+        const newIds = getIdsByStatus(newState.liveGame!);
+
+        expect(newIds[PlayerStatus.On]).to.contain.members(stillOnIds, 'All to be replaced players should still be on');
+        expect(newIds[PlayerStatus.Off]).to.contain.members(nowOffIds, 'Specified next players should now be off');
+        expect(newIds[PlayerStatus.Next]).to.have.members(stillNextIds, 'Next players not specified should remain');
+
+        for (const nextId of stillNextIds) {
+          const player = getPlayer(newState.liveGame!, nextId)!;
+
+          expect(player.replaces).to.equal('P5', 'Still next, the replaces property should still be set');
+          expect(player.currentPosition, 'Still next, the currentPosition property should still be set').to.be.ok;
+        }
+
+        for (const offId of nowOffIds) {
+          const player = getPlayer(newState.liveGame!, offId)!;
+
+          expect(player.replaces, 'Now off, the replaces property should be cleared').to.not.be.ok;
+          expect(player.currentPosition, 'Now off, the currentPosition property should be cleared').to.not.be.ok;
+        }
+
+        expect(newState).not.to.equal(currentState);
+      });
+
+    }); // describe('DISCARD_NEXT')
+  }); // describe('Next Subs')
 
   describe('SET_FORMATION', () => {
 

@@ -25,3 +25,10 @@ export class LiveGameBuilder {
     return liveGame;
   }
 }
+
+export function getPlayer(game: LiveGame, playerId: string) {
+  if (!game || !game.players) {
+    return;
+  }
+  return game.players.find(p => (p.id === playerId));
+}
