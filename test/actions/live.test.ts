@@ -72,8 +72,8 @@ describe('Live actions', () => {
     });
   }); // describe('selectPlayer')
 
-  describe('applyProposedSub', () => {
-    it('should return a function to dispatch the applyProposedSub action', () => {
+  describe('confirmProposedSub', () => {
+    it('should return a function to dispatch the confirmProposedSub action', () => {
       expect(actions.confirmProposedSub()).to.be.instanceof(Function);
     });
 
@@ -86,7 +86,7 @@ describe('Live actions', () => {
       expect(dispatchMock).to.not.have.been.called;
     });
 
-    it('should dispatch an action to apply the proposed sub', () => {
+    it('should dispatch an action to confirm the proposed sub', () => {
       const selectedPosition: Position = { id: 'AM1', type: 'AM'};
       const sub: LivePlayer = {
         ...getStoredPlayer(),
@@ -105,7 +105,7 @@ describe('Live actions', () => {
         type: actionTypes.CONFIRM_SUB
       });
     });
-  }); // describe('applyProposedSub')
+  }); // describe('confirmProposedSub')
 
   describe('cancelProposedSub', () => {
     it('should return a function to dispatch the cancelProposedSub action', () => {
@@ -141,6 +141,66 @@ describe('Live actions', () => {
       });
     });
   }); // describe('cancelProposedSub')
+
+  describe('applyPendingSubs', () => {
+    it('should return a function to dispatch the applyPendingSubs action', () => {
+      expect(actions.applyPendingSubs()).to.be.instanceof(Function);
+    });
+
+    it('should dispatch an action to apply the pending sub', () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
+
+      actions.applyPendingSubs()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.APPLY_NEXT,
+        selectedOnly: false
+      });
+    });
+
+    it('should dispatch an action, with selected only, to apply the pending sub', () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
+
+      actions.applyPendingSubs(true)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.APPLY_NEXT,
+        selectedOnly: true
+      });
+    });
+  }); // describe('applyPendingSubs')
+
+  describe('discardPendingSubs', () => {
+    it('should return a function to dispatch the discardPendingSubs action', () => {
+      expect(actions.discardPendingSubs()).to.be.instanceof(Function);
+    });
+
+    it('should dispatch an action to discard the pending subs', () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
+
+      actions.discardPendingSubs()(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.DISCARD_NEXT,
+        selectedOnly: false
+      });
+    });
+
+    it('should dispatch an action, with selected only, to discard the pending sub', () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
+
+      actions.discardPendingSubs(true)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.DISCARD_NEXT,
+        selectedOnly: true
+      });
+    });
+  }); // describe('discardPendingSubs')
 
   describe('selectStarter', () => {
     it('should return a function to dispatch the selectStarter action', () => {

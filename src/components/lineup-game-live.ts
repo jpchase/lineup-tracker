@@ -15,7 +15,7 @@ import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import { getLiveStore } from '../slices/live-store';
 
 // These are the actions needed by this element.
-import { cancelProposedSub, confirmProposedSub, selectPlayer } from '../actions/live';
+import { applyPendingSubs, cancelProposedSub, confirmProposedSub, discardPendingSubs, selectPlayer } from '../actions/live';
 import { proposedSubSelector } from '../reducers/live';
 
 // These are the elements needed by this element.
@@ -66,6 +66,10 @@ export class LineupGameLive extends connectStore()(LitElement) {
       </div>
       <div id="live-next">
         <h5>Next On</h5>
+        <div>
+          <mwc-button id="sub-apply-btn" @click="${this._applySubs}">Sub</mwc-button>
+          <mwc-button id="sub-discard-btn" @click="${this._discardSubs}">Discard</mwc-button>
+        </div>
         <lineup-player-list mode="next" .players="${players}"></lineup-player-list>
       </div>
       <div id="confirm-sub">
@@ -153,6 +157,16 @@ export class LineupGameLive extends connectStore()(LitElement) {
 
   private _cancelSub() {
     this.dispatch(cancelProposedSub());
+  }
+
+  private _applySubs() {
+    // TODO: Pass selectedOnly param, based on if any next cards are selected
+    this.dispatch(applyPendingSubs());
+  }
+
+  private _discardSubs() {
+    // TODO: Pass selectedOnly param, based on if any next cards are selected
+    this.dispatch(discardPendingSubs());
   }
 
   private _findPlayer(playerId: string) {

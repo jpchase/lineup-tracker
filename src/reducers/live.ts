@@ -178,7 +178,7 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
   },
 
   [APPLY_NEXT]: (newState, action) => {
-    const nextPlayers = findPlayersByStatus(newState, PlayerStatus.Next, action.playerIds);
+    const nextPlayers = findPlayersByStatus(newState, PlayerStatus.Next, action.selectedOnly);
     nextPlayers.forEach(player => {
       const replacedPlayer = findPlayer(newState, player.replaces!);
       if (!(replacedPlayer && replacedPlayer.status === PlayerStatus.On)) {
@@ -187,18 +187,21 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
 
       player.status = PlayerStatus.On;
       player.replaces = undefined;
+      player.selected = false;
 
       replacedPlayer.status = PlayerStatus.Off;
       replacedPlayer.currentPosition = undefined;
+      replacedPlayer.selected = false;
     });
   },
 
   [DISCARD_NEXT]: (newState, action) => {
-    const nextPlayers = findPlayersByStatus(newState, PlayerStatus.Next, action.playerIds);
+    const nextPlayers = findPlayersByStatus(newState, PlayerStatus.Next, action.selectedOnly);
     nextPlayers.forEach(player => {
       player.status = PlayerStatus.Off;
       player.replaces = undefined;
       player.currentPosition = undefined;
+      player.selected = false;
     });
   },
 
@@ -263,15 +266,13 @@ function findPlayer(newState: LiveState, playerId: string) {
   return getPlayer(newState.liveGame!, playerId);
 }
 
-function findPlayersByStatus(newState: LiveState, status: PlayerStatus, filterIds?: string[]) {
-  const useFilter = filterIds && filterIds.length > 0;
-
+function findPlayersByStatus(newState: LiveState, status: PlayerStatus, selectedOnly?: boolean) {
   let matches: LivePlayer[] = [];
   newState.liveGame!.players!.forEach(player => {
     if (player.status !== status) {
       return;
     }
-    if (useFilter && !filterIds!.includes(player.id)) {
+    if (selectedOnly && !player.selected) {
       return;
     }
 

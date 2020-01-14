@@ -17,8 +17,8 @@ import { RootState } from '../store';
 
 export interface LiveActionApplyStarter extends Action<typeof APPLY_STARTER> {};
 export interface LiveActionCancelStarter extends Action<typeof CANCEL_STARTER> {};
-export interface LiveActionApplyNext extends Action<typeof APPLY_NEXT> { playerIds?: string[]} ;
-export interface LiveActionDiscardNext extends Action<typeof DISCARD_NEXT> { playerIds?: string[] };
+export interface LiveActionApplyNext extends Action<typeof APPLY_NEXT> { selectedOnly?: boolean } ;
+export interface LiveActionDiscardNext extends Action<typeof DISCARD_NEXT> { selectedOnly?: boolean };
 export interface LiveActionCancelSub extends Action<typeof CANCEL_SUB> {};
 export interface LiveActionConfirmSub extends Action<typeof CONFIRM_SUB> {};
 export interface LiveActionSelectPlayer extends Action<typeof SELECT_PLAYER> { playerId: string; selected: boolean };
@@ -57,6 +57,20 @@ export const cancelProposedSub: ActionCreator<ThunkResult> = () => (dispatch, ge
   }
   dispatch({
     type: CANCEL_SUB
+  });
+};
+
+export const applyPendingSubs: ActionCreator<ThunkResult> = (selectedOnly?: boolean) => (dispatch) => {
+  dispatch({
+    type: APPLY_NEXT,
+    selectedOnly: !!selectedOnly
+  });
+};
+
+export const discardPendingSubs: ActionCreator<ThunkResult> = (selectedOnly?: boolean) => (dispatch) => {
+  dispatch({
+    type: DISCARD_NEXT,
+    selectedOnly: !!selectedOnly
   });
 };
 

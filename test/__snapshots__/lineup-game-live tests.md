@@ -31,6 +31,14 @@
     <h5>
       Next On
     </h5>
+    <div>
+      <mwc-button id="sub-apply-btn">
+        Sub
+      </mwc-button>
+      <mwc-button id="sub-discard-btn">
+        Discard
+      </mwc-button>
+    </div>
     <lineup-player-list mode="next">
     </lineup-player-list>
   </div>
