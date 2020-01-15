@@ -15,6 +15,13 @@ module.exports = (config) => {
           // npm run test -- --grep test/foo/bar.test.js
           // npm run test -- --grep test/bar/*
           { pattern: config.grep ? config.grep : 'test/**/*.test.js', type: 'module' },
+          {
+            pattern: 'test/__snapshots__/**/*.md',
+            // snapshot preprocessor will rewrite content of .md files with JS wrappers
+            // but karma will try and determine file type based on extension if we do not
+            // specify it, so force snapshot files to be js type to avoid karma complaints
+            type: 'js',
+          },
         ],
 
         esm: {
