@@ -45,32 +45,64 @@ export class CurrentTimeProvider {
   }
 }
 
+export interface DurationData {
+  value?: number;
+}
+
 export class Duration {
-  static zero(): number[] {
-    return [0, 0];
+  // Number of seconds
+  _elapsed: number;
+
+  constructor(passedData?: DurationData) {
+    let data: DurationData = passedData || {};
+    this._elapsed = data.value || 0;
   }
 
-  static format(elapsed: number[]): string {
-    return pad0(elapsed[0], 2) + ':' + pad0(elapsed[1], 2);
+  toJSON() {
+    return {
+      value: this._elapsed,
+    };
   }
 
-  static add(duration1: number[], duration2: number[]): number[] {
-    let total = duration1.slice(0);
-    total[0] += duration2[0];
-    total[1] += duration2[1];
+  getMinutes(): number {
+    // remove seconds from the time
+    const elapsedNoSeconds = Math.floor(this._elapsed / 60);
 
-    if (total[1] >= 60) {
-      total[0] += 1;
-      total[1] -= 60;
-    }
-    return total;
+    // get minutes
+    return Math.round(elapsedNoSeconds % 100);
   }
 
-  static addToDate(date: number, duration: number[]): number {
+  getSeconds(): number {
+    return Math.round(this._elapsed % 60);
+  }
+
+  static create(elapsedSeconds: number): Duration {
+    return new Duration({ value: elapsedSeconds });
+  }
+
+  static zero(): Duration {
+    return new Duration();
+  }
+
+  static format(duration: Duration): string {
+    return pad0(duration.getMinutes(), 2) + ':' + pad0(duration.getSeconds(), 2);
+  }
+
+  static add(duration1: Duration, duration2: Duration): Duration {
+    return Duration.create(duration1._elapsed + duration2._elapsed);
+  }
+
+  static addToDate(date: number, duration: Duration): number {
     let result = new Date(date);
-    result.setMinutes(result.getMinutes() + duration[0],
-                      result.getSeconds() + duration[1]);
+    result.setMinutes(result.getMinutes(),
+                      result.getSeconds() + duration._elapsed);
     return result.getTime();
+  }
+
+  static calculateElapsed(startTime: number, endTime: number): Duration {
+    // Compute diff in seconds (convert from ms)
+    let timeDiff = (endTime - startTime) / 1000;
+    return Duration.create(timeDiff);
   }
 }
 
@@ -81,7 +113,7 @@ export class ManualTimeProvider extends CurrentTimeProvider {
     this.currentTime = newTime;
   }
 
-  incrementCurrentTime(duration: number[]) {
+  incrementCurrentTime(duration: Duration) {
     this.currentTime = Duration.addToDate(this.getTimeInternal(), duration);
   }
 
@@ -90,24 +122,30 @@ export class ManualTimeProvider extends CurrentTimeProvider {
   }
 }
 
+export interface TimerData {
+  isRunning?: boolean;
+  startTime?: number;
+  duration?: DurationData;
+}
+
 export class Timer {
   provider: CurrentTimeProvider;
   isRunning: boolean;
-  startTime: number | null;
-  duration: number[];
+  startTime: number | undefined;
+  duration: Duration;
 
-  constructor(passedData?: any, timeProvider?: CurrentTimeProvider) {
-    let data = passedData || {};
+  constructor(passedData?: TimerData, timeProvider?: CurrentTimeProvider) {
+    let data: TimerData = passedData || {};
     this.provider = timeProvider || new CurrentTimeProvider();
     this.isRunning = data.isRunning || false;
-    this.startTime = data.startTime || null;
-    this.duration = data.duration || [0, 0];
+    this.startTime = data.startTime;
+    this.duration = new Duration(data.duration);
   }
 
   reset() {
     this.isRunning = false;
-    this.duration = [0, 0];
-    this.startTime = null;
+    this.duration = Duration.zero();
+    this.startTime = undefined;
   }
 
   toJSON() {
@@ -135,10 +173,10 @@ export class Timer {
     this.isRunning = false;
     // Calculate elapsed since last start and add to stored duration
     this.duration = this.addElapsed();
-    this.startTime = null;
+    this.startTime = undefined;
   }
 
-  getElapsed() {
+  getElapsed(): Duration {
     if (!this.isRunning) {
       return this.duration;
     }
@@ -150,38 +188,13 @@ export class Timer {
     return this.provider.getCurrentTime();
   }
 
-  private addElapsed() {
+  private addElapsed(): Duration {
     let stopTime = this.getCurrentTime();
-    let elapsed = calculateElapsed(this.startTime!, stopTime);
+    let elapsed = Duration.calculateElapsed(this.startTime!, stopTime);
 
     // Added elapsed to accumulated duration
-    let total = this.duration.slice(0);
-    total[0] += elapsed[0];
-    total[1] += elapsed[1];
-
-    if (total[1] >= 60) {
-      total[0] += 1;
-      total[1] -= 60;
-    }
-    return total;
+    return Duration.add(this.duration, elapsed);
   }
-}
-
-function calculateElapsed(startTime: number, endTime: number) {
-  let elapsed = [0, 0];
-  // Compute diff in seconds (convert from ms)
-  let timeDiff = (endTime - startTime) / 1000;
-
-  // get seconds
-  elapsed[1] = Math.round(timeDiff % 60);
-
-  // remove seconds from the time
-  timeDiff = Math.floor(timeDiff / 60);
-
-  // get minutes
-  elapsed[0] = Math.round(timeDiff % 100);
-
-  return elapsed;
 }
 
 export class TimerWidget {

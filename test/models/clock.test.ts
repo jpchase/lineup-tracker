@@ -26,6 +26,11 @@ chai.use(function(chai /*, utils*/) {
   });
 });
 
+function buildDuration(minutes: number, seconds: number): Duration {
+  const total = (minutes * 60) + seconds;
+  return Duration.create(total);
+}
+
 describe('CurrentTimeProvider', () => {
   let provider: CurrentTimeProvider;
 
@@ -128,12 +133,12 @@ describe('ManualTimeProvider', () => {
     const actualTime1 = provider.getCurrentTime();
     expect(actualTime1).to.equal(time1);
 
-    provider.incrementCurrentTime([1,0]);
+    provider.incrementCurrentTime(buildDuration(1,0));
 
     const actualTime2 = provider.getCurrentTime();
     expect(actualTime2).to.equal(time2);
 
-    provider.incrementCurrentTime([1,15]);
+    provider.incrementCurrentTime(buildDuration(1,15));
 
     const actualTime3 = provider.getCurrentTime();
     expect(actualTime3).to.equal(time3);
@@ -143,8 +148,8 @@ describe('ManualTimeProvider', () => {
 
 describe('Duration', () => {
 
-  it('should return initialized array for zero', () => {
-    expect(Duration.zero()).to.deep.equal([0,0]);
+  it('should return initialized for zero', () => {
+    expect(Duration.zero()).to.deep.equal({ "_elapsed": 0 });
   });
 
   describe('add', () => {
@@ -156,19 +161,19 @@ describe('Duration', () => {
       { left:[12,29], right:[10,32], sum:[23,1] },
     ];
 
-    function formatDuration(duration: number[]) {
-      return '[' + duration[0] + ',' + duration[1] +']';
+    function formatDuration(duration: Duration) {
+      return '[' + duration.getMinutes() + ',' + duration.getSeconds() +']';
     }
 
     it('should return zero for both inputs zero', () => {
       expect(Duration.add(Duration.zero(), Duration.zero())).to.deep.equal(Duration.zero());
 
-      expect(Duration.add(Duration.zero(), [0,0])).to.deep.equal(Duration.zero());
+      expect(Duration.add(Duration.zero(), buildDuration(0,0))).to.deep.equal(Duration.zero());
 
-      expect(Duration.add([0,0], Duration.zero())).to.deep.equal(Duration.zero());
+      expect(Duration.add(buildDuration(0,0), Duration.zero())).to.deep.equal(Duration.zero());
     });
 
-    function addTest(left: number[], right: number[], expectedSum: number[]) {
+    function addTest(left: Duration, right: Duration, expectedSum: Duration) {
       it('should return correct sum for zero + ' + formatDuration(left), () => {
         const actualSum = Duration.add(Duration.zero(), left);
         expect(actualSum).to.deep.equal(left);
@@ -186,7 +191,10 @@ describe('Duration', () => {
     }
 
     testValues.forEach(test => {
-      addTest(test.left, test.right, test.sum);
+      const left = buildDuration(test.left[0], test.left[1]);
+      const right = buildDuration(test.right[0], test.right[1]);
+      const sum = buildDuration(test.sum[0], test.sum[1]);
+      addTest(left, right, sum);
     });
   }); // add
 });
@@ -220,27 +228,23 @@ describe('Timer', () => {
     return provider;
   }
 
-  function isElapsedEqual(actual: number[], expected: number[]) {
+  function isElapsedEqual(actual: Duration, expected: number[]) {
     if (!actual || !expected)
       return false;
 
-    if (!actual.length || !expected.length ||
-        expected.length !== 2 ||
-        actual.length < expected.length)
+    if (!expected.length || expected.length !== 2)
       return false;
 
-    for (var i = 0; i < expected.length; i++) {
-      if (expected[i] != actual[i])
-        return false;
-    }
-    return true;
+    const expectedDuration = buildDuration(expected[0], expected[1]);
+
+    return expectedDuration._elapsed === actual._elapsed;
   }
 
   chai.use(function(chai /*, utils*/) {
     chai.Assertion.addMethod("initialized", function (this: any) {
       const timer = this._obj;
       const pass = timer && !timer.isRunning && !timer.startTime &&
-          timer.duration && timer.duration[0] === 0 && timer.duration[1] === 0;
+          timer.duration && timer.duration._elapsed === 0;
       this.assert(
         pass,
         'expected #{this} to be stopped, without start time, and duration [0,0]',
@@ -249,7 +253,7 @@ describe('Timer', () => {
     });
 
     chai.Assertion.addMethod("elapsed", function (this: any, expected: number[]) {
-      const timer = this._obj;
+      const timer = this._obj as Timer;
       const elapsed = timer ? timer.getElapsed() : null;
       this.assert(
         elapsed && isElapsedEqual(elapsed, expected),
@@ -281,7 +285,7 @@ describe('Timer', () => {
 
   it('should be empty after reset', () => {
     const provider = mockTimeProvider(startTime, time1);
-    let timer = new Timer(null, provider);
+    let timer = new Timer(undefined, provider);
     timer.start();
     timer.stop();
     timer.reset();
@@ -297,7 +301,7 @@ describe('Timer', () => {
 
     it('should have correct elapsed when running', () => {
       const provider = mockTimeProvider(startTime, time1, time1);
-      let timer = new Timer(null, provider);
+      let timer = new Timer(undefined, provider);
       timer.start();
       expect(timer).to.have.elapsed([0, 5]);
       timer.start();
@@ -306,22 +310,22 @@ describe('Timer', () => {
 
     it('should have correct elapsed when running for more than an hour', () => {
       const provider = manualTimeProvider(startTime);
-      let timer = new Timer(null, provider);
+      let timer = new Timer(undefined, provider);
       timer.start();
 
-      provider.incrementCurrentTime([0,5]);
+      provider.incrementCurrentTime(buildDuration(0,5));
       expect(timer).to.have.elapsed([0, 5]);
 
-      provider.incrementCurrentTime([59,59]);
+      provider.incrementCurrentTime(buildDuration(59,59));
       expect(timer).to.have.elapsed([60, 4]);
 
-      provider.incrementCurrentTime([31,0]);
+      provider.incrementCurrentTime(buildDuration(31,0));
       expect(timer).to.have.elapsed([91, 4]);
     });
 
     it('should have correct elapsed after stopped', () => {
       const provider = mockTimeProvider(startTime, time2);
-      let timer = new Timer(null, provider);
+      let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
       expect(timer).to.have.elapsed([0, 10]);
@@ -331,7 +335,7 @@ describe('Timer', () => {
 
     it('should have correct elapsed after restarting', () => {
       const provider = mockTimeProvider(startTime, time1, startTime, time2);
-      let timer = new Timer(null, provider);
+      let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
       timer.start();
@@ -340,7 +344,7 @@ describe('Timer', () => {
 
     it('should have correct elapsed after restarted and stopped', () => {
       const provider = mockTimeProvider(startTime, time2, startTime, time2);
-      let timer = new Timer(null, provider);
+      let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
       timer.start();
@@ -350,7 +354,7 @@ describe('Timer', () => {
 
     it('should have correct elapsed when added seconds equal exactly 1 minute', () => {
       const provider = mockTimeProvider(startTime, time3, startTime, time1);
-      let timer = new Timer(null, provider);
+      let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
       timer.start();
@@ -360,7 +364,7 @@ describe('Timer', () => {
 
     it('should have correct elapsed when added seconds total more than 1 minute', () => {
       const provider = mockTimeProvider(startTime, time3, startTime, time2);
-      let timer = new Timer(null, provider);
+      let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
       timer.start();
@@ -373,17 +377,17 @@ describe('Timer', () => {
   describe('Existing data', () => {
 
     it('should not have the time provider serialized', () => {
-      let timer = new Timer(null);
+      let timer = new Timer(undefined);
       const serialized = JSON.stringify(timer);
       let timerData = JSON.parse(serialized);
       expect(timerData.isRunning).to.be.false;
-      expect(timerData.startTime).to.be.null;
-      expect(timerData.duration).to.deep.equal([0, 0]);
+      expect(timerData.startTime).to.be.undefined;
+      expect(timerData.duration).to.deep.equal({ value: 0 });
       expect(timerData.provider).to.be.undefined;
     });
 
     it('should be initialized correctly for null data', () => {
-      let timer = new Timer(null);
+      let timer = new Timer(undefined);
       expect(timer).to.be.initialized();
     });
 
@@ -395,20 +399,20 @@ describe('Timer', () => {
     it('should be initialized correctly from stopped data', () => {
       let expected = {
         isRunning: false,
-        startTime: null,
-        duration: [3, 4],
+        startTime: undefined,
+        duration: buildDuration(3, 4).toJSON(),
       }
       let timer = new Timer(expected);
       expect(timer.startTime).to.equal(expected.startTime);
       expect(timer.isRunning).to.equal(expected.isRunning);
-      expect(timer).to.have.elapsed(expected.duration);
+      expect(timer).to.have.elapsed([3,4]);
     });
 
     it('should be initialized correctly from running data', () => {
       let expected = {
         isRunning: true,
         startTime: startTime,
-        duration: [3, 4],
+        duration: buildDuration(3, 4).toJSON(),
       }
       const provider = mockTimeProvider(time3);
 
