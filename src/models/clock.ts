@@ -152,7 +152,7 @@ export class Timer {
     return {
       isRunning: this.isRunning,
       startTime: this.startTime,
-      duration: this.duration,
+      duration: this.duration.toJSON(),
     };
   }
 

@@ -11,7 +11,10 @@ import {
   DISCARD_NEXT,
   SELECT_PLAYER,
   SELECT_STARTER,
-  SELECT_STARTER_POSITION
+  SELECT_STARTER_POSITION,
+  LiveActionStartPeriod,
+  LiveActionEndPeriod,
+  LiveActionToggleClock
 } from '../slices/live-types';
 import { RootState } from '../store';
 
@@ -27,7 +30,8 @@ export interface LiveActionSelectStarterPosition extends Action<typeof SELECT_ST
 
 export type LiveAction = LiveActionApplyStarter | LiveActionApplyNext | LiveActionCancelStarter |
                          LiveActionCancelSub | LiveActionConfirmSub | LiveActionDiscardNext |
-                         LiveActionSelectPlayer | LiveActionSelectStarter | LiveActionSelectStarterPosition;
+                         LiveActionSelectPlayer | LiveActionSelectStarter | LiveActionSelectStarterPosition |
+                         LiveActionStartPeriod | LiveActionEndPeriod | LiveActionToggleClock;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, LiveAction>;
 
