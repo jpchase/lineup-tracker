@@ -2,7 +2,6 @@
 @license
 */
 
-import { LiveActionSelectStarter } from '@app/actions/live';
 import { Reducer } from 'redux';
 import { Position } from '../models/formation';
 import { LiveGame, LivePlayer } from '../models/game';
@@ -11,9 +10,10 @@ import { PlayerStatus } from '../models/player';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../slices/game-types';
 import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
 import { RootAction, RootState } from '../store';
+import { clock, ClockState } from './clock';
 import { createReducer } from './createReducer';
 
-export interface LiveState {
+export interface LiveGameState {
   gameId: string;
   liveGame?: LiveGame;
   selectedStarterPlayer?: string;
@@ -24,7 +24,11 @@ export interface LiveState {
   proposedSub?: LivePlayer;
 }
 
-const INITIAL_STATE: LiveState = {
+export interface LiveState extends LiveGameState {
+  clock?: ClockState;
+}
+
+const INITIAL_STATE: LiveGameState = {
   gameId: '',
   liveGame: undefined,
   selectedStarterPlayer: undefined,
@@ -37,7 +41,17 @@ const INITIAL_STATE: LiveState = {
 
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 
-export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE, {
+export const live: Reducer<LiveState, RootAction> = function (state, action) {
+  const partialState = liveGame(state, action);
+  const newState: LiveState = {
+    ...partialState,
+    clock: clock(state ? state.clock : undefined, action)
+  }
+  // TODO: Make result immutable, like from liveGame()?
+  return newState;
+}
+
+const liveGame: Reducer<LiveGameState, RootAction> = createReducer(INITIAL_STATE, {
   [GET_GAME_SUCCESS]: (newState, action) => {
     if (newState.liveGame && newState.liveGame.id === action.game.id) {
       // Game has already been initialized.
@@ -65,7 +79,7 @@ export const live: Reducer<LiveState, RootAction> = createReducer(INITIAL_STATE,
     game.formation = { type: action.formationType };
   },
 
-  [SELECT_STARTER]: (newState, action: LiveActionSelectStarter) => {
+  [SELECT_STARTER]: (newState, action) => {
     const selectedPlayer = findPlayer(newState, action.playerId);
     if (selectedPlayer) {
       selectedPlayer.selected = !!action.selected;

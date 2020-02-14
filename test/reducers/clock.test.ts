@@ -5,7 +5,7 @@ import { expect } from '@open-wc/testing';
 import * as sinon from 'sinon';
 import { getFakeAction } from '../helpers/test_data';
 
-const CLOCK_INITIAL_STATE: ClockState = {
+export const CLOCK_INITIAL_STATE: ClockState = {
   timer: undefined,
 };
 

@@ -16,6 +16,7 @@ import {
   getStoredGame,
   getStoredPlayer
 } from '../helpers/test_data';
+import { CLOCK_INITIAL_STATE } from './clock.test';
 
 const LIVE_INITIAL_STATE: LiveState = {
   gameId: '',
@@ -26,6 +27,13 @@ const LIVE_INITIAL_STATE: LiveState = {
   selectedOffPlayer: undefined,
   selectedOnPlayer: undefined,
   proposedSub: undefined,
+};
+
+const INITIAL_OVERALL_STATE: LiveState = {
+  ...LIVE_INITIAL_STATE,
+  clock: {
+    ...CLOCK_INITIAL_STATE
+  }
 };
 
 function buildLiveGameWithPlayers(): LiveGame {
@@ -51,8 +59,8 @@ describe('Live reducer', () => {
 
   it('should return the initial state', () => {
     expect(
-      live(LIVE_INITIAL_STATE, getFakeAction())
-      ).to.equal(LIVE_INITIAL_STATE);
+      live(INITIAL_OVERALL_STATE, getFakeAction())
+      ).to.deep.equal(INITIAL_OVERALL_STATE);
   });
 
   describe('GET_GAME_SUCCESS', () => {
