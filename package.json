@@ -93,7 +93,7 @@
     "html-webpack-plugin": "^3.2.0",
     "mocha": "^5.2.0",
     "mock-cloud-firestore": "^0.9.3",
-    "pixelmatch": "^4.0.2",
+    "pixelmatch": "^5.2.0",
     "polymer-build": "^3.1.1",
     "polyserve": "^0.27.0",
     "prpl-server": "^1.2.0",
