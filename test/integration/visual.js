@@ -128,7 +128,7 @@ async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setu
   // eslint-disable-next-line no-constant-condition
   if (true) { // waitForSelector) {
     // await page.waitForSelector(waitForSelector);
-    await page.waitFor(1000);
+    await page.waitFor(1500);
   }
   await page.screenshot({ path: getCurrentFile(fileName) });
   return compareScreenshots(fileName);
