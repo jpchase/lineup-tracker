@@ -4,6 +4,7 @@
 
 import { LitElement, customElement, html, property } from 'lit-element';
 
+import { DateFormatter } from '../models/clock';
 import { Games } from '../models/game';
 
 // These are the elements needed by this element.
@@ -32,7 +33,7 @@ export class LineupGameList extends LitElement {
             <div class="name">${game.name}</div>
             <div secondary>
               <span class="opponent">${game.opponent}</span>
-              <span class="gameDate">${game.date}</span>
+              <span class="gameDate">${this._dateFormatter.format(game.date)}</span>
             </div>
             <a href="/game/${game.id}" title="View game"><mwc-icon>playlist_play</mwc-icon></a>
             <a href="/gameroster/${game.id}" title="View roster">${peopleIcon}</a>
@@ -49,4 +50,6 @@ export class LineupGameList extends LitElement {
 
   @property({ type: Object })
   games: Games = {};
+
+  private _dateFormatter = new DateFormatter();
 }

@@ -2,6 +2,7 @@ import { LineupGameList } from '@app/components/lineup-game-list';
 import '@app/components/lineup-game-list.js';
 import { Games, GameStatus } from '@app/models/game';
 import { assert, expect, fixture } from '@open-wc/testing';
+import { DateFormatter } from '@app/models/clock';
 
 function getGames(numGames: number): Games {
   const size = numGames || 6;
@@ -15,7 +16,8 @@ function getGames(numGames: number): Games {
       teamId: 'T1',
       name: `Game ${i}`,
       opponent: `Other team ${i}`,
-      date: new Date(2016, (i % 3), i)
+      // Months start at zero, days start at 1, hours are either 0, before noon, after noon.
+      date: new Date(2016, (i % 3), i + 1, (i === 0) ? 0 : (i % 2 === 0) ? 11 - i: 12 + i)
     };
   }
   return games;
@@ -49,6 +51,7 @@ describe('lineup-game-list tests', () => {
       assert.equal(items.length, numGames, 'Rendered game count');
 
       let index = 0;
+      const dateFormatter = new DateFormatter();
       for (const gameId of Object.keys(games)) {
         const game = games[gameId];
 
@@ -64,7 +67,7 @@ describe('lineup-game-list tests', () => {
 
         const dateElement = gameElement.querySelector('.gameDate');
         assert.isOk(dateElement, 'Missing gameDate element');
-        assert.equal(dateElement!.textContent, game.date.toString());
+        assert.equal(dateElement!.textContent, dateFormatter.format(game.date));
 
         index++;
       }

@@ -226,3 +226,18 @@ export class TimerWidget {
     this.display.innerText = text;
   }
 }
+
+export class DateFormatter {
+  formatter: Intl.DateTimeFormat;
+
+  constructor() {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric', month: 'short', day: 'numeric', weekday: 'short', hour: 'numeric', minute: '2-digit'
+    };
+    this.formatter = new Intl.DateTimeFormat('default', options);
+  }
+
+  format(date: Date): string {
+    return this.formatter.format(date);
+  }
+}
