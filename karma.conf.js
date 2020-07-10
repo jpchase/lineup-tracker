@@ -9,6 +9,10 @@ module.exports = (config) => {
       merge(createDefaultConfig(config), {
         // logLevel: config.LOG_DEBUG,
         files: [
+          // Performs one-time setup, before any tests are run.
+          // TODO: Replace with root hook plugin on Mocha 8.0, see:
+          // https://mochajs.org/#root-hook-plugins
+          { pattern: 'test/helpers/global-setup.js', watched: false },
           // runs all files ending with .test in the test folder,
           // can be overwritten by passing a --grep flag. examples:
           //
