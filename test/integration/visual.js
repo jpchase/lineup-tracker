@@ -22,6 +22,8 @@ const pixelmatch = require('pixelmatch');
 let platformName = os.type().toLowerCase();
 if (platformName === 'darwin') {
   platformName = 'macos';
+} else if (os.hostname() === 'penguin') {
+  platformName = 'chromeos';
 }
 
 const currentDir = path.join(process.cwd(), 'test/integration/screenshots-current', platformName);
