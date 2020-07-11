@@ -66,6 +66,8 @@ describe('👀 page screenshots are correct', function () {
     page.on('requestfailed', (request) => {
       console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure().errorText);
     });
+
+    await page.emulateTimezone('America/Toronto')
   });
 
   afterEach(() => browser.close());
