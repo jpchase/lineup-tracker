@@ -58,7 +58,7 @@ describe('👀 page screenshots are correct', function () {
   after((done) => server.close(done));
 
   beforeEach(async function () {
-    browser = await puppeteer.launch({ args: ['--font-render-hinting=none'] });
+    browser = await puppeteer.launch({ args: ['--disable-gpu', '--font-render-hinting=none'] });
     page = await browser.newPage();
 
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
