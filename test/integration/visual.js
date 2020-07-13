@@ -18,14 +18,20 @@ const fs = require('fs');
 const os = require('os');
 const PNG = require('pngjs').PNG;
 const pixelmatch = require('pixelmatch');
+const hf = require('../helpers/hermetic-fonts');
+const { requests } = require('sinon');
 
 let platformName = os.type().toLowerCase();
 if (platformName === 'darwin') {
   platformName = 'macos';
+} else if (os.hostname() === 'penguin') {
+  platformName = 'chromeos';
 }
 
-const currentDir = path.join(process.cwd(), 'test/integration/screenshots-current', platformName);
-const baselineDir = path.join(process.cwd(), 'test/integration/screenshots-baseline', platformName);
+const integrationDir = path.join(process.cwd(), 'test/integration');
+const dataDir = path.join(integrationDir, 'data');
+const currentDir = path.join(integrationDir, 'screenshots-current', platformName);
+const baselineDir = path.join(integrationDir, 'screenshots-baseline', platformName);
 
 const breakpoints = [
   { name: 'wide', viewPort: { width: 800, height: 600 } },
@@ -58,13 +64,24 @@ describe('👀 page screenshots are correct', function () {
   after((done) => server.close(done));
 
   beforeEach(async function () {
-    browser = await puppeteer.launch({ args: ['--font-render-hinting=none'] });
+    browser = await puppeteer.launch({ args: ['--disable-gpu', '--font-render-hinting=none'] });
     page = await browser.newPage();
 
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
 
     page.on('requestfailed', (request) => {
       console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure().errorText);
+    });
+
+    page.setRequestInterception(true);
+    page.on('request', async (request) => {
+      const fontResponse = hf.serveHermeticFont(request, dataDir);
+      if (fontResponse) {
+        request.respond(fontResponse);
+      } else {
+        request.continue();
+      }
+
     });
 
     await page.emulateTimezone('America/Toronto')
