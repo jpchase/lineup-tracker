@@ -19,7 +19,6 @@ const os = require('os');
 const PNG = require('pngjs').PNG;
 const pixelmatch = require('pixelmatch');
 const hf = require('../helpers/hermetic-fonts');
-const { requests } = require('sinon');
 
 let platformName = os.type().toLowerCase();
 if (platformName === 'darwin') {
