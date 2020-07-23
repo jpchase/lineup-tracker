@@ -11,7 +11,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 /* global after, afterEach, before, beforeEach, describe, it */
 
 const puppeteer = require('puppeteer');
-const { createConfig, startServer } = require('es-dev-server');
+const { startTestServer } = require('../server/test-server');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -27,12 +27,7 @@ describe('🎁 regenerate screenshots', function () {
   let server, browser, page;
 
   before(async function () {
-    const config = createConfig({
-      port: 4444,
-      nodeResolve: true,
-      appIndex: 'local.index.html',
-    });
-    ({ server } = await startServer(config));
+    server = await startTestServer();
 
     // Create the test directory if needed.
     if (!fs.existsSync(baselineDir)) {
@@ -47,7 +42,7 @@ describe('🎁 regenerate screenshots', function () {
     }
   });
 
-  after(() => server.close());
+  after((done) => server.close(done));
 
   beforeEach(async function () {
     browser = await puppeteer.launch();

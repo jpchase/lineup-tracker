@@ -1,11 +1,10 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const { createDefaultConfig } = require('@open-wc/testing-karma');
-const merge = require('webpack-merge');
+const merge = require('deepmerge');
 const path = require('path');
 
-function AliasResolverPlugin() {
+function aliasResolverPlugin() {
   return {
-    async resolveImport({source, context }) {
+    async resolveImport({ source, context }) {
       if (!source.startsWith('@app/')) {
         return;
       }
@@ -19,7 +18,7 @@ function AliasResolverPlugin() {
         // Has an extension, which will already be included in the result.
         extension = '';
       }
-      browserPath = `${'../'.repeat(depth - 1)}src/${source.substring(5)}${extension}`;
+      const browserPath = `${'../'.repeat(depth - 1)}src/${source.substring(5)}${extension}`;
       return browserPath;
     }
   };
@@ -53,7 +52,7 @@ module.exports = (config) => {
         esm: {
           nodeResolve: true,
           plugins: [
-            AliasResolverPlugin(),
+            aliasResolverPlugin(),
           ],
         },
 
