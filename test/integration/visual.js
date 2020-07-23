@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 const puppeteer = require('puppeteer');
 const expect = require('chai').expect;
-const { startServer } = require('polyserve');
+const { startTestServer } = require('./server/test-server');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -49,7 +49,7 @@ describe('👀 page screenshots are correct', function () {
   let server, browser, page;
 
   before(async function () {
-    server = await startServer({ port: 4444, root: path.join(__dirname, '../../dist'), moduleResolution: 'node' });
+    server = await startTestServer();
 
     // Create the test directories if needed.
     for (const breakpoint of breakpoints) {
@@ -80,10 +80,9 @@ describe('👀 page screenshots are correct', function () {
       } else {
         request.continue();
       }
-
     });
 
-    await page.emulateTimezone('America/Toronto')
+    await page.emulateTimezone('America/Toronto');
   });
 
   afterEach(() => browser.close());
