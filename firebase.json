@@ -22,5 +22,16 @@
   "firestore": {
     "rules": "config/firestore.rules",
     "indexes": "config/firestore.indexes.json"
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8790
+    },
+    "hosting": {
+      "port": 8791
+    },
+    "ui": {
+      "enabled": true
+    }
   }
 }
