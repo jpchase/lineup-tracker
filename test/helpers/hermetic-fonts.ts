@@ -12,8 +12,9 @@ const FONT_CSS_FILES: Record<string, string> = {
 
 const FONT_WOFF_FILES: Record<string, string> = {
     '/s/materialicons/v53/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2': 'material-icons.woff2',
-    '/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxK.woff2': 'roboto-regular.woff2',
+    '/s/roboto/v20/KFOlCnqEu92Fr1MmEU9fBBc4.woff2': 'roboto-medium.woff2',
     '/s/roboto/v20/KFOlCnqEu92Fr1MmWUlfBBc4.woff2': 'roboto-bold.woff2',
+    '/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxK.woff2': 'roboto-regular.woff2',
 }
 
 const serveHermeticFont = (request: Request, dataDir: string): RespondOptions | undefined => {
