@@ -137,7 +137,8 @@ async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setu
   // If you didn't specify a file, use the name of the route.
   const fileName = path.join(filePrefix, (setupName ? setupName : (route ? route : 'index')));
 
-  await page.goto(`http://127.0.0.1:4444/${route}`);
+  const testFlagSeparator = (route && route.includes('?')) ? '&' : '?';
+  await page.goto(`http://127.0.0.1:4444/${route}${testFlagSeparator}test_data`);
   if (setup) {
     await setup(page);
   }
