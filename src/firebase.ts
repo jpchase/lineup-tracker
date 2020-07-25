@@ -3,7 +3,7 @@ import 'firebase/auth';
 import 'firebase/firestore';
 
 // TODO: Log bug against Firebase? The cjs module does this to ensure the default export is usable, but the esm module does not.
-function _interopDefault (ex: any) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+function _interopDefault(ex: any) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 export const firebaseRef = (window as any)['firebase'] || _interopDefault(firebase_app);
 
@@ -17,24 +17,38 @@ firebaseRef.initializeApp(config);
 
 const firestore = firebaseRef.firestore();
 
-const settings = {
+const settings: firebase_app.firestore.Settings = {
   cacheSizeBytes: firestore.settings.CACHE_SIZE_UNLIMITED,
 };
+
+let enablePersistence = true;
+if ((location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  const urlParams = new URLSearchParams(location.search);
+  if (urlParams.has('test_data')) {
+    // Connect to the emulator, instead of the actual Firestore database.
+    enablePersistence = false;
+    settings.host = 'localhost:8790';
+    settings.ssl = false;
+  }
+}
+
 firestore.settings(settings);
-firestore.enablePersistence({ synchronizeTabs:true })
-    .catch(function(err: any) {
-        if (err.code == 'failed-precondition') {
-            // Multiple tabs open, persistence can only be enabled
-            // in one tab at a a time.
-            // ...
-            console.log('Multiple tabs open, offline storage not available');
-        } else if (err.code == 'unimplemented') {
-            // The current browser does not support all of the
-            // features required to enable persistence
-            // ...
-            console.log('Offline storage not supported');
-        }
+if (enablePersistence) {
+  firestore.enablePersistence({ synchronizeTabs: true })
+    .catch(function (err: any) {
+      if (err.code == 'failed-precondition') {
+        // Multiple tabs open, persistence can only be enabled
+        // in one tab at a a time.
+        // ...
+        console.log('Multiple tabs open, offline storage not available');
+      } else if (err.code == 'unimplemented') {
+        // The current browser does not support all of the
+        // features required to enable persistence
+        // ...
+        console.log('Offline storage not supported');
+      }
     });
+}
 
 export default firebaseRef;
 
