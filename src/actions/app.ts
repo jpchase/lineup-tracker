@@ -96,8 +96,9 @@ export const showSnackbar: ActionCreator<ThunkResult> = () => (dispatch) => {
 };
 
 export const updateOffline: ActionCreator<ThunkResult> = (offline: boolean) => (dispatch, getState) => {
+  const appState = getState().app!;
   // Show the snackbar only if offline status changes.
-  if (offline !== getState().app!.offline) {
+  if (offline !== appState.offline && !appState.useTestData) {
     dispatch(showSnackbar());
   }
   dispatch({

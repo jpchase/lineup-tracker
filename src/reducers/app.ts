@@ -10,12 +10,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import { Reducer } from 'redux';
 import {
-  UPDATE_PAGE,
-  UPDATE_OFFLINE,
-  OPEN_SNACKBAR,
   CLOSE_SNACKBAR,
-  UPDATE_DRAWER_STATE
+  OPEN_SNACKBAR,
+  UPDATE_DRAWER_STATE,
+  UPDATE_OFFLINE,
+  UPDATE_PAGE
 } from '../actions/app';
+import { useTestData } from '../init';
 import { RootAction } from '../store';
 
 export interface AppState {
@@ -23,6 +24,7 @@ export interface AppState {
   offline: boolean;
   drawerOpened: boolean;
   snackbarOpened: boolean;
+  useTestData: boolean;
 }
 
 const INITIAL_STATE: AppState = {
@@ -30,6 +32,7 @@ const INITIAL_STATE: AppState = {
   offline: false,
   drawerOpened: false,
   snackbarOpened: false,
+  useTestData: useTestData(),
 };
 
 const app: Reducer<AppState, RootAction> = (state = INITIAL_STATE, action) => {

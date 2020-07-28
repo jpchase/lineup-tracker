@@ -1,6 +1,7 @@
 import * as firebase_app from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
+import { useTestData } from './init';
 
 // TODO: Log bug against Firebase? The cjs module does this to ensure the default export is usable, but the esm module does not.
 function _interopDefault(ex: any) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -22,14 +23,11 @@ const settings: firebase_app.firestore.Settings = {
 };
 
 let enablePersistence = true;
-if ((location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-  const urlParams = new URLSearchParams(location.search);
-  if (urlParams.has('test_data')) {
-    // Connect to the emulator, instead of the actual Firestore database.
-    enablePersistence = false;
-    settings.host = 'localhost:8790';
-    settings.ssl = false;
-  }
+if (useTestData()) {
+  // Connect to the emulator, instead of the actual Firestore database.
+  enablePersistence = false;
+  settings.host = 'localhost:8790';
+  settings.ssl = false;
 }
 
 firestore.settings(settings);
