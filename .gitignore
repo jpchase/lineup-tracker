@@ -11,3 +11,5 @@ dist/
 .tmp
 app.yaml
 *.sublime-workspace
+firestore-debug.log
+ui-debug.log

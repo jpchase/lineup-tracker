@@ -6,6 +6,7 @@ const { startServer, ServerOptions } = require('polyserve');
 // export interface TestServer {
 //   close(): void;
 // }
+const appUrl = 'http://127.0.0.1:4444';
 
 const startTestServer = async function (): Promise<import("net").Server> {
   const config /*: ServerOptions */ = {
@@ -16,4 +17,5 @@ const startTestServer = async function (): Promise<import("net").Server> {
   return startServer(config);
 }
 
+exports.appUrl = appUrl;
 exports.startTestServer = startTestServer;

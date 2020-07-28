@@ -12,15 +12,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 const puppeteer = require('puppeteer');
 const expect = require('chai').expect;
-const { startServer } = require('polyserve');
-const path = require('path');
-const appUrl = 'http://127.0.0.1:4444';
+const { appUrl, startTestServer } = require('./server/test-server');
 
 describe('routing tests', function () {
   let server, browser, page;
 
   before(async function () {
-    server = await startServer({ port: 4444, root: path.join(__dirname, '../../dist'), moduleResolution: 'node' });
+    server = await startTestServer();
   });
 
   after((done) => server.close(done));
