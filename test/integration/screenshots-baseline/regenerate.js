@@ -11,17 +11,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 /* global after, afterEach, before, beforeEach, describe, it */
 
 const puppeteer = require('puppeteer');
-const { startTestServer } = require('../server/test-server');
-const path = require('path');
+const { config, startTestServer } = require('../server/test-server');
 const fs = require('fs');
-const os = require('os');
-
-let platformName = os.type().toLowerCase();
-if (platformName === 'darwin') {
-  platformName = 'macos';
-}
-
-const baselineDir = path.join(process.cwd(), 'test/integration/screenshots-baseline', platformName);
+const hf = require('../../helpers/hermetic-fonts');
 
 describe('🎁 regenerate screenshots', function () {
   let server, browser, page;
@@ -30,15 +22,15 @@ describe('🎁 regenerate screenshots', function () {
     server = await startTestServer();
 
     // Create the test directory if needed.
-    if (!fs.existsSync(baselineDir)) {
-      fs.mkdirSync(baselineDir);
+    if (!fs.existsSync(config.baselineDir)) {
+      fs.mkdirSync(config.baselineDir);
     }
     // And it's subdirectories.
-    if (!fs.existsSync(`${baselineDir}/wide`)) {
-      fs.mkdirSync(`${baselineDir}/wide`);
+    if (!fs.existsSync(`${config.baselineDir}/wide`)) {
+      fs.mkdirSync(`${config.baselineDir}/wide`);
     }
-    if (!fs.existsSync(`${baselineDir}/narrow`)) {
-      fs.mkdirSync(`${baselineDir}/narrow`);
+    if (!fs.existsSync(`${config.baselineDir}/narrow`)) {
+      fs.mkdirSync(`${config.baselineDir}/narrow`);
     }
   });
 
@@ -49,6 +41,16 @@ describe('🎁 regenerate screenshots', function () {
     page = await browser.newPage();
 
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
+
+    page.setRequestInterception(true);
+    page.on('request', async (request) => {
+      const fontResponse = hf.serveHermeticFont(request, config.dataDir);
+      if (fontResponse) {
+        request.respond(fontResponse);
+      } else {
+        request.continue();
+      }
+    });
   });
 
   afterEach(() => browser.close());
@@ -76,8 +78,8 @@ async function generateBaselineScreenshots(page, prefix, breakpoint) {
   console.log(prefix + '...');
   page.setViewport(breakpoint);
   // Index.
-  await page.goto('http://127.0.0.1:4444/');
-  await page.screenshot({ path: `${baselineDir}/${prefix}/index.png` });
+  await page.goto(`${config.appUrl}/?test_data`);
+  await page.screenshot({ path: `${config.baselineDir}/${prefix}/index.png` });
   // Views.
   const views = [
     { name: 'Home' },
@@ -94,30 +96,31 @@ async function generateBaselineScreenshots(page, prefix, breakpoint) {
       route += '?team=test_team1';
     }
     console.log(`View: ${view.name}, route: ${route}`);
-    await page.goto(`http://127.0.0.1:4444/${route}`);
+    const testFlagSeparator = (route && route.includes('?')) ? '&' : '?';
+    await page.goto(`${config.appUrl}/${route}${testFlagSeparator}test_data`);
     if (view.wait) {
       console.log(`Wait extra for ${view.name} view`);
       await page.waitFor(view.wait);
     }
     console.log(`Screenshot for view: ${view.name}`);
-    await page.screenshot({ path: `${baselineDir}/${prefix}/view${view.name}.png` });
+    await page.screenshot({ path: `${config.baselineDir}/${prefix}/view${view.name}.png` });
   }
   // 404.
   console.log(`Screenshot for 404`);
-  await page.goto('http://127.0.0.1:4444/batmanNotAView');
-  await page.screenshot({ path: `${baselineDir}/${prefix}/batmanNotAView.png` });
+  await page.goto(`${config.appUrl}/batmanNotAView?test_data`);
+  await page.screenshot({ path: `${config.baselineDir}/${prefix}/batmanNotAView.png` });
 }
 
 async function generateAddTeamScreenshots(page, prefix, breakpoint) {
   page.setViewport(breakpoint);
 
   // Add new team
-  await page.goto('http://127.0.0.1:4444/');
+  await page.goto(`${config.appUrl}?test_data`);
   await page.evaluate(() => {
     const app = document.querySelector('lineup-app');
     const selector = app.shadowRoot.querySelector('lineup-team-selector');
     const list = selector.shadowRoot.querySelector('paper-dropdown-menu paper-listbox');
     list.select('addnewteam');
   });
-  await page.screenshot({ path: `${baselineDir}/${prefix}/addNewTeam.png` });
+  await page.screenshot({ path: `${config.baselineDir}/${prefix}/addNewTeam.png` });
 }

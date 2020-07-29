@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 const puppeteer = require('puppeteer');
 const expect = require('chai').expect;
-const { appUrl, startTestServer } = require('./server/test-server');
+const { config, startTestServer } = require('./server/test-server');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -138,7 +138,7 @@ async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setu
   const fileName = path.join(filePrefix, (setupName ? setupName : (route ? route : 'index')));
 
   const testFlagSeparator = (route && route.includes('?')) ? '&' : '?';
-  await page.goto(`${appUrl}/${route}${testFlagSeparator}test_data`);
+  await page.goto(`${config.appUrl}/${route}${testFlagSeparator}test_data`);
   if (setup) {
     await setup(page);
   }
