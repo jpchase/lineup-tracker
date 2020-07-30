@@ -10,6 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 /* global after, afterEach, before, beforeEach, describe, it */
 
+import { Browser, Page, Request } from 'puppeteer';
 const puppeteer = require('puppeteer');
 const expect = require('chai').expect;
 const { config, startTestServer } = require('./server/test-server');
@@ -37,16 +38,16 @@ const breakpoints = [
   { name: 'narrow', viewPort: { width: 375, height: 667 } },
 ];
 
-function getBaselineFile(view) {
+function getBaselineFile(view: string) {
   return path.join(baselineDir, `${view}.png`);
 }
 
-function getCurrentFile(view) {
+function getCurrentFile(view: string) {
   return path.join(currentDir, `${view}.png`);
 }
 
 describe('👀 page screenshots are correct', function () {
-  let server, browser, page;
+  let server: any, browser: Browser, page: Page;
 
   before(async function () {
     server = await startTestServer();
@@ -68,12 +69,12 @@ describe('👀 page screenshots are correct', function () {
 
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
 
-    page.on('requestfailed', (request) => {
-      console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure().errorText);
+    page.on('requestfailed', (request: Request) => {
+      console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure()!.errorText);
     });
 
     page.setRequestInterception(true);
-    page.on('request', async (request) => {
+    page.on('request', async (request: Request) => {
       const fontResponse = hf.serveHermeticFont(request, dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
@@ -112,7 +113,7 @@ describe('👀 page screenshots are correct', function () {
       });
 
       it('add new team', async function () {
-        return takeAndCompareScreenshot(page, '', prefix, 'addNewTeam', async (currentPage) => {
+        return takeAndCompareScreenshot(page, '', prefix, 'addNewTeam', async (currentPage: Page) => {
           await selectTeam(currentPage, 'addnewteam');
         });
       });
@@ -124,16 +125,16 @@ describe('👀 page screenshots are correct', function () {
   }
 });
 
-async function selectTeam(page, teamId) {
+async function selectTeam(page: Page, teamId: string) {
   await page.evaluate((teamId) => {
     const app = document.querySelector('lineup-app');
-    const selector = app.shadowRoot.querySelector('lineup-team-selector');
-    const list = selector.shadowRoot.querySelector('paper-dropdown-menu paper-listbox');
-    list.select(teamId);
+    const selector = app!.shadowRoot!.querySelector('lineup-team-selector');
+    const list = selector!.shadowRoot!.querySelector('paper-dropdown-menu paper-listbox');
+    (list as any).select(teamId);
   }, teamId);
 }
 
-async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setup, waitForSelector) {
+async function takeAndCompareScreenshot(page: Page, route: string, filePrefix: string, setupName?: string, setup?: any, waitForSelector?: any) {
   // If you didn't specify a file, use the name of the route.
   const fileName = path.join(filePrefix, (setupName ? setupName : (route ? route : 'index')));
 
@@ -144,7 +145,7 @@ async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setu
   }
   // TODO: Figure out all screenshots take longer on linux
   // eslint-disable-next-line no-constant-condition
-  if (true) { // waitForSelector) {
+  if (waitForSelector || true) { // waitForSelector) {
     // await page.waitForSelector(waitForSelector);
     await page.waitFor(1500);
   }
@@ -152,11 +153,11 @@ async function takeAndCompareScreenshot(page, route, filePrefix, setupName, setu
   return compareScreenshots(fileName);
 }
 
-function compareScreenshots(view) {
+function compareScreenshots(view: string) {
   const baselineFile = getBaselineFile(view);
   const currentFile = getCurrentFile(view);
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // Note: for debugging, you can dump the screenshotted img as base64.
     // fs.createReadStream(currentFile, { encoding: 'base64' })
     //   .on('data', function (data) {
