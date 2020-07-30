@@ -36,11 +36,9 @@ jobs:
 
     - name: Copy Redux ES import file to .mjs
       run: |
-        find ./node_modules/es/ -type f -name "redux.mjs" | while read fname; do
-          dirname=`dirname "$fname"`
-          filename=`basename "$fname"`
-          cp "${dirname}/$filename" "${fname}.js"
-          echo "Redux ES workaround: Copied ${dirname}/${filename} to ${fname}.js"
+        find ./node_modules/redux/es/ -type f -name "redux.mjs" | while read fname; do
+          cp "$fname" "${fname}.js"
+          echo "Redux ES workaround: Copied ${fname} to ${fname}.js"
         done
 
     - name: Run tests
