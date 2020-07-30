@@ -10,13 +10,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 /* global after, afterEach, before, beforeEach, describe, it */
 
+import { Browser, Page, Viewport } from 'puppeteer';
 const puppeteer = require('puppeteer');
 const { config, startTestServer } = require('../server/test-server');
 const fs = require('fs');
 const hf = require('../../helpers/hermetic-fonts');
 
 describe('🎁 regenerate screenshots', function () {
-  let server, browser, page;
+  let server: any, browser: Browser, page: Page;
 
   before(async function () {
     server = await startTestServer();
@@ -55,7 +56,7 @@ describe('🎁 regenerate screenshots', function () {
 
   afterEach(() => browser.close());
 
-  const breakpoints = [
+  const breakpoints: Viewport[] = [
     { width: 800, height: 600 },
     { width: 375, height: 667 }];
   const prefixes = ['wide', 'narrow'];
@@ -74,7 +75,7 @@ describe('🎁 regenerate screenshots', function () {
   }
 });
 
-async function generateBaselineScreenshots(page, prefix, breakpoint) {
+async function generateBaselineScreenshots(page: Page, prefix: string, breakpoint: Viewport) {
   console.log(prefix + '...');
   page.setViewport(breakpoint);
   // Index.
@@ -111,16 +112,16 @@ async function generateBaselineScreenshots(page, prefix, breakpoint) {
   await page.screenshot({ path: `${config.baselineDir}/${prefix}/batmanNotAView.png` });
 }
 
-async function generateAddTeamScreenshots(page, prefix, breakpoint) {
+async function generateAddTeamScreenshots(page: Page, prefix: string, breakpoint: Viewport) {
   page.setViewport(breakpoint);
 
   // Add new team
   await page.goto(`${config.appUrl}?test_data`);
   await page.evaluate(() => {
     const app = document.querySelector('lineup-app');
-    const selector = app.shadowRoot.querySelector('lineup-team-selector');
-    const list = selector.shadowRoot.querySelector('paper-dropdown-menu paper-listbox');
-    list.select('addnewteam');
+    const selector = app!.shadowRoot!.querySelector('lineup-team-selector');
+    const list = selector!.shadowRoot!.querySelector('paper-dropdown-menu paper-listbox');
+    (list as any).select('addnewteam');
   });
   await page.screenshot({ path: `${config.baselineDir}/${prefix}/addNewTeam.png` });
 }
