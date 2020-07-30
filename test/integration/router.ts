@@ -10,12 +10,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 /* global after, afterEach, before, beforeEach, describe, it */
 
+import { Browser, Page } from 'puppeteer';
 const puppeteer = require('puppeteer');
 const expect = require('chai').expect;
 const { config, startTestServer } = require('./server/test-server');
 
 describe('routing tests', function () {
-  let server, browser, page;
+  let server: any, browser: Browser, page: Page;
 
   before(async function () {
     server = await startTestServer();
@@ -49,12 +50,12 @@ describe('routing tests', function () {
   });
 });
 
-async function testNavigation(page, href, linkText) {
+async function testNavigation(page: Page, href: string, linkText: string) {
   // Shadow DOM helpers.
-  const getShadowRootChildProp = (el, childSelector, prop) => {
+  const getShadowRootChildProp = (el: any, childSelector: string, prop: string) => {
     return el.shadowRoot.querySelector(childSelector)[prop];
   };
-  const doShadowRootClick = (el, childSelector) => {
+  const doShadowRootClick = (el: any, childSelector: string) => {
     return el.shadowRoot.querySelector(childSelector).click();
   };
 
@@ -66,8 +67,7 @@ async function testNavigation(page, href, linkText) {
   expect(await myText).equal(linkText);
 
   // Does the click take you to the right page?
-  // eslint-disable-next-line no-unused-vars
-  const [response] = await Promise.all([
+  const [] = await Promise.all([
     page.waitForNavigation(), // The promise resolves after navigation has finished
     page.evaluate(doShadowRootClick, myApp, selector),
   ]);
@@ -75,14 +75,14 @@ async function testNavigation(page, href, linkText) {
   expect(newUrl).equal(`${config.appUrl}/${href}`);
 }
 
-async function testNavigationInADifferentWay(page, href, linkText) {
-  const deepQuerySelector = (query) => {
+async function testNavigationInADifferentWay(page: Page, href: string, linkText: string) {
+  const deepQuerySelector = (query: string) => {
     const parts = query.split('::shadow');
-    let el = document;
+    let el: Document | Element | ShadowRoot = document;
     for (let i = 0; i < parts.length; i++) {
-      el = el.querySelector(parts[i]);
+      el = el.querySelector(parts[i])!;
       if (i % 2 === 0) {
-        el = el.shadowRoot;
+        el = el.shadowRoot!;
       }
     }
     return el === document ? null : el;
@@ -93,8 +93,7 @@ async function testNavigationInADifferentWay(page, href, linkText) {
   const text = await page.evaluate((el) => el.textContent, linkHandle);
   expect(text).equal(linkText);
 
-  // eslint-disable-next-line no-unused-vars
-  const [response] = await Promise.all([
+  const [] = await Promise.all([
     page.waitForNavigation(), // The promise resolves after navigation has finished
     page.evaluate((el) => el.click(), linkHandle), // Clicking the link will indirectly cause a navigation
   ]);
