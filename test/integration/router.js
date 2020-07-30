@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 const puppeteer = require('puppeteer');
 const expect = require('chai').expect;
-const { appUrl, startTestServer } = require('./server/test-server');
+const { config, startTestServer } = require('./server/test-server');
 
 describe('routing tests', function () {
   let server, browser, page;
@@ -31,7 +31,7 @@ describe('routing tests', function () {
   afterEach(() => browser.close());
 
   it('the page selector switches pages', async function () {
-    await page.goto(`${appUrl}`);
+    await page.goto(`${config.appUrl}`);
     await page.waitForSelector('lineup-app', { visible: true });
 
     await testNavigation(page, 'viewGames', 'Games');
@@ -40,7 +40,7 @@ describe('routing tests', function () {
   });
 
   it('the page selector switches pages in a different way', async function () {
-    await page.goto(`${appUrl}`);
+    await page.goto(`${config.appUrl}`);
     await page.waitForSelector('lineup-app', { visible: true });
 
     await testNavigationInADifferentWay(page, 'viewGames', 'Games');
@@ -71,8 +71,8 @@ async function testNavigation(page, href, linkText) {
     page.waitForNavigation(), // The promise resolves after navigation has finished
     page.evaluate(doShadowRootClick, myApp, selector),
   ]);
-  const newUrl = await page.evaluate('window.location.href')
-  expect(newUrl).equal(`${appUrl}/${href}`);
+  const newUrl = await page.evaluate('window.location.href');
+  expect(newUrl).equal(`${config.appUrl}/${href}`);
 }
 
 async function testNavigationInADifferentWay(page, href, linkText) {
@@ -98,6 +98,6 @@ async function testNavigationInADifferentWay(page, href, linkText) {
     page.waitForNavigation(), // The promise resolves after navigation has finished
     page.evaluate((el) => el.click(), linkHandle), // Clicking the link will indirectly cause a navigation
   ]);
-  const newUrl = await page.evaluate('window.location.href')
-  expect(newUrl).equal(`${appUrl}/${href}`);
+  const newUrl = await page.evaluate('window.location.href');
+  expect(newUrl).equal(`${config.appUrl}/${href}`);
 }
