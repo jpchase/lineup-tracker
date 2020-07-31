@@ -63,7 +63,7 @@ module.exports = (config) => {
         },
 
         // TODO: Remove/change back to 80 after improving tests
-        coverageIstanbulReporter: {
+        coverageReporter: {
           emitWarning: false,
           thresholds: {
             global: {
