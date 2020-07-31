@@ -16,9 +16,8 @@
 ```html
 <div>
   <div toolbar="">
-    <span id="gameTimer">
-      clock here
-    </span>
+    <lineup-game-clock id="gameTimer">
+    </lineup-game-clock>
   </div>
   <div id="live-on">
     <h5>

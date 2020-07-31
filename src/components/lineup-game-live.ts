@@ -2,32 +2,23 @@
 @license
 */
 
-import { LitElement, customElement, html, property } from 'lit-element';
-
-import { FormationBuilder } from '../models/formation';
-import { LivePlayer, LiveGame } from '../models/game';
-
-// This element is connected to the Redux store.
-import { connectStore } from '../middleware/connect-mixin';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store';
-
-// The specific store configurator, which handles initialization/lazy-loading.
-import { getLiveStore } from '../slices/live-store';
-
-// These are the actions needed by this element.
-import { applyPendingSubs, cancelProposedSub, confirmProposedSub, discardPendingSubs, selectPlayer } from '../actions/live';
-import { proposedSubSelector } from '../reducers/live';
-
-// These are the elements needed by this element.
 import '@material/mwc-button';
 import '@material/mwc-icon';
-// import { peopleIcon, scheduleIcon } from './lineup-icons';
+import { customElement, html, LitElement, property } from 'lit-element';
+import { applyPendingSubs, cancelProposedSub, confirmProposedSub, discardPendingSubs, selectPlayer } from '../actions/live';
+import { connectStore } from '../middleware/connect-mixin';
+import { FormationBuilder } from '../models/formation';
+import { LiveGame, LivePlayer } from '../models/game';
+import { proposedSubSelector } from '../reducers/live';
+// The specific store configurator, which handles initialization/lazy-loading.
+import { getLiveStore } from '../slices/live-store';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store';
+import './lineup-game-clock';
 import './lineup-on-player-list';
 import './lineup-player-list';
-
-// These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
+// This element is connected to the Redux store.
 @customElement('lineup-game-live')
 export class LineupGameLive extends connectStore()(LitElement) {
   protected render() {
@@ -57,7 +48,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
 
     return html`
       <div toolbar>
-        <span id="gameTimer">clock here</span>
+        <lineup-game-clock id="gameTimer"></lineup-game-clock>
       </div>
       <div id="live-on">
         <h5>Playing</h5>
