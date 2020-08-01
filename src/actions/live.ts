@@ -14,24 +14,25 @@ import {
   SELECT_STARTER_POSITION,
   LiveActionStartPeriod,
   LiveActionEndPeriod,
-  LiveActionToggleClock
+  LiveActionToggleClock,
+  TOGGLE_CLOCK
 } from '../slices/live-types';
 import { RootState } from '../store';
 
-export interface LiveActionApplyStarter extends Action<typeof APPLY_STARTER> {};
-export interface LiveActionCancelStarter extends Action<typeof CANCEL_STARTER> {};
-export interface LiveActionApplyNext extends Action<typeof APPLY_NEXT> { selectedOnly?: boolean } ;
+export interface LiveActionApplyStarter extends Action<typeof APPLY_STARTER> { };
+export interface LiveActionCancelStarter extends Action<typeof CANCEL_STARTER> { };
+export interface LiveActionApplyNext extends Action<typeof APPLY_NEXT> { selectedOnly?: boolean };
 export interface LiveActionDiscardNext extends Action<typeof DISCARD_NEXT> { selectedOnly?: boolean };
-export interface LiveActionCancelSub extends Action<typeof CANCEL_SUB> {};
-export interface LiveActionConfirmSub extends Action<typeof CONFIRM_SUB> {};
+export interface LiveActionCancelSub extends Action<typeof CANCEL_SUB> { };
+export interface LiveActionConfirmSub extends Action<typeof CONFIRM_SUB> { };
 export interface LiveActionSelectPlayer extends Action<typeof SELECT_PLAYER> { playerId: string; selected: boolean };
 export interface LiveActionSelectStarter extends Action<typeof SELECT_STARTER> { playerId: string; selected: boolean };
 export interface LiveActionSelectStarterPosition extends Action<typeof SELECT_STARTER_POSITION> { position: Position };
 
 export type LiveAction = LiveActionApplyStarter | LiveActionApplyNext | LiveActionCancelStarter |
-                         LiveActionCancelSub | LiveActionConfirmSub | LiveActionDiscardNext |
-                         LiveActionSelectPlayer | LiveActionSelectStarter | LiveActionSelectStarterPosition |
-                         LiveActionStartPeriod | LiveActionEndPeriod | LiveActionToggleClock;
+  LiveActionCancelSub | LiveActionConfirmSub | LiveActionDiscardNext |
+  LiveActionSelectPlayer | LiveActionSelectStarter | LiveActionSelectStarterPosition |
+  LiveActionStartPeriod | LiveActionEndPeriod | LiveActionToggleClock;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, LiveAction>;
 
@@ -116,5 +117,12 @@ export const cancelProposedStarter: ActionCreator<ThunkResult> = () => (dispatch
   }
   dispatch({
     type: CANCEL_STARTER
+  });
+};
+
+export const toggleClock: ActionCreator<ThunkResult> = () => (dispatch) => {
+  //TODO: Check that period is started?
+  dispatch({
+    type: TOGGLE_CLOCK
   });
 };

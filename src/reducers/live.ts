@@ -40,6 +40,7 @@ const INITIAL_STATE: LiveGameState = {
 };
 
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
+export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 
 export const live: Reducer<LiveState, RootAction> = function (state, action) {
   const partialState = liveGame(state, action);
