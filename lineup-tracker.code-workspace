@@ -21,6 +21,7 @@
 		},
 		"files.enableTrash": false,
 		"files.trimFinalNewlines": true,
-		"files.trimTrailingWhitespace": true
+		"files.trimTrailingWhitespace": true,
+		"editor.formatOnSave": true
 	}
 }
