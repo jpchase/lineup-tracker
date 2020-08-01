@@ -3,7 +3,8 @@
 */
 
 import '@material/mwc-icon-button-toggle';
-import { customElement, html, LitElement } from 'lit-element';
+import { customElement, html, internalProperty, LitElement, property } from 'lit-element';
+import { Duration, Timer, TimerData } from '../models/clock';
 import { SharedStyles } from './shared-styles';
 
 export interface ClockToggleDetail {
@@ -40,13 +41,51 @@ export class LineupGameClock extends LitElement {
       </style>
       <span>
         <span id="gamePeriod">Period: 1</span>
-        <mwc-icon-button-toggle id='clockToggle' onIcon="pause_circle_outline" offIcon="play_circle_outline" label="Start/stop the clock"
-        @MDCIconButtonToggle:change="${this._toggleClock}"></mwc-icon-button-toggle>
-        <span id="periodTimer"></span>&nbsp;[<span id="gameTimer"></span>]
+        <mwc-icon-button-toggle id="clockToggle" ?on="${this._timer?.isRunning}"
+          onIcon="pause_circle_outline" offIcon="play_circle_outline" label="Start/stop the clock"
+          @MDCIconButtonToggle:change="${this._toggleClock}"></mwc-icon-button-toggle>
+        <span id="periodTimer">${this.timerText}</span>&nbsp;[<span id="gameTimer"></span>]
       </div>`
   }
 
+  private _timer?: Timer;
+  private _timerData?: TimerData;
+
+  @property({ type: Object })
+  get timerData(): TimerData | undefined {
+    return this._timerData;
+  }
+  set timerData(value: TimerData | undefined) {
+    const oldValue = this._timerData;
+    this._timerData = value;
+    if (value !== oldValue) {
+      this._timer = new Timer(this._timerData);
+      this.updateTimerText();
+      this.refresh();
+    }
+    this.requestUpdate('timerData', oldValue);
+  }
+
+  @internalProperty()
+  protected timerText: string = '';
+
+  private refresh() {
+    if (!this._timer || !this._timer.isRunning) {
+      return;
+    }
+    this.updateTimerText();
+    requestAnimationFrame(this.refresh.bind(this));
+  }
+
+  private updateTimerText() {
+    let text = '';
+    if (this._timer) {
+      text = Duration.format(this._timer.getElapsed());
+    }
+    this.timerText = text;
+  }
+
   private _toggleClock(e: CustomEvent) {
-    this.dispatchEvent(new ClockToggleEvent({isStarted: e.detail.isOn}));
+    this.dispatchEvent(new ClockToggleEvent({ isStarted: e.detail.isOn }));
   }
 }

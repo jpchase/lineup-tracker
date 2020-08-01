@@ -5,15 +5,17 @@
 import '@material/mwc-button';
 import '@material/mwc-icon';
 import { customElement, html, LitElement, property } from 'lit-element';
-import { applyPendingSubs, cancelProposedSub, confirmProposedSub, discardPendingSubs, selectPlayer } from '../actions/live';
+import { applyPendingSubs, cancelProposedSub, confirmProposedSub, discardPendingSubs, selectPlayer, toggleClock } from '../actions/live';
 import { connectStore } from '../middleware/connect-mixin';
+import { TimerData } from '../models/clock';
 import { FormationBuilder } from '../models/formation';
 import { LiveGame, LivePlayer } from '../models/game';
-import { proposedSubSelector } from '../reducers/live';
+import { clockSelector, proposedSubSelector } from '../reducers/live';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-game-clock';
+import { ClockToggleEvent } from './lineup-game-clock';
 import './lineup-on-player-list';
 import './lineup-player-list';
 import { SharedStyles } from './shared-styles';
@@ -48,7 +50,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
 
     return html`
       <div toolbar>
-        <lineup-game-clock id="gameTimer"></lineup-game-clock>
+        <lineup-game-clock id="gameTimer" .timerData="${this._clockData}"></lineup-game-clock>
       </div>
       <div id="live-on">
         <h5>Playing</h5>
@@ -119,11 +121,19 @@ export class LineupGameLive extends connectStore()(LitElement) {
   @property({ type: Object })
   private _game: LiveGame | undefined;
 
-  @property({type: Object})
+  @property({ type: Object })
   private _players: LivePlayer[] | undefined;
 
-  @property({type: Object})
+  @property({ type: Object })
   private _proposedSub: LivePlayer | undefined;
+
+  @property({ type: Object })
+  private _clockData?: TimerData;
+
+  protected firstUpdated() {
+    this.shadowRoot?.getElementById('gameTimer')?.addEventListener(
+      ClockToggleEvent.eventName, this._toggleClock.bind(this) as EventListenerOrEventListenerObject);
+  }
 
   stateChanged(state: RootState) {
     if (!state.live) {
@@ -135,6 +145,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
     }
 
     this._players = this._game.players || [];
+    this._clockData = clockSelector(state)?.timer;
     this._proposedSub = proposedSubSelector(state);
   }
 
@@ -158,6 +169,10 @@ export class LineupGameLive extends connectStore()(LitElement) {
   private _discardSubs() {
     // TODO: Pass selectedOnly param, based on if any next cards are selected
     this.dispatch(discardPendingSubs());
+  }
+
+  private _toggleClock() {
+    this.dispatch(toggleClock());
   }
 
   private _findPlayer(playerId: string) {
