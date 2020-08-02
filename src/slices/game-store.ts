@@ -80,7 +80,7 @@ export function persistGameState(storeInstance: Store<RootState, RootAction>) {
   // Store games in idb
   const newCache: CachedGames = {
     ...cachedGames,
-    games: {...cachedGames.games}
+    games: { ...cachedGames.games }
   };
   newCache.games[currentGame.id] = currentGame;
   newCache.currentGameId = currentGame.id;
@@ -88,4 +88,8 @@ export function persistGameState(storeInstance: Store<RootState, RootAction>) {
     console.log(`persistGameState: idb updated for: ${currentGame.id}`);
     cachedGames = newCache;
   });
+}
+
+export function resetCache() {
+  cachedGames = { games: {} };
 }

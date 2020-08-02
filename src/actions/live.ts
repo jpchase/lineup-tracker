@@ -1,6 +1,8 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { Position } from '../models/formation';
+import { LiveGame } from '../models/game';
+import { ClockState } from '../reducers/clock';
 import { proposedSubSelector } from '../reducers/live';
 import {
   APPLY_NEXT,
@@ -9,16 +11,18 @@ import {
   CANCEL_SUB,
   CONFIRM_SUB,
   DISCARD_NEXT,
+  LiveActionEndPeriod,
+  LiveActionStartPeriod,
+  LiveActionToggleClock,
+  LIVE_HYDRATE,
   SELECT_PLAYER,
   SELECT_STARTER,
   SELECT_STARTER_POSITION,
-  LiveActionStartPeriod,
-  LiveActionEndPeriod,
-  LiveActionToggleClock,
   TOGGLE_CLOCK
 } from '../slices/live-types';
 import { RootState } from '../store';
 
+export interface LiveActionHydrate extends Action<typeof LIVE_HYDRATE> { gameId?: string, game?: LiveGame, clock?: ClockState };
 export interface LiveActionApplyStarter extends Action<typeof APPLY_STARTER> { };
 export interface LiveActionCancelStarter extends Action<typeof CANCEL_STARTER> { };
 export interface LiveActionApplyNext extends Action<typeof APPLY_NEXT> { selectedOnly?: boolean };
@@ -29,12 +33,21 @@ export interface LiveActionSelectPlayer extends Action<typeof SELECT_PLAYER> { p
 export interface LiveActionSelectStarter extends Action<typeof SELECT_STARTER> { playerId: string; selected: boolean };
 export interface LiveActionSelectStarterPosition extends Action<typeof SELECT_STARTER_POSITION> { position: Position };
 
-export type LiveAction = LiveActionApplyStarter | LiveActionApplyNext | LiveActionCancelStarter |
+export type LiveAction = LiveActionHydrate | LiveActionApplyStarter | LiveActionApplyNext | LiveActionCancelStarter |
   LiveActionCancelSub | LiveActionConfirmSub | LiveActionDiscardNext |
   LiveActionSelectPlayer | LiveActionSelectStarter | LiveActionSelectStarterPosition |
   LiveActionStartPeriod | LiveActionEndPeriod | LiveActionToggleClock;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, LiveAction>;
+
+export const hydrateLive: ActionCreator<LiveActionHydrate> = (game: LiveGame, gameId?: string, clock?: ClockState) => {
+  return {
+    type: LIVE_HYDRATE,
+    gameId,
+    game,
+    clock
+  }
+};
 
 export const selectPlayer: ActionCreator<ThunkResult> = (playerId: string, selected: boolean) => (dispatch) => {
   if (!playerId) {

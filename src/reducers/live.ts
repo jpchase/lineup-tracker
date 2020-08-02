@@ -3,12 +3,13 @@
 */
 
 import { Reducer } from 'redux';
+import { LiveActionHydrate } from '../actions/live';
 import { Position } from '../models/formation';
 import { LiveGame, LivePlayer } from '../models/game';
 import { getPlayer, LiveGameBuilder } from '../models/live';
 import { PlayerStatus } from '../models/player';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../slices/game-types';
-import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
+import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
 import { RootAction, RootState } from '../store';
 import { clock, ClockState } from './clock';
 import { createReducer } from './createReducer';
@@ -25,6 +26,7 @@ export interface LiveGameState {
 }
 
 export interface LiveState extends LiveGameState {
+  hydrated?: boolean;
   clock?: ClockState;
 }
 
@@ -39,6 +41,7 @@ const INITIAL_STATE: LiveGameState = {
   proposedSub: undefined,
 };
 
+export const liveGameSelector = (state: RootState) => state.live && state.live!.liveGame;
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 
@@ -48,9 +51,28 @@ export const live: Reducer<LiveState, RootAction> = function (state, action) {
     ...partialState,
     clock: clock(state ? state.clock : undefined, action)
   }
-  // TODO: Make result immutable, like from liveGame()?
-  return newState;
+  return hydrateReducer(newState, action);
 }
+
+const hydrateReducer: Reducer<LiveState, RootAction> = createReducer({} as LiveState, {
+  [LIVE_HYDRATE]: (newState, action: LiveActionHydrate) => {
+    if (newState.hydrated) {
+      return;
+    }
+    newState.hydrated = true;
+    if (!action.gameId) {
+      return;
+    }
+    if (!action.game) {
+      return;
+    }
+    newState.gameId = action.game.id;
+    newState.liveGame = action.game;
+    if (action.clock) {
+      newState.clock = action.clock;
+    }
+  },
+});
 
 const liveGame: Reducer<LiveGameState, RootAction> = createReducer(INITIAL_STATE, {
   [GET_GAME_SUCCESS]: (newState, action) => {
@@ -146,7 +168,7 @@ const liveGame: Reducer<LiveGameState, RootAction> = createReducer(INITIAL_STATE
 
     // Only On and Off statuses need further handling.
     if (selectedPlayer.status !== PlayerStatus.On &&
-        selectedPlayer.status !== PlayerStatus.Off) {
+      selectedPlayer.status !== PlayerStatus.Off) {
       return;
     }
 
