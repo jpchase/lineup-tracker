@@ -1,11 +1,14 @@
+import { TimerData } from '@app/models/clock';
 import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, LiveGame, LivePlayer } from '@app/models/game';
 import { getPlayer } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
+import { ClockState } from '@app/reducers/clock';
 import { live, LiveState } from '@app/reducers/live';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '@app/slices/game-types';
-import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
+import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
 import { expect } from '@open-wc/testing';
+import { buildRunningTimer, buildStoppedTimer } from '../helpers/test-clock-data';
 import * as testlive from '../helpers/test-live-game-data';
 import {
   buildLivePlayers,
@@ -14,7 +17,8 @@ import {
   getNewGame,
   getNewPlayer,
   getStoredGame,
-  getStoredPlayer
+  getStoredPlayer,
+  OTHER_STORED_GAME_ID
 } from '../helpers/test_data';
 import { CLOCK_INITIAL_STATE } from './clock.test';
 
@@ -30,6 +34,7 @@ const LIVE_INITIAL_STATE: LiveState = {
 };
 
 const INITIAL_OVERALL_STATE: LiveState = {
+  hydrated: false,
   ...LIVE_INITIAL_STATE,
   clock: {
     ...CLOCK_INITIAL_STATE
@@ -55,13 +60,104 @@ function selectPlayers(game: LiveGame, playerIds: string[], selected: boolean) {
   }
 }
 
+function buildClock(timer?: TimerData): ClockState {
+  return {
+    ...CLOCK_INITIAL_STATE,
+    timer
+  }
+}
+
 describe('Live reducer', () => {
 
   it('should return the initial state', () => {
     expect(
       live(INITIAL_OVERALL_STATE, getFakeAction())
-      ).to.deep.equal(INITIAL_OVERALL_STATE);
+    ).to.deep.equal(INITIAL_OVERALL_STATE);
   });
+
+  describe('LIVE_HYDRATE', () => {
+    let currentState: LiveState = INITIAL_OVERALL_STATE;
+
+    beforeEach(() => {
+      currentState = {
+        ...INITIAL_OVERALL_STATE,
+      };
+    });
+
+    it('should set state to given cached data', () => {
+      const inputGame = buildLiveGameWithPlayers();
+      const inputClock = {};
+
+      const newState = live(currentState, {
+        type: LIVE_HYDRATE,
+        gameId: inputGame.id,
+        game: inputGame,
+        clock: inputClock
+      });
+
+      const expectedGame: LiveGame = {
+        ...inputGame,
+      };
+      const expectedClock = {
+        ...inputClock
+      }
+
+      expect(newState).to.deep.include({
+        hydrated: true,
+        gameId: inputGame.id,
+        liveGame: expectedGame,
+        clock: expectedClock
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.liveGame).not.to.equal(currentState.liveGame);
+      expect(newState.clock).not.to.equal(currentState.clock);
+    });
+
+    it('should set hydrated flag when cached values are missing', () => {
+      const newState = live(currentState, {
+        type: LIVE_HYDRATE,
+      });
+
+      expect(newState).to.include({
+        hydrated: true,
+      });
+      expect(newState.gameId, 'gameId should not be set').to.not.be.ok;
+      expect(newState.liveGame).to.be.undefined;
+      expect(newState.clock).to.deep.equal(currentState.clock);
+
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should ignored cached values when hydrated flag already set', () => {
+      const currentGame = buildLiveGameWithPlayers();
+      const currentClock = buildClock(buildRunningTimer());
+      currentState.gameId = currentGame.id;
+      currentState.liveGame = currentGame;
+      currentState.clock = currentClock;
+      currentState.hydrated = true;
+
+      const inputGame = buildLiveGameWithPlayers();
+      inputGame.id = OTHER_STORED_GAME_ID;
+
+      expect(inputGame.id).not.to.equal(currentGame.id);
+
+      const newState = live(currentState, {
+        type: LIVE_HYDRATE,
+        gameId: inputGame.id,
+        game: inputGame,
+        clock: buildClock(buildStoppedTimer()),
+      });
+
+      expect(newState).to.include({
+        hydrated: true,
+        liveGame: currentGame,
+        clock: currentClock,
+      });
+      expect(newState.liveGame).to.equal(currentState.liveGame);
+      expect(newState.clock).to.equal(currentState.clock);
+    });
+  }); // describe('LIVE_HYDRATE')
 
   describe('GET_GAME_SUCCESS', () => {
     let currentState: LiveState = LIVE_INITIAL_STATE;
@@ -213,7 +309,7 @@ describe('Live reducer', () => {
     });
 
     it('should set selectedStarterPlayer and propose starter with position selected', () => {
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const selectedPosition: Position = { id: 'AM1', type: 'AM' };
 
       currentState.selectedStarterPosition = { ...selectedPosition };
       expect(currentState.selectedStarterPlayer).to.be.undefined;
@@ -250,7 +346,7 @@ describe('Live reducer', () => {
       };
       expect(state.selectedStarterPosition).to.be.undefined;
 
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const selectedPosition: Position = { id: 'AM1', type: 'AM' };
       const newState = live(state, {
         type: SELECT_STARTER_POSITION,
         position: selectedPosition
@@ -275,7 +371,7 @@ describe('Live reducer', () => {
       };
       expect(state.selectedStarterPosition).to.be.undefined;
 
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const selectedPosition: Position = { id: 'AM1', type: 'AM' };
       const newState = live(state, {
         type: SELECT_STARTER_POSITION,
         position: selectedPosition
@@ -305,7 +401,7 @@ describe('Live reducer', () => {
 
     beforeEach(() => {
       selectedPlayer = testlive.getLivePlayer();
-      selectedPosition = { id: 'AM1', type: 'AM'};
+      selectedPosition = { id: 'AM1', type: 'AM' };
       const starter: LivePlayer = {
         ...selectedPlayer,
         currentPosition: { ...selectedPosition }
@@ -399,7 +495,7 @@ describe('Live reducer', () => {
 
     beforeEach(() => {
       selectedPlayer = testlive.getLivePlayer();
-      selectedPosition = { id: 'AM1', type: 'AM'};
+      selectedPosition = { id: 'AM1', type: 'AM' };
       const starter: LivePlayer = {
         ...selectedPlayer,
         currentPosition: { ...selectedPosition }

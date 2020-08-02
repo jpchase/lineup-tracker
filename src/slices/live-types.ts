@@ -3,6 +3,7 @@
 */
 import { Action } from "redux";
 
+export const LIVE_HYDRATE = 'LIVE_HYDRATE';
 export const SELECT_PLAYER = 'SELECT_PLAYER';
 export const CONFIRM_SUB = 'CONFIRM_SUB';
 export const CANCEL_SUB = 'CANCEL_SUB';
@@ -16,6 +17,6 @@ export const START_PERIOD = 'START_PERIOD';
 export const END_PERIOD = 'END_PERIOD';
 export const TOGGLE_CLOCK = 'TOGGLE_CLOCK';
 
-export interface LiveActionStartPeriod extends Action<typeof START_PERIOD> {};
-export interface LiveActionEndPeriod extends Action<typeof END_PERIOD> {};
-export interface LiveActionToggleClock extends Action<typeof TOGGLE_CLOCK> {};
+export interface LiveActionStartPeriod extends Action<typeof START_PERIOD> { };
+export interface LiveActionEndPeriod extends Action<typeof END_PERIOD> { };
+export interface LiveActionToggleClock extends Action<typeof TOGGLE_CLOCK> { };
