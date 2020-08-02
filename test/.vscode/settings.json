@@ -1,5 +1,5 @@
 {
   "files.exclude": {
-    "!integration/**/*.js": true
+    "**/*.js": true
   }
 }

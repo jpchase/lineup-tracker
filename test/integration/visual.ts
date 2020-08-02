@@ -16,6 +16,9 @@ import * as os from 'os';
 import * as path from 'path';
 import { PNG } from 'pngjs';
 import { Browser, Page, Request } from 'puppeteer';
+import { HomePage } from './pages/home-page';
+import { PageObject } from './pages/page-object';
+import { TeamRosterPage } from './pages/team-roster-page';
 import { serveHermeticFont } from './server/hermetic-fonts';
 import { config, startTestServer } from './server/test-server';
 const pixelmatch = require('pixelmatch');
@@ -48,6 +51,7 @@ function getCurrentFile(view: string) {
 
 describe('👀 page screenshots are correct', function () {
   let server: any, browser: Browser, page: Page;
+  let pageObject: PageObject;
 
   before(async function () {
     server = await startTestServer();
@@ -86,7 +90,10 @@ describe('👀 page screenshots are correct', function () {
     await page.emulateTimezone('America/Toronto');
   });
 
-  afterEach(() => browser.close());
+  afterEach(async () => {
+    await browser.close();
+    await pageObject?.close();
+  });
 
   for (const breakpoint of breakpoints) {
     describe(`${breakpoint.name} screen`, function () {
@@ -100,13 +107,15 @@ describe('👀 page screenshots are correct', function () {
         return takeAndCompareScreenshot(page, '', prefix);
       });
       it('/viewHome', async function () {
-        return takeAndCompareScreenshot(page, 'viewHome', prefix);
+        const homePage = pageObject = new HomePage();
+        return takeAndCompareScreenshot(homePage, 'viewHome', prefix);
       });
       it('/viewGames', async function () {
         return takeAndCompareScreenshot(page, 'viewGames?team=test_team1', prefix, 'viewGames', null, 'lineup-view-games');
       });
       it('/viewRoster', async function () {
-        return takeAndCompareScreenshot(page, 'viewRoster?team=test_team1', prefix, 'viewRoster', null, 'lineup-view-roster');
+        const rosterPage = pageObject = new TeamRosterPage();
+        return takeAndCompareScreenshot(rosterPage, 'viewRoster?team=test_team1', prefix, 'viewRoster', null, 'lineup-view-roster');
       });
       it('/404', async function () {
         return takeAndCompareScreenshot(page, 'batmanNotAView', prefix);
@@ -134,7 +143,14 @@ async function selectTeam(page: Page, teamId: string) {
   }, teamId);
 }
 
-async function takeAndCompareScreenshot(page: Page, route: string, filePrefix: string, setupName?: string, setup?: any, waitForSelector?: any) {
+async function takeAndCompareScreenshot(page: Page | PageObject, route: string, filePrefix: string, setupName?: string, setup?: any, waitForSelector?: any) {
+  if (page instanceof PageObject) {
+    await page.init();
+    await page.open();
+    const viewName = await page.screenshot(/*{mode: 'current'}*/);
+    return compareScreenshots(viewName);
+  }
+
   // If you didn't specify a file, use the name of the route.
   const fileName = path.join(filePrefix, (setupName ? setupName : (route ? route : 'index')));
 
