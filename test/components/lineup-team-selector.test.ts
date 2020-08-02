@@ -1,6 +1,6 @@
 import { LineupTeamSelector } from '@app/components/lineup-team-selector';
 import '@app/components/lineup-team-selector.js';
-import { assert, fixture } from '@open-wc/testing';
+import { assert, expect, fixture } from '@open-wc/testing';
 import { PaperListboxElement } from '@polymer/paper-listbox';
 import { buildTeams } from '../helpers/test_data';
 
@@ -106,7 +106,7 @@ describe('lineup-team-selector tests', () => {
   });
 
   // TODO: Fix various accessibility warnings
-  // it('a11y', async () => {
-  //   await expect(el).to.be.accessible();
-  // });
+  it.skip('a11y', async () => {
+    await expect(el).to.be.accessible();
+  });
 });
