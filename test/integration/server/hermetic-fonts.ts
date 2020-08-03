@@ -1,7 +1,7 @@
-import { Request, RespondOptions } from "puppeteer";
+import * as fs from 'fs';
+import * as path from 'path';
+import { Request, RespondOptions } from 'puppeteer';
 
-const path = require('path');
-const fs = require('fs');
 const CONTENT_TYPE_CSS = 'text/css; charset=utf-8';
 const CONTENT_TYPE_WOFF2 = 'font/woff2';
 
@@ -17,7 +17,7 @@ const FONT_WOFF_FILES: Record<string, string> = {
     '/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxK.woff2': 'roboto-regular.woff2',
 }
 
-const serveHermeticFont = (request: Request, dataDir: string): RespondOptions | undefined => {
+export function serveHermeticFont(request: Request, dataDir: string): RespondOptions | undefined {
     const requestUrl = new URL(request.url());
     const isFontApis = requestUrl.hostname === 'fonts.googleapis.com';
     const isFontStatic = requestUrl.hostname === 'fonts.gstatic.com';
@@ -57,5 +57,3 @@ function buildResponse(dataDir: string, bodyFileName: string, contentType: strin
         body: bodyData
     };
 }
-
-exports.serveHermeticFont = serveHermeticFont;

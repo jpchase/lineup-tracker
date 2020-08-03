@@ -10,16 +10,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 /* global after, afterEach, before, beforeEach, describe, it */
 
+import { expect } from 'chai';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { PNG } from 'pngjs';
 import { Browser, Page, Request } from 'puppeteer';
-const puppeteer = require('puppeteer');
-const expect = require('chai').expect;
-const { config, startTestServer } = require('./server/test-server');
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
-const PNG = require('pngjs').PNG;
+import { serveHermeticFont } from './server/hermetic-fonts';
+import { config, startTestServer } from './server/test-server';
 const pixelmatch = require('pixelmatch');
-const hf = require('../helpers/hermetic-fonts');
+const puppeteer = require('puppeteer');
 
 let platformName = os.type().toLowerCase();
 if (platformName === 'darwin') {
@@ -75,7 +75,7 @@ describe('👀 page screenshots are correct', function () {
 
     page.setRequestInterception(true);
     page.on('request', async (request: Request) => {
-      const fontResponse = hf.serveHermeticFont(request, dataDir);
+      const fontResponse = serveHermeticFont(request, dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
       } else {

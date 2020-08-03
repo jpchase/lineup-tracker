@@ -10,11 +10,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 /* global after, afterEach, before, beforeEach, describe, it */
 
+import * as fs from 'fs';
 import { Browser, Page, Viewport } from 'puppeteer';
+import { serveHermeticFont } from '../server/hermetic-fonts';
+import { config, startTestServer } from '../server/test-server';
 const puppeteer = require('puppeteer');
-const { config, startTestServer } = require('../server/test-server');
-const fs = require('fs');
-const hf = require('../../helpers/hermetic-fonts');
 
 describe('🎁 regenerate screenshots', function () {
   let server: any, browser: Browser, page: Page;
@@ -45,7 +45,7 @@ describe('🎁 regenerate screenshots', function () {
 
     page.setRequestInterception(true);
     page.on('request', async (request) => {
-      const fontResponse = hf.serveHermeticFont(request, config.dataDir);
+      const fontResponse = serveHermeticFont(request, config.dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
       } else {

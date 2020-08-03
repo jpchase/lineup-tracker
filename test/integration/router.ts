@@ -10,10 +10,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 /* global after, afterEach, before, beforeEach, describe, it */
 
+import { expect } from 'chai';
 import { Browser, Page } from 'puppeteer';
+import { config, startTestServer } from './server/test-server';
 const puppeteer = require('puppeteer');
-const expect = require('chai').expect;
-const { config, startTestServer } = require('./server/test-server');
 
 describe('routing tests', function () {
   let server: any, browser: Browser, page: Page;
