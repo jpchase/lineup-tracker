@@ -12,8 +12,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import { expect } from 'chai';
 import { Browser, Page } from 'puppeteer';
-import puppeteer from 'puppeteer';
-import { config, startTestServer } from './server/test-server.js';
+import { config, startTestServer } from './server/test-server';
+const puppeteer = require('puppeteer');
 
 describe('routing tests', function () {
   let server: any, browser: Browser, page: Page;

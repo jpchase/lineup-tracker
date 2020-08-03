@@ -14,12 +14,10 @@
     "serve:webpack": "polymer serve --port 3000 dist",
     "test": "npm run test:karma && npm run test:integration",
     "test:integration": "tsc && npm run build:webpack && npm run test:integration_impl",
-    "test:integration_impl2": "firebase emulators:exec \"mocha test/integration --experimental-modules --timeout=15000\" --import test/integration/data/firestore",
     "test:integration_impl": "firebase emulators:exec \"mocha test/integration --require esm --timeout=15000\" --import test/integration/data/firestore",
-    "test:intfast": "tsc && npm run test:integration_impl",
     "test:sauce": "tsc && polymer test --module-resolution=node --npm -s 'windows 10/microsoftedge@17' -s 'macos 10.13/safari@11'",
     "test:regenerate_screenshots": "tsc && npm run build:webpack && npm run test:regenerate_screenshots_impl",
-    "test:regenerate_screenshots_impl": "firebase emulators:exec \"mocha test/integration/screenshots-baseline/regenerate.js --timeout=25000\" --import test/integration/data/firestore",
+    "test:regenerate_screenshots_impl": "firebase emulators:exec \"mocha test/integration/screenshots-baseline/regenerate.js --require esm --timeout=25000\" --import test/integration/data/firestore",
     "test:karma": "tsc && karma start --coverage",
     "test:karma_single": "tsc && karma start --coverage --grep test/reducers/live.test.js",
     "test:watch": "karma start --auto-watch=true --single-run=false",
@@ -31,9 +29,6 @@
   },
   "eslintConfig": {
     "extends": "google"
-  },
-  "esm": {
-    "mode": "all"
   },
   "dependencies": {
     "@material/mwc-button": "^0.17.2",
@@ -83,6 +78,8 @@
     "@open-wc/testing": "^2.5.19",
     "@open-wc/testing-karma": "^4.0.1",
     "@open-wc/testing-karma-bs": "^1.3.83",
+    "@types/pixelmatch": "^5.2.1",
+    "@types/pngjs": "^3.4.2",
     "@types/puppeteer": "^3.0.1",
     "@types/sinon-chai": "^3.2.3",
     "axe-core": "^3.4.1",
