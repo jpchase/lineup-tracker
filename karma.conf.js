@@ -33,13 +33,13 @@ module.exports = (config) => {
           // Performs one-time setup, before any tests are run.
           // TODO: Replace with root hook plugin on Mocha 8.0, see:
           // https://mochajs.org/#root-hook-plugins
-          { pattern: 'test/helpers/global-setup.js', watched: false },
+          { pattern: 'test/unit/helpers/global-setup.js', watched: false },
           // runs all files ending with .test in the test folder,
           // can be overwritten by passing a --grep flag. examples:
           //
           // npm run test -- --grep test/foo/bar.test.js
           // npm run test -- --grep test/bar/*
-          { pattern: config.grep ? config.grep : 'test/**/*.test.js', type: 'module' },
+          { pattern: config.grep ? config.grep : 'test/unit/**/*.test.js', type: 'module' },
           {
             pattern: 'test/__snapshots__/**/*.md',
             // snapshot preprocessor will rewrite content of .md files with JS wrappers
