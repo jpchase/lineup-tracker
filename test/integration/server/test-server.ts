@@ -1,12 +1,6 @@
-const os = require('os');
-const path = require('path');
-// import { startServer, ServerOptions } from 'polyserve';
-const { startServer } = require('polyserve');
-// import { createConfig, startServer } from 'es-dev-server';
-
-// export interface TestServer {
-//   close(): void;
-// }
+import * as os from 'os';
+import * as path from 'path';
+import { startServer, ServerOptions } from 'polyserve';
 
 export interface IntegrationConfig {
   appUrl: string;
@@ -24,21 +18,18 @@ if (platformName === 'darwin') {
 
 const integrationDir = path.join(process.cwd(), 'test/integration');
 
-const config: IntegrationConfig = {
+export const config: IntegrationConfig = {
   appUrl: 'http://127.0.0.1:4444',
   dataDir: path.join(integrationDir, 'data'),
   currentDir: path.join(integrationDir, 'screenshots-current', platformName),
   baselineDir: path.join(integrationDir, 'screenshots-baseline', platformName),
 }
 
-const startTestServer = async function (): Promise<import("net").Server> {
-  const config /*: ServerOptions */ = {
+export async function startTestServer(): Promise<import("net").Server> {
+  const config: ServerOptions = {
     port: 4444,
-    root:  path.join(process.cwd(), 'dist'),
+    root: path.join(process.cwd(), 'dist'),
     moduleResolution: 'node',
   };
   return startServer(config);
 }
-
-exports.config = config;
-exports.startTestServer = startTestServer;
