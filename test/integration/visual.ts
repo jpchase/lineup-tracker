@@ -107,14 +107,14 @@ describe('👀 page screenshots are correct', function () {
         return takeAndCompareScreenshot(page, '', prefix);
       });
       it('/viewHome', async function () {
-        const homePage = pageObject = new HomePage();
+        const homePage = pageObject = new HomePage({ viewPort: breakpoint.viewPort });
         return takeAndCompareScreenshot(homePage, 'viewHome', prefix);
       });
       it('/viewGames', async function () {
         return takeAndCompareScreenshot(page, 'viewGames?team=test_team1', prefix, 'viewGames', null, 'lineup-view-games');
       });
       it('/viewRoster', async function () {
-        const rosterPage = pageObject = new TeamRosterPage();
+        const rosterPage = pageObject = new TeamRosterPage({ viewPort: breakpoint.viewPort });
         return takeAndCompareScreenshot(rosterPage, 'viewRoster?team=test_team1', prefix, 'viewRoster', null, 'lineup-view-roster');
       });
       it('/404', async function () {
@@ -147,8 +147,9 @@ async function takeAndCompareScreenshot(page: Page | PageObject, route: string, 
   if (page instanceof PageObject) {
     await page.init();
     await page.open();
-    const viewName = await page.screenshot(/*{mode: 'current'}*/);
-    return compareScreenshots(viewName);
+    const viewName = await page.screenshot(path.join(currentDir, filePrefix));
+    // TODO: Pass filePrefix as an explicit parameter.
+    return compareScreenshots(path.join(filePrefix, viewName));
   }
 
   // If you didn't specify a file, use the name of the route.

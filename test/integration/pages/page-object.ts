@@ -2,10 +2,11 @@
 @license
 */
 
-import { Page, Browser, Request } from 'puppeteer';
+import * as path from 'path';
+import { BinaryScreenShotOptions, Browser, ConsoleMessage, Page, Request, Viewport } from 'puppeteer';
+import { serveHermeticFont } from '../server/hermetic-fonts';
+import { config } from '../server/test-server';
 const puppeteer = require('puppeteer');
-const hf = require('../../helpers/hermetic-fonts');
-const { config } = require('./server/test-server');
 
 export interface PageOpenParams {
   route: string;
@@ -13,15 +14,21 @@ export interface PageOpenParams {
 
 export interface PageOptions {
   scenarioName?: string;
+  route?: string;
+  viewPort?: Viewport
 }
 
 export class PageObject {
   private _browser?: Browser;
   private _page?: Page;
   protected readonly scenarioName: string;
+  private readonly _route: string;
+  private readonly _viewPort?: Viewport;
 
   constructor(options: PageOptions = {}) {
     this.scenarioName = options.scenarioName || '';
+    this._route = options.route || '';
+    this._viewPort = options.viewPort;
   }
 
   async init() {
@@ -29,7 +36,7 @@ export class PageObject {
 
     const page = this._page = await browser.newPage();
 
-    page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
+    page.on('console', (msg: ConsoleMessage) => console.log('PAGE LOG:', msg.text()));
 
     page.on('requestfailed', (request: Request) => {
       console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure()!.errorText);
@@ -37,7 +44,7 @@ export class PageObject {
 
     page.setRequestInterception(true);
     page.on('request', async (request: Request) => {
-      const fontResponse = hf.serveHermeticFont(request, config.dataDir);
+      const fontResponse = serveHermeticFont(request, config.dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
       } else {
@@ -56,10 +63,14 @@ export class PageObject {
     if (!this._page) {
       throw new Error('Page not initialized. Did you call init()?');
     }
-    const params = this.openParams;
 
-    const testFlagSeparator = (params.route && params.route.includes('?')) ? '&' : '?';
-    await this._page.goto(`${config.appUrl}/${params.route}${testFlagSeparator}test_data`);
+    if (this._viewPort) {
+      this._page.setViewport(this._viewPort);
+    }
+
+    const testFlagSeparator = (this._route.includes('?')) ? '&' : '?';
+    await this._page.goto(`${config.appUrl}/${this._route}${testFlagSeparator}test_data`);
+    await this._page.waitFor(1500);
   }
 
   // To be overridden.
@@ -67,13 +78,11 @@ export class PageObject {
     throw new Error('Method not implemented.');
   }
 
-  async screenshot(): Promise<string> {
-    throw new Error("Method not implemented.");
+  async screenshot(directory?: string): Promise<string> {
+    const viewName = this.scenarioName || this._route || 'index';
+    const params: BinaryScreenShotOptions = {
+      path: path.join(directory || '', `${viewName}.png`)
+    };
+    return this._page!.screenshot(params).then(() => viewName);
   }
-
-  screenshotName(): string {
-    throw new Error("Method not implemented.");
-  }
-
-
 }
