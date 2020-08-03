@@ -4,7 +4,6 @@ node_modules/
 test/integration/screenshots-current/
 src/**/*.js
 test/**/*.js
-!test/integration/**/*.js
 !src/index.js
 dist/
 .tmp
