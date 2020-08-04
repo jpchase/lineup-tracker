@@ -72,6 +72,7 @@ export class LineupTeamSelector extends LitElement {
           };*/
         }
       </style>
+      <mwc-button id="trigger" @click="${this._triggerClicked}">${this.teamName}</mwc-button>
       <paper-dropdown-menu class="teams" label="Select team" no-label-float>
         <paper-listbox slot="dropdown-content"
                        class="dropdown-content"
@@ -79,15 +80,19 @@ export class LineupTeamSelector extends LitElement {
                        attr-for-selected="id"
                        @iron-select="${this._onIronSelect}">
           ${Object.keys(this.teams).map((key) => {
-            const team = this.teams[key];
-            return html`
+      const team = this.teams[key];
+      return html`
               <paper-item id="${team.id}">${team.name}</paper-item>
             `
-          })}
+    })}
           <paper-item addNew id="addnewteam">+ Add team</paper-item>
         </paper-listbox>
       </paper-dropdown-menu>
     `;
+  }
+
+  private _triggerClicked(e: CustomEvent) {
+    // TODO: Fire event to show selector dialog
   }
 
   private _onIronSelect(e: CustomEvent) {
@@ -96,7 +101,7 @@ export class LineupTeamSelector extends LitElement {
     }
 
     if (e.detail.item.hasAttribute('addNew')) {
-      this.dispatchEvent(new CustomEvent('add-new-team', {bubbles: true}));
+      this.dispatchEvent(new CustomEvent('add-new-team', { bubbles: true }));
     } else {
       this.dispatchEvent(new CustomEvent('team-changed', {
         bubbles: true,
@@ -107,9 +112,9 @@ export class LineupTeamSelector extends LitElement {
     }
   }
 
-  @property({type: String})
+  @property({ type: String })
   teamId = '';
 
-  @property({type: Object})
+  @property({ type: Object })
   teams: Teams = {};
 }
