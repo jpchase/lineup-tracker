@@ -12,6 +12,8 @@ export interface PageOpenParams {
   route: string;
 }
 
+export type PageOpenFunction = () => Promise<void>;
+
 export interface PageOptions {
   scenarioName?: string;
   route?: string;
@@ -29,6 +31,13 @@ export class PageObject {
     this.scenarioName = options.scenarioName || '';
     this._route = options.route || '';
     this._viewPort = options.viewPort;
+  }
+
+  protected get page(): Page {
+    if (!this._page) {
+      throw new Error('Page not initialized. Did you call init()?');
+    }
+    return this._page;
   }
 
   async init() {
@@ -70,12 +79,19 @@ export class PageObject {
 
     const testFlagSeparator = (this._route.includes('?')) ? '&' : '?';
     await this._page.goto(`${config.appUrl}/${this._route}${testFlagSeparator}test_data`);
+    if (this.openFunc) {
+      await this.openFunc();
+    }
     await this._page.waitFor(1500);
   }
 
   // To be overridden.
   protected get openParams(): PageOpenParams {
     throw new Error('Method not implemented.');
+  }
+
+  protected get openFunc(): PageOpenFunction | undefined {
+    return undefined;
   }
 
   async screenshot(directory?: string): Promise<string> {

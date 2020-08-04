@@ -16,8 +16,9 @@ import * as os from 'os';
 import * as path from 'path';
 import { PNG } from 'pngjs';
 import { Browser, Page, Request } from 'puppeteer';
+import { AddTeamDialog } from './pages/add-team-dialog';
 import { HomePage } from './pages/home-page';
-import { PageObject } from './pages/page-object';
+import { PageObject, PageOptions } from './pages/page-object';
 import { TeamRosterPage } from './pages/team-roster-page';
 import { serveHermeticFont } from './server/hermetic-fonts';
 import { config, startTestServer } from './server/test-server';
@@ -98,6 +99,7 @@ describe('👀 page screenshots are correct', function () {
   for (const breakpoint of breakpoints) {
     describe(`${breakpoint.name} screen`, function () {
       const prefix = breakpoint.name;
+      const pageOptions: PageOptions = { viewPort: breakpoint.viewPort };
 
       beforeEach(async function () {
         return page.setViewport(breakpoint.viewPort);
@@ -107,14 +109,14 @@ describe('👀 page screenshots are correct', function () {
         return takeAndCompareScreenshot(page, '', prefix);
       });
       it('/viewHome', async function () {
-        const homePage = pageObject = new HomePage({ viewPort: breakpoint.viewPort });
+        const homePage = pageObject = new HomePage(pageOptions);
         return takeAndCompareScreenshot(homePage, 'viewHome', prefix);
       });
       it('/viewGames', async function () {
         return takeAndCompareScreenshot(page, 'viewGames?team=test_team1', prefix, 'viewGames', null, 'lineup-view-games');
       });
       it('/viewRoster', async function () {
-        const rosterPage = pageObject = new TeamRosterPage({ viewPort: breakpoint.viewPort });
+        const rosterPage = pageObject = new TeamRosterPage(pageOptions);
         return takeAndCompareScreenshot(rosterPage, 'viewRoster?team=test_team1', prefix, 'viewRoster', null, 'lineup-view-roster');
       });
       it('/404', async function () {
@@ -122,9 +124,8 @@ describe('👀 page screenshots are correct', function () {
       });
 
       it('add new team', async function () {
-        return takeAndCompareScreenshot(page, '', prefix, 'addNewTeam', async (currentPage: Page) => {
-          await selectTeam(currentPage, 'addnewteam');
-        });
+        const addDialog = pageObject = new AddTeamDialog(pageOptions);
+        return takeAndCompareScreenshot(addDialog, '', prefix);
       });
 
       it('/game', async function () {
@@ -133,15 +134,6 @@ describe('👀 page screenshots are correct', function () {
     }); // describe(`${breakpoint.name} screen`)
   }
 });
-
-async function selectTeam(page: Page, teamId: string) {
-  await page.evaluate((teamId) => {
-    const app = document.querySelector('lineup-app');
-    const selector = app!.shadowRoot!.querySelector('lineup-team-selector');
-    const list = selector!.shadowRoot!.querySelector('paper-dropdown-menu paper-listbox');
-    (list as any).select(teamId);
-  }, teamId);
-}
 
 async function takeAndCompareScreenshot(page: Page | PageObject, route: string, filePrefix: string, setupName?: string, setup?: any, waitForSelector?: any) {
   if (page instanceof PageObject) {
