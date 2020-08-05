@@ -45,8 +45,8 @@ import '@polymer/app-layout/app-header/app-header.js';
 import '@polymer/app-layout/app-scroll-effects/effects/waterfall.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import { accountIcon, menuIcon } from './lineup-icons';
-import { LineupTeamDialog } from './lineup-team-dialog';
-import './lineup-team-dialog';
+import { LineupTeamCreate } from './lineup-team-create';
+import './lineup-team-create';
 import './lineup-team-selector';
 import './snack-bar';
 
@@ -312,19 +312,19 @@ export class LineupApp extends connect(store)(LitElement) {
     `;
   }
 
-  @property({type: String})
+  @property({ type: String })
   appTitle = '';
 
-  @property({type: String})
+  @property({ type: String })
   private _page = '';
 
-  @property({type: Boolean})
+  @property({ type: Boolean })
   private _drawerOpened = false;
 
-  @property({type: Boolean})
+  @property({ type: Boolean })
   private _snackbarOpened = false;
 
-  @property({type: Boolean})
+  @property({ type: Boolean })
   private _offline = false;
 
   @property({ type: Object })
@@ -349,7 +349,7 @@ export class LineupApp extends connect(store)(LitElement) {
   @property({ type: Object })
   private _teams: Teams = {};
 
-  private _teamDialog: LineupTeamDialog|undefined = undefined;
+  private _teamDialog: LineupTeamCreate | undefined = undefined;
 
   constructor() {
     super();
@@ -364,7 +364,7 @@ export class LineupApp extends connect(store)(LitElement) {
 
     installOfflineWatcher((offline) => store.dispatch(updateOffline(offline)));
     installMediaQueryWatcher(`(min-width: 460px)`,
-        () => store.dispatch(updateDrawerState(false)));
+      () => store.dispatch(updateDrawerState(false)));
 
     // Get the authenticated user (if signed in), and then load the teams for
     // that user.
@@ -397,12 +397,12 @@ export class LineupApp extends connect(store)(LitElement) {
     store.dispatch(updateDrawerState((e.target as AppDrawerElement).opened));
   }
 
-    private _signinButtonClicked() {
-        if (!(this._user && this._user.imageUrl)) {
-          store.dispatch(signIn());
-        }
-        // store.dispatch(this._user && this._user.imageUrl ? signOut() : signIn());
+  private _signinButtonClicked() {
+    if (!(this._user && this._user.imageUrl)) {
+      store.dispatch(signIn());
     }
+    // store.dispatch(this._user && this._user.imageUrl ? signOut() : signIn());
+  }
 
   private _teamChanged(e: CustomEvent) {
     store.dispatch(changeTeam(e.detail.teamId));
@@ -414,7 +414,7 @@ export class LineupApp extends connect(store)(LitElement) {
 
   private async _addNewTeam() {
     if (!this._teamDialog) {
-      this._teamDialog = document.createElement('lineup-team-dialog') as LineupTeamDialog;
+      this._teamDialog = document.createElement('lineup-team-create') as LineupTeamCreate;
       this.shadowRoot!.appendChild(this._teamDialog);
       await this._teamDialog.updateComplete;
     }

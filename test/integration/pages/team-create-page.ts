@@ -4,7 +4,7 @@
 
 import { PageObject, PageOptions, PageOpenFunction } from './page-object';
 
-export class AddTeamDialog extends PageObject {
+export class TeamCreatePage extends PageObject {
 
   constructor(options: PageOptions = {}) {
     super({

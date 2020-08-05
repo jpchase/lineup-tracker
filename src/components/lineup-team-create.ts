@@ -23,8 +23,8 @@ interface PaperDialogClosingReason {
 import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
-@customElement('lineup-team-dialog')
-export class LineupTeamDialog extends LitElement {
+@customElement('lineup-team-create')
+export class LineupTeamCreate extends LitElement {
   protected render() {
     console.log('in render()');
     return html`

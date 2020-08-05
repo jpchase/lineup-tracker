@@ -1,11 +1,11 @@
-import { LineupTeamDialog } from '@app/components/lineup-team-dialog';
-import '@app/components/lineup-team-dialog.js';
+import { LineupTeamCreate } from '@app/components/lineup-team-create';
+import '@app/components/lineup-team-create.js';
 import { assert, expect, fixture, nextFrame } from '@open-wc/testing';
 
-describe('lineup-team-dialog tests', () => {
-  let el: LineupTeamDialog;
+describe('lineup-team-create tests', () => {
+  let el: LineupTeamCreate;
   beforeEach(async () => {
-    el = await fixture('<lineup-team-dialog></lineup-team-dialog>');
+    el = await fixture('<lineup-team-create></lineup-team-create>');
   });
 
   function getDialog() {
