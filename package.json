@@ -35,7 +35,7 @@
     "@material/mwc-checkbox": "^0.17.2",
     "@material/mwc-dialog": "^0.17.2",
     "@material/mwc-drawer": "^0.17.2",
-    "@material/mwc-fab": "^0.17.2",
+    "@material/mwc-fab": "^0.18.0",
     "@material/mwc-formfield": "^0.17.2",
     "@material/mwc-icon": "^0.17.2",
     "@material/mwc-icon-button-toggle": "^0.17.2",
