@@ -33,7 +33,7 @@ import {
   updateDrawerState
 } from '../actions/app';
 import { getUser, signIn } from '../actions/auth';
-import { addNewTeam, changeTeam, getTeams } from '../actions/team';
+import { changeTeam, getTeams } from '../actions/team';
 
 // The following line imports the type only - it will be removed by tsc so
 // another import for app-drawer.js is required below.
@@ -45,12 +45,8 @@ import '@polymer/app-layout/app-header/app-header.js';
 import '@polymer/app-layout/app-scroll-effects/effects/waterfall.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import { accountIcon, menuIcon } from './lineup-icons';
-import { LineupTeamCreate } from './lineup-team-create';
-import './lineup-team-create';
 import './lineup-team-selector';
 import './snack-bar';
-
-import { EVENT_NEWTEAMCREATED } from './events';
 
 interface Page {
   page: string;
@@ -300,6 +296,7 @@ export class LineupApp extends connect(store)(LitElement) {
       <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
       <lineup-view-game-roster class="page" ?active="${this._page === 'gameroster'}"></lineup-view-game-roster>
       <lineup-view-roster class="page" ?active="${this._page === 'viewRoster'}"></lineup-view-roster>
+      <lineup-view-team-create class="page" ?active="${this._page === 'addNewTeam'}"></lineup-view-team-create>
       <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
     </main>
 
@@ -334,6 +331,7 @@ export class LineupApp extends connect(store)(LitElement) {
     'game': { page: 'game', label: 'Game Detail' },
     'gameroster': { page: 'gameroster', label: 'Game Roster' },
     'viewRoster': { page: 'viewRoster', label: 'Roster' },
+    'addNewTeam': { page: 'addNewTeam', label: 'New Team' },
     'view404': { page: 'view404', label: 'Page not found' },
   };
 
@@ -349,8 +347,6 @@ export class LineupApp extends connect(store)(LitElement) {
   @property({ type: Object })
   private _teams: Teams = {};
 
-  private _teamDialog: LineupTeamCreate | undefined = undefined;
-
   constructor() {
     super();
     // To force all event listeners for gestures to be passive.
@@ -359,7 +355,6 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   protected firstUpdated() {
-    window.addEventListener(EVENT_NEWTEAMCREATED, this._newTeamCreated.bind(this) as EventListener);
     const urlParams = new URLSearchParams(location.search);
 
     installOfflineWatcher((offline) => store.dispatch(updateOffline(offline)));
@@ -408,17 +403,9 @@ export class LineupApp extends connect(store)(LitElement) {
     store.dispatch(changeTeam(e.detail.teamId));
   }
 
-  private _newTeamCreated(e: CustomEvent) {
-    store.dispatch(addNewTeam(e.detail.team));
-  }
-
-  private async _addNewTeam() {
-    if (!this._teamDialog) {
-      this._teamDialog = document.createElement('lineup-team-create') as LineupTeamCreate;
-      this.shadowRoot!.appendChild(this._teamDialog);
-      await this._teamDialog.updateComplete;
-    }
-    this._teamDialog.open();
+  private _addNewTeam() {
+    window.history.pushState({}, '', `/addNewTeam`);
+    store.dispatch(navigate(window.location));
   }
 
   stateChanged(state: RootState) {

@@ -1,6 +1,6 @@
 import { LineupTeamCreate } from '@app/components/lineup-team-create';
 import '@app/components/lineup-team-create.js';
-import { assert, expect, fixture, nextFrame } from '@open-wc/testing';
+import { expect, fixture, oneEvent } from '@open-wc/testing';
 
 describe('lineup-team-create tests', () => {
   let el: LineupTeamCreate;
@@ -8,105 +8,44 @@ describe('lineup-team-create tests', () => {
     el = await fixture('<lineup-team-create></lineup-team-create>');
   });
 
-  function getDialog() {
-    let dialog = el.shadowRoot!.querySelector('paper-dialog');
-    assert.isOk(dialog, 'Missing dialog');
-    return dialog!;
-  }
-
   function getInputField(fieldId: string) {
     const field = el.shadowRoot!.querySelector(`#${fieldId}`);
-    assert.isOk(field, `Missing field: ${fieldId}`);
+    expect(field, `Missing field: ${fieldId}`).to.be.ok;
     return field as HTMLInputElement;
   }
 
   it('starts empty', () => {
-    assert.isArray(el.teams, 'teams');
-    assert.equal(el.teams.length, 0, 'teams array length');
-  });
-
-  it('starts closed', () => {
-    assert.isFalse(el.opened, 'opened');
-  });
-
-  it('shows dialog when opened', async () => {
-    el.open();
-    await el.updateComplete;
-
-    // Waits a frame, to allow the dialog to be shown.
-    await nextFrame();
-
-    assert.isTrue(el.opened, 'should be opened');
-
-    const dialog = getDialog();
-    const display = getComputedStyle(dialog, null).display;
-    assert.equal(display, 'block', 'Dialog display');
-
-    // Gets and asserts the input field.
-    getInputField('team-name');
-  });
-
-  it('closes dialog when cancelled', async () => {
-    el.open();
-    await el.updateComplete;
-
-    // Waits a frame, to allow the dialog to be shown.
-    await nextFrame();
-
-    assert.isTrue(el.opened, 'should be opened');
-
     const nameField = getInputField('team-name');
-    nameField.value = 'Cancel team 01'
-
-    const cancelButton = el.shadowRoot!.querySelector('paper-dialog mwc-button[dialog-dismiss]') as HTMLElement;
-    cancelButton.click();
-
-    // Waits a frame, to allow the dialog to be closed.
-    await nextFrame();
-
-    assert.isFalse(el.opened, 'should be closed');
-
-    const dialog = getDialog();
-    const display = getComputedStyle(dialog, null).display;
-    assert.equal(display, 'none', 'Dialog display');
+    expect(nameField.value, '', 'Name field should be empty').to.be.equal;
+    expect(el).shadowDom.to.equalSnapshot();
   });
 
-  it('creates new team when dialog saved', async () => {
-    el.open();
-    await el.updateComplete;
-
-    assert.isTrue(el.opened, 'should be opened');
-
+  it('creates new team when saved', async () => {
     const nameField = getInputField('team-name');
-    nameField.value = ' Club team 01 '
+    nameField.value = ' Club team 01 ';
 
-    let eventFired = false;
-    let newTeam = null;
-    const handler = function (firedEvent: Event) {
-      eventFired = true;
-      const event = firedEvent as CustomEvent;
-      newTeam = event.detail.team;
-      window.removeEventListener('new-team-created', handler);
-    };
+    const saveButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
+    setTimeout(() => saveButton.click());
 
-    window.addEventListener('new-team-created', handler);
+    const { detail } = await oneEvent(el, 'new-team-created');
 
-    const saveButton = el.shadowRoot!.querySelector('paper-dialog mwc-button[dialog-confirm]') as HTMLElement;
-    saveButton.click();
-
-    assert.isFalse(el.opened, 'should be closed');
-
-    const dialog = getDialog();
-    const display = getComputedStyle(dialog, null).display;
-    assert.equal(display, 'none', 'Dialog display');
-
-    assert.isTrue(eventFired, 'Event new-team-created should be fired');
-
-    assert.deepEqual(newTeam,
+    expect(detail.team).to.deep.equal(
       {
         id: '',
         name: 'Club team 01'
       });
+  });
+
+  // TODO: Enable test when cancel handling is implemented.
+  it.skip('clears fields when cancelled', async () => {
+    expect(true).to.be.true;
+    const nameField = getInputField('team-name');
+    nameField.value = 'Temp team name';
+
+    const cancelButton = el.shadowRoot!.querySelector('mwc-button.cancel') as HTMLElement;
+    setTimeout(() => cancelButton.click());
+
+    const { } = await oneEvent(el, 'new-team-created');
   });
 
   it('a11y', async () => {

@@ -2,97 +2,33 @@
 @license
 */
 
-import { LitElement, customElement, html, property } from 'lit-element';
-
-import { Team } from '../models/team';
-
-// These are the elements needed by this element.
 import '@material/mwc-button';
-import '@polymer/paper-dialog/paper-dialog.js';
 import '@material/mwc-textfield';
 import { TextField } from '@material/mwc-textfield';
-import { PaperDialogElement } from '@polymer/paper-dialog/paper-dialog.js';
-
+import { customElement, html, LitElement } from 'lit-element';
+import { Team } from '../models/team';
 import { EVENT_NEWTEAMCREATED } from './events';
-
-interface PaperDialogClosingReason {
-  confirmed?: boolean;
-}
-
-// These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
 @customElement('lineup-team-create')
 export class LineupTeamCreate extends LitElement {
   protected render() {
-    console.log('in render()');
     return html`
       ${SharedStyles}
       <style>
-        paper-dialog {
-          --iron-icon-fill-color: var(--app-dark-text-color);
-          --paper-dropdown-menu-label: {
-            color: var(--paper-pink-500);
-            font-style: italic;
-            text-align: center;
-            font-weight: bold;
-          };
-        }
       </style>
-      <paper-dialog id="teams-dialog" modal @opened-changed="${this._onOpenedChanged}">
-        <h2>Add new team</h2>
-        <mwc-textfield id="team-name" label="Team Name" required>
-        </mwc-textfield>
-        <div class="buttons">
-          <mwc-button dialog-dismiss>Cancel</mwc-button>
-          <mwc-button raised dialog-confirm autofocus>Save</mwc-button>
-        </div>
-      </paper-dialog>
+      <mwc-textfield id="team-name" label="Team Name" required>
+      </mwc-textfield>
+      <div class="buttons">
+        <mwc-button raised class="save" autofocus @click="${this._saveNewTeam}">Save</mwc-button>
+        <mwc-button class="cancel" @click="${this._cancelCreateTeam}">Cancel</mwc-button>
+      </div>
     `;
   }
 
-  @property({ type: Boolean })
-  get opened(): boolean | null | undefined {
-    return this._dialog && this._dialog.opened;
-  }
-  set opened(newValue: boolean | null | undefined) {
-    if (this._dialog) {
-      this._dialog.opened = newValue;
-    }
-  }
-
-  @property({ type: Object })
-  teams: Team[] = [];
-
-  private _dialog: PaperDialogElement | undefined = undefined;
-
-  protected firstUpdated() {
-    this._dialog = this.shadowRoot!.querySelector('#teams-dialog') as PaperDialogElement;
-  }
-
-  open() {
-    this._dialog!.open();
-  }
-
-  private _onOpenedChanged(e: CustomEvent) {
-    console.log(`_onDialogClosed: ${JSON.stringify(e.detail)}`);
-    if (e.detail.value) {
-      // Dialog is opened
-      return;
-    }
-
-    if (!this._dialog) {
-      return;
-    }
-
-    const closingReason = this._dialog.closingReason as PaperDialogClosingReason;
-    if (!closingReason || !closingReason.confirmed) {
-      console.log('dialog was not closed');
-      return;
-    }
-
-    console.log('actually closed');
+  private _saveNewTeam(e: CustomEvent) {
+    console.log(`_saveNewTeam: ${JSON.stringify(e.detail)}`);
 
     const nameField = this.shadowRoot!.querySelector('#team-name') as TextField;
     const newTeam: Team = {
@@ -100,11 +36,15 @@ export class LineupTeamCreate extends LitElement {
       name: nameField.value.trim()
     };
 
-    // This event will be handled by lineup-app.
+    // This event will be handled by lineup-view-team-create.
     this.dispatchEvent(new CustomEvent(EVENT_NEWTEAMCREATED, {
       bubbles: true, composed: true, detail: {
         team: newTeam
       }
     }));
+  }
+
+  private _cancelCreateTeam(e: CustomEvent) {
+    console.log(`_cancelCreateTeam: ${JSON.stringify(e.detail)}`);
   }
 }
