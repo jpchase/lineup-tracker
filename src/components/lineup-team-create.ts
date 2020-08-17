@@ -48,3 +48,9 @@ export class LineupTeamCreate extends LitElement {
     console.log(`_cancelCreateTeam: ${JSON.stringify(e.detail)}`);
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'lineup-team-create': LineupTeamCreate;
+  }
+}
