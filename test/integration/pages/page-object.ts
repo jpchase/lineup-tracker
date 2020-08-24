@@ -33,6 +33,11 @@ export class PageObject {
     this._viewPort = options.viewPort;
   }
 
+  get currentRoute(): string {
+    const url = new URL(this.page.url());
+    return url.pathname.slice(1);
+  }
+
   protected get page(): Page {
     if (!this._page) {
       throw new Error('Page not initialized. Did you call init()?');

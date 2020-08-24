@@ -2,20 +2,19 @@
 @license
 */
 
-import { PageObject, PageOpenParams, PageOptions } from './page-object';
+import { PageObject, PageOptions } from './page-object';
 
 export class HomePage extends PageObject {
 
   constructor(options: PageOptions = {}) {
     super({
       ...options,
-      route: 'viewHome'
+      route: HomePage.defaultRoute
     });
   }
-  protected get openParams(): PageOpenParams {
-    return {
-      route: 'viewHome'
-    };
+
+  static get defaultRoute(): string {
+    return 'viewHome';
   }
 
 }

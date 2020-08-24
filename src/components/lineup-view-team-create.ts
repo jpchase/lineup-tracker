@@ -4,6 +4,7 @@
 
 import { customElement, html } from 'lit-element';
 import { connect } from 'pwa-helpers/connect-mixin.js';
+import { navigate } from '../actions/app';
 import { addNewTeam } from '../actions/team';
 import team from '../reducers/team';
 import { RootState, store } from '../store';
@@ -42,6 +43,8 @@ export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
 
   private _newTeamCreated(e: CustomEvent) {
     store.dispatch(addNewTeam(e.detail.team));
+    window.history.pushState({}, '', `/viewHome`);
+    store.dispatch(navigate(window.location));
   }
 
 }
