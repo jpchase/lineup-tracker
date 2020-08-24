@@ -12,6 +12,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import * as fs from 'fs';
 import { Browser, Page, Viewport } from 'puppeteer';
+import { PageOptions } from '../pages/page-object';
+import { TeamCreatePage } from '../pages/team-create-page';
 import { serveHermeticFont } from '../server/hermetic-fonts';
 import { config, startTestServer } from '../server/test-server';
 const puppeteer = require('puppeteer');
@@ -38,7 +40,7 @@ describe('🎁 regenerate screenshots', function () {
   after((done) => server.close(done));
 
   beforeEach(async function () {
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({ args: ['--disable-gpu', '--font-render-hinting=none'] });
     page = await browser.newPage();
 
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
@@ -70,7 +72,7 @@ describe('🎁 regenerate screenshots', function () {
     });
 
     it(`Add team - ${prefix}`, async function () {
-      return generateAddTeamScreenshots(page, prefix, breakpoint);
+      return generateAddTeamScreenshots(prefix, breakpoint);
     });
   }
 });
@@ -80,10 +82,11 @@ async function generateBaselineScreenshots(page: Page, prefix: string, breakpoin
   page.setViewport(breakpoint);
   // Index.
   await page.goto(`${config.appUrl}/?test_data`);
+  await page.waitFor(1000);
   await page.screenshot({ path: `${config.baselineDir}/${prefix}/index.png` });
   // Views.
   const views = [
-    { name: 'Home' },
+    { name: 'Home', wait: 1000 },
     // TODO: Remove sleep hack to avoid blank page in screenshot
     { name: 'GameDetail', route: 'game/test_game1', setTeam: true, wait: 1000 },
     // TODO: Remove sleep hack to avoid missing icon on FAB in screenshot
@@ -109,19 +112,18 @@ async function generateBaselineScreenshots(page: Page, prefix: string, breakpoin
   // 404.
   console.log(`Screenshot for 404`);
   await page.goto(`${config.appUrl}/batmanNotAView?test_data`);
+  console.log(`Wait extra for 404 view`);
+  await page.waitFor(1000);
   await page.screenshot({ path: `${config.baselineDir}/${prefix}/batmanNotAView.png` });
 }
 
-async function generateAddTeamScreenshots(page: Page, prefix: string, breakpoint: Viewport) {
-  page.setViewport(breakpoint);
+async function generateAddTeamScreenshots(prefix: string, breakpoint: Viewport) {
+  const pageOptions: PageOptions = { viewPort: breakpoint };
+  const addTeamPage = new TeamCreatePage(pageOptions);
 
   // Add new team
-  await page.goto(`${config.appUrl}?test_data`);
-  await page.evaluate(() => {
-    const app = document.querySelector('lineup-app');
-    const selector = app!.shadowRoot!.querySelector('lineup-team-selector');
-    const list = selector!.shadowRoot!.querySelector('paper-dropdown-menu paper-listbox');
-    (list as any).select('addnewteam');
-  });
-  await page.screenshot({ path: `${config.baselineDir}/${prefix}/addNewTeam.png` });
+  await addTeamPage.init();
+  await addTeamPage.open();
+  await addTeamPage.screenshot(`${config.baselineDir}/${prefix}`);
+  await addTeamPage.close();
 }

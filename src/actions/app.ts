@@ -17,11 +17,11 @@ export const UPDATE_DRAWER_STATE = 'UPDATE_DRAWER_STATE';
 export const OPEN_SNACKBAR = 'OPEN_SNACKBAR';
 export const CLOSE_SNACKBAR = 'CLOSE_SNACKBAR';
 
-export interface AppActionUpdatePage extends Action<'UPDATE_PAGE'> {page: string};
-export interface AppActionUpdateOffline extends Action<'UPDATE_OFFLINE'> {offline: boolean};
-export interface AppActionUpdateDrawerState extends Action<'UPDATE_DRAWER_STATE'> {opened: boolean};
-export interface AppActionOpenSnackbar extends Action<'OPEN_SNACKBAR'> {};
-export interface AppActionCloseSnackbar extends Action<'CLOSE_SNACKBAR'> {};
+export interface AppActionUpdatePage extends Action<'UPDATE_PAGE'> { page: string };
+export interface AppActionUpdateOffline extends Action<'UPDATE_OFFLINE'> { offline: boolean };
+export interface AppActionUpdateDrawerState extends Action<'UPDATE_DRAWER_STATE'> { opened: boolean };
+export interface AppActionOpenSnackbar extends Action<'OPEN_SNACKBAR'> { };
+export interface AppActionCloseSnackbar extends Action<'CLOSE_SNACKBAR'> { };
 export type AppAction = AppActionUpdatePage | AppActionUpdateOffline | AppActionUpdateDrawerState | AppActionOpenSnackbar | AppActionCloseSnackbar;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AppAction>;
@@ -32,7 +32,7 @@ export const navigate: ActionCreator<ThunkResult> = (location: Location) => (dis
   const parts = pathname.slice(1).split('/');
   let page = parts[0] || 'viewHome';
 
-console.log(`navigate: got page = ${page} from location`, location);
+  console.log(`navigate: got page = ${page} from location`, location);
   // Game views have path: /{view}/{gameId}
   const gameId = parts[1];
 
@@ -43,8 +43,8 @@ console.log(`navigate: got page = ${page} from location`, location);
 };
 
 const loadPage: ActionCreator<ThunkResult> = (page: string, gameId: string) => async (dispatch) => {
-console.log(`loadPage: page = ${page}, gameId = ${gameId}`);
-  switch(page) {
+  console.log(`loadPage: page = ${page}, gameId = ${gameId}`);
+  switch (page) {
     case 'viewHome':
       import('../components/lineup-view-home').then(() => {
         // Put code in here that you want to run every time when
@@ -68,6 +68,9 @@ console.log(`loadPage: page = ${page}, gameId = ${gameId}`);
       break;
     case 'viewRoster':
       import('../components/lineup-view-roster');
+      break;
+    case 'addNewTeam':
+      import('../components/lineup-view-team-create');
       break;
     default:
       page = 'view404';

@@ -16,9 +16,9 @@ import * as os from 'os';
 import * as path from 'path';
 import { PNG } from 'pngjs';
 import { Browser, Page, Request } from 'puppeteer';
-import { AddTeamDialog } from './pages/add-team-dialog';
 import { HomePage } from './pages/home-page';
 import { PageObject, PageOptions } from './pages/page-object';
+import { TeamCreatePage } from './pages/team-create-page';
 import { TeamRosterPage } from './pages/team-roster-page';
 import { serveHermeticFont } from './server/hermetic-fonts';
 import { config, startTestServer } from './server/test-server';
@@ -124,8 +124,8 @@ describe('👀 page screenshots are correct', function () {
       });
 
       it('add new team', async function () {
-        const addDialog = pageObject = new AddTeamDialog(pageOptions);
-        return takeAndCompareScreenshot(addDialog, '', prefix);
+        const addTeamPage = pageObject = new TeamCreatePage(pageOptions);
+        return takeAndCompareScreenshot(addTeamPage, '', prefix);
       });
 
       it('/game', async function () {
