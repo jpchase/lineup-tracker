@@ -371,6 +371,9 @@ export class LineupApp extends connect(store)(LitElement) {
       // Wait for the loading actions to complete, before any navigation.
       installRouter((location) => store.dispatch(navigate(location)));
     });
+
+    const teamSelector = this.shadowRoot!.querySelector("lineup-team-selector");
+    teamSelector!.dialogContainer = this.shadowRoot;
   }
 
   protected updated(changedProps: PropertyValues) {
