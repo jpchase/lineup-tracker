@@ -1,4 +1,4 @@
-import { LineupTeamSelector } from '@app/components/lineup-team-selector';
+import { LineupTeamSelector, LineupTeamSelectorDialog } from '@app/components/lineup-team-selector';
 import '@app/components/lineup-team-selector.js';
 import { assert, expect, fixture, nextFrame, aTimeout } from '@open-wc/testing';
 import { PaperListboxElement } from '@polymer/paper-listbox';
@@ -16,11 +16,15 @@ describe('lineup-team-selector tests', () => {
   const TEAMS: Team[] = [
     {
       id: 't1',
-      name: 'First team',
+      name: 'First team id - sorts last',
     },
     {
       id: 't2',
-      name: '2nd team',
+      name: 'A team - sorts first',
+    },
+    {
+      id: 't3',
+      name: 'Another team (3)',
     }
   ];
 
@@ -28,8 +32,8 @@ describe('lineup-team-selector tests', () => {
     return buildTeams(TEAMS.slice(0));
   }
 
-  function getItems() {
-    const items = el.shadowRoot!.querySelectorAll('mwc-dialog mwc-list mwc-list-item');
+  function getItems(teamSelector: LineupTeamSelectorDialog) {
+    const items = teamSelector.shadowRoot!.querySelectorAll('mwc-dialog mwc-list mwc-list-item');
     return items;
   }
 
@@ -66,7 +70,7 @@ describe('lineup-team-selector tests', () => {
     expect(button.textContent).to.be.equal(teams['t1'].name, 'Team name');
   });
 
-  describe.skip('team selection dialog', () => {
+  describe('team selection dialog', () => {
     let teamArray: Team[] = [];
     let teams: Teams = {};
     // let teamDialog: Dialog;
@@ -80,30 +84,32 @@ describe('lineup-team-selector tests', () => {
     });
 
 
-    // function getDialog() {
-    //   return el.shadowRoot!.querySelector('mwc-dialog')!;
-    // }
-
-    // function setFocusToDialog() {
-
-    // }
+    function getTeamSelector() {
+      return el.shadowRoot!.querySelector('lineup-team-selector-dialog')!;
+    }
 
     it('renders item for each team in sorted order', async () => {
       await showDialog();
-      const items = getItems();
+      const teamSelector = getTeamSelector();
+
+      const items = getItems(teamSelector);
       expect(items).to.be.ok;//('Missing items for teams');
       expect(items.length).to.equal(teamArray.length, 'Rendered item count');
 
       let index = 0;
-      for (const team of teamArray) {
+      const sortedTeams = teamArray.sort((a, b) => a.name.localeCompare(b.name));
+      for (const team of sortedTeams) {
         const teamElement = items[index];
+        index++;
 
         expect(teamElement.getAttribute('id')).to.equal(team.id, 'Team id');
         expect(teamElement.textContent).to.equal(team.name, 'Team name');
       }
+
+      expect(teamSelector).shadowDom.to.equalSnapshot();
     });
 
-    it('fires event when team selected', async () => {
+    it.skip('fires event when team selected', async () => {
 
       let eventFired = false;
       let eventTeamId = null;
@@ -124,15 +130,15 @@ describe('lineup-team-selector tests', () => {
       assert.deepEqual(eventTeamId, teams[0].id);
     });
 
-    it('renders item to add new team when empty', async () => {
+    it.skip('renders item to add new team when empty', async () => {
       await el.updateComplete;
-      const items = getItems();
+      const items = getItems({} as LineupTeamSelectorDialog);
       const addTeam = items[0];
       assert.isOk(addTeam, 'Missing item to add new team');
       assert.equal(addTeam.textContent, '+ Add team', 'Add new team item');
     });
 
-    it('fires event to add new team', async () => {
+    it.skip('fires event to add new team', async () => {
       await el.updateComplete;
 
       let eventFired = false;
@@ -151,7 +157,7 @@ describe('lineup-team-selector tests', () => {
     });
 
     // TODO: Fix various accessibility warnings
-    it('a11y', async () => {
+    it.skip('a11y', async () => {
       await showDialog();
 
       await expect(el).to.be.accessible();
@@ -160,7 +166,6 @@ describe('lineup-team-selector tests', () => {
 
   }); // describe('team selection dialog')
 
-  // TODO: Fix various accessibility warnings
   it('a11y', async () => {
     const teams = getTeams();
     el.teamId = 't1';

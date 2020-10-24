@@ -120,13 +120,7 @@ export class LineupTeamSelectorDialog extends LitElement {
             <mwc-button label="New Team" dialogAction="new-team"></mwc-button>
           </div>
           <mwc-list>
-            ${Object.keys(this.teams).map((key) => {
-      const team = this.teams[key];
-      return html`
-            <mwc-list-item id="${team.id}" ?selected="${team.id == this.teamId}">${team.name}</mwc-list-item>
-            <li divider role="separator"></li>
-            `
-    })}
+            ${this.getTeamListItems(this.teams)}
           </mwc-list>
         </div>
         <mwc-button slot="primaryAction" dialogAction="select">Select</mwc-button>
@@ -134,6 +128,18 @@ export class LineupTeamSelectorDialog extends LitElement {
       </mwc-dialog>
     `;
   }
+
+  private getTeamListItems(teams: Teams) {
+    const sortedTeams = Object.keys(teams).map((key) => teams[key]);
+    sortedTeams.sort((a, b) => a.name.localeCompare(b.name));
+    return sortedTeams.map((team) => {
+      return html`
+            <mwc-list-item id="${team.id}" ?selected="${team.id === this.teamId}">${team.name}</mwc-list-item>
+            <li divider role="separator"></li>
+            `
+    });
+  }
+
   /*
     private _onIronSelect(e: CustomEvent) {
       if (!e.detail.item) {
