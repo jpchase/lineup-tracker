@@ -2,6 +2,10 @@
 @license
 */
 
+import '@material/mwc-button';
+import '@material/mwc-dialog';
+import { Dialog } from '@material/mwc-dialog';
+import '@material/mwc-list';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu-light.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '@polymer/paper-item/paper-icon-item.js';
@@ -10,11 +14,6 @@ import '@polymer/paper-listbox/paper-listbox.js';
 import { customElement, html, internalProperty, LitElement, property, query } from 'lit-element';
 import { Teams } from '../models/team';
 import { SharedStyles } from './shared-styles';
-import '@material/mwc-button';
-import '@material/mwc-dialog';
-import '@material/mwc-list';
-import { Dialog } from '@material/mwc-dialog';
-// import '@material/mwc-list';
 
 // This element is *not* connected to the Redux store.
 @customElement('lineup-team-selector')
@@ -23,57 +22,9 @@ export class LineupTeamSelector extends LitElement {
     return html`
       ${SharedStyles}
       <style>
-        paper-dropdown-menu.teams {
-          width: 115px;
-          /*
-          --paper-input-container-label: {
-            color: var(--paper-pink-500);
-            font-style: italic;
-            text-align: center;
-            font-weight: bold;
-          };
-          --paper-input-container-input: {
-            color: var(--paper-indigo-500);
-            font-style: normal;
-            font-family: serif;
-            text-transform: uppercase;
-          };*/
-          /* no underline */
-          --paper-input-container-underline: {
-            display: none;
-          };
-        }
-        /* TODO: Figure out why this style isn't being applied */
-        paper-dropdown-menu-light {
-        --paper-dropdown-menu-input: {
-            color: var(--paper-indigo-500);
-            font-style: normal;
-            font-family: serif;
-            text-transform: uppercase;
-            border-bottom: none;
-          };
-        }
-
-        paper-dropdown-menu-light.teams {
-          --iron-icon-fill-color: var(--app-dark-text-color);
-          --paper-dropdown-menu-label: {
-            color: var(--paper-pink-500);
-            font-style: italic;
-            text-align: center;
-            font-weight: bold;
-          };
-          /*
-          --paper-dropdown-menu-input: {
-            color: var(--paper-indigo-500);
-            font-style: normal;
-            font-family: serif;
-            text-transform: uppercase;
-            border-bottom: none;
-          };*/
-        }
       </style>
       <mwc-button id="team-switcher-button" icon="arrow_drop_down" trailingicon
-          label="${this.getTeamLabel()}" @click="${this.switcherClicked}">${this.teamName}</mwc-button>
+          aria-label="${this.getTeamLabel()}" @click="${this.switcherClicked}">${this.teamName}</mwc-button>
     `;
   }
 
@@ -119,9 +70,6 @@ export class LineupTeamSelector extends LitElement {
   @internalProperty()
   protected teamName = '';
 
-  @internalProperty()
-  protected showSelectDialog = false;
-
   private teamDialog: LineupTeamSelectorDialog | undefined
 
   private getTeamLabel() {
@@ -136,14 +84,11 @@ export class LineupTeamSelector extends LitElement {
         text = currentTeam.name;
       }
     }
-    this.teamName = text || '<add team>';
+    this.teamName = text;
   }
 
   private switcherClicked(e: CustomEvent) {
     console.log(`switcherClicked: ${e.detail}`)
-    this.showSelectDialog = true;
-    // this.requestUpdate();
-    // this.render();
     this.showDialog();
   }
 
@@ -167,54 +112,6 @@ export class LineupTeamSelectorDialog extends LitElement {
     return html`
       ${SharedStyles}
       <style>
-        paper-dropdown-menu.teams {
-          width: 115px;
-          /*
-          --paper-input-container-label: {
-            color: var(--paper-pink-500);
-            font-style: italic;
-            text-align: center;
-            font-weight: bold;
-          };
-          --paper-input-container-input: {
-            color: var(--paper-indigo-500);
-            font-style: normal;
-            font-family: serif;
-            text-transform: uppercase;
-          };*/
-          /* no underline */
-          --paper-input-container-underline: {
-            display: none;
-          };
-        }
-        /* TODO: Figure out why this style isn't being applied */
-        paper-dropdown-menu-light {
-        --paper-dropdown-menu-input: {
-            color: var(--paper-indigo-500);
-            font-style: normal;
-            font-family: serif;
-            text-transform: uppercase;
-            border-bottom: none;
-          };
-        }
-
-        paper-dropdown-menu-light.teams {
-          --iron-icon-fill-color: var(--app-dark-text-color);
-          --paper-dropdown-menu-label: {
-            color: var(--paper-pink-500);
-            font-style: italic;
-            text-align: center;
-            font-weight: bold;
-          };
-          /*
-          --paper-dropdown-menu-input: {
-            color: var(--paper-indigo-500);
-            font-style: normal;
-            font-family: serif;
-            text-transform: uppercase;
-            border-bottom: none;
-          };*/
-        }
       </style>
       <mwc-dialog @opening="${this.dialogEvent}" @opened="${this.dialogEvent}" @closing="${this.dialogEvent}" @closed="${this.dialogEvent}">
         <div>
@@ -262,7 +159,7 @@ export class LineupTeamSelectorDialog extends LitElement {
   teams: Teams = {};
 
   @query('mwc-dialog')
-  dialog?: Dialog;
+  protected dialog?: Dialog;
 
   show() {
     this.dialog!.show();

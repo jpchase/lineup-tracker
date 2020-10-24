@@ -4,14 +4,12 @@
 
 ```html
 <mwc-button
+  aria-label="You are currently working with team First team. Hit enter to switch teams."
   icon="arrow_drop_down"
   id="team-switcher-button"
-  label="You are currently working with team . Hit enter to switch teams."
   trailingicon=""
 >
+  First team
 </mwc-button>
-<lineup-team-selector-dialog>
-</lineup-team-selector-dialog>
 
 ```
-
