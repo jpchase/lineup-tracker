@@ -12,7 +12,7 @@ import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import { customElement, html, internalProperty, LitElement, property, query } from 'lit-element';
-import { Teams } from '../models/team';
+import { Teams, Team } from '../models/team';
 import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
@@ -109,6 +109,8 @@ export class LineupTeamSelector extends LitElement {
 @customElement('lineup-team-selector-dialog')
 export class LineupTeamSelectorDialog extends LitElement {
   protected render() {
+    const teamList = Object.keys(this.teams).map((key) => this.teams[key]);
+    const hasTeams = teamList.length > 0;
     return html`
       ${SharedStyles}
       <style>
@@ -119,20 +121,25 @@ export class LineupTeamSelectorDialog extends LitElement {
             <span>Select a team</span>
             <mwc-button label="New Team" dialogAction="new-team"></mwc-button>
           </div>
+          ${hasTeams ? html`
           <mwc-list>
-            ${this.getTeamListItems(this.teams)}
+            ${this.getTeamListItems(teamList)}
           </mwc-list>
+          ` : html`
+          <p class="empty-list">
+            No teams created.
+          </p>
+          `}
         </div>
-        <mwc-button slot="primaryAction" dialogAction="select">Select</mwc-button>
+        <mwc-button slot="primaryAction" dialogAction="select" ?disabled=${!hasTeams}>Select</mwc-button>
         <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
       </mwc-dialog>
     `;
   }
 
-  private getTeamListItems(teams: Teams) {
-    const sortedTeams = Object.keys(teams).map((key) => teams[key]);
-    sortedTeams.sort((a, b) => a.name.localeCompare(b.name));
-    return sortedTeams.map((team) => {
+  private getTeamListItems(teamList: Team[]) {
+    teamList.sort((a, b) => a.name.localeCompare(b.name));
+    return teamList.map((team) => {
       return html`
             <mwc-list-item id="${team.id}" ?selected="${team.id === this.teamId}">${team.name}</mwc-list-item>
             <li divider role="separator"></li>

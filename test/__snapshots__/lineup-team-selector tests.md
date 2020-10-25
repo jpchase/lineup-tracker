@@ -70,5 +70,40 @@
     Cancel
   </mwc-button>
 </mwc-dialog>
+```
+
+####   `renders placeholder when no teams created yet`
+
+```html
+<mwc-dialog open="">
+  <div>
+    <div>
+      <span>
+        Select a team
+      </span>
+      <mwc-button
+        dialogaction="new-team"
+        label="New Team"
+      >
+      </mwc-button>
+    </div>
+    <p class="empty-list">
+      No teams created.
+    </p>
+  </div>
+  <mwc-button
+    dialogaction="select"
+    disabled=""
+    slot="primaryAction"
+  >
+    Select
+  </mwc-button>
+  <mwc-button
+    dialogaction="close"
+    slot="secondaryAction"
+  >
+    Cancel
+  </mwc-button>
+</mwc-dialog>
 
 ```

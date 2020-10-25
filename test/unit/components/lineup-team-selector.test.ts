@@ -32,25 +32,10 @@ describe('lineup-team-selector tests', () => {
     return buildTeams(TEAMS.slice(0));
   }
 
-  function getItems(teamSelector: LineupTeamSelectorDialog) {
-    const items = teamSelector.shadowRoot!.querySelectorAll('mwc-dialog mwc-list mwc-list-item');
-    return items;
-  }
-
   function getTeamButton() {
     const button = el.shadowRoot!.querySelector('#team-switcher-button');
     expect(button, 'Missing team switcher').to.be.ok;
     return button as Button;
-  }
-
-  async function showDialog() {
-    const button = getTeamButton();
-    setTimeout(() => button.click());
-    await el.updateComplete;
-    await nextFrame();
-    await aTimeout(100);
-
-    // TODO: await opened event, like https://github.com/material-components/material-components-web-components/blob/master/packages/dialog/test/mwc-dialog.test.ts#L55
   }
 
   it('starts empty', () => {
@@ -65,7 +50,7 @@ describe('lineup-team-selector tests', () => {
     await el.updateComplete;
 
     const button = getTeamButton();
-    expect(button, 'Missing team switcher').to.be.ok;
+    expect(button, 'Missing team switcher').to.exist;
 
     expect(button.textContent).to.be.equal(teams['t1'].name, 'Team name');
   });
@@ -77,23 +62,45 @@ describe('lineup-team-selector tests', () => {
     // let teamKeys: string[] = [];
 
     beforeEach(async () => {
-      teamArray = TEAMS.slice(0);
-      teams = buildTeams(teamArray);
-      // teamKeys = Object.keys(teams);
-      el.teams = teams;
+      // teamArray = TEAMS.slice(0);
+      // teams = buildTeams(teamArray);
+      // // teamKeys = Object.keys(teams);
+      // el.teams = teams;
     });
 
+    async function showDialog(teamData?: Team[]) {
+      teamArray = teamData || TEAMS.slice(0);
+      teams = buildTeams(teamArray);
+      el.teams = teams;
+
+      const button = getTeamButton();
+      setTimeout(() => button.click());
+      await el.updateComplete;
+      await nextFrame();
+      await aTimeout(100);
+
+      // TODO: await opened event, like https://github.com/material-components/material-components-web-components/blob/master/packages/dialog/test/mwc-dialog.test.ts#L55
+    }
 
     function getTeamSelector() {
       return el.shadowRoot!.querySelector('lineup-team-selector-dialog')!;
+    }
+
+    function getTeamItems(teamSelector: LineupTeamSelectorDialog) {
+      const items = teamSelector.shadowRoot!.querySelectorAll('mwc-dialog mwc-list mwc-list-item');
+      return items;
+    }
+
+    function getSelectButton(teamSelector: LineupTeamSelectorDialog) {
+      const button = teamSelector.shadowRoot!.querySelector('mwc-button[dialogAction="select"]');
+      return button as Button;
     }
 
     it('renders item for each team in sorted order', async () => {
       await showDialog();
       const teamSelector = getTeamSelector();
 
-      const items = getItems(teamSelector);
-      expect(items).to.be.ok;//('Missing items for teams');
+      const items = getTeamItems(teamSelector);
       expect(items.length).to.equal(teamArray.length, 'Rendered item count');
 
       let index = 0;
@@ -130,12 +137,19 @@ describe('lineup-team-selector tests', () => {
       assert.deepEqual(eventTeamId, teams[0].id);
     });
 
-    it.skip('renders item to add new team when empty', async () => {
-      await el.updateComplete;
-      const items = getItems({} as LineupTeamSelectorDialog);
-      const addTeam = items[0];
-      assert.isOk(addTeam, 'Missing item to add new team');
-      assert.equal(addTeam.textContent, '+ Add team', 'Add new team item');
+    it('renders placeholder when no teams created yet', async () => {
+      await showDialog([]);
+      const teamSelector = getTeamSelector();
+
+      const items = getTeamItems(teamSelector);
+      expect(items.length).to.equal(0, 'Team list should be empty');
+
+      const placeholder = teamSelector.shadowRoot?.querySelector('div > p.empty-list');
+      expect(placeholder, 'Empty placeholder element').to.exist;
+
+      const selectButton = getSelectButton(teamSelector);
+      expect(selectButton.disabled, 'Select button should be disabled').to.be.true;
+      expect(teamSelector).shadowDom.to.equalSnapshot();
     });
 
     it.skip('fires event to add new team', async () => {
