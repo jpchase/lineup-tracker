@@ -6,6 +6,7 @@ import '@material/mwc-button';
 import '@material/mwc-dialog';
 import { Dialog } from '@material/mwc-dialog';
 import '@material/mwc-list';
+import '@material/mwc-list/mwc-list-item';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu-light.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '@polymer/paper-item/paper-icon-item.js';
@@ -14,6 +15,8 @@ import '@polymer/paper-listbox/paper-listbox.js';
 import { customElement, html, internalProperty, LitElement, property, query } from 'lit-element';
 import { Teams, Team } from '../models/team';
 import { SharedStyles } from './shared-styles';
+import { isEventMulti, SingleSelectedEvent } from '@material/mwc-list/mwc-list-foundation';
+import { List } from '@material/mwc-list';
 
 // This element is *not* connected to the Redux store.
 @customElement('lineup-team-selector')
@@ -106,6 +109,23 @@ export class LineupTeamSelector extends LitElement {
 
 }
 
+export interface TeamChangedDetail {
+  teamId: string;
+}
+
+const TEAM_CHANGED_EVENT_NAME = 'team-changed';
+export class TeamChangedEvent extends CustomEvent<TeamChangedDetail> {
+  static eventName = TEAM_CHANGED_EVENT_NAME;
+
+  constructor(detail: TeamChangedDetail) {
+    super(TeamChangedEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true
+    });
+  }
+}
+
 @customElement('lineup-team-selector-dialog')
 export class LineupTeamSelectorDialog extends LitElement {
   protected render() {
@@ -115,14 +135,14 @@ export class LineupTeamSelectorDialog extends LitElement {
       ${SharedStyles}
       <style>
       </style>
-      <mwc-dialog @opening="${this.dialogEvent}" @opened="${this.dialogEvent}" @closing="${this.dialogEvent}" @closed="${this.dialogEvent}">
+      <mwc-dialog @opening="${this.dialogEvent}" @opened="${this.dialogEvent}" @closing="${this.dialogEvent}" @closed="${this.dialogClosed}">
         <div>
           <div>
             <span>Select a team</span>
             <mwc-button label="New Team" dialogAction="new-team"></mwc-button>
           </div>
           ${hasTeams ? html`
-          <mwc-list>
+          <mwc-list activatable @selected="${this.listSelected}">
             ${this.getTeamListItems(teamList)}
           </mwc-list>
           ` : html`
@@ -174,6 +194,12 @@ export class LineupTeamSelectorDialog extends LitElement {
   @query('mwc-dialog')
   protected dialog?: Dialog;
 
+  @query('mwc-list')
+  protected teamList?: List;
+
+  // Tracks the newly-selected team in the list.
+  protected changedTeamId = '';
+
   show() {
     this.dialog!.show();
   }
@@ -181,11 +207,35 @@ export class LineupTeamSelectorDialog extends LitElement {
   private dialogEvent(e: CustomEvent) {
     console.log(`dialogEvent: [${e.type}] = ${JSON.stringify(e.detail)}`)
   }
+
+  private dialogClosed(e: CustomEvent) {
+    console.log(`dialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
+    if (e.detail.action !== 'select') {
+      return;
+    }
+    this.dispatchEvent(new TeamChangedEvent({ teamId: this.changedTeamId }));
+  }
+
+  private listSelected(e: CustomEvent) {
+    if (isEventMulti(e)) {
+      console.log(`Unexpected multi-selected event: ${JSON.stringify(e.detail)}`);
+      return;
+    }
+    const selectedEvent = e as SingleSelectedEvent;
+    this.changedTeamId = this.teamList!.items[selectedEvent.detail.index].id;
+  }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
     "lineup-team-selector": LineupTeamSelector;
     "lineup-team-selector-dialog": LineupTeamSelectorDialog;
+  }
+}
+
+
+declare global {
+  interface HTMLElementEventMap {
+    [TEAM_CHANGED_EVENT_NAME]: TeamChangedEvent;
   }
 }

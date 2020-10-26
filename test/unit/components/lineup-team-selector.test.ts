@@ -1,6 +1,6 @@
 import { LineupTeamSelector, LineupTeamSelectorDialog } from '@app/components/lineup-team-selector';
 import '@app/components/lineup-team-selector.js';
-import { assert, expect, fixture, nextFrame, aTimeout } from '@open-wc/testing';
+import { assert, expect, fixture, nextFrame, aTimeout, oneEvent } from '@open-wc/testing';
 import { PaperListboxElement } from '@polymer/paper-listbox';
 import { buildTeams } from '../helpers/test_data';
 import { Button } from '@material/mwc-button';
@@ -55,6 +55,16 @@ describe('lineup-team-selector tests', () => {
     expect(button.textContent).to.be.equal(teams['t1'].name, 'Team name');
   });
 
+  it.skip('renders placeholder when no teams created yet', async () => {
+    el.teams = {};
+    await el.updateComplete;
+
+    const button = getTeamButton();
+    expect(button, 'Missing team switcher').to.exist;
+
+    expect(button.textContent).to.be.equal('Select a team', 'Team name');
+  });
+
   describe('team selection dialog', () => {
     let teamArray: Team[] = [];
     let teams: Teams = {};
@@ -68,10 +78,11 @@ describe('lineup-team-selector tests', () => {
       // el.teams = teams;
     });
 
-    async function showDialog(teamData?: Team[]) {
+    async function showDialog(teamId: string, teamData?: Team[]) {
       teamArray = teamData || TEAMS.slice(0);
       teams = buildTeams(teamArray);
       el.teams = teams;
+      el.teamId = teamId;
 
       const button = getTeamButton();
       setTimeout(() => button.click());
@@ -97,7 +108,7 @@ describe('lineup-team-selector tests', () => {
     }
 
     it('renders item for each team in sorted order', async () => {
-      await showDialog();
+      await showDialog('t1');
       const teamSelector = getTeamSelector();
 
       const items = getTeamItems(teamSelector);
@@ -116,29 +127,8 @@ describe('lineup-team-selector tests', () => {
       expect(teamSelector).shadowDom.to.equalSnapshot();
     });
 
-    it.skip('fires event when team selected', async () => {
-
-      let eventFired = false;
-      let eventTeamId = null;
-      const handler = function (firedEvent: Event) {
-        eventFired = true;
-        const event = firedEvent as CustomEvent;
-        eventTeamId = event.detail.teamId;
-        window.removeEventListener('team-changed', handler);
-      };
-
-      window.addEventListener('team-changed', handler);
-
-      const list = el.shadowRoot!.querySelector('paper-dropdown-menu paper-listbox') as PaperListboxElement;
-      list.select(teams[0].id);
-
-      await 0;
-      assert.isTrue(eventFired, 'Event team-changed should be fired');
-      assert.deepEqual(eventTeamId, teams[0].id);
-    });
-
     it('renders placeholder when no teams created yet', async () => {
-      await showDialog([]);
+      await showDialog('', []);
       const teamSelector = getTeamSelector();
 
       const items = getTeamItems(teamSelector);
@@ -150,6 +140,56 @@ describe('lineup-team-selector tests', () => {
       const selectButton = getSelectButton(teamSelector);
       expect(selectButton.disabled, 'Select button should be disabled').to.be.true;
       expect(teamSelector).shadowDom.to.equalSnapshot();
+    });
+
+    it('select team when item clicked', async () => {
+      const selectedTeamId = 't2';
+      await showDialog('t1');
+      const teamSelector = getTeamSelector();
+
+      const items = getTeamItems(teamSelector);
+      let itemToSelect: Element;
+      for (const item of Array.from(items)) {
+        if (item.getAttribute('id') === selectedTeamId) {
+          itemToSelect = item;
+          break;
+        }
+      }
+      expect(itemToSelect!, `Item should exist for id ${selectedTeamId}`).to.exist;
+      const teamElement = itemToSelect! as HTMLElement;
+
+      setTimeout(() => teamElement.click());
+      await nextFrame();
+      await teamSelector.updateComplete;
+
+      expect(teamElement.hasAttribute('selected'), `List item for ${selectedTeamId} should be selected`).to.be.true;
+      expect(teamElement).to.equalSnapshot();
+    });
+
+    it('fires event when team selected', async () => {
+      const selectedTeamId = 't3';
+      await showDialog(selectedTeamId);
+      const teamSelector = getTeamSelector();
+
+      const items = getTeamItems(teamSelector);
+      let teamElement;
+      for (const item of Array.from(items)) {
+        if (item.getAttribute('id') === selectedTeamId) {
+          teamElement = item;
+          break;
+        }
+      }
+      expect(teamElement, `Item should be selected for id ${selectedTeamId}`).to.exist;
+
+      const selectButton = getSelectButton(teamSelector);
+      setTimeout(() => selectButton.click());
+
+      const { detail } = await oneEvent(el, 'team-changed');
+
+      expect(detail).to.deep.equal(
+        {
+          teamId: selectedTeamId,
+        });
     });
 
     it.skip('fires event to add new team', async () => {
@@ -172,10 +212,9 @@ describe('lineup-team-selector tests', () => {
 
     // TODO: Fix various accessibility warnings
     it.skip('a11y', async () => {
-      await showDialog();
+      await showDialog('t1');
 
       await expect(el).to.be.accessible();
-      expect(el).shadowDom.to.equalSnapshot();
     });
 
   }); // describe('team selection dialog')

@@ -30,8 +30,13 @@
       >
       </mwc-button>
     </div>
-    <mwc-list>
-      <mwc-list-item id="t2">
+    <mwc-list activatable="">
+      <mwc-list-item
+        aria-disabled="false"
+        id="t2"
+        mwc-list-item=""
+        tabindex="0"
+      >
         A team - sorts first
       </mwc-list-item>
       <li
@@ -39,7 +44,12 @@
         role="separator"
       >
       </li>
-      <mwc-list-item id="t3">
+      <mwc-list-item
+        aria-disabled="false"
+        id="t3"
+        mwc-list-item=""
+        tabindex="-1"
+      >
         Another team (3)
       </mwc-list-item>
       <li
@@ -47,7 +57,14 @@
         role="separator"
       >
       </li>
-      <mwc-list-item id="t1">
+      <mwc-list-item
+        aria-disabled="false"
+        aria-selected="true"
+        id="t1"
+        mwc-list-item=""
+        selected=""
+        tabindex="-1"
+      >
         First team id - sorts last
       </mwc-list-item>
       <li
@@ -105,5 +122,22 @@
     Cancel
   </mwc-button>
 </mwc-dialog>
+```
+
+####   `select team when item clicked`
+
+```html
+<mwc-list-item
+  activated=""
+  aria-disabled="false"
+  aria-selected="true"
+  id="t2"
+  mwc-list-item=""
+  selected=""
+  tabindex="0"
+>
+  A team - sorts first
+</mwc-list-item>
 
 ```
+
