@@ -42,9 +42,6 @@ export class LineupTeamSelector extends LitElement {
     this.teamId_ = value;
     if (value !== oldValue) {
       this.updateTeamName();
-      if (this.teamDialog) {
-        this.teamDialog.teamId = value;
-      }
     }
     this.requestUpdate('teamId', oldValue);
   }
@@ -60,20 +57,12 @@ export class LineupTeamSelector extends LitElement {
     this.teams_ = value;
     if (value !== oldValue) {
       this.updateTeamName();
-      if (this.teamDialog) {
-        this.teamDialog.teams = value;
-      }
     }
     this.requestUpdate('teams', oldValue);
   }
 
-  @property({ type: Object })
-  dialogContainer: Node | null | undefined;
-
   @internalProperty()
   protected teamName = '';
-
-  private teamDialog: LineupTeamSelectorDialog | undefined
 
   private getTeamLabel() {
     return `You are currently working with team ${this.teamName}. Hit enter to switch teams.`;
@@ -91,22 +80,9 @@ export class LineupTeamSelector extends LitElement {
   }
 
   private switcherClicked(e: CustomEvent) {
-    console.log(`switcherClicked: ${e.detail}`)
-    this.showDialog();
+    console.log(`switcherClicked: ${e.detail}`);
+    this.dispatchEvent(new CustomEvent('select-team', { bubbles: true, composed: true }));
   }
-
-  private async showDialog() {
-    if (!this.teamDialog) {
-      this.teamDialog = document.createElement('lineup-team-selector-dialog') as LineupTeamSelectorDialog;
-      (this.dialogContainer || this.shadowRoot!).appendChild(this.teamDialog);
-      this.teamDialog.teams = this.teams;
-      this.teamDialog.teamId = this.teamId;
-      await this.teamDialog.updateComplete;
-    }
-    this.teamDialog.show();
-    this.requestUpdate();
-  }
-
 }
 
 export interface TeamChangedDetail {
@@ -167,24 +143,6 @@ export class LineupTeamSelectorDialog extends LitElement {
     });
   }
 
-  /*
-    private _onIronSelect(e: CustomEvent) {
-      if (!e.detail.item) {
-        return;
-      }
-
-      if (e.detail.item.hasAttribute('addNew')) {
-        this.dispatchEvent(new CustomEvent('add-new-team', { bubbles: true }));
-      } else {
-        this.dispatchEvent(new CustomEvent('team-changed', {
-          bubbles: true,
-          detail: {
-            teamId: e.detail.item.getAttribute('id')
-          }
-        }));
-      }
-    }*/
-
   @property({ type: String })
   teamId = '';
 
@@ -200,8 +158,9 @@ export class LineupTeamSelectorDialog extends LitElement {
   // Tracks the newly-selected team in the list.
   protected changedTeamId = '';
 
-  show() {
+  async show() {
     this.dialog!.show();
+    await this.requestUpdate();
   }
 
   private dialogEvent(e: CustomEvent) {

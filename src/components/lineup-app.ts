@@ -261,8 +261,7 @@ export class LineupApp extends connect(store)(LitElement) {
         <div main-title>${this.appTitle}</div>
         <div class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
           <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
-                                @team-changed="${this._teamChanged}"
-                                @add-new-team="${this._addNewTeam}">
+                                @select-team="${this.selectTeam}">
           </lineup-team-selector>
           <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
               @click="${this._signinButtonClicked}">
@@ -303,6 +302,11 @@ export class LineupApp extends connect(store)(LitElement) {
     <footer>
       <p>Some footer goes here?</p>
     </footer>
+
+    <lineup-team-selector-dialog .teamId=${this._teamId} .teams=${this._teams}
+                                @team-changed="${this.teamChanged}"
+                                @add-new-team="${this.addNewTeam}">
+    </lineup-team-selector-dialog>
 
     <snack-bar ?active="${this._snackbarOpened}">
         You are now ${this._offline ? 'offline' : 'online'}.</snack-bar>
@@ -371,9 +375,6 @@ export class LineupApp extends connect(store)(LitElement) {
       // Wait for the loading actions to complete, before any navigation.
       installRouter((location) => store.dispatch(navigate(location)));
     });
-
-    const teamSelector = this.shadowRoot!.querySelector("lineup-team-selector");
-    teamSelector!.dialogContainer = this.shadowRoot;
   }
 
   protected updated(changedProps: PropertyValues) {
@@ -402,11 +403,17 @@ export class LineupApp extends connect(store)(LitElement) {
     // store.dispatch(this._user && this._user.imageUrl ? signOut() : signIn());
   }
 
-  private _teamChanged(e: CustomEvent) {
+  private selectTeam() {
+    // TODO: Dynamically create the dialog when it actually needs to be opened.
+    const dialog = this.shadowRoot!.querySelector('lineup-team-selector-dialog')!;
+    dialog.show();
+  }
+
+  private teamChanged(e: CustomEvent) {
     store.dispatch(changeTeam(e.detail.teamId));
   }
 
-  private _addNewTeam() {
+  private addNewTeam() {
     window.history.pushState({}, '', `/addNewTeam`);
     store.dispatch(navigate(window.location));
   }
