@@ -85,8 +85,7 @@ export class LineupTeamSelector extends LitElement {
     this.teamName = text;
   }
 
-  private switcherClicked(e: CustomEvent) {
-    console.log(`switcherClicked: ${e.detail}`);
+  private switcherClicked() {
     this.dispatchEvent(new CustomEvent('select-team', { bubbles: true, composed: true }));
   }
 }
@@ -175,10 +174,16 @@ export class LineupTeamSelectorDialog extends LitElement {
 
   private dialogClosed(e: CustomEvent) {
     console.log(`dialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
-    if (e.detail.action !== 'select') {
-      return;
+    switch (e.detail.action) {
+      case 'select': {
+        this.dispatchEvent(new TeamChangedEvent({ teamId: this.changedTeamId }));
+        break;
+      }
+      case 'new-team': {
+        this.dispatchEvent(new CustomEvent('add-new-team', { bubbles: true, composed: true }));
+        break;
+      }
     }
-    this.dispatchEvent(new TeamChangedEvent({ teamId: this.changedTeamId }));
   }
 
   private listSelected(e: CustomEvent) {

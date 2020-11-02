@@ -1,10 +1,9 @@
 import { LineupTeamSelector, LineupTeamSelectorDialog } from '@app/components/lineup-team-selector';
 import '@app/components/lineup-team-selector.js';
-import { assert, expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
-import { PaperListboxElement } from '@polymer/paper-listbox';
-import { buildTeams } from '../helpers/test_data';
-import { Button } from '@material/mwc-button';
 import { Team } from '@app/models/team';
+import { Button } from '@material/mwc-button';
+import { expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
+import { buildTeams } from '../helpers/test_data';
 
 const TEAMS: Team[] = [
   {
@@ -39,7 +38,7 @@ describe('lineup-team-selector tests', () => {
 
   it('starts empty', () => {
     expect(el.teamId).to.equal('', 'teamId');
-    assert.deepEqual(el.teams, {}, 'teams');
+    expect(el.teams).to.deep.equal({}, 'teams');
   });
 
   it('renders name for current team', async () => {
@@ -101,6 +100,11 @@ describe('lineup-team-selector-dialog tests', () => {
     return button as Button;
   }
 
+  function getNewTeamButton() {
+    const button = el.shadowRoot!.querySelector('mwc-button[dialogAction="new-team"]');
+    return button as Button;
+  }
+
   it('renders item for each team in sorted order', async () => {
     const teamArray = populateDialog('t1');
     await el.show();
@@ -133,6 +137,10 @@ describe('lineup-team-selector-dialog tests', () => {
 
     const selectButton = getSelectButton();
     expect(selectButton.disabled, 'Select button should be disabled').to.be.true;
+
+    const newTeamButton = getNewTeamButton();
+    expect(newTeamButton.disabled, 'New team button should always be enabled').to.be.false;
+
     expect(el).shadowDom.to.equalSnapshot();
   });
 
@@ -190,22 +198,25 @@ describe('lineup-team-selector-dialog tests', () => {
       });
   });
 
-  it.skip('fires event to add new team', async () => {
-    await el.updateComplete;
+  it('fires event to add new team, with existing team selected', async () => {
+    populateDialog('t1');
+    await el.show();
 
-    let eventFired = false;
-    const handler = () => {
-      eventFired = true;
-      window.removeEventListener('add-new-team', handler);
-    };
+    const newTeamButton = getNewTeamButton();
+    setTimeout(() => newTeamButton.click());
 
-    window.addEventListener('add-new-team', handler);
+    const { detail } = await oneEvent(el, 'add-new-team');
 
-    const list = el.shadowRoot!.querySelector('paper-dropdown-menu paper-listbox') as PaperListboxElement;
-    list.select('addnewteam');
+    expect(detail, 'New team event has no detail').not.to.exist;
+  });
 
-    await 0;
-    assert.isTrue(eventFired, 'Event add-new-team should be fired');
+  it.skip('clears selected team when dialog closed for selection', async () => {
+  });
+
+  it.skip('clears selected team when dialog closed for new team', async () => {
+  });
+
+  it.skip('clears selected team when dialog closed by cancel', async () => {
   });
 
   // TODO: Fix various accessibility warnings
