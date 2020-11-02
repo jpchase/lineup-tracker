@@ -75,6 +75,8 @@ export class LineupApp extends connect(store)(LitElement) {
         */
         --app-primary-color: #607D8B;
         --app-secondary-color: #FFC107;
+        --app-header-text-color: black;
+
         /*
         --app-dark-text-color: var(--app-secondary-color);
         --app-background-color: #fafafa;
@@ -89,7 +91,7 @@ export class LineupApp extends connect(store)(LitElement) {
         --mdc-theme-on-primary: white;
         --mdc-theme-primary: var(--app-primary-color);
         --mdc-theme-on-secondary: black;
-        --mdc-theme-secondary: var(--app-secondary-color);;
+        --mdc-theme-secondary: var(--app-secondary-color);
       }
 
       [hidden] {
@@ -239,7 +241,6 @@ export class LineupApp extends connect(store)(LitElement) {
         .toolbar-top-right {
           display: flex;
           justify-content: flex-end;
-          width: 170px;
         }
 
         .menu-btn {

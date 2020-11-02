@@ -25,6 +25,12 @@ export class LineupTeamSelector extends LitElement {
     return html`
       ${SharedStyles}
       <style>
+        mwc-button {
+          /* Cannot override ripple colour, see https://github.com/material-components/material-components-web-components/issues/1102 */
+          --mdc-ripple-color: var(--app-secondary-color);
+          --mdc-theme-primary: var(--app-header-text-color);
+          --mdc-typography-button-text-transform: none;
+        }
       </style>
       <mwc-button id="team-switcher-button" icon="arrow_drop_down" trailingicon
           aria-label="${this.getTeamLabel()}" @click="${this.switcherClicked}">${this.teamName}</mwc-button>
