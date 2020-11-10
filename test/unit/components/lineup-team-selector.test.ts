@@ -53,7 +53,7 @@ describe('lineup-team-selector tests', () => {
     expect(button.textContent).to.be.equal(teams['t1'].name, 'Team name');
   });
 
-  it.skip('renders placeholder when no teams created yet', async () => {
+  it('renders placeholder when no teams created yet', async () => {
     el.teams = {};
     await el.updateComplete;
 
@@ -61,6 +61,35 @@ describe('lineup-team-selector tests', () => {
     expect(button, 'Missing team switcher').to.exist;
 
     expect(button.textContent).to.be.equal('Select a team', 'Team name');
+
+    // Verify the aria label has placeholder text.
+    expect(el).shadowDom.to.equalSnapshot();
+  });
+
+  it('fires event to select team, with existing team selected', async () => {
+    const teams = getTeams();
+    el.teamId = 't1';
+    el.teams = teams;
+    await el.updateComplete;
+
+    const teamButton = getTeamButton();
+    setTimeout(() => teamButton.click());
+
+    const { detail } = await oneEvent(el, 'select-team');
+
+    expect(detail, 'Select team event has no detail').not.to.exist;
+  });
+
+  it('fires event to select team, when no teams created yet', async () => {
+    el.teams = {};
+    await el.updateComplete;
+
+    const teamButton = getTeamButton();
+    setTimeout(() => teamButton.click());
+
+    const { detail } = await oneEvent(el, 'select-team');
+
+    expect(detail, 'Select team event has no detail').not.to.exist;
   });
 
   it('a11y', async () => {

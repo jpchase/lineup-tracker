@@ -47,7 +47,7 @@ export class LineupTeamSelector extends LitElement {
     const oldValue = this.teamId_;
     this.teamId_ = value;
     if (value !== oldValue) {
-      this.updateTeamName();
+      this.updateCurrentTeam();
     }
     this.requestUpdate('teamId', oldValue);
   }
@@ -62,7 +62,7 @@ export class LineupTeamSelector extends LitElement {
     const oldValue = this.teams_;
     this.teams_ = value;
     if (value !== oldValue) {
-      this.updateTeamName();
+      this.updateCurrentTeam();
     }
     this.requestUpdate('teams', oldValue);
   }
@@ -70,19 +70,32 @@ export class LineupTeamSelector extends LitElement {
   @internalProperty()
   protected teamName = '';
 
+  @internalProperty()
+  protected teamSelected = false;
+
   private getTeamLabel() {
-    return `You are currently working with team ${this.teamName}. Hit enter to switch teams.`;
+    if (this.teamSelected) {
+      return `You are currently working with team ${this.teamName}. Hit enter to switch teams.`;
+    }
+    return 'No team selected. Hit enter to select a team.';
   }
 
-  private updateTeamName() {
+  private updateCurrentTeam() {
     let text = '';
+    let selected = false;
     if (this.teamId && this.teams) {
       const currentTeam = this.teams[this.teamId];
       if (currentTeam) {
         text = currentTeam.name;
+        selected = true;
       }
     }
-    this.teamName = text;
+    if (selected) {
+      this.teamName = text;
+    } else {
+      this.teamName = 'Select a team';
+    }
+    this.teamSelected = selected;
   }
 
   private switcherClicked() {
