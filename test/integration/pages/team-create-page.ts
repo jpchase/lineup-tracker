@@ -36,13 +36,13 @@ export class TeamCreatePage extends PageObject {
     */
     return await this.page.evaluate(`(async () => {
   // @ts-ignore
-  const teamSelector = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-team-selector').shadowRoot.querySelector('paper-dropdown-menu');
+  const teamSelector = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-team-selector').shadowRoot.querySelector('#team-switcher-button');
   if (!teamSelector) { return; }
   /* const selectedItem = teamSelector.selectedItem; */
-  console.log('selected: ',teamSelector.contentElement.selected,'value: ',teamSelector.value);
+  console.log('selected: ',teamSelector,'value: ',teamSelector.innerText);
   return {
-    id: teamSelector.contentElement.selected, /* selectedItem.id,*/
-    name: teamSelector.value
+    id: '', // teamSelector.contentElement.selected, /* selectedItem.id,*/
+    name: teamSelector.innerText
   }
 })()`) as { id: string, name: string };
   }

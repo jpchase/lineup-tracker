@@ -6,17 +6,12 @@ import '@material/mwc-button';
 import '@material/mwc-dialog';
 import { Dialog } from '@material/mwc-dialog';
 import '@material/mwc-list';
-import '@material/mwc-list/mwc-list-item';
-import '@polymer/paper-dropdown-menu/paper-dropdown-menu-light.js';
-import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '@polymer/paper-item/paper-icon-item.js';
-import '@polymer/paper-item/paper-item.js';
-import '@polymer/paper-listbox/paper-listbox.js';
-import { customElement, html, internalProperty, LitElement, property, query } from 'lit-element';
-import { Teams, Team } from '../models/team';
-import { SharedStyles } from './shared-styles';
-import { isEventMulti, SingleSelectedEvent } from '@material/mwc-list/mwc-list-foundation';
 import { List } from '@material/mwc-list';
+import { isEventMulti, SingleSelectedEvent } from '@material/mwc-list/mwc-list-foundation';
+import '@material/mwc-list/mwc-list-item';
+import { customElement, html, internalProperty, LitElement, property, query } from 'lit-element';
+import { Team, Teams } from '../models/team';
+import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
 @customElement('lineup-team-selector')
