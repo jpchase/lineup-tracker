@@ -75,6 +75,8 @@ export class LineupApp extends connect(store)(LitElement) {
         */
         --app-primary-color: #607D8B;
         --app-secondary-color: #FFC107;
+        --app-header-text-color: black;
+
         /*
         --app-dark-text-color: var(--app-secondary-color);
         --app-background-color: #fafafa;
@@ -89,7 +91,7 @@ export class LineupApp extends connect(store)(LitElement) {
         --mdc-theme-on-primary: white;
         --mdc-theme-primary: var(--app-primary-color);
         --mdc-theme-on-secondary: black;
-        --mdc-theme-secondary: var(--app-secondary-color);;
+        --mdc-theme-secondary: var(--app-secondary-color);
       }
 
       [hidden] {
@@ -239,7 +241,6 @@ export class LineupApp extends connect(store)(LitElement) {
         .toolbar-top-right {
           display: flex;
           justify-content: flex-end;
-          width: 170px;
         }
 
         .menu-btn {
@@ -261,8 +262,7 @@ export class LineupApp extends connect(store)(LitElement) {
         <div main-title>${this.appTitle}</div>
         <div class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
           <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
-                                @team-changed="${this._teamChanged}"
-                                @add-new-team="${this._addNewTeam}">
+                                @select-team="${this.selectTeam}">
           </lineup-team-selector>
           <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
               @click="${this._signinButtonClicked}">
@@ -303,6 +303,11 @@ export class LineupApp extends connect(store)(LitElement) {
     <footer>
       <p>Some footer goes here?</p>
     </footer>
+
+    <lineup-team-selector-dialog .teamId=${this._teamId} .teams=${this._teams}
+                                @team-changed="${this.teamChanged}"
+                                @add-new-team="${this.addNewTeam}">
+    </lineup-team-selector-dialog>
 
     <snack-bar ?active="${this._snackbarOpened}">
         You are now ${this._offline ? 'offline' : 'online'}.</snack-bar>
@@ -399,11 +404,17 @@ export class LineupApp extends connect(store)(LitElement) {
     // store.dispatch(this._user && this._user.imageUrl ? signOut() : signIn());
   }
 
-  private _teamChanged(e: CustomEvent) {
+  private selectTeam() {
+    // TODO: Dynamically create the dialog when it actually needs to be opened.
+    const dialog = this.shadowRoot!.querySelector('lineup-team-selector-dialog')!;
+    dialog.show();
+  }
+
+  private teamChanged(e: CustomEvent) {
     store.dispatch(changeTeam(e.detail.teamId));
   }
 
-  private _addNewTeam() {
+  private addNewTeam() {
     window.history.pushState({}, '', `/addNewTeam`);
     store.dispatch(navigate(window.location));
   }

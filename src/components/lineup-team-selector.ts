@@ -2,18 +2,15 @@
 @license
 */
 
-import { LitElement, customElement, html, property } from 'lit-element';
-
-import { Teams } from '../models/team';
-
-// These are the elements needed by this element.
-import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '@polymer/paper-dropdown-menu/paper-dropdown-menu-light.js';
-import '@polymer/paper-item/paper-icon-item.js';
-import '@polymer/paper-item/paper-item.js';
-import '@polymer/paper-listbox/paper-listbox.js';
-
-// These are the shared styles needed by this element.
+import '@material/mwc-button';
+import '@material/mwc-dialog';
+import { Dialog } from '@material/mwc-dialog';
+import '@material/mwc-list';
+import { List } from '@material/mwc-list';
+import { isEventMulti, SingleSelectedEvent } from '@material/mwc-list/mwc-list-foundation';
+import '@material/mwc-list/mwc-list-item';
+import { customElement, html, internalProperty, LitElement, property, query } from 'lit-element';
+import { Team, Teams } from '../models/team';
 import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
@@ -23,93 +20,200 @@ export class LineupTeamSelector extends LitElement {
     return html`
       ${SharedStyles}
       <style>
-        paper-dropdown-menu.teams {
-          width: 115px;
-          /*
-          --paper-input-container-label: {
-            color: var(--paper-pink-500);
-            font-style: italic;
-            text-align: center;
-            font-weight: bold;
-          };
-          --paper-input-container-input: {
-            color: var(--paper-indigo-500);
-            font-style: normal;
-            font-family: serif;
-            text-transform: uppercase;
-          };*/
-          /* no underline */
-          --paper-input-container-underline: {
-            display: none;
-          };
-        }
-        /* TODO: Figure out why this style isn't being applied */
-        paper-dropdown-menu-light {
-        --paper-dropdown-menu-input: {
-            color: var(--paper-indigo-500);
-            font-style: normal;
-            font-family: serif;
-            text-transform: uppercase;
-            border-bottom: none;
-          };
-        }
-
-        paper-dropdown-menu-light.teams {
-          --iron-icon-fill-color: var(--app-dark-text-color);
-          --paper-dropdown-menu-label: {
-            color: var(--paper-pink-500);
-            font-style: italic;
-            text-align: center;
-            font-weight: bold;
-          };
-          /*
-          --paper-dropdown-menu-input: {
-            color: var(--paper-indigo-500);
-            font-style: normal;
-            font-family: serif;
-            text-transform: uppercase;
-            border-bottom: none;
-          };*/
+        mwc-button {
+          /* Cannot override ripple colour, see https://github.com/material-components/material-components-web-components/issues/1102 */
+          --mdc-ripple-color: var(--app-secondary-color);
+          --mdc-theme-primary: var(--app-header-text-color);
+          --mdc-typography-button-text-transform: none;
         }
       </style>
-      <paper-dropdown-menu class="teams" label="Select team" no-label-float>
-        <paper-listbox slot="dropdown-content"
-                       class="dropdown-content"
-                       selected="${this.teamId}"
-                       attr-for-selected="id"
-                       @iron-select="${this._onIronSelect}">
-          ${Object.keys(this.teams).map((key) => {
-            const team = this.teams[key];
-            return html`
-              <paper-item id="${team.id}">${team.name}</paper-item>
-            `
-          })}
-          <paper-item addNew id="addnewteam">+ Add team</paper-item>
-        </paper-listbox>
-      </paper-dropdown-menu>
+      <mwc-button id="team-switcher-button" icon="arrow_drop_down" trailingicon
+          aria-label="${this.getTeamLabel()}" @click="${this.switcherClicked}">${this.teamName}</mwc-button>
     `;
   }
 
-  private _onIronSelect(e: CustomEvent) {
-    if (!e.detail.item) {
-      return;
-    }
+  @property({ type: String })
+  private teamId_ = '';
 
-    if (e.detail.item.hasAttribute('addNew')) {
-      this.dispatchEvent(new CustomEvent('add-new-team', {bubbles: true}));
+  get teamId() {
+    return this.teamId_;
+  }
+  set teamId(value: string) {
+    const oldValue = this.teamId_;
+    this.teamId_ = value;
+    if (value !== oldValue) {
+      this.updateCurrentTeam();
+    }
+    this.requestUpdate('teamId', oldValue);
+  }
+
+  @property({ type: Object })
+  private teams_: Teams = {};
+
+  get teams() {
+    return this.teams_;
+  }
+  set teams(value: Teams) {
+    const oldValue = this.teams_;
+    this.teams_ = value;
+    if (value !== oldValue) {
+      this.updateCurrentTeam();
+    }
+    this.requestUpdate('teams', oldValue);
+  }
+
+  @internalProperty()
+  protected teamName = '';
+
+  @internalProperty()
+  protected teamSelected = false;
+
+  private getTeamLabel() {
+    if (this.teamSelected) {
+      return `You are currently working with team ${this.teamName}. Hit enter to switch teams.`;
+    }
+    return 'No team selected. Hit enter to select a team.';
+  }
+
+  private updateCurrentTeam() {
+    let text = '';
+    let selected = false;
+    if (this.teamId && this.teams) {
+      const currentTeam = this.teams[this.teamId];
+      if (currentTeam) {
+        text = currentTeam.name;
+        selected = true;
+      }
+    }
+    if (selected) {
+      this.teamName = text;
     } else {
-      this.dispatchEvent(new CustomEvent('team-changed', {
-        bubbles: true,
-        detail: {
-          teamId: e.detail.item.getAttribute('id')
-        }
-      }));
+      this.teamName = 'Select a team';
+    }
+    this.teamSelected = selected;
+  }
+
+  private switcherClicked() {
+    this.dispatchEvent(new CustomEvent('select-team', { bubbles: true, composed: true }));
+  }
+}
+
+export interface TeamChangedDetail {
+  teamId: string;
+}
+
+const TEAM_CHANGED_EVENT_NAME = 'team-changed';
+export class TeamChangedEvent extends CustomEvent<TeamChangedDetail> {
+  static eventName = TEAM_CHANGED_EVENT_NAME;
+
+  constructor(detail: TeamChangedDetail) {
+    super(TeamChangedEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true
+    });
+  }
+}
+
+@customElement('lineup-team-selector-dialog')
+export class LineupTeamSelectorDialog extends LitElement {
+  protected render() {
+    const teamList = Object.keys(this.teams).map((key) => this.teams[key]);
+    const hasTeams = teamList.length > 0;
+    return html`
+      ${SharedStyles}
+      <style>
+      </style>
+      <mwc-dialog @opening="${this.dialogEvent}" @opened="${this.dialogEvent}" @closing="${this.dialogEvent}" @closed="${this.dialogClosed}">
+        <div>
+          <div>
+            <span>Select a team</span>
+            <mwc-button label="New Team" dialogAction="new-team"></mwc-button>
+          </div>
+          ${hasTeams ? html`
+          <mwc-list activatable @selected="${this.listSelected}">
+            ${this.getTeamListItems(teamList)}
+          </mwc-list>
+          ` : html`
+          <p class="empty-list">
+            No teams created.
+          </p>
+          `}
+        </div>
+        <mwc-button slot="primaryAction" dialogAction="select" ?disabled=${!hasTeams}>Select</mwc-button>
+        <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
+      </mwc-dialog>
+    `;
+  }
+
+  private getTeamListItems(teamList: Team[]) {
+    teamList.sort((a, b) => a.name.localeCompare(b.name));
+    return teamList.map((team) => {
+      return html`
+            <mwc-list-item id="${team.id}" ?selected="${team.id === this.teamId}">${team.name}</mwc-list-item>
+            <li divider role="separator"></li>
+            `
+    });
+  }
+
+  @property({ type: String })
+  teamId = '';
+
+  @property({ type: Object })
+  teams: Teams = {};
+
+  @query('mwc-dialog')
+  protected dialog?: Dialog;
+
+  @query('mwc-list')
+  protected teamList?: List;
+
+  // Tracks the newly-selected team in the list.
+  protected changedTeamId = '';
+
+  async show() {
+    this.dialog!.show();
+    await this.requestUpdate();
+  }
+
+  private dialogEvent(e: CustomEvent) {
+    console.log(`dialogEvent: [${e.type}] = ${JSON.stringify(e.detail)}`)
+  }
+
+  private dialogClosed(e: CustomEvent) {
+    console.log(`dialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
+    switch (e.detail.action) {
+      case 'select': {
+        this.dispatchEvent(new TeamChangedEvent({ teamId: this.changedTeamId }));
+        break;
+      }
+      case 'new-team': {
+        this.dispatchEvent(new CustomEvent('add-new-team', { bubbles: true, composed: true }));
+        break;
+      }
     }
   }
 
-  @property({type: String})
-  teamId = '';
+  private listSelected(e: CustomEvent) {
+    if (isEventMulti(e)) {
+      console.log(`Unexpected multi-selected event: ${JSON.stringify(e.detail)}`);
+      return;
+    }
+    const selectedEvent = e as SingleSelectedEvent;
+    this.changedTeamId = this.teamList!.items[selectedEvent.detail.index].id;
+  }
+}
 
-  @property({type: Object})
-  teams: Teams = {};
+declare global {
+  interface HTMLElementTagNameMap {
+    "lineup-team-selector": LineupTeamSelector;
+    "lineup-team-selector-dialog": LineupTeamSelectorDialog;
+  }
+}
+
+
+declare global {
+  interface HTMLElementEventMap {
+    [TEAM_CHANGED_EVENT_NAME]: TeamChangedEvent;
+  }
 }
