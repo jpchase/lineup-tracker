@@ -6,6 +6,7 @@
 <mwc-textfield
   id="team-name"
   label="Team Name"
+  maxlength="30"
   required=""
 >
 </mwc-textfield>

@@ -18,7 +18,7 @@ export class LineupTeamCreate extends LitElement {
       ${SharedStyles}
       <style>
       </style>
-      <mwc-textfield id="team-name" label="Team Name" required>
+      <mwc-textfield id="team-name" label="Team Name" required maxLength="30">
       </mwc-textfield>
       <div class="buttons">
         <mwc-button raised class="save" autofocus @click="${this._saveNewTeam}">Save</mwc-button>
