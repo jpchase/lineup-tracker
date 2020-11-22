@@ -2,7 +2,7 @@
 @license
 */
 
-import { PageObject, PageOpenParams, PageOptions } from './page-object';
+import { PageObject, PageOptions } from './page-object';
 
 export class TeamRosterPage extends PageObject {
 
@@ -12,11 +12,6 @@ export class TeamRosterPage extends PageObject {
       scenarioName: 'viewRoster',
       route: 'viewRoster?team=test_team1'
     });
-  }
-  protected get openParams(): PageOpenParams {
-    return {
-      route: 'viewRoster?team=test_team1'
-    };
   }
 
 }
