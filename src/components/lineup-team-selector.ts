@@ -149,8 +149,12 @@ export class LineupTeamSelectorDialog extends LitElement {
   private getTeamListItems(teamList: Team[]) {
     teamList.sort((a, b) => a.name.localeCompare(b.name));
     return teamList.map((team) => {
+      const isCurrentTeam = team.id === this.teamId;
       return html`
-            <mwc-list-item id="${team.id}" ?selected="${team.id === this.teamId}">${team.name}</mwc-list-item>
+            <mwc-list-item id="${team.id}" graphic="icon">
+              <span>${team.name}</span>
+              ${isCurrentTeam ? html`<mwc-icon slot="graphic">check</mwc-icon>` : html``}
+            </mwc-list-item>
             <li divider role="separator"></li>
             `
     });
