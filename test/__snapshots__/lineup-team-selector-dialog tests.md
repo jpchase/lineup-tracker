@@ -71,6 +71,7 @@
   </div>
   <mwc-button
     dialogaction="select"
+    disabled=""
     slot="primaryAction"
   >
     Select

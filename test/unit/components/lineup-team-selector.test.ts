@@ -137,6 +137,17 @@ describe('lineup-team-selector-dialog tests', () => {
     return teamItem! as HTMLElement;
   }
 
+  async function selectTeamItem(teamId: string) {
+    const teamElement = getTeamItem(teamId);
+    if (!teamElement) {
+      throw new ReferenceError(`Item should exist for id ${teamId}`);
+    }
+    const teamListItem = teamElement as ListItem;
+    teamListItem.selected = true;
+    await nextFrame();
+    return teamListItem;
+  }
+
   function getSelectButton() {
     const button = el.shadowRoot!.querySelector('mwc-button[dialogAction="select"]');
     return button as Button;
@@ -238,19 +249,41 @@ describe('lineup-team-selector-dialog tests', () => {
     expect(detail, 'New team event has no detail').not.to.exist;
   });
 
-  it.skip('select button disabled when no team selected', async () => {
+  it('select button disabled when no team selected', async () => {
+    populateDialog('t1');
+    await el.show();
+
+    const selectButton = getSelectButton();
+    expect(selectButton.disabled, 'Select button should be disabled').to.be.true;
   });
 
-  it.skip('select button disabled when selection matches current team', async () => {
+  it('select button disabled when selection matches current team', async () => {
+    const selectedTeamId = 't1';
+    populateDialog(selectedTeamId);
+    await el.show();
+
+    selectTeamItem(selectedTeamId);
+
+    const selectButton = getSelectButton();
+    expect(selectButton.disabled, 'Select button should be disabled').to.be.true;
   });
 
-  it.skip('clears selected team when dialog closed for selection', async () => {
-  });
+  it('clears selected team when dialog reopened', async () => {
+    const selectedTeamId = 't2';
+    populateDialog(selectedTeamId);
+    await el.show();
 
-  it.skip('clears selected team when dialog closed for new team', async () => {
-  });
+    const teamElement = await selectTeamItem(selectedTeamId);
+    expect(teamElement.hasAttribute('selected'),
+      `List item for ${selectedTeamId} should be selected`).to.be.true;
 
-  it.skip('clears selected team when dialog closed by cancel', async () => {
+    const selectButton = getSelectButton();
+    setTimeout(() => selectButton.click());
+    await oneEvent(el, 'team-changed');
+
+    await el.show();
+    expect(teamElement.hasAttribute('selected'),
+      `List item for ${selectedTeamId} should no longer be selected`).to.be.false;
   });
 
   // TODO: Fix various accessibility warnings

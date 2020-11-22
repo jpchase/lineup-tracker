@@ -120,6 +120,7 @@ export class LineupTeamSelectorDialog extends LitElement {
   protected render() {
     const teamList = Object.keys(this.teams).map((key) => this.teams[key]);
     const hasTeams = teamList.length > 0;
+    const selectEnabled = hasTeams && this.changedTeamId && (this.changedTeamId !== this.teamId);
     return html`
       ${SharedStyles}
       <style>
@@ -140,7 +141,7 @@ export class LineupTeamSelectorDialog extends LitElement {
           </p>
           `}
         </div>
-        <mwc-button slot="primaryAction" dialogAction="select" ?disabled=${!hasTeams}>Select</mwc-button>
+        <mwc-button slot="primaryAction" dialogAction="select" ?disabled=${!selectEnabled}>Select</mwc-button>
         <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
       </mwc-dialog>
     `;
@@ -173,9 +174,11 @@ export class LineupTeamSelectorDialog extends LitElement {
   protected teamList?: List;
 
   // Tracks the newly-selected team in the list.
+  @internalProperty()
   protected changedTeamId = '';
 
   async show() {
+    this.clearSelection();
     this.dialog!.show();
     await this.requestUpdate();
   }
@@ -204,7 +207,19 @@ export class LineupTeamSelectorDialog extends LitElement {
       return;
     }
     const selectedEvent = e as SingleSelectedEvent;
+    if (selectedEvent.detail.index < 0) {
+      console.log(`Unexpected selected event with negative index: ${JSON.stringify(e.detail)}`)
+      return;
+    }
     this.changedTeamId = this.teamList!.items[selectedEvent.detail.index].id;
+  }
+
+  private clearSelection() {
+    this.teamList?.items.forEach((item) => {
+      if (item.selected) {
+        item.selected = false;
+      }
+    });
   }
 }
 
