@@ -11,9 +11,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 /* global after, afterEach, before, beforeEach, describe, it */
 
 import * as fs from 'fs';
+import * as path from 'path';
 import { Browser, Page, Viewport } from 'puppeteer';
-import { PageOptions } from '../pages/page-object';
+import { PageObject, PageOptions } from '../pages/page-object';
 import { TeamCreatePage } from '../pages/team-create-page';
+import { TeamSelectPage } from '../pages/team-select-page';
 import { serveHermeticFont } from '../server/hermetic-fonts';
 import { config, startTestServer } from '../server/test-server';
 const puppeteer = require('puppeteer');
@@ -66,13 +68,20 @@ describe('🎁 regenerate screenshots', function () {
   for (let i = 0; i < prefixes.length; i++) {
     const prefix = prefixes[i];
     const breakpoint = breakpoints[i];
+    const pageOptions: PageOptions = { viewPort: breakpoint };
 
     it(`views - ${prefix}`, async function () {
       return generateBaselineScreenshots(page, prefix, breakpoint);
     });
 
     it(`Add team - ${prefix}`, async function () {
-      return generateAddTeamScreenshots(prefix, breakpoint);
+      const addTeamPage = new TeamCreatePage(pageOptions);
+      return generateScreenshot(addTeamPage, prefix);
+    });
+
+    it(`Select team - ${prefix}`, async function () {
+      const selectTeamPage = new TeamSelectPage(pageOptions);
+      return generateScreenshot(selectTeamPage, prefix);
     });
   }
 });
@@ -117,13 +126,9 @@ async function generateBaselineScreenshots(page: Page, prefix: string, breakpoin
   await page.screenshot({ path: `${config.baselineDir}/${prefix}/batmanNotAView.png` });
 }
 
-async function generateAddTeamScreenshots(prefix: string, breakpoint: Viewport) {
-  const pageOptions: PageOptions = { viewPort: breakpoint };
-  const addTeamPage = new TeamCreatePage(pageOptions);
-
-  // Add new team
-  await addTeamPage.init();
-  await addTeamPage.open();
-  await addTeamPage.screenshot(`${config.baselineDir}/${prefix}`);
-  await addTeamPage.close();
+async function generateScreenshot(page: PageObject, filePrefix: string) {
+  await page.init();
+  await page.open();
+  await page.screenshot(path.join(config.baselineDir, filePrefix));
+  await page.close();
 }
