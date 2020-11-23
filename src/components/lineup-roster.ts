@@ -40,7 +40,7 @@ export class LineupRoster extends LitElement {
         <div class="list">
         ${playerList.map(player => html`
           <div>
-            <lineup-roster-item .isGame="false" .player="${player}">
+            <lineup-roster-item .isGame="${this.mode === 'game'}" .player="${player}">
             </lineup-roster-item>
           </div>
         `)}
@@ -58,6 +58,9 @@ export class LineupRoster extends LitElement {
 
   @property({ type: Object })
   roster: Roster = {};
+
+  @property({ type: String })
+  mode = '';
 
   @property({ type: Boolean })
   private _showCreate = false;
