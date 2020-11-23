@@ -120,13 +120,23 @@ export class LineupTeamSelectorDialog extends LitElement {
   protected render() {
     const teamList = Object.keys(this.teams).map((key) => this.teams[key]);
     const hasTeams = teamList.length > 0;
+    const selectEnabled = hasTeams && this.changedTeamId && (this.changedTeamId !== this.teamId);
     return html`
       ${SharedStyles}
       <style>
+        mwc-dialog {
+          /* Width should be 600px on wide screens, or 90% of viewport, but at least 260px */
+          --mdc-dialog-min-width: max(min(600px, 90vw), 260px);
+        }
+        .dialog-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
       </style>
       <mwc-dialog @opening="${this.dialogEvent}" @opened="${this.dialogEvent}" @closing="${this.dialogEvent}" @closed="${this.dialogClosed}">
         <div>
-          <div>
+          <div class="dialog-header">
             <span>Select a team</span>
             <mwc-button label="New Team" dialogAction="new-team"></mwc-button>
           </div>
@@ -140,7 +150,7 @@ export class LineupTeamSelectorDialog extends LitElement {
           </p>
           `}
         </div>
-        <mwc-button slot="primaryAction" dialogAction="select" ?disabled=${!hasTeams}>Select</mwc-button>
+        <mwc-button slot="primaryAction" dialogAction="select" ?disabled=${!selectEnabled}>Select</mwc-button>
         <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
       </mwc-dialog>
     `;
@@ -149,8 +159,12 @@ export class LineupTeamSelectorDialog extends LitElement {
   private getTeamListItems(teamList: Team[]) {
     teamList.sort((a, b) => a.name.localeCompare(b.name));
     return teamList.map((team) => {
+      const isCurrentTeam = team.id === this.teamId;
       return html`
-            <mwc-list-item id="${team.id}" ?selected="${team.id === this.teamId}">${team.name}</mwc-list-item>
+            <mwc-list-item id="${team.id}" graphic="icon">
+              <span>${team.name}</span>
+              ${isCurrentTeam ? html`<mwc-icon slot="graphic">check</mwc-icon>` : html``}
+            </mwc-list-item>
             <li divider role="separator"></li>
             `
     });
@@ -169,9 +183,11 @@ export class LineupTeamSelectorDialog extends LitElement {
   protected teamList?: List;
 
   // Tracks the newly-selected team in the list.
+  @internalProperty()
   protected changedTeamId = '';
 
   async show() {
+    this.clearSelection();
     this.dialog!.show();
     await this.requestUpdate();
   }
@@ -200,7 +216,19 @@ export class LineupTeamSelectorDialog extends LitElement {
       return;
     }
     const selectedEvent = e as SingleSelectedEvent;
+    if (selectedEvent.detail.index < 0) {
+      console.log(`Unexpected selected event with negative index: ${JSON.stringify(e.detail)}`)
+      return;
+    }
     this.changedTeamId = this.teamList!.items[selectedEvent.detail.index].id;
+  }
+
+  private clearSelection() {
+    this.teamList?.items.forEach((item) => {
+      if (item.selected) {
+        item.selected = false;
+      }
+    });
   }
 }
 

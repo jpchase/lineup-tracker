@@ -20,6 +20,7 @@ import { HomePage } from './pages/home-page';
 import { PageObject, PageOptions } from './pages/page-object';
 import { TeamCreatePage } from './pages/team-create-page';
 import { TeamRosterPage } from './pages/team-roster-page';
+import { TeamSelectPage } from './pages/team-select-page';
 import { serveHermeticFont } from './server/hermetic-fonts';
 import { config, startTestServer } from './server/test-server';
 const pixelmatch = require('pixelmatch');
@@ -126,6 +127,11 @@ describe('👀 page screenshots are correct', function () {
       it('add new team', async function () {
         const addTeamPage = pageObject = new TeamCreatePage(pageOptions);
         return takeAndCompareScreenshot(addTeamPage, '', prefix);
+      });
+
+      it('select team', async function () {
+        const selectTeamPage = pageObject = new TeamSelectPage(pageOptions);
+        return takeAndCompareScreenshot(selectTeamPage, '', prefix);
       });
 
       it('/game', async function () {

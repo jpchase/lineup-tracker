@@ -8,10 +8,6 @@ import { serveHermeticFont } from '../server/hermetic-fonts';
 import { config } from '../server/test-server';
 const puppeteer = require('puppeteer');
 
-export interface PageOpenParams {
-  route: string;
-}
-
 export type PageOpenFunction = () => Promise<void>;
 
 export interface PageOptions {
@@ -88,11 +84,6 @@ export class PageObject {
       await this.openFunc();
     }
     await this._page.waitFor(1500);
-  }
-
-  // To be overridden.
-  protected get openParams(): PageOpenParams {
-    throw new Error('Method not implemented.');
   }
 
   protected get openFunc(): PageOpenFunction | undefined {

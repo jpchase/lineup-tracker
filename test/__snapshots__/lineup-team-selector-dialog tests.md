@@ -5,7 +5,7 @@
 ```html
 <mwc-dialog open="">
   <div>
-    <div>
+    <div class="dialog-header">
       <span>
         Select a team
       </span>
@@ -18,11 +18,14 @@
     <mwc-list activatable="">
       <mwc-list-item
         aria-disabled="false"
+        graphic="icon"
         id="t2"
         mwc-list-item=""
         tabindex="0"
       >
-        A team - sorts first
+        <span>
+          A team - sorts first
+        </span>
       </mwc-list-item>
       <li
         divider=""
@@ -31,11 +34,14 @@
       </li>
       <mwc-list-item
         aria-disabled="false"
+        graphic="icon"
         id="t3"
         mwc-list-item=""
         tabindex="-1"
       >
-        Another team (3)
+        <span>
+          Another team (3)
+        </span>
       </mwc-list-item>
       <li
         divider=""
@@ -44,13 +50,17 @@
       </li>
       <mwc-list-item
         aria-disabled="false"
-        aria-selected="true"
+        graphic="icon"
         id="t1"
         mwc-list-item=""
-        selected=""
         tabindex="-1"
       >
-        First team id - sorts last
+        <span>
+          First team id - sorts last
+        </span>
+        <mwc-icon slot="graphic">
+          check
+        </mwc-icon>
       </mwc-list-item>
       <li
         divider=""
@@ -61,6 +71,7 @@
   </div>
   <mwc-button
     dialogaction="select"
+    disabled=""
     slot="primaryAction"
   >
     Select
@@ -79,7 +90,7 @@
 ```html
 <mwc-dialog open="">
   <div>
-    <div>
+    <div class="dialog-header">
       <span>
         Select a team
       </span>
@@ -116,12 +127,15 @@
   activated=""
   aria-disabled="false"
   aria-selected="true"
+  graphic="icon"
   id="t2"
   mwc-list-item=""
   selected=""
   tabindex="0"
 >
-  A team - sorts first
+  <span>
+    A team - sorts first
+  </span>
 </mwc-list-item>
 
 ```

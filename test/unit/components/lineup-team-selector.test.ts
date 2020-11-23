@@ -2,6 +2,7 @@ import { LineupTeamSelector, LineupTeamSelectorDialog } from '@app/components/li
 import '@app/components/lineup-team-selector.js';
 import { Team } from '@app/models/team';
 import { Button } from '@material/mwc-button';
+import { ListItem } from '@material/mwc-list/mwc-list-item';
 import { expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
 import { buildTeams } from '../helpers/test_data';
 
@@ -124,6 +125,29 @@ describe('lineup-team-selector-dialog tests', () => {
     return items;
   }
 
+  function getTeamItem(teamId: string) {
+    const items = getTeamItems();
+    let teamItem: Element;
+    for (const item of Array.from(items)) {
+      if (item.getAttribute('id') === teamId) {
+        teamItem = item;
+        break;
+      }
+    }
+    return teamItem! as HTMLElement;
+  }
+
+  async function selectTeamItem(teamId: string) {
+    const teamElement = getTeamItem(teamId);
+    if (!teamElement) {
+      throw new ReferenceError(`Item should exist for id ${teamId}`);
+    }
+    const teamListItem = teamElement as ListItem;
+    teamListItem.selected = true;
+    await nextFrame();
+    return teamListItem;
+  }
+
   function getSelectButton() {
     const button = el.shadowRoot!.querySelector('mwc-button[dialogAction="select"]');
     return button as Button;
@@ -148,7 +172,7 @@ describe('lineup-team-selector-dialog tests', () => {
       index++;
 
       expect(teamElement.getAttribute('id')).to.equal(team.id, 'Team id');
-      expect(teamElement.textContent).to.equal(team.name, 'Team name');
+      expect(teamElement.querySelector('span')?.textContent).to.equal(team.name, 'Team name');
     }
 
     expect(el).shadowDom.to.equalSnapshot();
@@ -178,16 +202,8 @@ describe('lineup-team-selector-dialog tests', () => {
     populateDialog('t1');
     await el.show();
 
-    const items = getTeamItems();
-    let itemToSelect: Element;
-    for (const item of Array.from(items)) {
-      if (item.getAttribute('id') === selectedTeamId) {
-        itemToSelect = item;
-        break;
-      }
-    }
-    expect(itemToSelect!, `Item should exist for id ${selectedTeamId}`).to.exist;
-    const teamElement = itemToSelect! as HTMLElement;
+    const teamElement = getTeamItem(selectedTeamId);
+    expect(teamElement, `Item should exist for id ${selectedTeamId}`).to.exist;
 
     expect(teamElement.hasAttribute('selected'),
       `List item for ${selectedTeamId} should not be selected yet`).to.be.false;
@@ -203,18 +219,12 @@ describe('lineup-team-selector-dialog tests', () => {
 
   it('fires event when team selected', async () => {
     const selectedTeamId = 't3';
-    populateDialog(selectedTeamId);
+    populateDialog('t1');
     await el.show();
 
-    const items = getTeamItems();
-    let teamElement;
-    for (const item of Array.from(items)) {
-      if (item.getAttribute('id') === selectedTeamId) {
-        teamElement = item;
-        break;
-      }
-    }
-    expect(teamElement, `Item should be selected for id ${selectedTeamId}`).to.exist;
+    const teamElement = getTeamItem(selectedTeamId);
+    expect(teamElement, `Item should exist for id ${selectedTeamId}`).to.exist;
+    (teamElement as ListItem).selected = true;
 
     const selectButton = getSelectButton();
     setTimeout(() => selectButton.click());
@@ -239,13 +249,41 @@ describe('lineup-team-selector-dialog tests', () => {
     expect(detail, 'New team event has no detail').not.to.exist;
   });
 
-  it.skip('clears selected team when dialog closed for selection', async () => {
+  it('select button disabled when no team selected', async () => {
+    populateDialog('t1');
+    await el.show();
+
+    const selectButton = getSelectButton();
+    expect(selectButton.disabled, 'Select button should be disabled').to.be.true;
   });
 
-  it.skip('clears selected team when dialog closed for new team', async () => {
+  it('select button disabled when selection matches current team', async () => {
+    const selectedTeamId = 't1';
+    populateDialog(selectedTeamId);
+    await el.show();
+
+    selectTeamItem(selectedTeamId);
+
+    const selectButton = getSelectButton();
+    expect(selectButton.disabled, 'Select button should be disabled').to.be.true;
   });
 
-  it.skip('clears selected team when dialog closed by cancel', async () => {
+  it('clears selected team when dialog reopened', async () => {
+    const selectedTeamId = 't2';
+    populateDialog(selectedTeamId);
+    await el.show();
+
+    const teamElement = await selectTeamItem(selectedTeamId);
+    expect(teamElement.hasAttribute('selected'),
+      `List item for ${selectedTeamId} should be selected`).to.be.true;
+
+    const selectButton = getSelectButton();
+    setTimeout(() => selectButton.click());
+    await oneEvent(el, 'team-changed');
+
+    await el.show();
+    expect(teamElement.hasAttribute('selected'),
+      `List item for ${selectedTeamId} should no longer be selected`).to.be.false;
   });
 
   // TODO: Fix various accessibility warnings
