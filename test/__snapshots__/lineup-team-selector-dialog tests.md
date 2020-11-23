@@ -5,7 +5,7 @@
 ```html
 <mwc-dialog open="">
   <div>
-    <div>
+    <div class="dialog-header">
       <span>
         Select a team
       </span>
@@ -90,7 +90,7 @@
 ```html
 <mwc-dialog open="">
   <div>
-    <div>
+    <div class="dialog-header">
       <span>
         Select a team
       </span>

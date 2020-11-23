@@ -124,10 +124,19 @@ export class LineupTeamSelectorDialog extends LitElement {
     return html`
       ${SharedStyles}
       <style>
+        mwc-dialog {
+          /* Width should be 600px on wide screens, or 90% of viewport, but at least 260px */
+          --mdc-dialog-min-width: max(min(600px, 90vw), 260px);
+        }
+        .dialog-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
       </style>
       <mwc-dialog @opening="${this.dialogEvent}" @opened="${this.dialogEvent}" @closing="${this.dialogEvent}" @closed="${this.dialogClosed}">
         <div>
-          <div>
+          <div class="dialog-header">
             <span>Select a team</span>
             <mwc-button label="New Team" dialogAction="new-team"></mwc-button>
           </div>
