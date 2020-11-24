@@ -2,37 +2,28 @@
 @license
 */
 
+import '@material/mwc-button';
+import '@material/mwc-circular-progress';
 import { customElement, html, property } from 'lit-element';
-import { PageViewElement } from './page-view-element';
+import { connect } from 'pwa-helpers/connect-mixin.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-
+import { addNewGamePlayer, copyRoster, getGame } from '../actions/game';
 import { GameDetail } from '../models/game';
 import { Roster } from '../models/player';
-
-// This element is connected to the Redux store.
-import { connect } from 'pwa-helpers/connect-mixin.js';
-import { RootState } from '../store';
-
-// Get the game-specific store, which handles initialization/lazy-loading.
 import { getGameStore } from '../slices/game-store';
-const store = getGameStore();
-
-// These are the actions needed by this element.
-import { getGame, addNewGamePlayer, copyRoster } from '../actions/game';
-
-// These are the elements needed by this element.
-import '@material/mwc-button';
-import '@polymer/paper-spinner/paper-spinner.js';
-import './lineup-roster';
-
+import { RootState } from '../store';
 import { EVENT_NEWPLAYERCREATED } from './events';
-
-// These are the shared styles needed by this element.
+import './lineup-roster';
+import { PageViewElement } from './page-view-element';
 import { SharedStyles } from './shared-styles';
 
 // Expose action for use in loading view.
 export { getGame };
 
+// Get the game-specific store, which handles initialization/lazy-loading.
+const store = getGameStore();
+
+// This element is connected to the Redux store.
 @customElement('lineup-view-game-roster')
 export class LineupViewGameRoster extends connect(store)(PageViewElement) {
   // TODO: Extract common logic (duplicated from LineupViewGameDetail)
@@ -81,7 +72,7 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
     return html`
       <div>
         <div>Copying from team roster...</div>
-        <paper-spinner active></paper-spinner>
+        <mwc-circular-progress indeterminate></mwc-circular-progress>
       </div>
     `;
   }
@@ -101,7 +92,7 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
 
   stateChanged(state: RootState) {
     if (!state.game) {
-        return;
+      return;
     }
     const gameState = state.game!;
     this._game = gameState.game;
