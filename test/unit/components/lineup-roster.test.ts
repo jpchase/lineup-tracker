@@ -1,8 +1,8 @@
 import { LineupRoster } from '@app/components/lineup-roster';
-import { LineupRosterItem } from '@app/components/lineup-roster-item';
 import '@app/components/lineup-roster.js';
 import { PlayerStatus, Roster } from '@app/models/player';
-import { assert, expect, fixture, oneEvent } from '@open-wc/testing';
+import { ListItem } from '@material/mwc-list/mwc-list-item';
+import { expect, fixture, oneEvent } from '@open-wc/testing';
 
 function getRoster(numPlayers: number): Roster {
   const size = numPlayers || 6;
@@ -26,7 +26,7 @@ function getRoster(numPlayers: number): Roster {
 
     roster[playerId] = {
       id: playerId,
-      name: `Player ${i}`,
+      name: `Player [${size - i} for sorting] ${i}`,
       uniformNumber: i + (i % 3) * 10,
       positions: pos,
       status: PlayerStatus.Off
@@ -41,10 +41,13 @@ describe('lineup-roster tests', () => {
     el = await fixture('<lineup-roster></lineup-roster>');
   });
 
+  function getPlayerItems() {
+    const items = el.shadowRoot!.querySelectorAll('mwc-list mwc-list-item');
+    return items;
+  }
+
   function getCreateElement() {
     const element = el.shadowRoot!.querySelector('lineup-roster-modify');
-    assert.isOk(element, 'Missing create widget');
-
     return element as Element;
   }
 
@@ -70,25 +73,25 @@ describe('lineup-roster tests', () => {
       el.roster = roster;
       await el.updateComplete;
 
-      const items = el.shadowRoot!.querySelectorAll('div div div lineup-roster-item');
+      const items = getPlayerItems();
       expect(items.length).to.equal(numPlayers, 'Rendered player count');
 
       let index = 0;
-      // TODO: Sort array in expected order (by uniform number? name?)
-      const sortedPlayers = Object.keys(roster).map(key => roster[key]);
+      const sortedPlayers = Object.keys(roster).map(key => roster[key]).
+        sort((a, b) => a.name.localeCompare(b.name));
       for (const player of sortedPlayers) {
-        const rosterItem = (items[index] as LineupRosterItem)!;
+        const rosterItem = (items[index] as ListItem)!;
         index++;
 
-        const avatar = rosterItem.shadowRoot!.querySelector('paper-icon-item .avatar');
+        const avatar = rosterItem.querySelector('.avatar');
         expect(avatar, 'Missing avatar').to.exist;
         expect(avatar!.textContent).to.equal(`#${player.uniformNumber}`, 'Player number');
 
-        const nameElement = rosterItem.shadowRoot!.querySelector('paper-icon-item paper-item-body .flex-equal-justified div');
+        const nameElement = rosterItem.querySelector('.name');
         expect(nameElement, 'Missing name element').to.exist;
         expect(nameElement!.textContent).to.equal(player.name, 'Player name');
 
-        const positionsElement = rosterItem.shadowRoot!.querySelector('paper-icon-item paper-item-body div[secondary]');
+        const positionsElement = rosterItem.querySelector('.positions');
         expect(positionsElement, 'Missing positions element').to.exist;
         expect(positionsElement!.textContent).to.equal(player.positions.join(', '), 'Player positions');
       }
@@ -102,8 +105,8 @@ describe('lineup-roster tests', () => {
     el.mode = 'team';
     await el.updateComplete;
 
-    const items = el.shadowRoot!.querySelectorAll('div div div lineup-roster-item');
-    const actionsElement = items[0].shadowRoot!.querySelector('paper-icon-item paper-item-body .flex-equal-justified div + div');
+    const items = getPlayerItems();
+    const actionsElement = items[0].querySelector('.actions');
     expect(actionsElement, 'Missing actions element').to.exist;
     expect(actionsElement!.textContent!.trim()).to.equal('NN games');
   });
@@ -114,14 +117,15 @@ describe('lineup-roster tests', () => {
     el.mode = 'game';
     await el.updateComplete;
 
-    const items = el.shadowRoot!.querySelectorAll('div div div lineup-roster-item');
-    const actionsElement = items[0].shadowRoot!.querySelector('paper-icon-item paper-item-body .flex-equal-justified div + div');
+    const items = getPlayerItems();
+    const actionsElement = items[0].querySelector('.actions');
     expect(actionsElement, 'Missing actions element').to.exist;
     expect(actionsElement!.textContent!.trim()).to.equal('actions here');
   });
 
   it('shows create widget when add clicked', async () => {
     const createElement = getCreateElement();
+    expect(createElement, 'Missing create widget').to.exist;
 
     let display = getVisibility(createElement);
     expect(display).to.equal('none', 'Create element should not be visible');
