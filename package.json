@@ -36,6 +36,7 @@
   "dependencies": {
     "@material/mwc-button": "^0.19.1",
     "@material/mwc-checkbox": "^0.19.1",
+    "@material/mwc-circular-progress": "^0.19.1",
     "@material/mwc-dialog": "^0.19.1",
     "@material/mwc-drawer": "^0.19.1",
     "@material/mwc-fab": "^0.19.1",
@@ -52,7 +53,6 @@
     "@material/mwc-textfield": "^0.19.1",
     "@material/mwc-top-app-bar-fixed": "^0.19.1",
     "@polymer/app-layout": "^3.1.0",
-    "@polymer/paper-spinner": "^3.0.2",
     "@polymer/polymer": "^3.3.1",
     "@webcomponents/webcomponentsjs": "^2.3.0",
     "firebase": "^7.16.1",
