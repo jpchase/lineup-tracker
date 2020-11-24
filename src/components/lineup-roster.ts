@@ -2,18 +2,12 @@
 @license
 */
 
-import { LitElement, customElement, html, property } from 'lit-element';
-
-import { Roster } from '../models/player';
-
-// These are the elements needed by this element.
 import '@material/mwc-fab';
-import './lineup-roster-item';
+import '@material/mwc-list';
+import { customElement, html, LitElement, property } from 'lit-element';
+import { Player, Roster } from '../models/player';
+import { EVENT_NEWPLAYERCANCELLED, EVENT_NEWPLAYERCREATED } from './events';
 import './lineup-roster-modify';
-
-import { EVENT_NEWPLAYERCREATED, EVENT_NEWPLAYERCANCELLED } from './events';
-
-// These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
 // This element is *not* connected to the Redux store.
@@ -27,6 +21,15 @@ export class LineupRoster extends LitElement {
       <style>
         :host { display: block; }
 
+        .avatar {
+          background-color: var(--mdc-theme-secondary);
+        }
+
+        mwc-list-item {
+          /* Text colour for the avatar */
+          --mdc-theme-text-icon-on-background: var(--mdc-theme-on-secondary);
+        }
+
         lineup-roster-modify {
           display: none;
         }
@@ -37,14 +40,9 @@ export class LineupRoster extends LitElement {
       </style>
       <div>
       ${playerList.length > 0 ? html`
-        <div class="list">
-        ${playerList.map(player => html`
-          <div>
-            <lineup-roster-item .isGame="false" .player="${player}">
-            </lineup-roster-item>
-          </div>
-        `)}
-        </div>
+        <mwc-list noninteractive>
+          ${this.getPlayerListItems(playerList)}
+        </mwc-list>
       ` : html`
         <p class="empty-list">
           No players in roster.
@@ -56,8 +54,27 @@ export class LineupRoster extends LitElement {
       </div>`
   }
 
+  private getPlayerListItems(playerList: Player[]) {
+    const isGame = this.mode === 'game';
+    playerList.sort((a, b) => a.name.localeCompare(b.name));
+    return playerList.map((player) => {
+      return html`
+            <mwc-list-item id="${player.id}" graphic="avatar" twoline hasMeta>
+              <span class="name">${player.name}</span>
+              <span slot="secondary" class="positions">${player.positions.join(', ')}</span>
+              <span slot="graphic" class="avatar">&#35${player.uniformNumber}</span>
+              <span slot="meta" class="actions">${isGame ? `actions here` : `NN games`}</span>
+            </mwc-list-item>
+            <li divider role="separator"></li>
+            `
+    });
+  }
+
   @property({ type: Object })
   roster: Roster = {};
+
+  @property({ type: String })
+  mode = '';
 
   @property({ type: Boolean })
   private _showCreate = false;
