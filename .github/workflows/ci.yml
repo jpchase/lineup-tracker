@@ -10,6 +10,11 @@ on:
     branches:
       - main
 
+env:
+  # Override the folder where the Firebase emulators are cached. The folder
+  # must be in the workspace, so that a hash of the files can be computed below.
+  FIREBASE_EMULATORS_PATH: $GITHUB_WORKSPACE/emulator-cache
+
 jobs:
   build:
 
@@ -30,6 +35,17 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+
+    - name: Cache Firebase emulators
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-firebase-emulators
+      with:
+        # Firebase emulator files are stored in `~/.cache/firebase/emulators` on Linux/macOS
+        path: ${{ env.FIREBASE_EMULATORS_PATH }}
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('emulator-cache/*.{jar,zip}') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
 
     - name: Install dependencies
       run: npm ci
