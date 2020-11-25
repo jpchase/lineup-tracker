@@ -35,18 +35,13 @@ import {
 import { getUser, signIn } from '../actions/auth';
 import { changeTeam, getTeams } from '../actions/team';
 
-// The following line imports the type only - it will be removed by tsc so
-// another import for app-drawer.js is required below.
-import { AppDrawerElement } from '@polymer/app-layout/app-drawer/app-drawer.js';
-
 // These are the elements needed by this element.
-import '@polymer/app-layout/app-drawer/app-drawer.js';
-import '@polymer/app-layout/app-header/app-header.js';
-import '@polymer/app-layout/app-scroll-effects/effects/waterfall.js';
-import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import { accountIcon, menuIcon } from './lineup-icons';
 import './lineup-team-selector';
 import './snack-bar';
+import '@material/mwc-drawer';
+import '@material/mwc-top-app-bar';
+import '@material/mwc-icon-button';
 
 interface Page {
   page: string;
@@ -253,56 +248,51 @@ export class LineupApp extends connect(store)(LitElement) {
       }
     </style>
 
-    <!-- Header -->
-    <app-header condenses reveals effects="waterfall">
-      <app-toolbar class="toolbar-top">
-        <div class="toolbar-top-left">
-          <button class="menu-btn" title="Menu" @click="${this._menuButtonClicked}">${menuIcon}</button>
-        </div>
-        <div main-title>${this.appTitle}</div>
-        <div class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
-          <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
-                                @select-team="${this.selectTeam}">
-          </lineup-team-selector>
-          <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
-              @click="${this._signinButtonClicked}">
-            ${this._user && this._user.imageUrl ? html`<img src="${this._user.imageUrl}">` : accountIcon}
-          </button>
-        </div>
-      </app-toolbar>
-
-      <!-- This gets hidden on a small screen-->
-      <nav class="toolbar-list">
-        <a ?selected="${this._page === 'viewHome'}" href="/viewHome">Overview</a>
-        <a ?selected="${this._page === 'viewGames'}" href="/viewGames">Games</a>
-        <a ?selected="${this._page === 'viewRoster'}" href="/viewRoster">Roster</a>
-      </nav>
-    </app-header>
-
-    <!-- Drawer content -->
-    <app-drawer .opened="${this._drawerOpened}"
-        @opened-changed="${this._drawerOpenedChanged}">
+    <mwc-drawer hasHeader type="modal">
       <nav class="drawer-list">
         <a ?selected="${this._page === 'viewHome'}" href="/viewHome">Overview</a>
         <a ?selected="${this._page === 'viewGames'}" href="/viewGames">Games</a>
         <a ?selected="${this._page === 'viewRoster'}" href="/viewRoster">Roster</a>
       </nav>
-    </app-drawer>
+      <div slot="appContent">
+        <mwc-top-app-bar>
+          <!-- <mwc-icon-button slot="navigationIcon" icon="menu" @click="${this._menuButtonClicked}"></mwc-icon-button> -->
+          <div slot="navigationIcon" class="toolbar-top-left">
+            <button class="menu-btn" title="Menu" @click="${this._menuButtonClicked}">${menuIcon}</button>
+          </div>
+          <div slot="title">${this.appTitle}</div>
+          <div slot="actionItems" class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
+            <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
+                                  @select-team="${this.selectTeam}">
+            </lineup-team-selector>
+            <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
+                @click="${this._signinButtonClicked}">
+              ${this._user && this._user.imageUrl ? html`<img src="${this._user.imageUrl}">` : accountIcon}
+            </button>
+          </div>
+          <!-- This gets hidden on a small screen-->
+          <nav class="toolbar-list">
+            <a ?selected="${this._page === 'viewHome'}" href="/viewHome">Overview</a>
+            <a ?selected="${this._page === 'viewGames'}" href="/viewGames">Games</a>
+            <a ?selected="${this._page === 'viewRoster'}" href="/viewRoster">Roster</a>
+          </nav>
+        </mwc-top-app-bar>
+        <!-- Main content -->
+        <main role="main" class="main-content">
+          <lineup-view-home class="page" ?active="${this._page === 'viewHome'}"></lineup-view-home>
+          <lineup-view-games class="page" ?active="${this._page === 'viewGames'}"></lineup-view-games>
+          <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
+          <lineup-view-game-roster class="page" ?active="${this._page === 'gameroster'}"></lineup-view-game-roster>
+          <lineup-view-roster class="page" ?active="${this._page === 'viewRoster'}"></lineup-view-roster>
+          <lineup-view-team-create class="page" ?active="${this._page === 'addNewTeam'}"></lineup-view-team-create>
+          <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
+        </main>
 
-    <!-- Main content -->
-    <main role="main" class="main-content">
-      <lineup-view-home class="page" ?active="${this._page === 'viewHome'}"></lineup-view-home>
-      <lineup-view-games class="page" ?active="${this._page === 'viewGames'}"></lineup-view-games>
-      <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
-      <lineup-view-game-roster class="page" ?active="${this._page === 'gameroster'}"></lineup-view-game-roster>
-      <lineup-view-roster class="page" ?active="${this._page === 'viewRoster'}"></lineup-view-roster>
-      <lineup-view-team-create class="page" ?active="${this._page === 'addNewTeam'}"></lineup-view-team-create>
-      <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
-    </main>
-
-    <footer>
-      <p>Some footer goes here?</p>
-    </footer>
+        <footer>
+          <p>Some footer goes here?</p>
+        </footer>
+      </div>
+    </mwc-drawer>
 
     <lineup-team-selector-dialog .teamId=${this._teamId} .teams=${this._teams}
                                 @team-changed="${this.teamChanged}"
@@ -320,8 +310,8 @@ export class LineupApp extends connect(store)(LitElement) {
   @property({ type: String })
   private _page = '';
 
-  @property({ type: Boolean })
-  private _drawerOpened = false;
+  // @property({ type: Boolean })
+  // private _drawerOpened = false;
 
   @property({ type: Boolean })
   private _snackbarOpened = false;
@@ -393,9 +383,9 @@ export class LineupApp extends connect(store)(LitElement) {
     store.dispatch(updateDrawerState(true));
   }
 
-  private _drawerOpenedChanged(e: Event) {
-    store.dispatch(updateDrawerState((e.target as AppDrawerElement).opened));
-  }
+  // private _drawerOpenedChanged(e: Event) {
+  //   store.dispatch(updateDrawerState((e.target as AppDrawerElement).opened));
+  // }
 
   private _signinButtonClicked() {
     if (!(this._user && this._user.imageUrl)) {
@@ -423,7 +413,7 @@ export class LineupApp extends connect(store)(LitElement) {
     this._page = state.app!.page;
     this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;
-    this._drawerOpened = state.app!.drawerOpened;
+    // this._drawerOpened = state.app!.drawerOpened;
 
     this._user = state.auth!.user;
 
