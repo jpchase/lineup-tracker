@@ -11,7 +11,7 @@ on:
       - main
 
 env:
-  # Set the env variable to override where the emulators are cached. The folder
+  # Override the folder where the Firebase emulators are cached. The folder
   # must be in the workspace, so that a hash of the files can be computed below.
   FIREBASE_EMULATORS_PATH: $GITHUB_WORKSPACE/emulator-cache
 
