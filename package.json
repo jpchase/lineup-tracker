@@ -53,7 +53,6 @@
     "@material/mwc-textfield": "^0.19.1",
     "@material/mwc-top-app-bar": "^0.19.1",
     "@material/mwc-top-app-bar-fixed": "^0.19.1",
-    "@polymer/app-layout": "^3.1.0",
     "@polymer/polymer": "^3.3.1",
     "@webcomponents/webcomponentsjs": "^2.3.0",
     "firebase": "^7.16.1",

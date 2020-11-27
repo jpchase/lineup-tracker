@@ -71,6 +71,7 @@ export class LineupApp extends connect(store)(LitElement) {
         --app-primary-color: #607D8B;
         --app-secondary-color: #FFC107;
         --app-header-text-color: black;
+        --app-header-background-color: white;
 
         /*
         --app-dark-text-color: var(--app-secondary-color);
@@ -93,22 +94,14 @@ export class LineupApp extends connect(store)(LitElement) {
         display: none !important;
       }
 
-      app-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: var(--app-header-background-color);
-        color: var(--app-header-text-color);
-        border-bottom: 1px solid #eee;
+      mwc-top-app-bar {
+        --mdc-theme-primary: var(--app-header-background-color);
+        --mdc-theme-on-primary: var(--app-header-text-color);
+        border-bottom: 1px solid #eee /*var(--app-primary-color)*/;
       }
 
       .toolbar-top {
         background-color: var(--app-header-background-color);
-      }
-
-      [main-title] {
-        font-size: 30px;
       }
 
       .team-selector {
@@ -196,13 +189,8 @@ export class LineupApp extends connect(store)(LitElement) {
         color: var(--app-drawer-selected-color);
       }
 
-      /* Workaround for IE11 displaying <main> as inline */
-      main {
-        display: block;
-      }
-
       .main-content {
-        padding-top: 64px;
+        /* padding-top: 64px; */
         min-height: 100vh;
       }
 
@@ -242,9 +230,9 @@ export class LineupApp extends connect(store)(LitElement) {
           display: none;
         }
 
-        .main-content {
+        /* .main-content {
           padding-top: 107px;
-        }
+        } */
       }
     </style>
 
