@@ -4,44 +4,33 @@ Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 */
 
-import { LitElement, customElement, html, property, PropertyValues, internalProperty } from 'lit-element';
+import '@material/mwc-drawer';
+import '@material/mwc-icon-button';
+import '@material/mwc-top-app-bar';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
+import { customElement, html, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
+import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { installRouter } from 'pwa-helpers/router.js';
-import { updateMetadata } from 'pwa-helpers/metadata.js';
-
+import { navigate, updateDrawerState, updateOffline } from '../actions/app';
+import { getUser, signIn } from '../actions/auth';
+import { changeTeam, getTeams } from '../actions/team';
 import { User } from '../models/auth';
 import { Teams } from '../models/team';
-
-// This element is connected to the Redux store.
-import { store, RootState } from '../store';
-
-// We are lazy loading its reducer.
 import auth from '../reducers/auth';
 import team from '../reducers/team';
+import { RootState, store } from '../store';
+import { accountIcon } from './lineup-icons';
+import './lineup-team-selector';
+import './snack-bar';
+
+// Lazy load the reducers.
 store.addReducers({
   auth,
   team
 });
-
-// These are the actions needed by this element.
-import {
-  navigate,
-  updateOffline,
-  updateDrawerState
-} from '../actions/app';
-import { getUser, signIn } from '../actions/auth';
-import { changeTeam, getTeams } from '../actions/team';
-
-// These are the elements needed by this element.
-import { accountIcon } from './lineup-icons';
-import './lineup-team-selector';
-import './snack-bar';
-import '@material/mwc-drawer';
-import '@material/mwc-top-app-bar';
-import '@material/mwc-icon-button';
 
 interface Page {
   page: string;
@@ -52,6 +41,7 @@ interface Pages {
   [index: string]: Page;
 }
 
+// This element is connected to the Redux store.
 @customElement('lineup-app')
 export class LineupApp extends connect(store)(LitElement) {
   protected render() {
