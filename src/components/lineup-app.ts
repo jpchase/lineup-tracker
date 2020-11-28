@@ -4,7 +4,7 @@ Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 */
 
-import { LitElement, customElement, html, property, PropertyValues } from 'lit-element';
+import { LitElement, customElement, html, property, PropertyValues, internalProperty } from 'lit-element';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
@@ -36,7 +36,7 @@ import { getUser, signIn } from '../actions/auth';
 import { changeTeam, getTeams } from '../actions/team';
 
 // These are the elements needed by this element.
-import { accountIcon, menuIcon } from './lineup-icons';
+import { accountIcon } from './lineup-icons';
 import './lineup-team-selector';
 import './snack-bar';
 import '@material/mwc-drawer';
@@ -217,7 +217,7 @@ export class LineupApp extends connect(store)(LitElement) {
           text-align: center;
         }
 
-        .toolbar-top-left {
+        mwc-icon-button[slot="navigationIcon"] {
           display: none;
         }
 
@@ -236,18 +236,16 @@ export class LineupApp extends connect(store)(LitElement) {
       }
     </style>
 
-    <mwc-drawer hasHeader type="modal">
+    <mwc-drawer hasHeader type="modal" .open="${this.drawerOpen}"
+                @MDCDrawer:closed="${this.drawerClosedHandler}">
       <nav class="drawer-list">
         <a ?selected="${this._page === 'viewHome'}" href="/viewHome">Overview</a>
         <a ?selected="${this._page === 'viewGames'}" href="/viewGames">Games</a>
         <a ?selected="${this._page === 'viewRoster'}" href="/viewRoster">Roster</a>
       </nav>
       <div slot="appContent">
-        <mwc-top-app-bar>
-          <!-- <mwc-icon-button slot="navigationIcon" icon="menu" @click="${this._menuButtonClicked}"></mwc-icon-button> -->
-          <div slot="navigationIcon" class="toolbar-top-left">
-            <button class="menu-btn" title="Menu" @click="${this._menuButtonClicked}">${menuIcon}</button>
-          </div>
+        <mwc-top-app-bar @MDCTopAppBar:nav="${this.navButtonClicked}">
+          <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
           <div slot="title">${this.appTitle}</div>
           <div slot="actionItems" class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
             <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
@@ -298,8 +296,8 @@ export class LineupApp extends connect(store)(LitElement) {
   @property({ type: String })
   private _page = '';
 
-  // @property({ type: Boolean })
-  // private _drawerOpened = false;
+  @internalProperty()
+  private drawerOpen = false;
 
   @property({ type: Boolean })
   private _snackbarOpened = false;
@@ -367,13 +365,13 @@ export class LineupApp extends connect(store)(LitElement) {
     }
   }
 
-  private _menuButtonClicked() {
+  private navButtonClicked() {
     store.dispatch(updateDrawerState(true));
   }
 
-  // private _drawerOpenedChanged(e: Event) {
-  //   store.dispatch(updateDrawerState((e.target as AppDrawerElement).opened));
-  // }
+  private drawerClosedHandler() {
+    store.dispatch(updateDrawerState(false));
+  }
 
   private _signinButtonClicked() {
     if (!(this._user && this._user.imageUrl)) {
@@ -401,7 +399,7 @@ export class LineupApp extends connect(store)(LitElement) {
     this._page = state.app!.page;
     this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;
-    // this._drawerOpened = state.app!.drawerOpened;
+    this.drawerOpen = state.app!.drawerOpened;
 
     this._user = state.auth!.user;
 

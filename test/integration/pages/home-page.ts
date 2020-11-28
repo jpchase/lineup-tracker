@@ -29,7 +29,7 @@ export class HomePage extends PageObject {
       await this.page.evaluate(`(async () => {
         console.log('click the menu button');
         const menuButton = document.querySelector('lineup-app').shadowRoot.
-          querySelector('app-header app-toolbar .menu-btn');
+          querySelector('mwc-drawer mwc-top-app-bar > mwc-icon-button');
         await menuButton.click();
         console.log('drawer is open?');
       })()`);
