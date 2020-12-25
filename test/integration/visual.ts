@@ -113,6 +113,12 @@ describe('👀 page screenshots are correct', function () {
         const homePage = pageObject = new HomePage(pageOptions);
         return takeAndCompareScreenshot(homePage, 'viewHome', prefix);
       });
+      if (prefix === 'narrow') {
+        it('navigation drawer', async function () {
+          const homePage = pageObject = new HomePage(pageOptions, true);
+          return takeAndCompareScreenshot(homePage, '', prefix);
+        });
+      }
       it('/viewGames', async function () {
         return takeAndCompareScreenshot(page, 'viewGames?team=test_team1', prefix, 'viewGames', null, 'lineup-view-games');
       });

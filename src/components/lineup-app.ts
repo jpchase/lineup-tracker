@@ -4,49 +4,33 @@ Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 */
 
-import { LitElement, customElement, html, property, PropertyValues } from 'lit-element';
+import '@material/mwc-drawer';
+import '@material/mwc-icon-button';
+import '@material/mwc-top-app-bar';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
+import { customElement, html, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
+import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { installRouter } from 'pwa-helpers/router.js';
-import { updateMetadata } from 'pwa-helpers/metadata.js';
-
+import { navigate, updateDrawerState, updateOffline } from '../actions/app';
+import { getUser, signIn } from '../actions/auth';
+import { changeTeam, getTeams } from '../actions/team';
 import { User } from '../models/auth';
 import { Teams } from '../models/team';
-
-// This element is connected to the Redux store.
-import { store, RootState } from '../store';
-
-// We are lazy loading its reducer.
 import auth from '../reducers/auth';
 import team from '../reducers/team';
+import { RootState, store } from '../store';
+import { accountIcon } from './lineup-icons';
+import './lineup-team-selector';
+import './snack-bar';
+
+// Lazy load the reducers.
 store.addReducers({
   auth,
   team
 });
-
-// These are the actions needed by this element.
-import {
-  navigate,
-  updateOffline,
-  updateDrawerState
-} from '../actions/app';
-import { getUser, signIn } from '../actions/auth';
-import { changeTeam, getTeams } from '../actions/team';
-
-// The following line imports the type only - it will be removed by tsc so
-// another import for app-drawer.js is required below.
-import { AppDrawerElement } from '@polymer/app-layout/app-drawer/app-drawer.js';
-
-// These are the elements needed by this element.
-import '@polymer/app-layout/app-drawer/app-drawer.js';
-import '@polymer/app-layout/app-header/app-header.js';
-import '@polymer/app-layout/app-scroll-effects/effects/waterfall.js';
-import '@polymer/app-layout/app-toolbar/app-toolbar.js';
-import { accountIcon, menuIcon } from './lineup-icons';
-import './lineup-team-selector';
-import './snack-bar';
 
 interface Page {
   page: string;
@@ -57,6 +41,7 @@ interface Pages {
   [index: string]: Page;
 }
 
+// This element is connected to the Redux store.
 @customElement('lineup-app')
 export class LineupApp extends connect(store)(LitElement) {
   protected render() {
@@ -76,6 +61,7 @@ export class LineupApp extends connect(store)(LitElement) {
         --app-primary-color: #607D8B;
         --app-secondary-color: #FFC107;
         --app-header-text-color: black;
+        --app-header-background-color: white;
 
         /*
         --app-dark-text-color: var(--app-secondary-color);
@@ -98,22 +84,14 @@ export class LineupApp extends connect(store)(LitElement) {
         display: none !important;
       }
 
-      app-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: var(--app-header-background-color);
-        color: var(--app-header-text-color);
-        border-bottom: 1px solid #eee;
+      mwc-top-app-bar {
+        --mdc-theme-primary: var(--app-header-background-color);
+        --mdc-theme-on-primary: var(--app-header-text-color);
+        border-bottom: 1px solid #eee /*var(--app-primary-color)*/;
       }
 
       .toolbar-top {
         background-color: var(--app-header-background-color);
-      }
-
-      [main-title] {
-        font-size: 30px;
       }
 
       .team-selector {
@@ -201,13 +179,8 @@ export class LineupApp extends connect(store)(LitElement) {
         color: var(--app-drawer-selected-color);
       }
 
-      /* Workaround for IE11 displaying <main> as inline */
-      main {
-        display: block;
-      }
-
       .main-content {
-        padding-top: 64px;
+        /* padding-top: 64px; */
         min-height: 100vh;
       }
 
@@ -234,7 +207,7 @@ export class LineupApp extends connect(store)(LitElement) {
           text-align: center;
         }
 
-        .toolbar-top-left {
+        mwc-icon-button[slot="navigationIcon"] {
           display: none;
         }
 
@@ -247,62 +220,55 @@ export class LineupApp extends connect(store)(LitElement) {
           display: none;
         }
 
-        .main-content {
+        /* .main-content {
           padding-top: 107px;
-        }
+        } */
       }
     </style>
 
-    <!-- Header -->
-    <app-header condenses reveals effects="waterfall">
-      <app-toolbar class="toolbar-top">
-        <div class="toolbar-top-left">
-          <button class="menu-btn" title="Menu" @click="${this._menuButtonClicked}">${menuIcon}</button>
-        </div>
-        <div main-title>${this.appTitle}</div>
-        <div class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
-          <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
-                                @select-team="${this.selectTeam}">
-          </lineup-team-selector>
-          <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
-              @click="${this._signinButtonClicked}">
-            ${this._user && this._user.imageUrl ? html`<img src="${this._user.imageUrl}">` : accountIcon}
-          </button>
-        </div>
-      </app-toolbar>
-
-      <!-- This gets hidden on a small screen-->
-      <nav class="toolbar-list">
-        <a ?selected="${this._page === 'viewHome'}" href="/viewHome">Overview</a>
-        <a ?selected="${this._page === 'viewGames'}" href="/viewGames">Games</a>
-        <a ?selected="${this._page === 'viewRoster'}" href="/viewRoster">Roster</a>
-      </nav>
-    </app-header>
-
-    <!-- Drawer content -->
-    <app-drawer .opened="${this._drawerOpened}"
-        @opened-changed="${this._drawerOpenedChanged}">
+    <mwc-drawer hasHeader type="modal" .open="${this.drawerOpen}"
+                @MDCDrawer:closed="${this.drawerClosedHandler}">
       <nav class="drawer-list">
         <a ?selected="${this._page === 'viewHome'}" href="/viewHome">Overview</a>
         <a ?selected="${this._page === 'viewGames'}" href="/viewGames">Games</a>
         <a ?selected="${this._page === 'viewRoster'}" href="/viewRoster">Roster</a>
       </nav>
-    </app-drawer>
+      <div slot="appContent">
+        <mwc-top-app-bar @MDCTopAppBar:nav="${this.navButtonClicked}">
+          <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
+          <div slot="title">${this.appTitle}</div>
+          <div slot="actionItems" class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
+            <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
+                                  @select-team="${this.selectTeam}">
+            </lineup-team-selector>
+            <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
+                @click="${this._signinButtonClicked}">
+              ${this._user && this._user.imageUrl ? html`<img src="${this._user.imageUrl}">` : accountIcon}
+            </button>
+          </div>
+          <!-- This gets hidden on a small screen-->
+          <nav class="toolbar-list">
+            <a ?selected="${this._page === 'viewHome'}" href="/viewHome">Overview</a>
+            <a ?selected="${this._page === 'viewGames'}" href="/viewGames">Games</a>
+            <a ?selected="${this._page === 'viewRoster'}" href="/viewRoster">Roster</a>
+          </nav>
+        </mwc-top-app-bar>
+        <!-- Main content -->
+        <main role="main" class="main-content">
+          <lineup-view-home class="page" ?active="${this._page === 'viewHome'}"></lineup-view-home>
+          <lineup-view-games class="page" ?active="${this._page === 'viewGames'}"></lineup-view-games>
+          <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
+          <lineup-view-game-roster class="page" ?active="${this._page === 'gameroster'}"></lineup-view-game-roster>
+          <lineup-view-roster class="page" ?active="${this._page === 'viewRoster'}"></lineup-view-roster>
+          <lineup-view-team-create class="page" ?active="${this._page === 'addNewTeam'}"></lineup-view-team-create>
+          <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
+        </main>
 
-    <!-- Main content -->
-    <main role="main" class="main-content">
-      <lineup-view-home class="page" ?active="${this._page === 'viewHome'}"></lineup-view-home>
-      <lineup-view-games class="page" ?active="${this._page === 'viewGames'}"></lineup-view-games>
-      <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
-      <lineup-view-game-roster class="page" ?active="${this._page === 'gameroster'}"></lineup-view-game-roster>
-      <lineup-view-roster class="page" ?active="${this._page === 'viewRoster'}"></lineup-view-roster>
-      <lineup-view-team-create class="page" ?active="${this._page === 'addNewTeam'}"></lineup-view-team-create>
-      <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
-    </main>
-
-    <footer>
-      <p>Some footer goes here?</p>
-    </footer>
+        <footer>
+          <p>Some footer goes here?</p>
+        </footer>
+      </div>
+    </mwc-drawer>
 
     <lineup-team-selector-dialog .teamId=${this._teamId} .teams=${this._teams}
                                 @team-changed="${this.teamChanged}"
@@ -320,8 +286,8 @@ export class LineupApp extends connect(store)(LitElement) {
   @property({ type: String })
   private _page = '';
 
-  @property({ type: Boolean })
-  private _drawerOpened = false;
+  @internalProperty()
+  private drawerOpen = false;
 
   @property({ type: Boolean })
   private _snackbarOpened = false;
@@ -389,12 +355,12 @@ export class LineupApp extends connect(store)(LitElement) {
     }
   }
 
-  private _menuButtonClicked() {
+  private navButtonClicked() {
     store.dispatch(updateDrawerState(true));
   }
 
-  private _drawerOpenedChanged(e: Event) {
-    store.dispatch(updateDrawerState((e.target as AppDrawerElement).opened));
+  private drawerClosedHandler() {
+    store.dispatch(updateDrawerState(false));
   }
 
   private _signinButtonClicked() {
@@ -423,7 +389,7 @@ export class LineupApp extends connect(store)(LitElement) {
     this._page = state.app!.page;
     this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;
-    this._drawerOpened = state.app!.drawerOpened;
+    this.drawerOpen = state.app!.drawerOpened;
 
     this._user = state.auth!.user;
 
