@@ -4,7 +4,7 @@
   "repository": "github:jpchase/lineup-tracker",
   "scripts": {
     "start": "npm run start:webds",
-    "start:webds": "tsc && web-dev-server --config es-dev-server.config.js",
+    "start:webds": "tsc && web-dev-server",
     "start:webpack": "tsc && webpack-dev-server --mode development",
     "start:webpack-testdata": "tsc && webpack-dev-server --mode development",
     "serve:tmp": "npm run build:static && firebase serve",
