@@ -1,12 +1,10 @@
-import * as firebase_app from 'firebase/app';
+import firebase_app from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 import { useTestData } from './init';
 
-// TODO: Log bug against Firebase? The cjs module does this to ensure the default export is usable, but the esm module does not.
-function _interopDefault(ex: any) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-export const firebaseRef = (window as any)['firebase'] || _interopDefault(firebase_app);
+// TODO: Still need the window['firebase'] for testing?
+export const firebaseRef: typeof firebase_app = (window as any)['firebase'] || firebase_app;
 
 // Initialize Firebase
 const config = {
@@ -19,7 +17,7 @@ firebaseRef.initializeApp(config);
 const firestore = firebaseRef.firestore();
 
 const settings: firebase_app.firestore.Settings = {
-  cacheSizeBytes: firestore.settings.CACHE_SIZE_UNLIMITED,
+  cacheSizeBytes: firebase_app.firestore.CACHE_SIZE_UNLIMITED,
 };
 
 let enablePersistence = true;
@@ -33,7 +31,7 @@ if (useTestData()) {
 firestore.settings(settings);
 if (enablePersistence) {
   firestore.enablePersistence({ synchronizeTabs: true })
-    .catch(function (err: any) {
+    .catch((err) => {
       if (err.code == 'failed-precondition') {
         // Multiple tabs open, persistence can only be enabled
         // in one tab at a a time.
@@ -50,5 +48,5 @@ if (enablePersistence) {
 
 export default firebaseRef;
 
-export const authRef: firebase.auth.Auth = firebaseRef.auth() as firebase.auth.Auth;
+export const authRef: firebase_app.auth.Auth = firebaseRef.auth();
 export const provider = new firebaseRef.auth.GoogleAuthProvider();

@@ -7,7 +7,7 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { User } from '../models/auth';
-import { User as FirebaseUser } from '@firebase/auth-types';
+import { User as FirebaseUser, UserCredential } from '@firebase/auth-types';
 import { authRef, provider } from "../firebase";
 
 import { GET_USER_SUCCESS } from "../slices/auth-types";
@@ -25,43 +25,43 @@ export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) =>
     resolveFunc = resolve;
   });
 
-    authRef.onAuthStateChanged((user: FirebaseUser | null) => {
-        if (user) {
-          console.log(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
-            dispatch({
-                type: GET_USER_SUCCESS,
-                user: getUserFromFirebaseUser(user)
-            });
-          resolveFunc(true);
-        } else {
-          console.log(`onAuthStateChanged: user = ${user}`);
-          dispatch({
-                type: GET_USER_SUCCESS,
-                user: {} as User
-            });
-          resolveFunc(false);
-        }
-    });
+  authRef.onAuthStateChanged((user: FirebaseUser | null) => {
+    if (user) {
+      console.log(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
+      dispatch({
+        type: GET_USER_SUCCESS,
+        user: getUserFromFirebaseUser(user)
+      });
+      resolveFunc(true);
+    } else {
+      console.log(`onAuthStateChanged: user = ${user}`);
+      dispatch({
+        type: GET_USER_SUCCESS,
+        user: {} as User
+      });
+      resolveFunc(false);
+    }
+  });
 
   return changedPromise;
 };
 
 export const signIn: ActionCreator<ThunkResult> = () => () => {
-    authRef
-        .signInWithPopup(provider)
-        .then(result => {
-          console.log(`Sign in succeeded: ${result.user ? result.user.uid : null}`);
-        })
-        .catch(error => {
-            console.error(`Error trying to sign in: ${error}`);
-        });
+  authRef
+    .signInWithPopup(provider)
+    .then((result: UserCredential) => {
+      console.log(`Sign in succeeded: ${result.user ? result.user.uid : null}`);
+    })
+    .catch(error => {
+      console.error(`Error trying to sign in: ${error}`);
+    });
 };
 
 function getUserFromFirebaseUser(firebaseUser: FirebaseUser): User {
-    return {
-        id: firebaseUser.uid,
-        name: firebaseUser.displayName!,
-        email: firebaseUser.email || '',
-        imageUrl: firebaseUser.photoURL || ''
-    };
+  return {
+    id: firebaseUser.uid,
+    name: firebaseUser.displayName!,
+    email: firebaseUser.email || '',
+    imageUrl: firebaseUser.photoURL || ''
+  };
 }

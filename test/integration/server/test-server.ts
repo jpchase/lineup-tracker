@@ -34,7 +34,9 @@ export async function startTestServer(): Promise<DevServer> {
       rootDir: path.join(process.cwd(), 'dist'),
       appIndex: path.join(process.cwd(), 'dist/index.html'),
       nodeResolve: true,
+
     },
+    logStartMessage: false,
     readCliArgs: false,
     readFileConfig: false,
   });
