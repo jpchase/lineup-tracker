@@ -22,7 +22,7 @@ import { TeamCreatePage } from './pages/team-create-page';
 import { TeamRosterPage } from './pages/team-roster-page';
 import { TeamSelectPage } from './pages/team-select-page';
 import { serveHermeticFont } from './server/hermetic-fonts';
-import { config, startTestServer } from './server/test-server';
+import { config, DevServer, startTestServer } from './server/test-server';
 const pixelmatch = require('pixelmatch');
 const puppeteer = require('puppeteer');
 
@@ -52,7 +52,7 @@ function getCurrentFile(view: string) {
 }
 
 describe('👀 page screenshots are correct', function () {
-  let server: any, browser: Browser, page: Page;
+  let server: DevServer, browser: Browser, page: Page;
   let pageObject: PageObject;
 
   before(async function () {
@@ -67,7 +67,7 @@ describe('👀 page screenshots are correct', function () {
     }
   });
 
-  after((done) => server.close(done));
+  after(async () => await server.stop());
 
   beforeEach(async function () {
     browser = await puppeteer.launch({ args: ['--disable-gpu', '--font-render-hinting=none'] });

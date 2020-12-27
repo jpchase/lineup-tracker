@@ -12,17 +12,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import { expect } from 'chai';
 import { Browser, Page } from 'puppeteer';
-import { config, startTestServer } from './server/test-server';
+import { config, DevServer, startTestServer } from './server/test-server';
 const puppeteer = require('puppeteer');
 
 describe('routing tests', function () {
-  let server: any, browser: Browser, page: Page;
+  let server: DevServer, browser: Browser, page: Page;
 
   before(async function () {
     server = await startTestServer();
   });
 
-  after((done) => server.close(done));
+  after(async () => await server.stop());
 
   beforeEach(async function () {
     browser = await puppeteer.launch();

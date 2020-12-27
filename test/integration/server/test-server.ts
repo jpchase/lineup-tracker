@@ -1,6 +1,8 @@
 import * as os from 'os';
 import * as path from 'path';
-import { startServer, ServerOptions } from 'polyserve';
+import { startDevServer } from '@web/dev-server';
+import { DevServer } from '@web/dev-server-core';
+export { DevServer };
 
 export interface IntegrationConfig {
   appUrl: string;
@@ -25,11 +27,15 @@ export const config: IntegrationConfig = {
   baselineDir: path.join(integrationDir, 'screenshots-baseline', platformName),
 }
 
-export async function startTestServer(): Promise<import("net").Server> {
-  const config: ServerOptions = {
-    port: 4444,
-    root: path.join(process.cwd(), 'dist'),
-    moduleResolution: 'node',
-  };
-  return startServer(config);
+export async function startTestServer(): Promise<DevServer> {
+  return startDevServer({
+    config: {
+      port: 4444,
+      rootDir: path.join(process.cwd(), 'dist'),
+      appIndex: path.join(process.cwd(), 'dist/index.html'),
+      nodeResolve: true,
+    },
+    readCliArgs: false,
+    readFileConfig: false,
+  });
 }

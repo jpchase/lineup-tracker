@@ -1,19 +1,19 @@
 import { expect } from 'chai';
-import { startTestServer } from './server/test-server';
+import { DevServer, startTestServer } from './server/test-server';
 import { PageObject } from './pages/page-object';
 import { TeamCreatePage } from './pages/team-create-page';
 import { HomePage } from './pages/home-page';
 // import { TeamRosterPage } from './pages/team-roster-page';
 
 describe('functional tests', function () {
-  let server: any;
+  let server: DevServer;
   let pageObject: PageObject;
 
   before(async function () {
     server = await startTestServer();
   });
 
-  after((done) => server.close(done));
+  after(async () => server.stop());
 
   afterEach(async () => {
     await pageObject?.close();
