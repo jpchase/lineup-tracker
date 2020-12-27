@@ -16,7 +16,7 @@ describe('lineup-team-create tests', () => {
 
   it('starts empty', () => {
     const nameField = getInputField('team-name');
-    expect(nameField.value, '', 'Name field should be empty').to.be.equal;
+    expect(nameField.value).to.equal('', 'Name field should be empty');
     expect(el).shadowDom.to.equalSnapshot();
   });
 

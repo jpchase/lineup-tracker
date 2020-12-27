@@ -4,9 +4,11 @@ import * as sinon from 'sinon';
 
 declare global {
   export namespace Chai {
-      interface Assertion {
-          elapsed(expected: number[]): Assertion;
-      }
+    interface Assertion {
+      elapsed(expected: number[]): Assertion;
+      initialized(): Assertion;
+      time(expected: number): Assertion;
+    }
   }
 }
 
@@ -14,7 +16,7 @@ function isTimeEqual(actual: number, expected: number) {
   return actual === expected || actual === expected + 1;
 }
 
-chai.use(function(chai /*, utils*/) {
+chai.use(function (chai /*, utils*/) {
   chai.Assertion.addMethod("time", function (this: any, expected: number) {
     const actual = this._obj;
     this.assert(
@@ -133,12 +135,12 @@ describe('ManualTimeProvider', () => {
     const actualTime1 = provider.getCurrentTime();
     expect(actualTime1).to.equal(time1);
 
-    provider.incrementCurrentTime(buildDuration(1,0));
+    provider.incrementCurrentTime(buildDuration(1, 0));
 
     const actualTime2 = provider.getCurrentTime();
     expect(actualTime2).to.equal(time2);
 
-    provider.incrementCurrentTime(buildDuration(1,15));
+    provider.incrementCurrentTime(buildDuration(1, 15));
 
     const actualTime3 = provider.getCurrentTime();
     expect(actualTime3).to.equal(time3);
@@ -154,23 +156,23 @@ describe('Duration', () => {
 
   describe('add', () => {
     const testValues = [
-      { left:[0,1], right:[0,1], sum:[0,2] },
-      { left:[1,0], right:[1,0], sum:[2,0] },
-      { left:[1,2], right:[3,4], sum:[4,6] },
-      { left:[1,59], right:[0,1], sum:[2,0] },
-      { left:[12,29], right:[10,32], sum:[23,1] },
+      { left: [0, 1], right: [0, 1], sum: [0, 2] },
+      { left: [1, 0], right: [1, 0], sum: [2, 0] },
+      { left: [1, 2], right: [3, 4], sum: [4, 6] },
+      { left: [1, 59], right: [0, 1], sum: [2, 0] },
+      { left: [12, 29], right: [10, 32], sum: [23, 1] },
     ];
 
     function formatDuration(duration: Duration) {
-      return '[' + duration.getMinutes() + ',' + duration.getSeconds() +']';
+      return '[' + duration.getMinutes() + ',' + duration.getSeconds() + ']';
     }
 
     it('should return zero for both inputs zero', () => {
       expect(Duration.add(Duration.zero(), Duration.zero())).to.deep.equal(Duration.zero());
 
-      expect(Duration.add(Duration.zero(), buildDuration(0,0))).to.deep.equal(Duration.zero());
+      expect(Duration.add(Duration.zero(), buildDuration(0, 0))).to.deep.equal(Duration.zero());
 
-      expect(Duration.add(buildDuration(0,0), Duration.zero())).to.deep.equal(Duration.zero());
+      expect(Duration.add(buildDuration(0, 0), Duration.zero())).to.deep.equal(Duration.zero());
     });
 
     function addTest(left: Duration, right: Duration, expectedSum: Duration) {
@@ -240,11 +242,11 @@ describe('Timer', () => {
     return expectedDuration._elapsed === actual._elapsed;
   }
 
-  chai.use(function(chai /*, utils*/) {
+  chai.use(function (chai /*, utils*/) {
     chai.Assertion.addMethod("initialized", function (this: any) {
       const timer = this._obj;
       const pass = timer && !timer.isRunning && !timer.startTime &&
-          timer.duration && timer.duration._elapsed === 0;
+        timer.duration && timer.duration._elapsed === 0;
       this.assert(
         pass,
         'expected #{this} to be stopped, without start time, and duration [0,0]',
@@ -313,13 +315,13 @@ describe('Timer', () => {
       let timer = new Timer(undefined, provider);
       timer.start();
 
-      provider.incrementCurrentTime(buildDuration(0,5));
+      provider.incrementCurrentTime(buildDuration(0, 5));
       expect(timer).to.have.elapsed([0, 5]);
 
-      provider.incrementCurrentTime(buildDuration(59,59));
+      provider.incrementCurrentTime(buildDuration(59, 59));
       expect(timer).to.have.elapsed([60, 4]);
 
-      provider.incrementCurrentTime(buildDuration(31,0));
+      provider.incrementCurrentTime(buildDuration(31, 0));
       expect(timer).to.have.elapsed([91, 4]);
     });
 
@@ -405,7 +407,7 @@ describe('Timer', () => {
       let timer = new Timer(expected);
       expect(timer.startTime).to.equal(expected.startTime);
       expect(timer.isRunning).to.equal(expected.isRunning);
-      expect(timer).to.have.elapsed([3,4]);
+      expect(timer).to.have.elapsed([3, 4]);
     });
 
     it('should be initialized correctly from running data', () => {

@@ -45,7 +45,7 @@ describe('lineup-player-card tests', () => {
 
     const numberElement = playerElement.querySelector('.uniformNumber');
     assert.isOk(numberElement, 'Missing number element');
-    assert.equal(numberElement!.textContent, inputPlayer.uniformNumber);
+    assert.equal(numberElement!.textContent, `${inputPlayer.uniformNumber}`);
 
     const nameElement = playerElement.querySelector('.playerName');
     assert.isOk(nameElement, 'Missing name element');

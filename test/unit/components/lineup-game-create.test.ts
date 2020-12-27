@@ -17,7 +17,7 @@ describe('lineup-game-create tests', () => {
   it('starts empty', () => {
     const dateField = getInputField('dateField');
 
-    expect(dateField.value, '', 'Date field should be empty').to.be.equal;
+    expect(dateField.value).to.equal('', 'Date field should be empty');
   });
 
   it('clears fields when cancelled', () => {
