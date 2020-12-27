@@ -55,7 +55,7 @@
     "@material/mwc-top-app-bar-fixed": "^0.20.0",
     "@polymer/polymer": "^3.3.1",
     "@webcomponents/webcomponentsjs": "^2.3.0",
-    "firebase": "^7.16.1",
+    "firebase": "^8.2.1",
     "idb-keyval": "^3.2.0",
     "immer": "^7.0.5",
     "lit-element": "^2.4.0",
