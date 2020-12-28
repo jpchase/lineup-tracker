@@ -2,7 +2,7 @@
 @license
 */
 
-import { customElement, html, property } from 'lit-element';
+import { customElement, html, internalProperty } from 'lit-element';
 import { PageViewElement } from './page-view-element';
 
 import { Roster } from '../models/player';
@@ -15,7 +15,7 @@ import { TeamState } from '../reducers/team';
 // We are lazy loading its reducer.
 import team from '../reducers/team';
 store.addReducers({
-    team
+  team
 });
 
 // These are the actions needed by this element.
@@ -23,8 +23,6 @@ import { addNewPlayer, getRoster } from '../actions/team';
 
 // These are the elements needed by this element.
 import './lineup-roster';
-
-import { EVENT_NEWPLAYERCREATED } from './events';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
@@ -36,23 +34,20 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
       ${SharedStyles}
       <section>
         <h2>Team: ${this._teamName}</h2>
-        <lineup-roster .roster="${this._roster}"></lineup-roster>
+        <lineup-roster .roster="${this._roster}" @newplayercreated="${this.newPlayerCreated}">
+        </lineup-roster>
       </section>
     `;
   }
 
-  @property({ type: String })
+  @internalProperty()
   private _teamId = '';
 
-  @property({ type: String })
+  @internalProperty()
   private _teamName: string = '';
 
-  @property({ type: Object })
+  @internalProperty()
   private _roster: Roster = {};
-
-  protected firstUpdated() {
-    window.addEventListener(EVENT_NEWPLAYERCREATED, this._newPlayerCreated.bind(this) as EventListener);
-  }
 
   // This is called every time something is updated in the store.
   stateChanged(state: RootState) {
@@ -68,7 +63,7 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
     this._roster = teamState.roster;
   }
 
-  private _newPlayerCreated(e: CustomEvent) {
+  private newPlayerCreated(e: CustomEvent) {
     store.dispatch(addNewPlayer(e.detail.player));
   }
 
