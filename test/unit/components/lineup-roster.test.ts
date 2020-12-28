@@ -123,6 +123,16 @@ describe('lineup-roster tests', () => {
     expect(actionsElement!.textContent!.trim()).to.equal('actions here');
   });
 
+  it('add button hidden when adds are not allowed', async () => {
+    el.addPlayerEnabled = false;
+    await el.updateComplete;
+
+    const addButton = el.shadowRoot!.querySelector('mwc-fab');
+    expect(addButton, 'Add player button should not exist').not.to.exist;
+
+    expect(el).shadowDom.to.equalSnapshot();
+  });
+
   it('shows create widget when add clicked', async () => {
     const createElement = getCreateElement();
     expect(createElement, 'Missing create widget').to.exist;
@@ -163,6 +173,6 @@ describe('lineup-roster tests', () => {
   });
 
   it('a11y', async () => {
-    await expect(el).to.be.accessible();
+    expect(el).to.be.accessible();
   });
 });

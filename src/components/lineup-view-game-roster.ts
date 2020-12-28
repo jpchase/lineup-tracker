@@ -8,7 +8,7 @@ import { customElement, html, property } from 'lit-element';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { addNewGamePlayer, copyRoster, getGame } from '../actions/game';
-import { GameDetail } from '../models/game';
+import { GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
 import { getGameStore } from '../slices/game-store';
 import { RootState } from '../store';
@@ -30,8 +30,10 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
   protected render() {
     const gameExists = !!this._game;
     let rosterExists = false;
+    let isNewStatus = false;
 
     if (gameExists) {
+      isNewStatus = this._game!.status === GameStatus.New;
       rosterExists = (Object.keys(this._roster).length > 0);
 
       updateMetadata({
@@ -46,7 +48,8 @@ export class LineupViewGameRoster extends connect(store)(PageViewElement) {
       ${gameExists ? html`
         <h2>Roster: ${this._getName()}</h2>
         ${rosterExists ? html`
-          <lineup-roster .roster="${this._roster}"></lineup-roster>
+          <lineup-roster .roster="${this._roster}"
+                         .addPlayerEnabled="${isNewStatus}"></lineup-roster>
         ` : html`
           <div class="empty-list">
             <div>Roster is empty.</div>
