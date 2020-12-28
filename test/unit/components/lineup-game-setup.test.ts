@@ -274,7 +274,7 @@ describe('lineup-game-setup tests', () => {
           const taskElement = getTaskElement(stepTest.step, stepTest.step);
 
           // Spies on the handler, because we want it to execute to verify other behaviour.
-          const performSpy = sinon.spy(el, <any>'_performStep');
+          const performSpy = sinon.spy(el, <any>'performStep');
 
           // Simulates a click on the step link.
           const stepLink = taskElement.querySelector('a.step') as HTMLAnchorElement;
@@ -304,20 +304,20 @@ describe('lineup-game-setup tests', () => {
 
         if (stepTest.hasDoneButton) {
           it('done handler dispatches action', async () => {
-          const taskElement = getTaskElement(stepTest.step, stepTest.step);
+            const taskElement = getTaskElement(stepTest.step, stepTest.step);
 
-          // Spies on the handler, because we want it to execute to verify dispatch of actions.
-          const doneSpy = sinon.spy(el, <any>'_finishStep');
+            // Spies on the handler, because we want it to execute to verify dispatch of actions.
+            const doneSpy = sinon.spy(el, <any>'finishStep');
 
-          // Simulates a click on the done button.
-          const doneButton = taskElement.querySelector('.status mwc-button.finish') as Button;
-          assert.isOk(doneButton, 'Missing done button for task');
-          doneButton.click();
+            // Simulates a click on the done button.
+            const doneButton = taskElement.querySelector('.status mwc-button.finish') as Button;
+            assert.isOk(doneButton, 'Missing done button for task');
+            doneButton.click();
 
-          // Verifies that action dispatched.
-          expect(doneSpy).to.have.callCount(1);
-          // TODO: Verify param to dispatch call when it's a simple action instead of a thunk.
-          expect(dispatchStub).to.have.callCount(1);
+            // Verifies that action dispatched.
+            expect(doneSpy).to.have.callCount(1);
+            // TODO: Verify param to dispatch call when it's a simple action instead of a thunk.
+            expect(dispatchStub).to.have.callCount(1);
           });
         }
 
@@ -466,7 +466,7 @@ describe('lineup-game-setup tests', () => {
       const player = foundPlayer!;
 
       store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: {id: 'AM1', type: 'AM'} });
+      store.dispatch({ type: SELECT_STARTER_POSITION, position: { id: 'AM1', type: 'AM' } });
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -481,7 +481,7 @@ describe('lineup-game-setup tests', () => {
       const player = foundPlayer!;
 
       store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: {id: 'LW', type: 'W'} });
+      store.dispatch({ type: SELECT_STARTER_POSITION, position: { id: 'LW', type: 'W' } });
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -501,7 +501,7 @@ describe('lineup-game-setup tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.include({ type: APPLY_STARTER });
-      });
+    });
 
     it('dispatches cancel starter action when cancelled', async () => {
       const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
@@ -509,7 +509,7 @@ describe('lineup-game-setup tests', () => {
       const player = foundPlayer!;
 
       store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: {id: 'RW', type: 'W'} });
+      store.dispatch({ type: SELECT_STARTER_POSITION, position: { id: 'RW', type: 'W' } });
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
