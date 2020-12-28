@@ -57,6 +57,7 @@ describe('lineup-roster tests', () => {
 
   it('starts empty', () => {
     expect(el.roster).to.deep.equal({});
+    expect(el.addPlayerEnabled, 'addPlayerEnabled should default to true').to.be.true;
   });
 
   it('shows no players placeholder for empty roster', () => {
