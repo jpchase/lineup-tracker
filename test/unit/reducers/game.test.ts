@@ -7,7 +7,7 @@ import {
 import { Player } from '@app/models/player';
 import { game, GameState } from '@app/reducers/game';
 import {
-  ADD_PLAYER,
+  ADD_GAME_PLAYER,
   CAPTAINS_DONE,
   COPY_ROSTER_FAIL,
   COPY_ROSTER_REQUEST,
@@ -70,7 +70,7 @@ describe('Game reducer', () => {
   it('should return the initial state', () => {
     expect(
       game(GAME_INITIAL_STATE, getFakeAction())
-      ).to.equal(GAME_INITIAL_STATE);
+    ).to.equal(GAME_INITIAL_STATE);
   });
 
   describe('GAME_HYDRATE', () => {
@@ -521,7 +521,7 @@ describe('Game reducer', () => {
 
     it('should add new player to empty roster', () => {
       const newState = game(currentState, {
-        type: ADD_PLAYER,
+        type: ADD_GAME_PLAYER,
         player: newPlayer
       });
 
@@ -537,7 +537,7 @@ describe('Game reducer', () => {
       currentState.game!.roster = buildRoster([existingPlayer]);
 
       const newState = game(currentState, {
-        type: ADD_PLAYER,
+        type: ADD_GAME_PLAYER,
         player: newPlayer
       });
 
@@ -623,7 +623,7 @@ describe('Game reducer', () => {
 
     it('should set status to Start and clear setup tasks', () => {
       const completedTasks = buildSetupTasks();
-      completedTasks.forEach(task => {task.status = SetupStatus.Complete;})
+      completedTasks.forEach(task => { task.status = SetupStatus.Complete; })
 
       const currentGame = getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), completedTasks);
       const state: GameState = {

@@ -11,7 +11,7 @@ import {
 } from '../models/game';
 import { Player, Roster } from '../models/player';
 import {
-  ADD_PLAYER,
+  ADD_GAME_PLAYER,
   CAPTAINS_DONE,
   COPY_ROSTER_FAIL,
   COPY_ROSTER_REQUEST,
@@ -143,14 +143,14 @@ export const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE,
     newState.rosterLoading = false;
   },
 
-  [ADD_PLAYER]: (newState, action) => {
+  [ADD_GAME_PLAYER]: (newState, action) => {
     newState.game!.roster[action.player.id] = action.player;
   },
 
   [ROSTER_DONE]: (newState, action) => {
     completeSetupStepForAction(newState, action.type);
 
-// TODO: Should this move to the live reducer?
+    // TODO: Should this move to the live reducer?
     // Setup live players from roster
     const roster = newState.game!.roster;
     const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
@@ -192,7 +192,7 @@ function completeSetupStepForAction(newState: GameState, actionType: string) {
   updateTasks(game, game.liveDetail!.setupTasks, setupStepToMarkDone);
 }
 
-function getStepForAction(actionType: string) : SetupSteps | undefined {
+function getStepForAction(actionType: string): SetupSteps | undefined {
   switch (actionType) {
     case CAPTAINS_DONE:
       return SetupSteps.Captains;
@@ -224,7 +224,7 @@ function updateTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: S
   });
 
   // Other steps are manually set to complete, so can be handled generically.
-  const steps = [ SetupSteps.Roster, SetupSteps.Captains, SetupSteps.Starters ];
+  const steps = [SetupSteps.Roster, SetupSteps.Captains, SetupSteps.Starters];
 
   let previousStepComplete = formationComplete;
   steps.forEach((stepValue: SetupSteps) => {
@@ -240,8 +240,8 @@ function updateTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: S
     tasks.push({
       step: stepValue,
       status: stepComplete ? SetupStatus.Complete :
-      (previousStepComplete ?
-        SetupStatus.Active : SetupStatus.Pending)
+        (previousStepComplete ?
+          SetupStatus.Active : SetupStatus.Pending)
     });
 
     // Finally, save the complete status for the next step.
