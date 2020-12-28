@@ -48,7 +48,10 @@ export class LineupRoster extends LitElement {
           No players in roster.
         </p>
       `}
-      <mwc-fab icon="person_add" label="Add Player" @click="${this._addButtonClicked}"></mwc-fab>
+      ${this.addPlayerEnabled ? html`
+        <mwc-fab icon="person_add" label="Add Player" @click="${this._addButtonClicked}"></mwc-fab>
+      ` : html``
+      }
       <lineup-roster-modify ?active="${this._showCreate}"></lineup-roster-modify>
 
       </div>`
@@ -75,6 +78,9 @@ export class LineupRoster extends LitElement {
 
   @property({ type: String })
   mode = '';
+
+  @property({ type: Boolean })
+  addPlayerEnabled = true;
 
   @property({ type: Boolean })
   private _showCreate = false;

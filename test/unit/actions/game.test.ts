@@ -39,7 +39,7 @@ const KEY_GAMES = 'games';
 const KEY_ROSTER = 'roster';
 
 interface MockStateUpdateFunc {
-    (state: GameState): void;
+  (state: GameState): void;
 }
 
 function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
@@ -523,7 +523,7 @@ describe('Game actions', () => {
       actions.addGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ADD_PLAYER,
+        type: actionTypes.ADD_GAME_PLAYER,
         player: getNewPlayer(),
       });
     });

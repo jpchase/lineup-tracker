@@ -22,7 +22,7 @@ import {
   COPY_ROSTER_REQUEST,
   COPY_ROSTER_SUCCESS,
   COPY_ROSTER_FAIL,
-  ADD_PLAYER,
+  ADD_GAME_PLAYER,
   ROSTER_DONE,
   STARTERS_DONE,
   SET_FORMATION,
@@ -36,12 +36,12 @@ export interface GameActionGetGameFail extends Action<typeof GET_GAME_FAIL> { er
 export interface GameActionCopyRosterRequest extends Action<typeof COPY_ROSTER_REQUEST> { gameId: string };
 export interface GameActionCopyRosterSuccess extends Action<typeof COPY_ROSTER_SUCCESS> { gameId: string, gameRoster?: Roster };
 export interface GameActionCopyRosterFail extends Action<typeof COPY_ROSTER_FAIL> { error: string };
-export interface GameActionCaptainsDone extends Action<typeof CAPTAINS_DONE> {};
-export interface GameActionAddPlayer extends Action<typeof ADD_PLAYER> { player: Player };
+export interface GameActionCaptainsDone extends Action<typeof CAPTAINS_DONE> { };
+export interface GameActionAddPlayer extends Action<typeof ADD_GAME_PLAYER> { player: Player };
 export interface GameActionRosterDone extends Action<typeof ROSTER_DONE> { roster: Roster };
-export interface GameActionStartersDone extends Action<typeof STARTERS_DONE> {};
+export interface GameActionStartersDone extends Action<typeof STARTERS_DONE> { };
 export interface GameActionSetFormation extends Action<typeof SET_FORMATION> { formationType: FormationType };
-export interface GameActionStartGame extends Action<typeof START_GAME> {};
+export interface GameActionStartGame extends Action<typeof START_GAME> { };
 export type GameAction = GameActionHydrate | GameActionGetGameRequest | GameActionGetGameSuccess |
                          GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
                          GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
@@ -92,19 +92,19 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
     }
     game = extractGame(value);
   })
-  .then(() => {
-    return loadGameRoster(firebaseRef.firestore(), gameId);
-  })
-  .then((gameRoster: Roster) => {
-    const gameDetail: GameDetail = {
-      ...game,
-      roster: gameRoster
-    };
-    dispatch(getGameSuccess(gameDetail));
-  })
-  .catch((error: any) => {
-    dispatch(getGameFail(error.toString()));
-  });
+    .then(() => {
+      return loadGameRoster(firebaseRef.firestore(), gameId);
+    })
+    .then((gameRoster: Roster) => {
+      const gameDetail: GameDetail = {
+        ...game,
+        roster: gameRoster
+      };
+      dispatch(getGameSuccess(gameDetail));
+    })
+    .catch((error: any) => {
+      dispatch(getGameFail(error.toString()));
+    });
 }
 
 const getGameRequest: ActionCreator<GameActionGetGameRequest> = (gameId: string) => {
@@ -158,24 +158,24 @@ export const copyRoster: ActionCreator<ThunkPromise<void>> = (gameId: string) =>
 
   // Load team roster and save copy to storage
   return loadTeamRoster(firebaseRef.firestore(), game.teamId)
-  .then((teamRoster: Roster) => {
-    // TODO: Use batched writes? (Firestore transactions don't work offline)
-    const roster: Roster = {};
-    Object.keys(teamRoster).forEach((key) => {
-      // Copies the team player to a new player object.
-      const gamePlayer: Player = {
-        ...teamRoster[key]
-      };
-      // Saves player to game roster storage, but keep the same id. This allows matching up player
-      // from team roster across games.
-      savePlayerToGameRoster(gamePlayer, firebaseRef.firestore(), gameId, { keepExistingId: true });
-      roster[gamePlayer.id] = gamePlayer;
+    .then((teamRoster: Roster) => {
+      // TODO: Use batched writes? (Firestore transactions don't work offline)
+      const roster: Roster = {};
+      Object.keys(teamRoster).forEach((key) => {
+        // Copies the team player to a new player object.
+        const gamePlayer: Player = {
+          ...teamRoster[key]
+        };
+        // Saves player to game roster storage, but keep the same id. This allows matching up player
+        // from team roster across games.
+        savePlayerToGameRoster(gamePlayer, firebaseRef.firestore(), gameId, { keepExistingId: true });
+        roster[gamePlayer.id] = gamePlayer;
+      });
+      dispatch(copyRosterSuccess(gameId, roster));
+    })
+    .catch((error: any) => {
+      dispatch(copyRosterFail(error.toString()));
     });
-    dispatch(copyRosterSuccess(gameId, roster));
-  })
-  .catch((error: any) => {
-    dispatch(copyRosterFail(error.toString()));
-  });
 }
 
 const copyRosterRequest: ActionCreator<GameActionCopyRosterRequest> = (gameId: string) => {
@@ -228,7 +228,7 @@ export const saveGamePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) =>
 
 export const addGamePlayer: ActionCreator<ThunkResult> = (player: Player) => (dispatch) => {
   dispatch({
-    type: ADD_PLAYER,
+    type: ADD_GAME_PLAYER,
     player
   });
 };

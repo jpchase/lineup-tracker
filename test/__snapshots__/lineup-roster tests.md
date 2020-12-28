@@ -15,7 +15,6 @@
   <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
-
 ```
 
 #### `renders list with single player`
@@ -68,7 +67,6 @@
   <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
-
 ```
 
 #### `renders list with multiple players`
@@ -298,6 +296,18 @@
     label="Add Player"
   >
   </mwc-fab>
+  <lineup-roster-modify>
+  </lineup-roster-modify>
+</div>
+```
+
+#### `add button hidden when adds are not allowed`
+
+```html
+<div>
+  <p class="empty-list">
+    No players in roster.
+  </p>
   <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
