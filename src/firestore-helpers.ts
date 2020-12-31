@@ -38,6 +38,10 @@ export function buildNewDocumentData(model: any, state?: RootState, options?: Ne
     }
     if (options.addUserId) {
       data.owner_uid = currentUserIdSelector(state);
+      debugFirestore(`buildNewDocumentData: owner_uid = ${data.owner_uid}`);
+      if (!data.owner_uid) {
+        throw new Error('No current user to set owner_uid');
+      }
     }
   }
   return data;
