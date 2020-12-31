@@ -24,6 +24,9 @@
     "indexes": "config/firestore.indexes.json"
   },
   "emulators": {
+    "auth": {
+      "port": 9099
+    },
     "firestore": {
       "port": 8790
     },

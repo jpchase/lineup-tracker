@@ -18,11 +18,11 @@ import { PageObject, PageOptions } from '../pages/page-object';
 import { TeamCreatePage } from '../pages/team-create-page';
 import { TeamSelectPage } from '../pages/team-select-page';
 import { serveHermeticFont } from '../server/hermetic-fonts';
-import { config, startTestServer } from '../server/test-server';
+import { config, DevServer, startTestServer } from '../server/test-server';
 const puppeteer = require('puppeteer');
 
 describe('🎁 regenerate screenshots', function () {
-  let server: any, browser: Browser, page: Page;
+  let server: DevServer, browser: Browser, page: Page;
 
   before(async function () {
     server = await startTestServer();
@@ -40,7 +40,7 @@ describe('🎁 regenerate screenshots', function () {
     }
   });
 
-  after((done) => server.close(done));
+  after(async () => server.stop());
 
   beforeEach(async function () {
     browser = await puppeteer.launch({ args: ['--disable-gpu', '--font-render-hinting=none'] });

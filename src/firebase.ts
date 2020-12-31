@@ -2,6 +2,9 @@ import firebase_app from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 import { useTestData } from './init';
+import { debug } from './common/debug';
+
+const debugFirebase = debug('firebase');
 
 // TODO: Still need the window['firebase'] for testing?
 export const firebaseRef: typeof firebase_app = (window as any)['firebase'] || firebase_app;
@@ -23,9 +26,13 @@ const settings: firebase_app.firestore.Settings = {
 let enablePersistence = true;
 if (useTestData()) {
   // Connect to the emulator, instead of the actual Firestore database.
+  debugFirebase('Use the Firebase emulators');
   enablePersistence = false;
   settings.host = 'localhost:8790';
   settings.ssl = false;
+
+  // @ts-expect-error Typings are not updated for |options| parameter.
+  firebaseRef.auth().useEmulator('http://localhost:9099/', { disableWarnings: true });
 }
 
 firestore.settings(settings);
