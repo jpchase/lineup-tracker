@@ -1,14 +1,17 @@
 import {
-  FirebaseFirestore,
   CollectionReference,
-  DocumentData, DocumentReference, DocumentSnapshot,
+  DocumentData, DocumentReference, DocumentSnapshot, FirebaseFirestore,
   QueryDocumentSnapshot, QuerySnapshot
 } from '@firebase/firestore-types';
-import { RootState } from './store';
-import { Player, PlayerStatus, Roster } from './models/player';
+import { debug, debugError } from './common/debug';
+import { useTestData } from './init';
 import { Game } from './models/game';
+import { Player, PlayerStatus, Roster } from './models/player';
 import { currentUserIdSelector } from './reducers/auth';
 import { currentTeamIdSelector } from './reducers/team';
+import { RootState } from './store';
+
+const debugFirestore = debug('firestore');
 
 export const KEY_GAMES = 'games';
 export const KEY_ROSTER = 'roster';
@@ -48,8 +51,24 @@ export function saveNewDocument(model: any, collection: CollectionReference, sta
   // NOTE: Firestore requires the parameter to be omitted entirely, it will throw for any value
   // that is not a non-empty string.
   const doc: DocumentReference = (options && options.keepExistingId && model.id) ?
-      collection.doc(model.id) : collection.doc();
-  doc.set(data);
+    collection.doc(model.id) : collection.doc();
+  debugFirestore(`saveNewDocument: data = ${JSON.stringify(data)}`);
+  if (useTestData()) {
+    debugFirestore('saveNewDocument: useTestData');
+    (() => {
+      debugFirestore('saveNewDocument: about to call set');
+      doc.set(data).then(result => {
+        debugFirestore('saveNewDocument: then -> ', result);
+      }).catch((reason: any) => {
+        debugError(`saveNewDocument: failed - ${reason}`);
+      });
+    })();
+    debugFirestore('saveNewDocument: after iife');
+  } else {
+    debugFirestore('saveNewDocument: not useTestData');
+    doc.set(data);
+  }
+  debugFirestore(`saveNewDocument: after, data = ${JSON.stringify(data)}`);
   model.id = doc.id;
 }
 
@@ -100,7 +119,7 @@ function loadRoster(firestore: FirebaseFirestore, collectionPath: string): Promi
       roster[player.id] = player;
     });
 
-    console.log(`loadRoster for [${collectionPath}]: ${JSON.stringify(roster)}`);
+    debugFirestore(`loadRoster for [${collectionPath}]: ${JSON.stringify(roster)}`);
     return roster;
   });
 }
