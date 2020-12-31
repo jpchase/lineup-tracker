@@ -48,6 +48,8 @@ export class PageObject {
 
     page.on('console', (msg: ConsoleMessage) => console.log('PAGE LOG:', msg.text()));
 
+    page.on('pagerror', (error: Error) => console.log(`PAGE ERROR: ${error}`));
+
     page.on('requestfailed', (request: Request) => {
       console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure()!.errorText);
     });
