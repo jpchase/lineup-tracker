@@ -3,7 +3,7 @@
 */
 
 import * as path from 'path';
-import { BinaryScreenShotOptions, Browser, ConsoleMessage, Page, Request, Viewport } from 'puppeteer';
+import { BinaryScreenShotOptions, Browser, ConsoleMessage, ElementHandle, Page, Request, Viewport } from 'puppeteer';
 import { serveHermeticFont } from '../server/hermetic-fonts';
 import { config } from '../server/test-server';
 const puppeteer = require('puppeteer');
@@ -85,7 +85,18 @@ export class PageObject {
     if (this.openFunc) {
       await this.openFunc();
     }
-    await this._page.waitFor(1500);
+    await this._page.waitForTimeout(1500);
+  }
+
+  async signin() {
+    const buttonHandle = await this.page.evaluateHandle(`(async () => {
+      console.log('get signin button');
+      const signinButton = document.querySelector('lineup-app').shadowRoot.querySelector('button.signin-btn');
+      return signinButton;
+    })()`) as ElementHandle;
+    await buttonHandle.click();
+    // TODO: Is this wait needed to let promises resolve, or does the sign in actually need the time.
+    await this.page.waitForTimeout(100);
   }
 
   protected get openFunc(): PageOpenFunction | undefined {
@@ -97,6 +108,6 @@ export class PageObject {
     const params: BinaryScreenShotOptions = {
       path: path.join(directory || '', `${viewName}.png`)
     };
-    return this._page!.screenshot(params).then(() => viewName);
+    return this.page.screenshot(params).then(() => viewName);
   }
 }
