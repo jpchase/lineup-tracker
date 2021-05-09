@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Request, RespondOptions } from 'puppeteer';
+import { HTTPRequest, ResponseForRequest } from 'puppeteer';
 
 const CONTENT_TYPE_CSS = 'text/css; charset=utf-8';
 const CONTENT_TYPE_WOFF2 = 'font/woff2';
@@ -17,7 +17,7 @@ const FONT_WOFF_FILES: Record<string, string> = {
     '/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxK.woff2': 'roboto-regular.woff2',
 }
 
-export function serveHermeticFont(request: Request, dataDir: string): RespondOptions | undefined {
+export function serveHermeticFont(request: HTTPRequest, dataDir: string): ResponseForRequest | undefined {
     const requestUrl = new URL(request.url());
     const isFontApis = requestUrl.hostname === 'fonts.googleapis.com';
     const isFontStatic = requestUrl.hostname === 'fonts.gstatic.com';
@@ -43,7 +43,7 @@ export function serveHermeticFont(request: Request, dataDir: string): RespondOpt
     throw new Error(`Unexpected font request: ${request.url()}`);
 };
 
-function buildResponse(dataDir: string, bodyFileName: string, contentType: string): RespondOptions {
+function buildResponse(dataDir: string, bodyFileName: string, contentType: string): ResponseForRequest {
     let bodyData = fs.readFileSync(path.join(dataDir, bodyFileName));
     if (!bodyData) {
         throw new Error(`Problem reading file: ${bodyFileName}`);
