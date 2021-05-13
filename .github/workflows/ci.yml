@@ -61,12 +61,12 @@ jobs:
       run: npm test
     - name: Archive test screenshots
       if: always()
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2.2.3
       with:
         name: screenshots
         path: test/integration/screenshots-current/
     - name: Archive code coverage results
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2.2.3
       with:
         name: code-coverage-report
         path: coverage/
