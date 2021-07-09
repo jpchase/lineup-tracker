@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { PNG } from 'pngjs';
-import { Browser, Page, Request } from 'puppeteer';
+import { Browser, HTTPRequest, Page } from 'puppeteer';
 import { HomePage } from './pages/home-page';
 import { PageObject, PageOptions } from './pages/page-object';
 import { TeamCreatePage } from './pages/team-create-page';
@@ -75,12 +75,12 @@ describe('👀 page screenshots are correct', function () {
 
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
 
-    page.on('requestfailed', (request: Request) => {
+    page.on('requestfailed', (request: HTTPRequest) => {
       console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure()!.errorText);
     });
 
     page.setRequestInterception(true);
-    page.on('request', async (request: Request) => {
+    page.on('request', async (request: HTTPRequest) => {
       const fontResponse = serveHermeticFont(request, dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
