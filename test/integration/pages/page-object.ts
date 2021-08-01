@@ -3,7 +3,7 @@
 */
 
 import * as path from 'path';
-import { BinaryScreenShotOptions, Browser, ConsoleMessage, ElementHandle, Page, Request, Viewport } from 'puppeteer';
+import { Browser, ConsoleMessage, ElementHandle, HTTPRequest, Page, ScreenshotOptions, Viewport } from 'puppeteer';
 import { serveHermeticFont } from '../server/hermetic-fonts';
 import { config } from '../server/test-server';
 const puppeteer = require('puppeteer');
@@ -50,12 +50,12 @@ export class PageObject {
 
     page.on('pagerror', (error: Error) => console.log(`PAGE ERROR: ${error}`));
 
-    page.on('requestfailed', (request: Request) => {
+    page.on('requestfailed', (request: HTTPRequest) => {
       console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure()!.errorText);
     });
 
     page.setRequestInterception(true);
-    page.on('request', async (request: Request) => {
+    page.on('request', async (request: HTTPRequest) => {
       const fontResponse = serveHermeticFont(request, config.dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
@@ -105,7 +105,7 @@ export class PageObject {
 
   async screenshot(directory?: string): Promise<string> {
     const viewName = this.scenarioName || this._route || 'index';
-    const params: BinaryScreenShotOptions = {
+    const params: ScreenshotOptions = {
       path: path.join(directory || '', `${viewName}.png`)
     };
     return this.page.screenshot(params).then(() => viewName);
