@@ -2,7 +2,7 @@
 @license
 */
 
-import { PageObject, PageOptions } from './page-object';
+import { PageObject, PageOptions } from './page-object.js';
 
 export class TeamRosterPage extends PageObject {
 

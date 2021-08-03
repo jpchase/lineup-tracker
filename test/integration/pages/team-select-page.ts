@@ -2,7 +2,7 @@
 @license
 */
 
-import { PageObject, PageOptions, PageOpenFunction } from './page-object';
+import { PageObject, PageOptions, PageOpenFunction } from './page-object.js';
 
 export class TeamSelectPage extends PageObject {
 

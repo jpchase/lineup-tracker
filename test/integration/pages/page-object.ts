@@ -3,10 +3,9 @@
 */
 
 import * as path from 'path';
-import { Browser, ConsoleMessage, ElementHandle, HTTPRequest, Page, ScreenshotOptions, Viewport } from 'puppeteer';
-import { serveHermeticFont } from '../server/hermetic-fonts';
-import { config } from '../server/test-server';
-const puppeteer = require('puppeteer');
+import puppeteer, { Browser, ConsoleMessage, ElementHandle, HTTPRequest, Page, ScreenshotOptions, Viewport } from 'puppeteer';
+import { serveHermeticFont } from '../server/hermetic-fonts.js';
+import { config } from '../server/test-server.js';
 
 export type PageOpenFunction = () => Promise<void>;
 
@@ -48,7 +47,7 @@ export class PageObject {
 
     page.on('console', (msg: ConsoleMessage) => console.log('PAGE LOG:', msg.text()));
 
-    page.on('pagerror', (error: Error) => console.log(`PAGE ERROR: ${error}`));
+    page.on('pageerror', (error: Error) => console.log(`PAGE ERROR: ${error}`));
 
     page.on('requestfailed', (request: HTTPRequest) => {
       console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure()!.errorText);

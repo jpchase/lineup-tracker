@@ -11,9 +11,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 /* global after, afterEach, before, beforeEach, describe, it */
 
 import { expect } from 'chai';
-import { Browser, Page } from 'puppeteer';
-import { config, DevServer, startTestServer } from './server/test-server';
-const puppeteer = require('puppeteer');
+import puppeteer, { Browser, Page } from 'puppeteer';
+import { config, DevServer, startTestServer } from './server/test-server.js';
 
 describe('routing tests', function () {
   let server: DevServer, browser: Browser, page: Page;

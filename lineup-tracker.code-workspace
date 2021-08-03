@@ -17,6 +17,7 @@
 		"files.trimFinalNewlines": true,
 		"files.trimTrailingWhitespace": true,
 		"editor.formatOnSave": true,
-		"files.insertFinalNewline": true
+		"files.insertFinalNewline": true,
+		"typescript.preferences.importModuleSpecifierEnding": "js"
 	}
 }

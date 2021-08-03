@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { DevServer, startTestServer } from './server/test-server';
-import { PageObject } from './pages/page-object';
-import { TeamCreatePage } from './pages/team-create-page';
+import { DevServer, startTestServer } from './server/test-server.js';
+import { PageObject } from './pages/page-object.js';
+import { TeamCreatePage } from './pages/team-create-page.js';
 // import { TeamRosterPage } from './pages/team-roster-page';
 
 describe('functional tests', function () {

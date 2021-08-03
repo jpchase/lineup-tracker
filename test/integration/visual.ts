@@ -14,17 +14,17 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
-import { Browser, HTTPRequest, Page } from 'puppeteer';
-import { HomePage } from './pages/home-page';
-import { PageObject, PageOptions } from './pages/page-object';
-import { TeamCreatePage } from './pages/team-create-page';
-import { TeamRosterPage } from './pages/team-roster-page';
-import { TeamSelectPage } from './pages/team-select-page';
-import { serveHermeticFont } from './server/hermetic-fonts';
-import { config, DevServer, startTestServer } from './server/test-server';
-const pixelmatch = require('pixelmatch');
-const puppeteer = require('puppeteer');
+import puppeteer, { Browser, HTTPRequest, Page } from 'puppeteer';
+import { HomePage } from './pages/home-page.js';
+import { PageObject, PageOptions } from './pages/page-object.js';
+import { TeamCreatePage } from './pages/team-create-page.js';
+import { TeamRosterPage } from './pages/team-roster-page.js';
+import { TeamSelectPage } from './pages/team-select-page.js';
+import { serveHermeticFont } from './server/hermetic-fonts.js';
+import { config, DevServer, startTestServer } from './server/test-server.js';
+
 
 let platformName = os.type().toLowerCase();
 if (platformName === 'darwin') {
@@ -178,7 +178,7 @@ function compareScreenshots(view: string) {
   const baselineFile = getBaselineFile(view);
   const currentFile = getCurrentFile(view);
 
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     // Note: for debugging, you can dump the screenshotted img as base64.
     // fs.createReadStream(currentFile, { encoding: 'base64' })
     //   .on('data', function (data) {

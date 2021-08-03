@@ -2,7 +2,7 @@
 @license
 */
 
-import { PageObject, PageOpenFunction, PageOptions } from './page-object';
+import { PageObject, PageOpenFunction, PageOptions } from './page-object.js';
 
 export class HomePage extends PageObject {
   private showDrawerOnOpen = false;

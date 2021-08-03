@@ -12,14 +12,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Browser, Page, Viewport } from 'puppeteer';
-import { HomePage } from '../pages/home-page';
-import { PageObject, PageOptions } from '../pages/page-object';
-import { TeamCreatePage } from '../pages/team-create-page';
-import { TeamSelectPage } from '../pages/team-select-page';
-import { serveHermeticFont } from '../server/hermetic-fonts';
-import { config, DevServer, startTestServer } from '../server/test-server';
-const puppeteer = require('puppeteer');
+import puppeteer, { Browser, Page, Viewport } from 'puppeteer';
+import { HomePage } from '../pages/home-page.js';
+import { PageObject, PageOptions } from '../pages/page-object.js';
+import { TeamCreatePage } from '../pages/team-create-page.js';
+import { TeamSelectPage } from '../pages/team-select-page.js';
+import { serveHermeticFont } from '../server/hermetic-fonts.js';
+import { config, DevServer, startTestServer } from '../server/test-server.js';
 
 describe('🎁 regenerate screenshots', function () {
   let server: DevServer, browser: Browser, page: Page;
