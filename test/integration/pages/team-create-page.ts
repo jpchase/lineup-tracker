@@ -2,7 +2,7 @@
 @license
 */
 
-import { PageObject, PageOptions, PageOpenFunction } from './page-object';
+import { PageObject, PageOptions, PageOpenFunction } from './page-object.js';
 import { ElementHandle } from 'puppeteer';
 
 export class TeamCreatePage extends PageObject {
