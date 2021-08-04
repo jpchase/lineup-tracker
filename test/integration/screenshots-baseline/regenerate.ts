@@ -12,16 +12,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import * as fs from 'fs';
 import * as path from 'path';
-import puppeteer, { Browser, Page, Viewport } from 'puppeteer';
-import { HomePage } from '../pages/home-page.js';
+import { Viewport } from 'puppeteer';
+import { ErrorPage } from '../pages/error-page.js';
+import { GameDetailPage } from '../pages/game-detail-page.js';
+import { GameListPage } from '../pages/game-list-page.js';
+import { HomePage, HomePageOptions } from '../pages/home-page.js';
 import { PageObject, PageOptions } from '../pages/page-object.js';
 import { TeamCreatePage } from '../pages/team-create-page.js';
+import { TeamRosterPage } from '../pages/team-roster-page.js';
 import { TeamSelectPage } from '../pages/team-select-page.js';
-import { serveHermeticFont } from '../server/hermetic-fonts.js';
 import { config, DevServer, startTestServer } from '../server/test-server.js';
 
 describe('🎁 regenerate screenshots', function () {
-  let server: DevServer, browser: Browser, page: Page;
+  let server: DevServer;
 
   before(async function () {
     server = await startTestServer();
@@ -41,42 +44,18 @@ describe('🎁 regenerate screenshots', function () {
 
   after(async () => server.stop());
 
-  beforeEach(async function () {
-    browser = await puppeteer.launch({ args: ['--disable-gpu', '--font-render-hinting=none'] });
-    page = await browser.newPage();
-
-    page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
-
-    page.setRequestInterception(true);
-    page.on('request', async (request) => {
-      const fontResponse = serveHermeticFont(request, config.dataDir);
-      if (fontResponse) {
-        request.respond(fontResponse);
-      } else {
-        request.continue();
-      }
-    });
-  });
-
-  afterEach(() => browser.close());
-
-  const breakpoints: Viewport[] = [
-    { width: 800, height: 600 },
-    { width: 375, height: 667 }];
-  const prefixes = ['wide', 'narrow'];
-
-  for (let i = 0; i < prefixes.length; i++) {
-    const prefix = prefixes[i];
-    const breakpoint = breakpoints[i];
-    const pageOptions: PageOptions = { viewPort: breakpoint };
+  for (const breakpoint of config.breakpoints) {
+    const prefix = breakpoint.name;
+    const pageOptions: PageOptions = { viewPort: breakpoint.viewPort };
 
     it(`views - ${prefix}`, async function () {
-      return generateBaselineScreenshots(page, prefix, breakpoint);
+      return generateBaselineScreenshots(prefix, breakpoint.viewPort);
     });
 
     if (prefix === 'narrow') {
       it('navigation drawer', async function () {
-        const homePage = new HomePage(pageOptions, true);
+        const homeOptions: HomePageOptions = { ...pageOptions, openDrawer: true };
+        const homePage = new HomePage(homeOptions);
         return generateScreenshot(homePage, prefix);
       });
     }
@@ -93,44 +72,31 @@ describe('🎁 regenerate screenshots', function () {
   }
 });
 
-async function generateBaselineScreenshots(page: Page, prefix: string, breakpoint: Viewport) {
+async function generateBaselineScreenshots(prefix: string, breakpoint: Viewport) {
   console.log(prefix + '...');
-  page.setViewport(breakpoint);
+  const pageOptions: PageOptions = { viewPort: breakpoint };
   // Index.
-  await page.goto(`${config.appUrl}/?test_data`);
-  await page.waitFor(1000);
-  await page.screenshot({ path: `${config.baselineDir}/${prefix}/index.png` });
+  const indexOptions: HomePageOptions = {
+    ...pageOptions,
+    scenarioName: 'index',
+    emptyRoute: true
+  };
+  const indexPage = new HomePage(indexOptions);
+  await generateScreenshot(indexPage, prefix);
   // Views.
-  const views = [
-    { name: 'Home', wait: 1000 },
-    // TODO: Remove sleep hack to avoid blank page in screenshot
-    { name: 'GameDetail', route: 'game/test_game1', setTeam: true, wait: 1000 },
-    // TODO: Remove sleep hack to avoid missing icon on FAB in screenshot
-    { name: 'Games', setTeam: true, wait: 1000 },
-    // TODO: Remove sleep hack to avoid blank page in screenshot
-    { name: 'Roster', setTeam: true, wait: 1000 }
-  ];
-  for (const view of views) {
-    let route = view.route ? view.route : `view${view.name}`;
-    if (view.setTeam) {
-      route += '?team=test_team1';
-    }
-    console.log(`View: ${view.name}, route: ${route}`);
-    const testFlagSeparator = (route && route.includes('?')) ? '&' : '?';
-    await page.goto(`${config.appUrl}/${route}${testFlagSeparator}test_data`);
-    if (view.wait) {
-      console.log(`Wait extra for ${view.name} view`);
-      await page.waitFor(view.wait);
-    }
-    console.log(`Screenshot for view: ${view.name}`);
-    await page.screenshot({ path: `${config.baselineDir}/${prefix}/view${view.name}.png` });
-  }
+  const homePage = new HomePage(pageOptions);
+  await generateScreenshot(homePage, prefix);
+  const gamePage = new GameDetailPage(pageOptions);
+  await generateScreenshot(gamePage, prefix);
+  const gamesPage = new GameListPage(pageOptions);
+  await generateScreenshot(gamesPage, prefix);
+  const rosterPage = new TeamRosterPage(pageOptions);
+  await generateScreenshot(rosterPage, prefix);
   // 404.
   console.log(`Screenshot for 404`);
-  await page.goto(`${config.appUrl}/batmanNotAView?test_data`);
-  console.log(`Wait extra for 404 view`);
-  await page.waitFor(1000);
-  await page.screenshot({ path: `${config.baselineDir}/${prefix}/batmanNotAView.png` });
+  const errorOptions = { ...pageOptions, route: 'batmanNotAView' };
+  const error404Page = new ErrorPage(errorOptions);
+  await generateScreenshot(error404Page, prefix);
 }
 
 async function generateScreenshot(page: PageObject, filePrefix: string) {

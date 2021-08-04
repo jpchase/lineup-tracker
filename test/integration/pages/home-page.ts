@@ -4,16 +4,23 @@
 
 import { PageObject, PageOpenFunction, PageOptions } from './page-object.js';
 
+export interface HomePageOptions extends PageOptions {
+  openDrawer?: boolean;
+  emptyRoute?: boolean;
+}
+
 export class HomePage extends PageObject {
   private showDrawerOnOpen = false;
 
-  constructor(options: PageOptions = {}, openDrawer = false) {
+  constructor(options: HomePageOptions = {}) {
     super({
       ...options,
-      route: HomePage.defaultRoute,
-      scenarioName: options.scenarioName ?? (openDrawer ? 'navigation-drawer' : '')
+      route: options.route ??
+        (options.emptyRoute ? '' : HomePage.defaultRoute),
+      scenarioName: options.scenarioName ??
+        (options.openDrawer ? 'navigation-drawer' : '')
     });
-    this.showDrawerOnOpen = openDrawer;
+    this.showDrawerOnOpen = !!options.openDrawer;
   }
 
   static get defaultRoute(): string {
