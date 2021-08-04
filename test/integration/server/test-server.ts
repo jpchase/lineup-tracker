@@ -6,7 +6,7 @@ import { Viewport } from 'puppeteer';
 export { DevServer };
 
 export interface BreakpointConfig {
-  name: string;
+  name: 'narrow' | 'wide';
   viewPort: Viewport;
 }
 

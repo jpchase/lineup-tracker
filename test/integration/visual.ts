@@ -8,21 +8,13 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-/* global after, afterEach, before, beforeEach, describe, it */
-
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
-import { ErrorPage } from './pages/error-page.js';
-import { GameDetailPage } from './pages/game-detail-page.js';
-import { GameListPage } from './pages/game-list-page.js';
-import { HomePage, HomePageOptions } from './pages/home-page.js';
-import { PageObject, PageOptions } from './pages/page-object.js';
-import { TeamCreatePage } from './pages/team-create-page.js';
-import { TeamRosterPage } from './pages/team-roster-page.js';
-import { TeamSelectPage } from './pages/team-select-page.js';
+import { PageObject } from './pages/page-object.js';
+import { getAllVisualPages } from './pages/visual-page-factory.js';
 import { config, DevServer, startTestServer } from './server/test-server.js';
 
 function getBaselineFile(view: string) {
@@ -57,6 +49,14 @@ describe('👀 page screenshots are correct', function () {
 
   for (const breakpoint of config.breakpoints) {
     describe(`${breakpoint.name} screen`, function () {
+
+      for (const pageConfig of getAllVisualPages(breakpoint)) {
+        it(pageConfig.name, async function () {
+          pageObject = pageConfig.page;
+          return takeAndCompareScreenshot(pageConfig.page, breakpoint.name);
+        });
+      }
+      /*
       const prefix = breakpoint.name;
       const pageOptions: PageOptions = { viewPort: breakpoint.viewPort };
 
@@ -107,7 +107,7 @@ describe('👀 page screenshots are correct', function () {
       it('/game', async function () {
         const gamePage = pageObject = new GameDetailPage(pageOptions);
         return takeAndCompareScreenshot(gamePage, prefix);
-      });
+      });*/
     }); // describe(`${breakpoint.name} screen`)
   }
 });
