@@ -89,7 +89,6 @@
     "deepmerge": "^4.2.2",
     "eslint": "^7.32.0",
     "eslint-config-google": "^0.14.0",
-    "esm": "^3.2.25",
     "fake-indexeddb": "^3.0.0",
     "firebase-tools": "^9.1.0",
     "html-webpack-plugin": "^3.2.0",
