@@ -103,7 +103,7 @@ export class PageObject {
   }
 
   async screenshot(directory?: string): Promise<string> {
-    const viewName = this.scenarioName || this._route || 'index';
+    const viewName = this.scenarioName || this._route || 'unknown';
     const params: ScreenshotOptions = {
       path: path.join(directory || '', `${viewName}.png`)
     };

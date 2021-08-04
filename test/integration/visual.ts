@@ -61,7 +61,11 @@ describe('👀 page screenshots are correct', function () {
       const pageOptions: PageOptions = { viewPort: breakpoint.viewPort };
 
       it('/index.html', async function () {
-        const indexOptions: HomePageOptions = { ...pageOptions, emptyRoute: true };
+        const indexOptions: HomePageOptions = {
+          ...pageOptions,
+          scenarioName: 'index',
+          emptyRoute: true
+        };
         const homePage = pageObject = new HomePage(indexOptions);
         return takeAndCompareScreenshot(homePage, prefix);
       });

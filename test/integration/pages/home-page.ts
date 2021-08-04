@@ -18,7 +18,7 @@ export class HomePage extends PageObject {
       route: options.route ??
         (options.emptyRoute ? '' : HomePage.defaultRoute),
       scenarioName: options.scenarioName ??
-        (options.openDrawer ? 'navigation-drawer' : HomePage.defaultRoute)
+        (options.openDrawer ? 'navigation-drawer' : '')
     });
     this.showDrawerOnOpen = !!options.openDrawer;
   }
