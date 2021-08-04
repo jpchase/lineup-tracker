@@ -8,21 +8,13 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-/* global after, afterEach, before, beforeEach, describe, it */
-
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
-import { ErrorPage } from './pages/error-page.js';
-import { GameDetailPage } from './pages/game-detail-page.js';
-import { GameListPage } from './pages/game-list-page.js';
-import { HomePage, HomePageOptions } from './pages/home-page.js';
-import { PageObject, PageOptions } from './pages/page-object.js';
-import { TeamCreatePage } from './pages/team-create-page.js';
-import { TeamRosterPage } from './pages/team-roster-page.js';
-import { TeamSelectPage } from './pages/team-select-page.js';
+import { PageObject } from './pages/page-object.js';
+import { createScreenshotDirectories, getAllVisualPages } from './pages/visual-page-factory.js';
 import { config, DevServer, startTestServer } from './server/test-server.js';
 
 function getBaselineFile(view: string) {
@@ -41,12 +33,7 @@ describe('👀 page screenshots are correct', function () {
     server = await startTestServer();
 
     // Create the test directories if needed.
-    for (const breakpoint of config.breakpoints) {
-      const dir = path.join(config.currentDir, breakpoint.name);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-    }
+    createScreenshotDirectories('current');
   });
 
   after(async () => await server.stop());
@@ -56,58 +43,15 @@ describe('👀 page screenshots are correct', function () {
   });
 
   for (const breakpoint of config.breakpoints) {
-    describe(`${breakpoint.name} screen`, function () {
-      const prefix = breakpoint.name;
-      const pageOptions: PageOptions = { viewPort: breakpoint.viewPort };
 
-      it('/index.html', async function () {
-        const indexOptions: HomePageOptions = {
-          ...pageOptions,
-          scenarioName: 'index',
-          emptyRoute: true
-        };
-        const homePage = pageObject = new HomePage(indexOptions);
-        return takeAndCompareScreenshot(homePage, prefix);
-      });
-      it('/viewHome', async function () {
-        const homePage = pageObject = new HomePage(pageOptions);
-        return takeAndCompareScreenshot(homePage, prefix);
-      });
-      if (prefix === 'narrow') {
-        it('navigation drawer', async function () {
-          const homeOptions: HomePageOptions = { ...pageOptions, openDrawer: true };
-          const homePage = pageObject = new HomePage(homeOptions);
-          return takeAndCompareScreenshot(homePage, prefix);
+    describe(`${breakpoint.name} screen`, function () {
+
+      for (const pageConfig of getAllVisualPages(breakpoint)) {
+        it(pageConfig.name, async function () {
+          pageObject = pageConfig.page;
+          return takeAndCompareScreenshot(pageConfig.page, breakpoint.name);
         });
       }
-      it('/viewGames', async function () {
-        const gamesPage = pageObject = new GameListPage(pageOptions);
-        return takeAndCompareScreenshot(gamesPage, prefix);
-      });
-      it('/viewRoster', async function () {
-        const rosterPage = pageObject = new TeamRosterPage(pageOptions);
-        return takeAndCompareScreenshot(rosterPage, prefix);
-      });
-      it('/404', async function () {
-        const errorOptions = { ...pageOptions, route: 'batmanNotAView' };
-        const error404Page = pageObject = new ErrorPage(errorOptions);
-        return takeAndCompareScreenshot(error404Page, prefix);
-      });
-
-      it('add new team', async function () {
-        const addTeamPage = pageObject = new TeamCreatePage(pageOptions);
-        return takeAndCompareScreenshot(addTeamPage, prefix);
-      });
-
-      it('select team', async function () {
-        const selectTeamPage = pageObject = new TeamSelectPage(pageOptions);
-        return takeAndCompareScreenshot(selectTeamPage, prefix);
-      });
-
-      it('/game', async function () {
-        const gamePage = pageObject = new GameDetailPage(pageOptions);
-        return takeAndCompareScreenshot(gamePage, prefix);
-      });
     }); // describe(`${breakpoint.name} screen`)
   }
 });
