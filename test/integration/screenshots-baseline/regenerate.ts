@@ -8,10 +8,9 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-import * as fs from 'fs';
 import * as path from 'path';
 import { PageObject } from '../pages/page-object.js';
-import { getAllVisualPages } from '../pages/visual-page-factory.js';
+import { createScreenshotDirectories, getAllVisualPages } from '../pages/visual-page-factory.js';
 import { config, DevServer, startTestServer } from '../server/test-server.js';
 
 describe('🎁 regenerate screenshots', function () {
@@ -20,17 +19,8 @@ describe('🎁 regenerate screenshots', function () {
   before(async function () {
     server = await startTestServer();
 
-    // Create the test directory if needed.
-    if (!fs.existsSync(config.baselineDir)) {
-      fs.mkdirSync(config.baselineDir);
-    }
-    // And it's subdirectories.
-    if (!fs.existsSync(`${config.baselineDir}/wide`)) {
-      fs.mkdirSync(`${config.baselineDir}/wide`);
-    }
-    if (!fs.existsSync(`${config.baselineDir}/narrow`)) {
-      fs.mkdirSync(`${config.baselineDir}/narrow`);
-    }
+    // Create the test directories, if needed.
+    createScreenshotDirectories('baseline');
   });
 
   after(async () => server.stop());
