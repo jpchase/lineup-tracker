@@ -12,7 +12,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import { expect } from 'chai';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
@@ -25,30 +24,12 @@ import { TeamSelectPage } from './pages/team-select-page.js';
 import { serveHermeticFont } from './server/hermetic-fonts.js';
 import { config, DevServer, startTestServer } from './server/test-server.js';
 
-
-let platformName = os.type().toLowerCase();
-if (platformName === 'darwin') {
-  platformName = 'macos';
-} else if (os.hostname() === 'penguin') {
-  platformName = 'chromeos';
-}
-
-const integrationDir = path.join(process.cwd(), 'test/integration');
-const dataDir = path.join(integrationDir, 'data');
-const currentDir = path.join(integrationDir, 'screenshots-current', platformName);
-const baselineDir = path.join(integrationDir, 'screenshots-baseline', platformName);
-
-const breakpoints = [
-  { name: 'wide', viewPort: { width: 800, height: 600 } },
-  { name: 'narrow', viewPort: { width: 375, height: 667 } },
-];
-
 function getBaselineFile(view: string) {
-  return path.join(baselineDir, `${view}.png`);
+  return path.join(config.baselineDir, `${view}.png`);
 }
 
 function getCurrentFile(view: string) {
-  return path.join(currentDir, `${view}.png`);
+  return path.join(config.currentDir, `${view}.png`);
 }
 
 describe('👀 page screenshots are correct', function () {
@@ -59,8 +40,8 @@ describe('👀 page screenshots are correct', function () {
     server = await startTestServer();
 
     // Create the test directories if needed.
-    for (const breakpoint of breakpoints) {
-      const dir = path.join(currentDir, breakpoint.name);
+    for (const breakpoint of config.breakpoints) {
+      const dir = path.join(config.currentDir, breakpoint.name);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
@@ -81,7 +62,7 @@ describe('👀 page screenshots are correct', function () {
 
     page.setRequestInterception(true);
     page.on('request', async (request: HTTPRequest) => {
-      const fontResponse = serveHermeticFont(request, dataDir);
+      const fontResponse = serveHermeticFont(request, config.dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
       } else {
@@ -97,7 +78,7 @@ describe('👀 page screenshots are correct', function () {
     await pageObject?.close();
   });
 
-  for (const breakpoint of breakpoints) {
+  for (const breakpoint of config.breakpoints) {
     describe(`${breakpoint.name} screen`, function () {
       const prefix = breakpoint.name;
       const pageOptions: PageOptions = { viewPort: breakpoint.viewPort };
@@ -151,7 +132,7 @@ async function takeAndCompareScreenshot(page: Page | PageObject, route: string, 
   if (page instanceof PageObject) {
     await page.init();
     await page.open();
-    const viewName = await page.screenshot(path.join(currentDir, filePrefix));
+    const viewName = await page.screenshot(path.join(config.currentDir, filePrefix));
     // TODO: Pass filePrefix as an explicit parameter.
     return compareScreenshots(path.join(filePrefix, viewName));
   }

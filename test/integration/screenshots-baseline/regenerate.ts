@@ -60,18 +60,12 @@ describe('🎁 regenerate screenshots', function () {
 
   afterEach(() => browser.close());
 
-  const breakpoints: Viewport[] = [
-    { width: 800, height: 600 },
-    { width: 375, height: 667 }];
-  const prefixes = ['wide', 'narrow'];
-
-  for (let i = 0; i < prefixes.length; i++) {
-    const prefix = prefixes[i];
-    const breakpoint = breakpoints[i];
-    const pageOptions: PageOptions = { viewPort: breakpoint };
+  for (const breakpoint of config.breakpoints) {
+    const prefix = breakpoint.name;
+    const pageOptions: PageOptions = { viewPort: breakpoint.viewPort };
 
     it(`views - ${prefix}`, async function () {
-      return generateBaselineScreenshots(page, prefix, breakpoint);
+      return generateBaselineScreenshots(page, prefix, breakpoint.viewPort);
     });
 
     if (prefix === 'narrow') {
