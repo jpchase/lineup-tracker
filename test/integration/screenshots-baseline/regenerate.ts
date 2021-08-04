@@ -13,7 +13,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 import * as fs from 'fs';
 import * as path from 'path';
 import puppeteer, { Browser, Page, Viewport } from 'puppeteer';
-import { HomePage } from '../pages/home-page.js';
+import { HomePage, HomePageOptions } from '../pages/home-page.js';
 import { PageObject, PageOptions } from '../pages/page-object.js';
 import { TeamCreatePage } from '../pages/team-create-page.js';
 import { TeamSelectPage } from '../pages/team-select-page.js';
@@ -70,7 +70,8 @@ describe('🎁 regenerate screenshots', function () {
 
     if (prefix === 'narrow') {
       it('navigation drawer', async function () {
-        const homePage = new HomePage(pageOptions, true);
+        const homeOptions: HomePageOptions = { ...pageOptions, openDrawer: true };
+        const homePage = new HomePage(homeOptions);
         return generateScreenshot(homePage, prefix);
       });
     }
