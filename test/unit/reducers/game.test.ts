@@ -353,7 +353,7 @@ describe('Game reducer', () => {
       updatedTasks[SetupSteps.Roster].status = SetupStatus.Active;
 
       const gameDetail = getNewGameWithLiveDetail(undefined, updatedTasks);
-      gameDetail.formation = { type: FormationType.F4_3_3 };
+      gameDetail.liveDetail!.formation = { type: FormationType.F4_3_3 };
 
       expect(newState).to.deep.include({
         game: gameDetail,

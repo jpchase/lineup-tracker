@@ -69,8 +69,8 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     // TODO: Turn this into a property, rather than creating new each time?
     // Is it causing unnecessary updates?
     let formation = undefined;
-    if (this.game && this.game.formation) {
-      formation = FormationBuilder.create(this.game.formation.type);
+    if (this.game?.liveDetail?.formation) {
+      formation = FormationBuilder.create(this.game.liveDetail.formation.type);
     }
 
     return html`

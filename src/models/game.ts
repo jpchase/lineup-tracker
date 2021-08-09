@@ -27,8 +27,6 @@ export interface Game extends GameMetadata {
 
 export interface GameDetail extends Game {
   roster: Roster;
-  // TODO: Move formation to LiveGame
-  formation?: FormationMetadata;
   // TODO: Remove when separate reducer/actions implemented
   liveDetail?: LiveGame;
 }
