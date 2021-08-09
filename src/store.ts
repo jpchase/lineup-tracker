@@ -2,8 +2,6 @@
 @license
 */
 
-/// <reference path="./redux-mjs.d.ts" />
-
 declare global {
   interface Window {
     process?: Object;
@@ -23,7 +21,7 @@ import {
   ReducersMapObject,
   Store,
   StoreEnhancer
-} from 'redux/es/redux.mjs.js';
+} from 'redux';
 import { AppAction } from './actions/app';
 import { AuthAction } from './actions/auth';
 import { GameAction } from './actions/game';
@@ -49,7 +47,7 @@ export interface RootState {
 }
 
 const RESET_STATE = 'RESET_STATE';
-export interface RootActionReset extends Action<typeof RESET_STATE> {};
+export interface RootActionReset extends Action<typeof RESET_STATE> { };
 
 export type RootAction = AppAction | AuthAction | GameAction | GamesAction | LiveAction | TeamAction | RootActionReset;
 
@@ -62,7 +60,7 @@ export interface SliceStoreConfigurator {
 }
 
 // Action creator to cause the store to be reset (primarily intended for testing).
-export const resetState = (): RootActionReset => ({type: RESET_STATE});
+export const resetState = (): RootActionReset => ({ type: RESET_STATE });
 
 export function combineReducersWithReset<S, A extends Action>(
   reducers: ReducersMapObject<S, A>
