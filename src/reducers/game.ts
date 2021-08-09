@@ -171,7 +171,7 @@ export const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE,
 
   [SET_FORMATION]: (newState, action) => {
     const game = newState.game!;
-    game.formation = { type: action.formationType };
+    game.liveDetail!.formation = { type: action.formationType };
     updateTasks(game, game.liveDetail!.setupTasks);
   },
 
@@ -217,7 +217,7 @@ function updateTasks(game: GameDetail, oldTasks?: SetupTask[], completedStep?: S
 
   // Formation
   //  - Complete status is based on the formation property being set.
-  const formationComplete = !!game.formation;
+  const formationComplete = !!game.liveDetail.formation;
   tasks.push({
     step: SetupSteps.Formation,
     status: formationComplete ? SetupStatus.Complete : SetupStatus.Active
