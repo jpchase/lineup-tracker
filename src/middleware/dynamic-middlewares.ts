@@ -1,4 +1,4 @@
-import { compose, AnyAction, Dispatch, Middleware, MiddlewareAPI } from 'redux/es/redux.mjs.js';
+import { compose, AnyAction, Dispatch, Middleware, MiddlewareAPI } from 'redux';
 
 const createDynamicMiddlewares = () => {
   let allDynamicMiddlewares: Middleware[] = [];
