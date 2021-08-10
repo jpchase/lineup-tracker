@@ -99,8 +99,13 @@ export class LineupApp extends connect(store)(LitElement) {
       }
 
       .toolbar-list,
-      .toolbar-top-right {
+      .toolbar-actions {
         display: none;
+      }
+
+      .toolbar-top-right {
+        display: flex;
+        justify-content: flex-end;
       }
 
       .toolbar-list > a {
@@ -211,9 +216,8 @@ export class LineupApp extends connect(store)(LitElement) {
           display: none;
         }
 
-        .toolbar-top-right {
-          display: flex;
-          justify-content: flex-end;
+        .toolbar-actions {
+          display: inline;
         }
 
         .menu-btn {
@@ -228,6 +232,11 @@ export class LineupApp extends connect(store)(LitElement) {
 
     <mwc-drawer hasHeader type="modal" .open="${this.drawerOpen}"
                 @MDCDrawer:closed="${this.drawerClosedHandler}">
+      <div>
+        <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
+                              @select-team="${this.selectTeam}">
+        </lineup-team-selector>
+      </div>
       <nav class="drawer-list">
         <a ?selected="${this._page === 'viewHome'}" href="/viewHome">Overview</a>
         <a ?selected="${this._page === 'viewGames'}" href="/viewGames">Games</a>
@@ -238,7 +247,8 @@ export class LineupApp extends connect(store)(LitElement) {
           <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
           <div slot="title">${this.appTitle}</div>
           <div slot="actionItems" class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
-            <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
+            <lineup-team-selector class="toolbar-actions"
+                                  .teamId=${this._teamId} .teams=${this._teams}
                                   @select-team="${this.selectTeam}">
             </lineup-team-selector>
             <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
