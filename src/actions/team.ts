@@ -7,7 +7,7 @@ import { ThunkAction } from 'redux-thunk';
 import { RootState } from '../store';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
-import { currentTeamIdSelector } from '../reducers/team';
+import { addTeam, currentTeamIdSelector } from '../reducers/team';
 import { firebaseRef } from '../firebase';
 import { saveNewDocument, loadTeamRoster, savePlayerToTeamRoster, KEY_TEAMS } from '../firestore-helpers';
 import { CollectionReference, DocumentData, Query, QuerySnapshot, QueryDocumentSnapshot } from '@firebase/firestore-types';
@@ -21,7 +21,9 @@ import {
   GET_TEAMS
 } from '../slices/team-types';
 
-export interface TeamActionAddTeam extends Action<typeof ADD_TEAM> { team: Team };
+export { addTeam } from '../reducers/team';
+
+export interface TeamActionAddTeam extends Action<typeof ADD_TEAM> { payload: Team };
 export interface TeamActionChangeTeam extends Action<typeof CHANGE_TEAM> { teamId: string };
 export interface TeamActionGetTeams extends Action<typeof GET_TEAMS> { teams: Teams, cachedTeamId?: string };
 export interface TeamActionGetRoster extends Action<typeof GET_ROSTER> { roster: Roster };
@@ -131,7 +133,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
   if (teamState.teams) {
     const hasMatch = Object.keys(teamState.teams).some((key) => {
       const team = teamState.teams[key];
-      return (team.name.localeCompare(newTeam.name, undefined, {sensitivity: 'base'}) == 0);
+      return (team.name.localeCompare(newTeam.name, undefined, { sensitivity: 'base' }) == 0);
     });
     if (hasMatch) {
       return;
@@ -145,13 +147,6 @@ export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch
   saveNewDocument(newTeam, getTeamsCollection(), getState(), { addUserId: true });
   cacheTeamId(newTeam.id);
   dispatch(addTeam(newTeam));
-};
-
-export const addTeam: ActionCreator<ThunkResult> = (team: Team) => (dispatch) => {
-  dispatch({
-    type: ADD_TEAM,
-    team
-  });
 };
 
 export const getRoster: ActionCreator<ThunkResult> = (teamId: string) => (dispatch) => {

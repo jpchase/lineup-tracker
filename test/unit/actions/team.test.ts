@@ -327,7 +327,10 @@ describe('Team actions', () => {
       // Checks that the new selected team was cached in IDB.
       expect(mockedIDBSet).to.have.been.calledWith(KEY_TEAMID, id);
 
-      expect(dispatchMock).to.have.been.calledWith(sinon.match.instanceOf(Function));
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.ADD_TEAM,
+        payload: { ...newTeamSaved, id },
+      });
     });
 
     it('should not dispatch an action when storage access fails', async () => {
@@ -347,27 +350,26 @@ describe('Team actions', () => {
   }); // describe('saveTeam')
 
   describe('addTeam', () => {
-    it('should return a function to dispatch the addTeam action', () => {
-      expect(actions.addTeam()).to.be.instanceof(Function);
-    });
 
-    it('should dispatch an action to add the team', () => {
+    it('should return an action to add the team', () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
 
-      actions.addTeam(newTeamSaved)(dispatchMock, getStateMock, undefined);
+      actions.addTeam(newTeamSaved);
 
-      expect(dispatchMock).to.have.been.calledWith({
+      expect(actions.addTeam(newTeamSaved)).to.deep.equal({
         type: actionTypes.ADD_TEAM,
-        team: newTeamSaved,
+        payload: newTeamSaved,
       });
+
+      expect(dispatchMock).to.not.have.been.called;
+
     });
 
   }); // describe('addTeam')
 
   describe('getRoster', () => {
     it('should return a function to dispatch the getRoster action', () => {
-      expect(actions.getRoster() ).to.be.instanceof(Function);
+      expect(actions.getRoster()).to.be.instanceof(Function);
     });
 
     it('should do nothing if team id is missing', () => {
