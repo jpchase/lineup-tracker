@@ -149,7 +149,7 @@ describe('Teams reducer', () => {
 
       const newState = team(TEAM_INITIAL_STATE, {
         type: ADD_TEAM,
-        team: newTeam
+        payload: newTeam
       });
 
       expect(newState).to.deep.include({
@@ -172,7 +172,7 @@ describe('Teams reducer', () => {
 
       const newState = team(state, {
         type: ADD_TEAM,
-        team: newTeam
+        payload: newTeam
       });
 
       expect(newState).to.deep.include({

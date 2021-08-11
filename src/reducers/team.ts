@@ -3,9 +3,9 @@
 */
 
 import { Reducer } from 'redux';
-import { createReducer } from '@reduxjs/toolkit';
+import { createAction, createReducer } from '@reduxjs/toolkit';
 import { Roster } from '../models/player';
-import { Teams } from '../models/team';
+import { Team, Teams } from '../models/team';
 import {
   ADD_TEAM,
   CHANGE_TEAM,
@@ -14,7 +14,6 @@ import {
   GET_TEAMS
 } from '../slices/team-types';
 import { RootAction, RootState } from '../store';
-import { TeamActionAddTeam } from '@app/actions/team';
 
 export interface TeamState {
   teams: Teams;
@@ -32,11 +31,21 @@ const INITIAL_STATE: TeamState = {
   error: ''
 };
 
-const team: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, {
-  [ADD_TEAM]: (newState, action: TeamActionAddTeam) => {
-    newState.teams[action.team.id] = action.team;
-    setCurrentTeam(newState, action.team.id);
-  },
+function withTeamPayload<T extends Team>() {
+  return (t: T) => ({ payload: t })
+}
+export const addTeam = createAction(ADD_TEAM, withTeamPayload());
+
+const newReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, (builder) => {
+  builder
+    .addCase(addTeam, (newState, action) => {
+      const team = action.payload;
+      newState.teams[team.id] = team;
+      setCurrentTeam(newState, team.id);
+    })
+});
+
+const oldReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, {
 
   [CHANGE_TEAM]: (newState, action) => {
     setCurrentTeam(newState, action.teamId);
@@ -62,6 +71,10 @@ function setCurrentTeam(newState: TeamState, teamId: string) {
   const team = newState.teams[teamId];
   newState.teamId = team.id;
   newState.teamName = team.name;
+}
+
+const team: Reducer<TeamState, RootAction> = function (state, action) {
+  return oldReducer(newReducer(state, action), action);
 }
 
 export default team;
