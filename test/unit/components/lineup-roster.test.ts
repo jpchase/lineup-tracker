@@ -1,8 +1,9 @@
 import { LineupRoster } from '@app/components/lineup-roster';
+import { PlayerCreatedEvent, PlayerCreateCancelledEvent } from '@app/components/lineup-roster-modify';
 import '@app/components/lineup-roster.js';
 import { PlayerStatus, Roster } from '@app/models/player';
 import { ListItem } from '@material/mwc-list/mwc-list-item';
-import { expect, fixture, oneEvent } from '@open-wc/testing';
+import { expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
 
 function getRoster(numPlayers: number): Roster {
   const size = numPlayers || 6;
@@ -49,6 +50,12 @@ describe('lineup-roster tests', () => {
   function getCreateElement() {
     const element = el.shadowRoot!.querySelector('lineup-roster-modify');
     return element as Element;
+  }
+
+  function getInputField(parent: Element, fieldId: string): HTMLInputElement {
+    const field = parent.shadowRoot!.querySelector(`#${fieldId} > input`);
+    expect(field, `Missing field: ${fieldId}`).to.exist;
+    return field as HTMLInputElement;
   }
 
   function getVisibility(element: Element) {
@@ -149,12 +156,53 @@ describe('lineup-roster tests', () => {
     expect(display).to.equal('block', 'Create element should now be visible');
   });
 
-  it.skip('creates new player when saved', () => {
-    expect.fail();
+  it('creates new player when saved', async () => {
+    // Open the create player widget.
+    const createElement = getCreateElement();
+    expect(createElement, 'Missing create widget').to.exist;
+
+    const addButton = el.shadowRoot!.querySelector('mwc-fab');
+    setTimeout(() => addButton!.click());
+    await oneEvent(addButton!, 'click');
+
+    // Fill the required fields.
+    const nameField = getInputField(createElement, 'nameField');
+    nameField.value = ' Player 1 '
+    const uniformField = getInputField(createElement, 'uniformNumberField');
+    uniformField.value = '2';
+
+    // Click save to trigger the expected event.
+    const saveButton = createElement.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
+    setTimeout(() => saveButton.click());
+
+    const { detail } = await oneEvent(el, PlayerCreatedEvent.eventName) as PlayerCreatedEvent;
+
+    expect(detail).to.include(
+      {
+        id: '',
+        name: 'Player 1',
+        uniformNumber: 2,
+      });
   });
 
-  it.skip('closes create widget when cancel clicked', () => {
-    expect.fail();
+  it('closes create widget when cancel clicked', async () => {
+    // Open the create player widget.
+    const createElement = getCreateElement();
+    expect(createElement, 'Missing create widget').to.exist;
+
+    const addButton = el.shadowRoot!.querySelector('mwc-fab');
+    setTimeout(() => addButton!.click());
+    await oneEvent(addButton!, 'click');
+
+    // Click cancel to close the widget.
+    const cancelButton = createElement.shadowRoot!.querySelector('mwc-button.cancel') as HTMLElement;
+    setTimeout(() => cancelButton.click());
+
+    await oneEvent(el, PlayerCreateCancelledEvent.eventName);
+    await nextFrame();
+
+    const display = getVisibility(createElement);
+    expect(display).to.equal('none', 'Create element should not be visible anymore');
   });
 
   it.skip('shows edit widget when edit clicked for player', () => {

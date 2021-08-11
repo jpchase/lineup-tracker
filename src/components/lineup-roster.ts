@@ -6,11 +6,9 @@ import '@material/mwc-fab';
 import '@material/mwc-list';
 import { customElement, html, LitElement, property } from 'lit-element';
 import { Player, Roster } from '../models/player';
-import { EVENT_NEWPLAYERCANCELLED, EVENT_NEWPLAYERCREATED } from './events';
 import './lineup-roster-modify';
 import { SharedStyles } from './shared-styles';
 
-// This element is *not* connected to the Redux store.
 @customElement('lineup-roster')
 export class LineupRoster extends LitElement {
   protected render() {
@@ -49,10 +47,13 @@ export class LineupRoster extends LitElement {
         </p>
       `}
       ${this.addPlayerEnabled ? html`
-        <mwc-fab icon="person_add" label="Add Player" @click="${this._addButtonClicked}"></mwc-fab>
+        <mwc-fab icon="person_add" label="Add Player" @click="${this.addButtonClicked}"></mwc-fab>
       ` : html``
       }
-      <lineup-roster-modify ?active="${this._showCreate}"></lineup-roster-modify>
+      <lineup-roster-modify ?active="${this._showCreate}"
+                            @player-created="${this.newPlayerCreated}"
+                            @player-create-cancelled="${this.newPlayerCancelled}" >
+      </lineup-roster-modify>
 
       </div>`
   }
@@ -85,26 +86,21 @@ export class LineupRoster extends LitElement {
   @property({ type: Boolean })
   private _showCreate = false;
 
-  protected firstUpdated() {
-    window.addEventListener(EVENT_NEWPLAYERCREATED, this._newPlayerCreated.bind(this) as EventListener);
-    window.addEventListener(EVENT_NEWPLAYERCANCELLED, this._newPlayerCancelled.bind(this) as EventListener);
-  }
-
-  private _addButtonClicked() {
+  private addButtonClicked() {
     this._showCreate = true;
   }
 
-  private _newPlayerCreated(/*e: CustomEvent*/) {
+  private newPlayerCreated(/*e: CustomEvent*/) {
     // TODO: Event bubbles up, but is processed by parent first, could make it
     // awkward to close widget, before handling/spinner for db saving.
-    this._closePlayerModify();
+    this.closePlayerModify();
   }
 
-  private _newPlayerCancelled() {
-    this._closePlayerModify();
+  private newPlayerCancelled() {
+    this.closePlayerModify();
   }
 
-  private _closePlayerModify() {
+  private closePlayerModify() {
     this._showCreate = false;
   }
 }
