@@ -107,6 +107,7 @@ export class LineupRosterModify extends LitElement {
   @property({ type: String })
   mode: '' | ModifyMode = '';
 
+  // TODO: Change to using mwc-textfield instead (it handles all the input complexities)
   private _getFormInput(fieldId: string): HTMLInputElement {
     return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
   }
@@ -117,6 +118,7 @@ export class LineupRosterModify extends LitElement {
     const nameField = this._getFormInput('nameField');
     const uniformNumberField = this._getFormInput('uniformNumberField');
 
+    // TODO: Validation
     const newPlayer: Player = {
       id: '',
       name: nameField.value!.trim(),
