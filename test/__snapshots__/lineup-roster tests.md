@@ -12,7 +12,7 @@
     label="Add Player"
   >
   </mwc-fab>
-  <lineup-roster-modify>
+  <lineup-roster-modify mode="create">
   </lineup-roster-modify>
 </div>
 ```
@@ -64,7 +64,7 @@
     label="Add Player"
   >
   </mwc-fab>
-  <lineup-roster-modify>
+  <lineup-roster-modify mode="create">
   </lineup-roster-modify>
 </div>
 ```
@@ -296,7 +296,7 @@
     label="Add Player"
   >
   </mwc-fab>
-  <lineup-roster-modify>
+  <lineup-roster-modify mode="create">
   </lineup-roster-modify>
 </div>
 ```
@@ -308,9 +308,8 @@
   <p class="empty-list">
     No players in roster.
   </p>
-  <lineup-roster-modify>
+  <lineup-roster-modify mode="create">
   </lineup-roster-modify>
 </div>
 
 ```
-

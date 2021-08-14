@@ -50,7 +50,7 @@ export class LineupRoster extends LitElement {
         <mwc-fab icon="person_add" label="Add Player" @click="${this.addButtonClicked}"></mwc-fab>
       ` : html``
       }
-      <lineup-roster-modify ?active="${this._showCreate}"
+      <lineup-roster-modify ?active="${this._showCreate}" mode="create"
                             @player-created="${this.newPlayerCreated}"
                             @player-create-cancelled="${this.newPlayerCancelled}" >
       </lineup-roster-modify>

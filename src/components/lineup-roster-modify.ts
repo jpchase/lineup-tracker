@@ -4,7 +4,8 @@
 
 import '@material/mwc-button';
 import '@material/mwc-formfield';
-import { customElement, html, LitElement, property } from 'lit-element';
+import { customElement, html, internalProperty, LitElement, property } from 'lit-element';
+import { ifDefined } from 'lit-html/directives/if-defined';
 import { Player, PlayerStatus } from '../models/player';
 import { SharedStyles } from './shared-styles';
 
@@ -84,18 +85,29 @@ declare global {
 @customElement('lineup-roster-modify')
 export class LineupRosterModify extends LitElement {
   protected render() {
+    // Initialize the field values on first render only, if necessary.
+    const initializeFields = this.initializeValues;
+    this.initializeValues = false;
+    let playerName = '';
+    let playerNumber: Number | undefined = undefined;
+
+    if (initializeFields && this.mode === ModifyMode.Edit && this.player) {
+      playerName = this.player.name;
+      playerNumber = this.player.uniformNumber;
+    }
+
     return html`
       ${SharedStyles}
       <style>
         :host { display: block; }
       </style>
       <div>
-        <h2>New Player</h2>
+        <h2>${this.renderHeader()}</h2>
         <mwc-formfield id="nameField" alignend label="Name">
-            <input type="text" required minlength="2">
+            <input type="text" required minlength="2" value="${ifDefined(playerName)}">
         </mwc-formfield>
         <mwc-formfield id="uniformNumberField" alignend label="Uniform Number">
-            <input type="number" required min="1" max="99">
+            <input type="number" required min="1" max="99"  value="${ifDefined(playerNumber)}">
         </mwc-formfield>
         <div class="buttons">
           <mwc-button raised class="cancel" @click="${this.cancelModify}">Cancel</mwc-button>
@@ -104,8 +116,60 @@ export class LineupRosterModify extends LitElement {
       </div>`
   }
 
+  protected renderHeader() {
+    switch (this.mode) {
+      case ModifyMode.Create:
+        return html`New Player`;
+
+      case ModifyMode.Edit:
+        if (!this.player) {
+          return html`Edit Player`;
+        }
+        return html`Edit Player: ${this.player.name}`;
+
+      default:
+        return html`Player`;
+    }
+  }
+
   @property({ type: String })
-  mode: '' | ModifyMode = '';
+  get mode() {
+    return this.mode_;
+  }
+  set mode(value: ModifyMode | undefined) {
+    const oldValue = this.mode_;
+    this.mode_ = value;
+    if (value !== oldValue) {
+      this.updateInitialValues();
+    }
+    this.requestUpdate('mode', oldValue);
+  }
+
+  @property({ type: Object })
+  get player() {
+    return this.player_;
+  }
+  set player(value: Player | undefined) {
+    const oldValue = this.player_;
+    this.player_ = value;
+    if (value !== oldValue) {
+      this.updateInitialValues();
+    }
+    this.requestUpdate('player', oldValue);
+  }
+
+  @internalProperty()
+  private initializeValues = true;
+
+  private mode_?: ModifyMode;
+  private player_?: Player;
+
+  private updateInitialValues() {
+    if (this.initializeValues) {
+      return;
+    }
+    this.initializeValues = true;
+  }
 
   // TODO: Change to using mwc-textfield instead (it handles all the input complexities)
   private _getFormInput(fieldId: string): HTMLInputElement {
@@ -119,16 +183,42 @@ export class LineupRosterModify extends LitElement {
     const uniformNumberField = this._getFormInput('uniformNumberField');
 
     // TODO: Validation
-    const newPlayer: Player = {
-      id: '',
-      name: nameField.value!.trim(),
-      uniformNumber: Number(uniformNumberField.value!.trim()),
-      positions: [], // TODO: Positions
-      status: PlayerStatus.Off
-    };
+    const nameValue = nameField.value!.trim();
+    const uniformNumberValue = Number(uniformNumberField.value!.trim());
+
+    let modifiedPlayer: Player;
+    let modifiedEvent: PlayerModifiedEvent;
+    switch (this.mode) {
+      case ModifyMode.Create:
+        modifiedPlayer = {
+          id: '',
+          name: nameValue,
+          uniformNumber: uniformNumberValue,
+          positions: [], // TODO: Positions
+          status: PlayerStatus.Off
+        };
+        modifiedEvent = new PlayerCreatedEvent(modifiedPlayer);
+        break;
+
+      case ModifyMode.Edit:
+        if (!this.player) {
+          return;
+        }
+        modifiedPlayer = {
+          ...this.player,
+          name: nameValue,
+          uniformNumber: uniformNumberValue,
+        };
+        modifiedEvent = new PlayerEditedEvent(modifiedPlayer);
+        break;
+
+      default:
+        console.log(`Invalid mode: ${this.mode}`);
+        return;
+    }
 
     // This event will be handled by lineup-roster.
-    this.dispatchEvent(new PlayerCreatedEvent(newPlayer));
+    this.dispatchEvent(modifiedEvent);
   }
 
   private cancelModify(/*e: CustomEvent*/) {
