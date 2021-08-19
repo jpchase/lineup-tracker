@@ -4,8 +4,7 @@
 
 import '@material/mwc-button';
 import '@material/mwc-formfield';
-import { customElement, html, internalProperty, LitElement, property } from 'lit-element';
-import { ifDefined } from 'lit-html/directives/if-defined';
+import { customElement, html, LitElement, property, query } from 'lit-element';
 import { Player, PlayerStatus } from '../models/player';
 import { SharedStyles } from './shared-styles';
 
@@ -73,29 +72,9 @@ export class PlayerEditCancelledEvent extends PlayerModifyCancelledEvent {
   }
 }
 
-declare global {
-  interface HTMLElementEventMap {
-    [PLAYER_CREATED_EVENT_NAME]: PlayerCreatedEvent;
-    [PLAYER_CREATE_CANCELLED_EVENT_NAME]: PlayerCreateCancelledEvent;
-    [PLAYER_EDITED_EVENT_NAME]: PlayerEditedEvent;
-    [PLAYER_EDIT_CANCELLED_EVENT_NAME]: PlayerEditCancelledEvent;
-  }
-}
-
 @customElement('lineup-roster-modify')
 export class LineupRosterModify extends LitElement {
   protected render() {
-    // Initialize the field values on first render only, if necessary.
-    const initializeFields = this.initializeValues;
-    this.initializeValues = false;
-    let playerName = '';
-    let playerNumber: Number | undefined = undefined;
-
-    if (initializeFields && this.mode === ModifyMode.Edit && this.player) {
-      playerName = this.player.name;
-      playerNumber = this.player.uniformNumber;
-    }
-
     return html`
       ${SharedStyles}
       <style>
@@ -104,10 +83,10 @@ export class LineupRosterModify extends LitElement {
       <div>
         <h2>${this.renderHeader()}</h2>
         <mwc-formfield id="nameField" alignend label="Name">
-            <input type="text" required minlength="2" value="${ifDefined(playerName)}">
+            <input type="text" required minlength="2">
         </mwc-formfield>
         <mwc-formfield id="uniformNumberField" alignend label="Uniform Number">
-            <input type="number" required min="1" max="99"  value="${ifDefined(playerNumber)}">
+            <input type="number" required min="1" max="99">
         </mwc-formfield>
         <div class="buttons">
           <mwc-button raised class="cancel" @click="${this.cancelModify}">Cancel</mwc-button>
@@ -131,6 +110,13 @@ export class LineupRosterModify extends LitElement {
         return html`Player`;
     }
   }
+
+  // TODO: Change to using mwc-textfield instead (it handles all the input complexities)
+  @query('#nameField > input')
+  nameField!: HTMLInputElement;
+
+  @query('#uniformNumberField > input')
+  uniformNumberField!: HTMLInputElement;
 
   @property({ type: String })
   get mode() {
@@ -158,33 +144,31 @@ export class LineupRosterModify extends LitElement {
     this.requestUpdate('player', oldValue);
   }
 
-  @internalProperty()
-  private initializeValues = true;
-
   private mode_?: ModifyMode;
   private player_?: Player;
 
   private updateInitialValues() {
-    if (this.initializeValues) {
-      return;
+    let initialPlayerName = '';
+    let initialPlayerNumber = '';
+    if (this.mode === ModifyMode.Edit && this.player) {
+      initialPlayerName = this.player.name;
+      initialPlayerNumber = `${this.player.uniformNumber}`;
     }
-    this.initializeValues = true;
-  }
 
-  // TODO: Change to using mwc-textfield instead (it handles all the input complexities)
-  private _getFormInput(fieldId: string): HTMLInputElement {
-    return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
+    if (this.nameField) {
+      this.nameField.value = initialPlayerName;
+    }
+    if (this.uniformNumberField) {
+      this.uniformNumberField.value = initialPlayerNumber;
+    }
   }
 
   private savePlayer(e: CustomEvent) {
     console.log(`savePlayer[${this.mode}]: ${JSON.stringify(e.detail)}`);
 
-    const nameField = this._getFormInput('nameField');
-    const uniformNumberField = this._getFormInput('uniformNumberField');
-
     // TODO: Validation
-    const nameValue = nameField.value!.trim();
-    const uniformNumberValue = Number(uniformNumberField.value!.trim());
+    const nameValue = this.nameField.value!.trim();
+    const uniformNumberValue = Number(this.uniformNumberField.value!.trim());
 
     let modifiedPlayer: Player;
     let modifiedEvent: PlayerModifiedEvent;
@@ -217,12 +201,49 @@ export class LineupRosterModify extends LitElement {
         return;
     }
 
-    // This event will be handled by lineup-roster.
+    // The event will be handled by lineup-roster.
     this.dispatchEvent(modifiedEvent);
+    // Reset the input fields, so they will be initialized correctly if the
+    // instance is reused.
+    //  - After the event, primarily to allow tests to inspect fields.
+    this.updateInitialValues();
   }
 
   private cancelModify(/*e: CustomEvent*/) {
-    // This event will be handled by lineup-roster.
-    this.dispatchEvent(new PlayerCreateCancelledEvent());
+    let cancelEvent: PlayerModifyCancelledEvent;
+    switch (this.mode) {
+      case ModifyMode.Create:
+        cancelEvent = new PlayerCreateCancelledEvent();
+        break;
+
+      case ModifyMode.Edit:
+        cancelEvent = new PlayerEditCancelledEvent();
+        break;
+
+      default:
+        console.log(`Invalid mode: ${this.mode}`);
+        return;
+    }
+    // The event will be handled by lineup-roster.
+    this.dispatchEvent(cancelEvent);
+    // Reset the input fields, so they will be initialized correctly if the
+    // instance is reused.
+    //  - After the event, primarily to allow tests to inspect fields.
+    this.updateInitialValues();
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "lineup-roster-modify": LineupRosterModify;
+  }
+}
+
+declare global {
+  interface HTMLElementEventMap {
+    [PLAYER_CREATED_EVENT_NAME]: PlayerCreatedEvent;
+    [PLAYER_CREATE_CANCELLED_EVENT_NAME]: PlayerCreateCancelledEvent;
+    [PLAYER_EDITED_EVENT_NAME]: PlayerEditedEvent;
+    [PLAYER_EDIT_CANCELLED_EVENT_NAME]: PlayerEditCancelledEvent;
   }
 }

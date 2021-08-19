@@ -19,7 +19,6 @@
       minlength="2"
       required=""
       type="text"
-      value=""
     >
   </mwc-formfield>
   <mwc-formfield
@@ -72,7 +71,6 @@
       minlength="2"
       required=""
       type="text"
-      value="Existing Player"
     >
   </mwc-formfield>
   <mwc-formfield
@@ -86,7 +84,6 @@
       min="1"
       required=""
       type="number"
-      value="2"
     >
   </mwc-formfield>
   <div class="buttons">
@@ -105,6 +102,4 @@
     </mwc-button>
   </div>
 </div>
-
 ```
-
