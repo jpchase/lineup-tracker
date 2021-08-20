@@ -12,7 +12,7 @@
     label="Add Player"
   >
   </mwc-fab>
-  <lineup-roster-modify mode="create">
+  <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
 ```
@@ -50,7 +50,9 @@
         class="actions"
         slot="meta"
       >
-        NN games
+        <span>
+          NN games
+        </span>
       </span>
     </mwc-list-item>
     <li
@@ -64,7 +66,7 @@
     label="Add Player"
   >
   </mwc-fab>
-  <lineup-roster-modify mode="create">
+  <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
 ```
@@ -102,7 +104,9 @@
         class="actions"
         slot="meta"
       >
-        NN games
+        <span>
+          NN games
+        </span>
       </span>
     </mwc-list-item>
     <li
@@ -138,7 +142,9 @@
         class="actions"
         slot="meta"
       >
-        NN games
+        <span>
+          NN games
+        </span>
       </span>
     </mwc-list-item>
     <li
@@ -174,7 +180,9 @@
         class="actions"
         slot="meta"
       >
-        NN games
+        <span>
+          NN games
+        </span>
       </span>
     </mwc-list-item>
     <li
@@ -210,7 +218,9 @@
         class="actions"
         slot="meta"
       >
-        NN games
+        <span>
+          NN games
+        </span>
       </span>
     </mwc-list-item>
     <li
@@ -246,7 +256,9 @@
         class="actions"
         slot="meta"
       >
-        NN games
+        <span>
+          NN games
+        </span>
       </span>
     </mwc-list-item>
     <li
@@ -282,7 +294,9 @@
         class="actions"
         slot="meta"
       >
-        NN games
+        <span>
+          NN games
+        </span>
       </span>
     </mwc-list-item>
     <li
@@ -296,7 +310,7 @@
     label="Add Player"
   >
   </mwc-fab>
-  <lineup-roster-modify mode="create">
+  <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
 ```
@@ -308,7 +322,197 @@
   <p class="empty-list">
     No players in roster.
   </p>
-  <lineup-roster-modify mode="create">
+  <lineup-roster-modify>
+  </lineup-roster-modify>
+</div>
+```
+
+## `editing`
+
+####   `edit button shows when edits are allowed`
+
+```html
+<div>
+  <mwc-list>
+    <mwc-list-item
+      aria-disabled="false"
+      graphic="avatar"
+      hasmeta=""
+      id="P3"
+      mwc-list-item=""
+      tabindex="0"
+      twoline=""
+    >
+      <span class="name">
+        Player [1 for sorting] 3
+      </span>
+      <span
+        class="positions"
+        slot="secondary"
+      >
+        CB, FB, HM
+      </span>
+      <span
+        class="avatar"
+        slot="graphic"
+      >
+        #3
+      </span>
+      <span
+        class="actions"
+        slot="meta"
+      >
+        <span>
+          NN games
+        </span>
+        <mwc-icon-button
+          data-player-id="P3"
+          icon="edit"
+        >
+        </mwc-icon-button>
+      </span>
+    </mwc-list-item>
+    <li
+      divider=""
+      role="separator"
+    >
+    </li>
+    <mwc-list-item
+      aria-disabled="false"
+      graphic="avatar"
+      hasmeta=""
+      id="P2"
+      mwc-list-item=""
+      tabindex="-1"
+      twoline=""
+    >
+      <span class="name">
+        Player [2 for sorting] 2
+      </span>
+      <span
+        class="positions"
+        slot="secondary"
+      >
+        AM
+      </span>
+      <span
+        class="avatar"
+        slot="graphic"
+      >
+        #22
+      </span>
+      <span
+        class="actions"
+        slot="meta"
+      >
+        <span>
+          NN games
+        </span>
+        <mwc-icon-button
+          data-player-id="P2"
+          icon="edit"
+        >
+        </mwc-icon-button>
+      </span>
+    </mwc-list-item>
+    <li
+      divider=""
+      role="separator"
+    >
+    </li>
+    <mwc-list-item
+      aria-disabled="false"
+      graphic="avatar"
+      hasmeta=""
+      id="P1"
+      mwc-list-item=""
+      tabindex="-1"
+      twoline=""
+    >
+      <span class="name">
+        Player [3 for sorting] 1
+      </span>
+      <span
+        class="positions"
+        slot="secondary"
+      >
+        S, OM
+      </span>
+      <span
+        class="avatar"
+        slot="graphic"
+      >
+        #11
+      </span>
+      <span
+        class="actions"
+        slot="meta"
+      >
+        <span>
+          NN games
+        </span>
+        <mwc-icon-button
+          data-player-id="P1"
+          icon="edit"
+        >
+        </mwc-icon-button>
+      </span>
+    </mwc-list-item>
+    <li
+      divider=""
+      role="separator"
+    >
+    </li>
+    <mwc-list-item
+      aria-disabled="false"
+      graphic="avatar"
+      hasmeta=""
+      id="P0"
+      mwc-list-item=""
+      tabindex="-1"
+      twoline=""
+    >
+      <span class="name">
+        Player [4 for sorting] 0
+      </span>
+      <span
+        class="positions"
+        slot="secondary"
+      >
+        CB, FB, HM
+      </span>
+      <span
+        class="avatar"
+        slot="graphic"
+      >
+        #0
+      </span>
+      <span
+        class="actions"
+        slot="meta"
+      >
+        <span>
+          NN games
+        </span>
+        <mwc-icon-button
+          data-player-id="P0"
+          icon="edit"
+        >
+        </mwc-icon-button>
+      </span>
+    </mwc-list-item>
+    <li
+      divider=""
+      role="separator"
+    >
+    </li>
+  </mwc-list>
+  <mwc-fab
+    icon="person_add"
+    label="Add Player"
+  >
+  </mwc-fab>
+  <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
 
