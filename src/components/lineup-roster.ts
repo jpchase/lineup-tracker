@@ -3,14 +3,14 @@
 */
 
 import '@material/mwc-fab';
+import '@material/mwc-icon-button';
 import '@material/mwc-list';
-import { customElement, html, LitElement, property } from 'lit-element';
+import { customElement, html, internalProperty, LitElement, property, query } from 'lit-element';
 import { Player, Roster } from '../models/player';
-import { EVENT_NEWPLAYERCANCELLED, EVENT_NEWPLAYERCREATED } from './events';
 import './lineup-roster-modify';
+import { LineupRosterModify, ModifyMode } from './lineup-roster-modify';
 import { SharedStyles } from './shared-styles';
 
-// This element is *not* connected to the Redux store.
 @customElement('lineup-roster')
 export class LineupRoster extends LitElement {
   protected render() {
@@ -30,6 +30,12 @@ export class LineupRoster extends LitElement {
           --mdc-theme-text-icon-on-background: var(--mdc-theme-on-secondary);
         }
 
+        .actions {
+          align-items: center;
+          display: flex;
+          justify-content: flex-end;
+        }
+
         lineup-roster-modify {
           display: none;
         }
@@ -40,7 +46,7 @@ export class LineupRoster extends LitElement {
       </style>
       <div>
       ${playerList.length > 0 ? html`
-        <mwc-list noninteractive>
+        <mwc-list ?noninteractive="${!this.editPlayerEnabled}">
           ${this.getPlayerListItems(playerList)}
         </mwc-list>
       ` : html`
@@ -49,10 +55,15 @@ export class LineupRoster extends LitElement {
         </p>
       `}
       ${this.addPlayerEnabled ? html`
-        <mwc-fab icon="person_add" label="Add Player" @click="${this._addButtonClicked}"></mwc-fab>
+        <mwc-fab icon="person_add" label="Add Player" @click="${this.addButtonClicked}"></mwc-fab>
       ` : html``
       }
-      <lineup-roster-modify ?active="${this._showCreate}"></lineup-roster-modify>
+      <lineup-roster-modify ?active="${this.showModify}"
+                            @player-created="${this.playerModified}"
+                            @player-create-cancelled="${this.modifyPlayerCancelled}"
+                            @player-edited="${this.playerModified}"
+                            @player-edit-cancelled="${this.modifyPlayerCancelled}" >
+      </lineup-roster-modify>
 
       </div>`
   }
@@ -66,7 +77,12 @@ export class LineupRoster extends LitElement {
               <span class="name">${player.name}</span>
               <span slot="secondary" class="positions">${player.positions.join(', ')}</span>
               <span slot="graphic" class="avatar">&#35${player.uniformNumber}</span>
-              <span slot="meta" class="actions">${isGame ? `actions here` : `NN games`}</span>
+              <span slot="meta" class="actions">
+                <span>${isGame ? `actions here` : `NN games`}</span>
+              ${this.editPlayerEnabled ? html`
+                <mwc-icon-button icon="edit" data-player-id="${player.id}" @click="${this.editButtonClicked}" ></mwc-icon-button>
+              ` : html``}
+              </span>
             </mwc-list-item>
             <li divider role="separator"></li>
             `
@@ -83,28 +99,44 @@ export class LineupRoster extends LitElement {
   addPlayerEnabled = true;
 
   @property({ type: Boolean })
-  private _showCreate = false;
+  editPlayerEnabled = false;
 
-  protected firstUpdated() {
-    window.addEventListener(EVENT_NEWPLAYERCREATED, this._newPlayerCreated.bind(this) as EventListener);
-    window.addEventListener(EVENT_NEWPLAYERCANCELLED, this._newPlayerCancelled.bind(this) as EventListener);
+  @internalProperty()
+  private showModify = false;
+
+  @query('lineup-roster-modify', true)
+  private rosterModify!: LineupRosterModify;
+
+  private addButtonClicked() {
+    this.rosterModify.mode = ModifyMode.Create;
+    this.showModify = true;
   }
 
-  private _addButtonClicked() {
-    this._showCreate = true;
+  private editButtonClicked(e: CustomEvent) {
+    const editButton = e.target as HTMLElement;
+    const playerId = editButton.dataset.playerId!;
+    this.rosterModify.mode = ModifyMode.Edit;
+    this.rosterModify.player = this.roster[playerId];
+    this.showModify = true;
   }
 
-  private _newPlayerCreated(/*e: CustomEvent*/) {
+  private playerModified(/*e: CustomEvent*/) {
     // TODO: Event bubbles up, but is processed by parent first, could make it
     // awkward to close widget, before handling/spinner for db saving.
-    this._closePlayerModify();
+    this.closePlayerModify();
   }
 
-  private _newPlayerCancelled() {
-    this._closePlayerModify();
+  private modifyPlayerCancelled() {
+    this.closePlayerModify();
   }
 
-  private _closePlayerModify() {
-    this._showCreate = false;
+  private closePlayerModify() {
+    this.showModify = false;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "lineup-roster": LineupRoster;
   }
 }

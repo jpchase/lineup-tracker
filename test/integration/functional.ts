@@ -1,8 +1,9 @@
 import { expect } from 'chai';
-import { DevServer, startTestServer } from './server/test-server.js';
+import { GameRosterPage } from './pages/game-roster-page.js';
 import { PageObject } from './pages/page-object.js';
 import { TeamCreatePage } from './pages/team-create-page.js';
-// import { TeamRosterPage } from './pages/team-roster-page';
+import { TeamRosterPage } from './pages/team-roster-page.js';
+import { DevServer, startTestServer } from './server/test-server.js';
 
 describe('functional tests', function () {
   let server: DevServer;
@@ -37,4 +38,78 @@ describe('functional tests', function () {
     // Verifies that navigated to home page after creating team.
     // expect(pageObject.currentRoute).to.equal(HomePage.defaultRoute, 'Should navigate to home page');
   });
+
+  describe('Team roster', function () {
+    function sleep(ms: number) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    it('creates a new player for team', async function () {
+      const rosterPage = pageObject = new TeamRosterPage();
+      await rosterPage.init();
+      await rosterPage.open();
+      await rosterPage.signin();
+
+      // Get the existing list of players.
+      //  - Wait for roster to load from storage.
+      // TODO: Better wait than a sleep?
+      await sleep(1000);
+      const existingPlayers = await rosterPage.getPlayers();
+
+      console.log(`Existing players: ${JSON.stringify(existingPlayers)}`);
+
+      await rosterPage.showCreateWidget();
+      await rosterPage.fillPlayerFields('Player 44', 44);
+      await rosterPage.saveNewPlayer();
+
+      // Verifies that the new team is created and set as the current team.
+      const currentPlayers = await rosterPage.getPlayers();
+      console.log(`Current players: ${JSON.stringify(currentPlayers)}`);
+
+      expect(currentPlayers.length, 'Number of players').to.equal(existingPlayers.length + 1);
+      const addedPlayer = currentPlayers.find(player => player.name === 'Player 44' && player.uniformNumber === 44);
+      expect(addedPlayer, `Newly-created player: 'Player 44', #44`).to.exist;
+
+      // Verifies that the new player was saved to storage.
+      // TODO: Implement check once Firebase writes are working
+    });
+  }); // describe('Team roster')
+
+  describe('Game roster', function () {
+    function sleep(ms: number) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    it('creates a new player for game', async function () {
+      const rosterPage = pageObject = new GameRosterPage();
+      await rosterPage.init();
+      await rosterPage.open();
+      await rosterPage.signin();
+
+      // Get the existing list of players.
+      //  - Wait for roster to load from storage.
+      // TODO: Better wait than a sleep?
+      // const viewName = await page.screenshot(path.join(config.currentDir, filePrefix));
+      await sleep(5000);
+      const existingPlayers = await rosterPage.getPlayers();
+
+      console.log(`Existing players: ${JSON.stringify(existingPlayers)}`);
+
+      await rosterPage.showCreateWidget();
+      await rosterPage.fillPlayerFields('Player 44', 44);
+      await rosterPage.saveNewPlayer();
+
+      // Verifies that the new team is created and set as the current team.
+      const currentPlayers = await rosterPage.getPlayers();
+      console.log(`Current players: ${JSON.stringify(currentPlayers)}`);
+
+      expect(currentPlayers.length, 'Number of players').to.equal(existingPlayers.length + 1);
+      const addedPlayer = currentPlayers.find(player => player.name === 'Player 44' && player.uniformNumber === 44);
+      expect(addedPlayer, `Newly-created player: 'Player 44', #44`).to.exist;
+
+      // Verifies that the new player was saved to storage.
+      // TODO: Implement check once Firebase writes are working
+    });
+  }); // describe('Game roster')
+
 });

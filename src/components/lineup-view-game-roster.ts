@@ -13,6 +13,7 @@ import { Roster } from '../models/player';
 import { getGameStore } from '../slices/game-store';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-roster';
+import { PlayerCreatedEvent } from './lineup-roster-modify.js';
 import { PageViewElement } from './page-view-element';
 import { SharedStyles } from './shared-styles';
 
@@ -46,7 +47,7 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
         ${rosterExists ? html`
           <lineup-roster .roster="${this._roster}"
                          .addPlayerEnabled="${isNewStatus}"
-                         @newplayercreated="${this.newPlayerCreated}"></lineup-roster>
+                         @player-created="${this.newPlayerCreated}"></lineup-roster>
         ` : html`
           <div class="empty-list">
             <div>Roster is empty.</div>
@@ -107,9 +108,10 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
     this.dispatch(copyRoster(this._game!.id));
   }
 
-  private newPlayerCreated(e: CustomEvent) {
-    this.dispatch(addNewGamePlayer(e.detail.player));
+  private newPlayerCreated(e: PlayerCreatedEvent) {
+    this.dispatch(addNewGamePlayer(e.detail));
   }
+
 
   // TODO: Extract common function (duplicated from LineupViewGameDetail)
   private _getName() {

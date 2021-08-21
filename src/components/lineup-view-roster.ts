@@ -26,6 +26,7 @@ import './lineup-roster';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
+import { PlayerCreatedEvent } from './lineup-roster-modify.js';
 
 @customElement('lineup-view-roster')
 export class LineupViewRoster extends connect(store)(PageViewElement) {
@@ -34,7 +35,7 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
       ${SharedStyles}
       <section>
         <h2>Team: ${this._teamName}</h2>
-        <lineup-roster .roster="${this._roster}" @newplayercreated="${this.newPlayerCreated}">
+        <lineup-roster .roster="${this._roster}" @player-created="${this.newPlayerCreated}">
         </lineup-roster>
       </section>
     `;
@@ -63,8 +64,8 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
     this._roster = teamState.roster;
   }
 
-  private newPlayerCreated(e: CustomEvent) {
-    store.dispatch(addNewPlayer(e.detail.player));
+  private newPlayerCreated(e: PlayerCreatedEvent) {
+    store.dispatch(addNewPlayer(e.detail));
   }
 
 }
