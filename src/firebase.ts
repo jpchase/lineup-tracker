@@ -21,6 +21,7 @@ const firestore = firebaseRef.firestore();
 
 const settings: firebase_app.firestore.Settings = {
   cacheSizeBytes: firebase_app.firestore.CACHE_SIZE_UNLIMITED,
+  merge: true
 };
 
 let enablePersistence = true;

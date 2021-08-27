@@ -20,6 +20,7 @@ import {
   GET_ROSTER,
   GET_TEAMS
 } from '../slices/team-types';
+import { debug } from '../common/debug';
 
 export { addTeam } from '../reducers/team';
 
@@ -35,6 +36,8 @@ type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
 const KEY_TEAMID = 'teamId';
+
+const debugTeam = debug('team');
 
 function getTeamsCollection(): CollectionReference {
   return firebaseRef.firestore().collection(KEY_TEAMS);
@@ -53,7 +56,7 @@ export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) =>
   const currentUser = getState().auth!.user;
   let cachedTeamId: string;
   if (currentUser && currentUser.id) {
-    console.log(`Get teams for owner = ${JSON.stringify(currentUser)}, selected = ${selectedTeamId}`);
+    debugTeam(`Get teams for owner = ${JSON.stringify(currentUser)}, selected = ${selectedTeamId}`);
     query = query.where(FIELD_OWNER, '==', currentUser.id);
 
     const teamId = currentTeamIdSelector(getState());
@@ -67,7 +70,7 @@ export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) =>
       });
     }
   } else {
-    console.log(`Get public teams, selected = ${selectedTeamId}`);
+    debugTeam(`Get public teams, selected = ${selectedTeamId}`);
     query = query.where(FIELD_PUBLIC, '==', true);
   }
 
@@ -88,7 +91,7 @@ export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) =>
       cachedTeamId = selectedTeamId;
     }
 
-    console.log(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
+    debugTeam(`getTeams - ActionCreator: ${JSON.stringify(teams)}`);
 
     dispatch({
       type: GET_TEAMS,
