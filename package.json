@@ -49,7 +49,7 @@
     "@material/mwc-select": "^0.20.0",
     "@material/mwc-snackbar": "^0.20.0",
     "@material/mwc-tab": "^0.20.0",
-    "@material/mwc-tab-bar": "^0.20.0",
+    "@material/mwc-tab-bar": "^0.25.1",
     "@material/mwc-textfield": "^0.20.0",
     "@material/mwc-top-app-bar": "^0.20.0",
     "@material/mwc-top-app-bar-fixed": "^0.20.0",
