@@ -27,6 +27,15 @@ const puppeteerExecutablePath = require('puppeteer').executablePath();
 
 module.exports = {
   nodeResolve: true,
+  // Custom html as a workaround for setting root hooks or global initialization.
+  // See https://github.com/modernweb-dev/web/issues/1462.
+  testRunnerHtml: testFramework =>
+    `<html>
+      <body>
+        <script type="module" src="/test/unit/helpers/global-setup.js"></script>
+        <script type="module" src="${testFramework}"></script>
+      </body>
+    </html>`,
   browsers: [
     puppeteerLauncher({
       launchOptions: {
