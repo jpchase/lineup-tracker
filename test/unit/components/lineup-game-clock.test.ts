@@ -43,14 +43,14 @@ describe('lineup-game-clock tests', () => {
     return button as HTMLButtonElement;
   }
 
-  it('starts with clock not running', () => {
+  it('starts with clock not running', async () => {
     const toggle = getToggleButton();
     expect(toggle.on, 'Start/stop button should be in stopped state').to.be.false;
 
     const timerElement = getTimerElement();
     expect(timerElement.innerText, 'Timer text').to.be.empty;
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('fires event when clock is toggled on', async () => {
@@ -84,7 +84,7 @@ describe('lineup-game-clock tests', () => {
     await el.updateComplete;
 
     expect(timerElement.innerText, 'Updated timer text').to.equal('01:05');
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('fires event when clock is toggled off', async () => {
@@ -127,7 +127,7 @@ describe('lineup-game-clock tests', () => {
 
     const timerElement = getTimerElement();
     expect(timerElement.innerText, 'Stopped timer text').to.equal('00:30');
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   // TODO: Log issue/figure out error with aria-hidden-focus on button.

@@ -64,7 +64,7 @@ describe('lineup-team-selector tests', () => {
     expect(button.textContent).to.be.equal('Select a team', 'Team name');
 
     // Verify the aria label has placeholder text.
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('fires event to select team, with existing team selected', async () => {
@@ -100,7 +100,7 @@ describe('lineup-team-selector tests', () => {
     await el.updateComplete;
 
     await expect(el).to.be.accessible();
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
 }); // describe('lineup-team-selector tests')
@@ -175,7 +175,7 @@ describe('lineup-team-selector-dialog tests', () => {
       expect(teamElement.querySelector('span')?.textContent).to.equal(team.name, 'Team name');
     }
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('renders placeholder when no teams created yet', async () => {
@@ -194,7 +194,7 @@ describe('lineup-team-selector-dialog tests', () => {
     const newTeamButton = getNewTeamButton();
     expect(newTeamButton.disabled, 'New team button should always be enabled').to.be.false;
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('select team when item clicked', async () => {

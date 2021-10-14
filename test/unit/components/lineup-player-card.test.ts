@@ -64,12 +64,12 @@ describe('lineup-player-card tests', () => {
     expect(playerElement!.hasAttribute('selected'), 'Should have selected attribute').to.be.true;
   }
 
-  it('starts empty', () => {
+  it('starts empty', async () => {
     assert.equal(el.mode, '');
     assert.equal(el.selected, false);
     assert.equal(el.data, undefined);
     assert.equal(el.player, undefined);
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('uses selected value set directly by property', async () => {
@@ -88,7 +88,7 @@ describe('lineup-player-card tests', () => {
     expect(el.selected, 'Card should not be selected').to.be.false;
 
     verifyPlayerElements(player);
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('renders selected from player property', async () => {
@@ -117,7 +117,7 @@ describe('lineup-player-card tests', () => {
     const positionElement = playerElement.querySelector('.currentPosition');
     assert.isOk(positionElement, 'Missing currentPosition element');
     assert.equal(positionElement!.textContent, data.position.type);
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('renders selected from data.player property', async () => {
@@ -143,7 +143,7 @@ describe('lineup-player-card tests', () => {
     const positionElement = playerElement.querySelector('.currentPosition');
     assert.isOk(positionElement, 'Missing currentPosition element');
     assert.equal(positionElement!.textContent, data.position.type);
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('renders selected from data.position without player', async () => {

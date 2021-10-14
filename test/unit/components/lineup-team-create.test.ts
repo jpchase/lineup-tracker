@@ -14,10 +14,10 @@ describe('lineup-team-create tests', () => {
     return field as HTMLInputElement;
   }
 
-  it('starts empty', () => {
+  it('starts empty', async () => {
     const nameField = getInputField('team-name');
     expect(nameField.value).to.equal('', 'Name field should be empty');
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('creates new team when saved', async () => {

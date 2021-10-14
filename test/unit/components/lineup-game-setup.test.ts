@@ -167,11 +167,11 @@ describe('lineup-game-setup tests', () => {
     return taskElement as HTMLDivElement;
   }
 
-  it('starts empty', () => {
+  it('starts empty', async () => {
     const items = getTaskElements();
     assert.equal(items.length, 0, 'Should be no rendered tasks');
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('renders all the tasks', async () => {
@@ -199,7 +199,7 @@ describe('lineup-game-setup tests', () => {
       // TODO: Verify elements/content in status div
     }
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('task links are disabled unless task is active', async () => {

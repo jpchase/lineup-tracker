@@ -60,11 +60,11 @@ describe('lineup-roster tests', () => {
     expect(el.addPlayerEnabled, 'addPlayerEnabled should default to true').to.be.true;
   });
 
-  it('shows no players placeholder for empty roster', () => {
+  it('shows no players placeholder for empty roster', async () => {
     expect(el.roster).to.deep.equal({});
     const placeholder = el.shadowRoot!.querySelector('div p.empty-list');
     expect(placeholder, 'Missing empty placeholder element').to.exist;
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   for (const numPlayers of [1, 6]) {
@@ -96,7 +96,7 @@ describe('lineup-roster tests', () => {
         expect(positionsElement, 'Missing positions element').to.exist;
         expect(positionsElement!.textContent).to.equal(player.positions.join(', '), 'Player positions');
       }
-      expect(el).shadowDom.to.equalSnapshot();
+      await expect(el).shadowDom.to.equalSnapshot();
     });
   }
 
@@ -131,7 +131,7 @@ describe('lineup-roster tests', () => {
     const addButton = el.shadowRoot!.querySelector('mwc-fab');
     expect(addButton, 'Add player button should not exist').not.to.exist;
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('shows create widget when add clicked', async () => {
@@ -174,6 +174,6 @@ describe('lineup-roster tests', () => {
   });
 
   it('a11y', async () => {
-    expect(el).to.be.accessible();
+    await expect(el).to.be.accessible();
   });
 });
