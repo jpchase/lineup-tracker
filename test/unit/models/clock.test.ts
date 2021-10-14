@@ -1,4 +1,5 @@
 import { CurrentTimeProvider, Duration, ManualTimeProvider, Timer } from '@app/models/clock';
+import { Assertion } from '@esm-bundle/chai';
 import { expect } from '@open-wc/testing';
 import * as sinon from 'sinon';
 
@@ -16,16 +17,14 @@ function isTimeEqual(actual: number, expected: number) {
   return actual === expected || actual === expected + 1;
 }
 
-chai.use(function (chai /*, utils*/) {
-  chai.Assertion.addMethod("time", function (this: any, expected: number) {
-    const actual = this._obj;
-    this.assert(
-      actual && isTimeEqual(actual, expected),
-      'expected #{this} to be #{exp}',
-      'expected #{this} to not be #{exp}',
-      expected
-    );
-  });
+Assertion.addMethod("time", function (this, expected: number) {
+  const actual = this._obj;
+  this.assert(
+    actual && isTimeEqual(actual, expected),
+    'expected #{this} to be #{exp}',
+    'expected #{this} to not be #{exp}',
+    expected
+  );
 });
 
 function buildDuration(minutes: number, seconds: number): Duration {
@@ -242,29 +241,36 @@ describe('Timer', () => {
     return expectedDuration._elapsed === actual._elapsed;
   }
 
-  chai.use(function (chai /*, utils*/) {
-    chai.Assertion.addMethod("initialized", function (this: any) {
-      const timer = this._obj;
-      const pass = timer && !timer.isRunning && !timer.startTime &&
-        timer.duration && timer.duration._elapsed === 0;
-      this.assert(
-        pass,
-        'expected #{this} to be stopped, without start time, and duration [0,0]',
-        'expected #{this} to not be stopped, with a start time, or not duration [0,0]'
-      );
-    });
+  Assertion.addMethod("initialized", function (this) {
+    const timer = this._obj;
+    const pass = timer && !timer.isRunning && !timer.startTime &&
+      timer.duration && timer.duration._elapsed === 0;
 
-    chai.Assertion.addMethod("elapsed", function (this: any, expected: number[]) {
-      const timer = this._obj as Timer;
-      const elapsed = timer ? timer.getElapsed() : null;
-      this.assert(
-        elapsed && isElapsedEqual(elapsed, expected),
-        `expected ${JSON.stringify(timer)} elapsed #{act} to be #{exp}`,
-        `expected ${JSON.stringify(timer)} elapsed #{act} to not be #{exp}`,
-        expected,
-        elapsed
-      );
-    });
+    let expected = '', actual = '';
+    if (!pass && timer) {
+      expected = JSON.stringify(new Timer().toJSON());
+      actual = JSON.stringify(timer.toJSON());
+    }
+
+    this.assert(
+      pass,
+      `expected timer to be stopped, without start time, and duration [0,0]`,
+      `expected timer to not be stopped, with a start time, or not duration [0,0]`,
+      expected,
+      actual
+    );
+  });
+
+  Assertion.addMethod("elapsed", function (this, expected: number[]) {
+    const timer = this._obj as Timer;
+    const elapsed = timer ? timer.getElapsed() : null;
+    this.assert(
+      elapsed && isElapsedEqual(elapsed, expected),
+      `expected timer elapsed #{act} to be #{exp}`,
+      `expected timer elapsed #{act} to not be #{exp}`,
+      expected,
+      elapsed
+    );
   });
 
   it('should not be running for new instance', () => {
