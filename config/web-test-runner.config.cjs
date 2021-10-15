@@ -27,6 +27,11 @@ const puppeteerExecutablePath = require('puppeteer').executablePath();
 
 module.exports = {
   nodeResolve: true,
+  coverageConfig: {
+    threshold: {
+      branches: 80,
+    }
+  },
   // Custom html as a workaround for setting root hooks or global initialization.
   // See https://github.com/modernweb-dev/web/issues/1462.
   testRunnerHtml: testFramework =>
