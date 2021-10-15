@@ -81,10 +81,10 @@ describe('lineup-player-list tests', () => {
     assert.deepEqual(el.players, []);
   });
 
-  it('shows no players placeholder for empty list', () => {
+  it('shows no players placeholder for empty list', async () => {
     assert.deepEqual(el.players, []);
     verifyEmptyList();
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('sets selected on each card from player.selected', async () => {
@@ -113,7 +113,7 @@ describe('lineup-player-list tests', () => {
     // All the players in the list should be shown, since they either have
     // status of off, or are missing the status.
     verifyPlayerCards(players.length);
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it(`mode [next]: excludes players without status set`, async () => {
@@ -165,7 +165,7 @@ describe('lineup-player-list tests', () => {
       await el.updateComplete;
 
       verifyEmptyList();
-      expect(el).shadowDom.to.equalSnapshot();
+      await expect(el).shadowDom.to.equalSnapshot();
     });
 
     for (const numPlayers of [1, 6]) {

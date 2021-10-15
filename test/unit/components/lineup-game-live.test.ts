@@ -109,14 +109,14 @@ describe('lineup-game-live tests', () => {
     return element as LineupPlayerList;
   }
 
-  it('shows no game placeholder when no current game', () => {
+  it('shows no game placeholder when no current game', async () => {
     expect(store.getState().live, 'LiveState should exist').to.be.ok;
     expect(store.getState().live!.liveGame, 'LiveState should have game unset').to.not.be.ok;
 
     const placeholder = el.shadowRoot!.querySelector('div p.empty-list');
     expect(placeholder, 'Missing empty placeholder element').to.be.ok;
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('shows all player sections for started game', async () => {
@@ -137,7 +137,7 @@ describe('lineup-game-live tests', () => {
     const outPlayers = getPlayerSection('out');
     expect(outPlayers.hidden, 'Section for out should be shown').to.be.false;
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
 
@@ -259,7 +259,7 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.include({ type: CONFIRM_SUB });
-      });
+    });
 
     it('dispatches cancel sub action when cancelled', async () => {
       let foundPlayer = findPlayer(liveGame, PlayerStatus.Off);

@@ -21,14 +21,14 @@ describe('lineup-view-game-detail tests', () => {
     el = await fixture(template);
   });
 
-  it('shows no game placeholder when no current game', () => {
+  it('shows no game placeholder when no current game', async () => {
     expect(store.getState().game).to.be.ok;
     expect(store.getState().game!.game, 'GameState should have game unset').to.not.be.ok;
 
     const placeholder = el.shadowRoot!.querySelector('section p.empty-list');
     expect(placeholder, 'Missing empty placeholder element').to.be.ok;
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('shows setup component for new game', async () => {
@@ -41,7 +41,7 @@ describe('lineup-view-game-detail tests', () => {
     const setupElement = el.shadowRoot!.querySelector('section lineup-game-setup');
     expect(setupElement, 'Live element should be shown').to.be.ok;
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('shows live component for started game', async () => {
@@ -54,7 +54,7 @@ describe('lineup-view-game-detail tests', () => {
     const liveElement = el.shadowRoot!.querySelector('section lineup-game-live');
     expect(liveElement, 'Live element should be shown').to.be.ok;
 
-    expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('a11y', async () => {
