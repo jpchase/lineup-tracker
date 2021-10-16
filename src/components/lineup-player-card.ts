@@ -2,7 +2,8 @@
 @license
 */
 
-import { LitElement, customElement, html, property } from 'lit-element';
+import { html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
 import { Position } from '../models/formation';
 import { LivePlayer } from '../models/game';
@@ -69,7 +70,7 @@ export class LineupPlayerCard extends LitElement {
 
       <span ?selected="${this.selected}" class="player ${this.mode}">
         <span class="playerName">${player ? player.name : ''}</span>
-        <span class="uniformNumber">${player ? player.uniformNumber: ''}</span>
+        <span class="uniformNumber">${player ? player.uniformNumber : ''}</span>
         <span class="currentPosition">${currentPosition}</span>
         <span class="playerPositions">${positions.join(', ')}</span>
         <!-- <span class="subFor">{player.replaces}</span> -->
@@ -78,16 +79,16 @@ export class LineupPlayerCard extends LitElement {
     `;
   }
 
-  @property({type: String})
+  @property({ type: String })
   mode = '';
 
-  @property({type: Object})
-  data: PlayerCardData|undefined = undefined;
+  @property({ type: Object })
+  data: PlayerCardData | undefined = undefined;
 
-  @property({type: Object})
-  player: LivePlayer|undefined = undefined;
+  @property({ type: Object })
+  player: LivePlayer | undefined = undefined;
 
-  @property({type: Boolean})
+  @property({ type: Boolean })
   public get selected(): boolean {
     if (this._selected) {
       return true;
@@ -127,12 +128,12 @@ export class LineupPlayerCard extends LitElement {
     if (this.data) {
       this.dispatchEvent(new CustomEvent(EVENT_POSITIONSELECTED, {
         bubbles: true, composed: true,
-        detail: {position: this.data.position, player: player, selected: newSelected},
+        detail: { position: this.data.position, player: player, selected: newSelected },
       }));
     } else {
       this.dispatchEvent(new CustomEvent(EVENT_PLAYERSELECTED, {
         bubbles: true, composed: true,
-        detail: {player: player, selected: newSelected},
+        detail: { player: player, selected: newSelected },
       }));
     }
   }

@@ -2,8 +2,9 @@
 @license
 */
 
-import { LitElement, customElement, html, property } from 'lit-element';
-import { repeat } from 'lit-html/directives/repeat';
+import { html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
 
 import { Formation, FormationLine, Position } from '../models/formation';
 import { LivePlayer } from '../models/game';
@@ -68,14 +69,14 @@ export class LineupOnPlayerList extends LitElement {
       </div>`
   }
 
-  @property({type: Object})
+  @property({ type: Array })
   players: LivePlayer[] = [];
 
-  @property({type: Object})
-  formation: Formation|undefined = undefined;
+  @property({ type: Object })
+  formation: Formation | undefined = undefined;
 
-  @property({type: Object})
-  selectedPosition: Position|undefined = undefined;
+  @property({ type: Object })
+  selectedPosition: Position | undefined = undefined;
 
   _getPlayerLines(): PlayerLine[] {
     if (!this.players || !this.formation) {
@@ -122,8 +123,7 @@ export class LineupOnPlayerList extends LitElement {
       }
       const cardData = getOpenPositionInLine(line, currentPosition);
 
-      if (cardData)
-      {
+      if (cardData) {
         cardData.player = player;
       }
     });

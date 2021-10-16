@@ -8,7 +8,8 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-import { customElement, html, property } from 'lit-element';
+import { html } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { PageViewElement } from './page-view-element';
 
 import { Games } from '../models/game';

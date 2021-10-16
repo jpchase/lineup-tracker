@@ -4,7 +4,8 @@
 
 import '@material/mwc-button';
 import '@material/mwc-icon';
-import { customElement, html, LitElement, property } from 'lit-element';
+import { html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { applyPendingSubs, cancelProposedSub, confirmProposedSub, discardPendingSubs, selectPlayer, toggleClock } from '../actions/live';
 import { connectStore } from '../middleware/connect-mixin';
 import { TimerData } from '../models/clock';
@@ -121,7 +122,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
   @property({ type: Object })
   private _game: LiveGame | undefined;
 
-  @property({ type: Object })
+  @property({ type: Array })
   private _players: LivePlayer[] | undefined;
 
   @property({ type: Object })

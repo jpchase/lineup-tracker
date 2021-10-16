@@ -2,7 +2,8 @@
 @license
 */
 
-import { customElement, html, internalProperty } from 'lit-element';
+import { html } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 import { PageViewElement } from './page-view-element';
 
 import { Roster } from '../models/player';
@@ -40,13 +41,13 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
     `;
   }
 
-  @internalProperty()
+  @state()
   private _teamId = '';
 
-  @internalProperty()
+  @state()
   private _teamName: string = '';
 
-  @internalProperty()
+  @state()
   private _roster: Roster = {};
 
   // This is called every time something is updated in the store.

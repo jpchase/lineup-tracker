@@ -4,7 +4,8 @@
 
 import '@material/mwc-fab';
 import '@material/mwc-list';
-import { customElement, html, LitElement, property } from 'lit-element';
+import { html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { Player, Roster } from '../models/player';
 import { EVENT_NEWPLAYERCANCELLED, EVENT_NEWPLAYERCREATED } from './events';
 import './lineup-roster-modify';

@@ -2,7 +2,8 @@
 @license
 */
 
-import { html, customElement, property } from 'lit-element';
+import { html } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { PageViewElement } from './page-view-element';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 
@@ -77,7 +78,7 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
 
   stateChanged(state: RootState) {
     if (!state.game) {
-        return;
+      return;
     }
     const gameState = state.game!;
     this._game = gameState.game;
