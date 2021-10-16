@@ -19,7 +19,7 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             presets: [
-              ['@babel/preset-env', {targets: {ie: '11'}}]
+              ['@babel/preset-env', { targets: { ie: '11' } }]
             ],
             plugins: ['@babel/plugin-syntax-dynamic-import']
           }
@@ -37,10 +37,10 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin([
       'images/**',
-      'node_modules/@webcomponents/webcomponentsjs/**',
       {
         from: 'node_modules/web-animations-js/web-animations-next-lite.min.js',
-        to: 'node_modules/web-animations-js/web-animations-next-lite.min.js'},
+        to: 'node_modules/web-animations-js/web-animations-next-lite.min.js'
+      },
       'manifest.json'
     ]),
     new HtmlWebpackPlugin({
