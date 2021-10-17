@@ -4,7 +4,7 @@
 
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
+// const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
 
 module.exports = {
   devServer: {
@@ -35,14 +35,16 @@ module.exports = {
     extensions: ['.js', '.ts']
   },
   plugins: [
-    new CopyWebpackPlugin([
-      'images/**',
-      {
-        from: 'node_modules/web-animations-js/web-animations-next-lite.min.js',
-        to: 'node_modules/web-animations-js/web-animations-next-lite.min.js'
-      },
-      'manifest.json'
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        'images/**',
+        {
+          from: 'node_modules/web-animations-js/web-animations-next-lite.min.js',
+          to: 'node_modules/web-animations-js/web-animations-next-lite.min.js'
+        },
+        'manifest.json'
+      ]
+    }),
     new HtmlWebpackPlugin({
       chunksSortMode: 'none',
       template: 'index.html'
