@@ -36,13 +36,6 @@ describe('lineup-game-clock tests', () => {
     return toggle as IconButtonToggle;
   }
 
-  function getClickableButton(toggle: IconButtonToggle) {
-    // Get the internal button that actually handles the clicks.
-    const button = toggle?.shadowRoot?.querySelector('button');
-    expect(button, 'Missing clickable button for clock toggle').to.be.ok;
-    return button as HTMLButtonElement;
-  }
-
   it('starts with clock not running', async () => {
     const toggle = getToggleButton();
     expect(toggle.on, 'Start/stop button should be in stopped state').to.be.false;
@@ -57,7 +50,7 @@ describe('lineup-game-clock tests', () => {
     const toggle = getToggleButton();
     expect(toggle.on, 'Start/stop button should be in stopped state').to.be.false;
 
-    setTimeout(() => getClickableButton(toggle).click());
+    setTimeout(() => toggle.click());
     const { detail } = await oneEvent(el, ClockToggleEvent.eventName);
 
     expect((detail as ClockToggleDetail).isStarted, 'Clock should be started').to.be.true;
@@ -97,7 +90,7 @@ describe('lineup-game-clock tests', () => {
 
     const toggle = getToggleButton();
 
-    setTimeout(() => getClickableButton(toggle).click());
+    setTimeout(() => toggle.click());
     const { detail } = await oneEvent(el, ClockToggleEvent.eventName);
 
     expect((detail as ClockToggleDetail).isStarted, 'Clock should be stopped').to.be.false;
@@ -130,8 +123,7 @@ describe('lineup-game-clock tests', () => {
     await expect(el).shadowDom.to.equalSnapshot();
   });
 
-  // TODO: Log issue/figure out error with aria-hidden-focus on button.
-  it.skip('a11y', async () => {
+  it('a11y', async () => {
     await expect(el).to.be.accessible();
   });
 });
