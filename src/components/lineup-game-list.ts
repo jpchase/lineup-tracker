@@ -2,7 +2,8 @@
 @license
 */
 
-import { LitElement, customElement, html, property } from 'lit-element';
+import { html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
 import { DateFormatter } from '../models/clock';
 import { Games } from '../models/game';

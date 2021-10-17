@@ -8,7 +8,8 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-import { LitElement, property } from 'lit-element';
+import { LitElement } from 'lit';
+import { property } from 'lit/decorators.js';
 
 export class PageViewElement extends LitElement {
   // Only render this page if it's actually visible.
@@ -16,6 +17,6 @@ export class PageViewElement extends LitElement {
     return this.active;
   }
 
-  @property({type: Boolean})
+  @property({ type: Boolean })
   active = false;
 }

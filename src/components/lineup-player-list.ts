@@ -2,8 +2,9 @@
 @license
 */
 
-import { LitElement, customElement, html, property } from 'lit-element';
-import { repeat } from 'lit-html/directives/repeat';
+import { html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
 
 import { LivePlayer } from '../models/game';
 import { PlayerStatus } from '../models/player';
@@ -18,7 +19,7 @@ import { EVENT_PLAYERLISTCANCEL } from './events';
 import { SharedStyles } from './shared-styles';
 
 interface PlayerFilterFunc {
-    (player: LivePlayer): boolean;
+  (player: LivePlayer): boolean;
 }
 
 // This element is *not* connected to the Redux store.
@@ -37,9 +38,9 @@ export class LineupPlayerList extends LitElement {
         ${repeat(filteredPlayers, (player: LivePlayer) => player.id, (player: LivePlayer) => html`
           <lineup-player-card .mode="${this.mode}" .player="${player}"></lineup-player-card>
           ${this.showCancel
-            ? html`<mwc-button icon="cancel" @click="${this._doCancel}">Save</mwc-button>`
-            : ''
-          }
+        ? html`<mwc-button icon="cancel" @click="${this._doCancel}">Save</mwc-button>`
+        : ''
+      }
         `)}
         </div>
       ` : html`
@@ -50,13 +51,13 @@ export class LineupPlayerList extends LitElement {
       </div>`
   }
 
-  @property({type: String})
+  @property({ type: String })
   mode = '';
 
-  @property({type: Object})
+  @property({ type: Array })
   players: LivePlayer[] = [];
 
-  @property({type: Boolean})
+  @property({ type: Boolean })
   showCancel = false;
 
   _getPlayerFilter(mode: string): PlayerFilterFunc {

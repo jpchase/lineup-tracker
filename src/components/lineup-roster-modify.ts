@@ -2,7 +2,8 @@
 @license
 */
 
-import { LitElement, customElement, html } from 'lit-element';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
 
 import { Player, PlayerStatus } from '../models/player';
 

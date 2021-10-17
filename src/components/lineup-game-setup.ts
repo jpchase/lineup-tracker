@@ -4,9 +4,10 @@
 
 import '@material/mwc-button';
 import '@material/mwc-icon';
-import { customElement, html, internalProperty, LitElement, property } from 'lit-element';
-import { ifDefined } from 'lit-html/directives/if-defined';
-import { repeat } from 'lit-html/directives/repeat';
+import { html, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { navigate } from '../actions/app';
 import {
   markCaptainsDone,
@@ -199,25 +200,25 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getLiveStore;
 
-  @internalProperty()
+  @state()
   private game: GameDetail | undefined;
 
-  @internalProperty()
+  @state()
   private tasks: SetupTask[] = [];
 
-  @internalProperty()
+  @state()
   private tasksComplete = false;
 
-  @internalProperty()
+  @state()
   private showFormation = false;
 
-  @internalProperty()
+  @state()
   private players: LivePlayer[] = [];
 
-  @internalProperty()
+  @state()
   private selectedStarterPosition: Position | undefined;
 
-  @internalProperty()
+  @state()
   private proposedStarter: LivePlayer | undefined;
 
   protected firstUpdated() {

@@ -4,7 +4,8 @@
 
 import '@material/mwc-button';
 import '@material/mwc-circular-progress';
-import { customElement, html, internalProperty, property } from 'lit-element';
+import { html } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { addNewGamePlayer, copyRoster, getGame } from '../actions/game';
 import { connectStore } from '../middleware/connect-mixin';
@@ -83,13 +84,13 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getGameStore;
 
-  @internalProperty()
+  @state()
   private _game: GameDetail | undefined;
 
-  @internalProperty()
+  @state()
   private _roster: Roster = {};
 
-  @internalProperty()
+  @state()
   private _copyingInProgress = false;
 
   stateChanged(state: RootState) {

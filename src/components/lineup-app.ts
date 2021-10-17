@@ -8,7 +8,8 @@ import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
-import { customElement, html, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
+import { html, LitElement, PropertyValues } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
@@ -296,7 +297,7 @@ export class LineupApp extends connect(store)(LitElement) {
   @property({ type: String })
   private _page = '';
 
-  @internalProperty()
+  @state()
   private drawerOpen = false;
 
   @property({ type: Boolean })

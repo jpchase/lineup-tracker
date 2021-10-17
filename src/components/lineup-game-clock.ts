@@ -3,7 +3,8 @@
 */
 
 import '@material/mwc-icon-button-toggle';
-import { customElement, html, internalProperty, LitElement, property } from 'lit-element';
+import { html, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { Duration, Timer, TimerData } from '../models/clock';
 import { SharedStyles } from './shared-styles';
 
@@ -66,7 +67,7 @@ export class LineupGameClock extends LitElement {
     this.requestUpdate('timerData', oldValue);
   }
 
-  @internalProperty()
+  @state()
   protected timerText: string = '';
 
   private refresh() {

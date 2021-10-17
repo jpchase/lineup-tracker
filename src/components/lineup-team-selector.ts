@@ -9,7 +9,8 @@ import '@material/mwc-list';
 import { List } from '@material/mwc-list';
 import { isEventMulti, SingleSelectedEvent } from '@material/mwc-list/mwc-list-foundation';
 import '@material/mwc-list/mwc-list-item';
-import { customElement, html, internalProperty, LitElement, property, query } from 'lit-element';
+import { html, LitElement } from 'lit';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { Team, Teams } from '../models/team';
 import { SharedStyles } from './shared-styles';
 
@@ -62,10 +63,10 @@ export class LineupTeamSelector extends LitElement {
     this.requestUpdate('teams', oldValue);
   }
 
-  @internalProperty()
+  @state()
   protected teamName = '';
 
-  @internalProperty()
+  @state()
   protected teamSelected = false;
 
   private getTeamLabel() {
@@ -183,7 +184,7 @@ export class LineupTeamSelectorDialog extends LitElement {
   protected teamList?: List;
 
   // Tracks the newly-selected team in the list.
-  @internalProperty()
+  @state()
   protected changedTeamId = '';
 
   async show() {
