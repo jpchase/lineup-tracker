@@ -44,7 +44,7 @@ export class LineupGameClock extends LitElement {
         <span id="gamePeriod">Period: 1</span>
         <mwc-icon-button-toggle id="clockToggle" ?on="${this._timer?.isRunning}"
           onIcon="pause_circle_outline" offIcon="play_circle_outline" label="Start/stop the clock"
-          @MDCIconButtonToggle:change="${this._toggleClock}"></mwc-icon-button-toggle>
+          @icon-button-toggle-change="${this._toggleClock}"></mwc-icon-button-toggle>
         <span id="periodTimer">${this.timerText}</span>&nbsp;[<span id="gameTimer"></span>]
       </span>`
   }
