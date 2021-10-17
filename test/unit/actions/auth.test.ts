@@ -1,5 +1,5 @@
 import * as actions from '@app/actions/auth';
-import { authRef /*, provider */ } from "@app/firebase";
+import { auth, authRef } from '@app/firebase';
 import { User } from '@app/models/auth';
 import * as actionTypes from '@app/slices/auth-types';
 import { Error as FirebaseError, User as FirebaseUser, UserCredential } from '@firebase/auth-types';
@@ -108,7 +108,7 @@ describe('signIn', () => {
   let signInSpy: sinon.SinonStub;
 
   beforeEach(() => {
-    signInSpy = sinon.stub(authRef, 'signInWithPopup');
+    signInSpy = sinon.stub(auth, 'signInWithPopup');
     sinon.stub(console, 'log');
     sinon.stub(console, 'error');
   });

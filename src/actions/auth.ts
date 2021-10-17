@@ -3,14 +3,15 @@
 @license
 */
 
-import { User as FirebaseUser, UserCredential } from '@firebase/auth-types';
+import { User as FirebaseUser, UserCredential } from '@firebase/auth';
+import { GoogleAuthProvider, onAuthStateChanged, signInWithCredential } from 'firebase/auth';
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { debug } from '../common/debug';
-import { authRef, firebaseRef, provider } from "../firebase";
+import { auth, authRef, provider } from '../firebase';
 import { useTestData } from '../init';
 import { User } from '../models/auth';
-import { GET_USER_SUCCESS } from "../slices/auth-types";
+import { GET_USER_SUCCESS } from '../slices/auth-types';
 import { RootState } from '../store';
 
 export interface AuthActionGetUser extends Action<typeof GET_USER_SUCCESS> { user: User };
@@ -28,16 +29,16 @@ export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) =>
     resolveFunc = resolve;
   });
 
-  authRef.onAuthStateChanged((user: FirebaseUser | null) => {
+  onAuthStateChanged(authRef, (user: FirebaseUser | null) => {
     if (user) {
-      console.log(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
+      debugAuth(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
       dispatch({
         type: GET_USER_SUCCESS,
         user: getUserFromFirebaseUser(user)
       });
       resolveFunc(true);
     } else {
-      console.log(`onAuthStateChanged: user = ${user}`);
+      debugAuth(`onAuthStateChanged: user = ${user}`);
       dispatch({
         type: GET_USER_SUCCESS,
         user: {} as User
@@ -54,17 +55,17 @@ export const signIn: ActionCreator<ThunkResult> = () => () => {
 
   if (useTestData()) {
     debugAuth('Sign in with test credential')
-    const credential = firebaseRef.auth.GoogleAuthProvider.credential(
+    const credential = GoogleAuthProvider.credential(
       `{"sub": "3FK9P5Ledx4voK8w5Ep07DS6dCUc", "email": "algae.orange.312@test.com", "email_verified": true}`
     )
-    signinPromise = authRef.signInWithCredential(credential);
+    signinPromise = signInWithCredential(authRef, credential);
   } else {
     debugAuth('Sign in with popup, as usual');
-    signinPromise = authRef.signInWithPopup(provider);
+    signinPromise = auth.signInWithPopup(authRef, provider);
   }
   signinPromise
     .then((result: UserCredential) => {
-      console.log(`Sign in succeeded: ${result.user ? result.user.uid : null}`);
+      debugAuth(`Sign in succeeded: ${result.user ? result.user.uid : null}`);
     })
     .catch(error => {
       console.error(`Error trying to sign in: ${error}`);
