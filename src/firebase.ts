@@ -2,6 +2,7 @@ import { getAuth, signInWithPopup } from 'firebase/auth';
 import firebase_app from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
+import { getFirestore } from 'firebase/firestore';
 import { debug } from './common/debug';
 import { useTestData } from './init';
 
@@ -60,6 +61,10 @@ export const authRef = getAuth(firebaseApp);
 export const provider = new firebaseRef.auth.GoogleAuthProvider();
 
 // Trivial wrapper, mainly to allow for mocking in tests.
+export const firebaseRefs = {
+  // app: firebaseApp,
+  firestore: getFirestore(firebaseApp)
+};
 export const auth = {
   signInWithPopup: signInWithPopup
 };
