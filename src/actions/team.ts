@@ -18,7 +18,7 @@ import {
   GET_TEAMS
 } from '../slices/team-types';
 import { CollectionFilter, reader, whereFilter } from '../storage/firestore-reader.js';
-import { saveNewDocument } from '../storage/firestore-writer.js';
+import { writer } from '../storage/firestore-writer.js';
 import { idb } from '../storage/idb-wrapper';
 import { ModelConverter } from '../storage/model-converter.js';
 import { RootState } from '../store';
@@ -140,7 +140,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
   // Save the team to Firestore, before adding to the store.
-  saveNewDocument(newTeam, KEY_TEAMS, getState(), { addUserId: true });
+  writer.saveNewDocument(newTeam, KEY_TEAMS, getState(), { addUserId: true });
   cacheTeamId(newTeam.id);
   dispatch(addTeam(newTeam));
 };

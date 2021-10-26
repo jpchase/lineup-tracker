@@ -61,7 +61,7 @@ class WriterConverter<T extends Model> implements FirestoreDataConverter<T>  {
   }
 }
 
-export function saveNewDocument<T extends Model>(
+function saveNewDocument<T extends Model>(
   model: T,
   collectionPathOrReference: string,
   state?: RootState, options?: NewDocOptions) {
@@ -95,3 +95,8 @@ export function saveNewDocument<T extends Model>(
   debugFirestore(`saveNewDocument: after, data = ${JSON.stringify(model)}`);
   model.id = document.id;
 }
+
+// Trivial wrapper, mainly to allow for mocking in tests.
+export const writer = {
+  saveNewDocument
+};
