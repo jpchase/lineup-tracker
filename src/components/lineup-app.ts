@@ -357,7 +357,10 @@ export class LineupApp extends connect(store)(LitElement) {
 
   protected updated(changedProps: PropertyValues) {
     if (changedProps.has('_page')) {
-      const pageTitle = this.appTitle + ' - ' + this._pages[this._page].label;
+      let pageTitle = this.appTitle;
+      if (this._page in this._pages) {
+        pageTitle += ' - ' + this._pages[this._page].label;
+      }
       updateMetadata({
         title: pageTitle,
         description: pageTitle
