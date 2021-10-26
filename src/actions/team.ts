@@ -2,7 +2,7 @@
 @license
 */
 
-import { DocumentData, QueryConstraint, where } from 'firebase/firestore';
+import { DocumentData } from 'firebase/firestore';
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { debug } from '../common/debug';
@@ -17,7 +17,7 @@ import {
   CHANGE_TEAM, GET_ROSTER,
   GET_TEAMS
 } from '../slices/team-types';
-import { loadCollection } from '../storage/firestore-reader.js';
+import { CollectionFilter, reader, whereFilter } from '../storage/firestore-reader.js';
 import { saveNewDocument } from '../storage/firestore-writer.js';
 import { idb } from '../storage/idb-wrapper';
 import { ModelConverter } from '../storage/model-converter.js';
@@ -57,10 +57,10 @@ export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) =>
   // TODO: Extract into helper function somewhere?
   const currentUserId = currentUserIdSelector(getState());
   let cachedTeamId: string;
-  let teamQuery: QueryConstraint;
+  let teamFilter: CollectionFilter;
   if (currentUserId) {
     debugTeam(`Get teams for owner = ${currentUserId}, selected = ${selectedTeamId}`);
-    teamQuery = where(FIELD_OWNER, '==', currentUserId);
+    teamFilter = whereFilter(FIELD_OWNER, '==', currentUserId);
 
     const teamId = currentTeamIdSelector(getState());
     if (!teamId) {
@@ -76,11 +76,11 @@ export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) =>
     }
   } else {
     debugTeam(`Get public teams, selected = ${selectedTeamId}`);
-    teamQuery = where(FIELD_PUBLIC, '==', true);
+    teamFilter = whereFilter(FIELD_PUBLIC, '==', true);
   }
 
   debugTeam(`Get docs for teams, cachedTeamId = ${cachedTeamId!}`);
-  loadCollection<Team, Teams>(KEY_TEAMS, teamConverter, teamQuery).then((teams) => {
+  reader.loadCollection<Team, Teams>(KEY_TEAMS, teamConverter, teamFilter).then((teams) => {
     // Override the team to be selected, only if provided.
     if (selectedTeamId) {
       cachedTeamId = selectedTeamId;
