@@ -3,6 +3,8 @@ import { firebaseRef } from '@app/firebase';
 import { Player } from '@app/models/player';
 import { Team, TeamData } from '@app/models/team';
 import * as actionTypes from '@app/slices/team-types';
+import { reader } from '@app/storage/firestore-reader';
+import { writer } from '@app/storage/firestore-writer';
 import { idb } from '@app/storage/idb-wrapper';
 import { DocumentData, Query, QueryDocumentSnapshot, QuerySnapshot } from '@firebase/firestore-types';
 import { expect, nextFrame } from '@open-wc/testing';
@@ -52,6 +54,8 @@ function mockGetState(teams: Team[], currentTeam?: Team, options?: MockAuthState
 describe('Team actions', () => {
   let mockFirebase: any;
   let firestoreAccessorStub: sinon.SinonStub;
+  let readerStub: sinon.SinonStubbedInstance<typeof reader>;
+  let writerStub: sinon.SinonStubbedInstance<typeof writer>;
   let mockedIDBGet: sinon.SinonStub;
   let mockedIDBSet: sinon.SinonStub;
 
@@ -60,10 +64,26 @@ describe('Team actions', () => {
 
     mockFirebase = getMockFirebase();
     firestoreAccessorStub = mockFirestoreAccessor(mockFirebase);
+    readerStub = sinon.stub<typeof reader>(reader);
+    writerStub = sinon.stub<typeof writer>(writer);
 
     mockedIDBGet = sinon.stub(idb, 'get').resolves(undefined);
     mockedIDBSet = sinon.stub(idb, 'set').resolves(undefined);
   });
+
+  function mockLoadCollectionWithStoredTeams() {
+    const userFilter = { field: 'owner_uid', operator: '==', value: TEST_USER_ID };
+    return readerStub.loadCollection
+      .withArgs(KEY_TEAMS, sinon.match.object, userFilter)
+      .resolves(buildTeams([getStoredTeam()]));
+  }
+
+  function mockLoadCollectionWithPublicTeams() {
+    const isPublicFilter = { field: 'public', operator: '==', value: true };
+    return readerStub.loadCollection
+      .withArgs(KEY_TEAMS, sinon.match.object, isPublicFilter)
+      .resolves(buildTeams([getPublicTeam()]));
+  }
 
   describe('getTeams', () => {
     it('should return a function to dispatch the getTeams action', () => {
@@ -73,6 +93,7 @@ describe('Team actions', () => {
     it('should dispatch an action with owned teams returned from storage, without cached team id', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
+      const loadCollectionStub = mockLoadCollectionWithStoredTeams();
 
       actions.getTeams()(dispatchMock, getStateMock, undefined);
 
@@ -87,11 +108,14 @@ describe('Team actions', () => {
         type: actionTypes.GET_TEAMS,
         teams: buildTeams([getStoredTeam()]),
       }));
+
+      expect(loadCollectionStub).to.have.callCount(1);
     });
 
     it('should dispatch an action with owned teams returned from storage, with cached team id', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
+      mockLoadCollectionWithStoredTeams();
       const previousTeam = getStoredTeam();
       mockedIDBGet.onFirstCall().resolves(previousTeam.id);
 
@@ -110,6 +134,7 @@ describe('Team actions', () => {
     it('should dispatch an action with owned teams returned from storage, with override to cached team id', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
+      mockLoadCollectionWithStoredTeams();
       const previousTeam = getStoredTeam();
       mockedIDBGet.onFirstCall().resolves(previousTeam.id);
 
@@ -128,6 +153,7 @@ describe('Team actions', () => {
     it('should dispatch an action with owned teams returned from storage, with already selected team', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], getStoredTeam(), { signedIn: true, userId: TEST_USER_ID })
+      mockLoadCollectionWithStoredTeams();
 
       actions.getTeams()(dispatchMock, getStateMock, undefined);
 
@@ -145,6 +171,7 @@ describe('Team actions', () => {
     it('should dispatch an action with public teams when not signed in', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: false })
+      mockLoadCollectionWithPublicTeams();
 
       actions.getTeams(null)(dispatchMock, getStateMock, undefined);
 
@@ -162,6 +189,7 @@ describe('Team actions', () => {
     it('should dispatch an action with public teams when not signed in, with selected team id', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: false })
+      mockLoadCollectionWithPublicTeams();
 
       actions.getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
 
@@ -298,45 +326,39 @@ describe('Team actions', () => {
     });
 
     it('should save to storage and dispatch an action to add team', async () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
-
-      actions.saveTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
-
-      // Checks that the new team was saved to the database.
-      const query: Query = mockFirebase.firestore().collection(KEY_TEAMS).where('name', '==', newTeamSaved.name);
-      const result: QuerySnapshot = await query.get();
-      expect(result.size).to.equal(1);
-
-      const expectedData: any = {
+      const expectedId = 'randomGeneratedID45234';
+      const expectedSavedTeam: Team = {
         ...getNewTeamData(),
-        owner_uid: TEST_USER_ID
+        id: expectedId,
       };
 
-      let id = '';
-      let data: DocumentData = {};
-      result.forEach((doc: QueryDocumentSnapshot) => {
-        id = doc.id;
-        data = doc.data();
-      });
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
+      const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
+        (model) => { model.id = expectedId; }
+      );
 
-      expect(id).to.be.ok;
-      expect(id).to.match(/[A-Za-z0-9]+/);
-      expect(data).to.deep.equal(expectedData);
+      const inputTeam = getNewTeam();
+      actions.saveTeam(inputTeam)(dispatchMock, getStateMock, undefined);
+
+      // Checks that the new team was saved to the database.
+      expect(saveNewDocumentStub).calledOnceWith(
+        inputTeam, KEY_TEAMS, sinon.match.object, { addUserId: true });
+      expect(inputTeam, 'Input team should have properties set by saving').to.deep.equal(expectedSavedTeam);
 
       // Checks that the new selected team was cached in IDB.
-      expect(mockedIDBSet).to.have.been.calledWith(KEY_TEAMID, id);
+      expect(mockedIDBSet).to.have.been.calledWith(KEY_TEAMID, expectedId);
 
       expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.ADD_TEAM,
-        payload: { ...newTeamSaved, id },
+        payload: expectedSavedTeam,
       });
     });
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
-      firestoreAccessorStub.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.saveTeam(getNewTeam())(dispatchMock, getStateMock, undefined);

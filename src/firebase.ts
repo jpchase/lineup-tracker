@@ -1,8 +1,10 @@
-import firebase_app from 'firebase/app';
-import 'firebase/auth';
-import 'firebase/firestore';
-import { useTestData } from './init';
+import { getAuth, signInWithPopup } from 'firebase/auth';
+import firebase_app from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
+import { getFirestore } from 'firebase/firestore';
 import { debug } from './common/debug';
+import { useTestData } from './init';
 
 const debugFirebase = debug('firebase');
 
@@ -15,7 +17,7 @@ const config = {
   authDomain: "resplendent-fire-4542.firebaseapp.com",
   projectId: "resplendent-fire-4542",
 };
-firebaseRef.initializeApp(config);
+export const firebaseApp = firebaseRef.initializeApp(config);
 
 const firestore = firebaseRef.firestore();
 
@@ -55,5 +57,14 @@ if (enablePersistence) {
 
 export default firebaseRef;
 
-export const authRef: firebase_app.auth.Auth = firebaseRef.auth();
+export const authRef = getAuth(firebaseApp);
 export const provider = new firebaseRef.auth.GoogleAuthProvider();
+
+// Trivial wrapper, mainly to allow for mocking in tests.
+export const firebaseRefs = {
+  // app: firebaseApp,
+  firestore: getFirestore(firebaseApp)
+};
+export const auth = {
+  signInWithPopup: signInWithPopup
+};
