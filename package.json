@@ -39,7 +39,7 @@
     "@material/mwc-checkbox": "^0.26.0-canary.406d6fe1.0",
     "@material/mwc-circular-progress": "^0.26.0-canary.406d6fe1.0",
     "@material/mwc-dialog": "^0.26.0-canary.406d6fe1.0",
-    "@material/mwc-drawer": "^0.26.0-canary.406d6fe1.0",
+    "@material/mwc-drawer": "^0.26.0-canary.60449b7b.0",
     "@material/mwc-fab": "^0.26.0-canary.406d6fe1.0",
     "@material/mwc-formfield": "^0.26.0-canary.406d6fe1.0",
     "@material/mwc-icon": "^0.26.0-canary.406d6fe1.0",
