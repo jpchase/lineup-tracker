@@ -7,7 +7,7 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { debug } from '../common/debug';
 import { firebaseRef } from '../firebase.js';
-import { KEY_TEAMS, loadTeamRoster, savePlayerToTeamRoster } from '../firestore-helpers';
+import { KEY_TEAMS, savePlayerToTeamRoster } from '../firestore-helpers';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import { currentUserIdSelector } from '../reducers/auth.js';
@@ -17,6 +17,7 @@ import {
   CHANGE_TEAM, GET_ROSTER,
   GET_TEAMS
 } from '../slices/team-types';
+import { loadTeamRoster } from '../slices/team/team-storage.js';
 import { CollectionFilter, reader, whereFilter } from '../storage/firestore-reader.js';
 import { writer } from '../storage/firestore-writer.js';
 import { idb } from '../storage/idb-wrapper';
@@ -149,7 +150,7 @@ export const getRoster: ActionCreator<ThunkResult> = (teamId: string) => (dispat
   if (!teamId) {
     return;
   }
-  loadTeamRoster(firebaseRef.firestore(), teamId).then((roster: Roster) => {
+  loadTeamRoster(teamId).then((roster) => {
     dispatch({
       type: GET_ROSTER,
       roster

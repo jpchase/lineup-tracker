@@ -207,13 +207,13 @@ describe('Team actions', () => {
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
+      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
 
-      firestoreAccessorStub.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.getTeams()(dispatchMock, getStateMock, undefined);
-      }).to.throw();
+      }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -409,13 +409,14 @@ describe('Team actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      const rosterData = buildRoster([getStoredPlayer()]);
+      readerStub.loadCollection.resolves(buildRoster([getStoredPlayer()]));
 
       actions.getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await nextFrame();
 
+      const rosterData = buildRoster([getStoredPlayer()]);
       expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.GET_ROSTER,
         roster: rosterData,
@@ -426,11 +427,11 @@ describe('Team actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      firestoreAccessorStub.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
-      }).to.throw();
+      }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
       await Promise.resolve();
