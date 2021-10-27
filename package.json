@@ -53,7 +53,7 @@
     "@material/mwc-tab-bar": "^0.26.0-canary.406d6fe1.0",
     "@material/mwc-textfield": "^0.26.0-canary.406d6fe1.0",
     "@material/mwc-top-app-bar": "^0.26.0-canary.406d6fe1.0",
-    "@material/mwc-top-app-bar-fixed": "^0.26.0-canary.406d6fe1.0",
+    "@material/mwc-top-app-bar-fixed": "^0.26.0-canary.60449b7b.0",
     "@polymer/polymer": "^3.3.1",
     "@reduxjs/toolkit": "^1.6.1",
     "debug": "^4.3.2",
