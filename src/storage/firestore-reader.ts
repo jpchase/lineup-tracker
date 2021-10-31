@@ -1,10 +1,11 @@
 import {
-  collection, Firestore, getDocs,
-  query, where, QueryDocumentSnapshot, QuerySnapshot, WhereFilterOp
+  collection, DocumentData, Firestore, FirestoreDataConverter, getDocs,
+  query, QueryDocumentSnapshot, QuerySnapshot, SnapshotOptions,
+  where, WhereFilterOp, WithFieldValue
 } from 'firebase/firestore';
 import { debug } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
-import { DataConverter, Model, ModelCollection, ModelConverter } from './model-converter.js';
+import { Model, ModelCollection, ModelReader } from './model-converter.js';
 
 const debugFirestore = debug('firestore');
 
@@ -18,12 +19,30 @@ export function whereFilter(field: string, operator: WhereFilterOp, value: unkno
   return { field, operator, value };
 }
 
+class ReaderConverter<T extends Model> implements FirestoreDataConverter<T>  {
+  private readonly converter: ModelReader<T>;
+
+  constructor(converter: ModelReader<T>) {
+    this.converter = converter;
+  }
+
+  // Unused.
+  toFirestore(_model: WithFieldValue<T>): DocumentData {
+    return {};
+  }
+
+  fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T {
+    const data = snapshot.data(options)!;
+    return this.converter.fromDocument(snapshot.id, data);
+  }
+}
+
 function loadCollection<T extends Model, C extends ModelCollection<T>>(
-  collectionPath: string, converter: ModelConverter<T>, filter?: CollectionFilter): Promise<C> {
+  collectionPath: string, converter: ModelReader<T>, filter?: CollectionFilter): Promise<C> {
   // TODO: Add try/catch for firestore/collection/get calls?
   const firestore: Firestore = firebaseRefs.firestore;
   const collectionRef = collection(firestore, collectionPath).withConverter(
-    new DataConverter(converter));
+    new ReaderConverter(converter));
 
   const queryRef = filter
     ? query<T>(collectionRef, where(filter.field, filter.operator as WhereFilterOp, filter.value))

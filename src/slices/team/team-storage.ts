@@ -3,13 +3,13 @@ import { Player, PlayerStatus, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
 import { CollectionFilter, reader } from '../../storage/firestore-reader.js';
 import { writer } from '../../storage/firestore-writer.js';
-import { ModelConverter, ModelWriter } from '../../storage/model-converter.js';
+import { ModelConverter, ModelReader } from '../../storage/model-converter.js';
 import { RootState } from '../../store.js';
 
 const KEY_ROSTER = 'roster';
 const KEY_TEAMS = 'teams';
 
-const playerConverter: ModelConverter<Player> & ModelWriter<Player> =
+const playerConverter: ModelConverter<Player> =
 {
   fromDocument: (id: string, data: DocumentData) => {
     return {
@@ -36,7 +36,7 @@ const playerConverter: ModelConverter<Player> & ModelWriter<Player> =
 };
 
 
-const teamConverter: ModelConverter<Team> =
+const teamConverter: ModelReader<Team> =
 {
   fromDocument: (id: string, data: DocumentData) => {
     return { id, name: data.name };

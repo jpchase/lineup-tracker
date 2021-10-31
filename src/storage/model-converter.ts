@@ -1,8 +1,5 @@
 import {
   DocumentData,
-  FirestoreDataConverter,
-  QueryDocumentSnapshot,
-  SnapshotOptions,
   WithFieldValue
 } from 'firebase/firestore';
 
@@ -14,28 +11,12 @@ export interface ModelCollection<T extends Model> {
   [index: string]: T;
 }
 
-export interface ModelConverter<T extends Model> {
+export type ModelConverter<T extends Model> = ModelReader<T> & ModelWriter<T>;
+
+export interface ModelReader<T extends Model> {
   fromDocument(id: string, data: DocumentData): T;
 }
 
 export interface ModelWriter<T extends Model> {
   toDocument(model: T | WithFieldValue<T>): DocumentData;
-}
-
-export class DataConverter<T extends Model> implements FirestoreDataConverter<T>  {
-  private readonly converter: ModelConverter<T>;
-
-  constructor(converter: ModelConverter<T>) {
-    this.converter = converter;
-  }
-
-  toFirestore(_model: WithFieldValue<T>): DocumentData {
-    // TODO: Implement when needed
-    return {};
-  }
-
-  fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T {
-    const data = snapshot.data(options)!;
-    return this.converter.fromDocument(snapshot.id, data);
-  }
 }
