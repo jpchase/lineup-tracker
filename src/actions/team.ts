@@ -2,11 +2,9 @@
 @license
 */
 
-import { DocumentData } from 'firebase/firestore';
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { debug } from '../common/debug';
-import { KEY_TEAMS } from '../firestore-helpers';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import { currentUserIdSelector } from '../reducers/auth.js';
@@ -16,11 +14,9 @@ import {
   CHANGE_TEAM, GET_ROSTER,
   GET_TEAMS
 } from '../slices/team-types';
-import { loadTeamRoster, savePlayerToTeamRoster } from '../slices/team/team-storage.js';
-import { CollectionFilter, reader, whereFilter } from '../storage/firestore-reader.js';
-import { writer } from '../storage/firestore-writer.js';
+import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from '../slices/team/team-storage.js';
+import { CollectionFilter, whereFilter } from '../storage/firestore-reader.js';
 import { idb } from '../storage/idb-wrapper';
-import { ModelConverter } from '../storage/model-converter.js';
 import { RootState } from '../store';
 
 export { addTeam } from '../reducers/team';
@@ -39,13 +35,6 @@ const FIELD_PUBLIC = 'public';
 const KEY_TEAMID = 'teamId';
 
 const debugTeam = debug('team');
-
-const teamConverter: ModelConverter<Team> =
-{
-  fromDocument: (id: string, data: DocumentData) => {
-    return { id, name: data.name };
-  }
-};
 
 // Caches the currently selected team, for return visits.
 function cacheTeamId(teamId: string) {
@@ -80,7 +69,7 @@ export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) =>
   }
 
   debugTeam(`Get docs for teams, cachedTeamId = ${cachedTeamId!}`);
-  reader.loadCollection<Team, Teams>(KEY_TEAMS, teamConverter, teamFilter).then((teams) => {
+  loadTeams(teamFilter).then((teams) => {
     // Override the team to be selected, only if provided.
     if (selectedTeamId) {
       cachedTeamId = selectedTeamId;
@@ -140,7 +129,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
   // Save the team to Firestore, before adding to the store.
-  writer.saveNewDocument(newTeam, KEY_TEAMS, undefined, getState(), { addUserId: true });
+  persistTeam(newTeam, getState());
   cacheTeamId(newTeam.id);
   dispatch(addTeam(newTeam));
 };
