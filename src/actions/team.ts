@@ -6,8 +6,7 @@ import { DocumentData } from 'firebase/firestore';
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { debug } from '../common/debug';
-import { firebaseRef } from '../firebase.js';
-import { KEY_TEAMS, savePlayerToTeamRoster } from '../firestore-helpers';
+import { KEY_TEAMS } from '../firestore-helpers';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import { currentUserIdSelector } from '../reducers/auth.js';
@@ -17,7 +16,7 @@ import {
   CHANGE_TEAM, GET_ROSTER,
   GET_TEAMS
 } from '../slices/team-types';
-import { loadTeamRoster } from '../slices/team/team-storage.js';
+import { loadTeamRoster, savePlayerToTeamRoster } from '../slices/team/team-storage.js';
 import { CollectionFilter, reader, whereFilter } from '../storage/firestore-reader.js';
 import { writer } from '../storage/firestore-writer.js';
 import { idb } from '../storage/idb-wrapper';
@@ -141,7 +140,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
 
 export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
   // Save the team to Firestore, before adding to the store.
-  writer.saveNewDocument(newTeam, KEY_TEAMS, getState(), { addUserId: true });
+  writer.saveNewDocument(newTeam, KEY_TEAMS, undefined, getState(), { addUserId: true });
   cacheTeamId(newTeam.id);
   dispatch(addTeam(newTeam));
 };
@@ -179,13 +178,13 @@ export const addNewPlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (
 export const savePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
   const teamId = currentTeamIdSelector(getState())!;
-  savePlayerToTeamRoster(newPlayer, firebaseRef.firestore(), teamId);
+  savePlayerToTeamRoster(newPlayer, teamId);
   dispatch(addPlayer(newPlayer));
 };
 
-export const addPlayer: ActionCreator<ThunkResult> = (player: Player) => (dispatch) => {
-  dispatch({
+export const addPlayer: ActionCreator<TeamActionAddPlayer> = (player: Player) => {
+  return {
     type: ADD_PLAYER,
     player
-  });
+  };
 };

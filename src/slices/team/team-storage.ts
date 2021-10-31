@@ -1,12 +1,13 @@
 import { DocumentData } from 'firebase/firestore';
-import { Player, Roster } from '../../models/player';
+import { Player, PlayerStatus, Roster } from '../../models/player';
 import { reader } from '../../storage/firestore-reader.js';
-import { ModelConverter } from '../../storage/model-converter.js';
+import { writer } from '../../storage/firestore-writer.js';
+import { ModelConverter, ModelWriter } from '../../storage/model-converter.js';
 
 const KEY_ROSTER = 'roster';
 const KEY_TEAMS = 'teams';
 
-const playerConverter: ModelConverter<Player> =
+const playerConverter: ModelConverter<Player> & ModelWriter<Player> =
 {
   fromDocument: (id: string, data: DocumentData) => {
     return {
@@ -16,6 +17,19 @@ const playerConverter: ModelConverter<Player> =
       positions: data.positions || [],
       status: data.status
     };
+  },
+
+  toDocument: (player) => {
+    const data: DocumentData = {
+      ...player,
+    };
+    if (!player.status) {
+      data.status = PlayerStatus.Off;
+    }
+    if (!player.positions) {
+      data.positions = [];
+    }
+    return data;
   }
 };
 
@@ -25,4 +39,8 @@ function buildTeamRosterPath(teamId: string) {
 
 export function loadTeamRoster(teamId: string): Promise<Roster> {
   return reader.loadCollection(buildTeamRosterPath(teamId), playerConverter);
+}
+
+export function savePlayerToTeamRoster(newPlayer: Player, teamId: string) {
+  writer.saveNewDocument(newPlayer, buildTeamRosterPath(teamId), playerConverter);
 }

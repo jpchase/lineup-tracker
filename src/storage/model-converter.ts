@@ -18,6 +18,10 @@ export interface ModelConverter<T extends Model> {
   fromDocument(id: string, data: DocumentData): T;
 }
 
+export interface ModelWriter<T extends Model> {
+  toDocument(model: T | WithFieldValue<T>): DocumentData;
+}
+
 export class DataConverter<T extends Model> implements FirestoreDataConverter<T>  {
   private readonly converter: ModelConverter<T>;
 

@@ -4,7 +4,7 @@ import {
 } from 'firebase/firestore';
 import { debug, debugError } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
-import { Model } from './model-converter.js';
+import { Model, ModelWriter } from './model-converter.js';
 import { useTestData } from '../init.js';
 import { currentUserIdSelector } from '../reducers/auth.js';
 import { currentTeamIdSelector } from '../reducers/team.js';
@@ -18,8 +18,8 @@ export interface NewDocOptions {
   keepExistingId?: boolean;
 }
 
-function buildNewDocumentData(model: Model, state?: RootState, options?: NewDocOptions): DocumentData {
-  const data: DocumentData = {
+function buildNewDocumentData(model: Model, modelWriter?: ModelWriter<any>, state?: RootState, options?: NewDocOptions): DocumentData {
+  const data: DocumentData = modelWriter ? modelWriter.toDocument(model) : {
     ...model,
   };
   // Ensure there is no 'id' property, as that will prevent a unique id from being generated.
@@ -45,17 +45,20 @@ function buildNewDocumentData(model: Model, state?: RootState, options?: NewDocO
 class WriterConverter<T extends Model> implements FirestoreDataConverter<T>  {
   private readonly options: NewDocOptions | undefined;
   private readonly state: RootState | undefined;
+  private readonly modelWriter: ModelWriter<T> | undefined;
 
-  constructor(state?: RootState, options?: NewDocOptions) {
+  constructor(modelWriter?: ModelWriter<T>, state?: RootState, options?: NewDocOptions) {
+    this.modelWriter = modelWriter;
     this.state = state;
     // Default options, if necessary.
     this.options = options;
   }
 
   toFirestore(model: WithFieldValue<T>): DocumentData {
-    return buildNewDocumentData(model as Model, this.state, this.options);
+    return buildNewDocumentData(model as Model, this.modelWriter, this.state, this.options);
   }
 
+  // Unused.
   fromFirestore(_snapshot: QueryDocumentSnapshot, _options: SnapshotOptions): T {
     return {} as T;
   }
@@ -64,10 +67,11 @@ class WriterConverter<T extends Model> implements FirestoreDataConverter<T>  {
 function saveNewDocument<T extends Model>(
   model: T,
   collectionPathOrReference: string,
+  modelWriter?: ModelWriter<T>,
   state?: RootState, options?: NewDocOptions) {
   const firestore: Firestore = firebaseRefs.firestore;
   const collectionRef = collection(firestore, collectionPathOrReference).withConverter(
-    new WriterConverter(state, options));
+    new WriterConverter(modelWriter, state, options));
 
   // Unless requested to use model id, omit the doc path, which will cause a new unique id to be
   // generated.
