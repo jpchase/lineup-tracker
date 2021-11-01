@@ -11,7 +11,7 @@ const KEY_TEAMS = 'teams';
 
 const playerConverter: ModelConverter<Player> =
 {
-  fromDocument: (id: string, data: DocumentData) => {
+  fromDocument: (id: string, data: DocumentData): Player => {
     return {
       id,
       name: data.name,

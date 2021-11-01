@@ -367,17 +367,10 @@ describe('Team actions', () => {
   describe('addTeam', () => {
 
     it('should return an action to add the team', () => {
-      const dispatchMock = sinon.stub();
-
-      actions.addTeam(newTeamSaved);
-
       expect(actions.addTeam(newTeamSaved)).to.deep.equal({
         type: actionTypes.ADD_TEAM,
         payload: newTeamSaved,
       });
-
-      expect(dispatchMock).to.not.have.been.called;
-
     });
 
   }); // describe('addTeam')

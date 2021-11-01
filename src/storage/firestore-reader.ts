@@ -1,5 +1,6 @@
 import {
   collection, DocumentData, Firestore, FirestoreDataConverter, getDocs,
+  Query,
   query, QueryDocumentSnapshot, QuerySnapshot, SnapshotOptions,
   where, WhereFilterOp, WithFieldValue
 } from 'firebase/firestore';
@@ -38,17 +39,21 @@ class ReaderConverter<T extends Model> implements FirestoreDataConverter<T>  {
 }
 
 function loadCollection<T extends Model, C extends ModelCollection<T>>(
-  collectionPath: string, converter: ModelReader<T>, filter?: CollectionFilter): Promise<C> {
+  collectionPath: string, converter: ModelReader<T>, ...filters: CollectionFilter[]): Promise<C> {
   // TODO: Add try/catch for firestore/collection/get calls?
   const firestore: Firestore = firebaseRefs.firestore;
   const collectionRef = collection(firestore, collectionPath).withConverter(
     new ReaderConverter(converter));
 
-  const queryRef = filter
-    ? query<T>(collectionRef, where(filter.field, filter.operator as WhereFilterOp, filter.value))
-    : collectionRef;
+  let queryRef: Query<T> = collectionRef;
+  if (filters) {
+    const constraints = filters.map((filter) => {
+      return where(filter.field, filter.operator as WhereFilterOp, filter.value);
+    });
+    queryRef = query<T>(collectionRef, ...constraints);
+  }
 
-  debugFirestore(`loadCollection for [${collectionPath}]: filter = ${JSON.stringify(filter)}`);
+  debugFirestore(`loadCollection for [${collectionPath}]: filter = ${JSON.stringify(filters)}`);
   return getDocs(queryRef).then((querySnapshot: QuerySnapshot<T>) => {
     debugFirestore(`loadCollection for [${collectionPath}]: ${querySnapshot.size} result(s)`);
 
