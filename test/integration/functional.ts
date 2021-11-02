@@ -43,5 +43,10 @@ describe('functional tests', function () {
       // TODO: Implement test for changing between existing teams,
       // including asserting that list of teams is retrieved correctly.
     });
+
+    it.skip('add player to team roster', async function () {
+      // TODO: Implement test for adding a new player,
+      // including asserting that player is persisted to storage correctly.
+    });
   }); // describe('Team')
 });
