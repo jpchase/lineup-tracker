@@ -1,6 +1,6 @@
 import {
   collection, doc, DocumentData, DocumentReference, Firestore, FirestoreDataConverter,
-  QueryDocumentSnapshot, setDoc, SnapshotOptions, WithFieldValue
+  QueryDocumentSnapshot, setDoc, SnapshotOptions, updateDoc, WithFieldValue
 } from 'firebase/firestore';
 import { debug, debugError } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
@@ -110,7 +110,19 @@ function saveNewDocument<T extends Model>(
   model.id = document.id;
 }
 
+function updateDocument<T extends Model>(
+  modelUpdate: Partial<T>,
+  documentPath: string) {
+
+  const firestore: Firestore = firebaseRefs.firestore;
+  const documentRef: DocumentReference = doc(firestore, documentPath);
+
+  const data: DocumentData = { ...modelUpdate };
+  updateDoc(documentRef, data);
+}
+
 // Trivial wrapper, mainly to allow for mocking in tests.
 export const writer = {
-  saveNewDocument
+  saveNewDocument,
+  updateDocument
 };

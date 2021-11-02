@@ -10,8 +10,7 @@ import { Game, GameDetail, Games, GameStatus } from '../models/game';
 import { Player, Roster } from '../models/player';
 import { currentGameIdSelector, currentGameSelector } from '../reducers/game';
 import { firebaseRef } from '../firebase';
-import { extractGame, loadGameRoster, loadTeamRoster, savePlayerToGameRoster, KEY_GAMES } from '../firestore-helpers';
-import { CollectionReference, DocumentReference, DocumentSnapshot } from '@firebase/firestore-types';
+import { loadTeamRoster, savePlayerToGameRoster } from '../firestore-helpers';
 
 import {
   GAME_HYDRATE,
@@ -28,6 +27,7 @@ import {
   SET_FORMATION,
   START_GAME
 } from '../slices/game-types';
+import { loadGame, loadGameRoster, updateExistingGame } from '../slices/game/game-storage.js';
 
 export interface GameActionHydrate extends Action<typeof GAME_HYDRATE> { gameId?: string, games: Games };
 export interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
@@ -43,17 +43,13 @@ export interface GameActionStartersDone extends Action<typeof STARTERS_DONE> { }
 export interface GameActionSetFormation extends Action<typeof SET_FORMATION> { formationType: FormationType };
 export interface GameActionStartGame extends Action<typeof START_GAME> { };
 export type GameAction = GameActionHydrate | GameActionGetGameRequest | GameActionGetGameSuccess |
-                         GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
-                         GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
-                         GameActionAddPlayer | GameActionCopyRosterRequest |
-                         GameActionCopyRosterSuccess | GameActionCopyRosterFail;
+  GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
+  GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
+  GameActionAddPlayer | GameActionCopyRosterRequest |
+  GameActionCopyRosterSuccess | GameActionCopyRosterFail;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
-
-function getGamesCollection(): CollectionReference {
-  return firebaseRef.firestore().collection(KEY_GAMES);
-}
 
 export const hydrateGame: ActionCreator<GameActionHydrate> = (games: Games, gameId?: string) => {
   return {
@@ -85,15 +81,10 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
   }
 
   let game: Game;
-  const docRef: DocumentReference = getGamesCollection().doc(gameId);
-  return docRef.get().then((value: DocumentSnapshot) => {
-    if (!value.exists) {
-      throw new Error(`Game not found: ${gameId}`);
-    }
-    game = extractGame(value);
-  })
-    .then(() => {
-      return loadGameRoster(firebaseRef.firestore(), gameId);
+  return loadGame(gameId)
+    .then((result) => {
+      game = result;
+      return loadGameRoster(gameId);
     })
     .then((gameRoster: Roster) => {
       const gameDetail: GameDetail = {
@@ -264,8 +255,7 @@ export const startGame: ActionCreator<ThunkResult> = () => (dispatch, getState) 
   // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
   //       so don't have to duplicate logic.
   const gameId = currentGameIdSelector(getState())!;
-  const doc: DocumentReference = getGamesCollection().doc(gameId);
-  doc.update({
+  updateExistingGame(gameId, {
     status: GameStatus.Start
   });
   dispatch({

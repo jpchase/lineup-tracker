@@ -1,5 +1,5 @@
 import {
-  collection, DocumentData, Firestore, FirestoreDataConverter, getDocs,
+  collection, doc, DocumentData, Firestore, FirestoreDataConverter, getDoc, getDocs,
   Query,
   query, QueryDocumentSnapshot, QuerySnapshot, SnapshotOptions,
   where, WhereFilterOp, WithFieldValue
@@ -69,7 +69,24 @@ function loadCollection<T extends Model, C extends ModelCollection<T>>(
   });
 }
 
+async function loadDocument<T extends Model>(
+  documentPath: string, converter: ModelReader<T>): Promise<T> {
+  const firestore: Firestore = firebaseRefs.firestore;
+  const documentRef = doc(firestore, documentPath);
+
+  debugFirestore(`loadDocument for [${documentPath}]}`);
+  const docSnapshot = await getDoc(documentRef);
+  debugFirestore(`loadDocument for [${documentPath}]: exists = ${docSnapshot.exists()}`);
+  if (!docSnapshot.exists()) {
+    throw new Error(`Document not found: ${documentPath}`);
+  }
+  const result = converter.fromDocument(docSnapshot.id, docSnapshot.data());
+  debugFirestore(`loadDocument for [${documentPath}]: ${JSON.stringify(result)}`);
+  return result;
+}
+
 // Trivial wrapper, mainly to allow for mocking in tests.
 export const reader = {
-  loadCollection
+  loadCollection,
+  loadDocument
 };
