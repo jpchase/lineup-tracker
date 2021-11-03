@@ -4,9 +4,9 @@ import { Team, Teams } from '@app/models/team';
 import { RootAction } from '@app/store';
 
 export function getFakeAction(): RootAction {
-    // This must be a real action type, due to type checking. Using the offline
-    // action as it will be unknown to all the lineup-specific actions/reducers.
-    return { type: 'UPDATE_OFFLINE', offline: true };
+  // This must be a real action type, due to type checking. Using the offline
+  // action as it will be unknown to all the lineup-specific actions/reducers.
+  return { type: 'UPDATE_OFFLINE', offline: true };
 }
 
 export interface MockAuthStateOptions {
@@ -15,13 +15,13 @@ export interface MockAuthStateOptions {
 }
 
 export function getMockAuthState(options?: MockAuthStateOptions) {
-    let mockAuth: any = { user: undefined };
-    if (options && options.signedIn) {
-      mockAuth.user = {
-        id: options.userId,
-        name: 'Some user'
-      };
-    }
+  let mockAuth: any = { user: undefined };
+  if (options && options.signedIn) {
+    mockAuth.user = {
+      id: options.userId,
+      name: 'Some user'
+    };
+  }
   return mockAuth;
 }
 
@@ -69,6 +69,14 @@ export function getStoredPlayerData() {
 
 export function getStoredPlayer(): Player {
   return { id: 'sp1', ...getStoredPlayerData() }
+};
+
+export function getOtherStoredPlayerData() {
+  return { name: '2nd Stored player', uniformNumber: 5, positions: ['CB'], status: PlayerStatus.Off }
+};
+
+export function getOtherStoredPlayer(): Player {
+  return { id: 'sp2', ...getOtherStoredPlayerData() }
 };
 
 export function getNewGame(): Game {

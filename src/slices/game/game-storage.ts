@@ -1,9 +1,9 @@
 import { DocumentData } from 'firebase/firestore';
 import { debug } from '../../common/debug';
 import { Game, Games } from '../../models/game.js';
-import { Roster } from '../../models/player.js';
+import { Player, Roster } from '../../models/player.js';
 import { CollectionFilter, reader, whereFilter } from '../../storage/firestore-reader.js';
-import { writer } from '../../storage/firestore-writer.js';
+import { NewDocOptions, writer } from '../../storage/firestore-writer.js';
 import { ModelReader } from '../../storage/model-converter.js';
 import { RootState } from '../../store.js';
 import { playerConverter } from '../player/player-storage.js';
@@ -65,4 +65,10 @@ export function loadGame(gameId: string): Promise<Game> {
 
 export function loadGameRoster(gameId: string): Promise<Roster> {
   return reader.loadCollection(buildGameRosterPath(gameId), playerConverter);
+}
+
+export function persistGamePlayer(newPlayer: Player, gameId: string, isNew: boolean) {
+  const options: NewDocOptions = isNew ? {} : { keepExistingId: true };
+  writer.saveNewDocument(newPlayer, buildGameRosterPath(gameId), playerConverter,
+    undefined, options);
 }

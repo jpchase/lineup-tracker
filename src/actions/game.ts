@@ -10,7 +10,7 @@ import { Game, GameDetail, Games, GameStatus } from '../models/game';
 import { Player, Roster } from '../models/player';
 import { currentGameIdSelector, currentGameSelector } from '../reducers/game';
 import { firebaseRef } from '../firebase';
-import { loadTeamRoster, savePlayerToGameRoster } from '../firestore-helpers';
+import { savePlayerToGameRoster } from '../firestore-helpers';
 
 import {
   GAME_HYDRATE,
@@ -27,7 +27,8 @@ import {
   SET_FORMATION,
   START_GAME
 } from '../slices/game-types';
-import { loadGame, loadGameRoster, updateExistingGame } from '../slices/game/game-storage.js';
+import { loadGame, loadGameRoster, persistGamePlayer, updateExistingGame } from '../slices/game/game-storage.js';
+import { loadTeamRoster } from '../slices/team/team-storage.js';
 
 export interface GameActionHydrate extends Action<typeof GAME_HYDRATE> { gameId?: string, games: Games };
 export interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
@@ -121,7 +122,7 @@ const getGameFail: ActionCreator<GameActionGetGameFail> = (error: string) => {
 
 export const copyRoster: ActionCreator<ThunkPromise<void>> = (gameId: string) => (dispatch, getState) => {
   if (!gameId) {
-    return Promise.resolve();
+    return Promise.reject('gameId is missing');
   }
 
   // Gets the retrieved game. The game must exist as the copy can only be triggered when viewing
@@ -134,7 +135,7 @@ export const copyRoster: ActionCreator<ThunkPromise<void>> = (gameId: string) =>
     existingGame = state.games && state.games.games && state.games.games[gameId];
   }
   if (!existingGame) {
-    return Promise.resolve();
+    return Promise.reject(`No existing game found for id: ${gameId}`);
   }
 
   dispatch(copyRosterRequest(gameId));
@@ -148,7 +149,7 @@ export const copyRoster: ActionCreator<ThunkPromise<void>> = (gameId: string) =>
   }
 
   // Load team roster and save copy to storage
-  return loadTeamRoster(firebaseRef.firestore(), game.teamId)
+  return loadTeamRoster(game.teamId)
     .then((teamRoster: Roster) => {
       // TODO: Use batched writes? (Firestore transactions don't work offline)
       const roster: Roster = {};
@@ -159,7 +160,7 @@ export const copyRoster: ActionCreator<ThunkPromise<void>> = (gameId: string) =>
         };
         // Saves player to game roster storage, but keep the same id. This allows matching up player
         // from team roster across games.
-        savePlayerToGameRoster(gamePlayer, firebaseRef.firestore(), gameId, { keepExistingId: true });
+        persistGamePlayer(gamePlayer, gameId, false);
         roster[gamePlayer.id] = gamePlayer;
       });
       dispatch(copyRosterSuccess(gameId, roster));
