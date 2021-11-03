@@ -1,19 +1,14 @@
 import * as actions from '@app/actions/game';
 import { FormationType } from '@app/models/formation';
 import { Game, GameDetail, GameStatus } from '@app/models/game';
-import { Roster } from '@app/models/player';
+import { Player, Roster } from '@app/models/player.js';
 import { GameState } from '@app/reducers/game';
 import * as actionTypes from '@app/slices/game-types';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState } from '@app/store';
-import {
-  DocumentData,
-  Query, QueryDocumentSnapshot, QuerySnapshot
-} from '@firebase/firestore-types';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { getMockFirebase, mockFirestoreAccessor } from '../helpers/mock-firebase-factory';
 import {
   buildGames, buildRoster, getMockAuthState,
   getNewPlayer, getNewPlayerData,
@@ -72,8 +67,6 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
 
 
 describe('Game actions', () => {
-  let mockFirebase: any;
-  let firestoreAccessorMock: sinon.SinonStub;
   let readerStub: sinon.SinonStubbedInstance<typeof reader>;
   let writerStub: sinon.SinonStubbedInstance<typeof writer>;
 
@@ -82,9 +75,6 @@ describe('Game actions', () => {
 
     readerStub = sinon.stub<typeof reader>(reader);
     writerStub = sinon.stub<typeof writer>(writer);
-
-    mockFirebase = getMockFirebase();
-    firestoreAccessorMock = mockFirestoreAccessor(mockFirebase);
   });
 
   function mockLoadDocumentWithGame(game: Game) {
@@ -509,52 +499,51 @@ describe('Game actions', () => {
     });
 
     it('should save to storage and dispatch an action to add player', async () => {
+      const expectedId = 'randomGamePlayerID68097';
+      const expectedSavedPlayer: Player = {
+        ...getNewPlayerData(),
+        id: expectedId,
+      };
+
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState(undefined, (gameState) => {
         gameState.gameId = STORED_GAME_ID;
         gameState.game = getStoredGameDetail();
       });
+      const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
+        (model) => { model.id = expectedId; }
+      );
 
-      actions.saveGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+      const inputPlayer = getNewPlayer();
+      actions.saveGamePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
 
       // Checks that the new player was saved to the database.
-      const newPlayerSaved = getNewPlayer();
-      const path = `${KEY_GAMES}/${STORED_GAME_ID}/${KEY_ROSTER}`;
-      const query: Query = mockFirebase.firestore().collection(path).where('name', '==', newPlayerSaved.name);
-      const result: QuerySnapshot = await query.get();
-      expect(result.size).to.equal(1);
-
-      const expectedData: any = {
-        ...getNewPlayerData()
-      };
-
-      let id = '';
-      let data: DocumentData = {};
-      result.forEach((doc: QueryDocumentSnapshot) => {
-        id = doc.id;
-        data = doc.data();
-      });
-
-      expect(id).to.be.ok;
-      expect(id).to.match(/[A-Za-z0-9]+/);
-      expect(data).to.deep.equal(expectedData);
+      expect(saveNewDocumentStub).calledOnceWith(
+        inputPlayer, `${KEY_GAMES}/${STORED_GAME_ID}/${KEY_ROSTER}`, sinon.match.object);
+      expect(inputPlayer, 'Input player should have properties set by saving').to.deep.equal(expectedSavedPlayer);
 
       // Waits for promises to resolve.
       await Promise.resolve();
-      expect(dispatchMock).to.have.been.calledWith(sinon.match.func);
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.ADD_GAME_PLAYER,
+        player: expectedSavedPlayer,
+      });
     });
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-      firestoreAccessorMock.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      const getStateMock = mockGetState(undefined, (gameState) => {
+        gameState.gameId = STORED_GAME_ID;
+        gameState.game = getStoredGameDetail();
+      });
+      writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.saveGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
-      }).to.throw();
+      }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -564,17 +553,8 @@ describe('Game actions', () => {
   }); // describe('saveGamePlayer')
 
   describe('addGamePlayer', () => {
-    it('should return a function to dispatch the addGamePlayer action', () => {
-      expect(actions.addGamePlayer()).to.be.instanceof(Function);
-    });
-
     it('should dispatch an action to add the player', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.addGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
+      expect(actions.addGamePlayer(getNewPlayer())).to.deep.equal({
         type: actionTypes.ADD_GAME_PLAYER,
         player: getNewPlayer(),
       });

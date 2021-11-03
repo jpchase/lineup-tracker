@@ -4,31 +4,18 @@
 
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { RootState } from '../store';
 import { FormationType } from '../models/formation';
 import { Game, GameDetail, Games, GameStatus } from '../models/game';
 import { Player, Roster } from '../models/player';
 import { currentGameIdSelector, currentGameSelector } from '../reducers/game';
-import { firebaseRef } from '../firebase';
-import { savePlayerToGameRoster } from '../firestore-helpers';
-
 import {
-  GAME_HYDRATE,
-  GET_GAME_REQUEST,
-  GET_GAME_SUCCESS,
-  GET_GAME_FAIL,
-  CAPTAINS_DONE,
-  COPY_ROSTER_REQUEST,
-  COPY_ROSTER_SUCCESS,
-  COPY_ROSTER_FAIL,
-  ADD_GAME_PLAYER,
-  ROSTER_DONE,
-  STARTERS_DONE,
-  SET_FORMATION,
-  START_GAME
+  ADD_GAME_PLAYER, CAPTAINS_DONE, COPY_ROSTER_FAIL, COPY_ROSTER_REQUEST,
+  COPY_ROSTER_SUCCESS, GAME_HYDRATE, GET_GAME_FAIL, GET_GAME_REQUEST,
+  GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION, STARTERS_DONE, START_GAME
 } from '../slices/game-types';
 import { loadGame, loadGameRoster, persistGamePlayer, updateExistingGame } from '../slices/game/game-storage.js';
 import { loadTeamRoster } from '../slices/team/team-storage.js';
+import { RootState } from '../store.js';
 
 export interface GameActionHydrate extends Action<typeof GAME_HYDRATE> { gameId?: string, games: Games };
 export interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
@@ -214,15 +201,15 @@ export const addNewGamePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) 
 export const saveGamePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
   const gameId = currentGameIdSelector(getState())!;
-  savePlayerToGameRoster(newPlayer, firebaseRef.firestore(), gameId);
+  persistGamePlayer(newPlayer, gameId, true);
   dispatch(addGamePlayer(newPlayer));
 };
 
-export const addGamePlayer: ActionCreator<ThunkResult> = (player: Player) => (dispatch) => {
-  dispatch({
+export const addGamePlayer: ActionCreator<GameActionAddPlayer> = (player: Player) => {
+  return {
     type: ADD_GAME_PLAYER,
     player
-  });
+  };
 };
 
 export const markRosterDone: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
