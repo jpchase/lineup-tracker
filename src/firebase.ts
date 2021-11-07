@@ -1,15 +1,10 @@
-import { getAuth, signInWithPopup } from 'firebase/auth';
-import firebase_app from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import 'firebase/compat/firestore';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { connectAuthEmulator, getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from 'firebase/auth';
+import { CACHE_SIZE_UNLIMITED, connectFirestoreEmulator, enableMultiTabIndexedDbPersistence, initializeFirestore } from 'firebase/firestore';
 import { debug } from './common/debug';
 import { useTestData } from './init';
 
 const debugFirebase = debug('firebase');
-
-// TODO: Still need the window['firebase'] for testing?
-export const firebaseRef: typeof firebase_app = (window as any)['firebase'] || firebase_app;
 
 // Initialize Firebase
 const config = {
@@ -17,29 +12,26 @@ const config = {
   authDomain: "resplendent-fire-4542.firebaseapp.com",
   projectId: "resplendent-fire-4542",
 };
-export const firebaseApp = firebaseRef.initializeApp(config);
+const firebaseApp = initializeApp(config);
 
-const firestore = firebaseRef.firestore();
-
-const settings: firebase_app.firestore.Settings = {
-  cacheSizeBytes: firebase_app.firestore.CACHE_SIZE_UNLIMITED,
-};
+const firestore = initializeFirestore(firebaseApp, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+});
+const authRef = getAuth(firebaseApp);
 
 let enablePersistence = true;
 if (useTestData()) {
-  // Connect to the emulator, instead of the actual Firestore database.
+  // Connect to the emulators, instead of the actual services.
   debugFirebase('Use the Firebase emulators');
-  enablePersistence = false;
-  settings.host = 'localhost:8790';
-  settings.ssl = false;
+  connectFirestoreEmulator(firestore, 'localhost', 8790);
+  connectAuthEmulator(authRef, 'http://localhost:9099/', { disableWarnings: true });
 
-  // @ts-expect-error Typings are not updated for |options| parameter.
-  firebaseRef.auth().useEmulator('http://localhost:9099/', { disableWarnings: true });
+  // Disable Firestore IDB persistence, as it can cause problems for tests.
+  enablePersistence = false;
 }
 
-firestore.settings(settings);
 if (enablePersistence) {
-  firestore.enablePersistence({ synchronizeTabs: true })
+  enableMultiTabIndexedDbPersistence(firestore)
     .catch((err) => {
       if (err.code == 'failed-precondition') {
         // Multiple tabs open, persistence can only be enabled
@@ -55,16 +47,15 @@ if (enablePersistence) {
     });
 }
 
-export default firebaseRef;
-
-export const authRef = getAuth(firebaseApp);
-export const provider = new firebaseRef.auth.GoogleAuthProvider();
-
 // Trivial wrapper, mainly to allow for mocking in tests.
 export const firebaseRefs = {
   // app: firebaseApp,
-  firestore: getFirestore(firebaseApp)
+  auth: authRef,
+  firestore: firestore
 };
 export const auth = {
-  signInWithPopup: signInWithPopup
+  provider: new GoogleAuthProvider(),
+  signInWithPopup: signInWithPopup,
+  onAuthStateChanged: onAuthStateChanged
+
 };

@@ -24,11 +24,11 @@ import {
   SELECT_STARTER,
   SELECT_STARTER_POSITION
 } from '@app/slices/live-types';
+import { writer } from '@app/storage/firestore-writer.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture, html, oneEvent } from '@open-wc/testing';
-import * as sinon from 'sinon';
-import { mockFirestoreAccessor } from '../helpers/mock-firebase-factory';
+import sinon from 'sinon';
 import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
 
 let actions: string[] = [];
@@ -356,7 +356,9 @@ describe('lineup-game-setup tests', () => {
   });
 
   it('dispatches start game action when start button clicked', async () => {
-    mockFirestoreAccessor();
+    // Mock the call to update the game in storage.
+    const writerStub = sinon.stub<typeof writer>(writer);
+    writerStub.updateDocument.returns();
 
     const newGame = getGameDetail();
     newGame.id = STORED_GAME_ID;

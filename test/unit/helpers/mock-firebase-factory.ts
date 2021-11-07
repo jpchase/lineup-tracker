@@ -1,6 +1,4 @@
-import { firebaseRef } from '@app/firebase';
 import MockFirebase from 'mock-cloud-firestore';
-import * as sinon from 'sinon';
 import {
   getPublicGameData, getPublicTeamData, getStoredGameData, getStoredPlayerData, getStoredTeamData,
   OTHER_STORED_GAME_ID, PUBLIC_GAME_ID, STORED_GAME_ID, TEST_USER_ID
@@ -81,12 +79,4 @@ function getMockFirebaseData(): any {
 
 export function getMockFirebase(): any {
   return new MockFirebase(getMockFirebaseData());
-}
-
-export function mockFirestoreAccessor(mockFirebase?: any): sinon.SinonStub {
-  const mockInstance = mockFirebase || getMockFirebase();
-
-  return sinon.stub(firebaseRef, 'firestore').callsFake(() => {
-    return mockInstance.firestore();
-  });
 }
