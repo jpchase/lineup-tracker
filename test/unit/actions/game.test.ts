@@ -1,21 +1,18 @@
 import * as actions from '@app/actions/game';
-import { firebaseRef } from '@app/firebase';
 import { FormationType } from '@app/models/formation';
 import { Game, GameDetail, GameStatus } from '@app/models/game';
-import { Player, Roster } from '@app/models/player';
+import { Player, Roster } from '@app/models/player.js';
 import { GameState } from '@app/reducers/game';
 import * as actionTypes from '@app/slices/game-types';
+import { reader } from '@app/storage/firestore-reader.js';
+import { writer } from '@app/storage/firestore-writer.js';
 import { RootState } from '@app/store';
-import {
-  DocumentData, DocumentReference, DocumentSnapshot,
-  Query, QueryDocumentSnapshot, QuerySnapshot
-} from '@firebase/firestore-types';
 import { expect } from '@open-wc/testing';
-import * as sinon from 'sinon';
-import { getMockFirebase, mockFirestoreAccessor } from '../helpers/mock-firebase-factory';
+import sinon from 'sinon';
 import {
   buildGames, buildRoster, getMockAuthState,
   getNewPlayer, getNewPlayerData,
+  getOtherStoredPlayer,
   getStoredGame, getStoredGameData, getStoredPlayer,
   OTHER_STORED_GAME_ID, STORED_GAME_ID
 } from '../helpers/test_data';
@@ -25,7 +22,7 @@ function getOtherStoredGameWithoutDetail(): Game {
 };
 
 function getTeamRoster() {
-  return buildRoster([getStoredPlayer()]);
+  return buildRoster([getStoredPlayer(), getOtherStoredPlayer()]);
 };
 
 function getStoredGameDetail(): GameDetail {
@@ -37,6 +34,7 @@ function getStoredGameDetail(): GameDetail {
 
 const KEY_GAMES = 'games';
 const KEY_ROSTER = 'roster';
+const KEY_TEAMS = 'teams';
 
 interface MockStateUpdateFunc {
   (state: GameState): void;
@@ -69,70 +67,105 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
 
 
 describe('Game actions', () => {
-  let mockFirebase: any;
-  let firestoreAccessorMock: sinon.SinonStub;
+  let readerStub: sinon.SinonStubbedInstance<typeof reader>;
+  let writerStub: sinon.SinonStubbedInstance<typeof writer>;
 
   beforeEach(() => {
     sinon.restore();
 
-    mockFirebase = getMockFirebase();
-    firestoreAccessorMock = mockFirestoreAccessor(mockFirebase);
+    readerStub = sinon.stub<typeof reader>(reader);
+    writerStub = sinon.stub<typeof writer>(writer);
   });
+
+  function mockLoadDocumentWithGame(game: Game) {
+    return readerStub.loadDocument
+      .withArgs(`${KEY_GAMES}/${game.id}`, sinon.match.object)
+      .resolves(game);
+  }
+
+  function mockLoadCollectionWithGameRoster(gameId: string, roster: Roster) {
+    return readerStub.loadCollection
+      .withArgs(`${KEY_GAMES}/${gameId}/roster`, sinon.match.object)
+      .resolves(roster);
+  }
+
+  function mockLoadCollectionWithTeamRoster(teamId: string, roster: Roster) {
+    return readerStub.loadCollection
+      .withArgs(`${KEY_TEAMS}/${teamId}/roster`, sinon.match.object)
+      .resolves(roster);
+  }
 
   describe('getGame', () => {
     it('should return a function to dispatch the getGame action', () => {
       expect(actions.getGame()).to.be.instanceof(Function);
     });
 
-    it('should do nothing if game id is missing', () => {
+    it('should do nothing if game id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      actions.getGame()(dispatchMock, getStateMock, undefined);
+      let getRejected = false;
+      try {
+        await actions.getGame()(dispatchMock, getStateMock, undefined);
+      } catch {
+        getRejected = true;
+      }
+      expect(getRejected, 'getGame() rejected').to.be.true;
 
-      expect(firebaseRef.firestore).to.not.have.been.called;
+      expect(readerStub.loadDocument, 'loadDocument').to.not.have.been.called;
+      expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
       expect(dispatchMock).to.not.have.been.called;
     });
 
     it('should dispatch success action with game returned from storage', async () => {
+      const expectedGame = getStoredGame();
+      const expectedGameDetail = getStoredGameDetail();
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([]);
+      const loadDocumentStub = mockLoadDocumentWithGame(expectedGame);
+      const loadCollectionStub = mockLoadCollectionWithGameRoster(
+        expectedGameDetail.id, expectedGameDetail.roster);
 
-      const gameId = getStoredGame().id;
-      await actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
+      await actions.getGame(expectedGameDetail.id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).to.have.callCount(2);
+      expect(loadDocumentStub, 'loadDocument').to.have.callCount(1);
+      expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
 
-      expect(dispatchMock).to.have.callCount(2);
+      expect(dispatchMock, 'dispatch').to.have.callCount(2);
 
       // Checks that first dispatch was the request action
       expect(dispatchMock.firstCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_REQUEST,
-        gameId: gameId,
+        gameId: expectedGameDetail.id,
       });
 
       expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_SUCCESS,
-        game: getStoredGameDetail(),
+        game: expectedGameDetail,
       });
     });
 
     it('should dispatch success action when game roster is empty', async () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([]);
-
-      await actions.getGame(OTHER_STORED_GAME_ID)(dispatchMock, getStateMock, undefined);
-
-      expect(firebaseRef.firestore).to.have.callCount(2);
-
-      // The request action is dispatched, regardless.
-      expect(dispatchMock).to.have.callCount(2);
-
       const storedGame: GameDetail = {
         ...getOtherStoredGameWithoutDetail(),
         roster: {}
       }
+
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([]);
+      const loadDocumentStub = mockLoadDocumentWithGame(storedGame);
+      const loadCollectionStub = mockLoadCollectionWithGameRoster(
+        storedGame.id, {});
+
+      await actions.getGame(OTHER_STORED_GAME_ID)(dispatchMock, getStateMock, undefined);
+
+      expect(loadDocumentStub, 'loadDocument').to.have.callCount(1);
+      expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).to.have.callCount(2);
+
       expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_SUCCESS,
         game: storedGame
@@ -152,7 +185,8 @@ describe('Game actions', () => {
 
       await actions.getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).to.not.have.been.called;
+      expect(readerStub.loadDocument, 'loadDocument').to.not.have.been.called;
+      expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
       // The request action is dispatched, regardless.
       expect(dispatchMock).to.have.callCount(2);
@@ -173,7 +207,8 @@ describe('Game actions', () => {
 
       await actions.getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).to.not.have.been.called;
+      expect(readerStub.loadDocument, 'loadDocument').to.not.have.been.called;
+      expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
       // The request action is dispatched, regardless.
       expect(dispatchMock).to.have.callCount(2);
@@ -185,27 +220,40 @@ describe('Game actions', () => {
     });
 
     it('should retrieve from storage when already loaded game is missing detail', async () => {
+      const expectedGame = getStoredGame();
+      const expectedGameDetail = getStoredGameDetail();
+
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([getStoredGame()]);
+      const getStateMock = mockGetState([{
+        ...expectedGameDetail, hasDetail: false
+      }]);
+      const loadDocumentStub = mockLoadDocumentWithGame(expectedGame);
+      const loadCollectionStub = mockLoadCollectionWithGameRoster(
+        expectedGameDetail.id, expectedGameDetail.roster);
 
-      await actions.getGame(getStoredGame().id)(dispatchMock, getStateMock, undefined);
+      await actions.getGame(expectedGame.id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).to.have.callCount(2);
+      expect(loadDocumentStub, 'loadDocument').to.have.callCount(1);
+      expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
 
       // The request action is dispatched, regardless.
       expect(dispatchMock).to.have.callCount(2);
 
       expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_SUCCESS,
-        game: getStoredGameDetail(),
+        game: expectedGameDetail,
       });
     });
 
     it('should fail when game not found in storage', async () => {
+      const gameId = 'nosuchgame';
+
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([]);
+      readerStub.loadDocument
+        .withArgs(`${KEY_GAMES}/${gameId}`, sinon.match.object)
+        .rejects(new Error(`Document not found: ${KEY_GAMES}/${gameId}`));
 
-      const gameId = 'nosuchgame';
       await actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.callCount(2);
@@ -218,20 +266,20 @@ describe('Game actions', () => {
 
       expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.GET_GAME_FAIL,
-        error: `Error: Game not found: ${gameId}`,
+        error: `Error: Document not found: ${KEY_GAMES}/${gameId}`,
       });
     });
 
     it('should dispatch only request action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
+      const getStateMock = mockGetState();
       const gameId = getStoredGame().id;
 
-      firestoreAccessorMock.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      readerStub.loadDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.getGame(gameId)(dispatchMock, getStateMock, undefined);
-      }).to.throw();
+      }).to.throw('Storage failed');
 
       expect(dispatchMock).to.have.callCount(1);
 
@@ -245,34 +293,6 @@ describe('Game actions', () => {
 
   describe('copyRoster', () => {
 
-    async function verifyStoredRoster(gameId: string, expectedRoster: Roster) {
-      const expectedIds = Object.keys(expectedRoster);
-      const path = `${KEY_GAMES}/${gameId}/${KEY_ROSTER}`;
-      const query: Query = mockFirebase.firestore().collection(path);
-      const result: QuerySnapshot = await query.get();
-      expect(result.size).to.equal(expectedIds.length);
-
-      let matchingCount = 0;
-      result.forEach((doc: QueryDocumentSnapshot) => {
-        const id = doc.id;
-
-        expect(id).to.be.ok;
-        expect(id).to.match(/[A-Za-z0-9]+/);
-
-        expect(expectedRoster[id]).to.not.be.undefined;
-
-        const data = doc.data();
-        const matchingPlayer: Player = expectedRoster[id];
-
-        expect(data).to.deep.equal(matchingPlayer);
-
-        matchingCount++;
-      });
-
-      // Checks that all of the expected players were found.
-      expect(matchingCount).to.equal(expectedIds.length);
-    }
-
     it('should return a function to dispatch the copyRoster action', () => {
       expect(actions.copyRoster()).to.be.instanceof(Function);
     });
@@ -281,9 +301,15 @@ describe('Game actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      await actions.copyRoster()(dispatchMock, getStateMock, undefined);
+      let copyRejected = false;
+      try {
+        await actions.copyRoster()(dispatchMock, getStateMock, undefined);
+      } catch {
+        copyRejected = true;
+      }
+      expect(copyRejected, 'copyRoster() rejected').to.be.true;
 
-      expect(firebaseRef.firestore).to.not.have.been.called;
+      expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
       expect(dispatchMock).to.not.have.been.called;
     });
@@ -293,9 +319,15 @@ describe('Game actions', () => {
       const getStateMock = mockGetState([]);
 
       const gameId = 'nosuchgame';
-      await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
+      let copyRejected = false;
+      try {
+        await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
+      } catch {
+        copyRejected = true;
+      }
+      expect(copyRejected, 'copyRoster() rejected').to.be.true;
 
-      expect(firebaseRef.firestore).to.not.have.been.called;
+      expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
       expect(dispatchMock).to.not.have.been.called;
     });
@@ -313,7 +345,7 @@ describe('Game actions', () => {
 
       await actions.copyRoster(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).to.not.have.been.called;
+      expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
       // The request action is dispatched, regardless.
       expect(dispatchMock).to.have.callCount(2);
@@ -332,16 +364,28 @@ describe('Game actions', () => {
         hasDetail: true,
         roster: {}
       };
+      const teamRoster = getTeamRoster();
+      const rosterSize = Object.keys(teamRoster).length;
+
       const getStateMock = mockGetState(undefined, (gameState) => {
         gameState.gameId = loadedGame.id;
         gameState.game = loadedGame;
       });
+      const loadCollectionStub = mockLoadCollectionWithTeamRoster(loadedGame.teamId,
+        teamRoster);
+      const saveNewDocumentStub = writerStub.saveNewDocument.resolves();
 
       const gameId = loadedGame.id;
       await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
 
-      expect(firebaseRef.firestore).to.have.callCount(2);
+      expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
 
+      // Checks that each player was saved to the game roster.
+      expect(saveNewDocumentStub, 'saveNewDocument').to.have.callCount(rosterSize);
+      Object.keys(teamRoster).forEach((key, index) => {
+        expect(saveNewDocumentStub.getCall(index)).to.have.been.calledWith(
+          teamRoster[key], `${KEY_GAMES}/${gameId}/roster`, sinon.match.object, undefined, { keepExistingId: true });
+      });
       expect(dispatchMock).to.have.callCount(2);
 
       // Checks that first dispatch was the request action
@@ -353,10 +397,8 @@ describe('Game actions', () => {
       expect(dispatchMock.lastCall).to.have.been.calledWith({
         type: actionTypes.COPY_ROSTER_SUCCESS,
         gameId: gameId,
-        gameRoster: buildRoster([getStoredPlayer()]),
+        gameRoster: { ...teamRoster }
       });
-
-      await verifyStoredRoster(gameId, buildRoster([getStoredPlayer()]));
     });
 
     it('should dispatch only request action when storage access fails', async () => {
@@ -373,11 +415,11 @@ describe('Game actions', () => {
 
       const gameId = loadedGame.id;
 
-      firestoreAccessorMock.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
-      }).to.throw();
+      }).to.throw('Storage failed');
 
       expect(dispatchMock).to.have.callCount(1);
 
@@ -457,52 +499,51 @@ describe('Game actions', () => {
     });
 
     it('should save to storage and dispatch an action to add player', async () => {
+      const expectedId = 'randomGamePlayerID68097';
+      const expectedSavedPlayer: Player = {
+        ...getNewPlayerData(),
+        id: expectedId,
+      };
+
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState(undefined, (gameState) => {
         gameState.gameId = STORED_GAME_ID;
         gameState.game = getStoredGameDetail();
       });
+      const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
+        (model) => { model.id = expectedId; }
+      );
 
-      actions.saveGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+      const inputPlayer = getNewPlayer();
+      actions.saveGamePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
 
       // Checks that the new player was saved to the database.
-      const newPlayerSaved = getNewPlayer();
-      const path = `${KEY_GAMES}/${STORED_GAME_ID}/${KEY_ROSTER}`;
-      const query: Query = mockFirebase.firestore().collection(path).where('name', '==', newPlayerSaved.name);
-      const result: QuerySnapshot = await query.get();
-      expect(result.size).to.equal(1);
-
-      const expectedData: any = {
-        ...getNewPlayerData()
-      };
-
-      let id = '';
-      let data: DocumentData = {};
-      result.forEach((doc: QueryDocumentSnapshot) => {
-        id = doc.id;
-        data = doc.data();
-      });
-
-      expect(id).to.be.ok;
-      expect(id).to.match(/[A-Za-z0-9]+/);
-      expect(data).to.deep.equal(expectedData);
+      expect(saveNewDocumentStub).calledOnceWith(
+        inputPlayer, `${KEY_GAMES}/${STORED_GAME_ID}/${KEY_ROSTER}`, sinon.match.object);
+      expect(inputPlayer, 'Input player should have properties set by saving').to.deep.equal(expectedSavedPlayer);
 
       // Waits for promises to resolve.
       await Promise.resolve();
-      expect(dispatchMock).to.have.been.calledWith(sinon.match.func);
+      expect(dispatchMock).to.have.been.calledWith({
+        type: actionTypes.ADD_GAME_PLAYER,
+        player: expectedSavedPlayer,
+      });
     });
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-      firestoreAccessorMock.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      const getStateMock = mockGetState(undefined, (gameState) => {
+        gameState.gameId = STORED_GAME_ID;
+        gameState.game = getStoredGameDetail();
+      });
+      writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.saveGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
-      }).to.throw();
+      }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -512,17 +553,8 @@ describe('Game actions', () => {
   }); // describe('saveGamePlayer')
 
   describe('addGamePlayer', () => {
-    it('should return a function to dispatch the addGamePlayer action', () => {
-      expect(actions.addGamePlayer()).to.be.instanceof(Function);
-    });
-
     it('should dispatch an action to add the player', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.addGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
+      expect(actions.addGamePlayer(getNewPlayer())).to.deep.equal({
         type: actionTypes.ADD_GAME_PLAYER,
         player: getNewPlayer(),
       });
@@ -623,7 +655,10 @@ describe('Game actions', () => {
     });
 
     it('should save updated game to storage', async () => {
+      const game = getStoredGame();
+
       const dispatchMock = sinon.stub();
+      const updateDocumentStub = writerStub.updateDocument.returns();
 
       actions.startGame()(dispatchMock, getStateMock, undefined);
 
@@ -631,34 +666,18 @@ describe('Game actions', () => {
       await Promise.resolve();
 
       // Checks that the game was saved to the database.
-      const docRef: DocumentReference = mockFirebase.firestore().collection('games').doc(existingGame.id);
-      const doc: DocumentSnapshot = await docRef.get();
-      expect(doc, 'retrieved doc').to.be.ok;
-      expect(doc.id).to.equal(existingGame.id);
-
-      const expectedData: any = {
-        ...getStoredGame(),
-        status: GameStatus.Start,
-      };
-      // The id property is not stored in the doc data.
-      delete expectedData.id;
-      // The date property is checked separately, as firestore doesn't store as JavaScript Date values.
-      delete expectedData.date;
-
-      const data = doc.data();
-      expect(data, 'data').to.be.ok;
-      expect(data).to.deep.include(expectedData);
-      expect(data!.date.toDate()).to.deep.equal(existingGame.date);
+      expect(updateDocumentStub).calledOnceWith(
+        { status: GameStatus.Start }, `${KEY_GAMES}/${game.id}`);
     });
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
 
-      firestoreAccessorMock.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
         actions.startGame()(dispatchMock, getStateMock, undefined);
-      }).to.throw();
+      }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
       await Promise.resolve();

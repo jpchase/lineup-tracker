@@ -1,17 +1,12 @@
 import * as actions from '@app/actions/auth';
-import { auth, authRef } from '@app/firebase';
+import { auth } from '@app/firebase';
 import { User } from '@app/models/auth';
 import * as actionTypes from '@app/slices/auth-types';
-import { Error as FirebaseError, User as FirebaseUser, UserCredential } from '@firebase/auth-types';
-import { Observer, Unsubscribe } from '@firebase/util';
+import { OperationType, User as FirebaseUser, UserCredential, onAuthStateChanged } from 'firebase/auth';
 import { expect } from '@open-wc/testing';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 
-type AuthStateChangedFn = (
-  nextOrObserver: Observer<any> | ((a: FirebaseUser | null) => any),
-    error ?: (a: FirebaseError) => any,
-    completed ?: Unsubscribe
-  ) => Unsubscribe;
+type AuthStateChangedFn = (typeof onAuthStateChanged);
 
 function buildFirebaseUser(uid: number): FirebaseUser {
   const result: any = {
@@ -23,16 +18,26 @@ function buildFirebaseUser(uid: number): FirebaseUser {
 
 function buildUserCredential(user: FirebaseUser): UserCredential {
   return {
-    credential: null,
-    user
+    user,
+    providerId: null,
+    operationType: OperationType.SIGN_IN
   }
 }
 
+function mockAuthStateChanged(changedValue: FirebaseUser | null): AuthStateChangedFn {
+  return (_auth, nextOrObserver) => {
+    if (typeof nextOrObserver === 'function') {
+      nextOrObserver(changedValue);
+    }
+    return () => { };
+  };
+}
+
 describe('getUser', () => {
-  let changedSpy: sinon.SinonStub;
+  let changedStub: sinon.SinonStub;
 
   beforeEach(() => {
-    changedSpy = sinon.stub(authRef, 'onAuthStateChanged');
+    changedStub = sinon.stub(auth, 'onAuthStateChanged');
   });
 
   afterEach(() => {
@@ -53,20 +58,13 @@ describe('getUser', () => {
       photoURL: null
     } as FirebaseUser;
 
-    const changedMock: AuthStateChangedFn = (nextOrObserver /*, error, completed*/): Unsubscribe => {
-      if (typeof nextOrObserver === 'function') {
-        nextOrObserver(firebaseUser);
-      }
-      return {} as Unsubscribe;
-    };
-
-    changedSpy.onFirstCall().callsFake(changedMock);
+    changedStub.onFirstCall().callsFake(mockAuthStateChanged(firebaseUser));
 
     actions.getUser()(dispatchMock, getStateMock, undefined);
 
     // Checks that onAuthStateChanged() was called with a callback.
-    expect(changedSpy).to.have.callCount(1);
-    expect(changedSpy.firstCall).to.have.been.calledWith(sinon.match.func);
+    expect(changedStub).to.have.callCount(1);
+    expect(changedStub.firstCall).to.have.been.calledWith(sinon.match.object, sinon.match.func);
 
     const signedInUser: User = {
       id: 'su1', name: 'Signed in user 1', email: '', imageUrl: ''
@@ -82,19 +80,12 @@ describe('getUser', () => {
     const dispatchMock = sinon.stub();
     const getStateMock = sinon.stub();
 
-    const changedMock: AuthStateChangedFn = (nextOrObserver /*, error, completed*/): Unsubscribe => {
-      if (typeof nextOrObserver === 'function') {
-        nextOrObserver(null);
-      }
-      return {} as Unsubscribe;
-    };
-
-    changedSpy.onFirstCall().callsFake(changedMock);
+    changedStub.onFirstCall().callsFake(mockAuthStateChanged(null));
 
     actions.getUser()(dispatchMock, getStateMock, undefined);
 
     // Checks that onAuthStateChanged() was called with a callback.
-    expect(changedSpy).to.have.callCount(1);
+    expect(changedStub).to.have.callCount(1);
 
     expect(dispatchMock).to.have.been.calledWith({
       type: actionTypes.GET_USER_SUCCESS,

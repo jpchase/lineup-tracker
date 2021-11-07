@@ -1,40 +1,14 @@
 import { DocumentData } from 'firebase/firestore';
-import { Player, PlayerStatus, Roster } from '../../models/player.js';
+import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
 import { CollectionFilter, reader } from '../../storage/firestore-reader.js';
 import { writer } from '../../storage/firestore-writer.js';
-import { ModelConverter, ModelReader } from '../../storage/model-converter.js';
+import { ModelReader } from '../../storage/model-converter.js';
 import { RootState } from '../../store.js';
+import { playerConverter } from '../player/player-storage.js';
 
 const KEY_ROSTER = 'roster';
 const KEY_TEAMS = 'teams';
-
-const playerConverter: ModelConverter<Player> =
-{
-  fromDocument: (id: string, data: DocumentData): Player => {
-    return {
-      id,
-      name: data.name,
-      uniformNumber: data.uniformNumber,
-      positions: data.positions || [],
-      status: data.status
-    };
-  },
-
-  toDocument: (player) => {
-    const data: DocumentData = {
-      ...player,
-    };
-    if (!player.status) {
-      data.status = PlayerStatus.Off;
-    }
-    if (!player.positions) {
-      data.positions = [];
-    }
-    return data;
-  }
-};
-
 
 const teamConverter: ModelReader<Team> =
 {

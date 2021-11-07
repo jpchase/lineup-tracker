@@ -3,12 +3,11 @@
 @license
 */
 
-import { User as FirebaseUser, UserCredential } from '@firebase/auth';
-import { GoogleAuthProvider, onAuthStateChanged, signInWithCredential } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithCredential, User as FirebaseUser, UserCredential } from 'firebase/auth';
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { debug } from '../common/debug';
-import { auth, authRef, provider } from '../firebase';
+import { auth, firebaseRefs } from '../firebase';
 import { useTestData } from '../init';
 import { User } from '../models/auth';
 import { GET_USER_SUCCESS } from '../slices/auth-types';
@@ -29,7 +28,7 @@ export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) =>
     resolveFunc = resolve;
   });
 
-  onAuthStateChanged(authRef, (user: FirebaseUser | null) => {
+  auth.onAuthStateChanged(firebaseRefs.auth, (user: FirebaseUser | null) => {
     if (user) {
       debugAuth(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
       dispatch({
@@ -58,10 +57,10 @@ export const signIn: ActionCreator<ThunkResult> = () => () => {
     const credential = GoogleAuthProvider.credential(
       `{"sub": "3FK9P5Ledx4voK8w5Ep07DS6dCUc", "email": "algae.orange.312@test.com", "email_verified": true}`
     )
-    signinPromise = signInWithCredential(authRef, credential);
+    signinPromise = signInWithCredential(firebaseRefs.auth, credential);
   } else {
     debugAuth('Sign in with popup, as usual');
-    signinPromise = auth.signInWithPopup(authRef, provider);
+    signinPromise = auth.signInWithPopup(firebaseRefs.auth, auth.provider);
   }
   signinPromise
     .then((result: UserCredential) => {
