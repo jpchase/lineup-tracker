@@ -37,8 +37,7 @@ describe('lineup-view-game-roster tests', () => {
     expect(rosterElement, 'Roster element should not be shown').to.not.be.ok;
 
     await expect(el).shadowDom.to.equalSnapshot();
-    // TODO: Fix new accessibility errors
-    // await expect(el).to.be.accessible();
+    await expect(el).to.be.accessible();
   });
 
   it('shows roster placeholder when game roster is empty', async () => {
@@ -58,8 +57,7 @@ describe('lineup-view-game-roster tests', () => {
     expect(rosterElement, 'Roster element should not be shown').to.not.be.ok;
 
     await expect(el).shadowDom.to.equalSnapshot();
-    // TODO: Fix new accessibility errors
-    // await expect(el).to.be.accessible();
+    await expect(el).to.be.accessible();
   });
 
   it('shows player list when game roster is not empty', async () => {
@@ -73,8 +71,12 @@ describe('lineup-view-game-roster tests', () => {
     expect(rosterElement, 'Roster element should be shown').to.be.ok;
 
     await expect(el).shadowDom.to.equalSnapshot();
-    // TODO: Fix new accessibility errors
-    // await expect(el).to.be.accessible();
+    await expect(el).to.be.accessible({
+      // Disable color-contrast as colors depend on global styles, which are
+      // not available in standalone component.
+      // Disable list until addressed by mwc-list component.
+      ignoredRules: ['color-contrast', 'list'],
+    });
   });
 
   it('roster adds allowed for new game', async () => {

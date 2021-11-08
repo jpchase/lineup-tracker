@@ -65,6 +65,7 @@ describe('lineup-roster tests', () => {
     const placeholder = el.shadowRoot!.querySelector('div p.empty-list');
     expect(placeholder, 'Missing empty placeholder element').to.exist;
     await expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).to.be.accessible();
   });
 
   for (const numPlayers of [1, 6]) {
@@ -97,6 +98,13 @@ describe('lineup-roster tests', () => {
         expect(positionsElement!.textContent).to.equal(player.positions.join(', '), 'Player positions');
       }
       await expect(el).shadowDom.to.equalSnapshot();
+      await expect(el).to.be.accessible({
+        // Disable color-contrast as colors depend on global styles, which are
+        // not available in standalone component.
+        // Disable list until addressed by mwc-list component.
+        // TODO: Log issue, or find workaround.
+        ignoredRules: ['color-contrast', 'list'],
+      });
     });
   }
 
