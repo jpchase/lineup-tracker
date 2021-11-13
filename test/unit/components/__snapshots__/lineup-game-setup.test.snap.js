@@ -1,20 +1,17 @@
-# `lineup-game-setup tests`
+/* @web/test-runner snapshot v1 */
+export const snapshots = {};
 
-#### `starts empty`
-
-```html
-<div>
+snapshots["lineup-game-setup tests starts empty"] = 
+`<div>
   <p class="empty-list">
     Cannot setup - Game not set.
   </p>
 </div>
+`;
+/* end snapshot lineup-game-setup tests starts empty */
 
-```
-
-#### `renders all the tasks`
-
-```html
-<div>
+snapshots["lineup-game-setup tests renders all the tasks"] = 
+`<div>
   <div class="flex-equal-justified step0 task">
     <div class="name">
       <a
@@ -101,23 +98,17 @@
     </lineup-player-list>
   </div>
 </div>
+`;
+/* end snapshot lineup-game-setup tests renders all the tasks */
 
-```
-
-## `Starters`
-
-####   `shows confirm starter UI when proposed starter exists`
-
-```html
-<div id="confirm-starter">
+snapshots["lineup-game-setup tests Starters shows confirm starter UI when proposed starter exists"] = 
+`<div id="confirm-starter">
   <div>
     <h5>
       Confirm starter?
     </h5>
     <span class="proposed-player">
-      Stored player 1
-      #
-      5
+      Stored player 1 #5
     </span>
     <span class="proposed-position">
       AM (1)
@@ -133,6 +124,6 @@
     </mwc-button>
   </div>
 </div>
-
-```
+`;
+/* end snapshot lineup-game-setup tests Starters shows confirm starter UI when proposed starter exists */
 

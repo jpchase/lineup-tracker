@@ -1,15 +1,8 @@
-# `lineup-player-card tests`
+/* @web/test-runner snapshot v1 */
+export const snapshots = {};
 
-#### `starts empty`
-
-```html
-
-```
-
-#### `renders player properties`
-
-```html
-<span class="player">
+snapshots["lineup-player-card tests renders player properties"] = 
+`<span class="player">
   <span class="playerName">
     Amanda
   </span>
@@ -23,13 +16,11 @@
   <span class="shiftTime">
   </span>
 </span>
+`;
+/* end snapshot lineup-player-card tests renders player properties */
 
-```
-
-#### `renders data.player properties`
-
-```html
-<span class="player">
+snapshots["lineup-player-card tests renders data.player properties"] = 
+`<span class="player">
   <span class="playerName">
     Amanda
   </span>
@@ -44,13 +35,11 @@
   <span class="shiftTime">
   </span>
 </span>
+`;
+/* end snapshot lineup-player-card tests renders data.player properties */
 
-```
-
-#### `renders data properties without player`
-
-```html
-<span class="player">
+snapshots["lineup-player-card tests renders data properties without player"] = 
+`<span class="player">
   <span class="playerName">
   </span>
   <span class="uniformNumber">
@@ -63,6 +52,6 @@
   <span class="shiftTime">
   </span>
 </span>
-
-```
+`;
+/* end snapshot lineup-player-card tests renders data properties without player */
 

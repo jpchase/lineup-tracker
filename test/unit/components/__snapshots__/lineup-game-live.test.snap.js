@@ -1,20 +1,17 @@
-# `lineup-game-live tests`
+/* @web/test-runner snapshot v1 */
+export const snapshots = {};
 
-#### `shows no game placeholder when no current game`
-
-```html
-<div>
+snapshots["lineup-game-live tests shows no game placeholder when no current game"] = 
+`<div>
   <p class="empty-list">
     Live game not set.
   </p>
 </div>
+`;
+/* end snapshot lineup-game-live tests shows no game placeholder when no current game */
 
-```
-
-#### `shows all player sections for started game`
-
-```html
-<div>
+snapshots["lineup-game-live tests shows all player sections for started game"] = 
+`<div>
   <div toolbar="">
     <lineup-game-clock id="gameTimer">
     </lineup-game-clock>
@@ -58,23 +55,17 @@
     </lineup-player-list>
   </div>
 </div>
+`;
+/* end snapshot lineup-game-live tests shows all player sections for started game */
 
-```
-
-## `Subs`
-
-####   `shows confirm sub UI when proposed sub exists`
-
-```html
-<div id="confirm-sub">
+snapshots["lineup-game-live tests Subs shows confirm sub UI when proposed sub exists"] = 
+`<div id="confirm-sub">
   <div>
     <h5>
       Confirm sub?
     </h5>
     <span class="proposed-player">
-      Player 1
-      #
-      11
+      Player 1 #11
     </span>
     <span class="proposed-position">
       CB (Left)
@@ -93,6 +84,6 @@
     </mwc-button>
   </div>
 </div>
-
-```
+`;
+/* end snapshot lineup-game-live tests Subs shows confirm sub UI when proposed sub exists */
 

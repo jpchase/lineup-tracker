@@ -1,9 +1,8 @@
-# `lineup-game-clock tests`
+/* @web/test-runner snapshot v1 */
+export const snapshots = {};
 
-#### `starts with clock not running`
-
-```html
-<span>
+snapshots["lineup-game-clock tests starts with clock not running"] = 
+`<span>
   <span id="gamePeriod">
     Period: 1
   </span>
@@ -21,12 +20,11 @@
   </span>
   ]
 </span>
-```
+`;
+/* end snapshot lineup-game-clock tests starts with clock not running */
 
-#### `starts running when timer data is running`
-
-```html
-<span>
+snapshots["lineup-game-clock tests starts running when timer data is running"] = 
+`<span>
   <span id="gamePeriod">
     Period: 1
   </span>
@@ -46,12 +44,11 @@
   </span>
   ]
 </span>
-```
+`;
+/* end snapshot lineup-game-clock tests starts running when timer data is running */
 
-#### `stops running when timer data is stopped`
-
-```html
-<span>
+snapshots["lineup-game-clock tests stops running when timer data is stopped"] = 
+`<span>
   <span id="gamePeriod">
     Period: 1
   </span>
@@ -70,6 +67,6 @@
   </span>
   ]
 </span>
-
-```
+`;
+/* end snapshot lineup-game-clock tests stops running when timer data is stopped */
 

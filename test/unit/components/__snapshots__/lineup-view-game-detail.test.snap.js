@@ -1,0 +1,34 @@
+/* @web/test-runner snapshot v1 */
+export const snapshots = {};
+
+snapshots["lineup-view-game-detail tests shows no game placeholder when no current game"] = 
+`<section>
+  <p class="empty-list">
+    Game not found.
+  </p>
+</section>
+`;
+/* end snapshot lineup-view-game-detail tests shows no game placeholder when no current game */
+
+snapshots["lineup-view-game-detail tests shows setup component for new game"] = 
+`<section>
+  <div main-title="">
+    Live: Opponent for new Feb 10
+  </div>
+  <lineup-game-setup>
+  </lineup-game-setup>
+</section>
+`;
+/* end snapshot lineup-view-game-detail tests shows setup component for new game */
+
+snapshots["lineup-view-game-detail tests shows live component for started game"] = 
+`<section>
+  <div main-title="">
+    Live: Opponent for new Feb 10
+  </div>
+  <lineup-game-live>
+  </lineup-game-live>
+</section>
+`;
+/* end snapshot lineup-view-game-detail tests shows live component for started game */
+

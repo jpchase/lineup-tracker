@@ -1,9 +1,8 @@
-# `lineup-team-create tests`
+/* @web/test-runner snapshot v1 */
+export const snapshots = {};
 
-#### `starts empty`
-
-```html
-<mwc-textfield
+snapshots["lineup-team-create tests starts empty"] = 
+`<mwc-textfield
   id="team-name"
   label="Team Name"
   maxlength="30"
@@ -22,5 +21,6 @@
     Cancel
   </mwc-button>
 </div>
+`;
+/* end snapshot lineup-team-create tests starts empty */
 
-```

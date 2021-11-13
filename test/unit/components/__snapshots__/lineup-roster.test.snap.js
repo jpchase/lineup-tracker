@@ -1,9 +1,8 @@
-# `lineup-roster tests`
+/* @web/test-runner snapshot v1 */
+export const snapshots = {};
 
-#### `shows no players placeholder for empty roster`
-
-```html
-<div>
+snapshots["lineup-roster tests shows no players placeholder for empty roster"] = 
+`<div>
   <p class="empty-list">
     No players in roster.
   </p>
@@ -15,12 +14,11 @@
   <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
-```
+`;
+/* end snapshot lineup-roster tests shows no players placeholder for empty roster */
 
-#### `renders list with single player`
-
-```html
-<div>
+snapshots["lineup-roster tests renders list with single player"] = 
+`<div>
   <mwc-list noninteractive="">
     <mwc-list-item
       aria-disabled="false"
@@ -67,12 +65,11 @@
   <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
-```
+`;
+/* end snapshot lineup-roster tests renders list with single player */
 
-#### `renders list with multiple players`
-
-```html
-<div>
+snapshots["lineup-roster tests renders list with multiple players"] = 
+`<div>
   <mwc-list noninteractive="">
     <mwc-list-item
       aria-disabled="false"
@@ -299,18 +296,17 @@
   <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
-```
+`;
+/* end snapshot lineup-roster tests renders list with multiple players */
 
-#### `add button hidden when adds are not allowed`
-
-```html
-<div>
+snapshots["lineup-roster tests add button hidden when adds are not allowed"] = 
+`<div>
   <p class="empty-list">
     No players in roster.
   </p>
   <lineup-roster-modify>
   </lineup-roster-modify>
 </div>
-
-```
+`;
+/* end snapshot lineup-roster tests add button hidden when adds are not allowed */
 

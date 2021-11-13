@@ -1,9 +1,32 @@
-# `lineup-team-selector-dialog tests`
+/* @web/test-runner snapshot v1 */
+export const snapshots = {};
 
-#### `renders item for each team in sorted order`
+snapshots["lineup-team-selector tests renders placeholder when no teams created yet"] = 
+`<mwc-button
+  aria-label="No team selected. Hit enter to select a team."
+  icon="arrow_drop_down"
+  id="team-switcher-button"
+  trailingicon=""
+>
+  Select a team
+</mwc-button>
+`;
+/* end snapshot lineup-team-selector tests renders placeholder when no teams created yet */
 
-```html
-<mwc-dialog open="">
+snapshots["lineup-team-selector tests a11y"] = 
+`<mwc-button
+  aria-label="You are currently working with team First team id - sorts last. Hit enter to switch teams."
+  icon="arrow_drop_down"
+  id="team-switcher-button"
+  trailingicon=""
+>
+  First team id - sorts last
+</mwc-button>
+`;
+/* end snapshot lineup-team-selector tests a11y */
+
+snapshots["lineup-team-selector-dialog tests renders item for each team in sorted order"] = 
+`<mwc-dialog open="">
   <div>
     <div class="dialog-header">
       <span>
@@ -83,12 +106,11 @@
     Cancel
   </mwc-button>
 </mwc-dialog>
-```
+`;
+/* end snapshot lineup-team-selector-dialog tests renders item for each team in sorted order */
 
-#### `renders placeholder when no teams created yet`
-
-```html
-<mwc-dialog open="">
+snapshots["lineup-team-selector-dialog tests renders placeholder when no teams created yet"] = 
+`<mwc-dialog open="">
   <div>
     <div class="dialog-header">
       <span>
@@ -118,12 +140,11 @@
     Cancel
   </mwc-button>
 </mwc-dialog>
-```
+`;
+/* end snapshot lineup-team-selector-dialog tests renders placeholder when no teams created yet */
 
-#### `select team when item clicked`
-
-```html
-<mwc-list-item
+snapshots["lineup-team-selector-dialog tests select team when item clicked"] = 
+`<mwc-list-item
   activated=""
   aria-disabled="false"
   aria-selected="true"
@@ -137,5 +158,6 @@
     A team - sorts first
   </span>
 </mwc-list-item>
+`;
+/* end snapshot lineup-team-selector-dialog tests select team when item clicked */
 
-```
