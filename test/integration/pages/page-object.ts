@@ -2,6 +2,8 @@
 @license
 */
 
+import { AxePuppeteer } from '@axe-core/puppeteer';
+import { AxeResults } from 'axe-core';
 import * as path from 'path';
 import puppeteer, { Browser, ConsoleMessage, ElementHandle, HTTPRequest, Page, ScreenshotOptions, Viewport } from 'puppeteer';
 import { serveHermeticFont } from '../server/hermetic-fonts.js';
@@ -33,7 +35,7 @@ export class PageObject {
     return url.pathname.slice(1);
   }
 
-  protected get page(): Page {
+  get page(): Page {
     if (!this._page) {
       throw new Error('Page not initialized. Did you call init()?');
     }
@@ -109,4 +111,44 @@ export class PageObject {
     };
     return this.page.screenshot(params).then(() => viewName);
   }
+
+  async checkAccessibility(): Promise<{ results: AxeResults, violationCount: number, violationMessage: string }> {
+    const axe = new AxePuppeteer(this.page)
+      .disableRules(['aria-allowed-role', 'aria-dialog-name', 'color-contrast', 'list', 'landmark-one-main', 'page-has-heading-one']);
+    return axe.analyze().then((results) => {
+      return {
+        results,
+        violationCount: results.violations.length,
+        violationMessage: processAxeResults(results)
+      };
+    });
+  }
+}
+
+function processAxeResults(results: AxeResults) {
+  const { violations } = results;
+
+  const messages = [];
+  if (violations.length) {
+    messages.push('Accessibility Violations');
+    messages.push('---');
+    violations.forEach(violation => {
+      messages.push(`Rule: ${violation.id}`);
+      messages.push(`Impact: ${violation.impact}`);
+      messages.push(`${violation.help} (${violation.helpUrl})`);
+      violation.nodes.forEach(node => {
+        messages.push('');
+        if (node.target) {
+          messages.push(`Issue target: ${node.target}`);
+        }
+        messages.push(`Context: ${node.html}`);
+        if (node.failureSummary) {
+          messages.push(`${node.failureSummary}`);
+        }
+      });
+      messages.push('---');
+    });
+  }
+
+  return messages.join('\n');
 }

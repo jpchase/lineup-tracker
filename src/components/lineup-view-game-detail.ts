@@ -56,7 +56,7 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
       ${SharedStyles}
       <section>
       ${this._game ? html`
-        <div main-title>Live: ${this._getName()}</div>
+        <h2 main-title>Live: ${this._getName()}</h2>
         ${this._getDetailContent(this._game)}
       ` : html`
         <p class="empty-list">

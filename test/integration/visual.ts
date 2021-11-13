@@ -49,7 +49,11 @@ describe('👀 page screenshots are correct', function () {
       for (const pageConfig of getAllVisualPages(breakpoint)) {
         it(pageConfig.name, async function () {
           pageObject = pageConfig.page;
-          return takeAndCompareScreenshot(pageConfig.page, breakpoint.name);
+          await takeAndCompareScreenshot(pageObject, breakpoint.name);
+
+          const result = await pageObject.checkAccessibility();
+          console.log(`${breakpoint.name}-${pageConfig.name}: ${result.violationCount} accessibility violations`);
+          expect(result.violationCount, result.violationMessage).to.equal(0);
         });
       }
     }); // describe(`${breakpoint.name} screen`)

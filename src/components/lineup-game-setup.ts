@@ -129,7 +129,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
           </select>
         </div>
         <div id="live-on">
-          <h5>Starters</h5>
+          <h3 class="h5">Starters</h3>
           <lineup-on-player-list .formation="${formation}" .players="${players}"
                                  .selectedPosition="${this.selectedStarterPosition}"
                                  @positionselected="${this.positionSelected}"></lineup-on-player-list>
@@ -138,7 +138,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
         ${this.renderConfirmStarter()}
         </div>
         <div id="live-off">
-          <h5>Subs</h5>
+          <h3 class="h5">Subs</h3>
           <lineup-player-list mode="off" .players="${players}"
                               @playerselected="${this.playerSelected}"></lineup-player-list>
         </div>

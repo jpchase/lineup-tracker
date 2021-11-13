@@ -48,6 +48,17 @@ export const SharedStyles = html`
     }
   }
 
+  /* Temp to make h3 look like h5, to avoid screenshot changes */
+  h3.h5 {
+    display: block;
+    font-size: 0.83em;
+    margin-block-start: 1.67em;
+    margin-block-end: 1.67em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+  }
+
   .empty-list {
     text-align: center;
     white-space: nowrap;
