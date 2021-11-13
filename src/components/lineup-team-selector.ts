@@ -135,7 +135,9 @@ export class LineupTeamSelectorDialog extends LitElement {
           justify-content: space-between;
         }
       </style>
-      <mwc-dialog @opening="${this.dialogEvent}" @opened="${this.dialogEvent}" @closing="${this.dialogEvent}" @closed="${this.dialogClosed}">
+      <mwc-dialog
+                  @opening="${this.dialogEvent}" @opened="${this.dialogEvent}"
+                  @closing="${this.dialogEvent}" @closed="${this.dialogClosed}">
         <div>
           <div class="dialog-header">
             <span>Select a team</span>

@@ -12,9 +12,9 @@ snapshots["lineup-view-game-detail tests shows no game placeholder when no curre
 
 snapshots["lineup-view-game-detail tests shows setup component for new game"] = 
 `<section>
-  <div main-title="">
+  <h2 main-title="">
     Live: Opponent for new Feb 10
-  </div>
+  </h2>
   <lineup-game-setup>
   </lineup-game-setup>
 </section>
@@ -23,12 +23,11 @@ snapshots["lineup-view-game-detail tests shows setup component for new game"] =
 
 snapshots["lineup-view-game-detail tests shows live component for started game"] = 
 `<section>
-  <div main-title="">
+  <h2 main-title="">
     Live: Opponent for new Feb 10
-  </div>
+  </h2>
   <lineup-game-live>
   </lineup-game-live>
 </section>
 `;
 /* end snapshot lineup-view-game-detail tests shows live component for started game */
-

@@ -405,12 +405,12 @@ describe('lineup-game-setup tests', () => {
 
     it('shows starter player sections for new game', async () => {
       const starters = getPlayerSection('on');
-      const onHeader = starters.querySelector('h5');
+      const onHeader = starters.querySelector('h3');
       expect(onHeader, 'Missing starters header').to.be.ok;
       expect(onHeader!.textContent!.trim()).to.equal('Starters');
 
       const offPlayers = getPlayerSection('off');
-      const offHeader = offPlayers.querySelector('h5');
+      const offHeader = offPlayers.querySelector('h3');
       expect(offHeader, 'Missing subs header').to.be.ok;
       expect(offHeader!.textContent!.trim()).to.equal('Subs');
     });

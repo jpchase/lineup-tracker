@@ -113,7 +113,8 @@ export class PageObject {
   }
 
   async checkAccessibility(): Promise<{ results: AxeResults, violationCount: number, violationMessage: string }> {
-    const axe = new AxePuppeteer(this.page);
+    const axe = new AxePuppeteer(this.page)
+      .disableRules(['aria-allowed-role', 'aria-dialog-name', 'color-contrast', 'list', 'landmark-one-main', 'page-has-heading-one']);
     return axe.analyze().then((results) => {
       return {
         results,

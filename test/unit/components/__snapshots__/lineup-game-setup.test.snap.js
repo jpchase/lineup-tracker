@@ -82,18 +82,18 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
     </select>
   </div>
   <div id="live-on">
-    <h5>
+    <h3 class="h5">
       Starters
-    </h5>
+    </h3>
     <lineup-on-player-list>
     </lineup-on-player-list>
   </div>
   <div id="confirm-starter">
   </div>
   <div id="live-off">
-    <h5>
+    <h3 class="h5">
       Subs
-    </h5>
+    </h3>
     <lineup-player-list mode="off">
     </lineup-player-list>
   </div>

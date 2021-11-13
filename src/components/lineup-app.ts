@@ -185,6 +185,16 @@ export class LineupApp extends connect(store)(LitElement) {
         color: var(--app-drawer-selected-color);
       }
 
+      h1[slot="title"] {
+        font-family: var(--mdc-typography-headline6-font-family, var(--mdc-typography-font-family, Roboto, sans-serif));
+        font-size: var(--mdc-typography-headline6-font-size, 1.25rem);
+        line-height: var(--mdc-typography-headline6-line-height, 2rem);
+        font-weight: var(--mdc-typography-headline6-font-weight, 500);
+        letter-spacing: var(--mdc-typography-headline6-letter-spacing, 0.0125em);
+        text-decoration: var(--mdc-typography-headline6-text-decoration, inherit);
+        text-transform: var(--mdc-typography-headline6-text-transform, inherit);
+      }
+
       .main-content {
         /* padding-top: 64px; */
         min-height: 100vh;
@@ -231,7 +241,7 @@ export class LineupApp extends connect(store)(LitElement) {
       }
     </style>
 
-    <mwc-drawer hasHeader type="modal" .open="${this.drawerOpen}"
+    <mwc-drawer type="modal" .open="${this.drawerOpen}"
                 @MDCDrawer:closed="${this.drawerClosedHandler}">
       <div>
         <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
@@ -246,7 +256,7 @@ export class LineupApp extends connect(store)(LitElement) {
       <div slot="appContent">
         <mwc-top-app-bar @MDCTopAppBar:nav="${this.navButtonClicked}">
           <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
-          <div slot="title">${this.appTitle}</div>
+          <h1 slot="title">${this.appTitle}</h1>
           <div slot="actionItems" class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
             <lineup-team-selector class="toolbar-actions"
                                   .teamId=${this._teamId} .teams=${this._teams}
