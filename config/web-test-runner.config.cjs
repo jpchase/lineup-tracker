@@ -28,6 +28,7 @@ const puppeteerExecutablePath = require('puppeteer').executablePath();
 module.exports = {
   nodeResolve: true,
   coverageConfig: {
+    include: ['src/**/*.js'],
     threshold: {
       branches: 80,
     }
