@@ -129,7 +129,7 @@ describe('Teams reducer', () => {
 
       const newState = team(state, {
         type: CHANGE_TEAM,
-        teamId: newTeam.id
+        payload: { teamId: newTeam.id }
       });
 
       expect(newState).to.include({
@@ -141,6 +141,54 @@ describe('Teams reducer', () => {
       expect(newState.teamId).to.not.equal(state.teamId);
       expect(newState.teamName).to.not.equal(state.teamName);
     });
+
+    it('should do nothing if no teams exist', () => {
+      const state = {
+        ...TEAM_INITIAL_STATE,
+        teams: {} as Teams
+      } as TeamState;
+
+      const newState = team(state, {
+        type: CHANGE_TEAM,
+        payload: { teamId: getStoredTeam().id }
+      });
+
+      expect(newState).to.equal(state);
+    });
+
+    it('should do nothing if team id does not exist', () => {
+      const state = {
+        ...TEAM_INITIAL_STATE,
+        teams: {} as Teams
+      } as TeamState;
+      state.teams = buildTeams([getStoredTeam(), newTeam]);
+
+      const newState = team(state, {
+        type: CHANGE_TEAM,
+        payload: { teamId: 'nosuchid' }
+      });
+
+      expect(newState).to.equal(state);
+    });
+
+    it('should do nothing if team id already set as current team', () => {
+      const storedTeam = getStoredTeam();
+      const state = {
+        ...TEAM_INITIAL_STATE,
+        teamId: storedTeam.id,
+        teamName: storedTeam.name,
+        teams: {} as Teams
+      } as TeamState;
+      state.teams = buildTeams([storedTeam]);
+
+      const newState = team(state, {
+        type: CHANGE_TEAM,
+        payload: { teamId: storedTeam.id }
+      });
+
+      expect(newState).to.equal(state);
+    });
+
   }); // describe('CHANGE_TEAM')
 
   describe('ADD_TEAM', () => {

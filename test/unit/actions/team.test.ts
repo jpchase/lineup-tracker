@@ -217,59 +217,10 @@ describe('Team actions', () => {
   }); // describe('getTeams')
 
   describe('changeTeam', () => {
-    it('should return a function to dispatch the action', () => {
-      expect(actions.changeTeam()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if no teams exist', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([]);
-
-      actions.changeTeam(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should do nothing if team id does not exist', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([getStoredTeam()]);
-
-      actions.changeTeam('nosuchid')(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should do nothing if team id already set as current team', () => {
-      const storedTeam = getStoredTeam();
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([storedTeam], storedTeam);
-
-      actions.changeTeam(storedTeam.id)(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should dispatch an action to change the selected team', async () => {
-      const storedTeam = getStoredTeam();
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([storedTeam, newTeamSaved], storedTeam);
-
-      actions.changeTeam(newTeamSaved.id)(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.have.been.called;
-
-      // Checks that the changed team was cached in IDB.
-      expect(mockedIDBSet).to.have.been.calledWith(KEY_TEAMID, newTeamSaved.id);
-
-      expect(dispatchMock).to.have.been.calledWith({
+    it('should return an action to change the selected team', async () => {
+      expect(actions.changeTeam(newTeamSaved.id)).to.deep.equal({
         type: actionTypes.CHANGE_TEAM,
-        teamId: newTeamSaved.id,
+        payload: { teamId: newTeamSaved.id },
       });
     });
   }); // describe('changeTeam')

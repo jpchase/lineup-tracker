@@ -19,10 +19,10 @@ import { CollectionFilter, whereFilter } from '../storage/firestore-reader.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState } from '../store';
 
-export { addTeam } from '../reducers/team';
+export { addTeam, changeTeam } from '../reducers/team.js';
 
 export interface TeamActionAddTeam extends Action<typeof ADD_TEAM> { payload: Team };
-export interface TeamActionChangeTeam extends Action<typeof CHANGE_TEAM> { teamId: string };
+export interface TeamActionChangeTeam extends Action<typeof CHANGE_TEAM> { payload: { teamId: string } };
 export interface TeamActionGetTeams extends Action<typeof GET_TEAMS> { teams: Teams, cachedTeamId?: string };
 export interface TeamActionGetRoster extends Action<typeof GET_ROSTER> { roster: Roster };
 export interface TeamActionAddPlayer extends Action<typeof ADD_PLAYER> { player: Player };
@@ -84,27 +84,6 @@ export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) =>
   }).catch((error: any) => {
     // TODO: Dispatch error?
     console.log(`Loading of teams from storage failed: ${error}`);
-  });
-};
-
-export const changeTeam: ActionCreator<ThunkResult> = (teamId: string) => (dispatch, getState) => {
-  if (!teamId) {
-    return;
-  }
-  const state = getState();
-  // Verify that the team id exists.
-  const teamState = state.team!;
-  if (!teamState.teams || !teamState.teams[teamId]) {
-    return;
-  }
-  // Only change if different from the current team.
-  if (teamState.teamId === teamId) {
-    return;
-  }
-  cacheTeamId(teamId);
-  dispatch({
-    type: CHANGE_TEAM,
-    teamId
   });
 };
 

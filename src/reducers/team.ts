@@ -35,6 +35,9 @@ function withTeamPayload<T extends Team>() {
   return (t: T) => ({ payload: t })
 }
 export const addTeam = createAction(ADD_TEAM, withTeamPayload());
+export const changeTeam = createAction(CHANGE_TEAM, (teamId: string) => {
+  return { payload: { teamId } };
+});
 
 const newReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, (builder) => {
   builder
@@ -43,13 +46,12 @@ const newReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, 
       newState.teams[team.id] = team;
       setCurrentTeam(newState, team.id);
     })
+    .addCase(changeTeam, (newState, action) => {
+      setCurrentTeam(newState, action.payload.teamId);
+    })
 });
 
 const oldReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, {
-
-  [CHANGE_TEAM]: (newState, action) => {
-    setCurrentTeam(newState, action.teamId);
-  },
 
   [ADD_PLAYER]: (newState, action) => {
     newState.roster[action.player.id] = action.player;
@@ -68,7 +70,13 @@ const oldReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, 
 });
 
 function setCurrentTeam(newState: TeamState, teamId: string) {
+  if (newState.teamId === teamId) {
+    return;
+  }
   const team = newState.teams[teamId];
+  if (!team) {
+    return;
+  }
   newState.teamId = team.id;
   newState.teamName = team.name;
 }
