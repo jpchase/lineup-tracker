@@ -8,7 +8,7 @@ import { debug } from '../common/debug';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import { currentUserIdSelector } from '../reducers/auth.js';
-import { addPlayer, addTeam, currentTeamIdSelector } from '../reducers/team.js';
+import { addPlayer, addTeam, currentTeamIdSelector, getRoster as getRosterCreator, getTeams as getTeamsCreator } from '../reducers/team.js';
 import {
   ADD_PLAYER, ADD_TEAM,
   CHANGE_TEAM, GET_ROSTER,
@@ -23,8 +23,8 @@ export { addPlayer, addTeam, changeTeam } from '../reducers/team.js';
 
 export interface TeamActionAddTeam extends Action<typeof ADD_TEAM> { payload: Team };
 export interface TeamActionChangeTeam extends Action<typeof CHANGE_TEAM> { payload: { teamId: string } };
-export interface TeamActionGetTeams extends Action<typeof GET_TEAMS> { teams: Teams, cachedTeamId?: string };
-export interface TeamActionGetRoster extends Action<typeof GET_ROSTER> { roster: Roster };
+export interface TeamActionGetTeams extends Action<typeof GET_TEAMS> { payload: { teams: Teams, cachedTeamId?: string } };
+export interface TeamActionGetRoster extends Action<typeof GET_ROSTER> { payload: Roster };
 export interface TeamActionAddPlayer extends Action<typeof ADD_PLAYER> { payload: Player };
 export type TeamAction = TeamActionAddTeam | TeamActionChangeTeam | TeamActionGetTeams | TeamActionGetRoster | TeamActionAddPlayer;
 
@@ -75,11 +75,10 @@ export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) =>
       cachedTeamId = selectedTeamId;
     }
 
-    dispatch({
-      type: GET_TEAMS,
+    dispatch(getTeamsCreator(
       teams,
       cachedTeamId
-    });
+    ));
 
   }).catch((error: any) => {
     // TODO: Dispatch error?
@@ -118,10 +117,9 @@ export const getRoster: ActionCreator<ThunkResult> = (teamId: string) => (dispat
     return;
   }
   loadTeamRoster(teamId).then((roster) => {
-    dispatch({
-      type: GET_ROSTER,
+    dispatch(getRosterCreator(
       roster
-    });
+    ));
 
   }).catch((error: any) => {
     // TODO: Dispatch error?

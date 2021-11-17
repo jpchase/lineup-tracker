@@ -42,7 +42,9 @@ describe('Teams reducer', () => {
 
       const newState = team(TEAM_INITIAL_STATE, {
         type: GET_TEAMS,
-        teams: expectedTeams
+        payload: {
+          teams: expectedTeams
+        }
       });
 
       expect(newState).to.deep.include({
@@ -59,8 +61,10 @@ describe('Teams reducer', () => {
 
       const newState = team(TEAM_INITIAL_STATE, {
         type: GET_TEAMS,
-        teams: expectedTeams,
-        cachedTeamId: storedTeam.id
+        payload: {
+          teams: expectedTeams,
+          cachedTeamId: storedTeam.id
+        }
       });
 
       expect(newState).to.deep.include({
@@ -84,8 +88,10 @@ describe('Teams reducer', () => {
 
       const newState = team(currentState, {
         type: GET_TEAMS,
-        teams: expectedTeams,
-        cachedTeamId: getPublicTeam().id
+        payload: {
+          teams: expectedTeams,
+          cachedTeamId: getPublicTeam().id
+        }
       });
 
       expect(newState).to.deep.include({
@@ -104,8 +110,10 @@ describe('Teams reducer', () => {
 
       const newState = team(TEAM_INITIAL_STATE, {
         type: GET_TEAMS,
-        teams: expectedTeams,
-        cachedTeamId: getPublicTeam().id
+        payload: {
+          teams: expectedTeams,
+          cachedTeamId: getPublicTeam().id
+        }
       });
 
       expect(newState).to.include({
@@ -241,7 +249,7 @@ describe('Teams reducer', () => {
 
       const newState = team(TEAM_INITIAL_STATE, {
         type: GET_ROSTER,
-        roster: expectedRoster
+        payload: expectedRoster
       });
 
       expect(newState).to.deep.include({

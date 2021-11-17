@@ -31,21 +31,27 @@ const INITIAL_STATE: TeamState = {
   error: ''
 };
 
-function withTeamPayload<T extends Team>() {
+function withPayloadType<T>() {
   return (t: T) => ({ payload: t })
 }
-export const addTeam = createAction(ADD_TEAM, withTeamPayload());
+
+export const addTeam = createAction(ADD_TEAM, withPayloadType<Team>());
 export const changeTeam = createAction(CHANGE_TEAM, (teamId: string) => {
   return { payload: { teamId } };
 });
-
-export const addPlayer = createAction(ADD_PLAYER, (player: Player) => {
+export const getTeams = createAction(GET_TEAMS, (teams: Teams, cachedTeamId?: string) => {
   return {
-    payload: player
+    payload: {
+      teams,
+      cachedTeamId
+    }
   };
 });
 
-const newReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, (builder) => {
+export const addPlayer = createAction(ADD_PLAYER, withPayloadType<Player>());
+export const getRoster = createAction(GET_ROSTER, withPayloadType<Roster>());
+
+const team: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, (builder) => {
   builder
     .addCase(addTeam, (newState, action) => {
       const team = action.payload;
@@ -59,20 +65,17 @@ const newReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, 
       const player = action.payload;
       newState.roster[player.id] = player;
     })
-});
+    .addCase(getRoster, (newState, action) => {
+      newState.roster = action.payload;
+    })
+    .addCase(getTeams, (newState, action) => {
+      newState.teams = action.payload.teams;
+      const cachedTeamId = action.payload.cachedTeamId;
+      if (!newState.teamId && cachedTeamId && newState.teams[cachedTeamId]) {
+        setCurrentTeam(newState, cachedTeamId);
+      }
 
-const oldReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, {
-
-  [GET_ROSTER]: (newState, action) => {
-    newState.roster = action.roster;
-  },
-
-  [GET_TEAMS]: (newState, action) => {
-    newState.teams = action.teams;
-    if (!newState.teamId && action.cachedTeamId && newState.teams[action.cachedTeamId]) {
-      setCurrentTeam(newState, action.cachedTeamId);
-    }
-  }
+    })
 });
 
 function setCurrentTeam(newState: TeamState, teamId: string) {
@@ -85,10 +88,6 @@ function setCurrentTeam(newState: TeamState, teamId: string) {
   }
   newState.teamId = team.id;
   newState.teamName = team.name;
-}
-
-const team: Reducer<TeamState, RootAction> = function (state, action) {
-  return oldReducer(newReducer(state, action), action);
 }
 
 export default team;

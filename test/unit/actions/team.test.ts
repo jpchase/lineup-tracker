@@ -99,7 +99,9 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getStoredTeam()]),
+        payload: {
+          teams: buildTeams([getStoredTeam()]),
+        }
       }));
 
       expect(loadCollectionStub).to.have.callCount(1);
@@ -119,8 +121,10 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getStoredTeam()]),
-        cachedTeamId: previousTeam.id
+        payload: {
+          teams: buildTeams([getStoredTeam()]),
+          cachedTeamId: previousTeam.id
+        }
       }));
     });
 
@@ -138,8 +142,10 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getStoredTeam()]),
-        cachedTeamId: 'idfromurl'
+        payload: {
+          teams: buildTeams([getStoredTeam()]),
+          cachedTeamId: 'idfromurl'
+        }
       }));
     });
 
@@ -157,7 +163,9 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getStoredTeam()]),
+        payload: {
+          teams: buildTeams([getStoredTeam()]),
+        }
       }));
     });
 
@@ -175,7 +183,9 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getPublicTeam()]),
+        payload: {
+          teams: buildTeams([getPublicTeam()]),
+        }
       }));
     });
 
@@ -193,8 +203,10 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getPublicTeam()]),
-        cachedTeamId: 'idfromurl'
+        payload: {
+          teams: buildTeams([getPublicTeam()]),
+          cachedTeamId: 'idfromurl'
+        }
       }));
     });
 
@@ -356,7 +368,7 @@ describe('Team actions', () => {
       const rosterData = buildRoster([getStoredPlayer()]);
       expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.GET_ROSTER,
-        roster: rosterData,
+        payload: rosterData,
       });
     });
 
