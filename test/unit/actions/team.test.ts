@@ -451,7 +451,7 @@ describe('Team actions', () => {
       await Promise.resolve();
       expect(dispatchMock).to.have.been.calledWith({
         type: actionTypes.ADD_PLAYER,
-        player: expectedSavedPlayer,
+        payload: expectedSavedPlayer,
       });
     });
 
@@ -475,7 +475,7 @@ describe('Team actions', () => {
     it('should dispatch an action to add the player', () => {
       expect(actions.addPlayer(getNewPlayer())).to.deep.equal({
         type: actionTypes.ADD_PLAYER,
-        player: getNewPlayer(),
+        payload: getNewPlayer(),
       });
     });
 

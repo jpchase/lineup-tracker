@@ -8,7 +8,7 @@ import { debug } from '../common/debug';
 import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import { currentUserIdSelector } from '../reducers/auth.js';
-import { addTeam, currentTeamIdSelector } from '../reducers/team';
+import { addPlayer, addTeam, currentTeamIdSelector } from '../reducers/team.js';
 import {
   ADD_PLAYER, ADD_TEAM,
   CHANGE_TEAM, GET_ROSTER,
@@ -19,13 +19,13 @@ import { CollectionFilter, whereFilter } from '../storage/firestore-reader.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState } from '../store';
 
-export { addTeam, changeTeam } from '../reducers/team.js';
+export { addPlayer, addTeam, changeTeam } from '../reducers/team.js';
 
 export interface TeamActionAddTeam extends Action<typeof ADD_TEAM> { payload: Team };
 export interface TeamActionChangeTeam extends Action<typeof CHANGE_TEAM> { payload: { teamId: string } };
 export interface TeamActionGetTeams extends Action<typeof GET_TEAMS> { teams: Teams, cachedTeamId?: string };
 export interface TeamActionGetRoster extends Action<typeof GET_ROSTER> { roster: Roster };
-export interface TeamActionAddPlayer extends Action<typeof ADD_PLAYER> { player: Player };
+export interface TeamActionAddPlayer extends Action<typeof ADD_PLAYER> { payload: Player };
 export type TeamAction = TeamActionAddTeam | TeamActionChangeTeam | TeamActionGetTeams | TeamActionGetRoster | TeamActionAddPlayer;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
@@ -148,11 +148,4 @@ export const savePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (di
   const teamId = currentTeamIdSelector(getState())!;
   savePlayerToTeamRoster(newPlayer, teamId);
   dispatch(addPlayer(newPlayer));
-};
-
-export const addPlayer: ActionCreator<TeamActionAddPlayer> = (player: Player) => {
-  return {
-    type: ADD_PLAYER,
-    player
-  };
 };

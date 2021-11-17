@@ -265,7 +265,7 @@ describe('Teams reducer', () => {
     it('should add new player to empty roster', () => {
       const newState = team(TEAM_INITIAL_STATE, {
         type: ADD_PLAYER,
-        player: newPlayer
+        payload: newPlayer
       });
 
       expect(newState).to.deep.include({
@@ -284,7 +284,7 @@ describe('Teams reducer', () => {
 
       const newState = team(state, {
         type: ADD_PLAYER,
-        player: newPlayer
+        payload: newPlayer
       });
 
       expect(newState).to.deep.include({

@@ -4,7 +4,7 @@
 
 import { Reducer } from 'redux';
 import { createAction, createReducer } from '@reduxjs/toolkit';
-import { Roster } from '../models/player';
+import { Player, Roster } from '../models/player';
 import { Team, Teams } from '../models/team';
 import {
   ADD_TEAM,
@@ -39,6 +39,12 @@ export const changeTeam = createAction(CHANGE_TEAM, (teamId: string) => {
   return { payload: { teamId } };
 });
 
+export const addPlayer = createAction(ADD_PLAYER, (player: Player) => {
+  return {
+    payload: player
+  };
+});
+
 const newReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, (builder) => {
   builder
     .addCase(addTeam, (newState, action) => {
@@ -49,13 +55,13 @@ const newReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, 
     .addCase(changeTeam, (newState, action) => {
       setCurrentTeam(newState, action.payload.teamId);
     })
+    .addCase(addPlayer, (newState, action) => {
+      const player = action.payload;
+      newState.roster[player.id] = player;
+    })
 });
 
 const oldReducer: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, {
-
-  [ADD_PLAYER]: (newState, action) => {
-    newState.roster[action.player.id] = action.player;
-  },
 
   [GET_ROSTER]: (newState, action) => {
     newState.roster = action.roster;
