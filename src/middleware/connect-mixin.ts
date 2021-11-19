@@ -2,8 +2,8 @@
 @license
 */
 
-import { Unsubscribe } from 'redux';
-import { RootState, RootAction, RootStore, SliceStoreConfigurator } from '../store';
+import { AnyAction, Unsubscribe } from 'redux';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import { ThunkAction } from 'redux-thunk';
 
 type Constructor<T> = new(...args: any[]) => T;
@@ -16,7 +16,7 @@ interface CustomElement {
 export interface ElementMixinInterface {
   store?: RootStore;
   stateChanged(state: RootState): void;
-  dispatch<R>(action: RootAction|ThunkAction<R, RootState, any, any>): RootAction | R;
+  dispatch<R>(action: AnyAction|ThunkAction<R, RootState, any, any>): AnyAction | R;
 }
 
 export const connectStore =
@@ -61,10 +61,10 @@ export const connectStore =
       }
     }
 
-    dispatch<R>(action: RootAction|ThunkAction<R, RootState, any, RootAction>): RootAction | R {
+    dispatch<R>(action: AnyAction|ThunkAction<R, RootState, any, AnyAction>): AnyAction | R {
       // The type cast is required to avoid compile errors trying to match dispatch() overloads.
       if ('type' in action) {
-        return this.store!.dispatch(action as RootAction);
+        return this.store!.dispatch(action as AnyAction);
       }
       return this.store!.dispatch(action);
     }

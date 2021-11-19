@@ -13,7 +13,7 @@ import {
   GET_ROSTER,
   GET_TEAMS
 } from '../slices/team-types';
-import { RootAction, RootState } from '../store';
+import { RootState } from '../store.js';
 
 export interface TeamState {
   teams: Teams;
@@ -51,7 +51,7 @@ export const getTeams = createAction(GET_TEAMS, (teams: Teams, cachedTeamId?: st
 export const addPlayer = createAction(ADD_PLAYER, withPayloadType<Player>());
 export const getRoster = createAction(GET_ROSTER, withPayloadType<Roster>());
 
-const team: Reducer<TeamState, RootAction> = createReducer(INITIAL_STATE, (builder) => {
+const team: Reducer<TeamState> = createReducer(INITIAL_STATE, (builder) => {
   builder
     .addCase(addTeam, (newState, action) => {
       const team = action.payload;

@@ -4,7 +4,6 @@
 
 import { Reducer } from 'redux';
 import { END_PERIOD, START_PERIOD, TOGGLE_CLOCK } from '../slices/live-types';
-import { RootAction } from '../store';
 import { createReducer } from './createReducer';
 import { TimerData, Timer } from '../models/clock';
 
@@ -16,7 +15,7 @@ const INITIAL_STATE: ClockState = {
   timer: undefined,
 };
 
-export const clock: Reducer<ClockState, RootAction> = createReducer(INITIAL_STATE, {
+export const clock: Reducer<ClockState> = createReducer(INITIAL_STATE, {
   [START_PERIOD]: (newState, /*action*/) => {
     const timer = new Timer();
     timer.start();

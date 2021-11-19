@@ -1,12 +1,9 @@
 import { Game, GameDetail, Games, GameStatus, LivePlayer, SetupTask } from '@app/models/game';
 import { Player, PlayerStatus, Roster } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
-import { RootAction } from '@app/store';
 
-export function getFakeAction(): RootAction {
-  // This must be a real action type, due to type checking. Using the offline
-  // action as it will be unknown to all the lineup-specific actions/reducers.
-  return { type: 'UPDATE_OFFLINE', offline: true };
+export function getFakeAction() {
+  return { type: 'FAKE_ACTION' };
 }
 
 export interface MockAuthStateOptions {
