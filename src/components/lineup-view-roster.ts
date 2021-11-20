@@ -11,16 +11,13 @@ import { Roster } from '../models/player';
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store, RootState } from '../store';
-import { TeamState } from '../slices/team/team-slice.js';
+import { addNewPlayer, getRoster, TeamState } from '../slices/team/team-slice.js';
 
 // We are lazy loading its reducer.
 import { team } from '../slices/team/team-slice.js';
 store.addReducers({
   team
 });
-
-// These are the actions needed by this element.
-import { addNewPlayer, getRoster } from '../actions/team';
 
 // These are the elements needed by this element.
 import './lineup-roster';
