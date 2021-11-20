@@ -29,7 +29,7 @@ import { AuthState } from './reducers/auth';
 import { GameState } from './reducers/game';
 import { GamesState } from './reducers/games';
 import { LiveState } from './reducers/live';
-import { TeamState } from './reducers/team';
+import type { TeamState } from './slices/team/team-slice.js';
 
 // Overall state extends static states and partials lazy states.
 export interface RootState {

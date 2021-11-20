@@ -4,16 +4,16 @@
 
 import { Reducer } from 'redux';
 import { createAction, createReducer } from '@reduxjs/toolkit';
-import { Player, Roster } from '../models/player';
-import { Team, Teams } from '../models/team';
+import { Player, Roster } from '../../models/player.js';
+import { Team, Teams } from '../../models/team.js';
+import { RootState } from '../../store.js';
 import {
   ADD_TEAM,
   CHANGE_TEAM,
   ADD_PLAYER,
   GET_ROSTER,
   GET_TEAMS
-} from '../slices/team-types';
-import { RootState } from '../store.js';
+} from '../team-types.js';
 
 export interface TeamState {
   teams: Teams;
@@ -51,7 +51,7 @@ export const getTeams = createAction(GET_TEAMS, (teams: Teams, cachedTeamId?: st
 export const addPlayer = createAction(ADD_PLAYER, withPayloadType<Player>());
 export const getRoster = createAction(GET_ROSTER, withPayloadType<Roster>());
 
-const team: Reducer<TeamState> = createReducer(INITIAL_STATE, (builder) => {
+export const team: Reducer<TeamState> = createReducer(INITIAL_STATE, (builder) => {
   builder
     .addCase(addTeam, (newState, action) => {
       const team = action.payload;
@@ -89,7 +89,5 @@ function setCurrentTeam(newState: TeamState, teamId: string) {
   newState.teamId = team.id;
   newState.teamName = team.name;
 }
-
-export default team;
 
 export const currentTeamIdSelector = (state: RootState) => state.team && state.team.teamId;

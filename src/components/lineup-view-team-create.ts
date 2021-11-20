@@ -7,7 +7,7 @@ import { customElement } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { navigate } from '../actions/app';
 import { addNewTeam } from '../actions/team';
-import team from '../reducers/team';
+import { team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { EVENT_NEWTEAMCREATED } from './events';
 import './lineup-team-create';

@@ -21,7 +21,7 @@ import { changeTeam, getTeams } from '../actions/team';
 import { User } from '../models/auth';
 import { Teams } from '../models/team';
 import auth from '../reducers/auth';
-import team from '../reducers/team';
+import { team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
 import './lineup-team-selector';

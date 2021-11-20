@@ -1,15 +1,14 @@
 import { Player } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
 import { ADD_PLAYER, ADD_TEAM, CHANGE_TEAM, GET_ROSTER, GET_TEAMS } from '@app/slices/team-types';
-import team from '@app/reducers/team';
-import { TeamState } from '@app/reducers/team';
+import { team, TeamState } from '@app/slices/team/team-slice';
 import { expect } from '@open-wc/testing';
 import {
   buildRoster, buildTeams,
   getFakeAction,
   getNewPlayer,
   getStoredPlayer, getStoredTeam, getPublicTeam
-} from '../helpers/test_data';
+} from '../../helpers/test_data.js';
 
 const TEAM_INITIAL_STATE: TeamState = {
   teams: {} as Teams,

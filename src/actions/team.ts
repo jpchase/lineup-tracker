@@ -2,33 +2,21 @@
 @license
 */
 
-import { Action, ActionCreator } from 'redux';
+import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { debug } from '../common/debug';
-import { Player, Roster } from '../models/player';
-import { Team, Teams } from '../models/team';
+import { Player } from '../models/player.js';
+import { Team } from '../models/team.js';
 import { currentUserIdSelector } from '../reducers/auth.js';
-import { addPlayer, addTeam, currentTeamIdSelector, getRoster as getRosterCreator, getTeams as getTeamsCreator } from '../reducers/team.js';
-import {
-  ADD_PLAYER, ADD_TEAM,
-  CHANGE_TEAM, GET_ROSTER,
-  GET_TEAMS
-} from '../slices/team-types';
+import { addPlayer, addTeam, currentTeamIdSelector, getRoster as getRosterCreator, getTeams as getTeamsCreator } from '../slices/team/team-slice.js';
 import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from '../slices/team/team-storage.js';
 import { CollectionFilter, whereFilter } from '../storage/firestore-reader.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState } from '../store';
 
-export { addPlayer, addTeam, changeTeam } from '../reducers/team.js';
+export { addPlayer, addTeam, changeTeam } from '../slices/team/team-slice.js';
 
-export interface TeamActionAddTeam extends Action<typeof ADD_TEAM> { payload: Team };
-export interface TeamActionChangeTeam extends Action<typeof CHANGE_TEAM> { payload: { teamId: string } };
-export interface TeamActionGetTeams extends Action<typeof GET_TEAMS> { payload: { teams: Teams, cachedTeamId?: string } };
-export interface TeamActionGetRoster extends Action<typeof GET_ROSTER> { payload: Roster };
-export interface TeamActionAddPlayer extends Action<typeof ADD_PLAYER> { payload: Player };
-export type TeamAction = TeamActionAddTeam | TeamActionChangeTeam | TeamActionGetTeams | TeamActionGetRoster | TeamActionAddPlayer;
-
-type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
+type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
