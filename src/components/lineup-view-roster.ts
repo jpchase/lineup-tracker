@@ -56,6 +56,7 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
     if (this._teamId !== teamState.teamId) {
       this._teamId = teamState.teamId;
       store.dispatch(getRoster(this._teamId));
+      return;
     }
     this._teamName = teamState.teamName;
     this._roster = teamState.roster;

@@ -2,7 +2,7 @@
 @license
 */
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { debug } from '../../common/debug.js';
@@ -98,21 +98,20 @@ export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch
   dispatch(addTeam(newTeam));
 };
 
-export const getRoster: ActionCreator<ThunkResult> = (teamId: string) => (dispatch) => {
-  if (!teamId) {
-    return;
+export const getRoster = createAsyncThunk(
+  'team/getRoster',
+  async (teamId: string, _thunkAPI) => {
+    return loadTeamRoster(teamId);
+  },
+  {
+    condition: (teamId) => {
+      if (!teamId) {
+        return false;
+      }
+      return true;
+    },
   }
-  loadTeamRoster(teamId).then((roster) => {
-    dispatch(actions.getRoster(
-      roster
-    ));
-
-  }).catch((error: any) => {
-    // TODO: Dispatch error?
-    console.log(`Loading of roster from storage failed: ${error}`);
-  });
-
-};
+);
 
 export const addNewPlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
   if (!newPlayer) {
@@ -174,10 +173,6 @@ const teamSlice = createSlice({
       newState.roster[player.id] = player;
     },
 
-    getRoster: (newState, action: PayloadAction<Roster>) => {
-      newState.roster = action.payload;
-    },
-
     getTeams: {
       reducer: (newState, action: PayloadAction<{ teams: Teams, cachedTeamId?: string }>) => {
         newState.teams = action.payload.teams;
@@ -195,7 +190,12 @@ const teamSlice = createSlice({
         };
       },
     },
-  }
+  },
+  extraReducers: (builder) => {
+    builder.addCase(getRoster.fulfilled, (state, action) => {
+      state.roster = action.payload!;
+    })
+  },
 });
 
 const { actions, reducer } = teamSlice;

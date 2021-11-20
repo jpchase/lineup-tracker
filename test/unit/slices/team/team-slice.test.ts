@@ -1,7 +1,7 @@
 import { Player } from '@app/models/player';
 import { Team, Teams, TeamData } from '@app/models/team';
 import { addNewPlayer, addNewTeam, savePlayer, saveTeam, team, TeamState } from '@app/slices/team/team-slice';
-import { expect, nextFrame } from '@open-wc/testing';
+import { expect } from '@open-wc/testing';
 import {
   buildRoster, buildTeams,
   getFakeAction,
@@ -21,7 +21,15 @@ const actionTypes = {
   ADD_TEAM: 'team/addTeam',
   CHANGE_TEAM: 'team/changeTeam',
   GET_ROSTER: 'team/getRoster',
-  GET_TEAMS: 'team/getTeams'
+  GET_TEAMS: 'team/getTeams',
+
+  fulfilled(typePrefix: string) {
+    return `${typePrefix}/fulfilled`;
+  },
+
+  rejected(typePrefix: string) {
+    return `${typePrefix}/rejected`;
+  },
 };
 
 const TEAM_INITIAL_STATE: TeamState = {
@@ -290,25 +298,6 @@ describe('Teams reducer', () => {
       expect(newState.teams).to.not.equal(state.teams);
     });
   }); // describe('ADD_TEAM')
-
-  describe('GET_ROSTER', () => {
-
-    it('should set the roster to the retrieved list', () => {
-      const expectedRoster = buildRoster([getStoredPlayer()]);
-
-      const newState = team(TEAM_INITIAL_STATE, {
-        type: actionTypes.GET_ROSTER,
-        payload: expectedRoster
-      });
-
-      expect(newState).to.deep.include({
-        roster: expectedRoster,
-      });
-
-      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
-      expect(newState.roster).to.not.equal(TEAM_INITIAL_STATE.roster);
-    });
-  }); // describe('GET_ROSTER')
 
   describe('ADD_PLAYER', () => {
     let newPlayer: Player;
@@ -647,15 +636,11 @@ describe('Team actions', () => {
   }); // describe('addTeam')
 
   describe('getRoster', () => {
-    it('should return a function to dispatch the getRoster action', () => {
-      expect(getRoster()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if team id is missing', () => {
+    it('should do nothing if team id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      getRoster()(dispatchMock, getStateMock, undefined);
+      await getRoster('')(dispatchMock, getStateMock, undefined);
 
       expect(readerStub.loadCollection).to.not.have.been.called;
 
@@ -668,32 +653,44 @@ describe('Team actions', () => {
 
       readerStub.loadCollection.resolves(buildRoster([getStoredPlayer()]));
 
-      getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await nextFrame();
+      await getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
       const rosterData = buildRoster([getStoredPlayer()]);
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.GET_ROSTER,
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.fulfilled(actionTypes.GET_ROSTER),
         payload: rosterData,
-      });
+      }));
     });
 
-    it('should not dispatch an action when storage access fails', async () => {
+    it('should set the roster to the retrieved list', () => {
+      const expectedRoster = buildRoster([getStoredPlayer()]);
+
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: actionTypes.fulfilled(actionTypes.GET_ROSTER),
+        payload: expectedRoster
+      });
+
+      expect(newState).to.deep.include({
+        roster: expectedRoster,
+      });
+
+      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
+      expect(newState.roster).to.not.equal(TEAM_INITIAL_STATE.roster);
+    });
+
+    it('should dispatch a rejected action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
 
       readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
+      await getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.rejected(actionTypes.GET_ROSTER),
+        error: { message: 'Storage failed with some error' }
+      }));
 
-      expect(dispatchMock).to.not.have.been.called;
     });
 
   }); // describe('getRoster')
