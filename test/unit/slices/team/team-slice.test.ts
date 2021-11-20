@@ -1,6 +1,5 @@
 import { Player } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
-import { ADD_PLAYER, ADD_TEAM, CHANGE_TEAM, GET_ROSTER, GET_TEAMS } from '@app/slices/team-types';
 import { team, TeamState } from '@app/slices/team/team-slice';
 import { expect } from '@open-wc/testing';
 import {
@@ -9,6 +8,14 @@ import {
   getNewPlayer,
   getStoredPlayer, getStoredTeam, getPublicTeam
 } from '../../helpers/test_data.js';
+
+const actions = {
+  ADD_PLAYER: 'team/addPlayer',
+  ADD_TEAM: 'team/addTeam',
+  CHANGE_TEAM: 'team/changeTeam',
+  GET_ROSTER: 'team/getRoster',
+  GET_TEAMS: 'team/getTeams'
+};
 
 const TEAM_INITIAL_STATE: TeamState = {
   teams: {} as Teams,
@@ -40,7 +47,7 @@ describe('Teams reducer', () => {
       const expectedTeams = buildTeams([getStoredTeam()]);
 
       const newState = team(TEAM_INITIAL_STATE, {
-        type: GET_TEAMS,
+        type: actions.GET_TEAMS,
         payload: {
           teams: expectedTeams
         }
@@ -59,7 +66,7 @@ describe('Teams reducer', () => {
       const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
 
       const newState = team(TEAM_INITIAL_STATE, {
-        type: GET_TEAMS,
+        type: actions.GET_TEAMS,
         payload: {
           teams: expectedTeams,
           cachedTeamId: storedTeam.id
@@ -86,7 +93,7 @@ describe('Teams reducer', () => {
       const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
 
       const newState = team(currentState, {
-        type: GET_TEAMS,
+        type: actions.GET_TEAMS,
         payload: {
           teams: expectedTeams,
           cachedTeamId: getPublicTeam().id
@@ -108,7 +115,7 @@ describe('Teams reducer', () => {
       const expectedTeams = buildTeams([storedTeam]);
 
       const newState = team(TEAM_INITIAL_STATE, {
-        type: GET_TEAMS,
+        type: actions.GET_TEAMS,
         payload: {
           teams: expectedTeams,
           cachedTeamId: getPublicTeam().id
@@ -135,7 +142,7 @@ describe('Teams reducer', () => {
       state.teams = buildTeams([getStoredTeam(), newTeam]);
 
       const newState = team(state, {
-        type: CHANGE_TEAM,
+        type: actions.CHANGE_TEAM,
         payload: { teamId: newTeam.id }
       });
 
@@ -156,7 +163,7 @@ describe('Teams reducer', () => {
       } as TeamState;
 
       const newState = team(state, {
-        type: CHANGE_TEAM,
+        type: actions.CHANGE_TEAM,
         payload: { teamId: getStoredTeam().id }
       });
 
@@ -171,7 +178,7 @@ describe('Teams reducer', () => {
       state.teams = buildTeams([getStoredTeam(), newTeam]);
 
       const newState = team(state, {
-        type: CHANGE_TEAM,
+        type: actions.CHANGE_TEAM,
         payload: { teamId: 'nosuchid' }
       });
 
@@ -189,7 +196,7 @@ describe('Teams reducer', () => {
       state.teams = buildTeams([storedTeam]);
 
       const newState = team(state, {
-        type: CHANGE_TEAM,
+        type: actions.CHANGE_TEAM,
         payload: { teamId: storedTeam.id }
       });
 
@@ -203,7 +210,7 @@ describe('Teams reducer', () => {
       const expectedTeams = buildTeams([newTeam]);
 
       const newState = team(TEAM_INITIAL_STATE, {
-        type: ADD_TEAM,
+        type: actions.ADD_TEAM,
         payload: newTeam
       });
 
@@ -226,7 +233,7 @@ describe('Teams reducer', () => {
       const expectedTeams = buildTeams([getStoredTeam(), newTeam]);
 
       const newState = team(state, {
-        type: ADD_TEAM,
+        type: actions.ADD_TEAM,
         payload: newTeam
       });
 
@@ -247,7 +254,7 @@ describe('Teams reducer', () => {
       const expectedRoster = buildRoster([getStoredPlayer()]);
 
       const newState = team(TEAM_INITIAL_STATE, {
-        type: GET_ROSTER,
+        type: actions.GET_ROSTER,
         payload: expectedRoster
       });
 
@@ -271,7 +278,7 @@ describe('Teams reducer', () => {
 
     it('should add new player to empty roster', () => {
       const newState = team(TEAM_INITIAL_STATE, {
-        type: ADD_PLAYER,
+        type: actions.ADD_PLAYER,
         payload: newPlayer
       });
 
@@ -290,7 +297,7 @@ describe('Teams reducer', () => {
       state.roster = buildRoster([existingPlayer]);
 
       const newState = team(state, {
-        type: ADD_PLAYER,
+        type: actions.ADD_PLAYER,
         payload: newPlayer
       });
 

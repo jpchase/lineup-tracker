@@ -2,18 +2,10 @@
 @license
 */
 
-import { Reducer } from 'redux';
-import { createAction, createReducer } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
 import { RootState } from '../../store.js';
-import {
-  ADD_TEAM,
-  CHANGE_TEAM,
-  ADD_PLAYER,
-  GET_ROSTER,
-  GET_TEAMS
-} from '../team-types.js';
 
 export interface TeamState {
   teams: Teams;
@@ -31,52 +23,58 @@ const INITIAL_STATE: TeamState = {
   error: ''
 };
 
-function withPayloadType<T>() {
-  return (t: T) => ({ payload: t })
-}
-
-export const addTeam = createAction(ADD_TEAM, withPayloadType<Team>());
-export const changeTeam = createAction(CHANGE_TEAM, (teamId: string) => {
-  return { payload: { teamId } };
-});
-export const getTeams = createAction(GET_TEAMS, (teams: Teams, cachedTeamId?: string) => {
-  return {
-    payload: {
-      teams,
-      cachedTeamId
-    }
-  };
-});
-
-export const addPlayer = createAction(ADD_PLAYER, withPayloadType<Player>());
-export const getRoster = createAction(GET_ROSTER, withPayloadType<Roster>());
-
-export const team: Reducer<TeamState> = createReducer(INITIAL_STATE, (builder) => {
-  builder
-    .addCase(addTeam, (newState, action) => {
+const teamSlice = createSlice({
+  name: 'team',
+  initialState: INITIAL_STATE,
+  reducers: {
+    addTeam: (newState, action: PayloadAction<Team>) => {
       const team = action.payload;
       newState.teams[team.id] = team;
       setCurrentTeam(newState, team.id);
-    })
-    .addCase(changeTeam, (newState, action) => {
-      setCurrentTeam(newState, action.payload.teamId);
-    })
-    .addCase(addPlayer, (newState, action) => {
+    },
+
+    changeTeam: {
+      reducer: (newState, action: PayloadAction<{ teamId: string }>) => {
+        setCurrentTeam(newState, action.payload.teamId);
+      },
+      prepare: (teamId: string) => {
+        return { payload: { teamId } };
+      }
+    },
+
+    addPlayer: (newState, action: PayloadAction<Player>) => {
       const player = action.payload;
       newState.roster[player.id] = player;
-    })
-    .addCase(getRoster, (newState, action) => {
-      newState.roster = action.payload;
-    })
-    .addCase(getTeams, (newState, action) => {
-      newState.teams = action.payload.teams;
-      const cachedTeamId = action.payload.cachedTeamId;
-      if (!newState.teamId && cachedTeamId && newState.teams[cachedTeamId]) {
-        setCurrentTeam(newState, cachedTeamId);
-      }
+    },
 
-    })
+    getRoster: (newState, action: PayloadAction<Roster>) => {
+      newState.roster = action.payload;
+    },
+
+    getTeams: {
+      reducer: (newState, action: PayloadAction<{ teams: Teams, cachedTeamId?: string }>) => {
+        newState.teams = action.payload.teams;
+        const cachedTeamId = action.payload.cachedTeamId;
+        if (!newState.teamId && cachedTeamId && newState.teams[cachedTeamId]) {
+          setCurrentTeam(newState, cachedTeamId);
+        }
+      },
+      prepare: (teams: Teams, cachedTeamId?: string) => {
+        return {
+          payload: {
+            teams,
+            cachedTeamId
+          }
+        };
+      },
+    },
+  }
 });
+
+const { actions, reducer } = teamSlice;
+
+export const team = reducer;
+export const { addTeam, changeTeam, addPlayer, getRoster, getTeams } = actions;
 
 function setCurrentTeam(newState: TeamState, teamId: string) {
   if (newState.teamId === teamId) {

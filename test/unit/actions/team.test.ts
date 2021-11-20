@@ -1,12 +1,12 @@
 import * as actions from '@app/actions/team';
 import { Player } from '@app/models/player';
 import { Team, TeamData } from '@app/models/team';
-import * as actionTypes from '@app/slices/team-types';
+import { addPlayer, addTeam, changeTeam, getRoster, getTeams } from '@app/slices/team/team-slice';
 import { reader } from '@app/storage/firestore-reader';
 import { writer } from '@app/storage/firestore-writer';
 import { idb } from '@app/storage/idb-wrapper';
 import { expect, nextFrame } from '@open-wc/testing';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import {
   buildRoster, buildTeams, getMockAuthState, getNewPlayer, getNewPlayerData, getPublicTeam,
   getStoredPlayer, getStoredTeam, MockAuthStateOptions, TEST_USER_ID
@@ -98,7 +98,7 @@ describe('Team actions', () => {
       expect(mockedIDBGet).to.have.been.calledWith(KEY_TEAMID);
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: getTeams.type,
         payload: {
           teams: buildTeams([getStoredTeam()]),
         }
@@ -120,7 +120,7 @@ describe('Team actions', () => {
       await Promise.resolve();
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: getTeams.type,
         payload: {
           teams: buildTeams([getStoredTeam()]),
           cachedTeamId: previousTeam.id
@@ -141,7 +141,7 @@ describe('Team actions', () => {
       await Promise.resolve();
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: getTeams.type,
         payload: {
           teams: buildTeams([getStoredTeam()]),
           cachedTeamId: 'idfromurl'
@@ -162,7 +162,7 @@ describe('Team actions', () => {
       expect(mockedIDBGet).to.not.have.been.called;
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: getTeams.type,
         payload: {
           teams: buildTeams([getStoredTeam()]),
         }
@@ -182,7 +182,7 @@ describe('Team actions', () => {
       expect(mockedIDBGet).to.not.have.been.called;
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: getTeams.type,
         payload: {
           teams: buildTeams([getPublicTeam()]),
         }
@@ -202,7 +202,7 @@ describe('Team actions', () => {
       expect(mockedIDBGet).to.not.have.been.called;
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: getTeams.type,
         payload: {
           teams: buildTeams([getPublicTeam()]),
           cachedTeamId: 'idfromurl'
@@ -231,7 +231,7 @@ describe('Team actions', () => {
   describe('changeTeam', () => {
     it('should return an action to change the selected team', async () => {
       expect(actions.changeTeam(newTeamSaved.id)).to.deep.equal({
-        type: actionTypes.CHANGE_TEAM,
+        type: changeTeam.type,
         payload: { teamId: newTeamSaved.id },
       });
     });
@@ -306,7 +306,7 @@ describe('Team actions', () => {
       expect(mockedIDBSet).to.have.been.calledWith(KEY_TEAMID, expectedId);
 
       expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ADD_TEAM,
+        type: addTeam.type,
         payload: expectedSavedTeam,
       });
     });
@@ -331,7 +331,7 @@ describe('Team actions', () => {
 
     it('should return an action to add the team', () => {
       expect(actions.addTeam(newTeamSaved)).to.deep.equal({
-        type: actionTypes.ADD_TEAM,
+        type: addTeam.type,
         payload: newTeamSaved,
       });
     });
@@ -367,7 +367,7 @@ describe('Team actions', () => {
 
       const rosterData = buildRoster([getStoredPlayer()]);
       expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.GET_ROSTER,
+        type: getRoster.type,
         payload: rosterData,
       });
     });
@@ -462,7 +462,7 @@ describe('Team actions', () => {
       // Waits for promises to resolve.
       await Promise.resolve();
       expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ADD_PLAYER,
+        type: addPlayer.type,
         payload: expectedSavedPlayer,
       });
     });
@@ -486,7 +486,7 @@ describe('Team actions', () => {
   describe('addPlayer', () => {
     it('should dispatch an action to add the player', () => {
       expect(actions.addPlayer(getNewPlayer())).to.deep.equal({
-        type: actionTypes.ADD_PLAYER,
+        type: addPlayer.type,
         payload: getNewPlayer(),
       });
     });
