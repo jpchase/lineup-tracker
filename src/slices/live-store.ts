@@ -4,7 +4,7 @@ import { LiveGame } from '../models/game';
 import { ClockState } from '../reducers/clock';
 import { clockSelector, live, liveGameSelector } from '../reducers/live';
 import { idb } from '../storage/idb-wrapper';
-import { RootAction, RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store';
+import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
 
 const KEY_CACHED_LIVE = 'CACHED_LIVE';
 interface CachedLive {
@@ -45,7 +45,7 @@ export function getLiveStoreConfigurator(hydrate: boolean): SliceStoreConfigurat
   };
 }
 
-export function hydrateState(storeInstance: Store<RootState, RootAction>) {
+export function hydrateState(storeInstance: Store<RootState>) {
   console.log('hydrateState: start');
   idb.get(KEY_CACHED_LIVE).then((value) => {
     if (!value) {
@@ -59,7 +59,7 @@ export function hydrateState(storeInstance: Store<RootState, RootAction>) {
   });
 }
 
-export function persistState(storeInstance: Store<RootState, RootAction>) {
+export function persistState(storeInstance: Store<RootState>) {
   console.log('persistState: start');
   const state = storeInstance.getState();
 

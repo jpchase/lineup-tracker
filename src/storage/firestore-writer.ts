@@ -7,7 +7,7 @@ import { firebaseRefs } from '../firebase.js';
 import { Model, ModelWriter } from './model-converter.js';
 import { useTestData } from '../init.js';
 import { currentUserIdSelector } from '../reducers/auth.js';
-import { currentTeamIdSelector } from '../reducers/team.js';
+import { currentTeamIdSelector } from '../slices/team/team-slice.js';
 import { RootState } from '../store.js';
 
 const debugFirestore = debug('firestore');

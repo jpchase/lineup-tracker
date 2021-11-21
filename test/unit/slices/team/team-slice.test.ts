@@ -1,16 +1,44 @@
-import * as actions from '@app/actions/team';
 import { Player } from '@app/models/player';
-import { Team, TeamData } from '@app/models/team';
-import * as actionTypes from '@app/slices/team-types';
+import { Team, Teams, TeamData } from '@app/models/team';
+import { addNewPlayer, addNewTeam, savePlayer, saveTeam, team, TeamState } from '@app/slices/team/team-slice';
+import { expect } from '@open-wc/testing';
+import {
+  buildRoster, buildTeams,
+  getFakeAction,
+  getNewPlayer,
+  getStoredPlayer, getStoredTeam, getPublicTeam, getMockAuthState, getNewPlayerData,
+  MockAuthStateOptions, TEST_USER_ID
+} from '../../helpers/test_data.js';
+
+import { addPlayer, addTeam, changeTeam, getRoster, getTeams } from '@app/slices/team/team-slice';
 import { reader } from '@app/storage/firestore-reader';
 import { writer } from '@app/storage/firestore-writer';
 import { idb } from '@app/storage/idb-wrapper';
-import { expect, nextFrame } from '@open-wc/testing';
-import * as sinon from 'sinon';
-import {
-  buildRoster, buildTeams, getMockAuthState, getNewPlayer, getNewPlayerData, getPublicTeam,
-  getStoredPlayer, getStoredTeam, MockAuthStateOptions, TEST_USER_ID
-} from '../helpers/test_data';
+import sinon from 'sinon';
+
+const actionTypes = {
+  ADD_PLAYER: 'team/addPlayer',
+  ADD_TEAM: 'team/addTeam',
+  CHANGE_TEAM: 'team/changeTeam',
+  GET_ROSTER: 'team/getRoster',
+  GET_TEAMS: 'team/getTeams',
+
+  fulfilled(typePrefix: string) {
+    return `${typePrefix}/fulfilled`;
+  },
+
+  rejected(typePrefix: string) {
+    return `${typePrefix}/rejected`;
+  },
+};
+
+const TEAM_INITIAL_STATE: TeamState = {
+  teams: {} as Teams,
+  teamId: '',
+  teamName: '',
+  roster: {},
+  error: ''
+};
 
 const KEY_TEAMS = 'teams';
 const KEY_TEAMID = 'teamId';
@@ -48,6 +76,275 @@ function mockGetState(teams: Team[], currentTeam?: Team, options?: MockAuthState
   });
 }
 
+describe('Teams reducer', () => {
+  const newTeam: Team = {
+    id: 'nt1', name: 'New team 1'
+  };
+
+  it('should return the initial state', () => {
+    expect(
+      team(TEAM_INITIAL_STATE, getFakeAction())
+    ).to.equal(TEAM_INITIAL_STATE);
+  });
+
+  it('should return the initial state when none provided', () => {
+    expect(
+      team(undefined, getFakeAction())
+    ).to.deep.equal(TEAM_INITIAL_STATE);
+  });
+
+  describe('GET_TEAMS', () => {
+    it('should set the teams state to the retrieved list', () => {
+      const expectedTeams = buildTeams([getStoredTeam()]);
+
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: actionTypes.GET_TEAMS,
+        payload: {
+          teams: expectedTeams
+        }
+      });
+
+      expect(newState).to.deep.include({
+        teams: expectedTeams,
+      });
+
+      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
+      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
+    });
+
+    it('should set the current team when cachedTeamId provided', () => {
+      const storedTeam = getStoredTeam();
+      const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
+
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: actionTypes.GET_TEAMS,
+        payload: {
+          teams: expectedTeams,
+          cachedTeamId: storedTeam.id
+        }
+      });
+
+      expect(newState).to.deep.include({
+        teams: expectedTeams,
+        teamId: storedTeam.id,
+        teamName: storedTeam.name
+      });
+
+      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
+      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
+    });
+
+    it('should ignore the cachedTeamId when current team already set', () => {
+      const storedTeam = getStoredTeam();
+      const currentState: TeamState = {
+        ...TEAM_INITIAL_STATE,
+        teamId: storedTeam.id,
+        teamName: storedTeam.name
+      }
+      const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
+
+      const newState = team(currentState, {
+        type: actionTypes.GET_TEAMS,
+        payload: {
+          teams: expectedTeams,
+          cachedTeamId: getPublicTeam().id
+        }
+      });
+
+      expect(newState).to.deep.include({
+        teams: expectedTeams,
+        teamId: storedTeam.id,
+        teamName: storedTeam.name
+      });
+
+      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
+      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
+    });
+
+    it('should ignore the cachedTeamId when not in the team list', () => {
+      const storedTeam = getStoredTeam();
+      const expectedTeams = buildTeams([storedTeam]);
+
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: actionTypes.GET_TEAMS,
+        payload: {
+          teams: expectedTeams,
+          cachedTeamId: getPublicTeam().id
+        }
+      });
+
+      expect(newState).to.include({
+        teams: expectedTeams
+      });
+      expect(newState.teamId).to.not.be.ok;
+      expect(newState.teamName).to.not.be.ok;
+
+      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
+      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
+    });
+  }); // describe('GET_TEAMS')
+
+  describe('CHANGE_TEAM', () => {
+    it('should update the current team id and name', () => {
+      const state = {
+        ...TEAM_INITIAL_STATE,
+        teams: {} as Teams
+      } as TeamState;
+      state.teams = buildTeams([getStoredTeam(), newTeam]);
+
+      const newState = team(state, {
+        type: actionTypes.CHANGE_TEAM,
+        payload: { teamId: newTeam.id }
+      });
+
+      expect(newState).to.include({
+        teamId: newTeam.id,
+        teamName: newTeam.name
+      });
+
+      expect(newState).to.not.equal(state);
+      expect(newState.teamId).to.not.equal(state.teamId);
+      expect(newState.teamName).to.not.equal(state.teamName);
+    });
+
+    it('should do nothing if no teams exist', () => {
+      const state = {
+        ...TEAM_INITIAL_STATE,
+        teams: {} as Teams
+      } as TeamState;
+
+      const newState = team(state, {
+        type: actionTypes.CHANGE_TEAM,
+        payload: { teamId: getStoredTeam().id }
+      });
+
+      expect(newState).to.equal(state);
+    });
+
+    it('should do nothing if team id does not exist', () => {
+      const state = {
+        ...TEAM_INITIAL_STATE,
+        teams: {} as Teams
+      } as TeamState;
+      state.teams = buildTeams([getStoredTeam(), newTeam]);
+
+      const newState = team(state, {
+        type: actionTypes.CHANGE_TEAM,
+        payload: { teamId: 'nosuchid' }
+      });
+
+      expect(newState).to.equal(state);
+    });
+
+    it('should do nothing if team id already set as current team', () => {
+      const storedTeam = getStoredTeam();
+      const state = {
+        ...TEAM_INITIAL_STATE,
+        teamId: storedTeam.id,
+        teamName: storedTeam.name,
+        teams: {} as Teams
+      } as TeamState;
+      state.teams = buildTeams([storedTeam]);
+
+      const newState = team(state, {
+        type: actionTypes.CHANGE_TEAM,
+        payload: { teamId: storedTeam.id }
+      });
+
+      expect(newState).to.equal(state);
+    });
+
+  }); // describe('CHANGE_TEAM')
+
+  describe('ADD_TEAM', () => {
+    it('should populate an empty teams list and set the current team', () => {
+      const expectedTeams = buildTeams([newTeam]);
+
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: actionTypes.ADD_TEAM,
+        payload: newTeam
+      });
+
+      expect(newState).to.deep.include({
+        teams: expectedTeams,
+        teamId: newTeam.id,
+        teamName: newTeam.name
+      });
+
+      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
+      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
+    });
+
+    it('should add to existing teams list and set the current team', () => {
+      const state: TeamState = {
+        ...TEAM_INITIAL_STATE
+      };
+      state.teams = buildTeams([getStoredTeam()]);
+
+      const expectedTeams = buildTeams([getStoredTeam(), newTeam]);
+
+      const newState = team(state, {
+        type: actionTypes.ADD_TEAM,
+        payload: newTeam
+      });
+
+      expect(newState).to.deep.include({
+        teams: expectedTeams,
+        teamId: newTeam.id,
+        teamName: newTeam.name
+      });
+
+      expect(newState).to.not.equal(state);
+      expect(newState.teams).to.not.equal(state.teams);
+    });
+  }); // describe('ADD_TEAM')
+
+  describe('ADD_PLAYER', () => {
+    let newPlayer: Player;
+    let existingPlayer: Player;
+
+    beforeEach(() => {
+      newPlayer = getNewPlayer();
+      existingPlayer = getStoredPlayer();
+    });
+
+    it('should add new player to empty roster', () => {
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: actionTypes.ADD_PLAYER,
+        payload: newPlayer
+      });
+
+      expect(newState).to.deep.include({
+        roster: buildRoster([newPlayer]),
+      });
+
+      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
+      expect(newState.roster).to.not.equal(TEAM_INITIAL_STATE.roster);
+    });
+
+    it('should add new player to roster with existing players', () => {
+      const state: TeamState = {
+        ...TEAM_INITIAL_STATE
+      };
+      state.roster = buildRoster([existingPlayer]);
+
+      const newState = team(state, {
+        type: actionTypes.ADD_PLAYER,
+        payload: newPlayer
+      });
+
+      expect(newState).to.deep.include({
+        roster: buildRoster([existingPlayer, newPlayer]),
+      });
+
+      expect(newState).to.not.equal(state);
+      expect(newState.roster).to.not.equal(state.roster);
+    });
+
+  }); // describe('ADD_PLAYER')
+
+});
+
 describe('Team actions', () => {
   let readerStub: sinon.SinonStubbedInstance<typeof reader>;
   let writerStub: sinon.SinonStubbedInstance<typeof writer>;
@@ -80,7 +377,7 @@ describe('Team actions', () => {
 
   describe('getTeams', () => {
     it('should return a function to dispatch the getTeams action', () => {
-      expect(actions.getTeams()).to.be.instanceof(Function);
+      expect(getTeams()).to.be.instanceof(Function);
     });
 
     it('should dispatch an action with owned teams returned from storage, without cached team id', async () => {
@@ -88,7 +385,7 @@ describe('Team actions', () => {
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
       const loadCollectionStub = mockLoadCollectionWithStoredTeams();
 
-      actions.getTeams()(dispatchMock, getStateMock, undefined);
+      getTeams()(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -99,10 +396,12 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getStoredTeam()]),
+        payload: {
+          teams: buildTeams([getStoredTeam()]),
+        }
       }));
 
-      expect(loadCollectionStub).to.have.callCount(1);
+      expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
     });
 
     it('should dispatch an action with owned teams returned from storage, with cached team id', async () => {
@@ -112,15 +411,17 @@ describe('Team actions', () => {
       const previousTeam = getStoredTeam();
       mockedIDBGet.onFirstCall().resolves(previousTeam.id);
 
-      actions.getTeams(null)(dispatchMock, getStateMock, undefined);
+      getTeams(null)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getStoredTeam()]),
-        cachedTeamId: previousTeam.id
+        payload: {
+          teams: buildTeams([getStoredTeam()]),
+          cachedTeamId: previousTeam.id
+        }
       }));
     });
 
@@ -131,15 +432,17 @@ describe('Team actions', () => {
       const previousTeam = getStoredTeam();
       mockedIDBGet.onFirstCall().resolves(previousTeam.id);
 
-      actions.getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
+      getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getStoredTeam()]),
-        cachedTeamId: 'idfromurl'
+        payload: {
+          teams: buildTeams([getStoredTeam()]),
+          cachedTeamId: 'idfromurl'
+        }
       }));
     });
 
@@ -148,7 +451,7 @@ describe('Team actions', () => {
       const getStateMock = mockGetState([], getStoredTeam(), { signedIn: true, userId: TEST_USER_ID })
       mockLoadCollectionWithStoredTeams();
 
-      actions.getTeams()(dispatchMock, getStateMock, undefined);
+      getTeams()(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -157,7 +460,9 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getStoredTeam()]),
+        payload: {
+          teams: buildTeams([getStoredTeam()]),
+        }
       }));
     });
 
@@ -166,7 +471,7 @@ describe('Team actions', () => {
       const getStateMock = mockGetState([], undefined, { signedIn: false })
       mockLoadCollectionWithPublicTeams();
 
-      actions.getTeams(null)(dispatchMock, getStateMock, undefined);
+      getTeams(null)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -175,7 +480,9 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getPublicTeam()]),
+        payload: {
+          teams: buildTeams([getPublicTeam()]),
+        }
       }));
     });
 
@@ -184,7 +491,7 @@ describe('Team actions', () => {
       const getStateMock = mockGetState([], undefined, { signedIn: false })
       mockLoadCollectionWithPublicTeams();
 
-      actions.getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
+      getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -193,8 +500,10 @@ describe('Team actions', () => {
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.GET_TEAMS,
-        teams: buildTeams([getPublicTeam()]),
-        cachedTeamId: 'idfromurl'
+        payload: {
+          teams: buildTeams([getPublicTeam()]),
+          cachedTeamId: 'idfromurl'
+        }
       }));
     });
 
@@ -205,7 +514,7 @@ describe('Team actions', () => {
       readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
-        actions.getTeams()(dispatchMock, getStateMock, undefined);
+        getTeams()(dispatchMock, getStateMock, undefined);
       }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
@@ -217,73 +526,24 @@ describe('Team actions', () => {
   }); // describe('getTeams')
 
   describe('changeTeam', () => {
-    it('should return a function to dispatch the action', () => {
-      expect(actions.changeTeam()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if no teams exist', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([]);
-
-      actions.changeTeam(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should do nothing if team id does not exist', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([getStoredTeam()]);
-
-      actions.changeTeam('nosuchid')(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should do nothing if team id already set as current team', () => {
-      const storedTeam = getStoredTeam();
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([storedTeam], storedTeam);
-
-      actions.changeTeam(storedTeam.id)(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should dispatch an action to change the selected team', async () => {
-      const storedTeam = getStoredTeam();
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([storedTeam, newTeamSaved], storedTeam);
-
-      actions.changeTeam(newTeamSaved.id)(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.have.been.called;
-
-      // Checks that the changed team was cached in IDB.
-      expect(mockedIDBSet).to.have.been.calledWith(KEY_TEAMID, newTeamSaved.id);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.CHANGE_TEAM,
-        teamId: newTeamSaved.id,
+    it('should return an action to change the selected team', async () => {
+      expect(changeTeam(newTeamSaved.id)).to.deep.equal({
+        type: changeTeam.type,
+        payload: { teamId: newTeamSaved.id },
       });
     });
   }); // describe('changeTeam')
 
   describe('addNewTeam', () => {
     it('should return a function to dispatch the action', () => {
-      expect(actions.addNewTeam()).to.be.instanceof(Function);
+      expect(addNewTeam()).to.be.instanceof(Function);
     });
 
     it('should do nothing if new team is missing', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      actions.addNewTeam()(dispatchMock, getStateMock, undefined);
+      addNewTeam()(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.not.have.been.called;
 
@@ -294,7 +554,7 @@ describe('Team actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([{ id: 'EX', name: 'Existing team' }]);
 
-      actions.addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
+      addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
@@ -305,7 +565,7 @@ describe('Team actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([newTeamSaved]);
 
-      actions.addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
+      addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
@@ -315,7 +575,7 @@ describe('Team actions', () => {
 
   describe('saveTeam', () => {
     it('should return a function to dispatch the action', () => {
-      expect(actions.saveTeam()).to.be.instanceof(Function);
+      expect(saveTeam()).to.be.instanceof(Function);
     });
 
     it('should save to storage and dispatch an action to add team', async () => {
@@ -332,7 +592,7 @@ describe('Team actions', () => {
       );
 
       const inputTeam = getNewTeam();
-      actions.saveTeam(inputTeam)(dispatchMock, getStateMock, undefined);
+      saveTeam(inputTeam)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new team was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
@@ -343,7 +603,7 @@ describe('Team actions', () => {
       expect(mockedIDBSet).to.have.been.calledWith(KEY_TEAMID, expectedId);
 
       expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ADD_TEAM,
+        type: addTeam.type,
         payload: expectedSavedTeam,
       });
     });
@@ -354,7 +614,7 @@ describe('Team actions', () => {
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
-        actions.saveTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
+        saveTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
       }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
@@ -367,8 +627,8 @@ describe('Team actions', () => {
   describe('addTeam', () => {
 
     it('should return an action to add the team', () => {
-      expect(actions.addTeam(newTeamSaved)).to.deep.equal({
-        type: actionTypes.ADD_TEAM,
+      expect(addTeam(newTeamSaved)).to.deep.equal({
+        type: addTeam.type,
         payload: newTeamSaved,
       });
     });
@@ -376,15 +636,11 @@ describe('Team actions', () => {
   }); // describe('addTeam')
 
   describe('getRoster', () => {
-    it('should return a function to dispatch the getRoster action', () => {
-      expect(actions.getRoster()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if team id is missing', () => {
+    it('should do nothing if team id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      actions.getRoster()(dispatchMock, getStateMock, undefined);
+      await getRoster('')(dispatchMock, getStateMock, undefined);
 
       expect(readerStub.loadCollection).to.not.have.been.called;
 
@@ -397,46 +653,58 @@ describe('Team actions', () => {
 
       readerStub.loadCollection.resolves(buildRoster([getStoredPlayer()]));
 
-      actions.getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await nextFrame();
+      await getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
       const rosterData = buildRoster([getStoredPlayer()]);
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.GET_ROSTER,
-        roster: rosterData,
-      });
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.fulfilled(actionTypes.GET_ROSTER),
+        payload: rosterData,
+      }));
     });
 
-    it('should not dispatch an action when storage access fails', async () => {
+    it('should set the roster to the retrieved list', () => {
+      const expectedRoster = buildRoster([getStoredPlayer()]);
+
+      const newState = team(TEAM_INITIAL_STATE, {
+        type: actionTypes.fulfilled(actionTypes.GET_ROSTER),
+        payload: expectedRoster
+      });
+
+      expect(newState).to.deep.include({
+        roster: expectedRoster,
+      });
+
+      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
+      expect(newState.roster).to.not.equal(TEAM_INITIAL_STATE.roster);
+    });
+
+    it('should dispatch a rejected action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
 
       readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        actions.getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
+      await getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.rejected(actionTypes.GET_ROSTER),
+        error: { message: 'Storage failed with some error' }
+      }));
 
-      expect(dispatchMock).to.not.have.been.called;
     });
 
   }); // describe('getRoster')
 
   describe('addNewPlayer', () => {
     it('should return a function to dispatch the action', () => {
-      expect(actions.addNewPlayer()).to.be.instanceof(Function);
+      expect(addNewPlayer()).to.be.instanceof(Function);
     });
 
     it('should do nothing if new player is missing', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      actions.addNewPlayer()(dispatchMock, getStateMock, undefined);
+      addNewPlayer()(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.not.have.been.called;
 
@@ -447,7 +715,7 @@ describe('Team actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, undefined, [getStoredPlayer()]);
 
-      actions.addNewPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+      addNewPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
@@ -458,7 +726,7 @@ describe('Team actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, undefined, [getNewPlayer()]);
 
-      actions.addNewPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+      addNewPlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
@@ -468,7 +736,7 @@ describe('Team actions', () => {
 
   describe('savePlayer', () => {
     it('should return a function to dispatch the action', () => {
-      expect(actions.savePlayer()).to.be.instanceof(Function);
+      expect(savePlayer()).to.be.instanceof(Function);
     });
 
     it('should save to storage and dispatch an action to add player', async () => {
@@ -486,7 +754,7 @@ describe('Team actions', () => {
       );
 
       const inputPlayer = getNewPlayer();
-      actions.savePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
+      savePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -499,8 +767,8 @@ describe('Team actions', () => {
       // Waits for promises to resolve.
       await Promise.resolve();
       expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ADD_PLAYER,
-        player: expectedSavedPlayer,
+        type: addPlayer.type,
+        payload: expectedSavedPlayer,
       });
     });
 
@@ -510,7 +778,7 @@ describe('Team actions', () => {
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
-        actions.savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+        savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
       }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
@@ -522,9 +790,9 @@ describe('Team actions', () => {
 
   describe('addPlayer', () => {
     it('should dispatch an action to add the player', () => {
-      expect(actions.addPlayer(getNewPlayer())).to.deep.equal({
-        type: actionTypes.ADD_PLAYER,
-        player: getNewPlayer(),
+      expect(addPlayer(getNewPlayer())).to.deep.equal({
+        type: addPlayer.type,
+        payload: getNewPlayer(),
       });
     });
 

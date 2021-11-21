@@ -13,6 +13,7 @@ import { lazyReducerEnhancer, LazyStore } from 'pwa-helpers/lazy-reducer-enhance
 import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk';
 import {
   Action,
+  AnyAction,
   applyMiddleware,
   combineReducers,
   compose,
@@ -22,19 +23,13 @@ import {
   Store,
   StoreEnhancer
 } from 'redux';
-import { AppAction } from './actions/app';
-import { AuthAction } from './actions/auth';
-import { GameAction } from './actions/game';
-import { GamesAction } from './actions/games';
-import { LiveAction } from './actions/live';
-import { TeamAction } from './actions/team';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import app, { AppState } from './reducers/app';
 import { AuthState } from './reducers/auth';
 import { GameState } from './reducers/game';
 import { GamesState } from './reducers/games';
 import { LiveState } from './reducers/live';
-import { TeamState } from './reducers/team';
+import type { TeamState } from './slices/team/team-slice.js';
 
 // Overall state extends static states and partials lazy states.
 export interface RootState {
@@ -49,10 +44,8 @@ export interface RootState {
 const RESET_STATE = 'RESET_STATE';
 export interface RootActionReset extends Action<typeof RESET_STATE> { };
 
-export type RootAction = AppAction | AuthAction | GameAction | GamesAction | LiveAction | TeamAction | RootActionReset;
-
-export type RootStore = Store<RootState, RootAction> & LazyStore & {
-  dispatch: ThunkDispatch<RootState, undefined, RootAction>;
+export type RootStore = Store<RootState> & LazyStore & {
+  dispatch: ThunkDispatch<RootState, undefined, AnyAction>;
 };
 
 export interface SliceStoreConfigurator {
@@ -88,10 +81,10 @@ const devCompose: <Ext0, Ext1, StateExt0, StateExt1>(
 // section of the wiki for more details:
 // https://github.com/Polymer/pwa-starter-kit/wiki/4.-Redux-and-state-management
 export const store: RootStore = createStore(
-  state => state as Reducer<RootState, RootAction>,
+  state => state as Reducer<RootState>,
   devCompose(
     lazyReducerEnhancer(combineReducersWithReset),
-    applyMiddleware(thunk as ThunkMiddleware<RootState, RootAction>, dynamicMiddlewares))
+    applyMiddleware(thunk as ThunkMiddleware<RootState>, dynamicMiddlewares))
 );
 
 // Initially loaded reducers.

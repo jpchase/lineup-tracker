@@ -25,7 +25,7 @@ import {
   STARTERS_DONE,
   START_GAME
 } from '../slices/game-types';
-import { RootAction, RootState } from '../store';
+import { RootState } from '../store.js';
 import { createReducer } from './createReducer'; // 'redux-starter-kit';
 
 export interface GameState {
@@ -53,7 +53,7 @@ const INITIAL_STATE: GameState = {
 export const currentGameIdSelector = (state: RootState) => state.game && state.game.gameId;
 export const currentGameSelector = (state: RootState) => state.game && state.game.game;
 
-export const game: Reducer<GameState, RootAction> = createReducer(INITIAL_STATE, {
+export const game: Reducer<GameState> = createReducer(INITIAL_STATE, {
   [GAME_HYDRATE]: (newState, action: GameActionHydrate) => {
     if (newState.hydrated) {
       return;

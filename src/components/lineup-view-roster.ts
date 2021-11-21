@@ -11,16 +11,13 @@ import { Roster } from '../models/player';
 // This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store, RootState } from '../store';
-import { TeamState } from '../reducers/team';
+import { addNewPlayer, getRoster, TeamState } from '../slices/team/team-slice.js';
 
 // We are lazy loading its reducer.
-import team from '../reducers/team';
+import { team } from '../slices/team/team-slice.js';
 store.addReducers({
   team
 });
-
-// These are the actions needed by this element.
-import { addNewPlayer, getRoster } from '../actions/team';
 
 // These are the elements needed by this element.
 import './lineup-roster';
@@ -59,6 +56,7 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
     if (this._teamId !== teamState.teamId) {
       this._teamId = teamState.teamId;
       store.dispatch(getRoster(this._teamId));
+      return;
     }
     this._teamName = teamState.teamName;
     this._roster = teamState.roster;

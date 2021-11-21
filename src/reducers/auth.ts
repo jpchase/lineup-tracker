@@ -8,7 +8,7 @@ import { User } from '../models/auth';
 import {
   GET_USER_SUCCESS
 } from '../slices/auth-types';
-import { RootAction, RootState } from '../store';
+import { RootState } from '../store.js';
 
 export interface AuthState {
   user: User | undefined;
@@ -20,7 +20,7 @@ const INITIAL_STATE: AuthState = {
   error: ''
 };
 
-const auth: Reducer<AuthState, RootAction> = (state = INITIAL_STATE, action) => {
+const auth: Reducer<AuthState> = (state = INITIAL_STATE, action) => {
   switch (action.type) {
     case GET_USER_SUCCESS:
       console.log(`auth.ts - reducer: ${JSON.stringify(action)}, ${state}`);

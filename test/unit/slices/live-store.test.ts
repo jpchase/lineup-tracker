@@ -4,7 +4,7 @@ import { ClockState } from '@app/reducers/clock';
 import { LiveState } from '@app/reducers/live';
 import { hydrateState, persistState, resetCache } from '@app/slices/live-store';
 import { idb } from '@app/storage/idb-wrapper';
-import { RootAction, RootState } from '@app/store';
+import { RootState } from '@app/store';
 import { expect } from '@open-wc/testing';
 import { Store } from 'redux';
 import * as sinon from 'sinon';
@@ -34,13 +34,13 @@ function mockGetState(currentGame?: LiveGame, clock?: ClockState) {
   });
 }
 
-function mockStore(getStateMock: any): Store<RootState, RootAction> {
+function mockStore(getStateMock: any): Store<RootState> {
   return {
     getState: getStateMock,
     dispatch: sinon.stub(),
     replaceReducer: sinon.stub(),
     subscribe: sinon.stub(),
-  } as unknown as Store<RootState, RootAction>;
+  } as unknown as Store<RootState>;
 }
 
 describe('Live store', () => {

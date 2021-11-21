@@ -10,7 +10,7 @@ import { getPlayer, LiveGameBuilder } from '../models/live';
 import { PlayerStatus } from '../models/player';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../slices/game-types';
 import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
-import { RootAction, RootState } from '../store';
+import { RootState } from '../store.js';
 import { clock, ClockState } from './clock';
 import { createReducer } from './createReducer';
 
@@ -45,7 +45,7 @@ export const liveGameSelector = (state: RootState) => state.live && state.live!.
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 
-export const live: Reducer<LiveState, RootAction> = function (state, action) {
+export const live: Reducer<LiveState> = function (state, action) {
   const partialState = liveGame(state, action);
   const newState: LiveState = {
     ...partialState,
@@ -54,7 +54,7 @@ export const live: Reducer<LiveState, RootAction> = function (state, action) {
   return hydrateReducer(newState, action);
 }
 
-const hydrateReducer: Reducer<LiveState, RootAction> = createReducer({} as LiveState, {
+const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
   [LIVE_HYDRATE]: (newState, action: LiveActionHydrate) => {
     if (newState.hydrated) {
       return;
@@ -74,7 +74,7 @@ const hydrateReducer: Reducer<LiveState, RootAction> = createReducer({} as LiveS
   },
 });
 
-const liveGame: Reducer<LiveGameState, RootAction> = createReducer(INITIAL_STATE, {
+const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
   [GET_GAME_SUCCESS]: (newState, action) => {
     if (newState.liveGame && newState.liveGame.id === action.game.id) {
       // Game has already been initialized.

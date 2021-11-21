@@ -2,33 +2,19 @@
 @license
 */
 
-import { Action, ActionCreator } from 'redux';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { debug } from '../common/debug';
-import { Player, Roster } from '../models/player';
-import { Team, Teams } from '../models/team';
-import { currentUserIdSelector } from '../reducers/auth.js';
-import { addTeam, currentTeamIdSelector } from '../reducers/team';
-import {
-  ADD_PLAYER, ADD_TEAM,
-  CHANGE_TEAM, GET_ROSTER,
-  GET_TEAMS
-} from '../slices/team-types';
-import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from '../slices/team/team-storage.js';
-import { CollectionFilter, whereFilter } from '../storage/firestore-reader.js';
-import { idb } from '../storage/idb-wrapper';
-import { RootState } from '../store';
+import { debug } from '../../common/debug.js';
+import { Player, Roster } from '../../models/player.js';
+import { Team, Teams } from '../../models/team.js';
+import { currentUserIdSelector } from '../../reducers/auth.js';
+import { CollectionFilter, whereFilter } from '../../storage/firestore-reader.js';
+import { idb } from '../../storage/idb-wrapper.js';
+import { RootState } from '../../store.js';
+import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from './team-storage.js';
 
-export { addTeam } from '../reducers/team';
-
-export interface TeamActionAddTeam extends Action<typeof ADD_TEAM> { payload: Team };
-export interface TeamActionChangeTeam extends Action<typeof CHANGE_TEAM> { teamId: string };
-export interface TeamActionGetTeams extends Action<typeof GET_TEAMS> { teams: Teams, cachedTeamId?: string };
-export interface TeamActionGetRoster extends Action<typeof GET_ROSTER> { roster: Roster };
-export interface TeamActionAddPlayer extends Action<typeof ADD_PLAYER> { player: Player };
-export type TeamAction = TeamActionAddTeam | TeamActionChangeTeam | TeamActionGetTeams | TeamActionGetRoster | TeamActionAddPlayer;
-
-type ThunkResult = ThunkAction<void, RootState, undefined, TeamAction>;
+type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
@@ -75,36 +61,14 @@ export const getTeams: ActionCreator<ThunkResult> = (selectedTeamId?: string) =>
       cachedTeamId = selectedTeamId;
     }
 
-    dispatch({
-      type: GET_TEAMS,
+    dispatch(actions.getTeams(
       teams,
       cachedTeamId
-    });
+    ));
 
   }).catch((error: any) => {
     // TODO: Dispatch error?
     console.log(`Loading of teams from storage failed: ${error}`);
-  });
-};
-
-export const changeTeam: ActionCreator<ThunkResult> = (teamId: string) => (dispatch, getState) => {
-  if (!teamId) {
-    return;
-  }
-  const state = getState();
-  // Verify that the team id exists.
-  const teamState = state.team!;
-  if (!teamState.teams || !teamState.teams[teamId]) {
-    return;
-  }
-  // Only change if different from the current team.
-  if (teamState.teamId === teamId) {
-    return;
-  }
-  cacheTeamId(teamId);
-  dispatch({
-    type: CHANGE_TEAM,
-    teamId
   });
 };
 
@@ -134,22 +98,20 @@ export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch
   dispatch(addTeam(newTeam));
 };
 
-export const getRoster: ActionCreator<ThunkResult> = (teamId: string) => (dispatch) => {
-  if (!teamId) {
-    return;
+export const getRoster = createAsyncThunk(
+  'team/getRoster',
+  async (teamId: string, _thunkAPI) => {
+    return loadTeamRoster(teamId);
+  },
+  {
+    condition: (teamId) => {
+      if (!teamId) {
+        return false;
+      }
+      return true;
+    },
   }
-  loadTeamRoster(teamId).then((roster) => {
-    dispatch({
-      type: GET_ROSTER,
-      roster
-    });
-
-  }).catch((error: any) => {
-    // TODO: Dispatch error?
-    console.log(`Loading of roster from storage failed: ${error}`);
-  });
-
-};
+);
 
 export const addNewPlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
   if (!newPlayer) {
@@ -171,9 +133,86 @@ export const savePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (di
   dispatch(addPlayer(newPlayer));
 };
 
-export const addPlayer: ActionCreator<TeamActionAddPlayer> = (player: Player) => {
-  return {
-    type: ADD_PLAYER,
-    player
-  };
+export interface TeamState {
+  teams: Teams;
+  teamId: string;
+  teamName: string;
+  roster: Roster;
+  error?: string;
+}
+
+const INITIAL_STATE: TeamState = {
+  teams: {},
+  teamId: '',
+  teamName: '',
+  roster: {},
+  error: ''
 };
+
+const teamSlice = createSlice({
+  name: 'team',
+  initialState: INITIAL_STATE,
+  reducers: {
+    addTeam: (newState, action: PayloadAction<Team>) => {
+      const team = action.payload;
+      newState.teams[team.id] = team;
+      setCurrentTeam(newState, team.id);
+    },
+
+    changeTeam: {
+      reducer: (newState, action: PayloadAction<{ teamId: string }>) => {
+        setCurrentTeam(newState, action.payload.teamId);
+      },
+      prepare: (teamId: string) => {
+        return { payload: { teamId } };
+      }
+    },
+
+    addPlayer: (newState, action: PayloadAction<Player>) => {
+      const player = action.payload;
+      newState.roster[player.id] = player;
+    },
+
+    getTeams: {
+      reducer: (newState, action: PayloadAction<{ teams: Teams, cachedTeamId?: string }>) => {
+        newState.teams = action.payload.teams;
+        const cachedTeamId = action.payload.cachedTeamId;
+        if (!newState.teamId && cachedTeamId && newState.teams[cachedTeamId]) {
+          setCurrentTeam(newState, cachedTeamId);
+        }
+      },
+      prepare: (teams: Teams, cachedTeamId?: string) => {
+        return {
+          payload: {
+            teams,
+            cachedTeamId
+          }
+        };
+      },
+    },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(getRoster.fulfilled, (state, action) => {
+      state.roster = action.payload!;
+    })
+  },
+});
+
+const { actions, reducer } = teamSlice;
+
+export const team = reducer;
+export const { addTeam, changeTeam, addPlayer } = actions;
+
+function setCurrentTeam(newState: TeamState, teamId: string) {
+  if (newState.teamId === teamId) {
+    return;
+  }
+  const team = newState.teams[teamId];
+  if (!team) {
+    return;
+  }
+  newState.teamId = team.id;
+  newState.teamName = team.name;
+}
+
+export const currentTeamIdSelector = (state: RootState) => state.team && state.team.teamId;

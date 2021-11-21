@@ -3,7 +3,7 @@ import { GameDetail } from '@app/models/game';
 import { GameState } from '@app/reducers/game';
 import { hydrateGameState, persistGameState, resetCache } from '@app/slices/game-store';
 import { idb } from '@app/storage/idb-wrapper';
-import { RootAction, RootState } from '@app/store';
+import { RootState } from '@app/store';
 import { expect } from '@open-wc/testing';
 import { Store } from 'redux';
 import * as sinon from 'sinon';
@@ -32,13 +32,13 @@ function mockGetState(currentGame?: GameDetail, updateFn?: MockStateUpdateFunc) 
   });
 }
 
-function mockStore(getStateMock: any): Store<RootState, RootAction> {
+function mockStore(getStateMock: any): Store<RootState> {
   return {
     getState: getStateMock,
     dispatch: sinon.stub(),
     replaceReducer: sinon.stub(),
     subscribe: sinon.stub(),
-  } as unknown as Store<RootState, RootAction>;
+  } as unknown as Store<RootState>;
 }
 
 describe('Game store', () => {

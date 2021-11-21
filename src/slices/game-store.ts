@@ -1,4 +1,4 @@
-import { store as globalStore, RootStore, RootState, RootAction, SliceStoreConfigurator } from '../store';
+import { store as globalStore, RootStore, RootState, SliceStoreConfigurator } from '../store.js';
 import { Store } from 'redux';
 import { idb } from '../storage/idb-wrapper';
 import { Games } from '../models/game';
@@ -42,7 +42,7 @@ export function getGameStoreConfigurator(hydrate: boolean): SliceStoreConfigurat
   };
 }
 
-export function hydrateGameState(storeInstance: Store<RootState, RootAction>) {
+export function hydrateGameState(storeInstance: Store<RootState>) {
   console.log('hydrateGameState: start');
   idb.get(KEY_CACHED_GAMES).then((value) => {
     if (!value) {
@@ -59,7 +59,7 @@ export function hydrateGameState(storeInstance: Store<RootState, RootAction>) {
   });
 }
 
-export function persistGameState(storeInstance: Store<RootState, RootAction>) {
+export function persistGameState(storeInstance: Store<RootState>) {
   console.log('persistGameState: start');
   const state = storeInstance.getState();
 

@@ -17,7 +17,6 @@ import {
   UPDATE_PAGE
 } from '../actions/app';
 import { useTestData } from '../init';
-import { RootAction } from '../store';
 
 export interface AppState {
   page: string;
@@ -35,7 +34,7 @@ const INITIAL_STATE: AppState = {
   useTestData: useTestData(),
 };
 
-const app: Reducer<AppState, RootAction> = (state = INITIAL_STATE, action) => {
+const app: Reducer<AppState> = (state = INITIAL_STATE, action) => {
   switch (action.type) {
     case UPDATE_PAGE:
       return {

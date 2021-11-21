@@ -18,7 +18,7 @@ import { Games } from '../models/game';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store, RootState } from '../store';
 // import { GameState } from '../reducers/game';
-import { TeamState } from '../reducers/team';
+import { TeamState } from '../slices/team/team-slice.js';
 
 // We are lazy loading its reducer.
 import games from '../reducers/games';

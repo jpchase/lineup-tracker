@@ -8,7 +8,6 @@ import {
   ADD_GAME,
   GET_GAMES
 } from '../actions/games';
-import { RootAction } from '../store';
 
 export interface GamesState {
   games: Games;
@@ -20,7 +19,7 @@ const INITIAL_STATE: GamesState = {
   error: ''
 };
 
-const games: Reducer<GamesState, RootAction> = (state = INITIAL_STATE, action) => {
+const games: Reducer<GamesState> = (state = INITIAL_STATE, action) => {
   const newState: GamesState = {
     ...state,
     games: { ...state.games },
