@@ -27,7 +27,7 @@ import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import app, { AppState } from './reducers/app';
 import { AuthState } from './reducers/auth';
 import { GameState } from './reducers/game';
-import { GamesState } from './reducers/games';
+import type { GamesState } from './slices/game/game-slice.js';
 import { LiveState } from './reducers/live';
 import type { TeamState } from './slices/team/team-slice.js';
 

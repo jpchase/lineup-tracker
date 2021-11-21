@@ -3,11 +3,11 @@
 */
 
 import { Reducer } from 'redux';
-import { Games } from '../models/game';
+import { Games } from '../../models/game.js';
 import {
   ADD_GAME,
   GET_GAMES
-} from '../actions/games';
+} from '../../actions/games.js';
 
 export interface GamesState {
   games: Games;
@@ -19,7 +19,7 @@ const INITIAL_STATE: GamesState = {
   error: ''
 };
 
-const games: Reducer<GamesState> = (state = INITIAL_STATE, action) => {
+export const games: Reducer<GamesState> = (state = INITIAL_STATE, action) => {
   const newState: GamesState = {
     ...state,
     games: { ...state.games },
@@ -38,5 +38,3 @@ const games: Reducer<GamesState> = (state = INITIAL_STATE, action) => {
       return state;
   }
 };
-
-export default games;

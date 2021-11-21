@@ -1,8 +1,8 @@
 import { ADD_GAME, GET_GAMES } from '@app/actions/games';
 import { Games } from '@app/models/game';
-import games, { GamesState } from '@app/reducers/games';
+import { games, GamesState } from '@app/slices/game/game-slice';
 import { expect } from '@open-wc/testing';
-import { buildGames, getFakeAction, getNewGame, getStoredGame } from '../helpers/test_data';
+import { buildGames, getFakeAction, getNewGame, getStoredGame } from '../../helpers/test_data.js';
 
 const GAMES_INITIAL_STATE: GamesState = {
   games: {} as Games,
@@ -16,13 +16,13 @@ describe('Games reducer', () => {
   it('should return the initial state', () => {
     expect(
       games(GAMES_INITIAL_STATE, getFakeAction())
-      ).to.equal(GAMES_INITIAL_STATE);
+    ).to.equal(GAMES_INITIAL_STATE);
   });
 
   it('should return the initial state when none provided', () => {
     expect(
       games(undefined, getFakeAction())
-      ).to.deep.equal(GAMES_INITIAL_STATE);
+    ).to.deep.equal(GAMES_INITIAL_STATE);
   });
 
   describe('GET_GAMES', () => {

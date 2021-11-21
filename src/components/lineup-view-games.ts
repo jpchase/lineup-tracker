@@ -21,7 +21,7 @@ import { store, RootState } from '../store';
 import { TeamState } from '../slices/team/team-slice.js';
 
 // We are lazy loading its reducer.
-import games from '../reducers/games';
+import { games } from '../slices/game/game-slice.js';
 store.addReducers({
   games
 });
