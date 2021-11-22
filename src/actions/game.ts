@@ -60,7 +60,7 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
   if (state.game && state.game.game && state.game.game.id === gameId) {
     existingGame = state.game.game!;
   } else {
-    existingGame = state.games && state.games.games && state.games.games[gameId];
+    existingGame = state.game?.games[gameId];
   }
   if (existingGame && existingGame.hasDetail) {
     dispatch(getGameSuccess(existingGame));
@@ -119,7 +119,7 @@ export const copyRoster: ActionCreator<ThunkPromise<void>> = (gameId: string) =>
   if (state.game && state.game.game && state.game.game.id === gameId) {
     existingGame = state.game.game!;
   } else {
-    existingGame = state.games && state.games.games && state.games.games[gameId];
+    existingGame = state.game?.games[gameId];
   }
   if (!existingGame) {
     return Promise.reject(`No existing game found for id: ${gameId}`);

@@ -1,5 +1,5 @@
-import { Game, GameMetadata, Games, GameStatus } from '@app/models/game';
-import { addNewGame, games, GamesState, getGames, saveGame } from '@app/slices/game/game-slice';
+import { Game, GameMetadata, GameStatus } from '@app/models/game';
+import { addNewGame, gamesReducer as games, GameState, getGames, saveGame } from '@app/slices/game/game-slice';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
@@ -23,8 +23,15 @@ const actionTypes = {
   },
 };
 
-const GAMES_INITIAL_STATE: GamesState = {
-  games: {} as Games,
+const GAME_INITIAL_STATE: GameState = {
+  hydrated: false,
+  gameId: '',
+  game: undefined,
+  games: {},
+  detailLoading: false,
+  detailFailure: false,
+  rosterLoading: false,
+  rosterFailure: false,
   error: ''
 };
 
@@ -51,7 +58,7 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?:
   return sinon.fake(() => {
     const mockState = {
       auth: getMockAuthState(options),
-      games: {
+      game: {
         games: buildGames(games)
       },
       team: undefined
@@ -69,19 +76,19 @@ describe('Games reducer', () => {
 
   it('should return the initial state', () => {
     expect(
-      games(GAMES_INITIAL_STATE, getFakeAction())
-    ).to.equal(GAMES_INITIAL_STATE);
+      games(GAME_INITIAL_STATE, getFakeAction())
+    ).to.equal(GAME_INITIAL_STATE);
   });
 
   it('should return the initial state when none provided', () => {
     expect(
       games(undefined, getFakeAction())
-    ).to.deep.equal(GAMES_INITIAL_STATE);
+    ).to.deep.equal(GAME_INITIAL_STATE);
   });
 
   describe('ADD_GAME', () => {
     it('should handle ADD_GAME with empty games', () => {
-      const newState = games(GAMES_INITIAL_STATE, {
+      const newState = games(GAME_INITIAL_STATE, {
         type: actionTypes.ADD_GAME,
         payload: newGame
       });
@@ -90,13 +97,13 @@ describe('Games reducer', () => {
         games: buildGames([newGame]),
       });
 
-      expect(newState).to.not.equal(GAMES_INITIAL_STATE);
-      expect(newState.games).to.not.equal(GAMES_INITIAL_STATE.games);
+      expect(newState).to.not.equal(GAME_INITIAL_STATE);
+      expect(newState.games).to.not.equal(GAME_INITIAL_STATE.games);
     });
 
     it('should handle ADD_GAME with existing games', () => {
-      const state: GamesState = {
-        ...GAMES_INITIAL_STATE
+      const state: GameState = {
+        ...GAME_INITIAL_STATE
       };
       state.games = buildGames([existingGame]);
 
@@ -163,7 +170,7 @@ describe('Games actions', () => {
 
     it('should set the games to the retrieved list', () => {
       const existingGame = getStoredGame();
-      const newState = games(GAMES_INITIAL_STATE, {
+      const newState = games(GAME_INITIAL_STATE, {
         type: actionTypes.fulfilled(actionTypes.GET_GAMES),
         payload: buildGames([existingGame])
       });
@@ -172,8 +179,8 @@ describe('Games actions', () => {
         games: buildGames([existingGame]),
       });
 
-      expect(newState).to.not.equal(GAMES_INITIAL_STATE);
-      expect(newState.games).to.not.equal(GAMES_INITIAL_STATE.games);
+      expect(newState).to.not.equal(GAME_INITIAL_STATE);
+      expect(newState.games).to.not.equal(GAME_INITIAL_STATE.games);
     });
 
     it('should dispatch an action with public games when not signed in', async () => {

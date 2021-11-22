@@ -44,13 +44,11 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
   return sinon.fake(() => {
     const mockState: RootState = {
       auth: getMockAuthState(),
-      games: {
-        games: buildGames(games || []),
-      },
       game: {
         hydrated: false,
         gameId: '',
         game: undefined,
+        games: buildGames(games || []),
         detailLoading: false,
         detailFailure: false,
         rosterLoading: false,

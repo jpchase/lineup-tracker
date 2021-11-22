@@ -5,7 +5,7 @@
 import { GameActionGetGameSuccess, GameActionHydrate } from '@app/actions/game';
 import { Reducer } from 'redux';
 import {
-  GameDetail, GameStatus,
+  GameDetail, Games, GameStatus,
   LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '../models/game';
@@ -25,6 +25,7 @@ import {
   STARTERS_DONE,
   START_GAME
 } from '../slices/game-types';
+import { gamesReducer } from '../slices/game/game-slice.js';
 import { RootState } from '../store.js';
 import { createReducer } from './createReducer'; // 'redux-starter-kit';
 
@@ -32,6 +33,7 @@ export interface GameState {
   hydrated: boolean;
   gameId: string;
   game?: GameDetail;
+  games: Games;
   detailLoading: boolean;
   detailFailure: boolean;
   rosterLoading: boolean;
@@ -43,6 +45,7 @@ const INITIAL_STATE: GameState = {
   hydrated: false,
   gameId: '',
   game: undefined,
+  games: {},
   detailLoading: false,
   detailFailure: false,
   rosterLoading: false,
@@ -53,7 +56,11 @@ const INITIAL_STATE: GameState = {
 export const currentGameIdSelector = (state: RootState) => state.game && state.game.gameId;
 export const currentGameSelector = (state: RootState) => state.game && state.game.game;
 
-export const game: Reducer<GameState> = createReducer(INITIAL_STATE, {
+export const game: Reducer<GameState> = function (state, action) {
+  return oldReducer(gamesReducer(state, action), action);
+}
+
+const oldReducer: Reducer<GameState> = createReducer(INITIAL_STATE, {
   [GAME_HYDRATE]: (newState, action: GameActionHydrate) => {
     if (newState.hydrated) {
       return;

@@ -3,12 +3,14 @@
 */
 
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Game, Games, GameStatus } from '../../models/game.js';
 import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
+import { Game, Games, GameStatus } from '../../models/game.js';
 import { currentUserIdSelector } from '../../reducers/auth.js';
-import { loadGames, persistNewGame } from './game-storage.js';
+import type { GameState } from '../../reducers/game.js';
 import { RootState } from '../../store.js';
+import { loadGames, persistNewGame } from './game-storage.js';
+export { GameState } from '../../reducers/game.js';
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 
@@ -45,7 +47,7 @@ export const addNewGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispat
   }
   const state = getState();
   // Verify that the game name is unique.
-  const gameState = state.games!;
+  const gameState = state.game!;
   if (gameState.games) {
     const hasMatch = Object.keys(gameState.games).some((key) => {
       const game = gameState.games[key];
@@ -67,13 +69,15 @@ export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch
   dispatch(addGame(newGame));
 };
 
-export interface GamesState {
-  games: Games;
-  error?: string;
-}
-
-const INITIAL_STATE: GamesState = {
+const INITIAL_STATE: GameState = {
+  hydrated: false,
+  gameId: '',
+  game: undefined,
   games: {},
+  detailLoading: false,
+  detailFailure: false,
+  rosterLoading: false,
+  rosterFailure: false,
   error: ''
 };
 
@@ -95,5 +99,5 @@ const gameSlice = createSlice({
 
 const { actions, reducer } = gameSlice;
 
-export const games = reducer;
+export const gamesReducer = reducer;
 export const { addGame } = actions;
