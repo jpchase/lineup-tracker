@@ -1,5 +1,8 @@
-const path = require('path');
-const puppeteerLauncher = require('@web/test-runner-puppeteer').puppeteerLauncher;
+import { mochaStyleReporter } from '@blockquote/test-runner-mocha-style-reporter';
+import { defaultReporter } from '@web/test-runner';
+import { puppeteerLauncher } from '@web/test-runner-puppeteer';
+import * as path from 'path';
+import puppeteer from 'puppeteer';
 
 function aliasResolverPlugin() {
   return {
@@ -23,9 +26,9 @@ function aliasResolverPlugin() {
   };
 }
 
-const puppeteerExecutablePath = require('puppeteer').executablePath();
+const puppeteerExecutablePath = puppeteer.executablePath();
 
-module.exports = {
+export default {
   nodeResolve: true,
   coverageConfig: {
     include: ['src/**/*.js'],
@@ -52,5 +55,9 @@ module.exports = {
   ],
   plugins: [
     aliasResolverPlugin(),
+  ],
+  reporters: [
+    defaultReporter(),
+    mochaStyleReporter(),
   ],
 };
