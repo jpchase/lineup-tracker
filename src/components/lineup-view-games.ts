@@ -21,13 +21,10 @@ import { store, RootState } from '../store';
 import { TeamState } from '../slices/team/team-slice.js';
 
 // We are lazy loading its reducer.
-import { games } from '../slices/game/game-slice.js';
+import { addNewGame, getGames, games } from '../slices/game/game-slice.js';
 store.addReducers({
   games
 });
-
-// These are the actions needed by this element.
-import { addNewGame, getGames } from '../actions/games';
 
 // These are the elements needed by this element.
 import '@material/mwc-fab';
