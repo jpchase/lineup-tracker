@@ -1,8 +1,12 @@
-import { ADD_GAME, GET_GAMES } from '@app/actions/games';
 import { Games } from '@app/models/game';
-import { games, GamesState } from '@app/slices/game/game-slice';
+import { games, GamesState, getGames } from '@app/slices/game/game-slice';
 import { expect } from '@open-wc/testing';
 import { buildGames, getFakeAction, getNewGame, getStoredGame } from '../../helpers/test_data.js';
+
+const actionTypes = {
+  ADD_GAME: 'game/addGame',
+  GET_GAMES: 'game/getGames',
+};
 
 const GAMES_INITIAL_STATE: GamesState = {
   games: {} as Games,
@@ -28,8 +32,8 @@ describe('Games reducer', () => {
   describe('GET_GAMES', () => {
     it('should handle GET_GAMES', () => {
       const newState = games(GAMES_INITIAL_STATE, {
-        type: GET_GAMES,
-        games: buildGames([existingGame])
+        type: getGames.type,
+        payload: buildGames([existingGame])
       });
 
       expect(newState).to.deep.include({
@@ -44,8 +48,8 @@ describe('Games reducer', () => {
   describe('ADD_GAME', () => {
     it('should handle ADD_GAME with empty games', () => {
       const newState = games(GAMES_INITIAL_STATE, {
-        type: ADD_GAME,
-        game: newGame
+        type: actionTypes.ADD_GAME,
+        payload: newGame
       });
 
       expect(newState).to.deep.include({
@@ -63,8 +67,8 @@ describe('Games reducer', () => {
       state.games = buildGames([existingGame]);
 
       const newState = games(state, {
-        type: ADD_GAME,
-        game: newGame
+        type: actionTypes.ADD_GAME,
+        payload: newGame
       });
 
       expect(newState).to.deep.include({

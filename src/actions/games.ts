@@ -2,21 +2,16 @@
 @license
 */
 
-import { Action, ActionCreator } from 'redux';
+import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { Game, Games, GameStatus } from '../models/game';
+import { Game, GameStatus } from '../models/game.js';
 import { currentUserIdSelector } from '../reducers/auth.js';
+import { addGame, getGames as getGamesCreator } from '../slices/game/game-slice.js';
 import { loadGames, persistNewGame } from '../slices/game/game-storage.js';
 import { RootState } from '../store.js';
+export { addGame } from '../slices/game/game-slice.js';
 
-export const ADD_GAME = 'ADD_GAME';
-export const GET_GAMES = 'GET_GAMES';
-
-export interface GamesActionAddGame extends Action<'ADD_GAME'> { game: Game };
-export interface GamesActionGetGames extends Action<'GET_GAMES'> { games: Games };
-export type GamesAction = GamesActionAddGame | GamesActionGetGames;
-
-type ThunkResult = ThunkAction<void, RootState, undefined, GamesAction>;
+type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 
 export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatch, getState) => {
   if (!teamId) {
@@ -29,10 +24,7 @@ export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatc
   loadGames(teamId, currentUserId).then((games) => {
     console.log(`getGames - ActionCreator: ${JSON.stringify(games)}`);
 
-    dispatch({
-      type: GET_GAMES,
-      games
-    });
+    dispatch(getGamesCreator(games));
 
   }).catch((error: any) => {
     // TODO: Dispatch error?
@@ -66,11 +58,4 @@ export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch
   }
   persistNewGame(newGame, getState());
   dispatch(addGame(newGame));
-};
-
-export const addGame: ActionCreator<GamesActionAddGame> = (game: Game) => {
-  return {
-    type: ADD_GAME,
-    game
-  };
 };

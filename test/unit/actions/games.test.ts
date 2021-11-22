@@ -1,5 +1,6 @@
 import * as actions from '@app/actions/games';
 import { Game, GameMetadata, GameStatus } from '@app/models/game';
+import { addGame, getGames } from '@app/slices/game/game-slice';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
@@ -57,10 +58,6 @@ describe('Games actions', () => {
   });
 
   describe('getGames', () => {
-    it('should return a function to dispatch the getGames action', () => {
-      expect(typeof actions.getGames()).to.equal('function');
-    });
-
     it('should do nothing if team id is missing', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
@@ -90,8 +87,8 @@ describe('Games actions', () => {
       await Promise.resolve();
 
       expect(dispatchMock).to.have.been.calledWith({
-        type: actions.GET_GAMES,
-        games: { ...expectedGames },
+        type: getGames.type,
+        payload: { ...expectedGames },
       });
       expect(loadCollectionStub).to.have.callCount(1);
     });
@@ -114,8 +111,8 @@ describe('Games actions', () => {
       await Promise.resolve();
 
       expect(dispatchMock).to.have.been.calledWith({
-        type: actions.GET_GAMES,
-        games: { ...expectedGames },
+        type: getGames.type,
+        payload: { ...expectedGames },
       });
     });
 
@@ -202,8 +199,8 @@ describe('Games actions', () => {
       expect(inputGame, 'Input game should have properties set by saving').to.deep.equal(expectedSavedGame);
 
       expect(dispatchMock).to.have.been.calledWith({
-        type: actions.ADD_GAME,
-        game: expectedSavedGame,
+        type: addGame.type,
+        payload: expectedSavedGame,
       });
 
       // Waits for promises to resolve.
@@ -227,14 +224,4 @@ describe('Games actions', () => {
     });
   }); // describe('saveGame')
 
-  describe('addGame', () => {
-    it('should dispatch an action to add the team', () => {
-      const newGameSaved = getNewGameSaved();
-
-      expect(actions.addGame(newGameSaved)).to.deep.equal({
-        type: actions.ADD_GAME,
-        game: newGameSaved,
-      });
-    });
-  }); // describe('addGame')
 }); // describe('Game actions')
