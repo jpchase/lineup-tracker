@@ -2,7 +2,7 @@
 @license
 */
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Game, Games, GameStatus } from '../../models/game.js';
 import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
@@ -12,24 +12,32 @@ import { RootState } from '../../store.js';
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 
-export const getGames: ActionCreator<ThunkResult> = (teamId: string) => (dispatch, getState) => {
-  if (!teamId) {
-    return;
+export const getGames = createAsyncThunk<
+  // Return type of the payload creator
+  Games,
+  // First argument to the payload creator
+  string,
+  {
+    // Optional fields for defining thunkApi field types
+    // dispatch: AppDispatch
+    state: RootState
   }
-  // Show the user's games, when signed in. Otherwise, only show public data.
-  // TODO: Extract into helper function somewhere?
-  const currentUserId = currentUserIdSelector(getState());
+>(
+  'game/getGames',
+  async (teamId, thunkAPI) => {
+    const currentUserId = currentUserIdSelector(thunkAPI.getState());
 
-  loadGames(teamId, currentUserId).then((games) => {
-    console.log(`getGames - ActionCreator: ${JSON.stringify(games)}`);
-
-    dispatch(actions.getGames(games));
-
-  }).catch((error: any) => {
-    // TODO: Dispatch error?
-    console.log(`Loading of games from storage failed: ${error}`);
-  });
-};
+    return loadGames(teamId, currentUserId);
+  },
+  {
+    condition: (teamId) => {
+      if (!teamId) {
+        return false;
+      }
+      return true;
+    },
+  }
+);
 
 export const addNewGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch, getState) => {
   if (!newGame) {
@@ -77,11 +85,12 @@ const gameSlice = createSlice({
       const game = action.payload;
       newState.games[game.id] = game;
     },
-
-    getGames: (newState, action: PayloadAction<Games>) => {
-      newState.games = action.payload;
-    },
-  }
+  },
+  extraReducers: (builder) => {
+    builder.addCase(getGames.fulfilled, (state, action) => {
+      state.games = action.payload;
+    })
+  },
 });
 
 const { actions, reducer } = gameSlice;

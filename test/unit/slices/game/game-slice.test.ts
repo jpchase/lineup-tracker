@@ -13,6 +13,14 @@ import {
 const actionTypes = {
   ADD_GAME: 'game/addGame',
   GET_GAMES: 'game/getGames',
+
+  fulfilled(typePrefix: string) {
+    return `${typePrefix}/fulfilled`;
+  },
+
+  rejected(typePrefix: string) {
+    return `${typePrefix}/rejected`;
+  },
 };
 
 const GAMES_INITIAL_STATE: GamesState = {
@@ -71,22 +79,6 @@ describe('Games reducer', () => {
     ).to.deep.equal(GAMES_INITIAL_STATE);
   });
 
-  describe('GET_GAMES', () => {
-    it('should handle GET_GAMES', () => {
-      const newState = games(GAMES_INITIAL_STATE, {
-        type: actionTypes.GET_GAMES,
-        payload: buildGames([existingGame])
-      });
-
-      expect(newState).to.deep.include({
-        games: buildGames([existingGame]),
-      });
-
-      expect(newState).to.not.equal(GAMES_INITIAL_STATE);
-      expect(newState.games).to.not.equal(GAMES_INITIAL_STATE.games);
-    });
-  }); // describe('GET_GAMES')
-
   describe('ADD_GAME', () => {
     it('should handle ADD_GAME with empty games', () => {
       const newState = games(GAMES_INITIAL_STATE, {
@@ -141,7 +133,7 @@ describe('Games actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      getGames()(dispatchMock, getStateMock, undefined);
+      getGames('')(dispatchMock, getStateMock, undefined);
 
       expect(readerStub.loadCollection).to.not.have.been.called;
 
@@ -160,16 +152,28 @@ describe('Games actions', () => {
         .withArgs(KEY_GAMES, sinon.match.object, userFilter, teamFilter)
         .resolves(expectedGames);
 
-      getGames(storedTeamId)(dispatchMock, getStateMock, undefined);
+      await getGames(storedTeamId)(dispatchMock, getStateMock, undefined);
 
-      // Waits for promises to resolve.
-      await Promise.resolve();
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.GET_GAMES,
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.fulfilled(actionTypes.GET_GAMES),
         payload: { ...expectedGames },
-      });
+      }));
       expect(loadCollectionStub).to.have.callCount(1);
+    });
+
+    it('should set the games to the retrieved list', () => {
+      const existingGame = getStoredGame();
+      const newState = games(GAMES_INITIAL_STATE, {
+        type: actionTypes.fulfilled(actionTypes.GET_GAMES),
+        payload: buildGames([existingGame])
+      });
+
+      expect(newState).to.deep.include({
+        games: buildGames([existingGame]),
+      });
+
+      expect(newState).to.not.equal(GAMES_INITIAL_STATE);
+      expect(newState.games).to.not.equal(GAMES_INITIAL_STATE.games);
     });
 
     it('should dispatch an action with public games when not signed in', async () => {
@@ -184,15 +188,12 @@ describe('Games actions', () => {
         .withArgs(KEY_GAMES, sinon.match.object, isPublicFilter, teamFilter)
         .resolves(expectedGames);
 
-      getGames(publicTeamId)(dispatchMock, getStateMock, undefined);
+      await getGames(publicTeamId)(dispatchMock, getStateMock, undefined);
 
-      // Waits for promises to resolve.
-      await Promise.resolve();
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.GET_GAMES,
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.fulfilled(actionTypes.GET_GAMES),
         payload: { ...expectedGames },
-      });
+      }));
     });
 
     it('should not dispatch an action when storage access fails', async () => {
@@ -201,14 +202,12 @@ describe('Games actions', () => {
 
       readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        getGames(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
+      await getGames(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
-      // Waits for promises to resolve.
-      await Promise.resolve();
-
-      expect(dispatchMock).to.not.have.been.called;
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.rejected(actionTypes.GET_GAMES),
+        error: { message: 'Storage failed with some error' }
+      }));
     });
 
   }); // describe('getGames')
