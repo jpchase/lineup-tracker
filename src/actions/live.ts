@@ -1,4 +1,4 @@
-import { Action, ActionCreator } from 'redux';
+import { Action, ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { Position } from '../models/formation';
 import { LiveGame } from '../models/game';
@@ -10,17 +10,14 @@ import {
   CANCEL_SUB,
   CONFIRM_SUB,
   DISCARD_NEXT,
-  LiveActionEndPeriod,
-  LiveActionStartPeriod,
-  LiveActionToggleClock,
   LIVE_HYDRATE,
   SELECT_PLAYER,
   SELECT_STARTER,
   SELECT_STARTER_POSITION,
-  TOGGLE_CLOCK
 } from '../slices/live-types';
 import { ClockState } from '../slices/live/clock-slice.js';
 import { RootState } from '../store';
+export { toggle as toggleClock } from '../slices/live/clock-slice.js'
 
 export interface LiveActionHydrate extends Action<typeof LIVE_HYDRATE> { gameId?: string, game?: LiveGame, clock?: ClockState };
 export interface LiveActionApplyStarter extends Action<typeof APPLY_STARTER> { };
@@ -33,12 +30,7 @@ export interface LiveActionSelectPlayer extends Action<typeof SELECT_PLAYER> { p
 export interface LiveActionSelectStarter extends Action<typeof SELECT_STARTER> { playerId: string; selected: boolean };
 export interface LiveActionSelectStarterPosition extends Action<typeof SELECT_STARTER_POSITION> { position: Position };
 
-export type LiveAction = LiveActionHydrate | LiveActionApplyStarter | LiveActionApplyNext | LiveActionCancelStarter |
-  LiveActionCancelSub | LiveActionConfirmSub | LiveActionDiscardNext |
-  LiveActionSelectPlayer | LiveActionSelectStarter | LiveActionSelectStarterPosition |
-  LiveActionStartPeriod | LiveActionEndPeriod | LiveActionToggleClock;
-
-type ThunkResult = ThunkAction<void, RootState, undefined, LiveAction>;
+type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 
 export const hydrateLive: ActionCreator<LiveActionHydrate> = (game: LiveGame, gameId?: string, clock?: ClockState) => {
   return {
@@ -130,12 +122,5 @@ export const cancelProposedStarter: ActionCreator<ThunkResult> = () => (dispatch
   }
   dispatch({
     type: CANCEL_STARTER
-  });
-};
-
-export const toggleClock: ActionCreator<ThunkResult> = () => (dispatch) => {
-  //TODO: Check that period is started?
-  dispatch({
-    type: TOGGLE_CLOCK
   });
 };
