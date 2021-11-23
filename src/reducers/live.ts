@@ -11,7 +11,7 @@ import { PlayerStatus } from '../models/player';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../slices/game-types';
 import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
 import { RootState } from '../store.js';
-import { clock, ClockState } from './clock';
+import { clock, ClockState } from '../slices/live/clock-slice.js';
 import { createReducer } from './createReducer';
 
 export interface LiveGameState {

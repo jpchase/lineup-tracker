@@ -3,9 +3,9 @@
 */
 
 import { Reducer } from 'redux';
-import { END_PERIOD, START_PERIOD, TOGGLE_CLOCK } from '../slices/live-types';
-import { createReducer } from './createReducer';
-import { TimerData, Timer } from '../models/clock';
+import { END_PERIOD, START_PERIOD, TOGGLE_CLOCK } from '../live-types.js';
+import { createReducer } from '../../reducers/createReducer.js';
+import { TimerData, Timer } from '../../models/clock.js';
 
 export interface ClockState {
   timer?: TimerData;

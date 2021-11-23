@@ -1,8 +1,8 @@
 import { Store } from 'redux';
 import { hydrateLive } from '../actions/live';
 import { LiveGame } from '../models/game';
-import { ClockState } from '../reducers/clock';
 import { clockSelector, live, liveGameSelector } from '../reducers/live';
+import { ClockState } from '../slices/live/clock-slice.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
 

@@ -1,6 +1,6 @@
 import { hydrateLive } from '@app/actions/live';
 import { LiveGame } from '@app/models/game';
-import { ClockState } from '@app/reducers/clock';
+import { ClockState } from '@app/slices/live/clock-slice';
 import { LiveState } from '@app/reducers/live';
 import { hydrateState, persistState, resetCache } from '@app/slices/live-store';
 import { idb } from '@app/storage/idb-wrapper';

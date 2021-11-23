@@ -2,7 +2,6 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { Position } from '../models/formation';
 import { LiveGame } from '../models/game';
-import { ClockState } from '../reducers/clock';
 import { proposedSubSelector } from '../reducers/live';
 import {
   APPLY_NEXT,
@@ -20,6 +19,7 @@ import {
   SELECT_STARTER_POSITION,
   TOGGLE_CLOCK
 } from '../slices/live-types';
+import { ClockState } from '../slices/live/clock-slice.js';
 import { RootState } from '../store';
 
 export interface LiveActionHydrate extends Action<typeof LIVE_HYDRATE> { gameId?: string, game?: LiveGame, clock?: ClockState };

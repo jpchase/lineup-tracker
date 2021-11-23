@@ -1,9 +1,9 @@
 import { Duration } from '@app/models/clock';
-import { clock, ClockState } from '@app/reducers/clock';
+import { clock, ClockState } from '@app/slices/live/clock-slice';
 import { END_PERIOD, START_PERIOD, TOGGLE_CLOCK } from '@app/slices/live-types';
 import { expect } from '@open-wc/testing';
 import * as sinon from 'sinon';
-import { getFakeAction } from '../helpers/test_data';
+import { getFakeAction } from '../../helpers/test_data.js';
 
 export const CLOCK_INITIAL_STATE: ClockState = {
   timer: undefined,

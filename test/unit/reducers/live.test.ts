@@ -3,10 +3,10 @@ import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, LiveGame, LivePlayer } from '@app/models/game';
 import { getPlayer } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
-import { ClockState } from '@app/reducers/clock';
 import { live, LiveState } from '@app/reducers/live';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '@app/slices/game-types';
 import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
+import { ClockState } from '@app/slices/live/clock-slice';
 import { expect } from '@open-wc/testing';
 import { buildRunningTimer, buildStoppedTimer } from '../helpers/test-clock-data';
 import * as testlive from '../helpers/test-live-game-data';
@@ -20,7 +20,7 @@ import {
   getStoredPlayer,
   OTHER_STORED_GAME_ID
 } from '../helpers/test_data';
-import { CLOCK_INITIAL_STATE } from './clock.test';
+import { CLOCK_INITIAL_STATE } from '../slices/live/clock-slice.test.js';
 
 const LIVE_INITIAL_STATE: LiveState = {
   gameId: '',
