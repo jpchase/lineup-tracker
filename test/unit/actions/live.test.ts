@@ -1,11 +1,11 @@
 import * as actions from '@app/actions/live';
 import { Position } from '@app/models/formation';
 import { LivePlayer } from '@app/models/game';
-import { LiveState } from '@app/reducers/live';
+import { LiveState } from '@app/slices/live/live-slice';
 import * as actionTypes from '@app/slices/live-types';
 import { RootState } from '@app/store';
 import { expect } from '@open-wc/testing';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import { getMockAuthState, getStoredPlayer } from '../helpers/test_data';
 
 interface MockStateUpdateFunc {
@@ -87,7 +87,7 @@ describe('Live actions', () => {
     });
 
     it('should dispatch an action to confirm the proposed sub', () => {
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const selectedPosition: Position = { id: 'AM1', type: 'AM' };
       const sub: LivePlayer = {
         ...getStoredPlayer(),
         currentPosition: { ...selectedPosition },
@@ -122,7 +122,7 @@ describe('Live actions', () => {
     });
 
     it('should dispatch an action to cancel the proposed sub', () => {
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const selectedPosition: Position = { id: 'AM1', type: 'AM' };
       const sub: LivePlayer = {
         ...getStoredPlayer(),
         currentPosition: { ...selectedPosition },
@@ -290,7 +290,7 @@ describe('Live actions', () => {
     });
 
     it('should dispatch an action to apply the proposed starter', () => {
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const selectedPosition: Position = { id: 'AM1', type: 'AM' };
       const starter: LivePlayer = {
         ...getStoredPlayer(),
         currentPosition: { ...selectedPosition }
@@ -326,7 +326,7 @@ describe('Live actions', () => {
     });
 
     it('should dispatch an action to cancel the proposed starter', () => {
-      const selectedPosition: Position = { id: 'AM1', type: 'AM'};
+      const selectedPosition: Position = { id: 'AM1', type: 'AM' };
       const starter: LivePlayer = {
         ...getStoredPlayer(),
         currentPosition: { ...selectedPosition }

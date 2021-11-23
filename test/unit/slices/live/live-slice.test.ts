@@ -3,13 +3,13 @@ import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, LiveGame, LivePlayer } from '@app/models/game';
 import { getPlayer } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
-import { live, LiveState } from '@app/reducers/live';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '@app/slices/game-types';
 import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
 import { ClockState } from '@app/slices/live/clock-slice';
+import { live, LiveGameState, LiveState } from '@app/slices/live/live-slice';
 import { expect } from '@open-wc/testing';
-import { buildRunningTimer, buildStoppedTimer } from '../helpers/test-clock-data';
-import * as testlive from '../helpers/test-live-game-data';
+import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
+import * as testlive from '../../helpers/test-live-game-data.js';
 import {
   buildLivePlayers,
   buildRoster,
@@ -19,10 +19,10 @@ import {
   getStoredGame,
   getStoredPlayer,
   OTHER_STORED_GAME_ID
-} from '../helpers/test_data';
-import { CLOCK_INITIAL_STATE } from '../slices/live/clock-slice.test.js';
+} from '../../helpers/test_data.js';
+import { CLOCK_INITIAL_STATE } from './clock-slice.test.js';
 
-const LIVE_INITIAL_STATE: LiveState = {
+const LIVE_INITIAL_STATE: LiveGameState = {
   gameId: '',
   liveGame: undefined,
   selectedStarterPlayer: undefined,

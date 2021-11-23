@@ -1,13 +1,13 @@
 import { hydrateLive } from '@app/actions/live';
 import { LiveGame } from '@app/models/game';
 import { ClockState } from '@app/slices/live/clock-slice';
-import { LiveState } from '@app/reducers/live';
+import { LiveState } from '@app/slices/live/live-slice';
 import { hydrateState, persistState, resetCache } from '@app/slices/live-store';
 import { idb } from '@app/storage/idb-wrapper';
 import { RootState } from '@app/store';
 import { expect } from '@open-wc/testing';
 import { Store } from 'redux';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import { buildRunningTimer } from '../helpers/test-clock-data';
 import { getLiveGameWithPlayers } from '../helpers/test-live-game-data';
 

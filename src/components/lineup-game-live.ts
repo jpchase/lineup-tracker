@@ -11,9 +11,9 @@ import { connectStore } from '../middleware/connect-mixin';
 import { TimerData } from '../models/clock';
 import { FormationBuilder } from '../models/formation';
 import { LiveGame, LivePlayer } from '../models/game';
-import { clockSelector, proposedSubSelector } from '../reducers/live';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store';
+import { clockSelector, proposedSubSelector } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-game-clock';
 import { ClockToggleEvent } from './lineup-game-clock';

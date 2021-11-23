@@ -3,16 +3,16 @@
 */
 
 import { Reducer } from 'redux';
-import { LiveActionHydrate } from '../actions/live';
-import { Position } from '../models/formation';
-import { LiveGame, LivePlayer } from '../models/game';
-import { getPlayer, LiveGameBuilder } from '../models/live';
-import { PlayerStatus } from '../models/player';
-import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../slices/game-types';
-import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../slices/live-types';
-import { RootState } from '../store.js';
-import { clock, ClockState } from '../slices/live/clock-slice.js';
-import { createReducer } from './createReducer';
+import { LiveActionHydrate } from '../../actions/live.js';
+import { Position } from '../../models/formation.js';
+import { LiveGame, LivePlayer } from '../../models/game.js';
+import { getPlayer, LiveGameBuilder } from '../../models/live.js';
+import { PlayerStatus } from '../../models/player.js';
+import { createReducer } from '../../reducers/createReducer.js';
+import { RootState } from '../../store.js';
+import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../game-types.js';
+import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../live-types.js';
+import { clock, ClockState } from './clock-slice.js';
 
 export interface LiveGameState {
   gameId: string;

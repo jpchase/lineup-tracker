@@ -27,7 +27,7 @@ import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import app, { AppState } from './reducers/app';
 import { AuthState } from './reducers/auth';
 import { GameState } from './reducers/game';
-import { LiveState } from './reducers/live';
+import type { LiveState } from './slices/live/live-slice.js';
 import type { TeamState } from './slices/team/team-slice.js';
 
 // Overall state extends static states and partials lazy states.
