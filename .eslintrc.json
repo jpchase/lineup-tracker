@@ -1,5 +1,5 @@
 {
-  "extends": ["eslint:recommended", "google"],
+  "extends": ["eslint:recommended", "google", "plugin:lit/recommended"],
   "rules": {
     "comma-dangle": [2, "only-multiline"],
     "max-len": 0,
@@ -22,10 +22,6 @@
     "no-empty": 1
   },
   "globals": {
-    "calculateElapsed": false,
-    "clearChildren": false,
-    "pad0": false,
-    "Stopwatch": false
   },
   "parserOptions": {
     "ecmaVersion": 2017

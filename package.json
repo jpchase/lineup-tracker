@@ -93,6 +93,7 @@
     "deepmerge": "^4.2.2",
     "eslint": "^8.2.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-plugin-lit": "^1.6.1",
     "firebase-tools": "^9.22.0",
     "html-webpack-plugin": "^5.5.0",
     "mocha": "^9.1.3",
