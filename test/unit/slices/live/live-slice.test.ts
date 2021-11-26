@@ -4,9 +4,9 @@ import { GameDetail, LiveGame, LivePlayer } from '@app/models/game';
 import { getPlayer } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '@app/slices/game-types';
-import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
+import { LIVE_HYDRATE } from '@app/slices/live-types';
 import { ClockState } from '@app/slices/live/clock-slice';
-import { live, LiveGameState, LiveState } from '@app/slices/live/live-slice';
+import { applyPendingSubs, applyStarter, cancelStarter, cancelSub, confirmSub, discardPendingSubs, live, LiveGameState, LiveState, selectPlayer, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice';
 import { expect } from '@open-wc/testing';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
@@ -254,7 +254,7 @@ describe('Live reducer', () => {
     });
   }); // describe('ROSTER_DONE')
 
-  describe('SELECT_STARTER', () => {
+  describe('live/selectStarter', () => {
     let currentState: LiveState;
     let selectedStarter: LivePlayer;
 
@@ -270,11 +270,7 @@ describe('Live reducer', () => {
     it('should only set selectedStarterPlayer with nothing selected', () => {
       expect(currentState.selectedStarterPlayer).to.be.undefined;
 
-      const newState = live(currentState, {
-        type: SELECT_STARTER,
-        playerId: selectedStarter.id,
-        selected: true
-      });
+      const newState = live(currentState, selectStarter(selectedStarter.id, true));
 
       expect(newState).to.deep.include({
         liveGame: buildLiveGameWithPlayersSelected(selectedStarter.id, true),
@@ -293,11 +289,7 @@ describe('Live reducer', () => {
       };
       expect(state.liveGame!.players![0].selected).to.be.true;
 
-      const newState = live(state, {
-        type: SELECT_STARTER,
-        playerId: selectedStarter.id,
-        selected: false
-      });
+      const newState = live(state, selectStarter(selectedStarter.id, false));
 
       expect(newState).to.deep.include({
         liveGame: buildLiveGameWithPlayersSelected(selectedStarter.id, false),
@@ -314,11 +306,7 @@ describe('Live reducer', () => {
       currentState.selectedStarterPosition = { ...selectedPosition };
       expect(currentState.selectedStarterPlayer).to.be.undefined;
 
-      const newState = live(currentState, {
-        type: SELECT_STARTER,
-        playerId: selectedStarter.id,
-        selected: true
-      });
+      const newState = live(currentState, selectStarter(selectedStarter.id, true));
 
       const starter: LivePlayer = {
         ...selectedStarter,
@@ -335,9 +323,9 @@ describe('Live reducer', () => {
 
       expect(newState).not.to.equal(currentState);
     });
-  }); // describe('SELECT_STARTER')
+  }); // describe('live/selectStarter')
 
-  describe('SELECT_STARTER_POSITION', () => {
+  describe('live/selectStarterPosition', () => {
 
     it('should only set selectedPosition with nothing selected', () => {
       const state: LiveState = {
@@ -347,10 +335,9 @@ describe('Live reducer', () => {
       expect(state.selectedStarterPosition).to.be.undefined;
 
       const selectedPosition: Position = { id: 'AM1', type: 'AM' };
-      const newState = live(state, {
-        type: SELECT_STARTER_POSITION,
+      const newState = live(state, selectStarterPosition({
         position: selectedPosition
-      });
+      }));
 
       expect(newState).to.deep.include({
         liveGame: buildLiveGameWithPlayers(),
@@ -372,10 +359,9 @@ describe('Live reducer', () => {
       expect(state.selectedStarterPosition).to.be.undefined;
 
       const selectedPosition: Position = { id: 'AM1', type: 'AM' };
-      const newState = live(state, {
-        type: SELECT_STARTER_POSITION,
+      const newState = live(state, selectStarterPosition({
         position: selectedPosition
-      });
+      }));
 
       const starter: LivePlayer = {
         ...selectedPlayer,
@@ -392,9 +378,9 @@ describe('Live reducer', () => {
 
       expect(newState).not.to.equal(state);
     });
-  }); // describe('SELECT_STARTER_POSITION')
+  }); // describe('live/selectStarterPosition')
 
-  describe('APPLY_STARTER', () => {
+  describe('live/applyStarter', () => {
     let currentState: LiveState;
     let selectedPlayer: LivePlayer;
     let selectedPosition: Position;
@@ -417,9 +403,7 @@ describe('Live reducer', () => {
     });
 
     it('should set live player to ON with currentPosition', () => {
-      const newState: LiveState = live(currentState, {
-        type: APPLY_STARTER
-      });
+      const newState: LiveState = live(currentState, applyStarter());
 
       expect(newState.liveGame!.players).to.not.be.undefined;
       const newPlayers = newState.liveGame!.players!;
@@ -439,9 +423,7 @@ describe('Live reducer', () => {
     });
 
     it('should clear selected starter player/position and proposed starter', () => {
-      const newState = live(currentState, {
-        type: APPLY_STARTER
-      });
+      const newState = live(currentState, applyStarter());
 
       expect(newState.selectedStarterPlayer).to.be.undefined;
       expect(newState.selectedStarterPosition).to.be.undefined;
@@ -458,9 +440,7 @@ describe('Live reducer', () => {
       }
       currentState.liveGame!.players!.push(existingStarter);
 
-      const newState: LiveState = live(currentState, {
-        type: APPLY_STARTER
-      });
+      const newState: LiveState = live(currentState, applyStarter());
 
       expect(newState.liveGame!.players).to.not.be.undefined;
       const newPlayers = newState.liveGame!.players!;
@@ -486,9 +466,9 @@ describe('Live reducer', () => {
       expect(newState.liveGame).not.to.equal(currentState.liveGame);
       expect(newPlayers).not.to.equal(currentState.liveGame!.players);
     });
-  }); // describe('APPLY_STARTER')
+  }); // describe('live/applyStarter')
 
-  describe('CANCEL_STARTER', () => {
+  describe('live/cancelStarter', () => {
     let currentState: LiveState;
     let selectedPlayer: LivePlayer;
     let selectedPosition: Position;
@@ -511,9 +491,7 @@ describe('Live reducer', () => {
     });
 
     it('should clear selected player/position and proposed starter', () => {
-      const newState = live(currentState, {
-        type: CANCEL_STARTER
-      });
+      const newState = live(currentState, cancelStarter());
 
       const cancelledPlayer = newState.liveGame!.players!.find(player => (player.id === selectedPlayer.id));
       expect(cancelledPlayer).to.not.be.undefined;
@@ -525,9 +503,9 @@ describe('Live reducer', () => {
 
       expect(newState).not.to.equal(currentState);
     });
-  }); // describe('CANCEL_STARTER')
+  }); // describe('live/cancelStarter')
 
-  describe('SELECT_PLAYER', () => {
+  describe('live/selectPlayer', () => {
     const selectedPlayerId = 'P0';
     let currentState: LiveState;
     let selectedPlayer: LivePlayer;
@@ -585,11 +563,7 @@ describe('Live reducer', () => {
         });
 
         it(`should only set selectedPlayer with no other player selected`, () => {
-          const newState = live(currentState, {
-            type: SELECT_PLAYER,
-            playerId: selectedPlayer.id,
-            selected: true
-          });
+          const newState = live(currentState, selectPlayer(selectedPlayer.id, true));
 
           const expectedState: LiveState = {
             ...LIVE_INITIAL_STATE,
@@ -609,11 +583,7 @@ describe('Live reducer', () => {
           };
           setTrackedPlayer(state, status);
 
-          const newState = live(state, {
-            type: SELECT_PLAYER,
-            playerId: selectedPlayer.id,
-            selected: false
-          });
+          const newState = live(state, selectPlayer(selectedPlayer.id, false));
 
           // Uses LIVE_INITIAL_STATE to set all the tracking properties to undefined.
           expect(newState).to.deep.include({
@@ -634,11 +604,7 @@ describe('Live reducer', () => {
         });
 
         it(`should select individual player only`, () => {
-          const newState = live(currentState, {
-            type: SELECT_PLAYER,
-            playerId: selectedPlayer.id,
-            selected: true
-          });
+          const newState = live(currentState, selectPlayer(selectedPlayer.id, true));
 
           const expectedGame = buildLiveGameForSelected(status, true);
 
@@ -655,11 +621,7 @@ describe('Live reducer', () => {
           currentState.selectedOffPlayer = 'other off';
           currentState.selectedOnPlayer = 'other on';
 
-          const newState = live(currentState, {
-            type: SELECT_PLAYER,
-            playerId: selectedPlayer.id,
-            selected: false
-          });
+          const newState = live(currentState, selectPlayer(selectedPlayer.id, false));
 
           const expectedGame = buildLiveGameForSelected(status, false);
 
@@ -692,11 +654,7 @@ describe('Live reducer', () => {
         currentState.selectedOnPlayer = onPlayerId;
         onPlayer.selected = true;
 
-        const newState = live(currentState, {
-          type: SELECT_PLAYER,
-          playerId: offPlayerId,
-          selected: true
-        });
+        const newState = live(currentState, selectPlayer(offPlayerId, true));
 
         expect(newState.proposedSub).to.deep.include({
           ...offPlayer,
@@ -713,11 +671,7 @@ describe('Live reducer', () => {
         currentState.selectedOffPlayer = offPlayerId;
         offPlayer.selected = true;
 
-        const newState = live(currentState, {
-          type: SELECT_PLAYER,
-          playerId: onPlayerId,
-          selected: true
-        });
+        const newState = live(currentState, selectPlayer(onPlayerId, true));
 
         expect(newState.proposedSub).to.deep.include({
           ...offPlayer,
@@ -729,7 +683,7 @@ describe('Live reducer', () => {
         expect(newState).not.to.equal(currentState);
       });
     }); // describe('Propose sub')
-  }); // describe('SELECT_PLAYER')
+  }); // describe('live/selectPlayer')
 
   describe('Proposed Subs', () => {
     const offPlayerId = 'P1';
@@ -754,7 +708,7 @@ describe('Live reducer', () => {
       }
 
       currentState = {
-        ...LIVE_INITIAL_STATE,
+        ...INITIAL_OVERALL_STATE,
         liveGame: game,
         selectedOffPlayer: offPlayerId,
         selectedOnPlayer: onPlayerId,
@@ -762,12 +716,10 @@ describe('Live reducer', () => {
       };
     });
 
-    describe('CONFIRM_SUB', () => {
+    describe('live/confirmSub', () => {
 
       it('should set off player to NEXT with currentPosition', () => {
-        const newState: LiveState = live(currentState, {
-          type: CONFIRM_SUB
-        });
+        const newState: LiveState = live(currentState, confirmSub());
 
         expect(newState.liveGame!.players).to.not.be.undefined;
         const newPlayers = newState.liveGame!.players!;
@@ -787,9 +739,7 @@ describe('Live reducer', () => {
       });
 
       it('should clear selected players and proposed sub', () => {
-        const newState = live(currentState, {
-          type: CONFIRM_SUB
-        });
+        const newState = live(currentState, confirmSub());
 
         const newPlayer = newState.liveGame!.players!.find(player => (player.id === onPlayerId));
         expect(newPlayer).to.not.be.undefined;
@@ -801,14 +751,25 @@ describe('Live reducer', () => {
 
         expect(newState).not.to.equal(currentState);
       });
-    }); // describe('CONFIRM_SUB')
 
-    describe('CANCEL_SUB', () => {
+      it('should do nothing if proposed sub is missing', () => {
+        currentState = {
+          ...INITIAL_OVERALL_STATE,
+          liveGame: buildLiveGameWithPlayers(),
+        };
+        const newState = live(currentState, confirmSub());
+
+        // TODO: The reducer always returns a new object, when
+        // that is fixed, can remove the .deep
+        expect(newState).to.deep.equal(currentState);
+      });
+
+    }); // describe('live/confirmSub')
+
+    describe('live/cancelSub', () => {
 
       it('should clear selected players and proposed sub', () => {
-        const newState = live(currentState, {
-          type: CANCEL_SUB
-        });
+        const newState = live(currentState, cancelSub());
 
         const cancelledOffPlayer = newState.liveGame!.players!.find(player => (player.id === offPlayerId));
         expect(cancelledOffPlayer).to.not.be.undefined;
@@ -824,7 +785,7 @@ describe('Live reducer', () => {
 
         expect(newState).not.to.equal(currentState);
       });
-    }); // describe('CANCEL_SUB')
+    }); // describe('live/cancelSub')
   }); // describe('Proposed Subs')
 
   describe('Next Subs', () => {
@@ -880,12 +841,10 @@ describe('Live reducer', () => {
       };
     }
 
-    describe('APPLY_NEXT', () => {
+    describe('live/applyPendingSubs', () => {
 
       it('should sub all next players, when not selectedOnly', () => {
-        const newState: LiveState = live(currentState, {
-          type: APPLY_NEXT
-        });
+        const newState: LiveState = live(currentState, applyPendingSubs());
 
         const newIds = getIdsByStatus(newState.liveGame!);
 
@@ -907,10 +866,7 @@ describe('Live reducer', () => {
 
         selectPlayers(currentState.liveGame!, nowPlayingIds, true);
 
-        const newState = live(currentState, {
-          type: APPLY_NEXT,
-          selectedOnly: true
-        });
+        const newState = live(currentState, applyPendingSubs(/* selectedOnly */ true));
 
         const newIds = getIdsByStatus(newState.liveGame!);
 
@@ -951,10 +907,7 @@ describe('Live reducer', () => {
         selectPlayers(currentState.liveGame!, ['P1', 'P3'], true);
         selectPlayers(currentState.liveGame!, ['P4', 'P6'], true);
 
-        const newState: LiveState = live(currentState, {
-          type: APPLY_NEXT,
-          selectedOnly: false
-        });
+        const newState: LiveState = live(currentState, applyPendingSubs(/* selectedOnly */ false));
 
         const newIds = getIdsByStatus(newState.liveGame!);
 
@@ -976,17 +929,15 @@ describe('Live reducer', () => {
         expect(newState).not.to.equal(currentState);
       });
 
-    }); // describe('APPLY_NEXT')
+    }); // describe('live/applyPendingSubs')
 
-    describe('DISCARD_NEXT', () => {
+    describe('live/discardPendingSubs', () => {
 
       it('should reset all next players to off, when not selectedOnly', () => {
         const nowOffIds = ['P1', 'P2', 'P3'];
         const stillOnIds = ['P4', 'P5', 'P6'];
 
-        const newState = live(currentState, {
-          type: DISCARD_NEXT
-        });
+        const newState = live(currentState, discardPendingSubs());
 
         const newIds = getIdsByStatus(newState.liveGame!);
 
@@ -1007,10 +958,7 @@ describe('Live reducer', () => {
 
         selectPlayers(currentState.liveGame!, nowOffIds, true);
 
-        const newState = live(currentState, {
-          type: DISCARD_NEXT,
-          selectedOnly: true
-        });
+        const newState = live(currentState, discardPendingSubs(/* selectedOnly */ true));
 
         const newIds = getIdsByStatus(newState.liveGame!);
 
@@ -1036,7 +984,7 @@ describe('Live reducer', () => {
         expect(newState).not.to.equal(currentState);
       });
 
-    }); // describe('DISCARD_NEXT')
+    }); // describe('live/discardPendingSubs')
   }); // describe('Next Subs')
 
   describe('SET_FORMATION', () => {

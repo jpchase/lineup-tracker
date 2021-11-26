@@ -19,9 +19,11 @@ import {
 import {
   applyProposedStarter,
   cancelProposedStarter,
+} from '../actions/live';
+import {
   selectStarter,
   selectStarterPosition
-} from '../actions/live';
+} from '../slices/live/live-slice.js';
 import { connectStore } from '../middleware/connect-mixin';
 import { FormationBuilder, Position } from '../models/formation';
 import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/game';

@@ -17,7 +17,6 @@ import {
 import { ClockState } from '../slices/live/clock-slice.js';
 import { proposedSubSelector } from '../slices/live/live-slice.js';
 import { RootState } from '../store';
-export { toggle as toggleClock } from '../slices/live/clock-slice.js';
 
 export interface LiveActionHydrate extends Action<typeof LIVE_HYDRATE> { gameId?: string, game?: LiveGame, clock?: ClockState };
 export interface LiveActionApplyStarter extends Action<typeof APPLY_STARTER> { };
@@ -41,17 +40,6 @@ export const hydrateLive: ActionCreator<LiveActionHydrate> = (game: LiveGame, ga
   }
 };
 
-export const selectPlayer: ActionCreator<ThunkResult> = (playerId: string, selected: boolean) => (dispatch) => {
-  if (!playerId) {
-    return;
-  }
-  dispatch({
-    type: SELECT_PLAYER,
-    playerId,
-    selected: !!selected
-  });
-};
-
 export const confirmProposedSub: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
   if (!proposedSubSelector(getState())) {
     return;
@@ -67,41 +55,6 @@ export const cancelProposedSub: ActionCreator<ThunkResult> = () => (dispatch, ge
   }
   dispatch({
     type: CANCEL_SUB
-  });
-};
-
-export const applyPendingSubs: ActionCreator<ThunkResult> = (selectedOnly?: boolean) => (dispatch) => {
-  dispatch({
-    type: APPLY_NEXT,
-    selectedOnly: !!selectedOnly
-  });
-};
-
-export const discardPendingSubs: ActionCreator<ThunkResult> = (selectedOnly?: boolean) => (dispatch) => {
-  dispatch({
-    type: DISCARD_NEXT,
-    selectedOnly: !!selectedOnly
-  });
-};
-
-export const selectStarter: ActionCreator<ThunkResult> = (playerId: string, selected: boolean) => (dispatch) => {
-  if (!playerId) {
-    return;
-  }
-  dispatch({
-    type: SELECT_STARTER,
-    playerId,
-    selected: !!selected
-  });
-};
-
-export const selectStarterPosition: ActionCreator<ThunkResult> = (position: Position) => (dispatch) => {
-  if (!position) {
-    return;
-  }
-  dispatch({
-    type: SELECT_STARTER_POSITION,
-    position
   });
 };
 

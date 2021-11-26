@@ -2,6 +2,8 @@
 @license
 */
 
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
 import { Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { Position } from '../../models/formation.js';
@@ -11,8 +13,9 @@ import { PlayerStatus } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../game-types.js';
-import { APPLY_NEXT, APPLY_STARTER, CANCEL_STARTER, CANCEL_SUB, CONFIRM_SUB, DISCARD_NEXT, LIVE_HYDRATE, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '../live-types.js';
+import { LIVE_HYDRATE } from '../live-types.js';
 import { clock, ClockState } from './clock-slice.js';
+export { toggle as toggleClock } from './clock-slice.js';
 
 export interface LiveGameState {
   gameId: string;
@@ -46,7 +49,8 @@ export const proposedSubSelector = (state: RootState) => state.live && state.liv
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 
 export const live: Reducer<LiveState> = function (state, action) {
-  const partialState = liveGame(state, action);
+  const partialState = liveSlice.reducer(liveGame(state, action), action);
+  // TODO: Use immer or combine reducers to avoid creating a new object on every call.
   const newState: LiveState = {
     ...partialState,
     clock: clock(state ? state.clock : undefined, action)
@@ -102,147 +106,221 @@ const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
     game.formation = { type: action.formationType };
   },
 
-  [SELECT_STARTER]: (newState, action) => {
-    const selectedPlayer = findPlayer(newState, action.playerId);
-    if (selectedPlayer) {
-      selectedPlayer.selected = !!action.selected;
-    }
+});
 
-    // Handles de-selection.
-    if (!action.selected) {
-      if (newState.selectedStarterPlayer === action.playerId) {
-        newState.selectedStarterPlayer = undefined;
+type SelectPlayer = { playerId: string; selected: boolean };
+
+const liveSlice = createSlice({
+  name: 'live',
+  initialState: INITIAL_STATE,
+  reducers: {
+    selectStarter: {
+      reducer: (state, action: PayloadAction<SelectPlayer>) => {
+        const playerId = action.payload.playerId;
+        const selectedPlayer = findPlayer(state, playerId);
+        if (selectedPlayer) {
+          selectedPlayer.selected = !!action.payload.selected;
+        }
+
+        // Handles de-selection.
+        if (!action.payload.selected) {
+          if (state.selectedStarterPlayer === playerId) {
+            state.selectedStarterPlayer = undefined;
+          }
+          return;
+        }
+        state.selectedStarterPlayer = playerId;
+
+        prepareStarterIfPossible(state);
+      },
+
+      prepare: (playerId: string, selected: boolean) => {
+        return {
+          payload: {
+            playerId,
+            selected: !!selected
+          }
+        };
       }
-      return;
-    }
-    newState.selectedStarterPlayer = action.playerId;
+    },
 
-    prepareStarterIfPossible(newState);
-  },
+    selectStarterPosition: (state, action: PayloadAction<{ position: Position }>) => {
+      state.selectedStarterPosition = action.payload.position;
 
-  [SELECT_STARTER_POSITION]: (newState, action) => {
-    newState.selectedStarterPosition = action.position;
+      prepareStarterIfPossible(state);
+    },
 
-    prepareStarterIfPossible(newState);
-  },
+    applyStarter: (state) => {
+      const starter = state.proposedStarter!;
+      const positionId = starter.currentPosition!.id;
 
-  [APPLY_STARTER]: (newState) => {
-    const starter = newState.proposedStarter!;
-    const positionId = starter.currentPosition!.id;
+      state.liveGame!.players!.forEach(player => {
+        if (player.id === starter.id) {
+          player.selected = false;
+          player.status = PlayerStatus.On;
+          player.currentPosition = starter.currentPosition;
+          return;
+        }
 
-    newState.liveGame!.players!.forEach(player => {
-      if (player.id === starter.id) {
-        player.selected = false;
-        player.status = PlayerStatus.On;
-        player.currentPosition = starter.currentPosition;
-        return;
-      }
+        // Checks for an existing starter in the position.
+        if (player.status === PlayerStatus.On && player.currentPosition!.id === positionId) {
+          // Replace the starter, moving the player to off.
+          player.status = PlayerStatus.Off;
+          player.currentPosition = undefined;
+        }
+      });
 
-      // Checks for an existing starter in the position.
-      if (player.status === PlayerStatus.On && player.currentPosition!.id === positionId) {
-        // Replace the starter, moving the player to off.
-        player.status = PlayerStatus.Off;
-        player.currentPosition = undefined;
-      }
-    });
+      clearProposedStarter(state);
+    },
 
-    clearProposedStarter(newState);
-  },
-
-  [CANCEL_STARTER]: (newState) => {
-    const selectedPlayer = findPlayer(newState, newState.selectedStarterPlayer!);
-    if (selectedPlayer && selectedPlayer.selected) {
-      selectedPlayer.selected = false;
-    }
-    clearProposedStarter(newState);
-  },
-
-  [SELECT_PLAYER]: (newState, action) => {
-    const selectedPlayer = findPlayer(newState, action.playerId);
-    if (!selectedPlayer) {
-      return;
-    }
-
-    // Always sets the selected flag to true/false as appropriate.
-    selectedPlayer.selected = !!action.selected;
-
-    // Only On and Off statuses need further handling.
-    if (selectedPlayer.status !== PlayerStatus.On &&
-      selectedPlayer.status !== PlayerStatus.Off) {
-      return;
-    }
-
-    const status = selectedPlayer.status;
-    if (action.selected) {
-      setCurrentSelected(newState, status, action.playerId);
-      prepareSubIfPossible(newState);
-    } else {
-      // De-selection.
-      if (getCurrentSelected(newState, status) === action.playerId) {
-        setCurrentSelected(newState, status, undefined);
-      }
-    }
-  },
-
-  [CONFIRM_SUB]: (newState) => {
-    const sub = newState.proposedSub!;
-
-    newState.liveGame!.players!.forEach(player => {
-      if (player.id === sub.id) {
-        player.selected = false;
-        player.status = PlayerStatus.Next;
-        player.currentPosition = sub.currentPosition;
-        player.replaces = sub.replaces;
-        return;
-      }
-      if (player.id === sub.replaces) {
-        player.selected = false;
-      }
-    });
-
-    clearProposedSub(newState);
-  },
-
-  [CANCEL_SUB]: (newState) => {
-    const cancelIds = [newState.selectedOffPlayer!, newState.selectedOnPlayer!];
-    for (const playerId of cancelIds) {
-      const selectedPlayer = findPlayer(newState, playerId);
+    cancelStarter: (state) => {
+      const selectedPlayer = findPlayer(state, state.selectedStarterPlayer!);
       if (selectedPlayer && selectedPlayer.selected) {
         selectedPlayer.selected = false;
       }
-    }
-    clearProposedSub(newState);
-  },
+      clearProposedStarter(state);
+    },
 
-  [APPLY_NEXT]: (newState, action) => {
-    const nextPlayers = findPlayersByStatus(newState, PlayerStatus.Next, action.selectedOnly);
-    nextPlayers.forEach(player => {
-      const replacedPlayer = findPlayer(newState, player.replaces!);
-      if (!(replacedPlayer && replacedPlayer.status === PlayerStatus.On)) {
+    selectPlayer: {
+      reducer: (state, action: PayloadAction<SelectPlayer>) => {
+        const playerId = action.payload.playerId;
+        const selectedPlayer = findPlayer(state, playerId);
+        if (!selectedPlayer) {
+          return;
+        }
+
+        // Always sets the selected flag to true/false as appropriate.
+        selectedPlayer.selected = !!action.payload.selected;
+
+        // Only On and Off statuses need further handling.
+        if (selectedPlayer.status !== PlayerStatus.On &&
+          selectedPlayer.status !== PlayerStatus.Off) {
+          return;
+        }
+
+        const status = selectedPlayer.status;
+        if (action.payload.selected) {
+          setCurrentSelected(state, status, playerId);
+          prepareSubIfPossible(state);
+        } else {
+          // De-selection.
+          if (getCurrentSelected(state, status) === playerId) {
+            setCurrentSelected(state, status, undefined);
+          }
+        }
+      },
+
+      prepare: (playerId: string, selected: boolean) => {
+        return {
+          payload: {
+            playerId,
+            selected: !!selected
+          }
+        };
+      }
+    },
+
+    confirmSub: (state) => {
+      const sub = state.proposedSub;
+      if (!sub) {
         return;
       }
 
-      player.status = PlayerStatus.On;
-      player.replaces = undefined;
-      player.selected = false;
+      state.liveGame!.players!.forEach(player => {
+        if (player.id === sub.id) {
+          player.selected = false;
+          player.status = PlayerStatus.Next;
+          player.currentPosition = sub.currentPosition;
+          player.replaces = sub.replaces;
+          return;
+        }
+        if (player.id === sub.replaces) {
+          player.selected = false;
+        }
+      });
 
-      replacedPlayer.status = PlayerStatus.Off;
-      replacedPlayer.currentPosition = undefined;
-      replacedPlayer.selected = false;
-    });
-  },
+      clearProposedSub(state);
+    },
 
-  [DISCARD_NEXT]: (newState, action) => {
-    const nextPlayers = findPlayersByStatus(newState, PlayerStatus.Next, action.selectedOnly);
-    nextPlayers.forEach(player => {
-      player.status = PlayerStatus.Off;
-      player.replaces = undefined;
-      player.currentPosition = undefined;
-      player.selected = false;
-    });
-  },
+    cancelSub: (state) => {
+      const cancelIds = [state.selectedOffPlayer!, state.selectedOnPlayer!];
+      for (const playerId of cancelIds) {
+        const selectedPlayer = findPlayer(state, playerId);
+        if (selectedPlayer && selectedPlayer.selected) {
+          selectedPlayer.selected = false;
+        }
+      }
+      clearProposedSub(state);
+    },
 
+    applyPendingSubs: {
+      reducer: (state, action: PayloadAction<{ selectedOnly?: boolean }>) => {
+        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next, action.payload.selectedOnly);
+        nextPlayers.forEach(player => {
+          const replacedPlayer = findPlayer(state, player.replaces!);
+          if (!(replacedPlayer && replacedPlayer.status === PlayerStatus.On)) {
+            return;
+          }
+
+          player.status = PlayerStatus.On;
+          player.replaces = undefined;
+          player.selected = false;
+
+          replacedPlayer.status = PlayerStatus.Off;
+          replacedPlayer.currentPosition = undefined;
+          replacedPlayer.selected = false;
+        });
+      },
+
+      prepare: (selectedOnly?: boolean) => {
+        return {
+          payload: {
+            selectedOnly: !!selectedOnly
+          }
+        };
+      }
+    },
+
+    discardPendingSubs: {
+      reducer: (state, action: PayloadAction<{ selectedOnly?: boolean }>) => {
+        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next, action.payload.selectedOnly);
+        nextPlayers.forEach(player => {
+          player.status = PlayerStatus.Off;
+          player.replaces = undefined;
+          player.currentPosition = undefined;
+          player.selected = false;
+        });
+      },
+      prepare: (selectedOnly?: boolean) => {
+        return {
+          payload: {
+            selectedOnly: !!selectedOnly
+          }
+        };
+      }
+    },
+  }
+  /*
+  extraReducers: (builder) => {
+    builder.addCase(GameActionGetGameSuccess, (state, action: PayloadAction<Game>) => {
+      if (state.liveGame && state.liveGame.id === action.game.id) {
+        // Game has already been initialized.
+        return;
+      }
+
+      const game: LiveGame = LiveGameBuilder.create(action.game);
+
+      state.liveGame = game;
+
+    })
+  },*/
 });
+
+const { actions } = liveSlice;
+export const {
+  selectStarter, selectStarterPosition, applyStarter, cancelStarter,
+  selectPlayer, cancelSub, confirmSub, applyPendingSubs, discardPendingSubs
+} = actions;
 
 function prepareStarterIfPossible(newState: LiveState) {
   if (!newState.selectedStarterPlayer || !newState.selectedStarterPosition) {
