@@ -153,32 +153,32 @@ const teamSlice = createSlice({
   name: 'team',
   initialState: INITIAL_STATE,
   reducers: {
-    addTeam: (newState, action: PayloadAction<Team>) => {
+    addTeam: (state, action: PayloadAction<Team>) => {
       const team = action.payload;
-      newState.teams[team.id] = team;
-      setCurrentTeam(newState, team.id);
+      state.teams[team.id] = team;
+      setCurrentTeam(state, team.id);
     },
 
     changeTeam: {
-      reducer: (newState, action: PayloadAction<{ teamId: string }>) => {
-        setCurrentTeam(newState, action.payload.teamId);
+      reducer: (state, action: PayloadAction<{ teamId: string }>) => {
+        setCurrentTeam(state, action.payload.teamId);
       },
       prepare: (teamId: string) => {
         return { payload: { teamId } };
       }
     },
 
-    addPlayer: (newState, action: PayloadAction<Player>) => {
+    addPlayer: (state, action: PayloadAction<Player>) => {
       const player = action.payload;
-      newState.roster[player.id] = player;
+      state.roster[player.id] = player;
     },
 
     getTeams: {
-      reducer: (newState, action: PayloadAction<{ teams: Teams, cachedTeamId?: string }>) => {
-        newState.teams = action.payload.teams;
+      reducer: (state, action: PayloadAction<{ teams: Teams, cachedTeamId?: string }>) => {
+        state.teams = action.payload.teams;
         const cachedTeamId = action.payload.cachedTeamId;
-        if (!newState.teamId && cachedTeamId && newState.teams[cachedTeamId]) {
-          setCurrentTeam(newState, cachedTeamId);
+        if (!state.teamId && cachedTeamId && state.teams[cachedTeamId]) {
+          setCurrentTeam(state, cachedTeamId);
         }
       },
       prepare: (teams: Teams, cachedTeamId?: string) => {
@@ -203,16 +203,16 @@ const { actions, reducer } = teamSlice;
 export const team = reducer;
 export const { addTeam, changeTeam, addPlayer } = actions;
 
-function setCurrentTeam(newState: TeamState, teamId: string) {
-  if (newState.teamId === teamId) {
+function setCurrentTeam(state: TeamState, teamId: string) {
+  if (state.teamId === teamId) {
     return;
   }
-  const team = newState.teams[teamId];
+  const team = state.teams[teamId];
   if (!team) {
     return;
   }
-  newState.teamId = team.id;
-  newState.teamName = team.name;
+  state.teamId = team.id;
+  state.teamName = team.name;
 }
 
 export const currentTeamIdSelector = (state: RootState) => state.team && state.team.teamId;

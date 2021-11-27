@@ -85,9 +85,9 @@ const gameSlice = createSlice({
   name: 'game',
   initialState: INITIAL_STATE,
   reducers: {
-    addGame: (newState, action: PayloadAction<Game>) => {
+    addGame: (state, action: PayloadAction<Game>) => {
       const game = action.payload;
-      newState.games[game.id] = game;
+      state.games[game.id] = game;
     },
   },
   extraReducers: (builder) => {

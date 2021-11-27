@@ -59,38 +59,38 @@ export const live: Reducer<LiveState> = function (state, action) {
 }
 
 const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
-  [LIVE_HYDRATE]: (newState, action: LiveActionHydrate) => {
-    if (newState.hydrated) {
+  [LIVE_HYDRATE]: (state, action: LiveActionHydrate) => {
+    if (state.hydrated) {
       return;
     }
-    newState.hydrated = true;
+    state.hydrated = true;
     if (!action.gameId) {
       return;
     }
     if (!action.game) {
       return;
     }
-    newState.gameId = action.game.id;
-    newState.liveGame = action.game;
+    state.gameId = action.game.id;
+    state.liveGame = action.game;
     if (action.clock) {
-      newState.clock = action.clock;
+      state.clock = action.clock;
     }
   },
 });
 
 const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
-  [GET_GAME_SUCCESS]: (newState, action) => {
-    if (newState.liveGame && newState.liveGame.id === action.game.id) {
+  [GET_GAME_SUCCESS]: (state, action) => {
+    if (state.liveGame && state.liveGame.id === action.game.id) {
       // Game has already been initialized.
       return;
     }
 
     const game: LiveGame = LiveGameBuilder.create(action.game);
 
-    newState.liveGame = game;
+    state.liveGame = game;
   },
 
-  [ROSTER_DONE]: (newState, action) => {
+  [ROSTER_DONE]: (state, action) => {
     // Setup live players from roster
     const roster = action.roster;
     const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
@@ -98,11 +98,11 @@ const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
       return { ...player } as LivePlayer;
     });
 
-    newState.liveGame!.players = players;
+    state.liveGame!.players = players;
   },
 
-  [SET_FORMATION]: (newState, action) => {
-    const game = newState.liveGame!;
+  [SET_FORMATION]: (state, action) => {
+    const game = state.liveGame!;
     game.formation = { type: action.formationType };
   },
 
@@ -340,47 +340,47 @@ export const {
   selectPlayer, cancelSub, confirmSub, applyPendingSubs, discardPendingSubs
 } = actions;
 
-function prepareStarterIfPossible(newState: LiveState) {
-  if (!newState.selectedStarterPlayer || !newState.selectedStarterPosition) {
+function prepareStarterIfPossible(state: LiveState) {
+  if (!state.selectedStarterPlayer || !state.selectedStarterPosition) {
     // Need both a position and player selected to setup a starter
     return;
   }
 
-  const player = findPlayer(newState, newState.selectedStarterPlayer);
+  const player = findPlayer(state, state.selectedStarterPlayer);
   if (!player) {
     return;
   }
 
-  newState.proposedStarter = {
+  state.proposedStarter = {
     ...player,
     currentPosition: {
-      ...newState.selectedStarterPosition
+      ...state.selectedStarterPosition
     }
   }
 }
 
-function clearProposedStarter(newState: LiveState) {
-  delete newState.selectedStarterPlayer;
-  delete newState.selectedStarterPosition;
-  delete newState.proposedStarter;
+function clearProposedStarter(state: LiveState) {
+  delete state.selectedStarterPlayer;
+  delete state.selectedStarterPosition;
+  delete state.proposedStarter;
 }
 
-function prepareSubIfPossible(newState: LiveState) {
-  if (!newState.selectedOffPlayer || !newState.selectedOnPlayer) {
+function prepareSubIfPossible(state: LiveState) {
+  if (!state.selectedOffPlayer || !state.selectedOnPlayer) {
     // Need both an On and Off player selected to set up a sub
     return;
   }
 
-  const offPlayer = findPlayer(newState, newState.selectedOffPlayer);
+  const offPlayer = findPlayer(state, state.selectedOffPlayer);
   if (!offPlayer) {
     return;
   }
-  const onPlayer = findPlayer(newState, newState.selectedOnPlayer);
+  const onPlayer = findPlayer(state, state.selectedOnPlayer);
   if (!onPlayer) {
     return;
   }
 
-  newState.proposedSub = {
+  state.proposedSub = {
     ...offPlayer,
     currentPosition: {
       ...onPlayer.currentPosition!
@@ -389,19 +389,19 @@ function prepareSubIfPossible(newState: LiveState) {
   }
 }
 
-function clearProposedSub(newState: LiveState) {
-  delete newState.selectedOffPlayer;
-  delete newState.selectedOnPlayer;
-  delete newState.proposedSub;
+function clearProposedSub(state: LiveState) {
+  delete state.selectedOffPlayer;
+  delete state.selectedOnPlayer;
+  delete state.proposedSub;
 }
 
-function findPlayer(newState: LiveState, playerId: string) {
-  return getPlayer(newState.liveGame!, playerId);
+function findPlayer(state: LiveState, playerId: string) {
+  return getPlayer(state.liveGame!, playerId);
 }
 
-function findPlayersByStatus(newState: LiveState, status: PlayerStatus, selectedOnly?: boolean) {
+function findPlayersByStatus(state: LiveState, status: PlayerStatus, selectedOnly?: boolean) {
   let matches: LivePlayer[] = [];
-  newState.liveGame!.players!.forEach(player => {
+  state.liveGame!.players!.forEach(player => {
     if (player.status !== status) {
       return;
     }
@@ -414,23 +414,23 @@ function findPlayersByStatus(newState: LiveState, status: PlayerStatus, selected
   return matches;
 }
 
-function getCurrentSelected(newState: LiveState, status: PlayerStatus) {
+function getCurrentSelected(state: LiveState, status: PlayerStatus) {
   switch (status) {
     case PlayerStatus.Off:
-      return newState.selectedOffPlayer;
+      return state.selectedOffPlayer;
     case PlayerStatus.On:
-      return newState.selectedOnPlayer;
+      return state.selectedOnPlayer;
   }
   throw new Error(`Unsupported status: ${status}`);
 }
 
-function setCurrentSelected(newState: LiveState, status: PlayerStatus, value: string | undefined) {
+function setCurrentSelected(state: LiveState, status: PlayerStatus, value: string | undefined) {
   switch (status) {
     case PlayerStatus.Off:
-      newState.selectedOffPlayer = value;
+      state.selectedOffPlayer = value;
       break;
     case PlayerStatus.On:
-      newState.selectedOnPlayer = value;
+      state.selectedOnPlayer = value;
       break;
     default:
       throw new Error(`Unsupported status: ${status}`);
