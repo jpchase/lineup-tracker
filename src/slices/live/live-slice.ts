@@ -144,14 +144,26 @@ const liveSlice = createSlice({
       }
     },
 
-    selectStarterPosition: (state, action: PayloadAction<{ position: Position }>) => {
-      state.selectedStarterPosition = action.payload.position;
+    selectStarterPosition: {
+      reducer: (state, action: PayloadAction<{ position: Position }>) => {
+        state.selectedStarterPosition = action.payload.position;
 
-      prepareStarterIfPossible(state);
+        prepareStarterIfPossible(state);
+      },
+      prepare: (position: Position) => {
+        return {
+          payload: {
+            position
+          }
+        };
+      }
     },
 
     applyStarter: (state) => {
-      const starter = state.proposedStarter!;
+      if (!state.proposedStarter) {
+        return;
+      }
+      const starter = state.proposedStarter;
       const positionId = starter.currentPosition!.id;
 
       state.liveGame!.players!.forEach(player => {
@@ -174,6 +186,9 @@ const liveSlice = createSlice({
     },
 
     cancelStarter: (state) => {
+      if (!state.proposedStarter) {
+        return;
+      }
       const selectedPlayer = findPlayer(state, state.selectedStarterPlayer!);
       if (selectedPlayer && selectedPlayer.selected) {
         selectedPlayer.selected = false;
@@ -243,6 +258,9 @@ const liveSlice = createSlice({
     },
 
     cancelSub: (state) => {
+      if (!state.proposedSub) {
+        return;
+      }
       const cancelIds = [state.selectedOffPlayer!, state.selectedOnPlayer!];
       for (const playerId of cancelIds) {
         const selectedPlayer = findPlayer(state, playerId);

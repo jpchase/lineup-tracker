@@ -17,9 +17,9 @@ import {
   startGame
 } from '../actions/game';
 import {
-  applyProposedStarter,
-  cancelProposedStarter,
-} from '../actions/live';
+  applyStarter,
+  cancelStarter,
+} from '../slices/live/live-slice.js';
 import {
   selectStarter,
   selectStarterPosition
@@ -318,11 +318,11 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   private applyStarter() {
-    this.dispatch(applyProposedStarter());
+    this.dispatch(applyStarter());
   }
 
   private cancelStarter() {
-    this.dispatch(cancelProposedStarter());
+    this.dispatch(cancelStarter());
   }
 
 }

@@ -335,9 +335,7 @@ describe('Live reducer', () => {
       expect(state.selectedStarterPosition).to.be.undefined;
 
       const selectedPosition: Position = { id: 'AM1', type: 'AM' };
-      const newState = live(state, selectStarterPosition({
-        position: selectedPosition
-      }));
+      const newState = live(state, selectStarterPosition(selectedPosition));
 
       expect(newState).to.deep.include({
         liveGame: buildLiveGameWithPlayers(),
@@ -359,9 +357,7 @@ describe('Live reducer', () => {
       expect(state.selectedStarterPosition).to.be.undefined;
 
       const selectedPosition: Position = { id: 'AM1', type: 'AM' };
-      const newState = live(state, selectStarterPosition({
-        position: selectedPosition
-      }));
+      const newState = live(state, selectStarterPosition(selectedPosition));
 
       const starter: LivePlayer = {
         ...selectedPlayer,
@@ -394,7 +390,7 @@ describe('Live reducer', () => {
       }
 
       currentState = {
-        ...LIVE_INITIAL_STATE,
+        ...INITIAL_OVERALL_STATE,
         liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, true),
         selectedStarterPlayer: selectedPlayer.id,
         selectedStarterPosition: { ...selectedPosition },
@@ -466,6 +462,18 @@ describe('Live reducer', () => {
       expect(newState.liveGame).not.to.equal(currentState.liveGame);
       expect(newPlayers).not.to.equal(currentState.liveGame!.players);
     });
+
+    it('should do nothing if proposed starter is missing', () => {
+      currentState = {
+        ...INITIAL_OVERALL_STATE,
+        liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, true),
+      };
+      const newState = live(currentState, applyStarter());
+
+      // TODO: The reducer always returns a new object, when
+      // that is fixed, can remove the .deep
+      expect(newState).to.deep.equal(currentState);
+    });
   }); // describe('live/applyStarter')
 
   describe('live/cancelStarter', () => {
@@ -502,6 +510,18 @@ describe('Live reducer', () => {
       expect(newState.proposedStarter).to.be.undefined;
 
       expect(newState).not.to.equal(currentState);
+    });
+
+    it('should do nothing if proposed starter is missing', () => {
+      currentState = {
+        ...INITIAL_OVERALL_STATE,
+        liveGame: buildLiveGameWithPlayersSelected(selectedPlayer.id, true),
+      };
+      const newState = live(currentState, cancelStarter());
+
+      // TODO: The reducer always returns a new object, when
+      // that is fixed, can remove the .deep
+      expect(newState).to.deep.equal(currentState);
     });
   }); // describe('live/cancelStarter')
 
@@ -785,6 +805,19 @@ describe('Live reducer', () => {
 
         expect(newState).not.to.equal(currentState);
       });
+
+      it('should do nothing if proposed sub is missing', () => {
+        currentState = {
+          ...INITIAL_OVERALL_STATE,
+          liveGame: buildLiveGameWithPlayers(),
+        };
+        const newState = live(currentState, cancelSub());
+
+        // TODO: The reducer always returns a new object, when
+        // that is fixed, can remove the .deep
+        expect(newState).to.deep.equal(currentState);
+      });
+
     }); // describe('live/cancelSub')
   }); // describe('Proposed Subs')
 

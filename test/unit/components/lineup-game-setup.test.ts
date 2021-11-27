@@ -18,12 +18,7 @@ import {
   START_GAME
 } from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import {
-  APPLY_STARTER,
-  CANCEL_STARTER,
-  SELECT_STARTER,
-  SELECT_STARTER_POSITION
-} from '@app/slices/live-types';
+import { applyStarter, cancelStarter, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
@@ -430,7 +425,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: SELECT_STARTER });
+      expect(actions[actions.length - 1]).to.deep.include(selectStarter(player.id, true));
     });
 
     it('dispatches starter position selected action when card in formation selected', async () => {
@@ -444,7 +439,8 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: SELECT_STARTER_POSITION });
+      expect(actions[actions.length - 1]).to.deep.include(
+        selectStarterPosition(playerElement.data!.position));
     });
 
     it('position card is selected after selection is processed', async () => {
@@ -467,8 +463,8 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: { id: 'AM1', type: 'AM' } });
+      store.dispatch(selectStarter(player.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition({ id: 'AM1', type: 'AM' }));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -482,8 +478,8 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: { id: 'LW', type: 'W' } });
+      store.dispatch(selectStarter(player.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition({ id: 'LW', type: 'W' }));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -502,7 +498,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: APPLY_STARTER });
+      expect(actions[actions.length - 1]).to.include(applyStarter());
     });
 
     it('dispatches cancel starter action when cancelled', async () => {
@@ -510,8 +506,8 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: { id: 'RW', type: 'W' } });
+      store.dispatch(selectStarter(player.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition({ id: 'RW', type: 'W' }));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -530,7 +526,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: CANCEL_STARTER });
+      expect(actions[actions.length - 1]).to.include(cancelStarter());
     });
 
   }); // describe('Starters')

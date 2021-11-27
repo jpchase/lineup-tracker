@@ -9,11 +9,11 @@ import { GameDetail, GameStatus, LiveGame, LivePlayer } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
 import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import { APPLY_STARTER, CANCEL_SUB, CONFIRM_SUB, SELECT_PLAYER, SELECT_STARTER, SELECT_STARTER_POSITION } from '@app/slices/live-types';
+import { applyStarter, cancelSub, confirmSub, selectPlayer, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import * as testlive from '../helpers/test-live-game-data';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data';
 
@@ -153,9 +153,9 @@ describe('lineup-game-live tests', () => {
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
       store.dispatch({ type: SET_FORMATION, formationType: FormationType.F4_3_3 });
       const offPlayer = findPlayer(live, PlayerStatus.Off)!;
-      store.dispatch({ type: SELECT_STARTER, playerId: offPlayer.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: offPlayer.currentPosition! });
-      store.dispatch({ type: APPLY_STARTER });
+      store.dispatch(selectStarter(offPlayer.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition(offPlayer.currentPosition!));
+      store.dispatch(applyStarter());
       // store.dispatch({ type: ROSTER_DONE, roster: newGame.roster });
       await el.updateComplete;
       liveGame = store.getState().live!.liveGame!;
@@ -176,8 +176,8 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(
-        { type: SELECT_PLAYER, playerId: player.id, selected: true });
+      expect(actions[actions.length - 1]).to.deep.include(
+        selectPlayer(player.id, /*selected =*/true));
     });
 
     it('dispatches select player action when on player in formation selected', async () => {
@@ -195,8 +195,8 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(
-        { type: SELECT_PLAYER, playerId: player.id, selected: true });
+      expect(actions[actions.length - 1]).to.deep.include(
+        selectPlayer(player.id, /*selected =*/true));
     });
 
     it('on player card is selected after selection is processed', async () => {
@@ -223,8 +223,8 @@ describe('lineup-game-live tests', () => {
       expect(foundPlayer, 'Missing player with on status').to.be.ok;
       const onPlayer = foundPlayer!;
 
-      store.dispatch({ type: SELECT_PLAYER, playerId: offPlayer.id, selected: true });
-      store.dispatch({ type: SELECT_PLAYER, playerId: onPlayer.id, selected: true });
+      store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -242,8 +242,8 @@ describe('lineup-game-live tests', () => {
       expect(foundPlayer, 'Missing player with on status').to.be.ok;
       const onPlayer = foundPlayer!;
 
-      store.dispatch({ type: SELECT_PLAYER, playerId: offPlayer.id, selected: true });
-      store.dispatch({ type: SELECT_PLAYER, playerId: onPlayer.id, selected: true });
+      store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -258,7 +258,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: CONFIRM_SUB });
+      expect(actions[actions.length - 1]).to.include(confirmSub());
     });
 
     it('dispatches cancel sub action when cancelled', async () => {
@@ -270,8 +270,8 @@ describe('lineup-game-live tests', () => {
       expect(foundPlayer, 'Missing player with on status').to.be.ok;
       const onPlayer = foundPlayer!;
 
-      store.dispatch({ type: SELECT_PLAYER, playerId: offPlayer.id, selected: true });
-      store.dispatch({ type: SELECT_PLAYER, playerId: onPlayer.id, selected: true });
+      store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -286,7 +286,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: CANCEL_SUB });
+      expect(actions[actions.length - 1]).to.include(cancelSub());
     });
 
   }); // describe('Subs')
