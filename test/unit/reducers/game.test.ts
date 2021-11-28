@@ -16,11 +16,11 @@ import {
   GET_GAME_FAIL,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
-  ROSTER_DONE,
   SET_FORMATION,
   STARTERS_DONE,
   START_GAME
 } from '@app/slices/game-types';
+import { completeRoster } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import {
   buildRoster,
@@ -566,10 +566,7 @@ describe('Game reducer', () => {
       expect(state.game!.liveDetail).to.not.be.undefined;
       expect(state.game!.liveDetail!.players).to.be.undefined;
 
-      const newState = game(state, {
-        type: ROSTER_DONE,
-        roster: currentGame.roster
-      });
+      const newState = game(state, completeRoster(currentGame.roster));
 
       const updatedTasks = buildSetupTasks();
       updatedTasks[SetupSteps.Roster].status = SetupStatus.Complete;

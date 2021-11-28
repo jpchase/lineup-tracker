@@ -101,3 +101,5 @@ const { actions, reducer } = gameSlice;
 
 export const gamesReducer = reducer;
 export const { addGame } = actions;
+
+export const selectCurrentGame = (state: RootState) => state.game?.game;

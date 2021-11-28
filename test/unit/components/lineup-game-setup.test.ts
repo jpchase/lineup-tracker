@@ -12,13 +12,12 @@ import {
   CAPTAINS_DONE,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
-  ROSTER_DONE,
   SET_FORMATION,
   STARTERS_DONE,
   START_GAME
 } from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import { applyStarter, cancelStarter, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice.js';
+import { applyStarter, cancelStarter, completeRoster, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
@@ -235,7 +234,7 @@ describe('lineup-game-setup tests', () => {
       {
         step: SetupSteps.Roster,
         hasDoneButton: true,
-        doneActionType: ROSTER_DONE,
+        doneActionType: completeRoster.type,
       },
       {
         step: SetupSteps.Captains,
@@ -340,7 +339,7 @@ describe('lineup-game-setup tests', () => {
 
     // Simulates the completion of all the setup tasks.
     store.dispatch({ type: SET_FORMATION, formationType: FormationType.F4_3_3 });
-    store.dispatch({ type: ROSTER_DONE, roster: game.roster });
+    store.dispatch(completeRoster(game.roster));
     store.dispatch({ type: CAPTAINS_DONE });
     store.dispatch({ type: STARTERS_DONE });
     await el.updateComplete;
@@ -393,7 +392,7 @@ describe('lineup-game-setup tests', () => {
 
       // Simulates the completion of the setup tasks need to work on starters.
       store.dispatch({ type: SET_FORMATION, formationType: FormationType.F4_3_3 });
-      store.dispatch({ type: ROSTER_DONE, roster: newGame.roster });
+      store.dispatch(completeRoster(newGame.roster));
       await el.updateComplete;
       newGame = store.getState().game!.game!;
     });

@@ -11,24 +11,20 @@ import { repeat } from 'lit/directives/repeat.js';
 import { navigate } from '../actions/app';
 import {
   markCaptainsDone,
-  markRosterDone,
   markStartersDone,
   setFormation,
   startGame
 } from '../actions/game';
-import {
-  applyStarter,
-  cancelStarter,
-} from '../slices/live/live-slice.js';
-import {
-  selectStarter,
-  selectStarterPosition
-} from '../slices/live/live-slice.js';
 import { connectStore } from '../middleware/connect-mixin';
 import { FormationBuilder, Position } from '../models/formation';
 import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 import { getGameStore } from '../slices/game-store';
 import { getLiveStore } from '../slices/live-store';
+import {
+  applyStarter,
+  cancelStarter, selectStarter,
+  selectStarterPosition, rosterCompleted
+} from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-on-player-list';
 import './lineup-player-list';
@@ -282,7 +278,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
         break;
 
       case SetupSteps.Roster:
-        this.dispatch(markRosterDone());
+        this.dispatch(rosterCompleted());
         break;
 
       case SetupSteps.Starters:

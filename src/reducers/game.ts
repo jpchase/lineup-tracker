@@ -20,12 +20,12 @@ import {
   GET_GAME_FAIL,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
-  ROSTER_DONE,
   SET_FORMATION,
   STARTERS_DONE,
   START_GAME
 } from '../slices/game-types';
 import { gamesReducer } from '../slices/game/game-slice.js';
+import { completeRoster } from '../slices/live/live-slice.js';
 import { RootState } from '../store.js';
 import { createReducer } from './createReducer'; // 'redux-starter-kit';
 
@@ -154,7 +154,7 @@ const oldReducer: Reducer<GameState> = createReducer(INITIAL_STATE, {
     newState.game!.roster[action.player.id] = action.player;
   },
 
-  [ROSTER_DONE]: (newState, action) => {
+  [completeRoster.type]: (newState, action) => {
     completeSetupStepForAction(newState, action.type);
 
     // TODO: Should this move to the live reducer?
@@ -203,7 +203,7 @@ function getStepForAction(actionType: string): SetupSteps | undefined {
   switch (actionType) {
     case CAPTAINS_DONE:
       return SetupSteps.Captains;
-    case ROSTER_DONE:
+    case completeRoster.type:
       return SetupSteps.Roster;
     case STARTERS_DONE:
       return SetupSteps.Starters;

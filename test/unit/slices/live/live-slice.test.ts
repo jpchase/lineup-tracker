@@ -3,10 +3,10 @@ import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, LiveGame, LivePlayer } from '@app/models/game';
 import { getPlayer } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
-import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '@app/slices/game-types';
+import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
 import { LIVE_HYDRATE } from '@app/slices/live-types';
 import { ClockState } from '@app/slices/live/clock-slice';
-import { applyPendingSubs, applyStarter, cancelStarter, cancelSub, confirmSub, discardPendingSubs, live, LiveGameState, LiveState, selectPlayer, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice';
+import { applyPendingSubs, applyStarter, cancelStarter, cancelSub, completeRoster, confirmSub, discardPendingSubs, live, LiveGameState, LiveState, selectPlayer, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice';
 import { expect } from '@open-wc/testing';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
@@ -223,7 +223,7 @@ describe('Live reducer', () => {
 
   }); // describe('GET_GAME_SUCCESS')
 
-  describe('ROSTER_DONE', () => {
+  describe('live/completeRoster', () => {
 
     it('should init live players from roster', () => {
       const rosterPlayers = [getStoredPlayer()];
@@ -235,10 +235,7 @@ describe('Live reducer', () => {
       expect(state.liveGame).to.not.be.undefined;
       expect(state.liveGame!.players, 'players should be empty').to.deep.equal([]);
 
-      const newState = live(state, {
-        type: ROSTER_DONE,
-        roster: buildRoster(rosterPlayers)
-      });
+      const newState = live(state, completeRoster(buildRoster(rosterPlayers)));
 
       const liveDetail: LiveGame = {
         id: state.liveGame!.id,
@@ -252,7 +249,7 @@ describe('Live reducer', () => {
       expect(newState).not.to.equal(state);
       expect(newState.liveGame).not.to.equal(state.liveGame);
     });
-  }); // describe('ROSTER_DONE')
+  }); // describe('live/completeRoster')
 
   describe('live/selectStarter', () => {
     let currentState: LiveState;

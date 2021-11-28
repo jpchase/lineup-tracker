@@ -559,27 +559,6 @@ describe('Game actions', () => {
     });
   }); // describe('addGamePlayer')
 
-  describe('markRosterDone', () => {
-    it('should return a function to dispatch the markRosterDone action', () => {
-      expect(actions.markRosterDone()).to.be.instanceof(Function);
-    });
-
-    it('should dispatch an action to mark the roster as done', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.gameId = STORED_GAME_ID;
-        gameState.game = getStoredGameDetail();
-      });
-
-      actions.markRosterDone()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ROSTER_DONE,
-        roster: getTeamRoster()
-      });
-    });
-  }); // describe('markRosterDone')
-
   describe('markStartersDone', () => {
     it('should return a function to dispatch the markStartersDone action', () => {
       expect(actions.markStartersDone()).to.be.instanceof(Function);

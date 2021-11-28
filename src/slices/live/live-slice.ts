@@ -2,17 +2,17 @@
 @license
 */
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-import { Reducer } from 'redux';
+import { createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
+import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { Position } from '../../models/formation.js';
 import { LiveGame, LivePlayer } from '../../models/game.js';
 import { getPlayer, LiveGameBuilder } from '../../models/live.js';
-import { PlayerStatus } from '../../models/player.js';
+import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
+import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
-import { GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION } from '../game-types.js';
+import { GET_GAME_SUCCESS, SET_FORMATION } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { clock, ClockState } from './clock-slice.js';
 export { toggle as toggleClock } from './clock-slice.js';
@@ -47,6 +47,14 @@ const INITIAL_STATE: LiveGameState = {
 export const liveGameSelector = (state: RootState) => state.live && state.live!.liveGame;
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
+
+export const rosterCompleted: ActionCreator<ThunkAction<void, RootState, undefined, AnyAction>> = () => (dispatch, getState) => {
+  const game = selectCurrentGame(getState());
+  if (!game) {
+    return;
+  }
+  dispatch(actions.completeRoster(game.roster));
+};
 
 export const live: Reducer<LiveState> = function (state, action) {
   const partialState = liveSlice.reducer(liveGame(state, action), action);
@@ -90,17 +98,6 @@ const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
     state.liveGame = game;
   },
 
-  [ROSTER_DONE]: (state, action) => {
-    // Setup live players from roster
-    const roster = action.roster;
-    const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
-      const player = roster[playerId];
-      return { ...player } as LivePlayer;
-    });
-
-    state.liveGame!.players = players;
-  },
-
   [SET_FORMATION]: (state, action) => {
     const game = state.liveGame!;
     game.formation = { type: action.formationType };
@@ -114,6 +111,16 @@ const liveSlice = createSlice({
   name: 'live',
   initialState: INITIAL_STATE,
   reducers: {
+    completeRoster: (state, action: PayloadAction<Roster>) => {
+      // Setup live players from roster
+      const roster = action.payload;
+      const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
+        const player = roster[playerId];
+        return { ...player } as LivePlayer;
+      });
+
+      state.liveGame!.players = players;
+    },
     selectStarter: {
       reducer: (state, action: PayloadAction<SelectPlayer>) => {
         const playerId = action.payload.playerId;
@@ -336,6 +343,8 @@ const liveSlice = createSlice({
 
 const { actions } = liveSlice;
 export const {
+  // TODO: Remove this export of completeRoster when no longer needed in reducers/game.ts
+  completeRoster,
   selectStarter, selectStarterPosition, applyStarter, cancelStarter,
   selectPlayer, cancelSub, confirmSub, applyPendingSubs, discardPendingSubs
 } = actions;
