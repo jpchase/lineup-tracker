@@ -1,5 +1,4 @@
 import * as actions from '@app/actions/game';
-import { FormationType } from '@app/models/formation';
 import { Game, GameDetail, GameStatus } from '@app/models/game';
 import { Player, Roster } from '@app/models/player.js';
 import { GameState } from '@app/reducers/game';
@@ -558,52 +557,6 @@ describe('Game actions', () => {
       });
     });
   }); // describe('addGamePlayer')
-
-  describe('markStartersDone', () => {
-    it('should return a function to dispatch the markStartersDone action', () => {
-      expect(actions.markStartersDone()).to.be.instanceof(Function);
-    });
-
-    it('should dispatch an action to mark the starters as done', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.markStartersDone()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.STARTERS_DONE
-      });
-    });
-  }); // describe('markStartersDone')
-
-  describe('setFormation', () => {
-    it('should return a function to dispatch the setFormation action', () => {
-      expect(actions.setFormation()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if formation input is missing', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.setFormation()(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.not.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should dispatch an action to set the formation', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.setFormation(FormationType.F4_3_3)(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.SET_FORMATION,
-        formationType: FormationType.F4_3_3,
-      });
-    });
-  }); // describe('setFormation')
 
   describe('startGame', () => {
     let existingGame: GameDetail;

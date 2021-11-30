@@ -5,17 +5,18 @@
 import { createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
 import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
-import { Position } from '../../models/formation.js';
-import { LiveGame, LivePlayer } from '../../models/game.js';
+import { FormationType, Position } from '../../models/formation.js';
+import { GameStatus, LiveGame, LivePlayer } from '../../models/game.js';
 import { getPlayer, LiveGameBuilder } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
-import { GET_GAME_SUCCESS, SET_FORMATION } from '../game-types.js';
+import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { clock, ClockState } from './clock-slice.js';
 export { toggle as toggleClock } from './clock-slice.js';
+import { SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 
 export interface LiveGameState {
   gameId: string;
@@ -94,15 +95,12 @@ const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
     }
 
     const game: LiveGame = LiveGameBuilder.create(action.game);
+    if (action.game.status === GameStatus.New) {
+      updateTasks(game);
+    }
 
     state.liveGame = game;
   },
-
-  [SET_FORMATION]: (state, action) => {
-    const game = state.liveGame!;
-    game.formation = { type: action.formationType };
-  },
-
 });
 
 type SelectPlayer = { playerId: string; selected: boolean };
@@ -120,7 +118,38 @@ const liveSlice = createSlice({
       });
 
       state.liveGame!.players = players;
+
+      completeSetupStepForAction(state, SetupSteps.Roster);
     },
+
+    formationSelected: {
+      reducer: (state, action: PayloadAction<{ formationType: FormationType }>) => {
+        if (!action.payload.formationType) {
+          return;
+        }
+        const game = state.liveGame!;
+        game.formation = { type: action.payload.formationType };
+
+        completeSetupStepForAction(state, SetupSteps.Formation);
+      },
+
+      prepare: (formationType: FormationType) => {
+        return {
+          payload: {
+            formationType
+          }
+        };
+      }
+    },
+
+    startersCompleted: (state) => {
+      completeSetupStepForAction(state, SetupSteps.Starters);
+    },
+
+    captainsCompleted: (state) => {
+      completeSetupStepForAction(state, SetupSteps.Captains);
+    },
+
     selectStarter: {
       reducer: (state, action: PayloadAction<SelectPlayer>) => {
         const playerId = action.payload.playerId;
@@ -345,9 +374,55 @@ const { actions } = liveSlice;
 export const {
   // TODO: Remove this export of completeRoster when no longer needed in reducers/game.ts
   completeRoster,
+  formationSelected, startersCompleted, captainsCompleted,
   selectStarter, selectStarterPosition, applyStarter, cancelStarter,
   selectPlayer, cancelSub, confirmSub, applyPendingSubs, discardPendingSubs
 } = actions;
+
+function completeSetupStepForAction(state: LiveGameState, setupStepToComplete: SetupSteps) {
+  const game = state.liveGame!;
+
+  updateTasks(game, game.setupTasks, setupStepToComplete);
+}
+
+function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedStep?: SetupSteps) {
+  const tasks: SetupTask[] = [];
+
+  // Formation
+  //  - Complete status is based on the formation property being set.
+  const formationComplete = !!game.formation;
+  tasks.push({
+    step: SetupSteps.Formation,
+    status: formationComplete ? SetupStatus.Complete : SetupStatus.Active
+  });
+
+  // Other steps are manually set to complete, so can be handled generically.
+  const steps = [SetupSteps.Roster, SetupSteps.Captains, SetupSteps.Starters];
+
+  let previousStepComplete = formationComplete;
+  steps.forEach((stepValue: SetupSteps) => {
+    // Set the step complete status from the explicit parameter or old tasks, if available.
+    // Otherwise, step status is later set based on whether the preceding step is complete.
+    let stepComplete = false;
+    if (stepValue === completedStep) {
+      stepComplete = true;
+    } else if (oldTasks) {
+      stepComplete = (oldTasks[stepValue].status === SetupStatus.Complete);
+    }
+
+    tasks.push({
+      step: stepValue,
+      status: stepComplete ? SetupStatus.Complete :
+        (previousStepComplete ?
+          SetupStatus.Active : SetupStatus.Pending)
+    });
+
+    // Finally, save the complete status for the next step.
+    previousStepComplete = stepComplete;
+  });
+
+  game.setupTasks = tasks;
+}
 
 function prepareStarterIfPossible(state: LiveState) {
   if (!state.selectedStarterPlayer || !state.selectedStarterPosition) {

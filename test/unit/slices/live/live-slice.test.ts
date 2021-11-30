@@ -1,12 +1,12 @@
 import { TimerData } from '@app/models/clock';
 import { FormationType, Position } from '@app/models/formation';
-import { GameDetail, LiveGame, LivePlayer } from '@app/models/game';
+import { GameDetail, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 import { getPlayer } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
-import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
+import { GET_GAME_SUCCESS } from '@app/slices/game-types';
 import { LIVE_HYDRATE } from '@app/slices/live-types';
 import { ClockState } from '@app/slices/live/clock-slice';
-import { applyPendingSubs, applyStarter, cancelStarter, cancelSub, completeRoster, confirmSub, discardPendingSubs, live, LiveGameState, LiveState, selectPlayer, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice';
+import { applyPendingSubs, applyStarter, cancelStarter, cancelSub, completeRoster, confirmSub, discardPendingSubs, formationSelected, live, LiveGameState, LiveState, selectPlayer, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice';
 import { expect } from '@open-wc/testing';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
@@ -52,6 +52,14 @@ function buildLiveGameWithPlayersSelected(playerId: string, selected: boolean): 
   return game;
 }
 
+function buildLiveGameWithSetupTasks(players?: LivePlayer[], tasks?: SetupTask[]): LiveGame {
+  const game = testlive.getLiveGame(players);
+  if (tasks) {
+    game.setupTasks = tasks;
+  }
+  return game;
+}
+
 function selectPlayers(game: LiveGame, playerIds: string[], selected: boolean) {
   for (const player of game.players!) {
     if (playerIds.includes(player.id)) {
@@ -65,6 +73,27 @@ function buildClock(timer?: TimerData): ClockState {
     ...CLOCK_INITIAL_STATE,
     timer
   }
+}
+
+function buildSetupTasks(): SetupTask[] {
+  return [
+    {
+      step: SetupSteps.Formation,
+      status: SetupStatus.Active
+    },
+    {
+      step: SetupSteps.Roster,
+      status: SetupStatus.Pending
+    },
+    {
+      step: SetupSteps.Captains,
+      status: SetupStatus.Pending
+    },
+    {
+      step: SetupSteps.Starters,
+      status: SetupStatus.Pending
+    }
+  ]
 }
 
 describe('Live reducer', () => {
@@ -176,19 +205,18 @@ describe('Live reducer', () => {
         roster: buildRoster([getStoredPlayer()])
       };
 
+      const expectedGame = buildLiveGameWithSetupTasks(
+        buildLivePlayers([getStoredPlayer()]), buildSetupTasks()
+      );
+
       currentState.gameId = inputGame.id;
       const newState = live(currentState, {
         type: GET_GAME_SUCCESS,
         game: inputGame
       });
 
-      const liveDetail: LiveGame = {
-        id: existingGame.id,
-        players: buildLivePlayers([getStoredPlayer()])
-      };
-
       expect(newState).to.deep.include({
-        liveGame: liveDetail,
+        liveGame: expectedGame,
       });
 
       expect(newState).not.to.equal(currentState);
@@ -202,19 +230,17 @@ describe('Live reducer', () => {
         roster: {}
       };
 
+      const expectedGame = buildLiveGameWithSetupTasks([], buildSetupTasks());
+      expectedGame.id = currentGame.id;
+
       currentState.gameId = inputGame.id;
       const newState = live(currentState, {
         type: GET_GAME_SUCCESS,
         game: inputGame
       });
 
-      const liveDetail: LiveGame = {
-        id: currentGame.id,
-        players: []
-      };
-
       expect(newState).to.deep.include({
-        liveGame: liveDetail,
+        liveGame: expectedGame,
       });
 
       expect(newState).not.to.equal(currentState);
@@ -225,8 +251,12 @@ describe('Live reducer', () => {
 
   describe('live/completeRoster', () => {
 
-    it('should init live players from roster', () => {
-      const rosterPlayers = [getStoredPlayer()];
+    it('should update setup tasks and init live players from roster', () => {
+      const rosterPlayers = testlive.getLivePlayers(18);
+      const updatedTasks = buildSetupTasks();
+      updatedTasks[SetupSteps.Roster].status = SetupStatus.Complete;
+      updatedTasks[SetupSteps.Captains].status = SetupStatus.Active;
+      const expectedGame = buildLiveGameWithSetupTasks(rosterPlayers, updatedTasks);
 
       const state: LiveState = {
         ...LIVE_INITIAL_STATE,
@@ -237,19 +267,54 @@ describe('Live reducer', () => {
 
       const newState = live(state, completeRoster(buildRoster(rosterPlayers)));
 
-      const liveDetail: LiveGame = {
-        id: state.liveGame!.id,
-        players: buildLivePlayers(rosterPlayers)
-      };
-
       expect(newState).to.deep.include({
-        liveGame: liveDetail
+        liveGame: expectedGame
       });
 
       expect(newState).not.to.equal(state);
       expect(newState.liveGame).not.to.equal(state.liveGame);
     });
   }); // describe('live/completeRoster')
+
+  describe('live/formationSelected', () => {
+
+    it('should set formation type and update setup tasks to mark formation complete', () => {
+      const updatedTasks = buildSetupTasks();
+      updatedTasks[SetupSteps.Formation].status = SetupStatus.Complete;
+      updatedTasks[SetupSteps.Roster].status = SetupStatus.Active;
+      const expectedGame = buildLiveGameWithSetupTasks(undefined, updatedTasks);
+      expectedGame.formation = { type: FormationType.F4_3_3 };
+      delete expectedGame.players;
+
+      const state: LiveState = {
+        ...LIVE_INITIAL_STATE,
+        liveGame: {
+          id: expectedGame.id
+        }
+      };
+
+      const newState = live(state, formationSelected(FormationType.F4_3_3));
+
+      expect(newState).to.deep.include({
+        liveGame: expectedGame,
+      });
+
+      expect(newState).not.to.equal(state);
+      expect(newState.liveGame).not.to.equal(state.liveGame);
+    });
+
+    it('should do nothing if formation input is missing', () => {
+      const state = {
+        ...INITIAL_OVERALL_STATE,
+        liveGame: buildLiveGameWithPlayers(),
+      };
+      const newState = live(state, formationSelected(undefined as any));
+
+      // TODO: The reducer always returns a new object, when
+      // that is fixed, can remove the .deep
+      expect(newState).to.deep.equal(state);
+    });
+  }); // describe('live/formationSelected')
 
   describe('live/selectStarter', () => {
     let currentState: LiveState;
@@ -521,6 +586,28 @@ describe('Live reducer', () => {
       expect(newState).to.deep.equal(currentState);
     });
   }); // describe('live/cancelStarter')
+
+  describe('live/startersCompleted', () => {
+
+    it('should update setup tasks to mark starters complete', () => {
+      const state: LiveState = {
+        ...LIVE_INITIAL_STATE,
+        liveGame: buildLiveGameWithPlayers()
+      };
+      const updatedTasks = buildSetupTasks();
+      updatedTasks[SetupSteps.Starters].status = SetupStatus.Complete;
+      const expectedGame = buildLiveGameWithSetupTasks(state.liveGame?.players, updatedTasks);
+
+      const newState = live(state, startersCompleted());
+
+      expect(newState).to.deep.include({
+        liveGame: expectedGame,
+      });
+
+      expect(newState).not.to.equal(state);
+      expect(newState.liveGame).not.to.equal(state.liveGame);
+    });
+  }); // describe('live/startersCompleted')
 
   describe('live/selectPlayer', () => {
     const selectedPlayerId = 'P0';
@@ -1017,33 +1104,4 @@ describe('Live reducer', () => {
     }); // describe('live/discardPendingSubs')
   }); // describe('Next Subs')
 
-  describe('SET_FORMATION', () => {
-
-    it('should set formation type and update setup tasks to mark formation complete', () => {
-      const currentGame = getNewGame();
-      const state: LiveState = {
-        ...LIVE_INITIAL_STATE,
-        liveGame: {
-          id: currentGame.id
-        }
-      };
-
-      const newState = live(state, {
-        type: SET_FORMATION,
-        formationType: FormationType.F4_3_3
-      });
-
-      const liveDetail: LiveGame = {
-        id: currentGame.id,
-        formation: { type: FormationType.F4_3_3 }
-      }
-
-      expect(newState).to.deep.include({
-        liveGame: liveDetail,
-      });
-
-      expect(newState).not.to.equal(state);
-      expect(newState.liveGame).not.to.equal(state.liveGame);
-    });
-  }); // describe('SET_FORMATION')
 });

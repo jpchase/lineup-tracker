@@ -4,14 +4,13 @@
 
 import { Action, ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { FormationType } from '../models/formation';
 import { Game, GameDetail, Games, GameStatus } from '../models/game';
 import { Player, Roster } from '../models/player';
 import { currentGameIdSelector } from '../reducers/game';
 import {
   ADD_GAME_PLAYER, CAPTAINS_DONE, COPY_ROSTER_FAIL, COPY_ROSTER_REQUEST,
   COPY_ROSTER_SUCCESS, GAME_HYDRATE, GET_GAME_FAIL, GET_GAME_REQUEST,
-  GET_GAME_SUCCESS, SET_FORMATION, STARTERS_DONE, START_GAME
+  GET_GAME_SUCCESS, START_GAME
 } from '../slices/game-types';
 import { loadGame, loadGameRoster, persistGamePlayer, updateExistingGame } from '../slices/game/game-storage.js';
 import { loadTeamRoster } from '../slices/team/team-storage.js';
@@ -200,22 +199,6 @@ export const addGamePlayer: ActionCreator<GameActionAddPlayer> = (player: Player
     type: ADD_GAME_PLAYER,
     player
   };
-};
-
-export const markStartersDone: ActionCreator<ThunkResult> = () => (dispatch) => {
-  dispatch({
-    type: STARTERS_DONE
-  });
-};
-
-export const setFormation: ActionCreator<ThunkResult> = (formationType: FormationType) => (dispatch) => {
-  if (!formationType) {
-    return;
-  }
-  dispatch({
-    type: SET_FORMATION,
-    formationType
-  });
 };
 
 export const startGame: ActionCreator<ThunkResult> = () => (dispatch, getState) => {

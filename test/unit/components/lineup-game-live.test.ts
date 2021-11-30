@@ -7,9 +7,9 @@ import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlew
 import { FormationType } from '@app/models/formation';
 import { GameDetail, GameStatus, LiveGame, LivePlayer } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
-import { GET_GAME_SUCCESS, SET_FORMATION } from '@app/slices/game-types';
+import { GET_GAME_SUCCESS } from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import { applyStarter, cancelSub, confirmSub, selectPlayer, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice.js';
+import { applyStarter, cancelSub, confirmSub, formationSelected, selectPlayer, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
@@ -151,7 +151,7 @@ describe('lineup-game-live tests', () => {
       // steps to get the data in the right state.
       // TODO: Use hydrate action if/when implemented.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch({ type: SET_FORMATION, formationType: FormationType.F4_3_3 });
+      store.dispatch(formationSelected(FormationType.F4_3_3));
       const offPlayer = findPlayer(live, PlayerStatus.Off)!;
       store.dispatch(selectStarter(offPlayer.id, /*selected =*/true));
       store.dispatch(selectStarterPosition(offPlayer.currentPosition!));

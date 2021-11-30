@@ -11,19 +11,17 @@ import { repeat } from 'lit/directives/repeat.js';
 import { navigate } from '../actions/app';
 import {
   markCaptainsDone,
-  markStartersDone,
-  setFormation,
   startGame
 } from '../actions/game';
 import { connectStore } from '../middleware/connect-mixin';
-import { FormationBuilder, Position } from '../models/formation';
+import { FormationBuilder, FormationMetadata, Position } from '../models/formation';
 import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 import { getGameStore } from '../slices/game-store';
 import { getLiveStore } from '../slices/live-store';
 import {
   applyStarter,
   cancelStarter, selectStarter,
-  selectStarterPosition, rosterCompleted
+  selectStarterPosition, rosterCompleted, startersCompleted, formationSelected
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-on-player-list';
@@ -68,8 +66,8 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     // TODO: Turn this into a property, rather than creating new each time?
     // Is it causing unnecessary updates?
     let formation = undefined;
-    if (this.game?.liveDetail?.formation) {
-      formation = FormationBuilder.create(this.game.liveDetail.formation.type);
+    if (this.formation) {
+      formation = FormationBuilder.create(this.formation.type);
     }
 
     return html`
@@ -211,6 +209,9 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private showFormation = false;
 
   @state()
+  private formation: FormationMetadata | undefined;
+
+  @state()
   private players: LivePlayer[] = [];
 
   @state()
@@ -232,12 +233,13 @@ export class LineupGameSetup extends connectStore()(LitElement) {
       // TODO: Need to reset other properties, if they have values?
       return;
     }
-    this.tasks = this.game.liveDetail && this.game.liveDetail.setupTasks || [];
+    this.tasks = state.live.liveGame?.setupTasks || [];
 
     const anyIncomplete = this.tasks.some(task => task.status !== SetupStatus.Complete);
     this.tasksComplete = !anyIncomplete;
 
-    this.players = state.live.liveGame && state.live.liveGame.players || [];
+    this.formation = state.live.liveGame?.formation;
+    this.players = state.live.liveGame?.players || [];
     this.selectedStarterPosition = state.live.selectedStarterPosition;
     this.proposedStarter = state.live.proposedStarter;
   }
@@ -282,7 +284,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
         break;
 
       case SetupSteps.Starters:
-        this.dispatch(markStartersDone());
+        this.dispatch(startersCompleted());
         break;
 
       default:
@@ -299,7 +301,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private onFormationChange(e: Event) {
     const select: HTMLSelectElement = e.target as HTMLSelectElement;
 
-    this.dispatch(setFormation(select.value));
+    this.dispatch(formationSelected(select.value as any));
 
     // TODO: Clear select after setting, otherwise will be pre-filled on other games
     this.showFormation = false;
