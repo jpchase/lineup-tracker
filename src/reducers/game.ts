@@ -17,7 +17,6 @@ import {
   GET_GAME_FAIL,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
-  START_GAME
 } from '../slices/game-types';
 import { gamesReducer } from '../slices/game/game-slice.js';
 import { RootState } from '../store.js';
@@ -138,14 +137,6 @@ const oldReducer: Reducer<GameState> = createReducer(INITIAL_STATE, {
 
   [ADD_GAME_PLAYER]: (newState, action) => {
     newState.game!.roster[action.player.id] = action.player;
-  },
-
-  [START_GAME]: (newState) => {
-    const game = newState.game!;
-    game.status = GameStatus.Start;
-    if (game.liveDetail) {
-      delete game.liveDetail.setupTasks;
-    }
   },
 
 });

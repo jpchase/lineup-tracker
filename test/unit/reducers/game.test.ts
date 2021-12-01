@@ -1,6 +1,5 @@
 import {
   GameDetail, Games, GameStatus,
-  SetupStatus, SetupSteps, SetupTask
 } from '@app/models/game';
 import { Player } from '@app/models/player';
 import { game, GameState } from '@app/reducers/game';
@@ -13,13 +12,12 @@ import {
   GET_GAME_FAIL,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
-  START_GAME
 } from '@app/slices/game-types';
 import { expect } from '@open-wc/testing';
 import {
   buildRoster,
   getFakeAction,
-  getNewGame, getNewGameWithLiveDetail,
+  getNewGame, getNewGameDetail,
   getNewPlayer, getStoredGame, getStoredPlayer
 } from '../helpers/test_data';
 
@@ -35,29 +33,8 @@ const GAME_INITIAL_STATE: GameState = {
   error: ''
 };
 
-function buildNewGameDetailAndRoster(tasks?: SetupTask[]): GameDetail {
-  return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), tasks);
-}
-
-function buildSetupTasks(): SetupTask[] {
-  return [
-    {
-      step: SetupSteps.Formation,
-      status: SetupStatus.Active
-    },
-    {
-      step: SetupSteps.Roster,
-      status: SetupStatus.Pending
-    },
-    {
-      step: SetupSteps.Captains,
-      status: SetupStatus.Pending
-    },
-    {
-      step: SetupSteps.Starters,
-      status: SetupStatus.Pending
-    }
-  ]
+function buildNewGameDetailAndRoster(): GameDetail {
+  return getNewGameDetail(buildRoster([getStoredPlayer()]));
 }
 
 describe('Game reducer', () => {
@@ -78,7 +55,7 @@ describe('Game reducer', () => {
     });
 
     it('should set game to given cached game', () => {
-      const inputGame = buildNewGameDetailAndRoster(buildSetupTasks());
+      const inputGame = buildNewGameDetailAndRoster();
       const inputGames: Games = {};
       inputGames[inputGame.id] = inputGame;
 
@@ -118,7 +95,7 @@ describe('Game reducer', () => {
     });
 
     it('should ignored cached values when hydrated flag already set', () => {
-      const currentGame = buildNewGameDetailAndRoster(buildSetupTasks());
+      const currentGame = buildNewGameDetailAndRoster();
       currentState.gameId = currentGame.id;
       currentState.game = currentGame;
       currentState.hydrated = true;
@@ -237,7 +214,7 @@ describe('Game reducer', () => {
     });
 
     it('should only update loading flag when game set to current game', () => {
-      const currentGame = buildNewGameDetailAndRoster(buildSetupTasks());
+      const currentGame = buildNewGameDetailAndRoster();
       currentState.gameId = currentGame.id;
       currentState.game = currentGame;
 
@@ -248,10 +225,6 @@ describe('Game reducer', () => {
 
       const gameDetail: GameDetail = {
         ...currentGame,
-        liveDetail: {
-          id: currentGame.id,
-          setupTasks: buildSetupTasks()
-        }
       };
 
       expect(newState).to.deep.include({
@@ -264,7 +237,6 @@ describe('Game reducer', () => {
 
       expect(newState).not.to.equal(currentState);
       expect(newState.game).to.equal(currentState.game);
-      expect(newState.game!.liveDetail).to.equal(currentState.game!.liveDetail);
       expect(newState.game!.roster).to.equal(currentState.game!.roster);
     });
   }); // describe('GET_GAME_SUCCESS')
@@ -406,7 +378,7 @@ describe('Game reducer', () => {
       currentState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...getNewGameWithLiveDetail(undefined, buildSetupTasks())
+          ...getNewGameDetail()
         }
       };
     });
@@ -441,36 +413,5 @@ describe('Game reducer', () => {
       expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
     });
   }); // describe('ADD_PLAYER')
-
-  describe('START_GAME', () => {
-
-    it('should set status to Start and clear setup tasks', () => {
-      const completedTasks = buildSetupTasks();
-      completedTasks.forEach(task => { task.status = SetupStatus.Complete; })
-
-      const currentGame = getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), completedTasks);
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: {
-          ...currentGame
-        }
-      };
-
-      const newState = game(state, {
-        type: START_GAME
-      });
-
-      const gameDetail = getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), undefined);
-      gameDetail.status = GameStatus.Start;
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
-      });
-
-      expect(newState).not.to.equal(state);
-      expect(newState.game).not.to.equal(state.game);
-      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
-    });
-  }); // describe('START_GAME')
 
 });

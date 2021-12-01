@@ -9,19 +9,15 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { navigate } from '../actions/app';
-import {
-  markCaptainsDone,
-  startGame
-} from '../actions/game';
 import { connectStore } from '../middleware/connect-mixin';
 import { FormationBuilder, FormationMetadata, Position } from '../models/formation';
 import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 import { getGameStore } from '../slices/game-store';
+import { gameStartedCreator } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store';
 import {
-  applyStarter,
-  cancelStarter, selectStarter,
-  selectStarterPosition, rosterCompleted, startersCompleted, formationSelected
+  applyStarter, cancelStarter, captainsCompleted, formationSelected, rosterCompleted,
+  selectStarter, selectStarterPosition, startersCompleted
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-on-player-list';
@@ -276,7 +272,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private finishStep(e: Event, step: SetupSteps) {
     switch (step) {
       case SetupSteps.Captains:
-        this.dispatch(markCaptainsDone());
+        this.dispatch(captainsCompleted());
         break;
 
       case SetupSteps.Roster:
@@ -295,7 +291,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   private startGame() {
-    this.dispatch(startGame());
+    this.dispatch(gameStartedCreator());
   }
 
   private onFormationChange(e: Event) {

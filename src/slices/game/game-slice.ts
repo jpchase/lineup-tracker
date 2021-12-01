@@ -9,7 +9,7 @@ import { Game, Games, GameStatus } from '../../models/game.js';
 import { currentUserIdSelector } from '../../reducers/auth.js';
 import type { GameState } from '../../reducers/game.js';
 import { RootState } from '../../store.js';
-import { loadGames, persistNewGame } from './game-storage.js';
+import { loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
 export { GameState } from '../../reducers/game.js';
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
@@ -69,6 +69,16 @@ export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch
   dispatch(addGame(newGame));
 };
 
+export const gameStartedCreator: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
+  // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
+  //       so don't have to duplicate logic.
+  const gameId = selectCurrentGameId(getState())!;
+  updateExistingGame(gameId, {
+    status: GameStatus.Start
+  });
+  dispatch(gameStarted(gameId));
+};
+
 const INITIAL_STATE: GameState = {
   hydrated: false,
   gameId: '',
@@ -89,6 +99,22 @@ const gameSlice = createSlice({
       const game = action.payload;
       state.games[game.id] = game;
     },
+    gameStarted: {
+      reducer: (state, action: PayloadAction<{ gameId: string }>) => {
+        const game = state.game!;
+        if (action.payload.gameId !== game.id) {
+          return;
+        }
+        game.status = GameStatus.Start;
+      },
+      prepare: (gameId: string) => {
+        return {
+          payload: {
+            gameId
+          }
+        };
+      }
+    }
   },
   extraReducers: (builder) => {
     builder.addCase(getGames.fulfilled, (state, action) => {
@@ -100,6 +126,8 @@ const gameSlice = createSlice({
 const { actions, reducer } = gameSlice;
 
 export const gamesReducer = reducer;
-export const { addGame } = actions;
+export const gameReducer = reducer;
+export const { addGame, gameStarted } = actions;
 
+export const selectCurrentGameId = (state: RootState) => state.game?.gameId;
 export const selectCurrentGame = (state: RootState) => state.game?.game;

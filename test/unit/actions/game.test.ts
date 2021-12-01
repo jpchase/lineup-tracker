@@ -1,5 +1,5 @@
 import * as actions from '@app/actions/game';
-import { Game, GameDetail, GameStatus } from '@app/models/game';
+import { Game, GameDetail } from '@app/models/game.js';
 import { Player, Roster } from '@app/models/player.js';
 import { GameState } from '@app/reducers/game';
 import * as actionTypes from '@app/slices/game-types';
@@ -428,23 +428,6 @@ describe('Game actions', () => {
     });
   }); // describe('copyRoster')
 
-  describe('markCaptainsDone', () => {
-    it('should return a function to dispatch the markCaptainsDone action', () => {
-      expect(actions.markCaptainsDone()).to.be.instanceof(Function);
-    });
-
-    it('should dispatch an action to mark the captains as done', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.markCaptainsDone()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.CAPTAINS_DONE
-      });
-    });
-  }); // describe('markCaptainsDone')
-
   describe('addNewGamePlayer', () => {
     it('should return a function to dispatch the action', () => {
       expect(actions.addNewGamePlayer()).to.be.instanceof(Function);
@@ -557,63 +540,5 @@ describe('Game actions', () => {
       });
     });
   }); // describe('addGamePlayer')
-
-  describe('startGame', () => {
-    let existingGame: GameDetail;
-    let getStateMock: sinon.SinonSpy;
-
-    beforeEach(() => {
-      existingGame = getStoredGameDetail();
-      getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.gameId = existingGame.id;
-        gameState.game = existingGame;
-      });
-    });
-
-    it('should return a function to dispatch the startGame action', () => {
-      expect(actions.startGame()).to.be.instanceof(Function);
-    });
-
-    it('should dispatch an action to move the game to start status', () => {
-      const dispatchMock = sinon.stub();
-
-      actions.startGame()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.START_GAME
-      });
-    });
-
-    it('should save updated game to storage', async () => {
-      const game = getStoredGame();
-
-      const dispatchMock = sinon.stub();
-      const updateDocumentStub = writerStub.updateDocument.returns();
-
-      actions.startGame()(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
-
-      // Checks that the game was saved to the database.
-      expect(updateDocumentStub).calledOnceWith(
-        { status: GameStatus.Start }, `${KEY_GAMES}/${game.id}`);
-    });
-
-    it('should not dispatch an action when storage access fails', async () => {
-      const dispatchMock = sinon.stub();
-
-      writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
-
-      expect(() => {
-        actions.startGame()(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-  }); // describe('startGame')
 
 }); // describe('Game actions')

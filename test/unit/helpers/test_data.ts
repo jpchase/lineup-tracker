@@ -1,4 +1,4 @@
-import { Game, GameDetail, Games, GameStatus, LivePlayer, SetupTask } from '@app/models/game';
+import { Game, GameDetail, Games, GameStatus, LivePlayer } from '@app/models/game';
 import { Player, PlayerStatus, Roster } from '@app/models/player';
 import { Team, Teams } from '@app/models/team';
 
@@ -93,19 +93,6 @@ export function getNewGameDetail(roster?: Roster): GameDetail {
     hasDetail: true,
     roster: roster || {}
   };
-}
-
-export function getNewGameWithLiveDetail(roster?: Roster, tasks?: SetupTask[]): GameDetail {
-  const game: GameDetail = {
-    ...getNewGameDetail(roster)
-  };
-  game.liveDetail = {
-    id: game.id,
-  };
-  if (tasks) {
-    game.liveDetail.setupTasks = tasks;
-  }
-  return game;
 }
 
 export const STORED_GAME_ID = 'sg1';

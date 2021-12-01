@@ -1,9 +1,10 @@
 import { TimerData } from '@app/models/clock';
 import { FormationType, Position } from '@app/models/formation';
-import { GameDetail, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
+import { GameDetail, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 import { getPlayer } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
+import { gameStarted } from '@app/slices/game/game-slice.js';
 import { LIVE_HYDRATE } from '@app/slices/live-types';
 import { ClockState } from '@app/slices/live/clock-slice';
 import { applyPendingSubs, applyStarter, cancelStarter, cancelSub, completeRoster, confirmSub, discardPendingSubs, formationSelected, live, LiveGameState, LiveState, selectPlayer, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice';
@@ -249,6 +250,34 @@ describe('Live reducer', () => {
 
   }); // describe('GET_GAME_SUCCESS')
 
+  describe('game/gameStarted', () => {
+
+    it('should set status to Start and clear setup tasks', () => {
+      const rosterPlayers = testlive.getLivePlayers(18);
+      const completedTasks = buildSetupTasks();
+      completedTasks.forEach(task => { task.status = SetupStatus.Complete; })
+      const currentGame = buildLiveGameWithSetupTasks(rosterPlayers, completedTasks);
+
+      const expectedGame = buildLiveGameWithSetupTasks(rosterPlayers, undefined);
+      expectedGame.status = GameStatus.Start;
+      delete expectedGame.setupTasks;
+
+      const state: LiveState = {
+        ...LIVE_INITIAL_STATE,
+        liveGame: currentGame
+      };
+
+      const newState = live(state, gameStarted(currentGame.id));
+
+      expect(newState).to.deep.include({
+        liveGame: expectedGame
+      });
+
+      expect(newState).not.to.equal(state);
+      expect(newState.liveGame).not.to.equal(state.liveGame);
+    });
+  }); // describe('game/gameStarted')
+
   describe('live/completeRoster', () => {
 
     it('should update setup tasks and init live players from roster', () => {
@@ -289,7 +318,8 @@ describe('Live reducer', () => {
       const state: LiveState = {
         ...LIVE_INITIAL_STATE,
         liveGame: {
-          id: expectedGame.id
+          id: expectedGame.id,
+          status: GameStatus.New
         }
       };
 

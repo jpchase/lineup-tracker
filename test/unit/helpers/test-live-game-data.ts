@@ -1,10 +1,11 @@
-import { LivePlayer, LiveGame } from '@app/models/game';
+import { LivePlayer, LiveGame, GameStatus } from '@app/models/game';
 import { Player, PlayerStatus } from '@app/models/player';
 import { STORED_GAME_ID } from './test_data';
 
-export function getLiveGame(players?: Player[]): LiveGame {
+export function getLiveGame(players?: Player[], status?: GameStatus): LiveGame {
   return {
     id: STORED_GAME_ID,
+    status: status ? status : GameStatus.New,
     players: buildLivePlayers(players)
   };
 }

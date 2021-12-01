@@ -11,11 +11,10 @@ import { GameDetail, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, 
 import { LiveGameBuilder } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import {
-  CAPTAINS_DONE,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
-  START_GAME
 } from '@app/slices/game-types';
+import { gameStarted } from '@app/slices/game/game-slice.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
 import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
@@ -23,7 +22,7 @@ import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
+import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
@@ -36,7 +35,7 @@ interface TestSetupTask extends SetupTask {
 }
 
 function getGameDetail(): GameDetail {
-  return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), getTasks());
+  return getNewGameDetail(buildRoster([getStoredPlayer()]));
 }
 
 function getTasks(): TestSetupTask[] {
@@ -234,7 +233,7 @@ describe('lineup-game-setup tests', () => {
       {
         step: SetupSteps.Captains,
         hasDoneButton: true,
-        doneActionType: CAPTAINS_DONE,
+        doneActionType: captainsCompleted.type,
       },
       {
         step: SetupSteps.Starters,
@@ -393,7 +392,7 @@ describe('lineup-game-setup tests', () => {
     expect(dispatchStub).to.have.callCount(1);
 
     expect(actions).to.have.lengthOf.at.least(1);
-    expect(actions[actions.length - 1]).to.include({ type: START_GAME });
+    expect(actions[actions.length - 1]).to.deep.include(gameStarted(newGame.id));
   });
 
   describe('Starters', () => {

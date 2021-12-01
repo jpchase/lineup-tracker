@@ -10,7 +10,7 @@ import { GameStatus, LiveGame, LivePlayer } from '../../models/game.js';
 import { getPlayer, LiveGameBuilder } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
-import { selectCurrentGame } from '../../slices/game/game-slice.js';
+import { gameStarted, selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
@@ -353,21 +353,21 @@ const liveSlice = createSlice({
         };
       }
     },
-  }
-  /*
+  },
+
   extraReducers: (builder) => {
-    builder.addCase(GameActionGetGameSuccess, (state, action: PayloadAction<Game>) => {
-      if (state.liveGame && state.liveGame.id === action.game.id) {
-        // Game has already been initialized.
+    builder.addCase(gameStarted, (state, action: PayloadAction<{ gameId: string }>) => {
+      const game = state.liveGame!;
+      if (game.id !== action.payload.gameId) {
         return;
       }
-
-      const game: LiveGame = LiveGameBuilder.create(action.game);
-
-      state.liveGame = game;
-
+      if (game.status !== GameStatus.New) {
+        return;
+      }
+      game.status = GameStatus.Start;
+      delete game.setupTasks;
     })
-  },*/
+  },
 });
 
 const { actions } = liveSlice;
