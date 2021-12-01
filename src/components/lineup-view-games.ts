@@ -15,19 +15,16 @@ import { PageViewElement } from './page-view-element';
 import { Games } from '../models/game';
 
 // This element is connected to the Redux store.
-import { connect } from 'pwa-helpers/connect-mixin.js';
-import { store, RootState } from '../store';
+import { connectStore } from '../middleware/connect-mixin.js';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+
 // import { GameState } from '../reducers/game';
 import { TeamState } from '../slices/team/team-slice.js';
 
 // We are lazy loading its reducer.
-import games from '../reducers/games';
-store.addReducers({
-  games
-});
-
-// These are the actions needed by this element.
-import { addNewGame, getGames } from '../actions/games';
+import { addNewGame, getGames } from '../slices/game/game-slice.js';
+// The game-specific store configurator, which handles initialization/lazy-loading.
+import { getGameStore } from '../slices/game-store';
 
 // These are the elements needed by this element.
 import '@material/mwc-fab';
@@ -37,8 +34,9 @@ import './lineup-game-list';
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
+// This element is connected to the Redux store.
 @customElement('lineup-view-games')
-export class LineupViewGames extends connect(store)(PageViewElement) {
+export class LineupViewGames extends connectStore()(PageViewElement) {
   protected render() {
     return html`
       ${SharedStyles}
@@ -68,6 +66,12 @@ export class LineupViewGames extends connect(store)(PageViewElement) {
     `;
   }
 
+  @property({ type: Object })
+  store?: RootStore;
+
+  @property({ type: Object })
+  storeConfigurator?: SliceStoreConfigurator = getGameStore;
+
   @property({ type: String })
   private _teamId = '';
 
@@ -83,7 +87,7 @@ export class LineupViewGames extends connect(store)(PageViewElement) {
 
   private _newGameCreated(e: CustomEvent) {
     console.log(`New game: ${JSON.stringify(e.detail.game)}`);
-    store.dispatch(addNewGame(e.detail.game));
+    this.dispatch(addNewGame(e.detail.game));
     this._showCreate = false;
   }
 
@@ -93,14 +97,15 @@ export class LineupViewGames extends connect(store)(PageViewElement) {
 
   // This is called every time something is updated in the store.
   stateChanged(state: RootState) {
-    if (!state.team || !state.games) {
+    if (!state.team || !state.game) {
       return;
     }
     const teamState: TeamState = state.team!;
     if (this._teamId !== teamState.teamId) {
       this._teamId = teamState.teamId;
-      store.dispatch(getGames(this._teamId));
+      this.dispatch(getGames(this._teamId));
+      return;
     }
-    this._games = state.games!.games;
+    this._games = state.game!.games;
   }
 }

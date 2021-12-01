@@ -1,6 +1,5 @@
 import * as actions from '@app/actions/game';
-import { FormationType } from '@app/models/formation';
-import { Game, GameDetail, GameStatus } from '@app/models/game';
+import { Game, GameDetail } from '@app/models/game.js';
 import { Player, Roster } from '@app/models/player.js';
 import { GameState } from '@app/reducers/game';
 import * as actionTypes from '@app/slices/game-types';
@@ -44,13 +43,11 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
   return sinon.fake(() => {
     const mockState: RootState = {
       auth: getMockAuthState(),
-      games: {
-        games: buildGames(games || []),
-      },
       game: {
         hydrated: false,
         gameId: '',
         game: undefined,
+        games: buildGames(games || []),
         detailLoading: false,
         detailFailure: false,
         rosterLoading: false,
@@ -431,23 +428,6 @@ describe('Game actions', () => {
     });
   }); // describe('copyRoster')
 
-  describe('markCaptainsDone', () => {
-    it('should return a function to dispatch the markCaptainsDone action', () => {
-      expect(actions.markCaptainsDone()).to.be.instanceof(Function);
-    });
-
-    it('should dispatch an action to mark the captains as done', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.markCaptainsDone()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.CAPTAINS_DONE
-      });
-    });
-  }); // describe('markCaptainsDone')
-
   describe('addNewGamePlayer', () => {
     it('should return a function to dispatch the action', () => {
       expect(actions.addNewGamePlayer()).to.be.instanceof(Function);
@@ -560,130 +540,5 @@ describe('Game actions', () => {
       });
     });
   }); // describe('addGamePlayer')
-
-  describe('markRosterDone', () => {
-    it('should return a function to dispatch the markRosterDone action', () => {
-      expect(actions.markRosterDone()).to.be.instanceof(Function);
-    });
-
-    it('should dispatch an action to mark the roster as done', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.gameId = STORED_GAME_ID;
-        gameState.game = getStoredGameDetail();
-      });
-
-      actions.markRosterDone()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ROSTER_DONE,
-        roster: getTeamRoster()
-      });
-    });
-  }); // describe('markRosterDone')
-
-  describe('markStartersDone', () => {
-    it('should return a function to dispatch the markStartersDone action', () => {
-      expect(actions.markStartersDone()).to.be.instanceof(Function);
-    });
-
-    it('should dispatch an action to mark the starters as done', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.markStartersDone()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.STARTERS_DONE
-      });
-    });
-  }); // describe('markStartersDone')
-
-  describe('setFormation', () => {
-    it('should return a function to dispatch the setFormation action', () => {
-      expect(actions.setFormation()).to.be.instanceof(Function);
-    });
-
-    it('should do nothing if formation input is missing', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.setFormation()(dispatchMock, getStateMock, undefined);
-
-      expect(getStateMock).to.not.have.been.called;
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-
-    it('should dispatch an action to set the formation', () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = sinon.stub();
-
-      actions.setFormation(FormationType.F4_3_3)(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.SET_FORMATION,
-        formationType: FormationType.F4_3_3,
-      });
-    });
-  }); // describe('setFormation')
-
-  describe('startGame', () => {
-    let existingGame: GameDetail;
-    let getStateMock: sinon.SinonSpy;
-
-    beforeEach(() => {
-      existingGame = getStoredGameDetail();
-      getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.gameId = existingGame.id;
-        gameState.game = existingGame;
-      });
-    });
-
-    it('should return a function to dispatch the startGame action', () => {
-      expect(actions.startGame()).to.be.instanceof(Function);
-    });
-
-    it('should dispatch an action to move the game to start status', () => {
-      const dispatchMock = sinon.stub();
-
-      actions.startGame()(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.START_GAME
-      });
-    });
-
-    it('should save updated game to storage', async () => {
-      const game = getStoredGame();
-
-      const dispatchMock = sinon.stub();
-      const updateDocumentStub = writerStub.updateDocument.returns();
-
-      actions.startGame()(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
-
-      // Checks that the game was saved to the database.
-      expect(updateDocumentStub).calledOnceWith(
-        { status: GameStatus.Start }, `${KEY_GAMES}/${game.id}`);
-    });
-
-    it('should not dispatch an action when storage access fails', async () => {
-      const dispatchMock = sinon.stub();
-
-      writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
-
-      expect(() => {
-        actions.startGame()(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
-
-      expect(dispatchMock).to.not.have.been.called;
-    });
-  }); // describe('startGame')
 
 }); // describe('Game actions')

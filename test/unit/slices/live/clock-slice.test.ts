@@ -1,9 +1,7 @@
 import { Duration } from '@app/models/clock';
-import { clock, ClockState } from '@app/reducers/clock';
-import { END_PERIOD, START_PERIOD, TOGGLE_CLOCK } from '@app/slices/live-types';
+import { clock, ClockState, endPeriod, startPeriod, toggle } from '@app/slices/live/clock-slice';
 import { expect } from '@open-wc/testing';
-import * as sinon from 'sinon';
-import { getFakeAction } from '../helpers/test_data';
+import sinon from 'sinon';
 
 export const CLOCK_INITIAL_STATE: ClockState = {
   timer: undefined,
@@ -27,13 +25,7 @@ describe('Clock reducer', () => {
     fakeClock = sinon.useFakeTimers({ now: t0 });
   }
 
-  it('should return the initial state', () => {
-    expect(
-      clock(CLOCK_INITIAL_STATE, getFakeAction())
-    ).to.equal(CLOCK_INITIAL_STATE);
-  });
-
-  describe('START_PERIOD', () => {
+  describe('clock/startPeriod', () => {
     let currentState: ClockState = CLOCK_INITIAL_STATE;
 
     beforeEach(() => {
@@ -46,7 +38,7 @@ describe('Clock reducer', () => {
       mockTimeProvider(startTime);
 
       const newState = clock(currentState, {
-        type: START_PERIOD
+        type: startPeriod.type
       });
 
       expect(newState).to.deep.include({
@@ -60,9 +52,9 @@ describe('Clock reducer', () => {
       expect(newState).not.to.equal(currentState);
       expect(newState.timer).not.to.equal(currentState.timer);
     });
-  }); // describe('START_PERIOD')
+  }); // describe('clock/startPeriod')
 
-  describe('END_PERIOD', () => {
+  describe('clock/endPeriod', () => {
 
     it('should stop the clock and save the duration', () => {
       mockTimeProvider(time2);
@@ -76,7 +68,7 @@ describe('Clock reducer', () => {
       };
 
       const newState = clock(currentState, {
-        type: END_PERIOD
+        type: endPeriod.type
       });
 
       expect(newState).to.deep.include({
@@ -90,9 +82,9 @@ describe('Clock reducer', () => {
       expect(newState).not.to.equal(currentState);
       expect(newState.timer).not.to.equal(currentState.timer);
     });
-  }); // describe('END_PERIOD')
+  }); // describe('clock/endPeriod')
 
-  describe('TOGGLE_CLOCK', () => {
+  describe('clock/toggle', () => {
     let currentState: ClockState;
 
     beforeEach(() => {
@@ -106,7 +98,7 @@ describe('Clock reducer', () => {
       mockTimeProvider(time3);
 
       const newState = clock(currentState, {
-        type: TOGGLE_CLOCK
+        type: toggle.type
       });
 
       expect(newState).to.deep.include({
@@ -130,7 +122,7 @@ describe('Clock reducer', () => {
       };
 
       const newState = clock(currentState, {
-        type: TOGGLE_CLOCK
+        type: toggle.type
       });
 
       expect(newState).to.deep.include({
@@ -154,7 +146,7 @@ describe('Clock reducer', () => {
       };
 
       const newState = clock(currentState, {
-        type: TOGGLE_CLOCK
+        type: toggle.type
       });
 
       expect(newState).to.deep.include({
@@ -178,7 +170,7 @@ describe('Clock reducer', () => {
       };
 
       const newState = clock(currentState, {
-        type: TOGGLE_CLOCK
+        type: toggle.type
       });
 
       expect(newState).to.deep.include({
@@ -192,5 +184,5 @@ describe('Clock reducer', () => {
       expect(newState).not.to.equal(currentState);
       expect(newState.timer).not.to.equal(currentState.timer);
     });
-  }); // describe('TOGGLE_CLOCK')
+  }); // describe('clock/toggle')
 });

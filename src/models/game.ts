@@ -27,8 +27,6 @@ export interface Game extends GameMetadata {
 
 export interface GameDetail extends Game {
   roster: Roster;
-  // TODO: Remove when separate reducer/actions implemented
-  liveDetail?: LiveGame;
 }
 
 export interface Games {
@@ -38,6 +36,7 @@ export interface Games {
 // TODO: Move all the live game/setup stuff to separate model file?
 export interface LiveGame {
   id: string;
+  status: GameStatus;
   formation?: FormationMetadata;
   players?: LivePlayer[];
   setupTasks?: SetupTask[];

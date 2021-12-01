@@ -1,8 +1,8 @@
 import { Store } from 'redux';
 import { hydrateLive } from '../actions/live';
 import { LiveGame } from '../models/game';
-import { ClockState } from '../reducers/clock';
-import { clockSelector, live, liveGameSelector } from '../reducers/live';
+import { ClockState } from '../slices/live/clock-slice.js';
+import { clockSelector, live, selectLiveGameById } from '../slices/live/live-slice.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
 
@@ -63,7 +63,7 @@ export function persistState(storeInstance: Store<RootState>) {
   console.log('persistState: start');
   const state = storeInstance.getState();
 
-  const currentGame = liveGameSelector(state);
+  const currentGame = selectLiveGameById(state);
   if (!currentGame) {
     console.log('persistState: current game missing');
     return;

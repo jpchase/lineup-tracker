@@ -6,14 +6,13 @@ import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { applyPendingSubs, cancelProposedSub, confirmProposedSub, discardPendingSubs, selectPlayer, toggleClock } from '../actions/live';
 import { connectStore } from '../middleware/connect-mixin';
 import { TimerData } from '../models/clock';
 import { FormationBuilder } from '../models/formation';
 import { LiveGame, LivePlayer } from '../models/game';
-import { clockSelector, proposedSubSelector } from '../reducers/live';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store';
+import { applyPendingSubs, clockSelector, cancelSub, confirmSub, discardPendingSubs, proposedSubSelector, selectPlayer, toggleClock } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-game-clock';
 import { ClockToggleEvent } from './lineup-game-clock';
@@ -155,11 +154,11 @@ export class LineupGameLive extends connectStore()(LitElement) {
   }
 
   private _confirmSub() {
-    this.dispatch(confirmProposedSub());
+    this.dispatch(confirmSub());
   }
 
   private _cancelSub() {
-    this.dispatch(cancelProposedSub());
+    this.dispatch(cancelSub());
   }
 
   private _applySubs() {

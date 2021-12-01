@@ -6,14 +6,14 @@ import { getGameStoreConfigurator } from '@app/slices/game-store';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
 import { resetState, store } from '@app/store';
 import { expect, fixture, html } from '@open-wc/testing';
-import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer } from '../helpers/test_data';
+import { buildRoster, getNewGameDetail, getStoredPlayer } from '../helpers/test_data';
 
 function getGameWithRosterPlayers(): GameDetail {
-  return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]));
+  return getNewGameDetail(buildRoster([getStoredPlayer()]));
 }
 
 function getGameWithEmptyRoster(): GameDetail {
-  return getNewGameWithLiveDetail();
+  return getNewGameDetail();
 }
 
 describe('lineup-view-game-roster tests', () => {

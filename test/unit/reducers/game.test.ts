@@ -1,14 +1,10 @@
-import { FormationType } from '@app/models/formation';
 import {
   GameDetail, Games, GameStatus,
-  LivePlayer,
-  SetupStatus, SetupSteps, SetupTask
 } from '@app/models/game';
 import { Player } from '@app/models/player';
 import { game, GameState } from '@app/reducers/game';
 import {
   ADD_GAME_PLAYER,
-  CAPTAINS_DONE,
   COPY_ROSTER_FAIL,
   COPY_ROSTER_REQUEST,
   COPY_ROSTER_SUCCESS,
@@ -16,16 +12,12 @@ import {
   GET_GAME_FAIL,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
-  ROSTER_DONE,
-  SET_FORMATION,
-  STARTERS_DONE,
-  START_GAME
 } from '@app/slices/game-types';
 import { expect } from '@open-wc/testing';
 import {
   buildRoster,
   getFakeAction,
-  getNewGame, getNewGameWithLiveDetail,
+  getNewGame, getNewGameDetail,
   getNewPlayer, getStoredGame, getStoredPlayer
 } from '../helpers/test_data';
 
@@ -33,6 +25,7 @@ const GAME_INITIAL_STATE: GameState = {
   hydrated: false,
   gameId: '',
   game: undefined,
+  games: {},
   detailLoading: false,
   detailFailure: false,
   rosterLoading: false,
@@ -40,29 +33,8 @@ const GAME_INITIAL_STATE: GameState = {
   error: ''
 };
 
-function buildNewGameDetailAndRoster(tasks?: SetupTask[]): GameDetail {
-  return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), tasks);
-}
-
-function buildSetupTasks(): SetupTask[] {
-  return [
-    {
-      step: SetupSteps.Formation,
-      status: SetupStatus.Active
-    },
-    {
-      step: SetupSteps.Roster,
-      status: SetupStatus.Pending
-    },
-    {
-      step: SetupSteps.Captains,
-      status: SetupStatus.Pending
-    },
-    {
-      step: SetupSteps.Starters,
-      status: SetupStatus.Pending
-    }
-  ]
+function buildNewGameDetailAndRoster(): GameDetail {
+  return getNewGameDetail(buildRoster([getStoredPlayer()]));
 }
 
 describe('Game reducer', () => {
@@ -83,7 +55,7 @@ describe('Game reducer', () => {
     });
 
     it('should set game to given cached game', () => {
-      const inputGame = buildNewGameDetailAndRoster(buildSetupTasks());
+      const inputGame = buildNewGameDetailAndRoster();
       const inputGames: Games = {};
       inputGames[inputGame.id] = inputGame;
 
@@ -123,7 +95,7 @@ describe('Game reducer', () => {
     });
 
     it('should ignored cached values when hydrated flag already set', () => {
-      const currentGame = buildNewGameDetailAndRoster(buildSetupTasks());
+      const currentGame = buildNewGameDetailAndRoster();
       currentState.gameId = currentGame.id;
       currentState.game = currentGame;
       currentState.hydrated = true;
@@ -227,45 +199,6 @@ describe('Game reducer', () => {
         ...currentGame,
         hasDetail: true,
         roster: {},
-        liveDetail: {
-          id: currentGame.id,
-          setupTasks: buildSetupTasks()
-        }
-      };
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
-        // TODO: Ensure games state has latest game detail
-        // games: buildGames([gameDetail]),
-        detailLoading: false,
-        detailFailure: false
-      });
-
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game).not.to.equal(currentState.game);
-    });
-
-    it('should initialize live detail for new game', () => {
-      const currentGame = getNewGame();
-      const inputGame: GameDetail = {
-        ...currentGame,
-        roster: buildRoster([getStoredPlayer()])
-      };
-
-      currentState.gameId = inputGame.id;
-      const newState = game(currentState, {
-        type: GET_GAME_SUCCESS,
-        game: inputGame
-      });
-
-      const gameDetail: GameDetail = {
-        ...currentGame,
-        hasDetail: true,
-        roster: buildRoster([getStoredPlayer()]),
-        liveDetail: {
-          id: currentGame.id,
-          setupTasks: buildSetupTasks()
-        }
       };
 
       expect(newState).to.deep.include({
@@ -281,7 +214,7 @@ describe('Game reducer', () => {
     });
 
     it('should only update loading flag when game set to current game', () => {
-      const currentGame = buildNewGameDetailAndRoster(buildSetupTasks());
+      const currentGame = buildNewGameDetailAndRoster();
       currentState.gameId = currentGame.id;
       currentState.game = currentGame;
 
@@ -292,10 +225,6 @@ describe('Game reducer', () => {
 
       const gameDetail: GameDetail = {
         ...currentGame,
-        liveDetail: {
-          id: currentGame.id,
-          setupTasks: buildSetupTasks()
-        }
       };
 
       expect(newState).to.deep.include({
@@ -308,7 +237,6 @@ describe('Game reducer', () => {
 
       expect(newState).not.to.equal(currentState);
       expect(newState.game).to.equal(currentState.game);
-      expect(newState.game!.liveDetail).to.equal(currentState.game!.liveDetail);
       expect(newState.game!.roster).to.equal(currentState.game!.roster);
     });
   }); // describe('GET_GAME_SUCCESS')
@@ -331,70 +259,6 @@ describe('Game reducer', () => {
       expect(newState.error).not.to.equal(GAME_INITIAL_STATE.error);
     });
   }); // describe('GET_GAME_FAIL')
-
-  describe('SET_FORMATION', () => {
-
-    it('should set formation type and update setup tasks to mark formation complete', () => {
-      const currentGame = getNewGameWithLiveDetail(undefined, buildSetupTasks());
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: {
-          ...currentGame
-        }
-      };
-
-      const newState = game(state, {
-        type: SET_FORMATION,
-        formationType: FormationType.F4_3_3
-      });
-
-      const updatedTasks = buildSetupTasks();
-      updatedTasks[SetupSteps.Formation].status = SetupStatus.Complete;
-      updatedTasks[SetupSteps.Roster].status = SetupStatus.Active;
-
-      const gameDetail = getNewGameWithLiveDetail(undefined, updatedTasks);
-      gameDetail.liveDetail!.formation = { type: FormationType.F4_3_3 };
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
-      });
-
-      expect(newState).not.to.equal(state);
-      expect(newState.game).not.to.equal(state.game);
-      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
-    });
-  }); // describe('SET_FORMATION')
-
-  describe('CAPTAINS_DONE', () => {
-
-    it('should update setup tasks to mark captains complete and next active', () => {
-      const currentGame = getNewGameWithLiveDetail(undefined, buildSetupTasks());
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: {
-          ...currentGame
-        }
-      };
-
-      const newState = game(state, {
-        type: CAPTAINS_DONE
-      });
-
-      const updatedTasks = buildSetupTasks();
-      updatedTasks[SetupSteps.Captains].status = SetupStatus.Complete;
-      updatedTasks[SetupSteps.Starters].status = SetupStatus.Active;
-
-      const gameDetail = getNewGameWithLiveDetail(undefined, updatedTasks);
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
-      });
-
-      expect(newState).not.to.equal(state);
-      expect(newState.game).not.to.equal(state.game);
-      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
-    });
-  }); // describe('CAPTAINS_DONE')
 
   describe('COPY_ROSTER_REQUEST', () => {
     it('should set copying flag', () => {
@@ -514,7 +378,7 @@ describe('Game reducer', () => {
       currentState = {
         ...GAME_INITIAL_STATE,
         game: {
-          ...getNewGameWithLiveDetail(undefined, buildSetupTasks())
+          ...getNewGameDetail()
         }
       };
     });
@@ -549,105 +413,5 @@ describe('Game reducer', () => {
       expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
     });
   }); // describe('ADD_PLAYER')
-
-  describe('ROSTER_DONE', () => {
-
-    it('should update setup tasks and init live players from roster', () => {
-      const rosterPlayers = [getStoredPlayer()];
-
-      const currentGame = getNewGameWithLiveDetail(buildRoster(rosterPlayers), buildSetupTasks());
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: {
-          ...currentGame,
-        }
-      };
-      expect(state.game!.liveDetail).to.not.be.undefined;
-      expect(state.game!.liveDetail!.players).to.be.undefined;
-
-      const newState = game(state, {
-        type: ROSTER_DONE,
-        roster: currentGame.roster
-      });
-
-      const updatedTasks = buildSetupTasks();
-      updatedTasks[SetupSteps.Roster].status = SetupStatus.Complete;
-      updatedTasks[SetupSteps.Captains].status = SetupStatus.Active;
-
-      const gameDetail = getNewGameWithLiveDetail(buildRoster(rosterPlayers), updatedTasks);
-      gameDetail.liveDetail!.players = rosterPlayers.map(player => {
-        return { ...player } as LivePlayer;
-      });
-
-      expect(newState).to.deep.include({
-        game: gameDetail
-      });
-
-      expect(newState).not.to.equal(state);
-      expect(newState.game).not.to.equal(state.game);
-      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
-    });
-  }); // describe('ROSTER_DONE')
-
-  describe('STARTERS_DONE', () => {
-
-    it('should update setup tasks to mark starters complete', () => {
-      const currentGame = getNewGameWithLiveDetail();
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: {
-          ...currentGame
-        }
-      };
-
-      const newState = game(state, {
-        type: STARTERS_DONE
-      });
-
-      const updatedTasks = buildSetupTasks();
-      updatedTasks[SetupSteps.Starters].status = SetupStatus.Complete;
-
-      const gameDetail = getNewGameWithLiveDetail(undefined, updatedTasks);
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
-      });
-
-      expect(newState).not.to.equal(state);
-      expect(newState.game).not.to.equal(state.game);
-      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
-    });
-  }); // describe('STARTERS_DONE')
-
-  describe('START_GAME', () => {
-
-    it('should set status to Start and clear setup tasks', () => {
-      const completedTasks = buildSetupTasks();
-      completedTasks.forEach(task => { task.status = SetupStatus.Complete; })
-
-      const currentGame = getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), completedTasks);
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: {
-          ...currentGame
-        }
-      };
-
-      const newState = game(state, {
-        type: START_GAME
-      });
-
-      const gameDetail = getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), undefined);
-      gameDetail.status = GameStatus.Start;
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
-      });
-
-      expect(newState).not.to.equal(state);
-      expect(newState.game).not.to.equal(state.game);
-      expect(newState.game!.liveDetail).not.to.equal(state.game!.liveDetail);
-    });
-  }); // describe('START_GAME')
 
 });

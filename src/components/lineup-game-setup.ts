@@ -9,24 +9,18 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { navigate } from '../actions/app';
-import {
-  markCaptainsDone,
-  markRosterDone,
-  markStartersDone,
-  setFormation,
-  startGame
-} from '../actions/game';
-import {
-  applyProposedStarter,
-  cancelProposedStarter,
-  selectStarter,
-  selectStarterPosition
-} from '../actions/live';
 import { connectStore } from '../middleware/connect-mixin';
-import { FormationBuilder, Position } from '../models/formation';
+import { FormationBuilder, FormationMetadata, Position } from '../models/formation';
 import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 import { getGameStore } from '../slices/game-store';
+import { gameStartedCreator } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store';
+import {
+  applyStarter, cancelStarter, captainsCompleted, formationSelected, getLiveGame,
+  rosterCompleted,
+  selectLiveGameById,
+  selectStarter, selectStarterPosition, startersCompleted
+} from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-on-player-list';
 import './lineup-player-list';
@@ -70,8 +64,8 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     // TODO: Turn this into a property, rather than creating new each time?
     // Is it causing unnecessary updates?
     let formation = undefined;
-    if (this.game?.liveDetail?.formation) {
-      formation = FormationBuilder.create(this.game.liveDetail.formation.type);
+    if (this.formation) {
+      formation = FormationBuilder.create(this.formation.type);
     }
 
     return html`
@@ -213,6 +207,9 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private showFormation = false;
 
   @state()
+  private formation: FormationMetadata | undefined;
+
+  @state()
   private players: LivePlayer[] = [];
 
   @state()
@@ -229,17 +226,23 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     if (!state.game || !state.live) {
       return;
     }
-    this.game = state.game!.game;
+    this.game = state.game.game;
     if (!this.game) {
       // TODO: Need to reset other properties, if they have values?
       return;
     }
-    this.tasks = this.game.liveDetail && this.game.liveDetail.setupTasks || [];
+    const liveGame = selectLiveGameById(state, this.game.id);
+    if (!liveGame) {
+      this.dispatch(getLiveGame(this.game));
+      return;
+    }
+    this.tasks = state.live.liveGame?.setupTasks || [];
 
     const anyIncomplete = this.tasks.some(task => task.status !== SetupStatus.Complete);
     this.tasksComplete = !anyIncomplete;
 
-    this.players = state.live.liveGame && state.live.liveGame.players || [];
+    this.formation = state.live.liveGame?.formation;
+    this.players = state.live.liveGame?.players || [];
     this.selectedStarterPosition = state.live.selectedStarterPosition;
     this.proposedStarter = state.live.proposedStarter;
   }
@@ -276,15 +279,15 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private finishStep(e: Event, step: SetupSteps) {
     switch (step) {
       case SetupSteps.Captains:
-        this.dispatch(markCaptainsDone());
+        this.dispatch(captainsCompleted());
         break;
 
       case SetupSteps.Roster:
-        this.dispatch(markRosterDone());
+        this.dispatch(rosterCompleted());
         break;
 
       case SetupSteps.Starters:
-        this.dispatch(markStartersDone());
+        this.dispatch(startersCompleted());
         break;
 
       default:
@@ -295,13 +298,13 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   private startGame() {
-    this.dispatch(startGame());
+    this.dispatch(gameStartedCreator());
   }
 
   private onFormationChange(e: Event) {
     const select: HTMLSelectElement = e.target as HTMLSelectElement;
 
-    this.dispatch(setFormation(select.value));
+    this.dispatch(formationSelected(select.value as any));
 
     // TODO: Clear select after setting, otherwise will be pre-filled on other games
     this.showFormation = false;
@@ -316,11 +319,11 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   private applyStarter() {
-    this.dispatch(applyProposedStarter());
+    this.dispatch(applyStarter());
   }
 
   private cancelStarter() {
-    this.dispatch(cancelProposedStarter());
+    this.dispatch(cancelStarter());
   }
 
 }

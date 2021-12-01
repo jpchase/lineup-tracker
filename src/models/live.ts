@@ -11,6 +11,7 @@ export class LiveGameBuilder {
 
     const liveGame: LiveGame = {
       id: game.id,
+      status: game.status,
     };
 
     // Setup live players from roster

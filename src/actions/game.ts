@@ -2,42 +2,31 @@
 @license
 */
 
-import { Action, ActionCreator } from 'redux';
+import { Action, ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { FormationType } from '../models/formation';
-import { Game, GameDetail, Games, GameStatus } from '../models/game';
+import { Game, GameDetail, Games } from '../models/game';
 import { Player, Roster } from '../models/player';
-import { currentGameIdSelector, currentGameSelector } from '../reducers/game';
+import { currentGameIdSelector } from '../reducers/game';
 import {
-  ADD_GAME_PLAYER, CAPTAINS_DONE, COPY_ROSTER_FAIL, COPY_ROSTER_REQUEST,
+  ADD_GAME_PLAYER, COPY_ROSTER_FAIL, COPY_ROSTER_REQUEST,
   COPY_ROSTER_SUCCESS, GAME_HYDRATE, GET_GAME_FAIL, GET_GAME_REQUEST,
-  GET_GAME_SUCCESS, ROSTER_DONE, SET_FORMATION, STARTERS_DONE, START_GAME
+  GET_GAME_SUCCESS
 } from '../slices/game-types';
-import { loadGame, loadGameRoster, persistGamePlayer, updateExistingGame } from '../slices/game/game-storage.js';
+import { loadGame, loadGameRoster, persistGamePlayer } from '../slices/game/game-storage.js';
 import { loadTeamRoster } from '../slices/team/team-storage.js';
 import { RootState } from '../store.js';
 
 export interface GameActionHydrate extends Action<typeof GAME_HYDRATE> { gameId?: string, games: Games };
-export interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
+interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
 export interface GameActionGetGameSuccess extends Action<typeof GET_GAME_SUCCESS> { game: GameDetail };
-export interface GameActionGetGameFail extends Action<typeof GET_GAME_FAIL> { error: string };
-export interface GameActionCopyRosterRequest extends Action<typeof COPY_ROSTER_REQUEST> { gameId: string };
-export interface GameActionCopyRosterSuccess extends Action<typeof COPY_ROSTER_SUCCESS> { gameId: string, gameRoster?: Roster };
-export interface GameActionCopyRosterFail extends Action<typeof COPY_ROSTER_FAIL> { error: string };
-export interface GameActionCaptainsDone extends Action<typeof CAPTAINS_DONE> { };
-export interface GameActionAddPlayer extends Action<typeof ADD_GAME_PLAYER> { player: Player };
-export interface GameActionRosterDone extends Action<typeof ROSTER_DONE> { roster: Roster };
-export interface GameActionStartersDone extends Action<typeof STARTERS_DONE> { };
-export interface GameActionSetFormation extends Action<typeof SET_FORMATION> { formationType: FormationType };
-export interface GameActionStartGame extends Action<typeof START_GAME> { };
-export type GameAction = GameActionHydrate | GameActionGetGameRequest | GameActionGetGameSuccess |
-  GameActionGetGameFail | GameActionCaptainsDone | GameActionRosterDone |
-  GameActionStartersDone | GameActionSetFormation | GameActionStartGame |
-  GameActionAddPlayer | GameActionCopyRosterRequest |
-  GameActionCopyRosterSuccess | GameActionCopyRosterFail;
+interface GameActionGetGameFail extends Action<typeof GET_GAME_FAIL> { error: string };
+interface GameActionCopyRosterRequest extends Action<typeof COPY_ROSTER_REQUEST> { gameId: string };
+interface GameActionCopyRosterSuccess extends Action<typeof COPY_ROSTER_SUCCESS> { gameId: string, gameRoster?: Roster };
+interface GameActionCopyRosterFail extends Action<typeof COPY_ROSTER_FAIL> { error: string };
+interface GameActionAddPlayer extends Action<typeof ADD_GAME_PLAYER> { player: Player };
 
-type ThunkResult = ThunkAction<void, RootState, undefined, GameAction>;
-type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, GameAction>;
+type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
+type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AnyAction>;
 
 export const hydrateGame: ActionCreator<GameActionHydrate> = (games: Games, gameId?: string) => {
   return {
@@ -60,7 +49,7 @@ export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (d
   if (state.game && state.game.game && state.game.game.id === gameId) {
     existingGame = state.game.game!;
   } else {
-    existingGame = state.games && state.games.games && state.games.games[gameId];
+    existingGame = state.game?.games[gameId];
   }
   if (existingGame && existingGame.hasDetail) {
     dispatch(getGameSuccess(existingGame));
@@ -119,7 +108,7 @@ export const copyRoster: ActionCreator<ThunkPromise<void>> = (gameId: string) =>
   if (state.game && state.game.game && state.game.game.id === gameId) {
     existingGame = state.game.game!;
   } else {
-    existingGame = state.games && state.games.games && state.games.games[gameId];
+    existingGame = state.game?.games[gameId];
   }
   if (!existingGame) {
     return Promise.reject(`No existing game found for id: ${gameId}`);
@@ -179,12 +168,6 @@ const copyRosterFail: ActionCreator<GameActionCopyRosterFail> = (error: string) 
   };
 };
 
-export const markCaptainsDone: ActionCreator<ThunkResult> = () => (dispatch) => {
-  dispatch({
-    type: CAPTAINS_DONE
-  });
-};
-
 export const addNewGamePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
   if (!newPlayer) {
     return;
@@ -210,43 +193,4 @@ export const addGamePlayer: ActionCreator<GameActionAddPlayer> = (player: Player
     type: ADD_GAME_PLAYER,
     player
   };
-};
-
-export const markRosterDone: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
-  const game = currentGameSelector(getState());
-  if (!game) {
-    return;
-  }
-  dispatch({
-    type: ROSTER_DONE,
-    roster: game.roster
-  });
-};
-
-export const markStartersDone: ActionCreator<ThunkResult> = () => (dispatch) => {
-  dispatch({
-    type: STARTERS_DONE
-  });
-};
-
-export const setFormation: ActionCreator<ThunkResult> = (formationType: FormationType) => (dispatch) => {
-  if (!formationType) {
-    return;
-  }
-  dispatch({
-    type: SET_FORMATION,
-    formationType
-  });
-};
-
-export const startGame: ActionCreator<ThunkResult> = () => (dispatch, getState) => {
-  // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
-  //       so don't have to duplicate logic.
-  const gameId = currentGameIdSelector(getState())!;
-  updateExistingGame(gameId, {
-    status: GameStatus.Start
-  });
-  dispatch({
-    type: START_GAME
-  });
 };

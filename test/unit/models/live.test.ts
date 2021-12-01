@@ -1,4 +1,4 @@
-import { Game, GameDetail, LiveGame } from '@app/models/game';
+import { Game, GameDetail, GameStatus, LiveGame } from '@app/models/game';
 import { LiveGameBuilder } from '@app/models/live';
 import { expect } from '@open-wc/testing';
 import {
@@ -24,7 +24,8 @@ describe('LiveGameBuilder', () => {
   it('create should handle new game', () => {
     const game = getNewGame();
     const expected: LiveGame = {
-      id: game.id
+      id: game.id,
+      status: GameStatus.New,
     };
 
     const newLiveGame = LiveGameBuilder.create(game);
@@ -37,6 +38,7 @@ describe('LiveGameBuilder', () => {
     game.roster = {};
     const expected: LiveGame = {
       id: game.id,
+      status: GameStatus.New,
       players: []
     };
 
@@ -47,8 +49,10 @@ describe('LiveGameBuilder', () => {
 
   it('create should handle game with roster', () => {
     const game = getNewGameDetail(buildRoster([getNewPlayer(), getStoredPlayer()]));
+    game.status = GameStatus.Start;
     const expected: LiveGame = {
       id: game.id,
+      status: GameStatus.Start,
       players: buildLivePlayers([getNewPlayer(), getStoredPlayer()])
     };
 

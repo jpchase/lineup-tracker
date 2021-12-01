@@ -1,3 +1,4 @@
+import { hydrateLive } from '@app/actions/live.js';
 import { EVENT_POSITIONSELECTED } from '@app/components/events';
 import { LineupGameSetup } from '@app/components/lineup-game-setup';
 import '@app/components/lineup-game-setup.js';
@@ -6,30 +7,22 @@ import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { LineupPlayerList } from '@app/components/lineup-player-list';
 import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares';
 import { FormationType } from '@app/models/formation';
-import { GameDetail, GameStatus, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
+import { GameDetail, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
+import { LiveGameBuilder } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import {
-  CAPTAINS_DONE,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
-  ROSTER_DONE,
-  SET_FORMATION,
-  STARTERS_DONE,
-  START_GAME
 } from '@app/slices/game-types';
+import { gameStarted } from '@app/slices/game/game-slice.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import {
-  APPLY_STARTER,
-  CANCEL_STARTER,
-  SELECT_STARTER,
-  SELECT_STARTER_POSITION
-} from '@app/slices/live-types';
+import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildRoster, getNewGameWithLiveDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
+import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
@@ -42,7 +35,7 @@ interface TestSetupTask extends SetupTask {
 }
 
 function getGameDetail(): GameDetail {
-  return getNewGameWithLiveDetail(buildRoster([getStoredPlayer()]), getTasks());
+  return getNewGameDetail(buildRoster([getStoredPlayer()]));
 }
 
 function getTasks(): TestSetupTask[] {
@@ -225,12 +218,7 @@ describe('lineup-game-setup tests', () => {
   });
 
   describe('Setup steps', () => {
-    let newGame: GameDetail;
-
-    beforeEach(async () => {
-      newGame = getGameDetail();
-      expect(newGame.status).to.equal(GameStatus.New);
-    });
+    let liveGame: LiveGame;
 
     const stepTests = [
       {
@@ -240,17 +228,17 @@ describe('lineup-game-setup tests', () => {
       {
         step: SetupSteps.Roster,
         hasDoneButton: true,
-        doneActionType: ROSTER_DONE,
+        doneActionType: completeRoster.type,
       },
       {
         step: SetupSteps.Captains,
         hasDoneButton: true,
-        doneActionType: CAPTAINS_DONE,
+        doneActionType: captainsCompleted.type,
       },
       {
         step: SetupSteps.Starters,
         hasDoneButton: true,
-        doneActionType: STARTERS_DONE,
+        doneActionType: startersCompleted.type,
       },
     ];
 
@@ -260,14 +248,30 @@ describe('lineup-game-setup tests', () => {
 
         beforeEach(async () => {
           // Sets up the current step as active.
-          for (let index = 0; index < stepTest.step; index++) {
-            newGame.liveDetail!.setupTasks![index].status = SetupStatus.Complete;
+          const tasks: SetupTask[] = [];
+          for (let index = 0; index < stepTests.length; index++) {
+            // Steps previous to current are complete, steps after are
+            // pending.
+            tasks[index] = {
+              step: index,
+              status: ((index < stepTest.step) ? SetupStatus.Complete :
+                (index === stepTest.step) ? SetupStatus.Active : SetupStatus.Pending)
+            };
           }
-          newGame.liveDetail!.setupTasks![stepTest.step].status = SetupStatus.Active;
 
+          const newGame = getGameDetail();
+          expect(newGame.status).to.equal(GameStatus.New);
+
+          liveGame = LiveGameBuilder.create(newGame);
+          liveGame.setupTasks = tasks;
+
+          // Use hydration to set the constructed live game, otherwise it
+          // would be initialized by GET_GAME_SUCCESS later.
+          store.dispatch(hydrateLive(liveGame, liveGame.id));
           store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
           await el.updateComplete;
-          newGame = store.getState().game!.game!;
+
+          liveGame = store.getState().live!.liveGame!;
         });
 
         it('perform handler fires only when active', async () => {
@@ -344,10 +348,10 @@ describe('lineup-game-setup tests', () => {
     assert.equal(startGame.disabled, true, 'Start game should be disabled');
 
     // Simulates the completion of all the setup tasks.
-    store.dispatch({ type: SET_FORMATION, formationType: FormationType.F4_3_3 });
-    store.dispatch({ type: ROSTER_DONE, roster: game.roster });
-    store.dispatch({ type: CAPTAINS_DONE });
-    store.dispatch({ type: STARTERS_DONE });
+    store.dispatch(formationSelected(FormationType.F4_3_3));
+    store.dispatch(completeRoster(game.roster));
+    store.dispatch(captainsCompleted());
+    store.dispatch(startersCompleted());
     await el.updateComplete;
 
     startGame = el.shadowRoot!.querySelector('div div.start mwc-button') as Button;
@@ -362,11 +366,18 @@ describe('lineup-game-setup tests', () => {
 
     const newGame = getGameDetail();
     newGame.id = STORED_GAME_ID;
-    newGame.liveDetail!.setupTasks![SetupSteps.Formation].status = SetupStatus.Complete;
-    newGame.liveDetail!.setupTasks![SetupSteps.Roster].status = SetupStatus.Complete;
-    newGame.liveDetail!.setupTasks![SetupSteps.Captains].status = SetupStatus.Complete;
-    newGame.liveDetail!.setupTasks![SetupSteps.Starters].status = SetupStatus.Complete;
 
+    const tasks = getTasks();
+    tasks.forEach((task) => {
+      task.status = SetupStatus.Complete;
+      delete task.expectedName;
+    });
+    const liveGame = LiveGameBuilder.create(newGame);
+    liveGame.setupTasks = tasks;
+
+    // Use hydration to set the constructed live game, otherwise it
+    // would be initialized by GET_GAME_SUCCESS later.
+    store.dispatch(hydrateLive(liveGame, liveGame.id));
     store.dispatch({ type: GET_GAME_REQUEST, gameId: newGame.id });
     store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
     await el.updateComplete;
@@ -381,26 +392,23 @@ describe('lineup-game-setup tests', () => {
     expect(dispatchStub).to.have.callCount(1);
 
     expect(actions).to.have.lengthOf.at.least(1);
-    expect(actions[actions.length - 1]).to.include({ type: START_GAME });
+    expect(actions[actions.length - 1]).to.deep.include(gameStarted(newGame.id));
   });
 
   describe('Starters', () => {
-    let newGame: GameDetail;
+    let liveGame: LiveGame;
 
     beforeEach(async () => {
-      newGame = getGameDetail();
+      const newGame = getGameDetail();
       expect(newGame.status).to.equal(GameStatus.New);
-
-      newGame.liveDetail!.setupTasks![SetupSteps.Formation].status = SetupStatus.Complete;
-      newGame.liveDetail!.setupTasks![SetupSteps.Roster].status = SetupStatus.Active;
 
       store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
 
       // Simulates the completion of the setup tasks need to work on starters.
-      store.dispatch({ type: SET_FORMATION, formationType: FormationType.F4_3_3 });
-      store.dispatch({ type: ROSTER_DONE, roster: newGame.roster });
+      store.dispatch(formationSelected(FormationType.F4_3_3));
+      store.dispatch(completeRoster(newGame.roster));
       await el.updateComplete;
-      newGame = store.getState().game!.game!;
+      liveGame = store.getState().live!.liveGame!;
     });
 
     it('shows starter player sections for new game', async () => {
@@ -416,7 +424,7 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('dispatches starter selected action when sub selected', async () => {
-      const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
@@ -430,7 +438,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: SELECT_STARTER });
+      expect(actions[actions.length - 1]).to.deep.include(selectStarter(player.id, true));
     });
 
     it('dispatches starter position selected action when card in formation selected', async () => {
@@ -444,7 +452,8 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: SELECT_STARTER_POSITION });
+      expect(actions[actions.length - 1]).to.deep.include(
+        selectStarterPosition(playerElement.data!.position));
     });
 
     it('position card is selected after selection is processed', async () => {
@@ -463,12 +472,12 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('shows confirm starter UI when proposed starter exists', async () => {
-      const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: { id: 'AM1', type: 'AM' } });
+      store.dispatch(selectStarter(player.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition({ id: 'AM1', type: 'AM' }));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -478,12 +487,12 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('dispatches apply starter action when confirmed', async () => {
-      const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: { id: 'LW', type: 'W' } });
+      store.dispatch(selectStarter(player.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition({ id: 'LW', type: 'W' }));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -502,16 +511,16 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: APPLY_STARTER });
+      expect(actions[actions.length - 1]).to.include(applyStarter());
     });
 
     it('dispatches cancel starter action when cancelled', async () => {
-      const foundPlayer = newGame.liveDetail!.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
-      store.dispatch({ type: SELECT_STARTER, playerId: player.id, selected: true });
-      store.dispatch({ type: SELECT_STARTER_POSITION, position: { id: 'RW', type: 'W' } });
+      store.dispatch(selectStarter(player.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition({ id: 'RW', type: 'W' }));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -530,7 +539,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include({ type: CANCEL_STARTER });
+      expect(actions[actions.length - 1]).to.include(cancelStarter());
     });
 
   }); // describe('Starters')
