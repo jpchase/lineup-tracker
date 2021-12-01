@@ -16,7 +16,9 @@ import { getGameStore } from '../slices/game-store';
 import { gameStartedCreator } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store';
 import {
-  applyStarter, cancelStarter, captainsCompleted, formationSelected, rosterCompleted,
+  applyStarter, cancelStarter, captainsCompleted, formationSelected, getLiveGame,
+  rosterCompleted,
+  selectLiveGameById,
   selectStarter, selectStarterPosition, startersCompleted
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
@@ -224,9 +226,14 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     if (!state.game || !state.live) {
       return;
     }
-    this.game = state.game!.game;
+    this.game = state.game.game;
     if (!this.game) {
       // TODO: Need to reset other properties, if they have values?
+      return;
+    }
+    const liveGame = selectLiveGameById(state, this.game.id);
+    if (!liveGame) {
+      this.dispatch(getLiveGame(this.game));
       return;
     }
     this.tasks = state.live.liveGame?.setupTasks || [];

@@ -6,7 +6,7 @@ import { createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
 import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { FormationType, Position } from '../../models/formation.js';
-import { GameStatus, LiveGame, LivePlayer } from '../../models/game.js';
+import { Game, GameStatus, LiveGame, LivePlayer } from '../../models/game.js';
 import { getPlayer, LiveGameBuilder } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
@@ -45,7 +45,12 @@ const INITIAL_STATE: LiveGameState = {
   proposedSub: undefined,
 };
 
-export const liveGameSelector = (state: RootState) => state.live && state.live!.liveGame;
+export const selectLiveGameById = (state: RootState, gameId?: string) => {
+  if (!state.live?.liveGame || (gameId && state.live.liveGame.id !== gameId)) {
+    return;
+  }
+  return state.live.liveGame;
+}
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 
@@ -79,6 +84,7 @@ const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
     if (!action.game) {
       return;
     }
+    // TODO: This will overwrite a currently loaded game with different game id
     state.gameId = action.game.id;
     state.liveGame = action.game;
     if (action.clock) {
@@ -109,6 +115,14 @@ const liveSlice = createSlice({
   name: 'live',
   initialState: INITIAL_STATE,
   reducers: {
+    getLiveGame: (state, action: PayloadAction<Game>) => {
+      const liveGame: LiveGame = LiveGameBuilder.create(action.payload);
+      if (liveGame.status === GameStatus.New) {
+        updateTasks(liveGame);
+      }
+      state.liveGame = liveGame;
+    },
+
     completeRoster: (state, action: PayloadAction<Roster>) => {
       // Setup live players from roster
       const roster = action.payload;
@@ -374,7 +388,7 @@ const { actions } = liveSlice;
 export const {
   // TODO: Remove this export of completeRoster when no longer needed in reducers/game.ts
   completeRoster,
-  formationSelected, startersCompleted, captainsCompleted,
+  formationSelected, getLiveGame, startersCompleted, captainsCompleted,
   selectStarter, selectStarterPosition, applyStarter, cancelStarter,
   selectPlayer, cancelSub, confirmSub, applyPendingSubs, discardPendingSubs
 } = actions;
