@@ -32,10 +32,25 @@ export default {
   nodeResolve: true,
   coverageConfig: {
     include: ['src/**/*.js'],
+    reportDir: 'reports',
     threshold: {
       branches: 80,
     }
   },
+  groups: [
+    {
+      name: 'all',
+      files: ['test/unit/**/*.test.js', 'test/storage/**/*.test.js']
+    },
+    {
+      name: 'unit',
+      files: 'test/unit/**/*.test.js'
+    },
+    {
+      name: 'single',
+      files: 'test/unit/slices/game/game-slice.test.js'
+    }
+  ],
   // Custom html as a workaround for setting root hooks or global initialization.
   // See https://github.com/modernweb-dev/web/issues/1462.
   testRunnerHtml: testFramework =>

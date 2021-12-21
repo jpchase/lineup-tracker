@@ -52,14 +52,23 @@ jobs:
 
     - name: Run tests
       run: npm test
+
+    - name: Archive test reports
+      if: failure()
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: integration-tests
+        path: reports/tests-integration/
+
     - name: Archive test screenshots
       if: always()
       uses: actions/upload-artifact@v2.2.4
       with:
         name: screenshots
         path: test/integration/screenshots-current/
+
     - name: Archive code coverage results
       uses: actions/upload-artifact@v2.2.4
       with:
         name: code-coverage-report
-        path: coverage/
+        path: reports/lcov-report/
