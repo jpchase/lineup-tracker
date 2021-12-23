@@ -28,6 +28,9 @@ function aliasResolverPlugin() {
 
 const puppeteerExecutablePath = puppeteer.executablePath();
 
+const storage_test_files = 'test/storage/**/*.test.js';
+const unit_test_files = 'test/unit/**/*.test.js';
+
 export default {
   nodeResolve: true,
   coverageConfig: {
@@ -40,11 +43,15 @@ export default {
   groups: [
     {
       name: 'all',
-      files: ['test/unit/**/*.test.js', 'test/storage/**/*.test.js']
+      files: [unit_test_files, storage_test_files]
     },
     {
       name: 'unit',
-      files: 'test/unit/**/*.test.js'
+      files: unit_test_files
+    },
+    {
+      name: 'storage',
+      files: storage_test_files
     },
     {
       name: 'single',

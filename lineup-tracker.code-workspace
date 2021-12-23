@@ -12,6 +12,7 @@
 			"**/*.spec.js": true,
 			"src/**/*.js": true,
 			"test/integration/**/*.js": true,
+			"test/storage/**/*.test.js": true,
 			"test/unit/**/*.test.js": true,
 			"test/unit/helpers/*.js": true
 		},
