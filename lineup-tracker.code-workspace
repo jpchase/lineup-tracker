@@ -21,6 +21,11 @@
 		"files.trimTrailingWhitespace": true,
 		"editor.formatOnSave": true,
 		"files.insertFinalNewline": true,
-		"typescript.preferences.importModuleSpecifierEnding": "js"
+		"typescript.preferences.importModuleSpecifierEnding": "js",
+		"npm.scriptExplorerExclude": [
+			"test:.*-.*",
+			"test:bs",
+			"test:compatibility.*"
+		]
 	}
 }

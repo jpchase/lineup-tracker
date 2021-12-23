@@ -1,0 +1,22 @@
+{
+  "environment": "test",
+  "firebase": {
+    "options": {
+      "apiKey": "AIzaSyBLpPCwxt2wiFEmVgEPZSsnHw8u-6EfMPI",
+      "authDomain": "resplendent-fire-4542.firebaseapp.com",
+      "projectId": "resplendent-fire-4542"
+    },
+    "enablePersistence": false,
+    "useEmulators": true,
+    "emulators": {
+      "auth": {
+        "hostname": "localhost",
+        "port": 9099
+      },
+      "firestore": {
+        "hostname": "localhost",
+        "port": 8790
+      }
+    }
+  }
+}

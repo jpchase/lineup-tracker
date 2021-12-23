@@ -13,6 +13,7 @@ dist/
 .tmp
 app.yaml
 *.sublime-workspace
+src/env-config.json
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
