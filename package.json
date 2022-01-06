@@ -83,7 +83,7 @@
     "@types/pngjs": "^6.0.1",
     "@types/sinon-chai": "^3.2.5",
     "@web/dev-server": "^0.1.28",
-    "@web/test-runner": "^0.13.21",
+    "@web/test-runner": "^0.13.24",
     "@web/test-runner-puppeteer": "^0.10.3",
     "axe-core": "^4.3.5",
     "babel-loader": "^8.2.3",
