@@ -55,7 +55,7 @@
     "@material/mwc-top-app-bar": "^0.25.3",
     "@material/mwc-top-app-bar-fixed": "^0.25.3",
     "@polymer/polymer": "^3.3.1",
-    "@reduxjs/toolkit": "^1.6.2",
+    "@reduxjs/toolkit": "^1.8.0",
     "debug": "^4.3.2",
     "firebase": "^9.6.1",
     "idb-keyval": "^6.0.3",
