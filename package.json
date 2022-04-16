@@ -86,7 +86,7 @@
     "@web/test-runner": "^0.13.21",
     "@web/test-runner-puppeteer": "^0.10.3",
     "axe-core": "^4.3.5",
-    "babel-loader": "^8.2.3",
+    "babel-loader": "^8.2.4",
     "babel-plugin-module-resolver": "^4.1.0",
     "chai": "^4.3.6",
     "copy-webpack-plugin": "^10.2.4",
