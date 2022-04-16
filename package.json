@@ -75,7 +75,7 @@
     "@babel/preset-env": "^7.16.11",
     "@blockquote/test-runner-mocha-style-reporter": "^1.1.0",
     "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@open-wc/testing": "^3.0.3",
+    "@open-wc/testing": "^3.1.2",
     "@open-wc/testing-karma": "^4.0.9",
     "@types/debug": "^4.1.7",
     "@types/mocha": "^9.0.0",
