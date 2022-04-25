@@ -100,7 +100,7 @@
     "mock-cloud-firestore": "^0.12.0",
     "pixelmatch": "^5.2.1",
     "puppeteer": "^11.0.0",
-    "sinon": "^12.0.1",
+    "sinon": "^13.0.2",
     "sinon-chai": "^3.7.0",
     "typescript": "^4.5.4",
     "webpack": "^5.72.0",
