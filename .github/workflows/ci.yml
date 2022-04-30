@@ -55,7 +55,7 @@ jobs:
 
     - name: Archive test reports
       if: failure()
-      uses: actions/upload-artifact@v2.2.4
+      uses: actions/upload-artifact@v3
       with:
         name: integration-tests
         path: reports/tests-integration/
