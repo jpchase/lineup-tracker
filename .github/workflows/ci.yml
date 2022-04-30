@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2.4.0
+    - uses: actions/checkout@v3.0.2
 
     - name: Cache node modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3.0.2
       env:
         cache-name: cache-node-modules
       with:
@@ -37,7 +37,7 @@ jobs:
           ${{ runner.os }}-
 
     - name: Cache Firebase emulators
-      uses: actions/cache@v2
+      uses: actions/cache@v3.0.2
       env:
         cache-name: cache-firebase-emulators
       with:
@@ -62,13 +62,13 @@ jobs:
 
     - name: Archive test screenshots
       if: always()
-      uses: actions/upload-artifact@v2.2.4
+      uses: actions/upload-artifact@v3
       with:
         name: screenshots
         path: test/integration/screenshots-current/
 
     - name: Archive code coverage results
-      uses: actions/upload-artifact@v2.2.4
+      uses: actions/upload-artifact@v3
       with:
         name: code-coverage-report
         path: reports/lcov-report/
