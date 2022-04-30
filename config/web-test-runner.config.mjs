@@ -28,14 +28,36 @@ function aliasResolverPlugin() {
 
 const puppeteerExecutablePath = puppeteer.executablePath();
 
+const storage_test_files = 'test/storage/**/*.test.js';
+const unit_test_files = 'test/unit/**/*.test.js';
+
 export default {
   nodeResolve: true,
   coverageConfig: {
     include: ['src/**/*.js'],
+    reportDir: 'reports',
     threshold: {
       branches: 80,
     }
   },
+  groups: [
+    {
+      name: 'all',
+      files: [unit_test_files, storage_test_files]
+    },
+    {
+      name: 'unit',
+      files: unit_test_files
+    },
+    {
+      name: 'storage',
+      files: storage_test_files
+    },
+    {
+      name: 'single',
+      files: 'test/unit/slices/game/game-slice.test.js'
+    }
+  ],
   // Custom html as a workaround for setting root hooks or global initialization.
   // See https://github.com/modernweb-dev/web/issues/1462.
   testRunnerHtml: testFramework =>
