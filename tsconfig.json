@@ -3,7 +3,11 @@
     "target": "es2017",
     "module": "esnext",
     "moduleResolution": "node",
-    "lib": ["es2017", "dom"],
+    "resolveJsonModule": true,
+    "lib": [
+      "es2017",
+      "dom"
+    ],
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "noUnusedLocals": true,
@@ -14,7 +18,9 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@app/*": ["src/*"]
+      "@app/*": [
+        "src/*"
+      ]
     },
     "plugins": [
       {
