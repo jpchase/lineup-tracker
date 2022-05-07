@@ -8,15 +8,13 @@ import { RootState } from '@app/store';
 import { expect } from '@open-wc/testing';
 import { Store } from 'redux';
 import sinon from 'sinon';
-import { buildRunningTimer } from '../helpers/test-clock-data';
 import { getLiveGameWithPlayers } from '../helpers/test-live-game-data';
+import { buildClockWithTimer } from './live/clock-slice.test.js';
 
 const KEY_CACHED_LIVE = 'CACHED_LIVE';
 
 function buildClock(): ClockState {
-  return {
-    timer: buildRunningTimer()
-  }
+  return buildClockWithTimer(true);
 }
 
 function mockGetState(currentGame?: LiveGame, clock?: ClockState) {

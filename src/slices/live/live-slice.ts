@@ -7,15 +7,15 @@ import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { FormationType, Position } from '../../models/formation.js';
 import { Game, GameStatus, LiveGame, LivePlayer } from '../../models/game.js';
-import { getPlayer, LiveGameBuilder } from '../../models/live.js';
+import { gameCanStartPeriod, getPlayer, LiveGameBuilder } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { gameStarted, selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
-import { clock, ClockState } from './clock-slice.js';
-export { toggle as toggleClock } from './clock-slice.js';
+import { clock, ClockState, endPeriod, startPeriod, StartPeriodPayload } from './clock-slice.js';
+export { toggle as toggleClock, endPeriod } from './clock-slice.js';
 import { SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 
 export interface LiveGameState {
@@ -51,6 +51,10 @@ export const selectLiveGameById = (state: RootState, gameId?: string) => {
   }
   return state.live.liveGame;
 }
+export const selectCurrentLiveGame = (state: RootState) => {
+  return state.live?.liveGame;
+}
+
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 
@@ -60,6 +64,14 @@ export const rosterCompleted: ActionCreator<ThunkAction<void, RootState, undefin
     return;
   }
   dispatch(actions.completeRoster(game.roster));
+};
+
+export const startGamePeriod: ActionCreator<ThunkAction<void, RootState, undefined, AnyAction>> = () => (dispatch, getState) => {
+  const game = selectCurrentLiveGame(getState());
+  if (!game) {
+    return;
+  }
+  dispatch(startPeriod(gameCanStartPeriod(game)));
 };
 
 export const live: Reducer<LiveState> = function (state, action) {
@@ -380,7 +392,25 @@ const liveSlice = createSlice({
       }
       game.status = GameStatus.Start;
       delete game.setupTasks;
-    })
+    }).addCase(startPeriod, (state, action: PayloadAction<StartPeriodPayload>) => {
+      if (!action.payload.gameAllowsStart) {
+        return;
+      }
+      // TODO: validate game matches?
+      const game = state.liveGame!;
+      game.status = GameStatus.Live;
+    }).addCase(endPeriod, (state: LiveState) => {
+      // TODO: validate game matches?
+      const game = state.liveGame!;
+      if (game.status !== GameStatus.Live) {
+        return;
+      }
+      if (state.clock?.currentPeriod === state.clock?.totalPeriods) {
+        game.status = GameStatus.Done;
+      } else {
+        game.status = GameStatus.Break;
+      }
+    });
   },
 });
 

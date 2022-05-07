@@ -6,9 +6,15 @@ import { PlayerStatus } from '@app/models/player';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
 import { gameStarted } from '@app/slices/game/game-slice.js';
 import { LIVE_HYDRATE } from '@app/slices/live-types';
-import { ClockState } from '@app/slices/live/clock-slice';
-import { applyPendingSubs, applyStarter, cancelStarter, cancelSub, completeRoster, confirmSub, discardPendingSubs, formationSelected, live, LiveGameState, LiveState, selectPlayer, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice';
+import { ClockState, startPeriod } from '@app/slices/live/clock-slice';
+import {
+  applyPendingSubs, applyStarter, cancelStarter, cancelSub, completeRoster, confirmSub,
+  discardPendingSubs, endPeriod, formationSelected, live, LiveGameState, LiveState,
+  selectPlayer, selectStarter, selectStarterPosition, startersCompleted, startGamePeriod
+} from '@app/slices/live/live-slice';
+import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
+import sinon from 'sinon';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
@@ -21,7 +27,7 @@ import {
   getStoredPlayer,
   OTHER_STORED_GAME_ID
 } from '../../helpers/test_data.js';
-import { CLOCK_INITIAL_STATE } from './clock-slice.test.js';
+import { buildClockWithTimer, CLOCK_INITIAL_STATE } from './clock-slice.test.js';
 
 const LIVE_INITIAL_STATE: LiveGameState = {
   gameId: '',
@@ -95,6 +101,15 @@ function buildSetupTasks(): SetupTask[] {
       status: SetupStatus.Pending
     }
   ]
+}
+
+function mockGetState(currentState: LiveState) {
+  return sinon.fake(() => {
+    const mockState: RootState = {
+      live: currentState
+    };
+    return mockState;
+  });
 }
 
 describe('Live reducer', () => {
@@ -1133,5 +1148,154 @@ describe('Live reducer', () => {
 
     }); // describe('live/discardPendingSubs')
   }); // describe('Next Subs')
+
+  describe('Clock', () => {
+    const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    let currentState: LiveState;
+    let fakeClock: sinon.SinonFakeTimers;
+
+    beforeEach(() => {
+      fakeClock = sinon.useFakeTimers({ now: startTime });
+      currentState = {
+        ...INITIAL_OVERALL_STATE,
+        liveGame: buildLiveGameWithPlayers(),
+        clock: buildClockWithTimer(),
+      };
+    });
+
+    afterEach(async () => {
+      sinon.restore();
+      if (fakeClock) {
+        fakeClock.restore();
+      }
+    });
+
+    const startAllowedStatuses = [GameStatus.Start, GameStatus.Break];
+    const endAllowedStatuses = [GameStatus.Live];
+    const otherStatuses = [GameStatus.New, GameStatus.Done];
+
+    it('All statuses are covered by start/end period tests', () => {
+      expect(startAllowedStatuses.length + endAllowedStatuses.length + otherStatuses.length,
+        'Start/end period tests for every status').to.equal(Object.values(GameStatus).length);
+    });
+
+    describe('clock/startPeriod', () => {
+      for (const status of startAllowedStatuses) {
+
+        it(`should dispatch action allow start = true when game is in ${status} status`, async () => {
+          currentState.liveGame!.status = status;
+
+          const dispatchMock = sinon.stub();
+          const getStateMock = mockGetState(currentState);
+
+          await startGamePeriod()(dispatchMock, getStateMock, undefined);
+
+          // The request action is dispatched, regardless.
+          expect(dispatchMock).to.have.callCount(1);
+
+          expect(dispatchMock.lastCall).to.have.been.calledWith({
+            type: startPeriod.type,
+            payload: {
+              gameAllowsStart: true
+            }
+          });
+        });
+
+        it(`should change game status from ${status} to Live`, () => {
+          currentState.liveGame!.status = status;
+
+          const newState = live(currentState, startPeriod(/*gameAllowsStart=*/true));
+
+          expect(newState.liveGame?.status).to.equal(GameStatus.Live);
+          expect(newState).not.to.equal(currentState);
+        });
+      }
+
+      const startInvalidStatuses = endAllowedStatuses.concat(otherStatuses);
+
+      for (const status of startInvalidStatuses) {
+
+        it(`should dispatch action allow start = false when game is in ${status} status`, async () => {
+          currentState.liveGame!.status = status;
+
+          const dispatchMock = sinon.stub();
+          const getStateMock = mockGetState(currentState);
+
+          await startGamePeriod()(dispatchMock, getStateMock, undefined);
+
+          // The request action is dispatched, regardless.
+          expect(dispatchMock).to.have.callCount(1);
+
+          expect(dispatchMock.lastCall).to.have.been.calledWith({
+            type: startPeriod.type,
+            payload: {
+              gameAllowsStart: false
+            }
+          });
+        });
+
+        it(`should do nothing when game is in ${status} status`, () => {
+          currentState.liveGame!.status = status;
+
+          const newState = live(currentState, startPeriod(/*gameAllowsStart=*/false));
+
+          expect(newState.liveGame?.status).to.equal(status);
+          expect(newState).to.deep.equal(currentState);
+        });
+      }
+    });  // describe('clock/startPeriod')
+
+    describe('clock/endPeriod', () => {
+
+      it(`should change game status to Break for first period (first half)`, () => {
+        currentState.liveGame!.status = GameStatus.Live;
+        currentState.clock!.currentPeriod = 1;
+        currentState.clock!.isPeriodStarted = true;
+
+        const newState = live(currentState, endPeriod());
+
+        expect(newState.liveGame?.status).to.equal(GameStatus.Break);
+        expect(newState).not.to.equal(currentState);
+      });
+
+      it(`should change game status to Break for middle period`, () => {
+        currentState.liveGame!.status = GameStatus.Live;
+        currentState.clock!.totalPeriods = 3;
+        currentState.clock!.currentPeriod = 2;
+        currentState.clock!.isPeriodStarted = true;
+
+        const newState = live(currentState, endPeriod());
+
+        expect(newState.liveGame?.status).to.equal(GameStatus.Break);
+        expect(newState).not.to.equal(currentState);
+      });
+
+      it(`should change game status to Done for last period (second half)`, () => {
+        currentState.liveGame!.status = GameStatus.Live;
+        currentState.clock!.currentPeriod = 2;
+        currentState.clock!.isPeriodStarted = true;
+
+        const newState = live(currentState, endPeriod());
+
+        expect(newState.liveGame?.status).to.equal(GameStatus.Done);
+        expect(newState).not.to.equal(currentState);
+      });
+
+      const endInvalidStatuses = startAllowedStatuses.concat(otherStatuses);
+
+      for (const status of endInvalidStatuses) {
+
+        it(`should do nothing if game is in ${status} status`, () => {
+          currentState.liveGame!.status = status;
+
+          const newState = live(currentState, endPeriod());
+
+          expect(newState.liveGame?.status).to.equal(status);
+          expect(newState).to.deep.equal(currentState);
+        });
+      }
+    });  // describe('clock/endPeriod')
+
+  }); // describe('Clock')
 
 });
