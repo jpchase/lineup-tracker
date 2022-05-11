@@ -1,7 +1,7 @@
 import { TimerData } from '@app/models/clock';
 import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
-import { getPlayer } from '@app/models/live';
+import { getPlayer, PeriodStatus } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
 import { gameStarted } from '@app/slices/game/game-slice.js';
@@ -1250,7 +1250,7 @@ describe('Live reducer', () => {
       it(`should change game status to Break for first period (first half)`, () => {
         currentState.liveGame!.status = GameStatus.Live;
         currentState.clock!.currentPeriod = 1;
-        currentState.clock!.isPeriodStarted = true;
+        currentState.clock!.periodStatus = PeriodStatus.Running;
 
         const newState = live(currentState, endPeriod());
 
@@ -1262,7 +1262,7 @@ describe('Live reducer', () => {
         currentState.liveGame!.status = GameStatus.Live;
         currentState.clock!.totalPeriods = 3;
         currentState.clock!.currentPeriod = 2;
-        currentState.clock!.isPeriodStarted = true;
+        currentState.clock!.periodStatus = PeriodStatus.Running;
 
         const newState = live(currentState, endPeriod());
 
@@ -1273,7 +1273,7 @@ describe('Live reducer', () => {
       it(`should change game status to Done for last period (second half)`, () => {
         currentState.liveGame!.status = GameStatus.Live;
         currentState.clock!.currentPeriod = 2;
-        currentState.clock!.isPeriodStarted = true;
+        currentState.clock!.periodStatus = PeriodStatus.Running;
 
         const newState = live(currentState, endPeriod());
 

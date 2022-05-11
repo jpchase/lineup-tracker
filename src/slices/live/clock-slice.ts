@@ -4,11 +4,12 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Timer, TimerData } from '../../models/clock.js';
+import { PeriodStatus } from '../../models/live.js';
 
 export interface ClockState {
   timer?: TimerData;
   currentPeriod: number;
-  isPeriodStarted: boolean;
+  periodStatus: PeriodStatus
   totalPeriods: number;
   periodLength: number;
 }
@@ -20,7 +21,7 @@ export interface StartPeriodPayload {
 const INITIAL_STATE: ClockState = {
   timer: undefined,
   currentPeriod: 0,
-  isPeriodStarted: false,
+  periodStatus: PeriodStatus.Pending,
   totalPeriods: 2,
   periodLength: 45
 };
@@ -38,7 +39,7 @@ const clockSlice = createSlice({
           return;
         }
         // The periods cannot be configured once started.
-        if (state.currentPeriod > 0 || state.isPeriodStarted) {
+        if (state.currentPeriod > 0 || state.periodStatus !== PeriodStatus.Pending) {
           return;
         }
         state.totalPeriods = periods;
@@ -60,7 +61,8 @@ const clockSlice = createSlice({
         if (!action.payload.gameAllowsStart) {
           return;
         }
-        if (state.currentPeriod === state.totalPeriods || state.isPeriodStarted) {
+        if (state.currentPeriod === state.totalPeriods
+          || state.periodStatus === PeriodStatus.Running) {
           return;
         }
         const timer = new Timer();
@@ -71,7 +73,7 @@ const clockSlice = createSlice({
         } else {
           state.currentPeriod++;
         }
-        state.isPeriodStarted = true;
+        state.periodStatus = PeriodStatus.Running;
       },
 
       prepare: (gameAllowsStart: boolean) => {
@@ -87,7 +89,12 @@ const clockSlice = createSlice({
       const timer = new Timer(state.timer);
       timer.stop();
       state.timer = timer.toJSON();
-      state.isPeriodStarted = false;
+      if (state.currentPeriod === state.totalPeriods) {
+        // Ending the last period of the game.
+        state.periodStatus = PeriodStatus.Done;
+      } else {
+        state.periodStatus = PeriodStatus.Pending;
+      }
     },
 
     toggle: (state) => {

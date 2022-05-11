@@ -3,6 +3,12 @@
 */
 import { Game, LiveGame, GameDetail, LivePlayer, GameStatus } from './game';
 
+export enum PeriodStatus {
+  Pending = 'PENDING',
+  Running = 'RUNNING',
+  Done = 'DONE'
+}
+
 export class LiveGameBuilder {
   static create(game: Game): LiveGame {
     if (!game) {

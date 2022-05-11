@@ -1,3 +1,5 @@
+import { hydrateLive } from '@app/actions/live.js';
+import { LineupGameClock } from '@app/components/lineup-game-clock.js';
 import { LineupGameLive } from '@app/components/lineup-game-live';
 import '@app/components/lineup-game-live.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
@@ -9,11 +11,13 @@ import { GameDetail, GameStatus, LiveGame, LivePlayer } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import { applyStarter, cancelSub, confirmSub, formationSelected, selectPlayer, selectStarter, selectStarterPosition } from '@app/slices/live/live-slice.js';
+import { endPeriod, startPeriod } from '@app/slices/live/clock-slice.js';
+import { applyStarter, cancelSub, confirmSub, formationSelected, selectPlayer, selectStarter, selectStarterPosition, toggleClock } from '@app/slices/live/live-slice.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
+import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton } from '../helpers/clock-element-retrievers.js';
 import * as testlive from '../helpers/test-live-game-data';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data';
 
@@ -26,7 +30,7 @@ const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
 function getGameDetail(): { game: GameDetail, live: LiveGame } {
   const live = testlive.getLiveGameWithPlayers();
   const game = getNewGameDetail(buildRoster(live.players));
-  game.status = GameStatus.Start;
+  game.status = live.status = GameStatus.Start;
   return { game, live };
 }
 
@@ -53,6 +57,13 @@ describe('lineup-game-live tests', () => {
     sinon.restore();
     removeMiddleware(actionLoggerMiddleware);
   });
+
+  function getClockElement(): LineupGameClock {
+    const element = el.shadowRoot!.querySelector('lineup-game-clock');
+    expect(element, 'Missing clock element').to.be.ok;
+
+    return element as LineupGameClock;
+  }
 
   function getPlayerElement(list: LineupPlayerList, player: LivePlayer): LineupPlayerCard {
     const items = list.shadowRoot!.querySelectorAll('lineup-player-card');
@@ -290,6 +301,72 @@ describe('lineup-game-live tests', () => {
     });
 
   }); // describe('Subs')
+
+  describe('Clock', () => {
+
+    beforeEach(async () => {
+      const { game, live } = getGameDetail();
+
+      // Setup the live game, in Start status
+      store.dispatch({ type: GET_GAME_SUCCESS, game: game });
+      store.dispatch(hydrateLive(live, live.id, undefined));
+
+      await el.updateComplete;
+    });
+
+    it('dispatches start period action when event fired by clock component', async () => {
+      // Trigger the event by clicking the start button.
+      const clockElement = getClockElement();
+      const startButton = getClockStartPeriodButton(clockElement);
+
+      startButton.click();
+
+      // Verifies that the start period action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        startPeriod(/*gameAllowsStart =*/true));
+    });
+
+    it('dispatches end period action when event fired by clock component', async () => {
+      // Get the clock component into a state that allows the period to end.
+      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
+      await el.updateComplete;
+
+      // Trigger the event by clicking the end period button.
+      const clockElement = getClockElement();
+      const endButton = getClockEndPeriodButton(clockElement);
+
+      endButton.click();
+
+      // Verifies that the end period action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        endPeriod());
+    });
+
+    it('dispatches toggle clock action when fired by clock component', async () => {
+      // Get the clock component into a state that allows the toggle.
+      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
+      await el.updateComplete;
+
+      // Trigger the event by clicking the toggle button.
+      const clockElement = getClockElement();
+      const toggleButton = getClockToggleButton(clockElement);
+
+      toggleButton.click();
+
+      // Verifies that the toggle clock action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.include(toggleClock());
+    });
+
+  }); // describe('Clock')
 
   it('a11y', async () => {
     await expect(el).to.be.accessible();

@@ -1,5 +1,6 @@
-import { Duration } from '@app/models/clock';
-import { clock, ClockState, configurePeriods, endPeriod, startPeriod, toggle } from '@app/slices/live/clock-slice';
+import { Duration } from '@app/models/clock.js';
+import { PeriodStatus } from '@app/models/live.js';
+import { clock, ClockState, configurePeriods, endPeriod, startPeriod, toggle } from '@app/slices/live/clock-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
@@ -7,7 +8,7 @@ import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-d
 export const CLOCK_INITIAL_STATE: ClockState = {
   timer: undefined,
   currentPeriod: 0,
-  isPeriodStarted: false,
+  periodStatus: PeriodStatus.Pending,
   totalPeriods: 2,
   periodLength: 45
 };
@@ -73,7 +74,7 @@ describe('Clock reducer', () => {
     });
 
     it('should do nothing if already started', () => {
-      currentState.isPeriodStarted = true;
+      currentState.periodStatus = PeriodStatus.Running;
 
       const newState = clock(currentState,
         configurePeriods(/*totalPeriods=*/2, /*periodLength=*/35));
@@ -124,7 +125,7 @@ describe('Clock reducer', () => {
 
       expect(newState).to.deep.include({
         currentPeriod: 1,
-        isPeriodStarted: true
+        periodStatus: PeriodStatus.Running
       });
 
       expect(newState).not.to.equal(currentState);
@@ -138,7 +139,7 @@ describe('Clock reducer', () => {
 
       expect(newState).to.deep.include({
         currentPeriod: 2,
-        isPeriodStarted: true
+        periodStatus: PeriodStatus.Running
       });
 
       expect(newState).not.to.equal(currentState);
@@ -153,7 +154,7 @@ describe('Clock reducer', () => {
 
       expect(newState).to.deep.include({
         currentPeriod: 2,
-        isPeriodStarted: false
+        periodStatus: PeriodStatus.Pending
       });
 
       expect(newState).to.equal(currentState);
@@ -166,7 +167,7 @@ describe('Clock reducer', () => {
 
       expect(newState).to.deep.include({
         currentPeriod: 0,
-        isPeriodStarted: false
+        periodStatus: PeriodStatus.Pending
       });
 
       expect(newState).to.equal(currentState);
@@ -201,30 +202,30 @@ describe('Clock reducer', () => {
       expect(newState.timer).not.to.equal(currentState.timer);
     });
 
-    it('should reset the period started flag', () => {
+    it('should reset the period status', () => {
       mockTimeProvider(time2);
       const currentState: ClockState = {
         ...CLOCK_INITIAL_STATE,
         currentPeriod: 1,
-        isPeriodStarted: true
+        periodStatus: PeriodStatus.Running
       };
 
       const newState = clock(currentState, endPeriod());
 
       expect(newState).to.deep.include({
         currentPeriod: 1,
-        isPeriodStarted: false
+        periodStatus: PeriodStatus.Pending
       });
 
       expect(newState).not.to.equal(currentState);
     });
 
-    it('should reset the period started flag when timer is not running', () => {
+    it('should reset the period status when timer is not running', () => {
       mockTimeProvider(time2);
       const currentState: ClockState = {
         ...CLOCK_INITIAL_STATE,
-        currentPeriod: 2,
-        isPeriodStarted: true,
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Running,
         timer: {
           isRunning: false,
           startTime: startTime,
@@ -235,8 +236,27 @@ describe('Clock reducer', () => {
       const newState = clock(currentState, endPeriod());
 
       expect(newState).to.deep.include({
-        currentPeriod: 2,
-        isPeriodStarted: false,
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Pending,
+      });
+
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should set the period status to done when on the last period', () => {
+      mockTimeProvider(time2);
+      const currentState: ClockState = {
+        ...CLOCK_INITIAL_STATE,
+        currentPeriod: 3,
+        periodStatus: PeriodStatus.Running,
+        totalPeriods: 3
+      };
+
+      const newState = clock(currentState, endPeriod());
+
+      expect(newState).to.deep.include({
+        currentPeriod: 3,
+        periodStatus: PeriodStatus.Done
       });
 
       expect(newState).not.to.equal(currentState);
@@ -340,7 +360,7 @@ describe('Clock reducer', () => {
     it('should not change the period when timer is set to not running', () => {
       mockTimeProvider(startTime);
       currentState.currentPeriod = 1;
-      currentState.isPeriodStarted = true;
+      currentState.periodStatus = PeriodStatus.Running;
       currentState.timer = {
         isRunning: false,
         startTime: undefined,
@@ -351,7 +371,7 @@ describe('Clock reducer', () => {
 
       expect(newState).to.deep.include({
         currentPeriod: 1,
-        isPeriodStarted: true,
+        periodStatus: PeriodStatus.Running,
       });
 
       expect(newState).not.to.equal(currentState);
@@ -363,7 +383,7 @@ describe('Clock reducer', () => {
     it('should not change the period when timer is already running', () => {
       mockTimeProvider(time2);
       currentState.currentPeriod = 2;
-      currentState.isPeriodStarted = true;
+      currentState.periodStatus = PeriodStatus.Running;
       currentState.timer = {
         isRunning: true,
         startTime: time1,
@@ -374,7 +394,7 @@ describe('Clock reducer', () => {
 
       expect(newState).to.deep.include({
         currentPeriod: 2,
-        isPeriodStarted: true,
+        periodStatus: PeriodStatus.Running,
       });
 
       expect(newState).not.to.equal(currentState);

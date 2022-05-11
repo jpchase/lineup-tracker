@@ -5,17 +5,20 @@
 import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { connectStore } from '../middleware/connect-mixin';
 import { TimerData } from '../models/clock';
 import { FormationBuilder } from '../models/formation';
 import { LiveGame, LivePlayer } from '../models/game';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store';
-import { applyPendingSubs, clockSelector, cancelSub, confirmSub, discardPendingSubs, proposedSubSelector, selectPlayer, toggleClock } from '../slices/live/live-slice.js';
+import {
+  applyPendingSubs, cancelSub, clockSelector, confirmSub, discardPendingSubs, endPeriod,
+  proposedSubSelector, selectPlayer, startGamePeriod, toggleClock
+} from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-game-clock';
-import { ClockToggleEvent } from './lineup-game-clock';
+import { ClockPeriodData } from './lineup-game-clock';
 import './lineup-on-player-list';
 import './lineup-player-list';
 import { SharedStyles } from './shared-styles';
@@ -50,7 +53,11 @@ export class LineupGameLive extends connectStore()(LitElement) {
 
     return html`
       <div toolbar>
-        <lineup-game-clock id="gameTimer" .timerData="${this._clockData}"></lineup-game-clock>
+        <lineup-game-clock id="gameTimer" .timerData="${this.clockData}"
+                           .periodData="${this.clockPeriodData}"
+                           @clock-start-period="${this.startClockPeriod}"
+                           @clock-end-period="${this.endClockPeriod}"
+                           @clock-toggled="${this.toggleClock}"></lineup-game-clock>
       </div>
       <div id="live-on">
         <h5>Playing</h5>
@@ -127,13 +134,11 @@ export class LineupGameLive extends connectStore()(LitElement) {
   @property({ type: Object })
   private _proposedSub: LivePlayer | undefined;
 
-  @property({ type: Object })
-  private _clockData?: TimerData;
+  @state()
+  private clockData?: TimerData;
 
-  protected firstUpdated() {
-    this.shadowRoot?.getElementById('gameTimer')?.addEventListener(
-      ClockToggleEvent.eventName, this._toggleClock.bind(this) as EventListenerOrEventListenerObject);
-  }
+  @state()
+  private clockPeriodData?: ClockPeriodData;
 
   stateChanged(state: RootState) {
     if (!state.live) {
@@ -145,7 +150,17 @@ export class LineupGameLive extends connectStore()(LitElement) {
     }
 
     this._players = this._game.players || [];
-    this._clockData = clockSelector(state)?.timer;
+    const clock = clockSelector(state);
+    if (clock) {
+      this.clockData = clock.timer;
+      this.clockPeriodData = {
+        currentPeriod: clock.currentPeriod,
+        periodStatus: clock.periodStatus
+      };
+    } else {
+      this.clockData = {};
+      this.clockPeriodData = {} as ClockPeriodData;
+    }
     this._proposedSub = proposedSubSelector(state);
   }
 
@@ -171,11 +186,25 @@ export class LineupGameLive extends connectStore()(LitElement) {
     this.dispatch(discardPendingSubs());
   }
 
-  private _toggleClock() {
+  private toggleClock() {
     this.dispatch(toggleClock());
+  }
+
+  private startClockPeriod() {
+    this.dispatch(startGamePeriod());
+  }
+
+  private endClockPeriod() {
+    this.dispatch(endPeriod());
   }
 
   private _findPlayer(playerId: string) {
     return this._players!.find(player => (player.id === playerId));
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'lineup-game-live': LineupGameLive;
   }
 }
