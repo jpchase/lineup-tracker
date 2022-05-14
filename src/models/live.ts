@@ -1,7 +1,13 @@
 /**
 @license
 */
-import { Game, LiveGame, GameDetail, LivePlayer } from './game';
+import { Game, LiveGame, GameDetail, LivePlayer, GameStatus } from './game';
+
+export enum PeriodStatus {
+  Pending = 'PENDING',
+  Running = 'RUNNING',
+  Done = 'DONE'
+}
 
 export class LiveGameBuilder {
   static create(game: Game): LiveGame {
@@ -32,4 +38,8 @@ export function getPlayer(game: LiveGame, playerId: string) {
     return;
   }
   return game.players.find(p => (p.id === playerId));
+}
+
+export function gameCanStartPeriod(game: LiveGame): boolean {
+  return (game.status === GameStatus.Start || game.status === GameStatus.Break);
 }
