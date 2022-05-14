@@ -56,7 +56,7 @@
     "@material/mwc-snackbar": "^0.25.3",
     "@material/mwc-tab": "^0.25.3",
     "@material/mwc-tab-bar": "^0.25.3",
-    "@material/mwc-textfield": "^0.25.3",
+    "@material/mwc-textfield": "^0.26.1",
     "@material/mwc-top-app-bar": "^0.25.3",
     "@material/mwc-top-app-bar-fixed": "^0.25.3",
     "@polymer/polymer": "^3.3.1",
