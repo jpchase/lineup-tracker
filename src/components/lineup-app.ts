@@ -284,9 +284,11 @@ export class LineupApp extends connect(store)(LitElement) {
           <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
         </main>
 
+        <!--
         <footer>
           <p>Some footer goes here?</p>
         </footer>
+        -->
       </div>
     </mwc-drawer>
 
