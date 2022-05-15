@@ -14,9 +14,8 @@ import {
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS,
 } from '@app/slices/game-types';
-import { gameStarted } from '@app/slices/game/game-slice.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
+import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
@@ -158,6 +157,12 @@ describe('lineup-game-setup tests', () => {
     }
 
     return taskElement as HTMLDivElement;
+  }
+
+  function getCompleteSetupButton() {
+    const button = el.shadowRoot!.querySelector('#complete-button');
+    expect(button, 'Missing complete setup button').to.be.ok;
+    return button as Button;
   }
 
   it('starts empty', async () => {
@@ -329,71 +334,69 @@ describe('lineup-game-setup tests', () => {
     } // for each stepTest
   }); // describe('Setup steps')
 
-  it('start game button is disabled initially', async () => {
-    store.dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
-    await el.updateComplete;
+  describe('complete setup', () => {
+    it('complete setup button is disabled initially', async () => {
+      store.dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
+      await el.updateComplete;
 
-    const startGame = el.shadowRoot!.querySelector('div div.start mwc-button') as Button;
-    assert.isOk(startGame, 'Missing start game button');
-    assert.equal(startGame.disabled, true, 'Start game is not disabled');
-  });
-
-  it('start game button is enabled after tasks are completed', async () => {
-    const game = getGameDetail();
-    store.dispatch({ type: GET_GAME_SUCCESS, game });
-    await el.updateComplete;
-
-    let startGame = el.shadowRoot!.querySelector('div div.start mwc-button') as Button;
-    assert.isOk(startGame, 'Missing start game button');
-    assert.equal(startGame.disabled, true, 'Start game should be disabled');
-
-    // Simulates the completion of all the setup tasks.
-    store.dispatch(formationSelected(FormationType.F4_3_3));
-    store.dispatch(completeRoster(game.roster));
-    store.dispatch(captainsCompleted());
-    store.dispatch(startersCompleted());
-    await el.updateComplete;
-
-    startGame = el.shadowRoot!.querySelector('div div.start mwc-button') as Button;
-    assert.isOk(startGame, 'Missing start game button');
-    assert.equal(startGame.disabled, false, 'Start game should be enabled');
-  });
-
-  it('dispatches start game action when start button clicked', async () => {
-    // Mock the call to update the game in storage.
-    const writerStub = sinon.stub<typeof writer>(writer);
-    writerStub.updateDocument.returns();
-
-    const newGame = getGameDetail();
-    newGame.id = STORED_GAME_ID;
-
-    const tasks = getTasks();
-    tasks.forEach((task) => {
-      task.status = SetupStatus.Complete;
-      delete task.expectedName;
+      const completeButton = getCompleteSetupButton();
+      expect(completeButton.disabled, 'Complete setup should be disabled').to.be.true;
     });
-    const liveGame = LiveGameBuilder.create(newGame);
-    liveGame.setupTasks = tasks;
 
-    // Use hydration to set the constructed live game, otherwise it
-    // would be initialized by GET_GAME_SUCCESS later.
-    store.dispatch(hydrateLive(liveGame, liveGame.id));
-    store.dispatch({ type: GET_GAME_REQUEST, gameId: newGame.id });
-    store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
-    await el.updateComplete;
+    it('complete setup button is enabled after tasks are completed', async () => {
+      const game = getGameDetail();
+      store.dispatch({ type: GET_GAME_SUCCESS, game });
+      await el.updateComplete;
 
-    const startGameButton = el.shadowRoot!.querySelector('div div.start mwc-button') as Button;
-    expect(startGameButton, 'Missing start game button').to.be.ok;
-    expect(startGameButton.disabled, 'Start game should be enabled').to.equal(false);
+      let completeButton = getCompleteSetupButton();
+      expect(completeButton.disabled, 'Complete setup should be disabled').to.be.true;
 
-    startGameButton.click();
+      // Simulates the completion of all the setup tasks.
+      store.dispatch(formationSelected(FormationType.F4_3_3));
+      store.dispatch(completeRoster(game.roster));
+      store.dispatch(captainsCompleted());
+      store.dispatch(startersCompleted());
+      await el.updateComplete;
 
-    // Verifies that the start game action was dispatched.
-    expect(dispatchStub).to.have.callCount(1);
+      completeButton = getCompleteSetupButton();
+      expect(completeButton.disabled, 'Complete setup should be enabled').to.be.false;
+    });
 
-    expect(actions).to.have.lengthOf.at.least(1);
-    expect(actions[actions.length - 1]).to.deep.include(gameStarted(newGame.id));
-  });
+    it('dispatches game setup completed action when complete button clicked', async () => {
+      // Mock the call to update the game in storage.
+      const writerStub = sinon.stub<typeof writer>(writer);
+      writerStub.updateDocument.returns();
+
+      const newGame = getGameDetail();
+      newGame.id = STORED_GAME_ID;
+
+      const tasks = getTasks();
+      tasks.forEach((task) => {
+        task.status = SetupStatus.Complete;
+        delete task.expectedName;
+      });
+      const liveGame = LiveGameBuilder.create(newGame);
+      liveGame.setupTasks = tasks;
+
+      // Use hydration to set the constructed live game, otherwise it
+      // would be initialized by GET_GAME_SUCCESS later.
+      store.dispatch(hydrateLive(liveGame, liveGame.id));
+      store.dispatch({ type: GET_GAME_REQUEST, gameId: newGame.id });
+      store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
+      await el.updateComplete;
+
+      const completeButton = getCompleteSetupButton();
+      expect(completeButton.disabled, 'Complete setup should be enabled').to.be.false;
+
+      completeButton.click();
+
+      // Verifies that the start game action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(gameSetupCompleted(newGame.id));
+    });
+  }); // describe('complete setup')
 
   describe('Starters', () => {
     let liveGame: LiveGame;

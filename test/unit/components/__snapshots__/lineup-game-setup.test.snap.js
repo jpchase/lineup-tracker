@@ -63,12 +63,13 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
       </mwc-icon>
     </div>
   </div>
-  <div class="flex-equal-justified start">
+  <div class="flex-equal-justified">
     <mwc-button
       disabled=""
-      icon="play_arrow"
+      icon="done_all"
+      id="complete-button"
     >
-      Start game
+      Complete Setup
     </mwc-button>
   </div>
   <div class="formation">

@@ -12,7 +12,7 @@ export function getClockToggleButton(el: LineupGameClock) {
 
 export function getClockStartPeriodButton(el: LineupGameClock) {
   const button = el.shadowRoot!.querySelector('#start-button');
-  expect(button, 'Missing end period button for clock').to.be.ok;
+  expect(button, 'Missing start period button for clock').to.be.ok;
   return button as Button;
 }
 

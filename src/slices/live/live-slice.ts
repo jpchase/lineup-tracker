@@ -10,7 +10,7 @@ import { Game, GameStatus, LiveGame, LivePlayer } from '../../models/game.js';
 import { gameCanStartPeriod, getPlayer, LiveGameBuilder } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
-import { gameStarted, selectCurrentGame } from '../../slices/game/game-slice.js';
+import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
@@ -174,6 +174,28 @@ const liveSlice = createSlice({
 
     captainsCompleted: (state) => {
       completeSetupStepForAction(state, SetupSteps.Captains);
+    },
+
+    gameSetupCompleted: {
+      reducer: (state, action: PayloadAction<{ gameId: string }>) => {
+        const game = state.liveGame!;
+        if (game.id !== action.payload.gameId) {
+          return;
+        }
+        if (game.status !== GameStatus.New) {
+          return;
+        }
+        game.status = GameStatus.Start;
+        delete game.setupTasks;
+      },
+
+      prepare: (gameId: string) => {
+        return {
+          payload: {
+            gameId
+          }
+        };
+      }
     },
 
     selectStarter: {
@@ -382,17 +404,7 @@ const liveSlice = createSlice({
   },
 
   extraReducers: (builder) => {
-    builder.addCase(gameStarted, (state, action: PayloadAction<{ gameId: string }>) => {
-      const game = state.liveGame!;
-      if (game.id !== action.payload.gameId) {
-        return;
-      }
-      if (game.status !== GameStatus.New) {
-        return;
-      }
-      game.status = GameStatus.Start;
-      delete game.setupTasks;
-    }).addCase(startPeriod, (state, action: PayloadAction<StartPeriodPayload>) => {
+    builder.addCase(startPeriod, (state, action: PayloadAction<StartPeriodPayload>) => {
       if (!action.payload.gameAllowsStart) {
         return;
       }
@@ -418,7 +430,7 @@ const { actions } = liveSlice;
 export const {
   // TODO: Remove this export of completeRoster when no longer needed in reducers/game.ts
   completeRoster,
-  formationSelected, getLiveGame, startersCompleted, captainsCompleted,
+  formationSelected, getLiveGame, startersCompleted, captainsCompleted, gameSetupCompleted,
   selectStarter, selectStarterPosition, applyStarter, cancelStarter,
   selectPlayer, cancelSub, confirmSub, applyPendingSubs, discardPendingSubs
 } = actions;

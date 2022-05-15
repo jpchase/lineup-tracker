@@ -4,12 +4,11 @@ import { GameDetail, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, 
 import { getPlayer, PeriodStatus } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
-import { gameStarted } from '@app/slices/game/game-slice.js';
 import { LIVE_HYDRATE } from '@app/slices/live-types';
 import { ClockState, startPeriod } from '@app/slices/live/clock-slice';
 import {
   applyPendingSubs, applyStarter, cancelStarter, cancelSub, completeRoster, confirmSub,
-  discardPendingSubs, endPeriod, formationSelected, live, LiveGameState, LiveState,
+  discardPendingSubs, endPeriod, formationSelected, gameSetupCompleted, live, LiveGameState, LiveState,
   selectPlayer, selectStarter, selectStarterPosition, startersCompleted, startGamePeriod
 } from '@app/slices/live/live-slice';
 import { RootState } from '@app/store.js';
@@ -265,7 +264,7 @@ describe('Live reducer', () => {
 
   }); // describe('GET_GAME_SUCCESS')
 
-  describe('game/gameStarted', () => {
+  describe('live/gameSetupCompleted', () => {
 
     it('should set status to Start and clear setup tasks', () => {
       const rosterPlayers = testlive.getLivePlayers(18);
@@ -282,7 +281,7 @@ describe('Live reducer', () => {
         liveGame: currentGame
       };
 
-      const newState = live(state, gameStarted(currentGame.id));
+      const newState = live(state, gameSetupCompleted(currentGame.id));
 
       expect(newState).to.deep.include({
         liveGame: expectedGame
@@ -291,7 +290,7 @@ describe('Live reducer', () => {
       expect(newState).not.to.equal(state);
       expect(newState.liveGame).not.to.equal(state.liveGame);
     });
-  }); // describe('game/gameStarted')
+  }); // describe('live/gameSetupCompleted')
 
   describe('live/completeRoster', () => {
 

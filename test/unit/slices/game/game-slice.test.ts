@@ -1,6 +1,7 @@
 import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
 import { game } from '@app/reducers/game.js';
-import { addNewGame, gamesReducer as games, gameStarted, gameStartedCreator, GameState, getGames, saveGame } from '@app/slices/game/game-slice';
+import { addNewGame, gameSetupCompletedCreator, gamesReducer as games, GameState, getGames, saveGame } from '@app/slices/game/game-slice';
+import { gameSetupCompleted } from '@app/slices/live/live-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
@@ -321,7 +322,7 @@ describe('Games actions', () => {
     });
   }); // describe('saveGame')
 
-  describe('gameStarted', () => {
+  describe('gameSetupCompleted', () => {
     let existingGame: GameDetail;
 
     beforeEach(() => {
@@ -338,7 +339,7 @@ describe('Games actions', () => {
         });
       const updateDocumentStub = writerStub.updateDocument.returns();
 
-      gameStartedCreator()(dispatchMock, getStateMock, undefined);
+      gameSetupCompletedCreator(existingGame.id)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -360,7 +361,7 @@ describe('Games actions', () => {
       writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
-        gameStartedCreator()(dispatchMock, getStateMock, undefined);
+        gameSetupCompletedCreator()(dispatchMock, getStateMock, undefined);
       }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
@@ -379,7 +380,7 @@ describe('Games actions', () => {
       const expectedGame = buildNewGameDetailAndRoster();
       expectedGame.status = GameStatus.Start;
 
-      const newState = game(state, gameStarted(existingGame.id));
+      const newState = game(state, gameSetupCompleted(existingGame.id));
 
       expect(newState).to.deep.include({
         game: expectedGame,
@@ -389,6 +390,6 @@ describe('Games actions', () => {
       expect(newState.game).not.to.equal(state.game);
     });
 
-  }); // describe('gameStarted')
+  }); // describe('gameSetupCompleted')
 
 }); // describe('Game actions')
