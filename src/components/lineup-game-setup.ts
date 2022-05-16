@@ -13,7 +13,7 @@ import { connectStore } from '../middleware/connect-mixin';
 import { FormationBuilder, FormationMetadata, Position } from '../models/formation';
 import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 import { getGameStore } from '../slices/game-store';
-import { gameStartedCreator } from '../slices/game/game-slice.js';
+import { gameSetupCompletedCreator } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store';
 import {
   applyStarter, cancelStarter, captainsCompleted, formationSelected, getLiveGame,
@@ -109,10 +109,11 @@ export class LineupGameSetup extends connectStore()(LitElement) {
             </div>
           </div>
         `)}
-        <div class="start flex-equal-justified">
-          <mwc-button icon="play_arrow"
+        <div class="flex-equal-justified">
+          <mwc-button id="complete-button"
+                      icon="done_all"
                       ?disabled="${!this.tasksComplete}"
-                      @click="${this.startGame}">Start game</mwc-button>
+                      @click="${this.completeGameSetup}">Complete Setup</mwc-button>
         </div>
         <div class="formation" ?active="${this.showFormation}">
           <select
@@ -297,8 +298,8 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     return false;
   }
 
-  private startGame() {
-    this.dispatch(gameStartedCreator());
+  private completeGameSetup() {
+    this.dispatch(gameSetupCompletedCreator(this.game?.id));
   }
 
   private onFormationChange(e: Event) {

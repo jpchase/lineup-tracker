@@ -1,6 +1,7 @@
 import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
 import { game } from '@app/reducers/game.js';
-import { addNewGame, gamesReducer as games, gameStarted, gameStartedCreator, GameState, getGames, saveGame } from '@app/slices/game/game-slice';
+import { addNewGame, gameCompletedCreator, gameSetupCompletedCreator, gamesReducer as games, GameState, getGames, saveGame } from '@app/slices/game/game-slice';
+import { gameCompleted, gameSetupCompleted } from '@app/slices/live/live-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
@@ -321,7 +322,7 @@ describe('Games actions', () => {
     });
   }); // describe('saveGame')
 
-  describe('gameStarted', () => {
+  describe('gameSetupCompleted', () => {
     let existingGame: GameDetail;
 
     beforeEach(() => {
@@ -338,7 +339,7 @@ describe('Games actions', () => {
         });
       const updateDocumentStub = writerStub.updateDocument.returns();
 
-      gameStartedCreator()(dispatchMock, getStateMock, undefined);
+      gameSetupCompletedCreator(existingGame.id)(dispatchMock, getStateMock, undefined);
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -360,7 +361,7 @@ describe('Games actions', () => {
       writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
-        gameStartedCreator()(dispatchMock, getStateMock, undefined);
+        gameSetupCompletedCreator()(dispatchMock, getStateMock, undefined);
       }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
@@ -379,7 +380,7 @@ describe('Games actions', () => {
       const expectedGame = buildNewGameDetailAndRoster();
       expectedGame.status = GameStatus.Start;
 
-      const newState = game(state, gameStarted(existingGame.id));
+      const newState = game(state, gameSetupCompleted(existingGame.id));
 
       expect(newState).to.deep.include({
         game: expectedGame,
@@ -389,6 +390,76 @@ describe('Games actions', () => {
       expect(newState.game).not.to.equal(state.game);
     });
 
-  }); // describe('gameStarted')
+  }); // describe('gameSetupCompleted')
+
+  describe('gameCompleted', () => {
+    let existingGame: GameDetail;
+
+    beforeEach(() => {
+      existingGame = buildNewGameDetailAndRoster();
+    });
+
+    it('should save updated game to storage', async () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
+        getMockTeamState([], getStoredTeam()),
+        (gameState) => {
+          gameState.gameId = existingGame.id;
+          gameState.game = existingGame;
+        });
+      const updateDocumentStub = writerStub.updateDocument.returns();
+
+      gameCompletedCreator(existingGame.id)(dispatchMock, getStateMock, undefined);
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      // Checks that the game was saved to the database.
+      expect(updateDocumentStub).calledOnceWith(
+        { status: GameStatus.Done }, `${KEY_GAMES}/${existingGame.id}`);
+    });
+
+    it('should not dispatch an action when storage access fails', async () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
+        getMockTeamState([], getStoredTeam()),
+        (gameState) => {
+          gameState.gameId = existingGame.id;
+          gameState.game = existingGame;
+        });
+
+      writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+
+      expect(() => {
+        gameCompletedCreator()(dispatchMock, getStateMock, undefined);
+      }).to.throw('Storage failed');
+
+      // Waits for promises to resolve.
+      await Promise.resolve();
+
+      expect(dispatchMock).to.not.have.been.called;
+    });
+
+    it('should set status to Done', () => {
+      const state: GameState = {
+        ...GAME_INITIAL_STATE,
+        game: {
+          ...existingGame
+        }
+      };
+      const expectedGame = buildNewGameDetailAndRoster();
+      expectedGame.status = GameStatus.Done;
+
+      const newState = game(state, gameCompleted(existingGame.id));
+
+      expect(newState).to.deep.include({
+        game: expectedGame,
+      });
+
+      expect(newState).not.to.equal(state);
+      expect(newState.game).not.to.equal(state.game);
+    });
+
+  }); // describe('gameCompleted')
 
 }); // describe('Game actions')

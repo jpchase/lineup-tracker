@@ -6,22 +6,24 @@ import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { connectStore } from '../middleware/connect-mixin';
-import { TimerData } from '../models/clock';
-import { FormationBuilder } from '../models/formation';
-import { LiveGame, LivePlayer } from '../models/game';
+import { connectStore } from '../middleware/connect-mixin.js';
+import { TimerData } from '../models/clock.js';
+import { FormationBuilder } from '../models/formation.js';
+import { LiveGame, LivePlayer } from '../models/game.js';
+import { PeriodStatus } from '../models/live.js';
 // The specific store configurator, which handles initialization/lazy-loading.
-import { getLiveStore } from '../slices/live-store';
+import { getLiveStore } from '../slices/live-store.js';
 import {
   applyPendingSubs, cancelSub, clockSelector, confirmSub, discardPendingSubs, endPeriod,
+  gameCompleted,
   proposedSubSelector, selectPlayer, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store';
-import './lineup-game-clock';
-import { ClockPeriodData } from './lineup-game-clock';
-import './lineup-on-player-list';
-import './lineup-player-list';
-import { SharedStyles } from './shared-styles';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import './lineup-game-clock.js';
+import { ClockPeriodData } from './lineup-game-clock.js';
+import './lineup-on-player-list.js';
+import './lineup-player-list.js';
+import { SharedStyles } from './shared-styles.js';
 
 // This element is connected to the Redux store.
 @customElement('lineup-game-live')
@@ -58,6 +60,10 @@ export class LineupGameLive extends connectStore()(LitElement) {
                            @clock-start-period="${this.startClockPeriod}"
                            @clock-end-period="${this.endClockPeriod}"
                            @clock-toggled="${this.toggleClock}"></lineup-game-clock>
+        <mwc-button id="complete-button"
+                    icon="done_all"
+                    ?disabled="${!this.gamePeriodsComplete}"
+                    @click="${this.completeGame}">Finish Game</mwc-button>
       </div>
       <div id="live-on">
         <h5>Playing</h5>
@@ -140,6 +146,9 @@ export class LineupGameLive extends connectStore()(LitElement) {
   @state()
   private clockPeriodData?: ClockPeriodData;
 
+  @state()
+  private gamePeriodsComplete = false;
+
   stateChanged(state: RootState) {
     if (!state.live) {
       return;
@@ -157,9 +166,11 @@ export class LineupGameLive extends connectStore()(LitElement) {
         currentPeriod: clock.currentPeriod,
         periodStatus: clock.periodStatus
       };
+      this.gamePeriodsComplete = clock.periodStatus == PeriodStatus.Done;
     } else {
       this.clockData = {};
       this.clockPeriodData = {} as ClockPeriodData;
+      this.gamePeriodsComplete = false;
     }
     this._proposedSub = proposedSubSelector(state);
   }
@@ -196,6 +207,10 @@ export class LineupGameLive extends connectStore()(LitElement) {
 
   private endClockPeriod() {
     this.dispatch(endPeriod());
+  }
+
+  private completeGame() {
+    this.dispatch(gameCompleted(this._game?.id!));
   }
 
   private _findPlayer(playerId: string) {

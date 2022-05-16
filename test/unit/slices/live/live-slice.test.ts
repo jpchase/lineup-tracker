@@ -4,12 +4,11 @@ import { GameDetail, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, 
 import { getPlayer, PeriodStatus } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
-import { gameStarted } from '@app/slices/game/game-slice.js';
 import { LIVE_HYDRATE } from '@app/slices/live-types';
 import { ClockState, startPeriod } from '@app/slices/live/clock-slice';
 import {
   applyPendingSubs, applyStarter, cancelStarter, cancelSub, completeRoster, confirmSub,
-  discardPendingSubs, endPeriod, formationSelected, live, LiveGameState, LiveState,
+  discardPendingSubs, endPeriod, formationSelected, gameCompleted, gameSetupCompleted, live, LiveGameState, LiveState,
   selectPlayer, selectStarter, selectStarterPosition, startersCompleted, startGamePeriod
 } from '@app/slices/live/live-slice';
 import { RootState } from '@app/store.js';
@@ -265,7 +264,7 @@ describe('Live reducer', () => {
 
   }); // describe('GET_GAME_SUCCESS')
 
-  describe('game/gameStarted', () => {
+  describe('live/gameSetupCompleted', () => {
 
     it('should set status to Start and clear setup tasks', () => {
       const rosterPlayers = testlive.getLivePlayers(18);
@@ -282,7 +281,7 @@ describe('Live reducer', () => {
         liveGame: currentGame
       };
 
-      const newState = live(state, gameStarted(currentGame.id));
+      const newState = live(state, gameSetupCompleted(currentGame.id));
 
       expect(newState).to.deep.include({
         liveGame: expectedGame
@@ -291,7 +290,7 @@ describe('Live reducer', () => {
       expect(newState).not.to.equal(state);
       expect(newState.liveGame).not.to.equal(state.liveGame);
     });
-  }); // describe('game/gameStarted')
+  }); // describe('live/gameSetupCompleted')
 
   describe('live/completeRoster', () => {
 
@@ -1297,5 +1296,91 @@ describe('Live reducer', () => {
     });  // describe('clock/endPeriod')
 
   }); // describe('Clock')
+
+  describe('live/gameCompleted', () => {
+    let currentState: LiveState;
+
+    beforeEach(() => {
+      currentState = {
+        ...INITIAL_OVERALL_STATE,
+        liveGame: buildLiveGameWithPlayers(),
+        clock: buildClockWithTimer(),
+      };
+    });
+
+    afterEach(async () => {
+      sinon.restore();
+    });
+
+    const completeAllowedStatuses = [GameStatus.Done];
+    const otherStatuses = [GameStatus.New, GameStatus.Start, GameStatus.Break, GameStatus.Live];
+
+    it('All statuses are covered by gameCompleted tests', () => {
+      expect(completeAllowedStatuses.length + otherStatuses.length,
+        'Game completed tests for every status').to.equal(Object.values(GameStatus).length);
+    });
+
+    // it(`should dispatch action allow start = true when game is in ${status} status`, async () => {
+    //   currentState.liveGame!.status = status;
+
+    //   const dispatchMock = sinon.stub();
+    //   const getStateMock = mockGetState(currentState);
+
+    //   await startGamePeriod()(dispatchMock, getStateMock, undefined);
+
+    //   // The request action is dispatched, regardless.
+    //   expect(dispatchMock).to.have.callCount(1);
+
+    //   expect(dispatchMock.lastCall).to.have.been.calledWith({
+    //     type: startPeriod.type,
+    //     payload: {
+    //       gameAllowsStart: true
+    //     }
+    //   });
+    // });
+
+    it(`should capture final data from Done status`, () => {
+      currentState.liveGame!.status = GameStatus.Done;
+
+      const newState = live(currentState, gameCompleted(currentState.liveGame!.id));
+
+      expect(newState.liveGame?.status).to.equal(GameStatus.Done);
+      expect(newState.liveGame?.dataCaptured, 'liveGame.dataCaptured').to.be.true;
+      expect(newState).not.to.equal(currentState);
+    });
+
+
+    for (const status of otherStatuses) {
+
+      // it(`should dispatch action allow start = false when game is in ${status} status`, async () => {
+      //   currentState.liveGame!.status = status;
+
+      //   const dispatchMock = sinon.stub();
+      //   const getStateMock = mockGetState(currentState);
+
+      //   await startGamePeriod()(dispatchMock, getStateMock, undefined);
+
+      //   // The request action is dispatched, regardless.
+      //   expect(dispatchMock).to.have.callCount(1);
+
+      //   expect(dispatchMock.lastCall).to.have.been.calledWith({
+      //     type: startPeriod.type,
+      //     payload: {
+      //       gameAllowsStart: false
+      //     }
+      //   });
+      // });
+
+      it(`should do nothing when game is in ${status} status`, () => {
+        currentState.liveGame!.status = status;
+
+        const newState = live(currentState, gameCompleted(currentState.liveGame!.id));
+
+        expect(newState.liveGame?.status).to.equal(status);
+        expect(newState).to.deep.equal(currentState);
+      });
+    }
+
+  }); // describe('live/gameCompleted')
 
 });

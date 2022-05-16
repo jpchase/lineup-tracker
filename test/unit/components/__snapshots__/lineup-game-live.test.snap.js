@@ -15,6 +15,13 @@ snapshots["lineup-game-live tests shows all player sections for started game"] =
   <div toolbar="">
     <lineup-game-clock id="gameTimer">
     </lineup-game-clock>
+    <mwc-button
+      disabled=""
+      icon="done_all"
+      id="complete-button"
+    >
+      Finish Game
+    </mwc-button>
   </div>
   <div id="live-on">
     <h5>
