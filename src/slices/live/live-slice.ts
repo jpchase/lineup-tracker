@@ -401,6 +401,28 @@ const liveSlice = createSlice({
         };
       }
     },
+
+    gameCompleted: {
+      reducer: (state, action: PayloadAction<{ gameId: string }>) => {
+        const game = state.liveGame!;
+        if (game.id !== action.payload.gameId) {
+          return;
+        }
+        if (game.status !== GameStatus.Done) {
+          return;
+        }
+        // TODO: Aggregate/persist data as necessary
+        game.dataCaptured = true;
+      },
+
+      prepare: (gameId: string) => {
+        return {
+          payload: {
+            gameId
+          }
+        };
+      }
+    },
   },
 
   extraReducers: (builder) => {
@@ -432,7 +454,7 @@ export const {
   completeRoster,
   formationSelected, getLiveGame, startersCompleted, captainsCompleted, gameSetupCompleted,
   selectStarter, selectStarterPosition, applyStarter, cancelStarter,
-  selectPlayer, cancelSub, confirmSub, applyPendingSubs, discardPendingSubs
+  selectPlayer, cancelSub, confirmSub, applyPendingSubs, discardPendingSubs, gameCompleted
 } = actions;
 
 function completeSetupStepForAction(state: LiveGameState, setupStepToComplete: SetupSteps) {

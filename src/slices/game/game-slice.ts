@@ -9,7 +9,7 @@ import { Game, Games, GameStatus } from '../../models/game.js';
 import { currentUserIdSelector } from '../../reducers/auth.js';
 import type { GameState } from '../../reducers/game.js';
 import { RootState } from '../../store.js';
-import { gameSetupCompleted } from '../live/live-slice.js';
+import { gameCompleted, gameSetupCompleted } from '../live/live-slice.js';
 import { loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
 export { GameState } from '../../reducers/game.js';
 
@@ -79,6 +79,15 @@ export const gameSetupCompletedCreator: ActionCreator<ThunkResult> = (gameId: st
   dispatch(gameSetupCompleted(gameId));
 };
 
+export const gameCompletedCreator: ActionCreator<ThunkResult> = (gameId: string) => (dispatch) => {
+  // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
+  //       so don't have to duplicate logic.
+  updateExistingGame(gameId, {
+    status: GameStatus.Done
+  });
+  dispatch(gameCompleted(gameId));
+};
+
 const INITIAL_STATE: GameState = {
   hydrated: false,
   gameId: '',
@@ -109,6 +118,12 @@ const gameSlice = createSlice({
         return;
       }
       game.status = GameStatus.Start;
+    }).addCase(gameCompleted, (state, action: PayloadAction<{ gameId: string }>) => {
+      const game = state.game!;
+      if (action.payload.gameId !== game.id) {
+        return;
+      }
+      game.status = GameStatus.Done;
     });
   },
 });

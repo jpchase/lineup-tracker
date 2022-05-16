@@ -12,7 +12,7 @@ import { PlayerStatus } from '@app/models/player';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
 import { endPeriod, startPeriod } from '@app/slices/live/clock-slice.js';
-import { applyStarter, cancelSub, confirmSub, formationSelected, selectPlayer, selectStarter, selectStarterPosition, toggleClock } from '@app/slices/live/live-slice.js';
+import { applyStarter, cancelSub, confirmSub, formationSelected, gameCompleted, selectPlayer, selectStarter, selectStarterPosition, toggleClock } from '@app/slices/live/live-slice.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
@@ -63,6 +63,12 @@ describe('lineup-game-live tests', () => {
     expect(element, 'Missing clock element').to.be.ok;
 
     return element as LineupGameClock;
+  }
+
+  function getCompleteButton() {
+    const button = el.shadowRoot!.querySelector('#complete-button');
+    expect(button, 'Missing complete button').to.be.ok;
+    return button as Button;
   }
 
   function getPlayerElement(list: LineupPlayerList, player: LivePlayer): LineupPlayerCard {
@@ -367,6 +373,58 @@ describe('lineup-game-live tests', () => {
     });
 
   }); // describe('Clock')
+
+  describe('Complete Game', () => {
+    let liveGame: LiveGame;
+
+    beforeEach(async () => {
+      const { game, live } = getGameDetail();
+
+      // Setup the live game, in second half, ready to end.
+      store.dispatch({ type: GET_GAME_SUCCESS, game: game });
+      store.dispatch(hydrateLive(live, live.id, undefined));
+      liveGame = store.getState().live!.liveGame!;
+
+      await el.updateComplete;
+    });
+
+    function advanceToAfterLastPeriod() {
+      // Game has two periods (halves), and begins in "Start" status, before
+      // the first half is started
+      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
+      store.dispatch(endPeriod());
+      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
+      store.dispatch(endPeriod());
+    }
+
+    it('complete button is disabled initially', async () => {
+      const completeButton = getCompleteButton();
+      expect(completeButton.disabled, 'Complete setup should be disabled').to.be.true;
+    });
+
+    it('complete button is enabled after game periods are completed', async () => {
+      advanceToAfterLastPeriod();
+      await el.updateComplete;
+
+      const completeButton = getCompleteButton();
+      expect(completeButton.disabled, 'Complete button should be enabled').to.be.false;
+    });
+
+    it('dispatches game completed action when complete button clicked', async () => {
+      advanceToAfterLastPeriod();
+      await el.updateComplete;
+
+      const completeButton = getCompleteButton();
+      completeButton.click();
+
+      // Verifies that the complete game action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(gameCompleted(liveGame.id));
+    });
+
+  }); // describe('Complete Game')
 
   it('a11y', async () => {
     await expect(el).to.be.accessible();

@@ -37,6 +37,7 @@ export interface Games {
 export interface LiveGame {
   id: string;
   status: GameStatus;
+  dataCaptured?: boolean;
   formation?: FormationMetadata;
   players?: LivePlayer[];
   setupTasks?: SetupTask[];
