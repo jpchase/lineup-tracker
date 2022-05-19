@@ -57,7 +57,7 @@
     "firebase": "^9.8.1",
     "idb-keyval": "^6.1.0",
     "immer": "^9.0.12",
-    "lit": "^2.2.3",
+    "lit": "^2.2.4",
     "pwa-helpers": "^0.9.0",
     "redux": "^4.2.0",
     "redux-thunk": "^2.4.1",
