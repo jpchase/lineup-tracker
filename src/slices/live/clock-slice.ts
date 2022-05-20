@@ -86,6 +86,9 @@ const clockSlice = createSlice({
     },
 
     endPeriod: (state) => {
+      if (state.periodStatus !== PeriodStatus.Running) {
+        return;
+      }
       const timer = new Timer(state.timer);
       timer.stop();
       state.timer = timer.toJSON();

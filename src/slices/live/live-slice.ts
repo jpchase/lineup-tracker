@@ -3,10 +3,11 @@
 */
 
 import { createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
+import createNextState from 'immer';
 import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { FormationType, Position } from '../../models/formation.js';
-import { Game, GameStatus, LiveGame, LivePlayer } from '../../models/game.js';
+import { Game, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 import { gameCanStartPeriod, getPlayer, LiveGameBuilder } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
@@ -15,8 +16,7 @@ import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { clock, ClockState, endPeriod, startPeriod, StartPeriodPayload } from './clock-slice.js';
-export { toggle as toggleClock, endPeriod } from './clock-slice.js';
-import { SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
+export { endPeriod, toggle as toggleClock } from './clock-slice.js';
 
 export interface LiveGameState {
   gameId: string;
@@ -75,13 +75,18 @@ export const startGamePeriod: ActionCreator<ThunkAction<void, RootState, undefin
 };
 
 export const live: Reducer<LiveState> = function (state, action) {
-  const partialState = liveSlice.reducer(liveGame(state, action), action);
-  // TODO: Use immer or combine reducers to avoid creating a new object on every call.
-  const newState: LiveState = {
-    ...partialState,
-    clock: clock(state ? state.clock : undefined, action)
-  }
-  return hydrateReducer(newState, action);
+  // Use immer so that a new object is returned only when something actually changes.
+  // This is important to avoid triggering unnecessary rendering cycles.
+  // - The |state| might be undefined on app initialization. Immer will *not*
+  //   create a draft for undefined, which causes an error for Object.assign().
+  //   As a workaround, pass the |INITIAL_STATE|, even though it seems redundant with
+  //   the inner reducers.
+  return createNextState(state || INITIAL_STATE as LiveState, (draft) => {
+    Object.assign(draft, liveGame(draft, action));
+    Object.assign(draft, liveSlice.reducer(draft, action));
+    draft!.clock = clock(draft?.clock, action);
+    Object.assign(draft, hydrateReducer(draft, action));
+  }) as LiveState;
 }
 
 const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {

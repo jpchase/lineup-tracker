@@ -116,7 +116,7 @@ describe('Live reducer', () => {
   it('should return the initial state', () => {
     expect(
       live(INITIAL_OVERALL_STATE, getFakeAction())
-    ).to.deep.equal(INITIAL_OVERALL_STATE);
+    ).to.equal(INITIAL_OVERALL_STATE);
   });
 
   describe('LIVE_HYDRATE', () => {
@@ -168,7 +168,7 @@ describe('Live reducer', () => {
       });
       expect(newState.gameId, 'gameId should not be set').to.not.be.ok;
       expect(newState.liveGame).to.be.undefined;
-      expect(newState.clock).to.deep.equal(currentState.clock);
+      expect(newState.clock).to.equal(currentState.clock);
 
       expect(newState).not.to.equal(currentState);
     });
@@ -354,9 +354,7 @@ describe('Live reducer', () => {
       };
       const newState = live(state, formationSelected(undefined as any));
 
-      // TODO: The reducer always returns a new object, when
-      // that is fixed, can remove the .deep
-      expect(newState).to.deep.equal(state);
+      expect(newState).to.equal(state);
     });
   }); // describe('live/formationSelected')
 
@@ -576,9 +574,7 @@ describe('Live reducer', () => {
       };
       const newState = live(currentState, applyStarter());
 
-      // TODO: The reducer always returns a new object, when
-      // that is fixed, can remove the .deep
-      expect(newState).to.deep.equal(currentState);
+      expect(newState).to.equal(currentState);
     });
   }); // describe('live/applyStarter')
 
@@ -625,9 +621,7 @@ describe('Live reducer', () => {
       };
       const newState = live(currentState, cancelStarter());
 
-      // TODO: The reducer always returns a new object, when
-      // that is fixed, can remove the .deep
-      expect(newState).to.deep.equal(currentState);
+      expect(newState).to.equal(currentState);
     });
   }); // describe('live/cancelStarter')
 
@@ -907,9 +901,7 @@ describe('Live reducer', () => {
         };
         const newState = live(currentState, confirmSub());
 
-        // TODO: The reducer always returns a new object, when
-        // that is fixed, can remove the .deep
-        expect(newState).to.deep.equal(currentState);
+        expect(newState).to.equal(currentState);
       });
 
     }); // describe('live/confirmSub')
@@ -941,9 +933,7 @@ describe('Live reducer', () => {
         };
         const newState = live(currentState, cancelSub());
 
-        // TODO: The reducer always returns a new object, when
-        // that is fixed, can remove the .deep
-        expect(newState).to.deep.equal(currentState);
+        expect(newState).to.equal(currentState);
       });
 
     }); // describe('live/cancelSub')
@@ -1239,7 +1229,7 @@ describe('Live reducer', () => {
           const newState = live(currentState, startPeriod(/*gameAllowsStart=*/false));
 
           expect(newState.liveGame?.status).to.equal(status);
-          expect(newState).to.deep.equal(currentState);
+          expect(newState).to.equal(currentState);
         });
       }
     });  // describe('clock/startPeriod')
@@ -1290,7 +1280,7 @@ describe('Live reducer', () => {
           const newState = live(currentState, endPeriod());
 
           expect(newState.liveGame?.status).to.equal(status);
-          expect(newState).to.deep.equal(currentState);
+          expect(newState).to.equal(currentState);
         });
       }
     });  // describe('clock/endPeriod')
@@ -1320,26 +1310,7 @@ describe('Live reducer', () => {
         'Game completed tests for every status').to.equal(Object.values(GameStatus).length);
     });
 
-    // it(`should dispatch action allow start = true when game is in ${status} status`, async () => {
-    //   currentState.liveGame!.status = status;
-
-    //   const dispatchMock = sinon.stub();
-    //   const getStateMock = mockGetState(currentState);
-
-    //   await startGamePeriod()(dispatchMock, getStateMock, undefined);
-
-    //   // The request action is dispatched, regardless.
-    //   expect(dispatchMock).to.have.callCount(1);
-
-    //   expect(dispatchMock.lastCall).to.have.been.calledWith({
-    //     type: startPeriod.type,
-    //     payload: {
-    //       gameAllowsStart: true
-    //     }
-    //   });
-    // });
-
-    it(`should capture final data from Done status`, () => {
+    it('should capture final data from Done status', () => {
       currentState.liveGame!.status = GameStatus.Done;
 
       const newState = live(currentState, gameCompleted(currentState.liveGame!.id));
@@ -1352,32 +1323,13 @@ describe('Live reducer', () => {
 
     for (const status of otherStatuses) {
 
-      // it(`should dispatch action allow start = false when game is in ${status} status`, async () => {
-      //   currentState.liveGame!.status = status;
-
-      //   const dispatchMock = sinon.stub();
-      //   const getStateMock = mockGetState(currentState);
-
-      //   await startGamePeriod()(dispatchMock, getStateMock, undefined);
-
-      //   // The request action is dispatched, regardless.
-      //   expect(dispatchMock).to.have.callCount(1);
-
-      //   expect(dispatchMock.lastCall).to.have.been.calledWith({
-      //     type: startPeriod.type,
-      //     payload: {
-      //       gameAllowsStart: false
-      //     }
-      //   });
-      // });
-
       it(`should do nothing when game is in ${status} status`, () => {
         currentState.liveGame!.status = status;
 
         const newState = live(currentState, gameCompleted(currentState.liveGame!.id));
 
         expect(newState.liveGame?.status).to.equal(status);
-        expect(newState).to.deep.equal(currentState);
+        expect(newState).to.equal(currentState);
       });
     }
 
