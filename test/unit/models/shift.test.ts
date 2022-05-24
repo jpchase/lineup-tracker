@@ -722,7 +722,6 @@ describe('PlayerTimeTrackerMap', () => {
       expect(offTracker).to.have.shiftTime([0, 20]);
     });
 
-
     it('should have correct total time after multiple subs', () => {
       const provider = initMapWithManualTime();
 
@@ -814,6 +813,35 @@ describe('PlayerTimeTrackerMap', () => {
       expect(map).to.be.initialized();
     });
 
+    it('should be serialized correctly when uninitialized', () => {
+      map = new PlayerTimeTrackerMap({});
+      const mapData = map.toJSON();
+      expect(mapData).to.deep.equal({
+        clockRunning: false,
+        trackers: []
+      });
+    });
+
+    it('should be initialized correctly from live players', () => {
+      map = new PlayerTimeTrackerMap();
+
+      map.initialize(players);
+
+      expect(map).to.have.size(3);
+      expect(map.clockRunning).to.be.false;
+
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
+
+      expect(onTracker).to.be.on(playerOnId);
+      expect(onTracker).not.to.be.running();
+      expect(onTracker).to.have.shiftCount(0);
+
+      expect(offTracker).to.be.off(playerOffId);
+      expect(offTracker).not.to.be.running();
+      expect(offTracker).to.have.shiftCount(0);
+    });
+
     it('should be initialized correctly from stopped data', () => {
       let expected = {
         clockRunning: false,
@@ -882,6 +910,32 @@ describe('PlayerTimeTrackerMap', () => {
       expect(offTracker).to.have.totalTime([0, 0]);
     });
 
+    it('should be serialized correctly after starting and stopping', () => {
+      let expected = {
+        clockRunning: false,
+        trackers: [
+          {
+            id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 1,
+            totalTime: buildDuration(0, 0).toJSON(),
+            onTimer: {
+              isRunning: false, startTime: undefined, duration: buildDuration(0, 5).toJSON()
+            }
+          },
+          {
+            id: playerOffId, isOn: false, alreadyOn: false, shiftCount: 0,
+            totalTime: buildDuration(0, 0).toJSON(),
+            offTimer: {
+              isRunning: false, startTime: undefined, duration: buildDuration(0, 5).toJSON()
+            }
+          },
+        ],
+      }
+      map = new PlayerTimeTrackerMap(expected);
+
+      const mapData = map.toJSON();
+      expect(mapData).to.deep.equal(expected);
+    });
+
     it('should be initialized correctly from running data', () => {
       let expected = {
         clockRunning: true,
@@ -925,6 +979,35 @@ describe('PlayerTimeTrackerMap', () => {
       expect(offTracker).to.have.shiftCount(1);
       expect(offTracker).to.have.shiftTime([0, 10]);
       expect(offTracker).to.have.totalTime([0, 5]);
+    });
+
+    it('should be serialized correctly when running', () => {
+      let expected = {
+        clockRunning: true,
+        trackers: [
+          {
+            id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 2,
+            totalTime: buildDuration(0, 5).toJSON(),
+            onTimer: {
+              isRunning: true, startTime: startTime, duration: buildDuration(0, 5).toJSON()
+            }
+          },
+          {
+            id: playerOffId, isOn: false, alreadyOn: false, shiftCount: 1,
+            totalTime: buildDuration(0, 5).toJSON(),
+            offTimer: {
+              isRunning: true, startTime: startTime, duration: buildDuration(0, 5).toJSON()
+            }
+          },
+        ],
+      }
+      // Current time is 5 seconds after the start time in saved data
+      const provider = manualTimeProvider(time1);
+
+      map = new PlayerTimeTrackerMap(expected, provider);
+
+      const mapData = map.toJSON();
+      expect(mapData).to.deep.equal(expected);
     });
 
   }); // describe('Existing data')

@@ -16,6 +16,7 @@ import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { clock, ClockState, endPeriod, startPeriod, StartPeriodPayload } from './clock-slice.js';
+import { shift, ShiftState } from './shift-slice.js';
 export { endPeriod, toggle as toggleClock } from './clock-slice.js';
 
 export interface LiveGameState {
@@ -32,6 +33,12 @@ export interface LiveGameState {
 export interface LiveState extends LiveGameState {
   hydrated?: boolean;
   clock?: ClockState;
+  shift?: ShiftState;
+}
+
+export interface GameSetupCompletedPayload {
+  gameId: string;
+  liveGame: LiveGame;
 }
 
 const INITIAL_STATE: LiveGameState = {
@@ -85,6 +92,7 @@ export const live: Reducer<LiveState> = function (state, action) {
     Object.assign(draft, liveGame(draft, action));
     Object.assign(draft, liveSlice.reducer(draft, action));
     draft!.clock = clock(draft?.clock, action);
+    draft!.shift = shift(draft?.shift, action);
     Object.assign(draft, hydrateReducer(draft, action));
   }) as LiveState;
 }
@@ -182,7 +190,7 @@ const liveSlice = createSlice({
     },
 
     gameSetupCompleted: {
-      reducer: (state, action: PayloadAction<{ gameId: string }>) => {
+      reducer: (state, action: PayloadAction<GameSetupCompletedPayload>) => {
         const game = state.liveGame!;
         if (game.id !== action.payload.gameId) {
           return;
@@ -194,10 +202,11 @@ const liveSlice = createSlice({
         delete game.setupTasks;
       },
 
-      prepare: (gameId: string) => {
+      prepare: (gameId: string, game: LiveGame) => {
         return {
           payload: {
-            gameId
+            gameId,
+            liveGame: game
           }
         };
       }

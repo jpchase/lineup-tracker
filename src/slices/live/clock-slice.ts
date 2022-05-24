@@ -9,7 +9,7 @@ import { PeriodStatus } from '../../models/live.js';
 export interface ClockState {
   timer?: TimerData;
   currentPeriod: number;
-  periodStatus: PeriodStatus
+  periodStatus: PeriodStatus;
   totalPeriods: number;
   periodLength: number;
 }

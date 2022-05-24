@@ -146,7 +146,7 @@ export class PlayerTimeTrackerMap {
   toJSON() {
     return {
       clockRunning: this.clockRunning,
-      trackers: this.trackers,
+      trackers: this.trackers.map((tracker) => tracker.toJSON()),
     };
   }
 

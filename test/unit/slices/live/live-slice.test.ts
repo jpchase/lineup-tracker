@@ -3,6 +3,7 @@ import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
 import { getPlayer, PeriodStatus } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
+import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
 import { LIVE_HYDRATE } from '@app/slices/live-types';
 import { ClockState, startPeriod } from '@app/slices/live/clock-slice';
@@ -27,6 +28,7 @@ import {
   OTHER_STORED_GAME_ID
 } from '../../helpers/test_data.js';
 import { buildClockWithTimer, CLOCK_INITIAL_STATE } from './clock-slice.test.js';
+import { SHIFT_INITIAL_STATE } from './shift-slice.test.js';
 
 const LIVE_INITIAL_STATE: LiveGameState = {
   gameId: '',
@@ -44,6 +46,9 @@ const INITIAL_OVERALL_STATE: LiveState = {
   ...LIVE_INITIAL_STATE,
   clock: {
     ...CLOCK_INITIAL_STATE
+  },
+  shift: {
+    ...SHIFT_INITIAL_STATE
   }
 };
 
@@ -266,7 +271,7 @@ describe('Live reducer', () => {
 
   describe('live/gameSetupCompleted', () => {
 
-    it('should set status to Start and clear setup tasks', () => {
+    it('should set status to Start and clear setup tasks and init shift trackers', () => {
       const rosterPlayers = testlive.getLivePlayers(18);
       const completedTasks = buildSetupTasks();
       completedTasks.forEach(task => { task.status = SetupStatus.Complete; })
@@ -276,15 +281,21 @@ describe('Live reducer', () => {
       expectedGame.status = GameStatus.Start;
       delete expectedGame.setupTasks;
 
+      const expectedMap = new PlayerTimeTrackerMap();
+      expectedMap.initialize(rosterPlayers);
+
       const state: LiveState = {
         ...LIVE_INITIAL_STATE,
         liveGame: currentGame
       };
 
-      const newState = live(state, gameSetupCompleted(currentGame.id));
+      const newState = live(state, gameSetupCompleted(currentGame.id, currentGame));
 
       expect(newState).to.deep.include({
-        liveGame: expectedGame
+        liveGame: expectedGame,
+        shift: {
+          players: expectedMap.toJSON()
+        }
       });
 
       expect(newState).not.to.equal(state);
@@ -1196,6 +1207,7 @@ describe('Live reducer', () => {
           const newState = live(currentState, startPeriod(/*gameAllowsStart=*/true));
 
           expect(newState.liveGame?.status).to.equal(GameStatus.Live);
+          expect(newState.clock?.periodStatus).to.equal(PeriodStatus.Running);
           expect(newState).not.to.equal(currentState);
         });
       }
@@ -1244,6 +1256,7 @@ describe('Live reducer', () => {
         const newState = live(currentState, endPeriod());
 
         expect(newState.liveGame?.status).to.equal(GameStatus.Break);
+        expect(newState.clock?.periodStatus).to.equal(PeriodStatus.Pending);
         expect(newState).not.to.equal(currentState);
       });
 
