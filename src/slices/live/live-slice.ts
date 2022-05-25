@@ -75,11 +75,16 @@ export const rosterCompleted: ActionCreator<ThunkAction<void, RootState, undefin
 };
 
 export const startGamePeriod: ActionCreator<ThunkAction<void, RootState, undefined, AnyAction>> = () => (dispatch, getState) => {
-  const game = selectCurrentLiveGame(getState());
+  const state = getState();
+  const game = selectCurrentLiveGame(state);
   if (!game) {
     return;
   }
-  dispatch(startPeriod(gameCanStartPeriod(game)));
+  const periodState = clockSelector(state);
+  if (!periodState) {
+    return;
+  }
+  dispatch(startPeriod(gameCanStartPeriod(game, periodState.currentPeriod, periodState.totalPeriods)));
 };
 
 export const live: Reducer<LiveState> = function (state, action) {

@@ -20,6 +20,7 @@ import sinon from 'sinon';
 import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton } from '../helpers/clock-element-retrievers.js';
 import * as testlive from '../helpers/test-live-game-data';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data';
+import { buildShiftWithTrackers } from '../slices/live/shift-slice.test.js';
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
@@ -312,10 +313,11 @@ describe('lineup-game-live tests', () => {
 
     beforeEach(async () => {
       const { game, live } = getGameDetail();
+      const shift = buildShiftWithTrackers(live.players);
 
       // Setup the live game, in Start status
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(live, live.id, undefined));
+      store.dispatch(hydrateLive(live, live.id, undefined, shift));
 
       await el.updateComplete;
     });
@@ -379,10 +381,11 @@ describe('lineup-game-live tests', () => {
 
     beforeEach(async () => {
       const { game, live } = getGameDetail();
+      const shift = buildShiftWithTrackers(live.players);
 
       // Setup the live game, in second half, ready to end.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(live, live.id, undefined));
+      store.dispatch(hydrateLive(live, live.id, undefined, shift));
       liveGame = store.getState().live!.liveGame!;
 
       await el.updateComplete;

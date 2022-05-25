@@ -1,13 +1,17 @@
+import { Duration } from '@app/models/clock.js';
 import { LivePlayer } from '@app/models/game.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
+import { startPeriod } from '@app/slices/live/clock-slice.js';
 import { gameSetupCompleted } from '@app/slices/live/live-slice.js';
 import { shift, ShiftState } from '@app/slices/live/shift-slice.js';
 import { expect } from '@open-wc/testing';
+import sinon from 'sinon';
 import * as testlive from '../../helpers/test-live-game-data.js';
+import { buildPlayerTracker } from '../../helpers/test-shift-data.js';
 
 export const SHIFT_INITIAL_STATE: ShiftState = {
-  players: undefined,
+  trackerMap: undefined,
 };
 
 export function buildShiftWithTrackers(existingPlayers?: LivePlayer[]): ShiftState {
@@ -23,11 +27,28 @@ export function buildShiftWithTrackers(existingPlayers?: LivePlayer[]): ShiftSta
 
   return {
     ...SHIFT_INITIAL_STATE,
-    players: new PlayerTimeTrackerMap().initialize(players).toJSON()
+    trackerMap: new PlayerTimeTrackerMap().initialize(players).toJSON()
   };
 }
 
 describe('Shift slice', () => {
+  const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+  // const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
+  // const time2 = new Date(2016, 0, 1, 14, 0, 10).getTime();
+  // const time3 = new Date(2016, 0, 1, 14, 1, 55).getTime();
+  let fakeClock: sinon.SinonFakeTimers;
+
+  afterEach(async () => {
+    sinon.restore();
+    if (fakeClock) {
+      fakeClock.restore();
+    }
+  });
+
+  function mockTimeProvider(t0: number) {
+    fakeClock = sinon.useFakeTimers({ now: t0 });
+  }
+
   describe('live/gameSetupCompleted', () => {
     let currentState: ShiftState = SHIFT_INITIAL_STATE;
 
@@ -43,13 +64,13 @@ describe('Shift slice', () => {
       const expectedMap = new PlayerTimeTrackerMap();
       expectedMap.initialize(rosterPlayers);
 
-      expect(currentState.players, 'players should be empty').to.not.be.ok;
+      expect(currentState.trackerMap, 'trackerMap should be empty').to.not.be.ok;
 
       const newState = shift(currentState,
         gameSetupCompleted(game.id, game));
 
       expect(newState).to.deep.include({
-        players: expectedMap.toJSON()
+        trackerMap: expectedMap.toJSON()
       });
       expect(newState).not.to.equal(currentState);
     });
@@ -63,5 +84,55 @@ describe('Shift slice', () => {
     });
 
   }); // describe('live/gameSetupCompleted')
+
+  describe('clock/startPeriod', () => {
+    let currentState: ShiftState = SHIFT_INITIAL_STATE;
+    let rosterPlayers: LivePlayer[];
+
+    before(() => {
+      rosterPlayers = testlive.getLivePlayers(18);
+    });
+
+    beforeEach(() => {
+      currentState = buildShiftWithTrackers(rosterPlayers);
+    });
+
+    it('should set the clock running and capture the start time', () => {
+      mockTimeProvider(startTime);
+
+      const newState = shift(currentState, startPeriod(/*gameAllowsStart=*/true));
+
+      // Only need to check the first player tracker.
+      const expectedTracker = buildPlayerTracker(rosterPlayers[0]);
+      expectedTracker.alreadyOn = true;
+      expectedTracker.onTimer = {
+        isRunning: true,
+        startTime: startTime,
+        duration: Duration.zero().toJSON()
+      }
+
+      const firstTracker = newState.trackerMap?.trackers?.find(
+        (tracker) => (tracker.id === expectedTracker.id));
+      expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
+      expect(firstTracker).to.deep.include(expectedTracker);
+
+      expect(newState.trackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.true;
+      expect(newState.trackerMap).not.to.equal(currentState.trackerMap);
+
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should do nothing if game does not allow period to be started', () => {
+      mockTimeProvider(startTime);
+
+      const newState = shift(currentState, startPeriod(/*gameAllowsStart=*/false));
+
+      expect(newState.trackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
+      expect(newState.trackerMap).to.equal(currentState.trackerMap);
+
+      expect(newState).to.equal(currentState);
+    });
+
+  }); // describe('clock/startPeriod')
 
 }); // describe('Shift slice')

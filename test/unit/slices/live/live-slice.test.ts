@@ -306,7 +306,7 @@ describe('Live reducer', () => {
       expect(newState).to.deep.include({
         liveGame: expectedGame,
         shift: {
-          players: expectedMap.toJSON()
+          trackerMap: expectedMap.toJSON()
         }
       });
 
@@ -1172,6 +1172,7 @@ describe('Live reducer', () => {
         ...INITIAL_OVERALL_STATE,
         liveGame: buildLiveGameWithPlayers(),
         clock: buildClockWithTimer(),
+        shift: buildShiftWithTrackers()
       };
     });
 
@@ -1220,8 +1221,31 @@ describe('Live reducer', () => {
 
           expect(newState.liveGame?.status).to.equal(GameStatus.Live);
           expect(newState.clock?.periodStatus).to.equal(PeriodStatus.Running);
+          expect(newState.shift?.trackerMap?.clockRunning).to.be.true;
           expect(newState).not.to.equal(currentState);
         });
+
+        it(`should dispatch action allow start = false when already at last period in ${status} status`, async () => {
+          currentState.liveGame!.status = status;
+          currentState.clock!.currentPeriod = 2;
+          currentState.clock!.totalPeriods = 2;
+
+          const dispatchMock = sinon.stub();
+          const getStateMock = mockGetState(currentState);
+
+          await startGamePeriod()(dispatchMock, getStateMock, undefined);
+
+          // The request action is dispatched, regardless.
+          expect(dispatchMock).to.have.callCount(1);
+
+          expect(dispatchMock.lastCall).to.have.been.calledWith({
+            type: startPeriod.type,
+            payload: {
+              gameAllowsStart: false
+            }
+          });
+        });
+
       }
 
       const startInvalidStatuses = endAllowedStatuses.concat(otherStatuses);
@@ -1269,6 +1293,7 @@ describe('Live reducer', () => {
 
         expect(newState.liveGame?.status).to.equal(GameStatus.Break);
         expect(newState.clock?.periodStatus).to.equal(PeriodStatus.Pending);
+        expect(newState.shift?.trackerMap?.clockRunning).to.be.false;
         expect(newState).not.to.equal(currentState);
       });
 

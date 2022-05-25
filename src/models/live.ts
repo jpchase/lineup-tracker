@@ -40,6 +40,9 @@ export function getPlayer(game: LiveGame, playerId: string) {
   return game.players.find(p => (p.id === playerId));
 }
 
-export function gameCanStartPeriod(game: LiveGame): boolean {
-  return (game.status === GameStatus.Start || game.status === GameStatus.Break);
+export function gameCanStartPeriod(game: LiveGame, previousPeriod: number, totalPeriods: number): boolean {
+  if (!(game.status === GameStatus.Start || game.status === GameStatus.Break)) {
+    return false;
+  }
+  return previousPeriod < totalPeriods;
 }
