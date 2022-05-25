@@ -1,7 +1,8 @@
 import { CurrentTimeProvider, Duration, ManualTimeProvider, Timer } from '@app/models/clock';
 import { Assertion } from '@esm-bundle/chai';
 import { expect } from '@open-wc/testing';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
+import { addDurationAssertion, buildDuration } from '../helpers/test-clock-data.js';
 
 declare global {
   export namespace Chai {
@@ -17,7 +18,7 @@ function isTimeEqual(actual: number, expected: number) {
   return actual === expected || actual === expected + 1;
 }
 
-Assertion.addMethod("time", function (this, expected: number) {
+Assertion.addMethod('time', function (this, expected: number) {
   const actual = this._obj;
   this.assert(
     actual && isTimeEqual(actual, expected),
@@ -26,11 +27,6 @@ Assertion.addMethod("time", function (this, expected: number) {
     expected
   );
 });
-
-function buildDuration(minutes: number, seconds: number): Duration {
-  const total = (minutes * 60) + seconds;
-  return Duration.create(total);
-}
 
 describe('CurrentTimeProvider', () => {
   let provider: CurrentTimeProvider;
@@ -229,19 +225,7 @@ describe('Timer', () => {
     return provider;
   }
 
-  function isElapsedEqual(actual: Duration, expected: number[]) {
-    if (!actual || !expected)
-      return false;
-
-    if (!expected.length || expected.length !== 2)
-      return false;
-
-    const expectedDuration = buildDuration(expected[0], expected[1]);
-
-    return expectedDuration._elapsed === actual._elapsed;
-  }
-
-  Assertion.addMethod("initialized", function (this) {
+  Assertion.addMethod('initialized', function (this) {
     const timer = this._obj;
     const pass = timer && !timer.isRunning && !timer.startTime &&
       timer.duration && timer.duration._elapsed === 0;
@@ -261,17 +245,8 @@ describe('Timer', () => {
     );
   });
 
-  Assertion.addMethod("elapsed", function (this, expected: number[]) {
-    const timer = this._obj as Timer;
-    const elapsed = timer ? timer.getElapsed() : null;
-    this.assert(
-      elapsed && isElapsedEqual(elapsed, expected),
-      `expected timer elapsed #{act} to be #{exp}`,
-      `expected timer elapsed #{act} to not be #{exp}`,
-      expected,
-      elapsed
-    );
-  });
+  addDurationAssertion<Timer>('elapsed', 'timer elapsed',
+    (timer) => (timer ? timer.getElapsed() : null));
 
   it('should not be running for new instance', () => {
     let timer = new Timer();

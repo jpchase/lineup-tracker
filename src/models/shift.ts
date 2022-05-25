@@ -1,22 +1,41 @@
-'use strict';
+import { CurrentTimeProvider, Duration, DurationData, Timer, TimerData } from './clock.js';
+import { LivePlayer } from './game.js';
+import { PlayerStatus } from './player.js';
 
-import {CurrentTimeProvider, Duration, Timer} from './clock.js';
-
-function getCurrentTimer(tracker) {
+function getCurrentTimer(tracker: PlayerTimeTracker) {
   if (!tracker) {
     return undefined;
   }
   return (tracker.isOn) ? tracker.onTimer : tracker.offTimer;
 }
 
+export interface PlayerTimeTrackerData {
+  id: string;
+  isOn?: boolean;
+  alreadyOn?: boolean;
+  shiftCount?: number;
+  totalTime?: DurationData;
+  onTimer?: TimerData;
+  offTimer?: TimerData;
+}
+
 export class PlayerTimeTracker {
-  constructor(passedData, timeProvider) {
+  timeProvider?: CurrentTimeProvider;
+  id: string;
+  isOn: boolean;
+  alreadyOn: boolean;
+  shiftCount: number;
+  totalTime: Duration;
+  onTimer?: Timer;
+  offTimer?: Timer;
+
+  constructor(passedData: PlayerTimeTrackerData, timeProvider?: CurrentTimeProvider) {
     let data = passedData || {};
     this.id = data.id;
-    this.isOn = Boolean(data.isOn);
-    this.alreadyOn = Boolean(data.alreadyOn);
+    this.isOn = data.isOn || false;
+    this.alreadyOn = data.alreadyOn || false;
     this.shiftCount = data.shiftCount || 0;
-    this.totalTime = data.totalTime || Duration.zero();
+    this.totalTime = new Duration(data.totalTime);
     this.timeProvider = timeProvider;
     this.resetShiftTimes();
     if (data.onTimer) {
@@ -28,25 +47,25 @@ export class PlayerTimeTracker {
   }
 
   toJSON() {
-    const dataToSerialize = {
+    const dataToSerialize: PlayerTimeTrackerData = {
       id: this.id,
       isOn: this.isOn,
       alreadyOn: this.alreadyOn,
       shiftCount: this.shiftCount,
-      totalTime: this.totalTime,
+      totalTime: this.totalTime.toJSON(),
     };
     if (this.onTimer) {
-      dataToSerialize.onTimer = this.onTimer;
+      dataToSerialize.onTimer = this.onTimer.toJSON();
     }
     if (this.offTimer) {
-      dataToSerialize.offTimer = this.offTimer;
+      dataToSerialize.offTimer = this.offTimer.toJSON();
     }
     return dataToSerialize;
   }
 
   resetShiftTimes() {
-    this.onTimer = null;
-    this.offTimer = null;
+    this.onTimer = undefined;
+    this.offTimer = undefined;
   }
 
   toDebugString() {
@@ -77,14 +96,14 @@ export class PlayerTimeTracker {
 
   startShift() {
     if (this.isOn) {
-      this.onTimer = this.onTimer || new Timer(null, this.timeProvider);
+      this.onTimer = this.onTimer || new Timer(undefined, this.timeProvider);
       this.onTimer.start();
       if (!this.alreadyOn) {
         this.alreadyOn = true;
         this.shiftCount += 1;
       }
     } else {
-      this.offTimer = this.offTimer || new Timer(null, this.timeProvider);
+      this.offTimer = this.offTimer || new Timer(undefined, this.timeProvider);
       this.offTimer.start();
     }
   }
@@ -104,25 +123,34 @@ export class PlayerTimeTracker {
   }
 }
 
+export interface PlayerTimeTrackerMapData {
+  clockRunning?: boolean;
+  trackers?: PlayerTimeTrackerData[];
+}
+
 export class PlayerTimeTrackerMap {
-  constructor(passedData, timeProvider) {
+  timeProvider: CurrentTimeProvider;
+  clockRunning: boolean;
+  trackers: PlayerTimeTracker[];
+
+  constructor(passedData?: PlayerTimeTrackerMapData, timeProvider?: CurrentTimeProvider) {
     let data = passedData || {};
     this.timeProvider = timeProvider || new CurrentTimeProvider();
-    this.trackers = null;
+    this.trackers = [];
     this.clockRunning = data.clockRunning || false;
     if (data.trackers && data.trackers.length) {
-      this.initialize(data.trackers, true);
+      this.initialize(data.trackers);
     }
   }
 
   toJSON() {
     return {
       clockRunning: this.clockRunning,
-      trackers: this.trackers,
+      trackers: this.trackers.map((tracker) => tracker.toJSON()),
     };
   }
 
-  initialize(players, recreating) {
+  initialize(players: PlayerTimeTrackerData[] | LivePlayer[]): PlayerTimeTrackerMap {
     if (!players || !players.length) {
       throw new Error('Players must be provided to initialize');
     }
@@ -131,19 +159,27 @@ export class PlayerTimeTrackerMap {
     players.forEach(player => {
       // Use different data format, depending if recreating or initializing
       // from scratch with actual player objects.
-      let tracker = new PlayerTimeTracker(recreating ?
-        player : {id: player.id || player.name, isOn: (player.status === 'ON')},
-        this.timeProvider);
+      let data: PlayerTimeTrackerData;
+      if ('status' in player) {
+        data = {
+          id: player.id || player.name,
+          isOn: (player.status === PlayerStatus.On)
+        };
+      } else {
+        data = player;
+      }
+      let tracker = new PlayerTimeTracker(data, this.timeProvider);
       this.trackers.push(tracker);
     });
+    return this;
   }
 
   reset() {
-    this.trackers = null;
+    this.trackers = [];
     this.clockRunning = false;
   }
 
-  get(id) {
+  get(id: string) {
     if (!this.trackers) {
       return undefined;
     }
@@ -155,7 +191,7 @@ export class PlayerTimeTrackerMap {
   }
 
   startShiftTimers() {
-    if (!this.trackers) {
+    if (!this.trackers?.length) {
       throw new Error('Map is empty');
     }
 
@@ -168,7 +204,7 @@ export class PlayerTimeTrackerMap {
   }
 
   stopShiftTimers() {
-    if (!this.trackers) {
+    if (!this.trackers?.length) {
       throw new Error('Map is empty');
     }
 
@@ -181,7 +217,7 @@ export class PlayerTimeTrackerMap {
   }
 
   totalShiftTimers() {
-    if (!this.trackers) {
+    if (!this.trackers?.length) {
       throw new Error('Map is empty');
     }
 
@@ -193,8 +229,8 @@ export class PlayerTimeTrackerMap {
     this.timeProvider.unfreeze();
   }
 
-  substitutePlayer(playerInId, playerOutId) {
-    if (!this.trackers) {
+  substitutePlayer(playerInId: string, playerOutId: string) {
+    if (!this.trackers?.length) {
       throw new Error('Map is empty');
     }
 
@@ -202,17 +238,11 @@ export class PlayerTimeTrackerMap {
     let playerOutTracker = this.get(playerOutId);
 
     if (!playerInTracker || !playerOutTracker ||
-        playerInTracker.isOn || !playerOutTracker.isOn) {
-      const inDebugString = playerInTracker ?
-                              playerInTracker.toDebugString() :
-                              undefined;
-      const outDebugString = playerOutTracker ?
-                              playerOutTracker.toDebugString() :
-                              undefined;
+      playerInTracker.isOn || !playerOutTracker.isOn) {
       throw new Error('Invalid status to substitute, playerIn = ' +
-                      inDebugString +
-                      ', playerOut = ' +
-                      outDebugString);
+        playerInTracker?.toDebugString() +
+        ', playerOut = ' +
+        playerOutTracker?.toDebugString());
     }
 
     let unfreeze = false;

@@ -9,7 +9,7 @@ import { Game, Games, GameStatus } from '../../models/game.js';
 import { currentUserIdSelector } from '../../reducers/auth.js';
 import type { GameState } from '../../reducers/game.js';
 import { RootState } from '../../store.js';
-import { gameCompleted, gameSetupCompleted } from '../live/live-slice.js';
+import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
 export { GameState } from '../../reducers/game.js';
 
@@ -70,13 +70,17 @@ export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch
   dispatch(addGame(newGame));
 };
 
-export const gameSetupCompletedCreator: ActionCreator<ThunkResult> = (gameId: string) => (dispatch) => {
+export const gameSetupCompletedCreator: ActionCreator<ThunkResult> = (gameId: string) => (dispatch, getState) => {
   // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
   //       so don't have to duplicate logic.
+  const game = selectLiveGameById(getState(), gameId);
+  if (!game) {
+    return;
+  }
   updateExistingGame(gameId, {
     status: GameStatus.Start
   });
-  dispatch(gameSetupCompleted(gameId));
+  dispatch(gameSetupCompleted(gameId, game));
 };
 
 export const gameCompletedCreator: ActionCreator<ThunkResult> = (gameId: string) => (dispatch) => {

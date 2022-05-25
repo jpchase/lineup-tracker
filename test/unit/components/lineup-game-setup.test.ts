@@ -394,7 +394,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(gameSetupCompleted(newGame.id));
+      expect(actions[actions.length - 1]).to.deep.include(gameSetupCompleted(newGame.id, liveGame));
     });
   }); // describe('complete setup')
 

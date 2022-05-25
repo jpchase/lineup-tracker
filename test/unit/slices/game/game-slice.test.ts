@@ -1,7 +1,8 @@
 import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
+import { LiveGameBuilder } from '@app/models/live.js';
 import { game } from '@app/reducers/game.js';
 import { addNewGame, gameCompletedCreator, gameSetupCompletedCreator, gamesReducer as games, GameState, getGames, saveGame } from '@app/slices/game/game-slice';
-import { gameCompleted, gameSetupCompleted } from '@app/slices/live/live-slice.js';
+import { gameCompleted, gameSetupCompleted, LiveState } from '@app/slices/live/live-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
@@ -62,7 +63,7 @@ function buildNewGameDetailAndRoster(): GameDetail {
 }
 
 interface MockStateUpdateFunc {
-  (state: GameState): void;
+  (state: GameState, live: LiveState): void;
 }
 
 function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?: any, updateFn?: MockStateUpdateFunc) {
@@ -79,13 +80,14 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?:
         rosterLoading: false,
         rosterFailure: false
       },
+      live: {} as LiveState,
       team: undefined
     };
     if (teamState) {
       mockState.team = teamState;
     }
     if (updateFn) {
-      updateFn(mockState.game!);
+      updateFn(mockState.game!, mockState.live);
     }
     return mockState;
   });
@@ -333,9 +335,11 @@ describe('Games actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
         getMockTeamState([], getStoredTeam()),
-        (gameState) => {
+        (gameState, liveState) => {
           gameState.gameId = existingGame.id;
           gameState.game = existingGame;
+          liveState.gameId = existingGame.id;
+          liveState.liveGame = LiveGameBuilder.create(existingGame);
         });
       const updateDocumentStub = writerStub.updateDocument.returns();
 
@@ -353,9 +357,11 @@ describe('Games actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
         getMockTeamState([], getStoredTeam()),
-        (gameState) => {
+        (gameState, liveState) => {
           gameState.gameId = existingGame.id;
           gameState.game = existingGame;
+          liveState.gameId = existingGame.id;
+          liveState.liveGame = LiveGameBuilder.create(existingGame);
         });
 
       writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
@@ -380,7 +386,7 @@ describe('Games actions', () => {
       const expectedGame = buildNewGameDetailAndRoster();
       expectedGame.status = GameStatus.Start;
 
-      const newState = game(state, gameSetupCompleted(existingGame.id));
+      const newState = game(state, gameSetupCompleted(existingGame.id, expectedGame));
 
       expect(newState).to.deep.include({
         game: expectedGame,

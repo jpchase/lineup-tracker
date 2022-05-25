@@ -181,6 +181,8 @@ describe('Clock reducer', () => {
       mockTimeProvider(time2);
       const currentState: ClockState = {
         ...CLOCK_INITIAL_STATE,
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Running,
         timer: {
           isRunning: true,
           startTime: startTime,
@@ -260,6 +262,43 @@ describe('Clock reducer', () => {
       });
 
       expect(newState).not.to.equal(currentState);
+    });
+
+    it('should do nothing if period is not started', () => {
+      mockTimeProvider(startTime);
+      const currentState: ClockState = {
+        ...CLOCK_INITIAL_STATE,
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Pending
+      };
+
+      const newState = clock(currentState, endPeriod());
+
+      expect(newState).to.deep.include({
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Pending
+      });
+
+      expect(newState).to.equal(currentState);
+    });
+
+    it('should do nothing if periods are done', () => {
+      mockTimeProvider(startTime);
+      const currentState: ClockState = {
+        ...CLOCK_INITIAL_STATE,
+        currentPeriod: 3,
+        periodStatus: PeriodStatus.Done,
+        totalPeriods: 3
+      };
+
+      const newState = clock(currentState, endPeriod());
+
+      expect(newState).to.deep.include({
+        currentPeriod: 3,
+        periodStatus: PeriodStatus.Done
+      });
+
+      expect(newState).to.equal(currentState);
     });
 
   }); // describe('clock/endPeriod')
