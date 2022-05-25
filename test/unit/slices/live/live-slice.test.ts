@@ -1288,6 +1288,7 @@ describe('Live reducer', () => {
         currentState.liveGame!.status = GameStatus.Live;
         currentState.clock!.currentPeriod = 1;
         currentState.clock!.periodStatus = PeriodStatus.Running;
+        currentState.shift!.trackerMap!.clockRunning = true;
 
         const newState = live(currentState, endPeriod());
 

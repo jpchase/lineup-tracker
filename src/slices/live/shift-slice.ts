@@ -4,7 +4,7 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../../models/shift.js';
-import { startPeriod, StartPeriodPayload } from './clock-slice.js';
+import { endPeriod, startPeriod, StartPeriodPayload } from './clock-slice.js';
 import { gameSetupCompleted, GameSetupCompletedPayload } from './live-slice.js';
 
 export interface ShiftState {
@@ -37,6 +37,14 @@ const shiftSlice = createSlice({
       // TODO: validate game matches?
       const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
       trackerMap.startShiftTimers();
+      state.trackerMap = trackerMap.toJSON();
+    }).addCase(endPeriod, (state) => {
+      if (!state.trackerMap?.clockRunning) {
+        return;
+      }
+      // TODO: validate game matches?
+      const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
+      trackerMap.stopShiftTimers();
       state.trackerMap = trackerMap.toJSON();
     });
   },
