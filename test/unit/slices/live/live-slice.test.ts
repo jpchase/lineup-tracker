@@ -28,7 +28,7 @@ import {
   OTHER_STORED_GAME_ID
 } from '../../helpers/test_data.js';
 import { buildClockWithTimer, CLOCK_INITIAL_STATE } from './clock-slice.test.js';
-import { SHIFT_INITIAL_STATE } from './shift-slice.test.js';
+import { buildShiftWithTrackers, SHIFT_INITIAL_STATE } from './shift-slice.test.js';
 
 const LIVE_INITIAL_STATE: LiveGameState = {
   gameId: '',
@@ -136,12 +136,14 @@ describe('Live reducer', () => {
     it('should set state to given cached data', () => {
       const inputGame = buildLiveGameWithPlayers();
       const inputClock = {};
+      const inputShift = buildShiftWithTrackers(inputGame.players);
 
       const newState = live(currentState, {
         type: LIVE_HYDRATE,
         gameId: inputGame.id,
         game: inputGame,
-        clock: inputClock
+        clock: inputClock,
+        shift: inputShift
       });
 
       const expectedGame: LiveGame = {
@@ -149,18 +151,23 @@ describe('Live reducer', () => {
       };
       const expectedClock = {
         ...inputClock
-      }
+      };
+      const expectedShift = {
+        ...inputShift
+      };
 
       expect(newState).to.deep.include({
         hydrated: true,
         gameId: inputGame.id,
         liveGame: expectedGame,
-        clock: expectedClock
+        clock: expectedClock,
+        shift: expectedShift
       });
 
       expect(newState).not.to.equal(currentState);
       expect(newState.liveGame).not.to.equal(currentState.liveGame);
       expect(newState.clock).not.to.equal(currentState.clock);
+      expect(newState.shift).not.to.equal(currentState.shift);
     });
 
     it('should set hydrated flag when cached values are missing', () => {
@@ -174,6 +181,7 @@ describe('Live reducer', () => {
       expect(newState.gameId, 'gameId should not be set').to.not.be.ok;
       expect(newState.liveGame).to.be.undefined;
       expect(newState.clock).to.equal(currentState.clock);
+      expect(newState.shift).to.equal(currentState.shift);
 
       expect(newState).not.to.equal(currentState);
     });
@@ -181,9 +189,11 @@ describe('Live reducer', () => {
     it('should ignored cached values when hydrated flag already set', () => {
       const currentGame = buildLiveGameWithPlayers();
       const currentClock = buildClock(buildRunningTimer());
+      const currentShift = buildShiftWithTrackers(currentGame.players);
       currentState.gameId = currentGame.id;
       currentState.liveGame = currentGame;
       currentState.clock = currentClock;
+      currentState.shift = currentShift;
       currentState.hydrated = true;
 
       const inputGame = buildLiveGameWithPlayers();
@@ -202,9 +212,11 @@ describe('Live reducer', () => {
         hydrated: true,
         liveGame: currentGame,
         clock: currentClock,
+        shift: currentShift
       });
       expect(newState.liveGame).to.equal(currentState.liveGame);
       expect(newState.clock).to.equal(currentState.clock);
+      expect(newState.shift).to.equal(currentState.shift);
     });
   }); // describe('LIVE_HYDRATE')
 

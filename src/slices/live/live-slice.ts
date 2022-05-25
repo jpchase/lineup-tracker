@@ -64,6 +64,7 @@ export const selectCurrentLiveGame = (state: RootState) => {
 
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
+export const selectCurrentShift = (state: RootState) => state.live?.shift;
 
 export const rosterCompleted: ActionCreator<ThunkAction<void, RootState, undefined, AnyAction>> = () => (dispatch, getState) => {
   const game = selectCurrentGame(getState());
@@ -114,6 +115,9 @@ const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
     state.liveGame = action.game;
     if (action.clock) {
       state.clock = action.clock;
+    }
+    if (action.shift) {
+      state.shift = action.shift;
     }
   },
 });

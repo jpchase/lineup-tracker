@@ -150,7 +150,7 @@ export class PlayerTimeTrackerMap {
     };
   }
 
-  initialize(players: PlayerTimeTrackerData[] | LivePlayer[]) {
+  initialize(players: PlayerTimeTrackerData[] | LivePlayer[]): PlayerTimeTrackerMap {
     if (!players || !players.length) {
       throw new Error('Players must be provided to initialize');
     }
@@ -171,6 +171,7 @@ export class PlayerTimeTrackerMap {
       let tracker = new PlayerTimeTracker(data, this.timeProvider);
       this.trackers.push(tracker);
     });
+    return this;
   }
 
   reset() {
