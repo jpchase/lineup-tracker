@@ -1015,10 +1015,16 @@ describe('Live reducer', () => {
       };
     }
 
+    function getPlayersByIds(game: LiveGame, ids: string[]) {
+      return game.players?.filter((player) => (ids.includes(player.id))) || [];
+    }
+
     describe('live/applyPendingSubs', () => {
 
       it('should sub all next players, when not selectedOnly', () => {
-        const newState: LiveState = live(currentState, applyPendingSubs());
+        const newState: LiveState = live(currentState, applyPendingSubs(
+          getPlayersByIds(currentState.liveGame!, nextPlayerIds)
+        ));
 
         const newIds = getIdsByStatus(newState.liveGame!);
 
@@ -1040,7 +1046,9 @@ describe('Live reducer', () => {
 
         selectPlayers(currentState.liveGame!, nowPlayingIds, true);
 
-        const newState = live(currentState, applyPendingSubs(/* selectedOnly */ true));
+        const newState = live(currentState, applyPendingSubs(
+          getPlayersByIds(currentState.liveGame!, nowPlayingIds),
+          /* selectedOnly */ true));
 
         const newIds = getIdsByStatus(newState.liveGame!);
 
@@ -1081,7 +1089,9 @@ describe('Live reducer', () => {
         selectPlayers(currentState.liveGame!, ['P1', 'P3'], true);
         selectPlayers(currentState.liveGame!, ['P4', 'P6'], true);
 
-        const newState: LiveState = live(currentState, applyPendingSubs(/* selectedOnly */ false));
+        const newState: LiveState = live(currentState, applyPendingSubs(
+          getPlayersByIds(currentState.liveGame!, nowPlayingIds),
+          /* selectedOnly */ false));
 
         const newIds = getIdsByStatus(newState.liveGame!);
 

@@ -2,8 +2,7 @@
 @license
 */
 
-import { createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
-import createNextState from 'immer';
+import { createNextState, createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
 import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { FormationType, Position } from '../../models/formation.js';
@@ -18,6 +17,7 @@ import { LIVE_HYDRATE } from '../live-types.js';
 import { clock, ClockState, endPeriod, startPeriod, StartPeriodPayload } from './clock-slice.js';
 import { shift, ShiftState } from './shift-slice.js';
 export { endPeriod, toggle as toggleClock } from './clock-slice.js';
+export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
   gameId: string;
@@ -40,6 +40,12 @@ export interface GameSetupCompletedPayload {
   gameId: string;
   liveGame: LiveGame;
 }
+
+export interface PendingSubsAppliedPayload {
+  subs: LivePlayer[],
+  selectedOnly?: boolean
+}
+
 
 const INITIAL_STATE: LiveGameState = {
   gameId: '',
@@ -65,6 +71,19 @@ export const selectCurrentLiveGame = (state: RootState) => {
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
+export const selectPendingSubs = (state: RootState, selectedOnly?: boolean) => {
+  if (!state.live) {
+    return;
+  }
+  const nextPlayers = findPlayersByStatus(state.live, PlayerStatus.Next, selectedOnly);
+  if (nextPlayers.some(player => {
+    const replacedPlayer = findPlayer(state.live!, player.replaces!);
+    return (!(replacedPlayer?.status === PlayerStatus.On));
+  })) {
+    return;
+  }
+  return nextPlayers;
+}
 
 export const rosterCompleted: ActionCreator<ThunkAction<void, RootState, undefined, AnyAction>> = () => (dispatch, getState) => {
   const game = selectCurrentGame(getState());
@@ -379,9 +398,12 @@ const liveSlice = createSlice({
     },
 
     applyPendingSubs: {
-      reducer: (state, action: PayloadAction<{ selectedOnly?: boolean }>) => {
-        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next, action.payload.selectedOnly);
-        nextPlayers.forEach(player => {
+      reducer: (state, action: PayloadAction<PendingSubsAppliedPayload>) => {
+        action.payload.subs.forEach(sub => {
+          const player = findPlayer(state, sub.id);
+          if (player?.status !== PlayerStatus.Next) {
+            return;
+          }
           const replacedPlayer = findPlayer(state, player.replaces!);
           if (!(replacedPlayer && replacedPlayer.status === PlayerStatus.On)) {
             return;
@@ -397,9 +419,10 @@ const liveSlice = createSlice({
         });
       },
 
-      prepare: (selectedOnly?: boolean) => {
+      prepare: (subs: LivePlayer[], selectedOnly?: boolean) => {
         return {
           payload: {
+            subs,
             selectedOnly: !!selectedOnly
           }
         };

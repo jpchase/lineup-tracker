@@ -76,11 +76,13 @@ describe('PlayerTimeTracker', () => {
 describe('PlayerTimeTrackerMap', () => {
   const playerOnId = '1';
   const playerOffId = '2';
-  const playerAltId = '3';
+  const playerAltOnId = '3';
+  const playerAltOffId = '4';
   const players = [
     { name: playerOnId, status: PlayerStatus.On },
     { name: playerOffId, status: PlayerStatus.Off },
-    { name: playerAltId, status: PlayerStatus.Off }
+    { name: playerAltOnId, status: PlayerStatus.On },
+    { name: playerAltOffId, status: PlayerStatus.Off }
   ] as LivePlayer[];
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
   const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
@@ -117,11 +119,19 @@ describe('PlayerTimeTrackerMap', () => {
 
   Assertion.addMethod('size', function (this, expected: number) {
     const map = this._obj as PlayerTimeTrackerMap;
+    const pass = (map?.trackers?.length === expected);
+
+    let actual = '';
+    if (!pass && map) {
+      actual = `trackers, length = ${map.trackers.length}`;
+    }
+
     this.assert(
-      map && map.trackers && map.trackers.length === expected,
-      'expected #{this} to be #{exp}',
-      'expected #{this} to not be #{exp}',
-      expected
+      pass,
+      'expected #{act} to have size #{exp}',
+      'expected #{act} to not have size #{exp}',
+      expected,
+      actual
     );
   });
 
@@ -217,21 +227,23 @@ describe('PlayerTimeTrackerMap', () => {
     });
 
     it('should have trackers with correct values', () => {
-      expect(map).to.have.size(3);
+      expect(map).to.have.size(4);
 
       let onTracker = map.get(playerOnId);
       let offTracker = map.get(playerOffId);
-      let altTracker = map.get(playerAltId);
+      let altOnTracker = map.get(playerAltOnId);
+      let altOffTracker = map.get(playerAltOffId);
 
       expect(onTracker).to.be.on(playerOnId);
       expect(offTracker).to.be.off(playerOffId);
-      expect(altTracker).to.be.off(playerAltId);
+      expect(altOnTracker).to.be.on(playerAltOnId);
+      expect(altOffTracker).to.be.off(playerAltOffId);
     });
 
     it('should have shift timers running after start', () => {
       let onTracker = map.get(playerOnId);
       let offTracker = map.get(playerOffId);
-      let altTracker = map.get(playerAltId);
+      let altTracker = map.get(playerAltOffId);
 
       map.startShiftTimers();
 
@@ -275,7 +287,7 @@ describe('PlayerTimeTrackerMap', () => {
       it('should have shift timers changed after sub', () => {
         let onTracker = map.get(playerOnId);
         let offTracker = map.get(playerOffId);
-        let altTracker = map.get(playerAltId);
+        let altTracker = map.get(playerAltOffId);
 
         map.startShiftTimers();
         map.substitutePlayer(playerOffId, playerOnId);
@@ -286,16 +298,48 @@ describe('PlayerTimeTrackerMap', () => {
         expect(offTracker).to.be.on(playerOffId);
         expect(offTracker).to.be.running();
 
-        expect(altTracker).to.be.off(playerAltId);
+        expect(altTracker).to.be.off(playerAltOffId);
         expect(altTracker).to.be.running();
       });
 
+      it('should have shift timers with same time after multiple subs', () => {
+        let onTracker = map.get(playerOnId);
+        let offTracker = map.get(playerOffId);
+        let altOnTracker = map.get(playerAltOnId);
+        let altOffTracker = map.get(playerAltOffId);
+
+        map.startShiftTimers();
+        map.substitutePlayers([
+          { in: playerOffId, out: playerOnId },
+          { in: playerAltOffId, out: playerAltOnId }
+        ]);
+
+        expect(onTracker).to.be.off(playerOnId);
+        expect(onTracker).to.be.running();
+
+        expect(offTracker).to.be.on(playerOffId);
+        expect(offTracker).to.be.running();
+
+        expect(altOnTracker).to.be.off(playerAltOnId);
+        expect(altOnTracker).to.be.running();
+
+        expect(altOffTracker).to.be.on(playerAltOffId);
+        expect(altOffTracker).to.be.running();
+
+        expect(altOnTracker?.onTimer?.startTime).to.equal(
+          onTracker?.onTimer?.startTime);
+        expect(offTracker?.offTimer?.startTime).to.equal(
+          onTracker?.onTimer?.startTime);
+        expect(altOffTracker?.offTimer?.startTime).to.equal(
+          onTracker?.onTimer?.startTime);
+      });
+
       it('should have shift counts changed after sub', () => {
-        expect(map).to.have.size(3);
+        expect(map).to.have.size(4);
 
         let onTracker = map.get(playerOnId);
         let offTracker = map.get(playerOffId);
-        let altTracker = map.get(playerAltId);
+        let altTracker = map.get(playerAltOffId);
 
         map.startShiftTimers();
         map.substitutePlayer(playerOffId, playerOnId);
@@ -340,7 +384,7 @@ describe('PlayerTimeTrackerMap', () => {
     function initMapWithProvider(provider: CurrentTimeProvider | undefined) {
       map = new PlayerTimeTrackerMap(undefined, provider);
       map.initialize(players);
-      expect(map).to.have.size(3);
+      expect(map).to.have.size(4);
     }
 
     function initMapWithTime(t0?: number, t1?: number, t2?: number, t3?: number) {
@@ -827,7 +871,7 @@ describe('PlayerTimeTrackerMap', () => {
 
       map.initialize(players);
 
-      expect(map).to.have.size(3);
+      expect(map).to.have.size(4);
       expect(map.clockRunning).to.be.false;
 
       let onTracker = map.get(playerOnId);
