@@ -15,17 +15,19 @@ export const SHIFT_INITIAL_STATE: ShiftState = {
   trackerMap: undefined,
 };
 
-export function buildShiftWithTrackers(existingPlayers?: LivePlayer[]): ShiftState {
+export function buildShiftWithTrackers(existingPlayers?: LivePlayer[],
+  keepExistingStatus?: boolean): ShiftState {
   let players;
   if (existingPlayers) {
     players = existingPlayers.slice(0);
   } else {
     players = testlive.getLivePlayers(18);
   }
-  players.forEach((player, index) => {
-    player.status = (index < 11) ? PlayerStatus.On : PlayerStatus.Off;
-  });
-
+  if (!keepExistingStatus) {
+    players.forEach((player, index) => {
+      player.status = (index < 11) ? PlayerStatus.On : PlayerStatus.Off;
+    });
+  }
   return {
     ...SHIFT_INITIAL_STATE,
     trackerMap: new PlayerTimeTrackerMap().initialize(players).toJSON()

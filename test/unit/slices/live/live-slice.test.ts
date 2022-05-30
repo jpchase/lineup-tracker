@@ -985,7 +985,8 @@ describe('Live reducer', () => {
 
       currentState = {
         ...LIVE_INITIAL_STATE,
-        liveGame: game
+        liveGame: game,
+        shift: buildShiftWithTrackers(game.players, true)
       };
     });
 
