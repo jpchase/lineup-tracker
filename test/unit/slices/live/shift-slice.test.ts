@@ -9,7 +9,7 @@ import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import { mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
-import { buildPlayerTracker } from '../../helpers/test-shift-data.js';
+import { buildPlayerTracker, buildPlayerTrackerMap } from '../../helpers/test-shift-data.js';
 
 export const SHIFT_INITIAL_STATE: ShiftState = {
   trackerMap: undefined,
@@ -17,20 +17,10 @@ export const SHIFT_INITIAL_STATE: ShiftState = {
 
 export function buildShiftWithTrackers(existingPlayers?: LivePlayer[],
   keepExistingStatus?: boolean): ShiftState {
-  let players;
-  if (existingPlayers) {
-    players = existingPlayers.slice(0);
-  } else {
-    players = testlive.getLivePlayers(18);
-  }
-  if (!keepExistingStatus) {
-    players.forEach((player, index) => {
-      player.status = (index < 11) ? PlayerStatus.On : PlayerStatus.Off;
-    });
-  }
+  const trackerMap = buildPlayerTrackerMap(existingPlayers, keepExistingStatus);
   return {
     ...SHIFT_INITIAL_STATE,
-    trackerMap: new PlayerTimeTrackerMap().initialize(players).toJSON()
+    trackerMap: trackerMap.toJSON()
   };
 }
 

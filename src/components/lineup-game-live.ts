@@ -11,6 +11,7 @@ import { TimerData } from '../models/clock.js';
 import { FormationBuilder } from '../models/formation.js';
 import { LiveGame, LivePlayer } from '../models/game.js';
 import { PeriodStatus } from '../models/live.js';
+import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
 import {
@@ -22,6 +23,7 @@ import {
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
 import { ClockPeriodData } from './lineup-game-clock.js';
+import './lineup-game-shifts.js';
 import './lineup-on-player-list.js';
 import './lineup-player-list.js';
 import { SharedStyles } from './shared-styles.js';
@@ -37,7 +39,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
       </style>
       <div>
       ${this._game ? html`
-        ${this._renderGame(this._game, this._players!)}
+        ${this.renderGame(this._game, this._players!, this.trackerData!)}
       ` : html`
         <p class="empty-list">
           Live game not set.
@@ -46,7 +48,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
       </div>`
   }
 
-  private _renderGame(game: LiveGame, players: LivePlayer[]) {
+  private renderGame(game: LiveGame, players: LivePlayer[], trackerData: PlayerTimeTrackerMapData) {
     // TODO: Turn this into a property, rather than creating new each time?
     // Is it causing unnecessary updates?
     let formation = undefined;
@@ -90,6 +92,10 @@ export class LineupGameLive extends connectStore()(LitElement) {
       <div id="live-out">
         <h5>Unavailable</h5>
         <lineup-player-list mode="out" .players="${players}"></lineup-player-list>
+      </div>
+      <div id="live-totals">
+        <h5>Playing Time</h5>
+        <lineup-game-shifts .trackerData="${trackerData}" .players="${players}"></lineup-game-shifts>
       </div>`
   }
 
@@ -150,6 +156,9 @@ export class LineupGameLive extends connectStore()(LitElement) {
   @state()
   private gamePeriodsComplete = false;
 
+  @state()
+  trackerData?: PlayerTimeTrackerMapData;
+
   stateChanged(state: RootState) {
     if (!state.live) {
       return;
@@ -174,6 +183,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
       this.gamePeriodsComplete = false;
     }
     this._proposedSub = proposedSubSelector(state);
+    this.trackerData = state.live.shift?.trackerMap;
   }
 
   private _playerSelected(e: CustomEvent) {
