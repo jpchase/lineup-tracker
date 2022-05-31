@@ -14,8 +14,9 @@ import { PeriodStatus } from '../models/live.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
 import {
-  applyPendingSubs, cancelSub, clockSelector, confirmSub, discardPendingSubs, endPeriod,
+  cancelSub, clockSelector, confirmSub, discardPendingSubs, endPeriod,
   gameCompleted,
+  pendingSubsAppliedCreator,
   proposedSubSelector, selectPlayer, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
@@ -189,7 +190,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
 
   private _applySubs() {
     // TODO: Pass selectedOnly param, based on if any next cards are selected
-    this.dispatch(applyPendingSubs());
+    this.dispatch(pendingSubsAppliedCreator());
   }
 
   private _discardSubs() {

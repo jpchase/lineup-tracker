@@ -230,20 +230,33 @@ export class PlayerTimeTrackerMap {
   }
 
   substitutePlayer(playerInId: string, playerOutId: string) {
+    this.substitutePlayers([{ in: playerInId, out: playerOutId }]);
+  }
+
+  substitutePlayers(subs: { in: string, out: string }[]) {
+    if (!subs?.length) {
+      throw new Error('No subs provided');
+    }
     if (!this.trackers?.length) {
       throw new Error('Map is empty');
     }
 
-    let playerInTracker = this.get(playerInId);
-    let playerOutTracker = this.get(playerOutId);
+    let subTrackers: [PlayerTimeTracker, PlayerTimeTracker][] = [];
 
-    if (!playerInTracker || !playerOutTracker ||
-      playerInTracker.isOn || !playerOutTracker.isOn) {
-      throw new Error('Invalid status to substitute, playerIn = ' +
-        playerInTracker?.toDebugString() +
-        ', playerOut = ' +
-        playerOutTracker?.toDebugString());
-    }
+    subs.forEach(pair => {
+      let playerInTracker = this.get(pair.in);
+      let playerOutTracker = this.get(pair.out);
+
+      if (!playerInTracker || !playerOutTracker ||
+        playerInTracker.isOn || !playerOutTracker.isOn) {
+        throw new Error('Invalid status to substitute, playerIn = ' +
+          playerInTracker?.toDebugString() +
+          ', playerOut = ' +
+          playerOutTracker?.toDebugString());
+      }
+
+      subTrackers.push([playerInTracker, playerOutTracker]);
+    });
 
     let unfreeze = false;
     if (this.clockRunning) {
@@ -251,21 +264,26 @@ export class PlayerTimeTrackerMap {
       unfreeze = true;
     }
 
-    playerInTracker.stopShift();
-    playerOutTracker.stopShift();
-    playerInTracker.isOn = true;
+    subTrackers.forEach(pair => {
+      const [playerInTracker, playerOutTracker] = pair;
 
-    playerOutTracker.addShiftToTotal();
-    playerOutTracker.isOn = false;
-    playerOutTracker.alreadyOn = false;
+      playerInTracker.stopShift();
+      playerOutTracker.stopShift();
+      playerInTracker.isOn = true;
 
-    playerInTracker.resetShift();
-    playerOutTracker.resetShift();
+      playerOutTracker.addShiftToTotal();
+      playerOutTracker.isOn = false;
+      playerOutTracker.alreadyOn = false;
 
-    if (this.clockRunning) {
-      playerInTracker.startShift();
-      playerOutTracker.startShift();
-    }
+      playerInTracker.resetShift();
+      playerOutTracker.resetShift();
+
+      if (this.clockRunning) {
+        playerInTracker.startShift();
+        playerOutTracker.startShift();
+      }
+    });
+
     if (unfreeze) {
       this.timeProvider.unfreeze();
     }
