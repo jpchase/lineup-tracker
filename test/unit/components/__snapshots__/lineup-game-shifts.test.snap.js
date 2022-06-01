@@ -17,7 +17,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
     </tr>
   </thead>
   <tbody id="live-playing-time">
-    <tr>
+    <tr data-row-id="P0">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 0
       </td>
@@ -28,7 +28,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P1">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 1
       </td>
@@ -39,7 +39,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P10">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 10
       </td>
@@ -50,7 +50,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P11">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 11
       </td>
@@ -61,7 +61,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P12">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 12
       </td>
@@ -72,7 +72,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P13">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 13
       </td>
@@ -83,7 +83,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P14">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 14
       </td>
@@ -94,7 +94,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P15">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 15
       </td>
@@ -105,7 +105,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P16">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 16
       </td>
@@ -116,7 +116,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P17">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 17
       </td>
@@ -127,7 +127,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P2">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 2
       </td>
@@ -138,7 +138,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P3">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 3
       </td>
@@ -149,7 +149,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P4">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 4
       </td>
@@ -160,7 +160,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P5">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 5
       </td>
@@ -171,7 +171,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P6">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 6
       </td>
@@ -182,7 +182,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P7">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 7
       </td>
@@ -193,7 +193,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P8">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 8
       </td>
@@ -204,7 +204,7 @@ snapshots["lineup-game-shifts tests renders shift table"] =
         00:00
       </td>
     </tr>
-    <tr>
+    <tr data-row-id="P9">
       <td class="mdl-data-table__cell--non-numeric playerName">
         Player 9
       </td>
