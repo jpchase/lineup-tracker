@@ -71,6 +71,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
       <div id="live-on">
         <h5>Playing</h5>
         <lineup-on-player-list .formation="${formation}" .players="${players}"
+                               .trackerData="${this.trackerData}"
                                @positionselected="${this._playerSelected}"></lineup-on-player-list>
       </div>
       <div id="live-next">
@@ -79,7 +80,8 @@ export class LineupGameLive extends connectStore()(LitElement) {
           <mwc-button id="sub-apply-btn" @click="${this._applySubs}">Sub</mwc-button>
           <mwc-button id="sub-discard-btn" @click="${this._discardSubs}">Discard</mwc-button>
         </div>
-        <lineup-player-list mode="next" .players="${players}"></lineup-player-list>
+        <lineup-player-list mode="next" .players="${players}" .trackerData="${trackerData}" >
+        </lineup-player-list>
       </div>
       <div id="confirm-sub">
       ${this._getConfirmSub()}
@@ -87,6 +89,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
       <div id="live-off">
         <h5>Subs</h5>
         <lineup-player-list mode="off" .players="${players}"
+                            .trackerData="${this.trackerData}"
                             @playerselected="${this._playerSelected}"></lineup-player-list>
       </div>
       <div id="live-out">

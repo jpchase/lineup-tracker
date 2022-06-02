@@ -2,13 +2,6 @@ import { CurrentTimeProvider, Duration, DurationData, Timer, TimerData } from '.
 import { LivePlayer } from './game.js';
 import { PlayerStatus } from './player.js';
 
-function getCurrentTimer(tracker: PlayerTimeTracker) {
-  if (!tracker) {
-    return undefined;
-  }
-  return (tracker.isOn) ? tracker.onTimer : tracker.offTimer;
-}
-
 export interface PlayerTimeTrackerData {
   id: string;
   isOn?: boolean;
@@ -46,6 +39,10 @@ export class PlayerTimeTracker {
     }
   }
 
+  get currentTimer() {
+    return (this.isOn) ? this.onTimer : this.offTimer;
+  }
+
   toJSON() {
     const dataToSerialize: PlayerTimeTrackerData = {
       id: this.id,
@@ -76,8 +73,7 @@ export class PlayerTimeTracker {
   }
 
   getShiftTime() {
-    let timer = getCurrentTimer(this);
-    return timer ? timer.getElapsed() : Duration.zero();
+    return this.currentTimer?.getElapsed() || Duration.zero();
   }
 
   getTotalTime() {
@@ -88,10 +84,7 @@ export class PlayerTimeTracker {
   }
 
   resetShift() {
-    let timer = getCurrentTimer(this);
-    if (timer) {
-      timer.reset();
-    }
+    this.currentTimer?.reset();
   }
 
   startShift() {
@@ -109,10 +102,7 @@ export class PlayerTimeTracker {
   }
 
   stopShift() {
-    let timer = getCurrentTimer(this);
-    if (timer) {
-      timer.stop();
-    }
+    this.currentTimer?.stop();
   }
 
   addShiftToTotal() {

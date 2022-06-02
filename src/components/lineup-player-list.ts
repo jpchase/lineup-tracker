@@ -2,20 +2,15 @@
 @license
 */
 
-import { html, LitElement } from 'lit';
+import '@material/mwc-button';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
-
 import { LivePlayer } from '../models/game';
 import { PlayerStatus } from '../models/player';
-
-// These are the elements needed by this element.
-import '@material/mwc-button';
-import './lineup-player-card';
-
 import { EVENT_PLAYERLISTCANCEL } from './events';
-
-// These are the shared styles needed by this element.
+import './lineup-player-card';
+import { PlayerListElement } from './player-list-element.js';
 import { SharedStyles } from './shared-styles';
 
 interface PlayerFilterFunc {
@@ -24,9 +19,10 @@ interface PlayerFilterFunc {
 
 // This element is *not* connected to the Redux store.
 @customElement('lineup-player-list')
-export class LineupPlayerList extends LitElement {
+export class LineupPlayerList extends PlayerListElement {
   protected render() {
     const filteredPlayers = this._getFilteredPlayers();
+
     return html`
       ${SharedStyles}
       <style>
@@ -36,7 +32,8 @@ export class LineupPlayerList extends LitElement {
       ${filteredPlayers.length > 0 ? html`
         <div class="list">
         ${repeat(filteredPlayers, (player: LivePlayer) => player.id, (player: LivePlayer) => html`
-          <lineup-player-card .mode="${this.mode}" .player="${player}"></lineup-player-card>
+          <lineup-player-card .mode="${this.mode}" .player="${player}" .timeTracker="${this.getTracker(player)}">
+          </lineup-player-card>
           ${this.showCancel
         ? html`<mwc-button icon="cancel" @click="${this._doCancel}">Save</mwc-button>`
         : ''
