@@ -896,18 +896,21 @@ describe('Live slice', () => {
   describe('Proposed Subs', () => {
     const offPlayerId = 'P1';
     const onPlayerId = 'P2';
+    const otherPositionPlayerId = 'P3';
     let offPlayer: LivePlayer;
     let onPlayer: LivePlayer;
+    let otherPositionPlayer: LivePlayer;
     let currentState: LiveState;
 
     beforeEach(async () => {
       const game = buildLiveGameWithPlayers();
-      offPlayer = game.players!.find(p => (p.id === offPlayerId))!;
+      offPlayer = getPlayer(game, offPlayerId)!;
       offPlayer.status = PlayerStatus.Off;
       offPlayer.selected = true;
-      onPlayer = game.players!.find(p => (p.id === onPlayerId))!;
+      onPlayer = getPlayer(game, onPlayerId)!;
       onPlayer.status = PlayerStatus.On;
       onPlayer.selected = true;
+      otherPositionPlayer = getPlayer(game, otherPositionPlayerId)!;
 
       const sub: LivePlayer = {
         ...offPlayer,
@@ -926,7 +929,7 @@ describe('Live slice', () => {
 
     describe('live/confirmSub', () => {
 
-      it('should set off player to NEXT with currentPosition', () => {
+      it('should set off player to Next with currentPosition', () => {
         const newState: LiveState = live(currentState, confirmSub());
 
         expect(newState.liveGame!.players).to.not.be.undefined;
@@ -937,6 +940,27 @@ describe('Live slice', () => {
         expect(newPlayer).to.deep.include({
           status: PlayerStatus.Next,
           currentPosition: { ...onPlayer.currentPosition },
+          replaces: onPlayerId
+        });
+        expect(newPlayer!.selected, 'Off player should no longer be selected').to.not.be.ok;
+
+        expect(newState).not.to.equal(currentState);
+        expect(newState.liveGame).not.to.equal(currentState.liveGame);
+        expect(newPlayers).not.to.equal(currentState.liveGame!.players);
+      });
+
+      it('should set off player to Next with overridden position', () => {
+        const newState: LiveState = live(currentState,
+          confirmSub(otherPositionPlayer.currentPosition!));
+
+        expect(newState.liveGame!.players).to.not.be.undefined;
+        const newPlayers = newState.liveGame!.players!;
+
+        const newPlayer = newPlayers.find(player => (player.id === offPlayerId));
+        expect(newPlayer).to.not.be.undefined;
+        expect(newPlayer).to.deep.include({
+          status: PlayerStatus.Next,
+          currentPosition: { ...otherPositionPlayer.currentPosition },
           replaces: onPlayerId
         });
         expect(newPlayer!.selected, 'Off player should no longer be selected').to.not.be.ok;
@@ -1005,7 +1029,7 @@ describe('Live slice', () => {
     }); // describe('live/cancelSub')
   }); // describe('Proposed Subs')
 
-  describe.only('Proposed Swaps', () => {
+  describe('Proposed Swaps', () => {
     const positionPlayerId = 'P1';
     const onPlayerId = 'P2';
     const swapPlayerId = 'P2_swap';

@@ -368,26 +368,36 @@ const liveSlice = createSlice({
       }
     },
 
-    confirmSub: (state) => {
-      const sub = state.proposedSub;
-      if (!sub) {
-        return;
-      }
-
-      state.liveGame!.players!.forEach(player => {
-        if (player.id === sub.id) {
-          player.selected = false;
-          player.status = PlayerStatus.Next;
-          player.currentPosition = sub.currentPosition;
-          player.replaces = sub.replaces;
+    confirmSub: {
+      reducer: (state, action: PayloadAction<{ newPosition?: Position }>) => {
+        const sub = state.proposedSub;
+        if (!sub) {
           return;
         }
-        if (player.id === sub.replaces) {
-          player.selected = false;
-        }
-      });
 
-      clearProposedSub(state);
+        state.liveGame!.players!.forEach(player => {
+          if (player.id === sub.id) {
+            player.selected = false;
+            player.status = PlayerStatus.Next;
+            player.currentPosition = action.payload.newPosition || sub.currentPosition;
+            player.replaces = sub.replaces;
+            return;
+          }
+          if (player.id === sub.replaces) {
+            player.selected = false;
+          }
+        });
+
+        clearProposedSub(state);
+      },
+
+      prepare: (newPosition?: Position) => {
+        return {
+          payload: {
+            newPosition
+          }
+        };
+      }
     },
 
     cancelSub: (state) => {
