@@ -89,6 +89,52 @@ snapshots["lineup-game-live tests Subs shows confirm sub UI when proposed sub ex
     <span class="replaced">
       Player 0
     </span>
+    <span class="override-position">
+      <span>
+        Position:
+      </span>
+      <select
+        id="new-position-select"
+        value=""
+      >
+        <option value="">
+          [Keep existing]
+        </option>
+        <option value="S">
+          S
+        </option>
+        <option value="LW">
+          W (Left)
+        </option>
+        <option value="RW">
+          W (Right)
+        </option>
+        <option value="AM1">
+          AM (1)
+        </option>
+        <option value="AM2">
+          AM (2)
+        </option>
+        <option value="HM">
+          HM
+        </option>
+        <option value="LFB">
+          FB (Left)
+        </option>
+        <option value="LCB">
+          CB (Left)
+        </option>
+        <option value="RCB">
+          CB (Right)
+        </option>
+        <option value="RFB">
+          FB (Right)
+        </option>
+        <option value="GK">
+          GK
+        </option>
+      </select>
+    </span>
     <mwc-button class="cancel">
       Cancel
     </mwc-button>

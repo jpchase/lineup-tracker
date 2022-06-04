@@ -273,7 +273,37 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(confirmSub());
+      expect(actions[actions.length - 1]).to.deep.include(confirmSub());
+    });
+
+    it('dispatches confirm sub action with new position when confirmed', async () => {
+      const onPlayer = getPlayer(liveGame, 'P0')!;
+      const offPlayer = getPlayer(liveGame, 'P11')!;
+      const otherPositionPlayer = getPlayer(liveGame, 'P1')!;
+
+      store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      await el.updateComplete;
+
+      const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
+      expect(confirmSection, 'Missing confirm sub div').to.be.ok;
+
+      const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      expect(applyButton, 'Missing apply button').to.be.ok;
+
+      const positionSelect = confirmSection?.querySelector('#new-position-select') as HTMLSelectElement;
+      expect(positionSelect, 'Missing position select').to.be.ok;
+
+      positionSelect.value = otherPositionPlayer.currentPosition!.id;
+
+      applyButton.click();
+
+      // Verifies that the apply sub action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        confirmSub(otherPositionPlayer.currentPosition));
     });
 
     it('dispatches cancel sub action when cancelled', async () => {

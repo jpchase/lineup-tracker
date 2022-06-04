@@ -6,9 +6,10 @@ import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { map } from 'lit/directives/map.js';
 import { connectStore } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
-import { FormationBuilder, formatPosition } from '../models/formation.js';
+import { Formation, FormationBuilder, FormationType, formatPosition, getPositions, Position } from '../models/formation.js';
 import { LiveGame, LivePlayer } from '../models/game.js';
 import { PeriodStatus } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
@@ -39,7 +40,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
       </style>
       <div>
       ${this._game ? html`
-        ${this.renderGame(this._game, this._players!, this.trackerData!)}
+        ${this.renderGame(this.formation!, this._players!, this.trackerData!)}
       ` : html`
         <p class="empty-list">
           Live game not set.
@@ -48,14 +49,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
       </div>`
   }
 
-  private renderGame(game: LiveGame, players: LivePlayer[], trackerData: PlayerTimeTrackerMapData) {
-    // TODO: Turn this into a property, rather than creating new each time?
-    // Is it causing unnecessary updates?
-    let formation = undefined;
-    if (game.formation) {
-      formation = FormationBuilder.create(game.formation.type);
-    }
-
+  private renderGame(formation: Formation, players: LivePlayer[], trackerData: PlayerTimeTrackerMapData) {
     return html`
       <div toolbar>
         <lineup-game-clock id="gameTimer" .timerData="${this.clockData}"
@@ -112,6 +106,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
     const sub = this.proposedSub;
     const replaced = this._findPlayer(sub.replaces!)!;
     let positionText = formatPosition(sub.currentPosition!);
+    const allPositions = getPositions(this.formation!);
 
     return html`
       <div>
@@ -119,6 +114,16 @@ export class LineupGameLive extends connectStore()(LitElement) {
         <span class="proposed-player">${sub.name} #${sub.uniformNumber}</span>
         <span class="proposed-position">${positionText}</span>
         <span class="replaced">${replaced.name}</span>
+        <span class="override-position">
+          <span>Position:</span>
+          <select id="new-position-select" value="">
+              <option value="">[Keep existing]</option>
+              ${map(allPositions, (position) =>
+      html`<option value="${position.id}">
+              ${formatPosition(position)}</option>`)}
+          </select>
+        </span>
+
         <mwc-button class="cancel" @click="${this.cancelSubClicked}">Cancel</mwc-button>
         <mwc-button class="ok" autofocus @click="${this.confirmSubClicked}">Confirm</mwc-button>
       </div>
@@ -156,6 +161,12 @@ export class LineupGameLive extends connectStore()(LitElement) {
   private _players: LivePlayer[] | undefined;
 
   @state()
+  private formationType?: FormationType;
+
+  @state()
+  private formation?: Formation;
+
+  @state()
   private proposedSub?: LivePlayer;
 
   @state()
@@ -183,6 +194,16 @@ export class LineupGameLive extends connectStore()(LitElement) {
     }
 
     this._players = this._game.players || [];
+    if (this.formation && this.formation.type === this._game.formation?.type) {
+      // Formation type is unchanged, nothing to do.
+    } else {
+      this.formationType = this._game.formation?.type;
+      if (this.formationType) {
+        this.formation = FormationBuilder.create(this.formationType);
+      } else {
+        this.formation = undefined;
+      }
+    }
     const clock = clockSelector(state);
     if (clock) {
       this.clockData = clock.timer;
@@ -205,8 +226,18 @@ export class LineupGameLive extends connectStore()(LitElement) {
     this.dispatch(selectPlayer(e.detail.player.id, e.detail.selected));
   }
 
+  private getPositionSelect() {
+    return this.shadowRoot!.querySelector('#new-position-select') as HTMLSelectElement;
+  }
+
   private confirmSubClicked() {
-    this.dispatch(confirmSub());
+    const select = this.getPositionSelect();
+    let newPosition: Position | undefined = undefined;
+    if (select.value) {
+      const allPositions = getPositions(this.formation!);
+      newPosition = allPositions.find(p => (p.id === select.value));
+    }
+    this.dispatch(confirmSub(newPosition));
   }
 
   private cancelSubClicked() {

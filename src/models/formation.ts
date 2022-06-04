@@ -93,3 +93,15 @@ export function formatPosition(position: Position): string {
   }
   return positionText;
 }
+
+export function getPositions(formation: Formation): Position[] {
+  return [
+    formation.forward1, formation.forward2,
+    formation.midfield1, formation.midfield2,
+    formation.defense,
+    formation.gk
+  ].reduce((result: Position[], formationLine) => {
+    result.push(...formationLine.positions);
+    return result;
+  }, []);
+}
