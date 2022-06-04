@@ -25,7 +25,7 @@ export function buildPlayerTrackerMap(existingPlayers?: LivePlayer[],
   keepExistingStatus?: boolean) {
   let players;
   if (existingPlayers) {
-    players = existingPlayers.slice(0);
+    players = existingPlayers;
   } else {
     players = testlive.getLivePlayers(18);
   }

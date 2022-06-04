@@ -47,6 +47,8 @@ snapshots["lineup-game-live tests shows all player sections for started game"] =
   </div>
   <div id="confirm-sub">
   </div>
+  <div id="confirm-swap">
+  </div>
   <div id="live-off">
     <h5>
       Subs
@@ -79,7 +81,7 @@ snapshots["lineup-game-live tests Subs shows confirm sub UI when proposed sub ex
       Confirm sub?
     </h5>
     <span class="proposed-player">
-      Player 1 #11
+      Player 11 #31
     </span>
     <span class="proposed-position">
       CB (Left)
@@ -100,4 +102,30 @@ snapshots["lineup-game-live tests Subs shows confirm sub UI when proposed sub ex
 </div>
 `;
 /* end snapshot lineup-game-live tests Subs shows confirm sub UI when proposed sub exists */
+
+snapshots["lineup-game-live tests Subs shows confirm swap UI when proposed swap exists"] = 
+`<div id="confirm-swap">
+  <div>
+    <h5>
+      Confirm swap?
+    </h5>
+    <span class="proposed-player">
+      Player 0 #0
+    </span>
+    <span class="proposed-position">
+      S
+    </span>
+    <mwc-button class="cancel">
+      Cancel
+    </mwc-button>
+    <mwc-button
+      autofocus=""
+      class="ok"
+    >
+      Confirm
+    </mwc-button>
+  </div>
+</div>
+`;
+/* end snapshot lineup-game-live tests Subs shows confirm swap UI when proposed swap exists */
 

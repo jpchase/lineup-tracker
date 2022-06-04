@@ -72,6 +72,7 @@ export const selectCurrentLiveGame = (state: RootState) => {
 }
 
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
+export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
 export const selectPendingSubs = (state: RootState, selectedOnly?: boolean) => {
@@ -462,7 +463,7 @@ const liveSlice = createSlice({
           replacedPlayer.currentPosition = undefined;
           replacedPlayer.selected = false;
         });
-	
+
         // Apply any position swaps
         const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next, action.payload.selectedOnly);
         nextPlayers.forEach(swapPlayer => {

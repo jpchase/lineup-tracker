@@ -1,25 +1,26 @@
 import { hydrateLive } from '@app/actions/live.js';
 import { LineupGameClock } from '@app/components/lineup-game-clock.js';
-import { LineupGameLive } from '@app/components/lineup-game-live';
+import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import '@app/components/lineup-game-live.js';
-import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
-import { LineupPlayerCard } from '@app/components/lineup-player-card';
-import { LineupPlayerList } from '@app/components/lineup-player-list';
-import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares';
-import { FormationType } from '@app/models/formation';
-import { GameDetail, GameStatus, LiveGame, LivePlayer } from '@app/models/game';
-import { PlayerStatus } from '@app/models/player';
-import { GET_GAME_SUCCESS } from '@app/slices/game-types';
-import { getLiveStoreConfigurator } from '@app/slices/live-store';
+import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
+import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
+import { LineupPlayerList } from '@app/components/lineup-player-list.js';
+import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { FormationType } from '@app/models/formation.js';
+import { GameDetail, GameStatus, LiveGame, LivePlayer } from '@app/models/game.js';
+import { getPlayer } from '@app/models/live.js';
+import { PlayerStatus } from '@app/models/player.js';
+import { GET_GAME_SUCCESS } from '@app/slices/game-types.js';
+import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
 import { endPeriod, startPeriod } from '@app/slices/live/clock-slice.js';
-import { applyStarter, cancelSub, confirmSub, formationSelected, gameCompleted, selectPlayer, selectStarter, selectStarterPosition, toggleClock } from '@app/slices/live/live-slice.js';
-import { resetState, store } from '@app/store';
+import { cancelSub, cancelSwap, confirmSub, confirmSwap, gameCompleted, selectPlayer, toggleClock } from '@app/slices/live/live-slice.js';
+import { resetState, store } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
 import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton } from '../helpers/clock-element-retrievers.js';
-import * as testlive from '../helpers/test-live-game-data';
-import { buildRoster, getNewGameDetail } from '../helpers/test_data';
+import * as testlive from '../helpers/test-live-game-data.js';
+import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
 import { buildShiftWithTrackers } from '../slices/live/shift-slice.test.js';
 
 let actions: string[] = [];
@@ -158,25 +159,21 @@ describe('lineup-game-live tests', () => {
     await expect(el).shadowDom.to.equalSnapshot();
   });
 
-
   describe('Subs', () => {
     let liveGame: LiveGame;
 
     beforeEach(async () => {
       const { game, live } = getGameDetail();
+      live.formation = { type: FormationType.F4_3_3 };
+      const shift = buildShiftWithTrackers(live.players);
 
-      // Setup the live game, with at least one ON player, by simulating the
-      // steps to get the data in the right state.
-      // TODO: Use hydrate action if/when implemented.
+      // Setup the live game, with the period in progress.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(formationSelected(FormationType.F4_3_3));
-      const offPlayer = findPlayer(live, PlayerStatus.Off)!;
-      store.dispatch(selectStarter(offPlayer.id, /*selected =*/true));
-      store.dispatch(selectStarterPosition(offPlayer.currentPosition!));
-      store.dispatch(applyStarter());
-      // store.dispatch({ type: ROSTER_DONE, roster: newGame.roster });
-      await el.updateComplete;
+      store.dispatch(hydrateLive(live, live.id, undefined, shift));
+      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
       liveGame = store.getState().live!.liveGame!;
+
+      await el.updateComplete;
     });
 
     it('dispatches select player action when off player selected', async () => {
@@ -248,7 +245,7 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
       expect(confirmSection, 'Missing confirm sub div').to.be.ok;
 
-      expect(confirmSection).dom.to.equalSnapshot();
+      await expect(confirmSection).dom.to.equalSnapshot();
     });
 
     it('dispatches confirm sub action when confirmed', async () => {
@@ -305,6 +302,66 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.include(cancelSub());
+    });
+
+    it('shows confirm swap UI when proposed swap exists', async () => {
+      const onPlayer = getPlayer(liveGame, 'P0')!;
+      const onPlayer2 = getPlayer(liveGame, 'P1')!;
+
+      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      await el.updateComplete;
+
+      const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
+      expect(confirmSection, 'Missing confirm swap element').to.be.ok;
+
+      await expect(confirmSection).dom.to.equalSnapshot();
+    });
+
+    it('dispatches confirm swap action when confirmed', async () => {
+      const onPlayer = getPlayer(liveGame, 'P0')!;
+      const onPlayer2 = getPlayer(liveGame, 'P1')!;
+
+      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      await el.updateComplete;
+
+      const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
+      expect(confirmSection, 'Missing confirm swap element').to.be.ok;
+
+      const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      expect(applyButton, 'Missing apply button').to.be.ok;
+
+      applyButton.click();
+
+      // Verifies that the apply swap action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.include(confirmSwap());
+    });
+
+    it('dispatches cancel sub action when cancelled', async () => {
+      const onPlayer = getPlayer(liveGame, 'P0')!;
+      const onPlayer2 = getPlayer(liveGame, 'P1')!;
+
+      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      await el.updateComplete;
+
+      const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
+      expect(confirmSection, 'Missing confirm swap element').to.be.ok;
+
+      const cancelButton = confirmSection!.querySelector('mwc-button.cancel') as Button;
+      expect(cancelButton, 'Missing cancel button').to.be.ok;
+
+      cancelButton.click();
+
+      // Verifies that the cancel sub action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.include(cancelSwap());
     });
 
   }); // describe('Subs')
