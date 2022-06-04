@@ -2,18 +2,14 @@
 @license
 */
 
-import { html, LitElement } from 'lit';
+import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-
 import { Position } from '../models/formation';
 import { LivePlayer } from '../models/game';
-
-// These are the elements needed by this element.
-
+import { PlayerTimeTracker } from '../models/shift.js';
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events';
-
-// These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
+import { TimerController } from './timer-controller.js';
 
 export interface PlayerCardData {
   id: string;
@@ -62,31 +58,37 @@ export class LineupPlayerCard extends LitElement {
         .player.on .subFor,
         .player.next .playerPositions,
         .player.off .currentPosition,
-        .player.off .subFor {
+        .player.off .subFor
+        .player.out .shiftTime {
           display: none;
         }
 
       </style>
 
-      <span ?selected="${this.selected}" class="player ${this.mode}">
+      <span ?selected="${this.selected}" class="player ${this.mode.toLowerCase()}">
         <span class="playerName">${player ? player.name : ''}</span>
         <span class="uniformNumber">${player ? player.uniformNumber : ''}</span>
         <span class="currentPosition">${currentPosition}</span>
         <span class="playerPositions">${positions.join(', ')}</span>
         <!-- <span class="subFor">{player.replaces}</span> -->
-        <span class="shiftTime"></span>
+        <span class="shiftTime">${this.timer.text}</span>
       </span>
     `;
   }
+
+  private timer = new TimerController(this);
 
   @property({ type: String })
   mode = '';
 
   @property({ type: Object })
-  data: PlayerCardData | undefined = undefined;
+  data?: PlayerCardData;
 
   @property({ type: Object })
-  player: LivePlayer | undefined = undefined;
+  player?: LivePlayer;
+
+  @property({ type: Object })
+  timeTracker?: PlayerTimeTracker;
 
   @property({ type: Boolean })
   public get selected(): boolean {
@@ -94,10 +96,10 @@ export class LineupPlayerCard extends LitElement {
       return true;
     }
     const player = this._getPlayer();
-    if (player && player.selected) {
+    if (player?.selected) {
       return true;
     }
-    if (this.data && this.data.position && this.data.position.selected) {
+    if (this.data?.position.selected) {
       return true;
     }
     return false;
@@ -111,6 +113,18 @@ export class LineupPlayerCard extends LitElement {
 
   private _getPlayer() {
     return this.data ? this.data!.player : this.player;
+  }
+
+  protected willUpdate(changedProperties: PropertyValues<this>) {
+    if (!changedProperties.has('timeTracker')) {
+      return;
+    }
+    const oldValue = changedProperties.get('timeTracker');
+    if (this.timeTracker === oldValue) {
+      return;
+    }
+
+    this.timer.timer = this.timeTracker?.currentTimer;
   }
 
   protected firstUpdated() {

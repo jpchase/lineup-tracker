@@ -2,20 +2,16 @@
 @license
 */
 
-import { html, LitElement } from 'lit';
+import '@material/mwc-button';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
-
 import { Formation, FormationLine, Position } from '../models/formation';
 import { LivePlayer } from '../models/game';
 import { PlayerStatus } from '../models/player';
-
-// These are the elements needed by this element.
-import '@material/mwc-button';
 import './lineup-player-card';
 import { PlayerCardData } from './lineup-player-card';
-
-// These are the shared styles needed by this element.
+import { PlayerListElement } from './player-list-element.js';
 import { SharedStyles } from './shared-styles';
 
 interface PlayerLine extends FormationLine {
@@ -33,7 +29,7 @@ function getOpenPositionInLine(line: PlayerLine, position: Position): PlayerCard
 
 // This element is *not* connected to the Redux store.
 @customElement('lineup-on-player-list')
-export class LineupOnPlayerList extends LitElement {
+export class LineupOnPlayerList extends PlayerListElement {
   protected render() {
     const lines = this._getPlayerLines();
     return html`
@@ -56,7 +52,10 @@ export class LineupOnPlayerList extends LitElement {
         ${repeat(lines, (line: PlayerLine) => line.id, (line: PlayerLine /*, index: number*/) => html`
           <div class="line">
           ${repeat(line.playerPositions, (cardData: PlayerCardData) => cardData.id, (cardData: PlayerCardData /*, index: number*/) => html`
-            <lineup-player-card .mode="ON" .data="${cardData}"></lineup-player-card>
+            <lineup-player-card mode="${PlayerStatus.On}"
+                                .data="${cardData}"
+                                .timeTracker="${this.getTracker(cardData.player!)}">
+            </lineup-player-card>
           `)}
           </div>
         `)}
