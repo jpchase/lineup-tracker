@@ -17,6 +17,9 @@ export const SHIFT_INITIAL_STATE: ShiftState = {
 
 export function buildShiftWithTrackers(existingPlayers?: LivePlayer[],
   keepExistingStatus?: boolean): ShiftState {
+  if (existingPlayers) {
+    existingPlayers = existingPlayers.filter(player => !player.isSwap);
+  }
   const trackerMap = buildPlayerTrackerMap(existingPlayers, keepExistingStatus);
   return {
     ...SHIFT_INITIAL_STATE,

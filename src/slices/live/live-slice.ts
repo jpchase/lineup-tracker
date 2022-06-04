@@ -7,7 +7,7 @@ import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { FormationType, Position } from '../../models/formation.js';
 import { Game, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { gameCanStartPeriod, getPlayer, LiveGameBuilder } from '../../models/live.js';
+import { gameCanStartPeriod, getPlayer, LiveGameBuilder, removePlayer } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';
@@ -27,7 +27,9 @@ export interface LiveGameState {
   proposedStarter?: LivePlayer;
   selectedOffPlayer?: string;
   selectedOnPlayer?: string;
+  selectedOnPlayer2?: string;
   proposedSub?: LivePlayer;
+  proposedSwap?: LivePlayer;
 }
 
 export interface LiveState extends LiveGameState {
@@ -46,6 +48,7 @@ export interface PendingSubsAppliedPayload {
   selectedOnly?: boolean
 }
 
+const SWAP_ID_SUFFIX = '_swap';
 
 const INITIAL_STATE: LiveGameState = {
   gameId: '',
@@ -342,7 +345,10 @@ const liveSlice = createSlice({
         const status = selectedPlayer.status;
         if (action.payload.selected) {
           setCurrentSelected(state, status, playerId);
-          prepareSubIfPossible(state);
+          const madeSub = prepareSubIfPossible(state);
+          if (!madeSub) {
+            prepareSwapIfPossible(state);
+          }
         } else {
           // De-selection.
           if (getCurrentSelected(state, status) === playerId) {
@@ -397,6 +403,45 @@ const liveSlice = createSlice({
       clearProposedSub(state);
     },
 
+    confirmSwap: (state) => {
+      const swap = state.proposedSwap;
+      if (!swap) {
+        return;
+      }
+
+      const swapIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
+      for (const playerId of swapIds) {
+        const selectedPlayer = findPlayer(state, playerId);
+        if (!!selectedPlayer?.selected) {
+          selectedPlayer.selected = false;
+        }
+      }
+
+      const nextSwap: LivePlayer = {
+        ...swap,
+        id: buildSwapPlayerId(swap.id),
+        status: PlayerStatus.Next,
+        selected: false
+      }
+      state.liveGame!.players!.push(nextSwap);
+
+      clearProposedSwap(state);
+    },
+
+    cancelSwap: (state) => {
+      if (!state.proposedSwap) {
+        return;
+      }
+      const cancelIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
+      for (const playerId of cancelIds) {
+        const selectedPlayer = findPlayer(state, playerId);
+        if (!!selectedPlayer?.selected) {
+          selectedPlayer.selected = false;
+        }
+      }
+      clearProposedSwap(state);
+    },
+
     applyPendingSubs: {
       reducer: (state, action: PayloadAction<PendingSubsAppliedPayload>) => {
         action.payload.subs.forEach(sub => {
@@ -417,6 +462,24 @@ const liveSlice = createSlice({
           replacedPlayer.currentPosition = undefined;
           replacedPlayer.selected = false;
         });
+	
+        // Apply any position swaps
+        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next, action.payload.selectedOnly);
+        nextPlayers.forEach(swapPlayer => {
+          if (!swapPlayer.isSwap) {
+            return;
+          }
+          const actualPlayerId = extractIdFromSwapPlayerId(swapPlayer.id);
+          const player = findPlayer(state, actualPlayerId);
+          if (player?.status !== PlayerStatus.On) {
+            return;
+          }
+
+          player.currentPosition = { ...swapPlayer.nextPosition! };
+          player.selected = false;
+
+          deletePlayer(state, swapPlayer.id);
+        });
       },
 
       prepare: (subs: LivePlayer[], selectedOnly?: boolean) => {
@@ -433,6 +496,11 @@ const liveSlice = createSlice({
       reducer: (state, action: PayloadAction<{ selectedOnly?: boolean }>) => {
         const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next, action.payload.selectedOnly);
         nextPlayers.forEach(player => {
+          if (player.isSwap) {
+            deletePlayer(state, player.id);
+            return;
+          }
+
           player.status = PlayerStatus.Off;
           player.replaces = undefined;
           player.currentPosition = undefined;
@@ -500,7 +568,7 @@ export const {
   completeRoster,
   formationSelected, getLiveGame, startersCompleted, captainsCompleted, gameSetupCompleted,
   selectStarter, selectStarterPosition, applyStarter, cancelStarter,
-  selectPlayer, cancelSub, confirmSub, applyPendingSubs, discardPendingSubs, gameCompleted
+  selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs, discardPendingSubs, gameCompleted
 } = actions;
 
 function completeSetupStepForAction(state: LiveGameState, setupStepToComplete: SetupSteps) {
@@ -573,19 +641,19 @@ function clearProposedStarter(state: LiveState) {
   delete state.proposedStarter;
 }
 
-function prepareSubIfPossible(state: LiveState) {
+function prepareSubIfPossible(state: LiveState): boolean {
   if (!state.selectedOffPlayer || !state.selectedOnPlayer) {
     // Need both an On and Off player selected to set up a sub
-    return;
+    return false;
   }
 
   const offPlayer = findPlayer(state, state.selectedOffPlayer);
   if (!offPlayer) {
-    return;
+    return false;
   }
   const onPlayer = findPlayer(state, state.selectedOnPlayer);
   if (!onPlayer) {
-    return;
+    return false;
   }
 
   state.proposedSub = {
@@ -595,6 +663,7 @@ function prepareSubIfPossible(state: LiveState) {
     },
     replaces: onPlayer.id
   }
+  return true;
 }
 
 function clearProposedSub(state: LiveState) {
@@ -603,8 +672,54 @@ function clearProposedSub(state: LiveState) {
   delete state.proposedSub;
 }
 
+function prepareSwapIfPossible(state: LiveState) {
+  if (!state.selectedOnPlayer || !state.selectedOnPlayer2) {
+    // Need two On players selected to set up a swap.
+    return;
+  }
+
+  const onPlayer = findPlayer(state, state.selectedOnPlayer);
+  if (!onPlayer) {
+    return;
+  }
+  const positionPlayer = findPlayer(state, state.selectedOnPlayer2);
+  if (!positionPlayer) {
+    return;
+  }
+
+  const swap: LivePlayer = {
+    ...onPlayer,
+    nextPosition: {
+      ...positionPlayer.currentPosition!
+    },
+    isSwap: true
+  }
+  state.proposedSwap = swap;
+}
+
+function clearProposedSwap(state: LiveState) {
+  state.selectedOnPlayer = undefined;
+  state.selectedOnPlayer2 = undefined;
+  state.proposedSwap = undefined;
+}
+
 function findPlayer(state: LiveState, playerId: string) {
   return getPlayer(state.liveGame!, playerId);
+}
+
+function deletePlayer(state: LiveState, playerId: string) {
+  return removePlayer(state.liveGame!, playerId);
+}
+
+function buildSwapPlayerId(playerId: string) {
+  return playerId + SWAP_ID_SUFFIX;
+}
+
+function extractIdFromSwapPlayerId(swapPlayerId: string) {
+  if (!swapPlayerId.endsWith(SWAP_ID_SUFFIX)) {
+    return swapPlayerId;
+  }
+  return swapPlayerId.slice(0, swapPlayerId.length - SWAP_ID_SUFFIX.length);
 }
 
 function findPlayersByStatus(state: LiveState, status: PlayerStatus, selectedOnly?: boolean) {
@@ -638,7 +753,15 @@ function setCurrentSelected(state: LiveState, status: PlayerStatus, value: strin
       state.selectedOffPlayer = value;
       break;
     case PlayerStatus.On:
-      state.selectedOnPlayer = value;
+      if (value && state.selectedOnPlayer) {
+        // Second On player selected.
+        state.selectedOnPlayer2 = value;
+      } else {
+        // Otherwise, this is either the first On player to be selected, or is
+        // de-selecting. When de-selecting, there should only ever by one On
+        // player selected,
+        state.selectedOnPlayer = value;
+      }
       break;
     default:
       throw new Error(`Unsupported status: ${status}`);
