@@ -82,7 +82,7 @@ export const selectPendingSubs = (state: RootState, selectedOnly?: boolean) => {
   const nextPlayers = findPlayersByStatus(state.live, PlayerStatus.Next, selectedOnly);
   if (nextPlayers.some(player => {
     const replacedPlayer = findPlayer(state.live!, player.replaces!);
-    return (!(replacedPlayer?.status === PlayerStatus.On));
+    return (replacedPlayer?.status !== PlayerStatus.On);
   })) {
     return;
   }
@@ -475,7 +475,8 @@ const liveSlice = createSlice({
         });
 
         // Apply any position swaps
-        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next, action.payload.selectedOnly);
+        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next,
+          action.payload.selectedOnly, /* includeSwaps */ true);
         nextPlayers.forEach(swapPlayer => {
           if (!swapPlayer.isSwap) {
             return;
@@ -505,7 +506,8 @@ const liveSlice = createSlice({
 
     discardPendingSubs: {
       reducer: (state, action: PayloadAction<{ selectedOnly?: boolean }>) => {
-        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next, action.payload.selectedOnly);
+        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next,
+          action.payload.selectedOnly, /* includeSwaps */ true);
         nextPlayers.forEach(player => {
           if (player.isSwap) {
             deletePlayer(state, player.id);
@@ -733,13 +735,17 @@ function extractIdFromSwapPlayerId(swapPlayerId: string) {
   return swapPlayerId.slice(0, swapPlayerId.length - SWAP_ID_SUFFIX.length);
 }
 
-function findPlayersByStatus(state: LiveState, status: PlayerStatus, selectedOnly?: boolean) {
+function findPlayersByStatus(state: LiveState, status: PlayerStatus,
+  selectedOnly?: boolean, includeSwaps?: boolean) {
   let matches: LivePlayer[] = [];
   state.liveGame!.players!.forEach(player => {
     if (player.status !== status) {
       return;
     }
     if (selectedOnly && !player.selected) {
+      return;
+    }
+    if (!includeSwaps && player.isSwap) {
       return;
     }
 
