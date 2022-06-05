@@ -6,19 +6,20 @@ import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { map } from 'lit/directives/map.js';
 import { connectStore } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
-import { FormationBuilder } from '../models/formation.js';
+import { Formation, FormationBuilder, FormationType, formatPosition, getPositions, Position } from '../models/formation.js';
 import { LiveGame, LivePlayer } from '../models/game.js';
 import { PeriodStatus } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
 import {
-  cancelSub, clockSelector, confirmSub, discardPendingSubs, endPeriod,
+  cancelSub, cancelSwap, clockSelector, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
   gameCompleted,
   pendingSubsAppliedCreator,
-  proposedSubSelector, selectPlayer, startGamePeriod, toggleClock
+  proposedSubSelector, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
@@ -39,7 +40,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
       </style>
       <div>
       ${this._game ? html`
-        ${this.renderGame(this._game, this._players!, this.trackerData!)}
+        ${this.renderGame(this.formation!, this._players!, this.trackerData!)}
       ` : html`
         <p class="empty-list">
           Live game not set.
@@ -48,14 +49,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
       </div>`
   }
 
-  private renderGame(game: LiveGame, players: LivePlayer[], trackerData: PlayerTimeTrackerMapData) {
-    // TODO: Turn this into a property, rather than creating new each time?
-    // Is it causing unnecessary updates?
-    let formation = undefined;
-    if (game.formation) {
-      formation = FormationBuilder.create(game.formation.type);
-    }
-
+  private renderGame(formation: Formation, players: LivePlayer[], trackerData: PlayerTimeTrackerMapData) {
     return html`
       <div toolbar>
         <lineup-game-clock id="gameTimer" .timerData="${this.clockData}"
@@ -84,7 +78,10 @@ export class LineupGameLive extends connectStore()(LitElement) {
         </lineup-player-list>
       </div>
       <div id="confirm-sub">
-      ${this._getConfirmSub()}
+      ${this.getConfirmSub()}
+      </div>
+      <div id="confirm-swap">
+      ${this.getConfirmSwap()}
       </div>
       <div id="live-off">
         <h5>Subs</h5>
@@ -102,26 +99,14 @@ export class LineupGameLive extends connectStore()(LitElement) {
       </div>`
   }
 
-  private _getConfirmSub() {
-    if (!this._proposedSub) {
+  private getConfirmSub() {
+    if (!this.proposedSub) {
       return '';
     }
-    const sub = this._proposedSub;
+    const sub = this.proposedSub;
     const replaced = this._findPlayer(sub.replaces!)!;
-    const currentPosition = sub.currentPosition!;
-    let positionText = currentPosition.type;
-
-    if (currentPosition.id !== currentPosition.type) {
-      let addition = '';
-      if (currentPosition.id[0] === 'L') {
-        addition = 'Left';
-      } else if (currentPosition.id[0] === 'R') {
-        addition = 'Right';
-      } else if (currentPosition.id.length > currentPosition.type.length) {
-        addition = currentPosition.id.substring(currentPosition.type.length);
-      }
-      positionText += ` (${addition})`;
-    }
+    let positionText = formatPosition(sub.currentPosition!);
+    const allPositions = getPositions(this.formation!);
 
     return html`
       <div>
@@ -129,8 +114,36 @@ export class LineupGameLive extends connectStore()(LitElement) {
         <span class="proposed-player">${sub.name} #${sub.uniformNumber}</span>
         <span class="proposed-position">${positionText}</span>
         <span class="replaced">${replaced.name}</span>
-        <mwc-button class="cancel" @click="${this._cancelSub}">Cancel</mwc-button>
-        <mwc-button class="ok" autofocus @click="${this._confirmSub}">Confirm</mwc-button>
+        <span class="override-position">
+          <span>Position:</span>
+          <select id="new-position-select" value="">
+              <option value="">[Keep existing]</option>
+              ${map(allPositions, (position) =>
+      html`<option value="${position.id}">
+              ${formatPosition(position)}</option>`)}
+          </select>
+        </span>
+
+        <mwc-button class="cancel" @click="${this.cancelSubClicked}">Cancel</mwc-button>
+        <mwc-button class="ok" autofocus @click="${this.confirmSubClicked}">Confirm</mwc-button>
+      </div>
+    `;
+  }
+
+  private getConfirmSwap() {
+    if (!this.proposedSwap) {
+      return '';
+    }
+    const swap = this.proposedSwap;
+    let positionText = formatPosition(swap.nextPosition!);
+
+    return html`
+      <div>
+        <h5>Confirm swap?</h5>
+        <span class="proposed-player">${swap.name} #${swap.uniformNumber}</span>
+        <span class="proposed-position">${positionText}</span>
+        <mwc-button class="cancel" @click="${this.cancelSwapClicked}">Cancel</mwc-button>
+        <mwc-button class="ok" autofocus @click="${this.confirmSwapClicked}">Confirm</mwc-button>
       </div>
     `;
   }
@@ -147,8 +160,17 @@ export class LineupGameLive extends connectStore()(LitElement) {
   @property({ type: Array })
   private _players: LivePlayer[] | undefined;
 
-  @property({ type: Object })
-  private _proposedSub: LivePlayer | undefined;
+  @state()
+  private formationType?: FormationType;
+
+  @state()
+  private formation?: Formation;
+
+  @state()
+  private proposedSub?: LivePlayer;
+
+  @state()
+  private proposedSwap?: LivePlayer;
 
   @state()
   private clockData?: TimerData;
@@ -160,7 +182,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
   private gamePeriodsComplete = false;
 
   @state()
-  trackerData?: PlayerTimeTrackerMapData;
+  private trackerData?: PlayerTimeTrackerMapData;
 
   stateChanged(state: RootState) {
     if (!state.live) {
@@ -172,6 +194,16 @@ export class LineupGameLive extends connectStore()(LitElement) {
     }
 
     this._players = this._game.players || [];
+    if (this.formation && this.formation.type === this._game.formation?.type) {
+      // Formation type is unchanged, nothing to do.
+    } else {
+      this.formationType = this._game.formation?.type;
+      if (this.formationType) {
+        this.formation = FormationBuilder.create(this.formationType);
+      } else {
+        this.formation = undefined;
+      }
+    }
     const clock = clockSelector(state);
     if (clock) {
       this.clockData = clock.timer;
@@ -185,7 +217,8 @@ export class LineupGameLive extends connectStore()(LitElement) {
       this.clockPeriodData = {} as ClockPeriodData;
       this.gamePeriodsComplete = false;
     }
-    this._proposedSub = proposedSubSelector(state);
+    this.proposedSub = proposedSubSelector(state);
+    this.proposedSwap = selectProposedSwap(state);
     this.trackerData = state.live.shift?.trackerMap;
   }
 
@@ -193,12 +226,30 @@ export class LineupGameLive extends connectStore()(LitElement) {
     this.dispatch(selectPlayer(e.detail.player.id, e.detail.selected));
   }
 
-  private _confirmSub() {
-    this.dispatch(confirmSub());
+  private getPositionSelect() {
+    return this.shadowRoot!.querySelector('#new-position-select') as HTMLSelectElement;
   }
 
-  private _cancelSub() {
+  private confirmSubClicked() {
+    const select = this.getPositionSelect();
+    let newPosition: Position | undefined = undefined;
+    if (select.value) {
+      const allPositions = getPositions(this.formation!);
+      newPosition = allPositions.find(p => (p.id === select.value));
+    }
+    this.dispatch(confirmSub(newPosition));
+  }
+
+  private cancelSubClicked() {
     this.dispatch(cancelSub());
+  }
+
+  private confirmSwapClicked() {
+    this.dispatch(confirmSwap());
+  }
+
+  private cancelSwapClicked() {
+    this.dispatch(cancelSwap());
   }
 
   private _applySubs() {

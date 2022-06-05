@@ -40,6 +40,18 @@ export function getPlayer(game: LiveGame, playerId: string) {
   return game.players.find(p => (p.id === playerId));
 }
 
+export function removePlayer(game: LiveGame, playerId: string) {
+  if (!game?.players) {
+    return false;
+  }
+  const index = game.players.findIndex(p => (p.id === playerId));
+  if (index < 0) {
+    return false;
+  }
+  game.players.splice(index, 1);
+  return true;
+}
+
 export function gameCanStartPeriod(game: LiveGame, previousPeriod: number, totalPeriods: number): boolean {
   if (!(game.status === GameStatus.Start || game.status === GameStatus.Break)) {
     return false;

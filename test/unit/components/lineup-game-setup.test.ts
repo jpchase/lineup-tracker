@@ -486,7 +486,7 @@ describe('lineup-game-setup tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
       expect(confirmSection, 'Missing confirm starter div').to.be.ok;
 
-      expect(confirmSection).dom.to.equalSnapshot();
+      await expect(confirmSection).dom.to.equalSnapshot();
     });
 
     it('dispatches apply starter action when confirmed', async () => {

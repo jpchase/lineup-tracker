@@ -214,7 +214,7 @@ describe('lineup-team-selector-dialog tests', () => {
 
     expect(teamElement.hasAttribute('selected'),
       `List item for ${selectedTeamId} should be selected`).to.be.true;
-    expect(teamElement).to.equalSnapshot();
+    await expect(teamElement).to.equalSnapshot();
   });
 
   it('fires event when team selected', async () => {

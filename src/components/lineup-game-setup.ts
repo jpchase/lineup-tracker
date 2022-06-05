@@ -10,7 +10,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { navigate } from '../actions/app';
 import { connectStore } from '../middleware/connect-mixin';
-import { FormationBuilder, FormationMetadata, Position } from '../models/formation';
+import { FormationBuilder, FormationMetadata, formatPosition, Position } from '../models/formation';
 import { GameDetail, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/game';
 import { getGameStore } from '../slices/game-store';
 import { gameSetupCompletedCreator } from '../slices/game/game-slice.js';
@@ -150,20 +150,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
       return '';
     }
     const starter = this.proposedStarter;
-    const currentPosition = starter.currentPosition!;
-    let positionText = currentPosition.type;
-
-    if (currentPosition.id !== currentPosition.type) {
-      let addition = '';
-      if (currentPosition.id[0] === 'L') {
-        addition = 'Left';
-      } else if (currentPosition.id[0] === 'R') {
-        addition = 'Right';
-      } else if (currentPosition.id.length > currentPosition.type.length) {
-        addition = currentPosition.id.substring(currentPosition.type.length);
-      }
-      positionText += ` (${addition})`;
-    }
+    let positionText = formatPosition(starter.currentPosition!);
 
     return html`
       <div>

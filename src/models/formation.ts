@@ -40,39 +40,68 @@ export class FormationBuilder {
       type: FormationType.F4_3_3,
       forward1: {
         id: 'FWD1',
-        positions: [{id: 'S', type: 'S'}]
+        positions: [{ id: 'S', type: 'S' }]
       },
       forward2: {
         id: 'FWD2',
         positions: [
-          {id: 'LW', type: 'W'},
-          {id: 'RW', type: 'W'}
+          { id: 'LW', type: 'W' },
+          { id: 'RW', type: 'W' }
         ]
       },
       midfield1: {
         id: 'MID1',
         positions: [
-          {id: 'AM1', type: 'AM'},
-          {id: 'AM2', type: 'AM'}
+          { id: 'AM1', type: 'AM' },
+          { id: 'AM2', type: 'AM' }
         ]
       },
       midfield2: {
         id: 'MID2',
-        positions: [{id: 'HM', type: 'HM'}]
+        positions: [{ id: 'HM', type: 'HM' }]
       },
       defense: {
         id: 'DEF',
         positions: [
-          {id: 'LFB', type: 'FB'},
-          {id: 'LCB', type: 'CB'},
-          {id: 'RCB', type: 'CB'},
-          {id: 'RFB', type: 'FB'},
+          { id: 'LFB', type: 'FB' },
+          { id: 'LCB', type: 'CB' },
+          { id: 'RCB', type: 'CB' },
+          { id: 'RFB', type: 'FB' },
         ]
       },
       gk: {
         id: 'GK',
-        positions: [{id: 'GK', type: 'GK'}]
+        positions: [{ id: 'GK', type: 'GK' }]
       },
     };
   }
+}
+
+export function formatPosition(position: Position): string {
+  let positionText = position.type;
+
+  if (position.id !== position.type) {
+    let addition = '';
+    if (position.id[0] === 'L') {
+      addition = 'Left';
+    } else if (position.id[0] === 'R') {
+      addition = 'Right';
+    } else if (position.id.length > position.type.length) {
+      addition = position.id.substring(position.type.length);
+    }
+    positionText += ` (${addition})`;
+  }
+  return positionText;
+}
+
+export function getPositions(formation: Formation): Position[] {
+  return [
+    formation.forward1, formation.forward2,
+    formation.midfield1, formation.midfield2,
+    formation.defense,
+    formation.gk
+  ].reduce((result: Position[], formationLine) => {
+    result.push(...formationLine.positions);
+    return result;
+  }, []);
 }
