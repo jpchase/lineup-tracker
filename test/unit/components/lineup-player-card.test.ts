@@ -1,9 +1,14 @@
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '@app/components/events';
 import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-card';
 import '@app/components/lineup-player-card.js';
+import { Duration } from '@app/models/clock.js';
+import { formatPosition } from '@app/models/formation.js';
 import { LivePlayer } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
+import { PlayerTimeTracker } from '@app/models/shift.js';
 import { assert, expect, fixture, oneEvent } from '@open-wc/testing';
+import { manualTimeProvider } from '../helpers/test-clock-data.js';
+import { buildPlayerTracker } from '../helpers/test-shift-data.js';
 
 describe('lineup-player-card tests', () => {
   let el: LineupPlayerCard;
@@ -33,6 +38,16 @@ describe('lineup-player-card tests', () => {
     return data;
   }
 
+  function getVisibility(element: Element) {
+    return getComputedStyle(element, null).display;
+  }
+
+  function expectVisibility(element: Element | null, visibility: string, desc: string) {
+    expect(element, desc).to.be.ok;
+    const display = getVisibility(element!);
+    expect(display).to.equal(visibility, desc);
+  }
+
   function getPlayerElement(): HTMLDivElement {
     const playerElement = el.shadowRoot!.querySelector('.player');
     assert.isOk(playerElement, 'Missing main element for player');
@@ -50,10 +65,6 @@ describe('lineup-player-card tests', () => {
     const nameElement = playerElement.querySelector('.playerName');
     assert.isOk(nameElement, 'Missing name element');
     assert.equal(nameElement!.textContent, inputPlayer.name);
-
-    // const positionsElement = playerElement.querySelector('paper-icon-item paper-item-body div[secondary]');
-    // assert.isOk(positionsElement, 'Missing positions element');
-    // assert.equal(positionsElement.textContent, 'CB, FB, HM');
 
     return playerElement;
   }
@@ -79,18 +90,6 @@ describe('lineup-player-card tests', () => {
     expect(el.selected, 'Card should be selected').to.be.true;
   });
 
-  it('renders player properties', async () => {
-    const player = getPlayer();
-    el.player = player;
-    await el.updateComplete;
-
-    assert.equal(el.player.uniformNumber, 2);
-    expect(el.selected, 'Card should not be selected').to.be.false;
-
-    verifyPlayerElements(player);
-    await expect(el).shadowDom.to.equalSnapshot();
-  });
-
   it('renders selected from player property', async () => {
     const player = getPlayer();
     player.selected = true;
@@ -101,23 +100,6 @@ describe('lineup-player-card tests', () => {
     expect(el.selected, 'Card should be selected').to.be.true;
 
     verifySelected();
-  });
-
-  it('renders data.player properties', async () => {
-    const player = getPlayer();
-    const data = getCardData(player);
-    el.data = data;
-    await el.updateComplete;
-
-    assert.equal(el.data.player!.uniformNumber, 2);
-    expect(el.selected, 'Card should not be selected').to.be.false;
-
-    const playerElement = verifyPlayerElements(player);
-
-    const positionElement = playerElement.querySelector('.currentPosition');
-    assert.isOk(positionElement, 'Missing currentPosition element');
-    assert.equal(positionElement!.textContent, data.position.type);
-    await expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('renders selected from data.player property', async () => {
@@ -267,8 +249,156 @@ describe('lineup-player-card tests', () => {
     assert.isFalse(detail.selected, 'Card should no longer be selected');
   });
 
-  it('a11y', async () => {
-    await expect(el).to.be.accessible();
-  });
+  const modeTests = [
+    {
+      playerStatus: PlayerStatus.On,
+      currentPosition: { id: 'RCB', type: 'CB' },
+      currentPositionVisible: true,
+      positionsVisible: false,
+      subForVisible: false,
+      shiftVisible: true
+    },
+    {
+      playerStatus: PlayerStatus.Next,
+      currentPosition: { id: 'HM1', type: 'HM' },
+      currentPositionVisible: true,
+      positionsVisible: false,
+      subForId: 'IDForPat',
+      subForExpected: '', //'Pat', TODO: Figure out technique for resolving player names
+      subForVisible: true,
+      shiftVisible: true
+    },
+    {
+      playerStatus: PlayerStatus.Off,
+      currentPositionVisible: false,
+      positionsVisible: true,
+      subForVisible: false,
+      shiftVisible: true
+    },
+    {
+      playerStatus: PlayerStatus.Out,
+      currentPositionVisible: false,
+      positionsVisible: false,
+      subForVisible: false,
+      shiftVisible: false
+    },
+  ];
 
-});
+  for (const modeTest of modeTests) {
+    const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    const time1 = new Date(2016, 0, 1, 14, 1, 5).getTime();
+    const testPrefix = `mode [${modeTest.playerStatus}]`;
+
+    function buildModeTestPlayer() {
+      const player = getPlayer();
+      player.status = modeTest.playerStatus;
+      player.currentPosition = modeTest.currentPosition;
+      player.replaces = modeTest.subForId;
+
+      // Set up to have a 1:05 shift.
+      const timeProvider = manualTimeProvider(startTime);
+      const timeTracker = new PlayerTimeTracker(buildPlayerTracker(player), timeProvider);
+      timeTracker.startShift();
+      timeProvider.setCurrentTime(time1);
+      timeTracker.stopShift();
+
+      return { player, timeTracker };
+    }
+
+    async function testModeRender(player: LivePlayer, _timeTracker: PlayerTimeTracker) {
+      expect(el.selected, 'Card should not be selected').to.be.false;
+
+      const playerElement = verifyPlayerElements(player);
+
+      const currentPositionElement = playerElement.querySelector('.currentPosition');
+      expectVisibility(currentPositionElement,
+        modeTest.currentPositionVisible ? 'inline' : 'none',
+        'currentPosition element');
+      if (modeTest.currentPositionVisible) {
+        expect(player.currentPosition, 'player.currentPosition').to.be.ok;
+        expect(currentPositionElement?.textContent).to.equal(
+          formatPosition(player.currentPosition!), 'currentPosition element');
+      }
+
+      const subForElement = playerElement.querySelector('.subFor');
+      expectVisibility(subForElement,
+        modeTest.subForVisible ? 'inline' : 'none',
+        'subFor element');
+      if (modeTest.subForVisible) {
+        expect(subForElement?.textContent).to.equal(
+          modeTest.subForExpected, 'subFor element');
+      }
+
+      const positionsElement = playerElement.querySelector('.playerPositions');
+      expectVisibility(positionsElement,
+        modeTest.positionsVisible ? 'inline' : 'none',
+        'playerPositions element');
+      if (modeTest.positionsVisible) {
+        expect(positionsElement?.textContent).to.equal(
+          player?.positions.join(', '), 'playerPositions element');
+      }
+
+      const shiftElement = playerElement.querySelector('.shiftTime');
+      expectVisibility(shiftElement,
+        modeTest.shiftVisible ? 'inline' : 'none',
+        'shiftTime element');
+      if (modeTest.shiftVisible) {
+        // Shift time is 1:05 (65 seconds).
+        expect(shiftElement?.textContent).to.equal(
+          Duration.format(Duration.create(65)), 'shiftTime element');
+      }
+
+      await expect(el).shadowDom.to.equalSnapshot();
+      await expect(el).to.be.accessible();
+    }
+
+    it(`${testPrefix}: renders player properties`, async () => {
+      const { player, timeTracker } = buildModeTestPlayer();
+      el.player = player;
+      el.mode = player.status;
+      el.timeTracker = timeTracker;
+      await el.updateComplete;
+
+      await testModeRender(player, timeTracker);
+    });
+
+    it(`${testPrefix}: renders data.player properties`, async () => {
+      const { player, timeTracker } = buildModeTestPlayer();
+      const data = getCardData(player);
+      el.data = data;
+      el.mode = player.status;
+      el.timeTracker = timeTracker;
+      await el.updateComplete;
+
+      await testModeRender(player, timeTracker);
+    });
+
+    if (modeTest.playerStatus === PlayerStatus.Next) {
+      it(`${testPrefix}: renders swap properties`, async () => {
+        const { player, timeTracker } = buildModeTestPlayer();
+        player.isSwap = true;
+        player.nextPosition = { id: 'RCB', type: 'CB' };
+        el.player = player;
+        el.mode = player.status;
+        el.timeTracker = timeTracker;
+        await el.updateComplete;
+
+        expect(player.currentPosition).to.not.deep.equal(player.nextPosition,
+          'Swap should have different current and next positions');
+
+        const playerElement = verifyPlayerElements(player);
+
+        const currentPositionElement = playerElement.querySelector('.currentPosition');
+        expectVisibility(currentPositionElement, 'inline', 'currentPosition element');
+        expect(player.currentPosition, 'player.currentPosition').to.be.ok;
+        expect(currentPositionElement?.textContent).to.equal(
+          formatPosition(player.nextPosition!), 'currentPosition element');
+
+        const subForElement = playerElement.querySelector('.subFor');
+        expectVisibility(subForElement, 'none', 'subFor element');
+      });
+
+    }
+
+  } // mode tests
+}); // describe('lineup-player-card tests'

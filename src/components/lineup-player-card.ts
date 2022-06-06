@@ -4,11 +4,12 @@
 
 import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { Position } from '../models/formation';
-import { LivePlayer } from '../models/game';
+import { classMap } from 'lit/directives/class-map.js';
+import { formatPosition, Position } from '../models/formation.js';
+import { LivePlayer } from '../models/game.js';
 import { PlayerTimeTracker } from '../models/shift.js';
-import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events';
-import { SharedStyles } from './shared-styles';
+import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events.js';
+import { SharedStyles } from './shared-styles.js';
 import { TimerController } from './timer-controller.js';
 
 export interface PlayerCardData {
@@ -24,19 +25,26 @@ export class LineupPlayerCard extends LitElement {
     if (!this.data && !this.player) {
       return;
     }
-    let currentPosition = '';
+    let displayPosition: Position | undefined;
     let player: LivePlayer | undefined;
 
     if (this.data) {
-      currentPosition = this.data.position.type;
+      displayPosition = this.data.position;
       player = this.data.player;
     } else {
       player = this.player!;
     }
     if (player && player.currentPosition) {
-      currentPosition = player.currentPosition.type;
+      displayPosition = player.currentPosition;
     }
-    const positions: string[] = [];//player.positions || [];
+    if (player?.isSwap) {
+      displayPosition = player.nextPosition;
+    }
+    const currentPosition = displayPosition ? formatPosition(displayPosition) : '';
+    const positions = player?.positions || [];
+    const subFor = ''; //player.replaces
+
+    const classes = { [this.mode.toLowerCase()]: true, 'swap': !!player?.isSwap };
     return html`
       ${SharedStyles}
       <style>
@@ -54,23 +62,28 @@ export class LineupPlayerCard extends LitElement {
           border-style: solid;
         }
 
+        /* Hide fields based on mode */
         .player.on .playerPositions,
         .player.on .subFor,
         .player.next .playerPositions,
+        .player.next.swap .subFor,
         .player.off .currentPosition,
-        .player.off .subFor
-        .player.out .shiftTime {
+        .player.off .subFor,
+        .player.out .currentPosition,
+        .player.out .playerPositions,
+        .player.out .shiftTime,
+        .player.out .subFor {
           display: none;
         }
 
       </style>
 
-      <span ?selected="${this.selected}" class="player ${this.mode.toLowerCase()}">
+      <span ?selected="${this.selected}" class="player ${classMap(classes)}">
         <span class="playerName">${player ? player.name : ''}</span>
         <span class="uniformNumber">${player ? player.uniformNumber : ''}</span>
         <span class="currentPosition">${currentPosition}</span>
         <span class="playerPositions">${positions.join(', ')}</span>
-        <!-- <span class="subFor">{player.replaces}</span> -->
+        <span class="subFor">${subFor}</span>
         <span class="shiftTime">${this.timer.text}</span>
       </span>
     `;
