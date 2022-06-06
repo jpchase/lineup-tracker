@@ -1,43 +1,6 @@
 /* @web/test-runner snapshot v1 */
 export const snapshots = {};
 
-snapshots["lineup-player-card tests renders player properties"] = 
-`<span class="player">
-  <span class="playerName">
-    Amanda
-  </span>
-  <span class="uniformNumber">
-    2
-  </span>
-  <span class="currentPosition">
-  </span>
-  <span class="playerPositions">
-  </span>
-  <span class="shiftTime">
-  </span>
-</span>
-`;
-/* end snapshot lineup-player-card tests renders player properties */
-
-snapshots["lineup-player-card tests renders data.player properties"] = 
-`<span class="player">
-  <span class="playerName">
-    Amanda
-  </span>
-  <span class="uniformNumber">
-    2
-  </span>
-  <span class="currentPosition">
-    HM
-  </span>
-  <span class="playerPositions">
-  </span>
-  <span class="shiftTime">
-  </span>
-</span>
-`;
-/* end snapshot lineup-player-card tests renders data.player properties */
-
 snapshots["lineup-player-card tests renders data properties without player"] = 
 `<span class="player">
   <span class="playerName">
@@ -49,9 +12,195 @@ snapshots["lineup-player-card tests renders data properties without player"] =
   </span>
   <span class="playerPositions">
   </span>
+  <span class="subFor">
+  </span>
   <span class="shiftTime">
   </span>
 </span>
 `;
 /* end snapshot lineup-player-card tests renders data properties without player */
+
+snapshots["lineup-player-card tests mode [ON]: renders player properties"] = 
+`<span class="on player">
+  <span class="playerName">
+    Amanda
+  </span>
+  <span class="uniformNumber">
+    2
+  </span>
+  <span class="currentPosition">
+    CB (Right)
+  </span>
+  <span class="playerPositions">
+    CB, FB, HM
+  </span>
+  <span class="subFor">
+  </span>
+  <span class="shiftTime">
+    01:05
+  </span>
+</span>
+`;
+/* end snapshot lineup-player-card tests mode [ON]: renders player properties */
+
+snapshots["lineup-player-card tests mode [ON]: renders data.player properties"] = 
+`<span class="on player">
+  <span class="playerName">
+    Amanda
+  </span>
+  <span class="uniformNumber">
+    2
+  </span>
+  <span class="currentPosition">
+    CB (Right)
+  </span>
+  <span class="playerPositions">
+    CB, FB, HM
+  </span>
+  <span class="subFor">
+  </span>
+  <span class="shiftTime">
+    01:05
+  </span>
+</span>
+`;
+/* end snapshot lineup-player-card tests mode [ON]: renders data.player properties */
+
+snapshots["lineup-player-card tests mode [OFF]: renders player properties"] = 
+`<span class="off player">
+  <span class="playerName">
+    Amanda
+  </span>
+  <span class="uniformNumber">
+    2
+  </span>
+  <span class="currentPosition">
+  </span>
+  <span class="playerPositions">
+    CB, FB, HM
+  </span>
+  <span class="subFor">
+  </span>
+  <span class="shiftTime">
+    01:05
+  </span>
+</span>
+`;
+/* end snapshot lineup-player-card tests mode [OFF]: renders player properties */
+
+snapshots["lineup-player-card tests mode [OFF]: renders data.player properties"] = 
+`<span class="off player">
+  <span class="playerName">
+    Amanda
+  </span>
+  <span class="uniformNumber">
+    2
+  </span>
+  <span class="currentPosition">
+    HM
+  </span>
+  <span class="playerPositions">
+    CB, FB, HM
+  </span>
+  <span class="subFor">
+  </span>
+  <span class="shiftTime">
+    01:05
+  </span>
+</span>
+`;
+/* end snapshot lineup-player-card tests mode [OFF]: renders data.player properties */
+
+snapshots["lineup-player-card tests mode [OUT]: renders player properties"] = 
+`<span class="out player">
+  <span class="playerName">
+    Amanda
+  </span>
+  <span class="uniformNumber">
+    2
+  </span>
+  <span class="currentPosition">
+  </span>
+  <span class="playerPositions">
+    CB, FB, HM
+  </span>
+  <span class="subFor">
+  </span>
+  <span class="shiftTime">
+    01:05
+  </span>
+</span>
+`;
+/* end snapshot lineup-player-card tests mode [OUT]: renders player properties */
+
+snapshots["lineup-player-card tests mode [OUT]: renders data.player properties"] = 
+`<span class="out player">
+  <span class="playerName">
+    Amanda
+  </span>
+  <span class="uniformNumber">
+    2
+  </span>
+  <span class="currentPosition">
+    HM
+  </span>
+  <span class="playerPositions">
+    CB, FB, HM
+  </span>
+  <span class="subFor">
+  </span>
+  <span class="shiftTime">
+    01:05
+  </span>
+</span>
+`;
+/* end snapshot lineup-player-card tests mode [OUT]: renders data.player properties */
+
+snapshots["lineup-player-card tests mode [NEXT]: renders player properties"] = 
+`<span class="next player">
+  <span class="playerName">
+    Amanda
+  </span>
+  <span class="uniformNumber">
+    2
+  </span>
+  <span class="currentPosition">
+    HM (1)
+  </span>
+  <span class="playerPositions">
+    CB, FB, HM
+  </span>
+  <span class="subFor">
+    Player To Be Replaced
+  </span>
+  <span class="shiftTime">
+    01:05
+  </span>
+</span>
+`;
+/* end snapshot lineup-player-card tests mode [NEXT]: renders player properties */
+
+snapshots["lineup-player-card tests mode [NEXT]: renders data.player properties"] = 
+`<span class="next player">
+  <span class="playerName">
+    Amanda
+  </span>
+  <span class="uniformNumber">
+    2
+  </span>
+  <span class="currentPosition">
+    HM (1)
+  </span>
+  <span class="playerPositions">
+    CB, FB, HM
+  </span>
+  <span class="subFor">
+    Player To Be Replaced
+  </span>
+  <span class="shiftTime">
+    01:05
+  </span>
+</span>
+`;
+/* end snapshot lineup-player-card tests mode [NEXT]: renders data.player properties */
 
