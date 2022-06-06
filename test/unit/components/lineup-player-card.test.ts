@@ -7,6 +7,7 @@ import { LivePlayer } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTracker } from '@app/models/shift.js';
 import { assert, expect, fixture, oneEvent } from '@open-wc/testing';
+import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
 import { manualTimeProvider } from '../helpers/test-clock-data.js';
 import { buildPlayerTracker } from '../helpers/test-shift-data.js';
 
@@ -14,7 +15,25 @@ describe('lineup-player-card tests', () => {
   let el: LineupPlayerCard;
 
   beforeEach(async () => {
-    el = await fixture('<lineup-player-card></lineup-player-card>');
+    // Wire up a node that will handle context requests for a PlayerResolver.
+    const parentNode = buildPlayerResolverParentNode(
+      {
+        getPlayer: (playerId) => {
+          let player: LivePlayer | undefined;
+          if (playerId === 'OnPlayerToBeReplaced') {
+            player = {
+              id: playerId,
+              name: 'Player To Be Replaced',
+              uniformNumber: 94,
+              positions: ['OM'],
+              status: PlayerStatus.On
+            }
+          }
+          return player;
+        }
+      });
+
+    el = await fixture('<lineup-player-card></lineup-player-card>', { parentNode });
   });
 
   function getPlayer(): LivePlayer {
@@ -263,8 +282,8 @@ describe('lineup-player-card tests', () => {
       currentPosition: { id: 'HM1', type: 'HM' },
       currentPositionVisible: true,
       positionsVisible: false,
-      subForId: 'IDForPat',
-      subForExpected: '', //'Pat', TODO: Figure out technique for resolving player names
+      subForId: 'OnPlayerToBeReplaced',
+      subForExpected: 'Player To Be Replaced',
       subForVisible: true,
       shiftVisible: true
     },

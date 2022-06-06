@@ -8,7 +8,9 @@ import { classMap } from 'lit/directives/class-map.js';
 import { formatPosition, Position } from '../models/formation.js';
 import { LivePlayer } from '../models/game.js';
 import { PlayerTimeTracker } from '../models/shift.js';
+import { ContextEvent } from './context.js';
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events.js';
+import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 import { TimerController } from './timer-controller.js';
 
@@ -42,7 +44,13 @@ export class LineupPlayerCard extends LitElement {
     }
     const currentPosition = displayPosition ? formatPosition(displayPosition) : '';
     const positions = player?.positions || [];
-    const subFor = ''; //player.replaces
+    let subFor = '';
+    if (player?.replaces) {
+      const replacedPlayer = this.playerResolver?.getPlayer(player.replaces);
+      if (replacedPlayer) {
+        subFor = replacedPlayer.name;
+      }
+    }
 
     const classes = { [this.mode.toLowerCase()]: true, 'swap': !!player?.isSwap };
     return html`
@@ -90,6 +98,7 @@ export class LineupPlayerCard extends LitElement {
   }
 
   private timer = new TimerController(this);
+  private playerResolver?: PlayerResolver;
 
   @property({ type: String })
   mode = '';
@@ -128,7 +137,21 @@ export class LineupPlayerCard extends LitElement {
     return this.data ? this.data!.player : this.player;
   }
 
-  protected willUpdate(changedProperties: PropertyValues<this>) {
+  override connectedCallback() {
+    super.connectedCallback();
+
+    this.dispatchEvent(
+      new ContextEvent(
+        playerResolverContext,
+        (resolver) => {
+          this.playerResolver = resolver;
+        },
+        true // Get updates when the value changes, primarily for testing.
+      )
+    );
+  }
+
+  override willUpdate(changedProperties: PropertyValues<this>) {
     if (!changedProperties.has('timeTracker')) {
       return;
     }
@@ -140,13 +163,12 @@ export class LineupPlayerCard extends LitElement {
     this.timer.timer = this.timeTracker?.currentTimer;
   }
 
-  protected firstUpdated() {
+  override firstUpdated() {
     // Handles clicks anywhere on this component (i.e. not just on the contained span).
-    this.addEventListener('click', this._toggleSelected);
+    this.addEventListener('click', this.toggleSelected);
   }
 
-  _toggleSelected(e: Event) {
-    console.log('_toggleSelected - ' + this.selected, e);
+  toggleSelected() {
     const newSelected = !this.selected;
 
     // Fires a position selected event, when |data| provided. Otherwise, fires a

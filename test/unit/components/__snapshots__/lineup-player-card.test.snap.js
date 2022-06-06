@@ -171,6 +171,7 @@ snapshots["lineup-player-card tests mode [NEXT]: renders player properties"] =
     CB, FB, HM
   </span>
   <span class="subFor">
+    Player To Be Replaced
   </span>
   <span class="shiftTime">
     01:05
@@ -194,6 +195,7 @@ snapshots["lineup-player-card tests mode [NEXT]: renders data.player properties"
     CB, FB, HM
   </span>
   <span class="subFor">
+    Player To Be Replaced
   </span>
   <span class="shiftTime">
     01:05
