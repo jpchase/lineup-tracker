@@ -2,13 +2,13 @@
 @license
 */
 
+import { contextProvided } from '@lit-labs/context';
 import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { formatPosition, Position } from '../models/formation.js';
 import { LivePlayer } from '../models/game.js';
 import { PlayerTimeTracker } from '../models/shift.js';
-import { ContextEvent } from './context.js';
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
@@ -98,7 +98,10 @@ export class LineupPlayerCard extends LitElement {
   }
 
   private timer = new TimerController(this);
-  private playerResolver?: PlayerResolver;
+
+  @contextProvided({ context: playerResolverContext, subscribe: true })
+  @property({ attribute: false })
+  playerResolver!: PlayerResolver;
 
   @property({ type: String })
   mode = '';
@@ -135,20 +138,6 @@ export class LineupPlayerCard extends LitElement {
 
   private _getPlayer() {
     return this.data ? this.data!.player : this.player;
-  }
-
-  override connectedCallback() {
-    super.connectedCallback();
-
-    this.dispatchEvent(
-      new ContextEvent(
-        playerResolverContext,
-        (resolver) => {
-          this.playerResolver = resolver;
-        },
-        true // Get updates when the value changes, primarily for testing.
-      )
-    );
   }
 
   override willUpdate(changedProperties: PropertyValues<this>) {

@@ -2,6 +2,7 @@
 @license
 */
 
+import { ContextProvider } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement } from 'lit';
@@ -22,13 +23,12 @@ import {
   proposedSubSelector, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
-import { ContextEvent, UnknownContext } from './context.js';
 import './lineup-game-clock.js';
 import { ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-shifts.js';
 import './lineup-on-player-list.js';
 import './lineup-player-list.js';
-import { PlayerResolver, playerResolverContext } from './player-resolver.js';
+import { playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 
 // This element is connected to the Redux store.
@@ -186,31 +186,14 @@ export class LineupGameLive extends connectStore()(LitElement) {
   @state()
   private trackerData?: PlayerTimeTrackerMapData;
 
-  private readonly playerResolver: PlayerResolver;
-
-  constructor() {
-    super();
-
-    this.playerResolver = {
-      getPlayer: (playerId) => {
-        return this._findPlayer(playerId);
-      }
+  // Protected as a workaround for "not read" TS error.
+  protected playerResolver = new ContextProvider(this, playerResolverContext, {
+    getPlayer: (playerId) => {
+      return this._findPlayer(playerId);
     }
-  }
+  });
 
-  override connectedCallback() {
-    super.connectedCallback();
-
-    this.addEventListener(ContextEvent.eventName, event => {
-      const contextEvent = event as ContextEvent<UnknownContext>;
-      if (contextEvent.context.name = playerResolverContext.name) {
-        contextEvent.stopPropagation();
-        contextEvent.callback(this.playerResolver);
-      }
-    });
-  }
-
-  stateChanged(state: RootState) {
+  override stateChanged(state: RootState) {
     if (!state.live) {
       return;
     }
