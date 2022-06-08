@@ -4,7 +4,7 @@ import { LiveGame } from '../models/game.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
 import { ClockState } from './live/clock-slice.js';
-import { clockSelector, live, selectCurrentShift, selectLiveGameById } from './live/live-slice.js';
+import { clockSelector, live, selectCurrentLiveGame, selectCurrentShift } from './live/live-slice.js';
 import { ShiftState } from './live/shift-slice.js';
 
 const KEY_CACHED_LIVE = 'CACHED_LIVE';
@@ -65,7 +65,7 @@ export function persistState(storeInstance: Store<RootState>) {
   console.log('persistState: start');
   const state = storeInstance.getState();
 
-  const currentGame = selectLiveGameById(state);
+  const currentGame = selectCurrentLiveGame(state);
   if (!currentGame) {
     console.log('persistState: current game missing');
     return;

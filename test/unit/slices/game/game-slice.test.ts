@@ -367,7 +367,7 @@ describe('Games actions', () => {
       writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
-        gameSetupCompletedCreator()(dispatchMock, getStateMock, undefined);
+        gameSetupCompletedCreator(existingGame.id)(dispatchMock, getStateMock, undefined);
       }).to.throw('Storage failed');
 
       // Waits for promises to resolve.

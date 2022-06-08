@@ -15,7 +15,7 @@ import {
   GET_GAME_SUCCESS,
 } from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
+import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
@@ -276,7 +276,7 @@ describe('lineup-game-setup tests', () => {
           store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
           await el.updateComplete;
 
-          liveGame = store.getState().live!.liveGame!;
+          liveGame = selectLiveGameById(store.getState())!;
         });
 
         it('perform handler fires only when active', async () => {
@@ -411,7 +411,7 @@ describe('lineup-game-setup tests', () => {
       store.dispatch(formationSelected(FormationType.F4_3_3));
       store.dispatch(completeRoster(newGame.roster));
       await el.updateComplete;
-      liveGame = store.getState().live!.liveGame!;
+      liveGame = selectLiveGameById(store.getState())!;
     });
 
     it('shows starter player sections for new game', async () => {

@@ -62,13 +62,16 @@ const INITIAL_STATE: LiveGameState = {
 };
 
 export const selectLiveGameById = (state: RootState, gameId?: string) => {
-  if (!state.live?.liveGame || (gameId && state.live.liveGame.id !== gameId)) {
+  if (!state.live || !gameId) {
     return;
   }
-  return state.live.liveGame;
+  return findGame(state.live, gameId);
 }
 export const selectCurrentLiveGame = (state: RootState) => {
-  return state.live?.liveGame;
+  if (!state.live) {
+    return;
+  }
+  return findCurrentGame(state.live);
 }
 
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
@@ -76,12 +79,13 @@ export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap
 export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
 export const selectPendingSubs = (state: RootState, selectedOnly?: boolean) => {
-  if (!state.live) {
+  const game = selectCurrentLiveGame(state);
+  if (!game) {
     return;
   }
-  const nextPlayers = findPlayersByStatus(state.live, PlayerStatus.Next, selectedOnly);
+  const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next, selectedOnly);
   if (nextPlayers.some(player => {
-    const replacedPlayer = findPlayer(state.live!, player.replaces!);
+    const replacedPlayer = getPlayer(game, player.replaces!);
     return (replacedPlayer?.status !== PlayerStatus.On);
   })) {
     return;
@@ -140,7 +144,7 @@ const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
     }
     // TODO: This will overwrite a currently loaded game with different game id
     state.gameId = action.game.id;
-    state.liveGame = action.game;
+    updateGame(state, action.game);
     if (action.clock) {
       state.clock = action.clock;
     }
@@ -152,7 +156,7 @@ const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
 
 const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
   [GET_GAME_SUCCESS]: (state, action) => {
-    if (state.liveGame && state.liveGame.id === action.game.id) {
+    if (findGame(state, action.game.id)) {
       // Game has already been initialized.
       return;
     }
@@ -162,7 +166,7 @@ const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
       updateTasks(game);
     }
 
-    state.liveGame = game;
+    updateGame(state, game);
   },
 });
 
@@ -177,7 +181,7 @@ const liveSlice = createSlice({
       if (liveGame.status === GameStatus.New) {
         updateTasks(liveGame);
       }
-      state.liveGame = liveGame;
+      updateGame(state, liveGame);
     },
 
     completeRoster: (state, action: PayloadAction<Roster>) => {
@@ -188,7 +192,8 @@ const liveSlice = createSlice({
         return { ...player } as LivePlayer;
       });
 
-      state.liveGame!.players = players;
+      const liveGame = findCurrentGame(state);
+      liveGame!.players = players;
 
       completeSetupStepForAction(state, SetupSteps.Roster);
     },
@@ -198,7 +203,7 @@ const liveSlice = createSlice({
         if (!action.payload.formationType) {
           return;
         }
-        const game = state.liveGame!;
+        const game = findCurrentGame(state)!;
         game.formation = { type: action.payload.formationType };
 
         completeSetupStepForAction(state, SetupSteps.Formation);
@@ -223,8 +228,8 @@ const liveSlice = createSlice({
 
     gameSetupCompleted: {
       reducer: (state, action: PayloadAction<GameSetupCompletedPayload>) => {
-        const game = state.liveGame!;
-        if (game.id !== action.payload.gameId) {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
           return;
         }
         if (game.status !== GameStatus.New) {
@@ -246,8 +251,9 @@ const liveSlice = createSlice({
 
     selectStarter: {
       reducer: (state, action: PayloadAction<SelectPlayer>) => {
+        const game = findCurrentGame(state)!;
         const playerId = action.payload.playerId;
-        const selectedPlayer = findPlayer(state, playerId);
+        const selectedPlayer = getPlayer(game, playerId);
         if (selectedPlayer) {
           selectedPlayer.selected = !!action.payload.selected;
         }
@@ -296,7 +302,8 @@ const liveSlice = createSlice({
       const starter = state.proposedStarter;
       const positionId = starter.currentPosition!.id;
 
-      state.liveGame!.players!.forEach(player => {
+      const game = findCurrentGame(state)!;
+      game.players!.forEach(player => {
         if (player.id === starter.id) {
           player.selected = false;
           player.status = PlayerStatus.On;
@@ -319,7 +326,8 @@ const liveSlice = createSlice({
       if (!state.proposedStarter) {
         return;
       }
-      const selectedPlayer = findPlayer(state, state.selectedStarterPlayer!);
+      const game = findCurrentGame(state)!;
+      const selectedPlayer = getPlayer(game, state.selectedStarterPlayer!);
       if (selectedPlayer && selectedPlayer.selected) {
         selectedPlayer.selected = false;
       }
@@ -328,8 +336,9 @@ const liveSlice = createSlice({
 
     selectPlayer: {
       reducer: (state, action: PayloadAction<SelectPlayer>) => {
+        const game = findCurrentGame(state)!;
         const playerId = action.payload.playerId;
-        const selectedPlayer = findPlayer(state, playerId);
+        const selectedPlayer = getPlayer(game, playerId);
         if (!selectedPlayer) {
           return;
         }
@@ -375,7 +384,8 @@ const liveSlice = createSlice({
           return;
         }
 
-        state.liveGame!.players!.forEach(player => {
+        const game = findCurrentGame(state)!;
+        game.players!.forEach(player => {
           if (player.id === sub.id) {
             player.selected = false;
             player.status = PlayerStatus.Next;
@@ -404,9 +414,10 @@ const liveSlice = createSlice({
       if (!state.proposedSub) {
         return;
       }
+      const game = findCurrentGame(state)!;
       const cancelIds = [state.selectedOffPlayer!, state.selectedOnPlayer!];
       for (const playerId of cancelIds) {
-        const selectedPlayer = findPlayer(state, playerId);
+        const selectedPlayer = getPlayer(game, playerId);
         if (selectedPlayer && selectedPlayer.selected) {
           selectedPlayer.selected = false;
         }
@@ -420,9 +431,10 @@ const liveSlice = createSlice({
         return;
       }
 
+      const game = findCurrentGame(state)!;
       const swapIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
       for (const playerId of swapIds) {
-        const selectedPlayer = findPlayer(state, playerId);
+        const selectedPlayer = getPlayer(game, playerId);
         if (!!selectedPlayer?.selected) {
           selectedPlayer.selected = false;
         }
@@ -434,7 +446,7 @@ const liveSlice = createSlice({
         status: PlayerStatus.Next,
         selected: false
       }
-      state.liveGame!.players!.push(nextSwap);
+      game.players!.push(nextSwap);
 
       clearProposedSwap(state);
     },
@@ -443,9 +455,10 @@ const liveSlice = createSlice({
       if (!state.proposedSwap) {
         return;
       }
+      const game = findCurrentGame(state)!;
       const cancelIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
       for (const playerId of cancelIds) {
-        const selectedPlayer = findPlayer(state, playerId);
+        const selectedPlayer = getPlayer(game, playerId);
         if (!!selectedPlayer?.selected) {
           selectedPlayer.selected = false;
         }
@@ -455,12 +468,13 @@ const liveSlice = createSlice({
 
     applyPendingSubs: {
       reducer: (state, action: PayloadAction<PendingSubsAppliedPayload>) => {
+        const game = findCurrentGame(state)!;
         action.payload.subs.forEach(sub => {
-          const player = findPlayer(state, sub.id);
+          const player = getPlayer(game, sub.id);
           if (player?.status !== PlayerStatus.Next) {
             return;
           }
-          const replacedPlayer = findPlayer(state, player.replaces!);
+          const replacedPlayer = getPlayer(game, player.replaces!);
           if (!(replacedPlayer && replacedPlayer.status === PlayerStatus.On)) {
             return;
           }
@@ -475,14 +489,14 @@ const liveSlice = createSlice({
         });
 
         // Apply any position swaps
-        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next,
+        const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next,
           action.payload.selectedOnly, /* includeSwaps */ true);
         nextPlayers.forEach(swapPlayer => {
           if (!swapPlayer.isSwap) {
             return;
           }
           const actualPlayerId = extractIdFromSwapPlayerId(swapPlayer.id);
-          const player = findPlayer(state, actualPlayerId);
+          const player = getPlayer(game, actualPlayerId);
           if (player?.status !== PlayerStatus.On) {
             return;
           }
@@ -490,7 +504,7 @@ const liveSlice = createSlice({
           player.currentPosition = { ...swapPlayer.nextPosition! };
           player.selected = false;
 
-          deletePlayer(state, swapPlayer.id);
+          removePlayer(game, swapPlayer.id);
         });
       },
 
@@ -506,11 +520,12 @@ const liveSlice = createSlice({
 
     discardPendingSubs: {
       reducer: (state, action: PayloadAction<{ selectedOnly?: boolean }>) => {
-        const nextPlayers = findPlayersByStatus(state, PlayerStatus.Next,
+        const game = findCurrentGame(state)!;
+        const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next,
           action.payload.selectedOnly, /* includeSwaps */ true);
         nextPlayers.forEach(player => {
           if (player.isSwap) {
-            deletePlayer(state, player.id);
+            removePlayer(game, player.id);
             return;
           }
 
@@ -531,8 +546,8 @@ const liveSlice = createSlice({
 
     gameCompleted: {
       reducer: (state, action: PayloadAction<{ gameId: string }>) => {
-        const game = state.liveGame!;
-        if (game.id !== action.payload.gameId) {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
           return;
         }
         if (game.status !== GameStatus.Done) {
@@ -558,11 +573,11 @@ const liveSlice = createSlice({
         return;
       }
       // TODO: validate game matches?
-      const game = state.liveGame!;
+      const game = findCurrentGame(state)!;
       game.status = GameStatus.Live;
     }).addCase(endPeriod, (state: LiveState) => {
       // TODO: validate game matches?
-      const game = state.liveGame!;
+      const game = findCurrentGame(state)!;
       if (game.status !== GameStatus.Live) {
         return;
       }
@@ -585,7 +600,7 @@ export const {
 } = actions;
 
 function completeSetupStepForAction(state: LiveGameState, setupStepToComplete: SetupSteps) {
-  const game = state.liveGame!;
+  const game = findCurrentGame(state)!;
 
   updateTasks(game, game.setupTasks, setupStepToComplete);
 }
@@ -634,8 +649,8 @@ function prepareStarterIfPossible(state: LiveState) {
     // Need both a position and player selected to setup a starter
     return;
   }
-
-  const player = findPlayer(state, state.selectedStarterPlayer);
+  const game = findCurrentGame(state)!;
+  const player = getPlayer(game, state.selectedStarterPlayer);
   if (!player) {
     return;
   }
@@ -660,11 +675,12 @@ function prepareSubIfPossible(state: LiveState): boolean {
     return false;
   }
 
-  const offPlayer = findPlayer(state, state.selectedOffPlayer);
+  const game = findCurrentGame(state)!;
+  const offPlayer = getPlayer(game, state.selectedOffPlayer);
   if (!offPlayer) {
     return false;
   }
-  const onPlayer = findPlayer(state, state.selectedOnPlayer);
+  const onPlayer = getPlayer(game, state.selectedOnPlayer);
   if (!onPlayer) {
     return false;
   }
@@ -691,11 +707,12 @@ function prepareSwapIfPossible(state: LiveState) {
     return;
   }
 
-  const onPlayer = findPlayer(state, state.selectedOnPlayer);
+  const game = findCurrentGame(state)!;
+  const onPlayer = getPlayer(game, state.selectedOnPlayer);
   if (!onPlayer) {
     return;
   }
-  const positionPlayer = findPlayer(state, state.selectedOnPlayer2);
+  const positionPlayer = getPlayer(game, state.selectedOnPlayer2);
   if (!positionPlayer) {
     return;
   }
@@ -716,12 +733,19 @@ function clearProposedSwap(state: LiveState) {
   state.proposedSwap = undefined;
 }
 
-function findPlayer(state: LiveState, playerId: string) {
-  return getPlayer(state.liveGame!, playerId);
+function findCurrentGame(state: LiveState) {
+  return findGame(state, state.gameId);
 }
 
-function deletePlayer(state: LiveState, playerId: string) {
-  return removePlayer(state.liveGame!, playerId);
+function findGame(state: LiveState, gameId: string) {
+  if (!state.liveGame || (gameId && state.liveGame.id !== gameId)) {
+    return;
+  }
+  return state.liveGame;
+}
+
+function updateGame(state: LiveState, game: LiveGame) {
+  state.liveGame = game;
 }
 
 function buildSwapPlayerId(playerId: string) {
@@ -735,10 +759,10 @@ function extractIdFromSwapPlayerId(swapPlayerId: string) {
   return swapPlayerId.slice(0, swapPlayerId.length - SWAP_ID_SUFFIX.length);
 }
 
-function findPlayersByStatus(state: LiveState, status: PlayerStatus,
+function findPlayersByStatus(game: LiveGame, status: PlayerStatus,
   selectedOnly?: boolean, includeSwaps?: boolean) {
   let matches: LivePlayer[] = [];
-  state.liveGame!.players!.forEach(player => {
+  game.players!.forEach(player => {
     if (player.status !== status) {
       return;
     }

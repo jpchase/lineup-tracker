@@ -20,7 +20,7 @@ import {
   cancelSub, cancelSwap, clockSelector, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
   gameCompleted,
   pendingSubsAppliedCreator,
-  proposedSubSelector, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
+  proposedSubSelector, selectCurrentLiveGame, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
@@ -197,7 +197,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
     if (!state.live) {
       return;
     }
-    this._game = state.live!.liveGame;
+    this._game = selectCurrentLiveGame(state);
     if (!this._game) {
       return;
     }

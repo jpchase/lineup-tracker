@@ -224,13 +224,13 @@ export class LineupGameSetup extends connectStore()(LitElement) {
       this.dispatch(getLiveGame(this.game));
       return;
     }
-    this.tasks = state.live.liveGame?.setupTasks || [];
+    this.tasks = liveGame.setupTasks || [];
 
     const anyIncomplete = this.tasks.some(task => task.status !== SetupStatus.Complete);
     this.tasksComplete = !anyIncomplete;
 
-    this.formation = state.live.liveGame?.formation;
-    this.players = state.live.liveGame?.players || [];
+    this.formation = liveGame.formation;
+    this.players = liveGame.players || [];
     this.selectedStarterPosition = state.live.selectedStarterPosition;
     this.proposedStarter = state.live.proposedStarter;
   }
