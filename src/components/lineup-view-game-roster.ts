@@ -24,7 +24,7 @@ export { getGame };
 @customElement('lineup-view-game-roster')
 export class LineupViewGameRoster extends connectStore()(PageViewElement) {
   // TODO: Extract common logic (duplicated from LineupViewGameDetail)
-  protected render() {
+  override render() {
     const gameExists = !!this._game;
     let rosterExists = false;
     let isNewStatus = false;
@@ -79,7 +79,7 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
   }
 
   @property({ type: Object })
-  store?: RootStore;
+  override store?: RootStore;
 
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getGameStore;
@@ -93,7 +93,7 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
   @state()
   private _copyingInProgress = false;
 
-  stateChanged(state: RootState) {
+  override stateChanged(state: RootState) {
     if (!state.game) {
       return;
     }

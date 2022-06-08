@@ -17,7 +17,7 @@ import { SharedStyles } from './shared-styles';
 // This element is *not* connected to the Redux store.
 @customElement('lineup-team-selector')
 export class LineupTeamSelector extends LitElement {
-  protected render() {
+  override render() {
     return html`
       ${SharedStyles}
       <style>
@@ -118,7 +118,7 @@ export class TeamChangedEvent extends CustomEvent<TeamChangedDetail> {
 
 @customElement('lineup-team-selector-dialog')
 export class LineupTeamSelectorDialog extends LitElement {
-  protected render() {
+  override render() {
     const teamList = Object.keys(this.teams).map((key) => this.teams[key]);
     const hasTeams = teamList.length > 0;
     const selectEnabled = hasTeams && this.changedTeamId && (this.changedTeamId !== this.teamId);

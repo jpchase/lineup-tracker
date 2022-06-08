@@ -57,7 +57,7 @@ function isAutoStep(step: SetupSteps): boolean {
 
 @customElement('lineup-game-setup')
 export class LineupGameSetup extends connectStore()(LitElement) {
-  protected render() {
+  override render() {
     const tasks = this.tasks;
     const players = this.players;
 
@@ -177,7 +177,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   @property({ type: Object })
-  store?: RootStore;
+  override store?: RootStore;
 
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getLiveStore;
@@ -206,11 +206,11 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   @state()
   private proposedStarter: LivePlayer | undefined;
 
-  protected firstUpdated() {
+  override firstUpdated() {
     getGameStore(this.store);
   }
 
-  stateChanged(state: RootState) {
+  override stateChanged(state: RootState) {
     if (!state.game || !state.live) {
       return;
     }

@@ -34,7 +34,7 @@ import { SharedStyles } from './shared-styles.js';
 // This element is connected to the Redux store.
 @customElement('lineup-game-live')
 export class LineupGameLive extends connectStore()(LitElement) {
-  protected render() {
+  override render() {
     return html`
       ${SharedStyles}
       <style>
@@ -151,7 +151,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
   }
 
   @property({ type: Object })
-  store?: RootStore;
+  override store?: RootStore;
 
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getLiveStore;

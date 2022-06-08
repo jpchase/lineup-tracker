@@ -44,7 +44,7 @@ interface Pages {
 // This element is connected to the Redux store.
 @customElement('lineup-app')
 export class LineupApp extends connect(store)(LitElement) {
-  protected render() {
+  override render() {
     return html`
     <style>
       :host {
@@ -347,7 +347,7 @@ export class LineupApp extends connect(store)(LitElement) {
     setPassiveTouchGestures(true);
   }
 
-  protected firstUpdated() {
+  override firstUpdated() {
     const urlParams = new URLSearchParams(location.search);
 
     installOfflineWatcher((offline) => store.dispatch(updateOffline(offline)));
@@ -366,7 +366,7 @@ export class LineupApp extends connect(store)(LitElement) {
     });
   }
 
-  protected updated(changedProps: PropertyValues) {
+  override updated(changedProps: PropertyValues) {
     if (changedProps.has('_page')) {
       let pageTitle = this.appTitle;
       if (this._page in this._pages) {
@@ -410,7 +410,7 @@ export class LineupApp extends connect(store)(LitElement) {
     store.dispatch(navigate(window.location));
   }
 
-  stateChanged(state: RootState) {
+  override stateChanged(state: RootState) {
     this._page = state.app!.page;
     this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;

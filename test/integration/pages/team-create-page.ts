@@ -16,7 +16,7 @@ export class TeamCreatePage extends PageObject {
     });
   }
 
-  protected get openFunc(): PageOpenFunction | undefined {
+  override get openFunc(): PageOpenFunction | undefined {
     return;
   }
 

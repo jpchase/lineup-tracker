@@ -23,7 +23,7 @@ export interface ClockPeriodData {
 // This element is *not* connected to the Redux store.
 @customElement('lineup-game-clock')
 export class LineupGameClock extends LitElement {
-  protected render() {
+  override render() {
     const periodPending = this.periodData?.periodStatus === PeriodStatus.Pending;
     const periodRunning = this.periodData?.periodStatus === PeriodStatus.Running;
     const periodText = `Period: ${this.periodData?.currentPeriod || 1}`;

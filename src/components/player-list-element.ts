@@ -25,7 +25,7 @@ export const PlayerListMixin = <T extends Constructor<LitElement>>(superClass: T
     @property({ type: Object })
     public trackerData?: PlayerTimeTrackerMapData;
 
-    willUpdate(changedProperties: PropertyValues<this>) {
+    override willUpdate(changedProperties: PropertyValues<this>) {
       super.willUpdate(changedProperties);
 
       if (!changedProperties.has('trackerData')) {

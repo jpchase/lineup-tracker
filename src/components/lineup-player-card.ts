@@ -23,7 +23,7 @@ export interface PlayerCardData {
 // This element is *not* connected to the Redux store.
 @customElement('lineup-player-card')
 export class LineupPlayerCard extends LitElement {
-  protected render() {
+  override render() {
     if (!this.data && !this.player) {
       return;
     }

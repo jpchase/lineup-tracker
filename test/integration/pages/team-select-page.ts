@@ -13,7 +13,7 @@ export class TeamSelectPage extends PageObject {
     });
   }
 
-  protected get openFunc(): PageOpenFunction | undefined {
+  override get openFunc(): PageOpenFunction | undefined {
     return async () => {
       await this.page.evaluate(`(async () => {
         const teamSelector = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-team-selector').shadowRoot.querySelector('mwc-button');

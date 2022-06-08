@@ -22,7 +22,7 @@ interface ShiftRow {
 // This element is *not* connected to the Redux store.
 @customElement('lineup-game-shifts')
 export class LineupGameShifts extends LitElement {
-  protected render() {
+  override render() {
     const rows = this.getShiftRows();
 
     return html`
@@ -59,12 +59,12 @@ export class LineupGameShifts extends LitElement {
   @property({ type: Array })
   public players: LivePlayer[] = [];
 
-  disconnectedCallback() {
+  override disconnectedCallback() {
     super.disconnectedCallback()
     this.clearRefreshTimer();
   }
 
-  willUpdate(changedProperties: PropertyValues<this>) {
+  override willUpdate(changedProperties: PropertyValues<this>) {
     if (!changedProperties.has('trackerData')) {
       return;
     }

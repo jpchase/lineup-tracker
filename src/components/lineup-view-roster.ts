@@ -27,7 +27,7 @@ import { SharedStyles } from './shared-styles';
 
 @customElement('lineup-view-roster')
 export class LineupViewRoster extends connect(store)(PageViewElement) {
-  protected render() {
+  override render() {
     return html`
       ${SharedStyles}
       <section>
@@ -48,7 +48,7 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
   private _roster: Roster = {};
 
   // This is called every time something is updated in the store.
-  stateChanged(state: RootState) {
+  override stateChanged(state: RootState) {
     if (!state.team) {
       return;
     }

@@ -95,7 +95,7 @@ export class Duration {
   static addToDate(date: number, duration: Duration): number {
     let result = new Date(date);
     result.setMinutes(result.getMinutes(),
-                      result.getSeconds() + duration._elapsed);
+      result.getSeconds() + duration._elapsed);
     return result.getTime();
   }
 
@@ -117,7 +117,7 @@ export class ManualTimeProvider extends CurrentTimeProvider {
     this.currentTime = Duration.addToDate(this.getTimeInternal(), duration);
   }
 
-  getTimeInternal() {
+  override getTimeInternal() {
     return this.currentTime || super.getTimeInternal();
   }
 }
