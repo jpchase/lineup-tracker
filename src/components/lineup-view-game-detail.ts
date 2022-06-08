@@ -44,7 +44,7 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
     return html`<lineup-game-live></lineup-game-live>`;
   }
 
-  protected render() {
+  override render() {
     if (this._game) {
       updateMetadata({
         title: `Game - ${this._getName()}`,
@@ -68,7 +68,7 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
   }
 
   @property({ type: Object })
-  store?: RootStore;
+  override store?: RootStore;
 
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getGameStore;
@@ -76,7 +76,7 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
   @property({ type: Object })
   private _game: GameDetail | undefined;
 
-  stateChanged(state: RootState) {
+  override stateChanged(state: RootState) {
     if (!state.game) {
       return;
     }

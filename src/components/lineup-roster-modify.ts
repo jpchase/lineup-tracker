@@ -19,7 +19,7 @@ import { SharedStyles } from './shared-styles';
 // This element is *not* connected to the Redux store.
 @customElement('lineup-roster-modify')
 export class LineupRosterModify extends LitElement {
-  protected render() {
+  override render() {
     return html`
       ${SharedStyles}
       <style>

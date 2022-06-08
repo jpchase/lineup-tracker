@@ -17,7 +17,7 @@ import { SharedStyles } from './shared-styles';
 
 @customElement('lineup-view-home')
 export class LineupViewHome extends PageViewElement {
-  protected render() {
+  override render() {
     return html`
       ${SharedStyles}
       <section>

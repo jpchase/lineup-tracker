@@ -20,7 +20,7 @@ interface PlayerFilterFunc {
 // This element is *not* connected to the Redux store.
 @customElement('lineup-player-list')
 export class LineupPlayerList extends PlayerListElement {
-  protected render() {
+  override render() {
     const filteredPlayers = this._getFilteredPlayers();
 
     return html`

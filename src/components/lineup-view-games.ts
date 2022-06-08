@@ -37,7 +37,7 @@ import { SharedStyles } from './shared-styles';
 // This element is connected to the Redux store.
 @customElement('lineup-view-games')
 export class LineupViewGames extends connectStore()(PageViewElement) {
-  protected render() {
+  override render() {
     return html`
       ${SharedStyles}
       <style>
@@ -67,7 +67,7 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
   }
 
   @property({ type: Object })
-  store?: RootStore;
+  override store?: RootStore;
 
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getGameStore;
@@ -96,7 +96,7 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
   }
 
   // This is called every time something is updated in the store.
-  stateChanged(state: RootState) {
+  override stateChanged(state: RootState) {
     if (!state.team || !state.game) {
       return;
     }

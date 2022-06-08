@@ -18,7 +18,7 @@ import { SharedStyles } from './shared-styles';
 // This element is *not* connected to the Redux store.
 @customElement('lineup-game-list')
 export class LineupGameList extends LitElement {
-  protected render() {
+  override render() {
     const games = this.games;
     const gameList = games ? Object.keys(games).map(key => games[key]) : [];
     return html`

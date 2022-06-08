@@ -14,7 +14,7 @@ import { SharedStyles } from './shared-styles';
 // This element is *not* connected to the Redux store.
 @customElement('lineup-team-create')
 export class LineupTeamCreate extends LitElement {
-  protected render() {
+  override render() {
     return html`
       ${SharedStyles}
       <style>

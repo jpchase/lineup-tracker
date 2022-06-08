@@ -14,7 +14,7 @@ import { SharedStyles } from './shared-styles';
 // This element is *not* connected to the Redux store.
 @customElement('lineup-roster')
 export class LineupRoster extends LitElement {
-  protected render() {
+  override render() {
     const roster = this.roster;
     const playerList = roster ? Object.keys(roster).map(key => roster[key]) : [];
     return html`
@@ -86,7 +86,7 @@ export class LineupRoster extends LitElement {
   @property({ type: Boolean })
   private _showCreate = false;
 
-  protected firstUpdated() {
+  override firstUpdated() {
     window.addEventListener(EVENT_NEWPLAYERCREATED, this._newPlayerCreated.bind(this) as EventListener);
     window.addEventListener(EVENT_NEWPLAYERCANCELLED, this._newPlayerCancelled.bind(this) as EventListener);
   }

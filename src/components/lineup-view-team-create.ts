@@ -21,7 +21,7 @@ store.addReducers({
 // This element is connected to the Redux store.
 @customElement('lineup-view-team-create')
 export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
-  protected render() {
+  override render() {
     return html`
       ${SharedStyles}
       <section>
@@ -31,11 +31,11 @@ export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
     `;
   }
 
-  protected firstUpdated() {
+  override firstUpdated() {
     window.addEventListener(EVENT_NEWTEAMCREATED, this._newTeamCreated.bind(this) as EventListener);
   }
 
-  stateChanged(state: RootState) {
+  override stateChanged(state: RootState) {
     if (!state.team) {
       return;
     }

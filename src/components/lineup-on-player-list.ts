@@ -30,7 +30,7 @@ function getOpenPositionInLine(line: PlayerLine, position: Position): PlayerCard
 // This element is *not* connected to the Redux store.
 @customElement('lineup-on-player-list')
 export class LineupOnPlayerList extends PlayerListElement {
-  protected render() {
+  override render() {
     const lines = this._getPlayerLines();
     return html`
       ${SharedStyles}

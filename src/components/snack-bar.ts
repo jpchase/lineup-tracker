@@ -13,7 +13,7 @@ import { customElement, property } from 'lit/decorators.js';
 
 @customElement('snack-bar')
 export class SnackBar extends LitElement {
-  protected render() {
+  override render() {
     return html`
       <style>
       :host {

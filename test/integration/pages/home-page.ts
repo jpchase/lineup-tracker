@@ -27,7 +27,7 @@ export class HomePage extends PageObject {
     return 'viewHome';
   }
 
-  protected get openFunc(): PageOpenFunction | undefined {
+  override get openFunc(): PageOpenFunction | undefined {
     if (!this.showDrawerOnOpen) {
       return;
     }
