@@ -21,6 +21,9 @@ export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
   gameId: string;
+  /**
+   * @deprecated Use the normalized list instead
+  */
   liveGame?: LiveGame;
   selectedStarterPlayer?: string;
   selectedStarterPosition?: Position;
@@ -61,7 +64,7 @@ const INITIAL_STATE: LiveGameState = {
   proposedSub: undefined,
 };
 
-export const selectLiveGameById = (state: RootState, gameId?: string) => {
+export const selectLiveGameById = (state: RootState, gameId: string) => {
   if (!state.live || !gameId) {
     return;
   }

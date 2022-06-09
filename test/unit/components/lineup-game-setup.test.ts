@@ -62,6 +62,10 @@ function getTasks(): TestSetupTask[] {
   ];
 }
 
+function findPlayer(game: LiveGame, status: PlayerStatus) {
+  return game.players!.find(player => (player.status === status));
+}
+
 describe('lineup-game-setup tests', () => {
   let el: LineupGameSetup;
   let dispatchStub: sinon.SinonSpy;
@@ -276,7 +280,7 @@ describe('lineup-game-setup tests', () => {
           store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
           await el.updateComplete;
 
-          liveGame = selectLiveGameById(store.getState())!;
+          liveGame = selectLiveGameById(store.getState(), liveGame.id)!;
         });
 
         it('perform handler fires only when active', async () => {
@@ -411,7 +415,7 @@ describe('lineup-game-setup tests', () => {
       store.dispatch(formationSelected(FormationType.F4_3_3));
       store.dispatch(completeRoster(newGame.roster));
       await el.updateComplete;
-      liveGame = selectLiveGameById(store.getState())!;
+      liveGame = selectLiveGameById(store.getState(), newGame.id)!;
     });
 
     it('shows starter player sections for new game', async () => {
@@ -427,7 +431,7 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('dispatches starter selected action when sub selected', async () => {
-      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
@@ -475,7 +479,7 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('shows confirm starter UI when proposed starter exists', async () => {
-      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
@@ -490,7 +494,7 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('dispatches apply starter action when confirmed', async () => {
-      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
@@ -518,7 +522,7 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('dispatches cancel starter action when cancelled', async () => {
-      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
