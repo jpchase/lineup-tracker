@@ -6,9 +6,9 @@
 import { GoogleAuthProvider, signInWithCredential, User as FirebaseUser, UserCredential } from 'firebase/auth';
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
+import { getEnv } from '../app/environment.js';
 import { debug } from '../common/debug';
 import { auth, firebaseRefs } from '../firebase';
-import { useTestData } from '../init';
 import { User } from '../models/auth';
 import { GET_USER_SUCCESS } from '../slices/auth-types';
 import { RootState } from '../store';
@@ -19,6 +19,7 @@ export type AuthAction = AuthActionGetUser;
 type ThunkResult = ThunkAction<void, RootState, undefined, AuthAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AuthAction>;
 
+const env = getEnv();
 const debugAuth = debug('auth');
 
 export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) => {
@@ -52,7 +53,7 @@ export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) =>
 export const signIn: ActionCreator<ThunkResult> = () => () => {
   let signinPromise: Promise<UserCredential>;
 
-  if (useTestData()) {
+  if (env.firebase.useEmulators) {
     debugAuth('Sign in with test credential')
     const credential = GoogleAuthProvider.credential(
       `{"sub": "3FK9P5Ledx4voK8w5Ep07DS6dCUc", "email": "algae.orange.312@test.com", "email_verified": true}`

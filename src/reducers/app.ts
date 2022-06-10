@@ -16,14 +16,12 @@ import {
   UPDATE_OFFLINE,
   UPDATE_PAGE
 } from '../actions/app';
-import { useTestData } from '../init';
 
 export interface AppState {
   page: string;
   offline: boolean;
   drawerOpened: boolean;
   snackbarOpened: boolean;
-  useTestData: boolean;
 }
 
 const INITIAL_STATE: AppState = {
@@ -31,7 +29,6 @@ const INITIAL_STATE: AppState = {
   offline: false,
   drawerOpened: false,
   snackbarOpened: false,
-  useTestData: useTestData(),
 };
 
 const app: Reducer<AppState> = (state = INITIAL_STATE, action) => {

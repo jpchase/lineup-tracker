@@ -5,7 +5,6 @@ import {
 import { debug, debugError } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
 import { Model, ModelWriter } from './model-converter.js';
-import { useTestData } from '../init.js';
 import { currentUserIdSelector } from '../reducers/auth.js';
 import { currentTeamIdSelector } from '../slices/team/team-slice.js';
 import { RootState } from '../store.js';
@@ -91,21 +90,14 @@ function saveNewDocument<T extends Model>(
     doc(collectionRef, model.id) : doc(collectionRef);;
 
   debugFirestore(`saveNewDocument: data = ${JSON.stringify(model)}`);
-  if (useTestData()) {
-    debugFirestore('saveNewDocument: useTestData');
-    (() => {
-      debugFirestore('saveNewDocument: about to call set');
-      setDoc(document, model).then(result => {
-        debugFirestore('saveNewDocument: then -> ', result);
-      }).catch((reason: any) => {
-        debugError(`saveNewDocument: failed - ${reason}`);
-      });
-    })();
-    debugFirestore('saveNewDocument: after iife');
-  } else {
-    debugFirestore('saveNewDocument: not useTestData');
-    setDoc(document, model);
-  }
+  (() => {
+    debugFirestore('saveNewDocument: about to call set');
+    setDoc(document, model).then(result => {
+      debugFirestore('saveNewDocument: then -> ', result);
+    }).catch((reason: any) => {
+      debugError(`saveNewDocument: failed - ${reason}`);
+    });
+  })();
   debugFirestore(`saveNewDocument: after, data = ${JSON.stringify(model)}`);
   model.id = document.id;
 }
