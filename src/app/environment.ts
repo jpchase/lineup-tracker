@@ -22,6 +22,8 @@ export interface FirebaseConfig {
 
 export interface EnvironmentConfig {
   environment: string;
+  // Turns off the logic and UI to react to changes in online/offline status.
+  disableOfflineDetection?: boolean;
   firebase: FirebaseConfig;
 }
 

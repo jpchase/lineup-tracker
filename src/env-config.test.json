@@ -1,5 +1,6 @@
 {
   "environment": "test",
+  "disableOfflineDetection": true,
   "firebase": {
     "options": {
       "apiKey": "AIzaSyBLpPCwxt2wiFEmVgEPZSsnHw8u-6EfMPI",
