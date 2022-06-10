@@ -7,7 +7,7 @@ import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { FormationType, Position } from '../../models/formation.js';
 import { Game, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { gameCanStartPeriod, getPlayer, LiveGameBuilder, removePlayer } from '../../models/live.js';
+import { gameCanStartPeriod, getPlayer, LiveGameBuilder, LiveGames, removePlayer } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';
@@ -21,10 +21,7 @@ export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
   gameId: string;
-  /**
-   * @deprecated Use the normalized list instead
-  */
-  liveGame?: LiveGame;
+  games?: LiveGames;
   selectedStarterPlayer?: string;
   selectedStarterPosition?: Position;
   proposedStarter?: LivePlayer;
@@ -55,7 +52,7 @@ const SWAP_ID_SUFFIX = '_swap';
 
 const INITIAL_STATE: LiveGameState = {
   gameId: '',
-  liveGame: undefined,
+  games: {},
   selectedStarterPlayer: undefined,
   selectedStarterPosition: undefined,
   proposedStarter: undefined,
@@ -142,12 +139,18 @@ const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
     if (!action.gameId) {
       return;
     }
-    if (!action.game) {
+    if (!action.games) {
       return;
     }
     // TODO: This will overwrite a currently loaded game with different game id
-    state.gameId = action.game.id;
-    updateGame(state, action.game);
+    state.gameId = action.gameId;
+    if (!state.games) {
+      state.games = action.games;
+    } else {
+      for (const id in action.games) {
+        state.games[id] = action.games[id];
+      }
+    }
     if (action.clock) {
       state.clock = action.clock;
     }
@@ -169,7 +172,7 @@ const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
       updateTasks(game);
     }
 
-    updateGame(state, game);
+    setCurrentGame(state, game);
   },
 });
 
@@ -184,7 +187,7 @@ const liveSlice = createSlice({
       if (liveGame.status === GameStatus.New) {
         updateTasks(liveGame);
       }
-      updateGame(state, liveGame);
+      setCurrentGame(state, liveGame);
     },
 
     completeRoster: (state, action: PayloadAction<Roster>) => {
@@ -741,14 +744,18 @@ function findCurrentGame(state: LiveState) {
 }
 
 function findGame(state: LiveState, gameId: string) {
-  if (!state.liveGame || (gameId && state.liveGame.id !== gameId)) {
+  if (!state.games || !(gameId in state.games)) {
     return;
   }
-  return state.liveGame;
+  return state.games[gameId];
 }
 
-function updateGame(state: LiveState, game: LiveGame) {
-  state.liveGame = game;
+function setCurrentGame(state: LiveState, game: LiveGame) {
+  if (!state.games) {
+    state.games = {};
+  }
+  state.gameId = game.id;
+  state.games[game.id] = game;
 }
 
 function buildSwapPlayerId(playerId: string) {

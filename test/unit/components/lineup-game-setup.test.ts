@@ -21,6 +21,7 @@ import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildLiveGames } from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
 
 let actions: string[] = [];
@@ -276,7 +277,7 @@ describe('lineup-game-setup tests', () => {
 
           // Use hydration to set the constructed live game, otherwise it
           // would be initialized by GET_GAME_SUCCESS later.
-          store.dispatch(hydrateLive(liveGame, liveGame.id));
+          store.dispatch(hydrateLive(buildLiveGames([liveGame]), liveGame.id));
           store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
           await el.updateComplete;
 
@@ -384,7 +385,7 @@ describe('lineup-game-setup tests', () => {
 
       // Use hydration to set the constructed live game, otherwise it
       // would be initialized by GET_GAME_SUCCESS later.
-      store.dispatch(hydrateLive(liveGame, liveGame.id));
+      store.dispatch(hydrateLive(buildLiveGames([liveGame]), liveGame.id));
       store.dispatch({ type: GET_GAME_REQUEST, gameId: newGame.id });
       store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
       await el.updateComplete;

@@ -169,7 +169,7 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, with the period in progress.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(live, live.id, undefined, shift));
+      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
       store.dispatch(startPeriod(/*gameAllowsStart =*/true));
       liveGame = selectLiveGameById(store.getState(), live.id)!;
 
@@ -404,7 +404,7 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, in Start status
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(live, live.id, undefined, shift));
+      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
 
       await el.updateComplete;
     });
@@ -472,7 +472,7 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, in second half, ready to end.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(live, live.id, undefined, shift));
+      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
       liveGame = selectLiveGameById(store.getState(), live.id)!;
 
       await el.updateComplete;

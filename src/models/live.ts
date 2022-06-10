@@ -9,6 +9,10 @@ export enum PeriodStatus {
   Done = 'DONE'
 }
 
+export interface LiveGames {
+  [index: string]: LiveGame;
+}
+
 export class LiveGameBuilder {
   static create(game: Game): LiveGame {
     if (!game) {

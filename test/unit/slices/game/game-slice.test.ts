@@ -339,7 +339,10 @@ describe('Games actions', () => {
           gameState.gameId = existingGame.id;
           gameState.game = existingGame;
           liveState.gameId = existingGame.id;
-          liveState.liveGame = LiveGameBuilder.create(existingGame);
+          if (!liveState.games) {
+            liveState.games = {};
+          }
+          liveState.games[existingGame.id] = LiveGameBuilder.create(existingGame);
         });
       const updateDocumentStub = writerStub.updateDocument.returns();
 
@@ -361,7 +364,10 @@ describe('Games actions', () => {
           gameState.gameId = existingGame.id;
           gameState.game = existingGame;
           liveState.gameId = existingGame.id;
-          liveState.liveGame = LiveGameBuilder.create(existingGame);
+          if (!liveState.games) {
+            liveState.games = {};
+          }
+          liveState.games[existingGame.id] = LiveGameBuilder.create(existingGame);
         });
 
       writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
