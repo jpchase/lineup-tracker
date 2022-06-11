@@ -81,8 +81,7 @@ export class PageObject {
       this._page.setViewport(this._viewPort);
     }
 
-    const testFlagSeparator = (this._route.includes('?')) ? '&' : '?';
-    await this._page.goto(`${config.appUrl}/${this._route}${testFlagSeparator}test_data`);
+    await this._page.goto(`${config.appUrl}/${this._route}`);
     if (this.openFunc) {
       await this.openFunc();
     }
