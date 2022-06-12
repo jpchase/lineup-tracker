@@ -6,10 +6,11 @@ import '@material/mwc-button';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
 import { html, LitElement } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { Duration, Timer, TimerData } from '../models/clock.js';
+import { customElement, property } from 'lit/decorators.js';
+import { Timer, TimerData } from '../models/clock.js';
 import { PeriodStatus } from '../models/live.js';
 import { SharedStyles } from './shared-styles.js';
+import { TimerController } from './timer-controller.js';
 
 export interface ClockToggleDetail {
   isStarted: boolean;
@@ -34,9 +35,9 @@ export class LineupGameClock extends LitElement {
         :host { display: inline-block; }
       </style>
       <span>
-        <span id="gamePeriod">${periodText}</span>
-        <span id="periodTimer">${this.timerText}</span>&nbsp;[<span id="gameTimer"></span>]
-        <mwc-icon-button-toggle id="toggle-button" ?on="${this._timer?.isRunning}"
+        <span id="game-period">${periodText}</span>
+        <span id="period-timer">${this.timer.text}</span>
+        <mwc-icon-button-toggle id="toggle-button" ?on="${this.timer.timer?.isRunning}"
           onIcon="pause_circle_outline" offIcon="play_circle_outline" label="Start/pause the clock"
           ?hidden="${!periodRunning}"
           @icon-button-toggle-change="${this.toggleClock}"></mwc-icon-button-toggle>
@@ -47,7 +48,7 @@ export class LineupGameClock extends LitElement {
       </span>`
   }
 
-  private _timer?: Timer;
+  private timer = new TimerController(this);
   private _timerData?: TimerData;
 
   @property({ type: Object })
@@ -58,34 +59,13 @@ export class LineupGameClock extends LitElement {
     const oldValue = this._timerData;
     this._timerData = value;
     if (value !== oldValue) {
-      this._timer = new Timer(this._timerData);
-      this.updateTimerText();
-      this.refresh();
+      this.timer.timer = new Timer(this._timerData);
     }
     this.requestUpdate('timerData', oldValue);
   }
 
   @property({ type: Object })
   public periodData?: ClockPeriodData;
-
-  @state()
-  protected timerText: string = '';
-
-  private refresh() {
-    if (!this._timer || !this._timer.isRunning) {
-      return;
-    }
-    this.updateTimerText();
-    requestAnimationFrame(this.refresh.bind(this));
-  }
-
-  private updateTimerText() {
-    let text = '';
-    if (this._timer) {
-      text = Duration.format(this._timer.getElapsed());
-    }
-    this.timerText = text;
-  }
 
   private toggleClock(e: CustomEvent) {
     this.dispatchEvent(new ClockToggleEvent({ isStarted: e.detail.isOn }));
