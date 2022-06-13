@@ -2,7 +2,7 @@
 @license
 */
 
-import { contextProvided } from '@lit-labs/context';
+import { ContextConsumer, contextProvided } from '@lit-labs/context';
 import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -12,7 +12,8 @@ import { PlayerTimeTracker } from '../models/shift.js';
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
-import { TimerController } from './timer-controller.js';
+import { SynchronizedTimerController } from './timer-controller.js';
+import { synchronizedTimerContext } from './synchronized-timer.js';
 
 export interface PlayerCardData {
   id: string;
@@ -97,7 +98,16 @@ export class LineupPlayerCard extends LitElement {
     `;
   }
 
-  private timer = new TimerController(this);
+  private timer = new SynchronizedTimerController(this);
+
+  protected timerNotifier = new ContextConsumer(
+    this,
+    synchronizedTimerContext,
+    (notifier/*, dispose*/) => { // TODO: implement dispose to unregister from notifications
+      notifier.registerTimer(this.timer);
+    },
+    true // we want updates when the notifier changes
+  );
 
   @contextProvided({ context: playerResolverContext, subscribe: true })
   @property({ attribute: false })
