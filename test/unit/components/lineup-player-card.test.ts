@@ -1,18 +1,23 @@
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '@app/components/events';
 import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-card';
 import '@app/components/lineup-player-card.js';
+import { SynchronizedTimerNotifier } from '@app/components/synchronized-timer.js';
 import { Duration } from '@app/models/clock.js';
 import { formatPosition } from '@app/models/formation.js';
 import { LivePlayer } from '@app/models/game';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTracker } from '@app/models/shift.js';
 import { assert, expect, fixture, oneEvent } from '@open-wc/testing';
+import sinon from 'sinon';
 import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
+import { mockTimerContext } from '../helpers/mock-timer-context.js';
 import { manualTimeProvider } from '../helpers/test-clock-data.js';
 import { buildPlayerTracker } from '../helpers/test-shift-data.js';
 
 describe('lineup-player-card tests', () => {
   let el: LineupPlayerCard;
+  let fakeClock: sinon.SinonFakeTimers;
+  let timerNotifier: SynchronizedTimerNotifier;
 
   beforeEach(async () => {
     // Wire up a node that will handle context requests for a PlayerResolver.
@@ -33,7 +38,17 @@ describe('lineup-player-card tests', () => {
         }
       });
 
+    // Handle context requests for a time notifier.
+    timerNotifier = new SynchronizedTimerNotifier();
+    mockTimerContext(parentNode, timerNotifier);
+
     el = await fixture('<lineup-player-card></lineup-player-card>', { parentNode });
+  });
+
+  afterEach(async () => {
+    if (fakeClock) {
+      fakeClock.restore();
+    }
   });
 
   function getPlayer(): LivePlayer {
@@ -92,6 +107,10 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
 
     expect(playerElement!.hasAttribute('selected'), 'Should have selected attribute').to.be.true;
+  }
+
+  function mockCurrentTime(t0: number) {
+    fakeClock = sinon.useFakeTimers({ now: t0 });
   }
 
   it('starts empty', async () => {
@@ -391,6 +410,35 @@ describe('lineup-player-card tests', () => {
 
       await testModeRender(player, timeTracker);
     });
+
+    if (modeTest.playerStatus !== PlayerStatus.Out) {
+      it(`${testPrefix}: updates shift times when clock is running`, async () => {
+        mockCurrentTime(startTime);
+
+        const { player } = buildModeTestPlayer();
+        const timeTracker = new PlayerTimeTracker(buildPlayerTracker(player));
+        timeTracker.startShift();
+
+        el.player = player;
+        el.mode = player.status;
+        el.timeTracker = timeTracker;
+        await el.updateComplete;
+
+        // Advance the clock by just over a minute, and simulate the synchronized timer
+        // running to update. The displayed time will be a multiple of 10 seconds, as
+        // that is the update interval.
+        const elapsedSeconds = 70;
+        fakeClock.tick(elapsedSeconds * 1000);
+        fakeClock.next();
+        timerNotifier.notifyTimers();
+        await el.updateComplete;
+
+        const playerElement = verifyPlayerElements(player);
+        const shiftElement = playerElement.querySelector('.shiftTime');
+        expect(shiftElement?.textContent).to.equal(
+          Duration.format(Duration.create(elapsedSeconds)), 'shiftTime element');
+      });
+    }
 
     if (modeTest.playerStatus === PlayerStatus.Next) {
       it(`${testPrefix}: renders swap properties`, async () => {

@@ -1,18 +1,24 @@
 import '@app/components/lineup-game-shifts.js';
 import { LineupGameShifts } from '@app/components/lineup-game-shifts.js';
+import { SynchronizedTimerNotifier } from '@app/components/synchronized-timer.js';
 import { Duration } from '@app/models/clock.js';
 import { expect, fixture } from '@open-wc/testing';
 import sinon from 'sinon';
+import { mockTimerContext } from '../helpers/mock-timer-context.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildPlayerTrackerMap } from '../helpers/test-shift-data.js';
 
 describe('lineup-game-shifts tests', () => {
   let el: LineupGameShifts;
   let fakeClock: sinon.SinonFakeTimers;
+  let timerNotifier: SynchronizedTimerNotifier;
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
 
   beforeEach(async () => {
-    el = await fixture('<lineup-game-shifts></lineup-game-shifts>');
+    timerNotifier = new SynchronizedTimerNotifier();
+    const parentNode = document.createElement('div');
+    mockTimerContext(parentNode, timerNotifier);
+    el = await fixture('<lineup-game-shifts></lineup-game-shifts>', { parentNode });
   });
 
   afterEach(async () => {
@@ -78,13 +84,13 @@ describe('lineup-game-shifts tests', () => {
     el.trackerData = trackerMap.toJSON();
     await el.updateComplete;
 
-    // Advance the clock by just over a minute, and allow timers to run to update.
-    // The displayed time will be a multiple of 10 seconds, at that is the update
-    // interval. However, the clock is advanced one second less, because there
-    // seems to be an extra update interval.
+    // Advance the clock by just over a minute, and simulate the synchronized timer
+    // running to update. The displayed time will be a multiple of 10 seconds, as
+    // that is the update interval.
     const elapsedSeconds = 70;
-    fakeClock.tick((elapsedSeconds - 1) * 1000);
+    fakeClock.tick(elapsedSeconds * 1000);
     fakeClock.next();
+    timerNotifier.notifyTimers();
     await el.updateComplete;
 
     const items = getShiftRows();
