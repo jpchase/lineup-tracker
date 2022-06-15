@@ -358,7 +358,7 @@ export class LineupApp extends connect(store)(LitElement) {
     // that user.
     store.dispatch(getUser()).then(() => {
       // TODO: Make getTeams return a promise as well? Then can use finally() instead of dupe call in catch?
-      store.dispatch(getTeams(urlParams.get('team')));
+      store.dispatch(getTeams(urlParams.get('team') || undefined));
       installRouter((location) => store.dispatch(navigate(location)));
     }).catch(() => {
       // Wait for the loading actions to complete, before any navigation.
