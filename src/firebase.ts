@@ -9,13 +9,6 @@ const debugFirebase = debug('firebase');
 const env = getEnv();
 
 // Initialize Firebase
-/*
-const config = {
-  apiKey: "AIzaSyBLpPCwxt2wiFEmVgEPZSsnHw8u-6EfMPI",
-  authDomain: "resplendent-fire-4542.firebaseapp.com",
-  projectId: "resplendent-fire-4542",
-};
-*/
 const firebaseApp = initializeApp(env.firebase.options);
 
 const firestore = initializeFirestore(firebaseApp, {
@@ -58,5 +51,4 @@ export const auth = {
   provider: new GoogleAuthProvider(),
   signInWithPopup: signInWithPopup,
   onAuthStateChanged: onAuthStateChanged
-
 };
