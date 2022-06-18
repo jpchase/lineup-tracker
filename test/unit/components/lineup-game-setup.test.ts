@@ -15,12 +15,13 @@ import {
   GET_GAME_SUCCESS,
 } from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
+import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { resetState, store } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { assert, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildLiveGames } from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
 
 let actions: string[] = [];
@@ -60,6 +61,10 @@ function getTasks(): TestSetupTask[] {
       expectedName: 'Setup the starting lineup'
     },
   ];
+}
+
+function findPlayer(game: LiveGame, status: PlayerStatus) {
+  return game.players!.find(player => (player.status === status));
 }
 
 describe('lineup-game-setup tests', () => {
@@ -272,11 +277,11 @@ describe('lineup-game-setup tests', () => {
 
           // Use hydration to set the constructed live game, otherwise it
           // would be initialized by GET_GAME_SUCCESS later.
-          store.dispatch(hydrateLive(liveGame, liveGame.id));
+          store.dispatch(hydrateLive(buildLiveGames([liveGame]), liveGame.id));
           store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
           await el.updateComplete;
 
-          liveGame = store.getState().live!.liveGame!;
+          liveGame = selectLiveGameById(store.getState(), liveGame.id)!;
         });
 
         it('perform handler fires only when active', async () => {
@@ -380,7 +385,7 @@ describe('lineup-game-setup tests', () => {
 
       // Use hydration to set the constructed live game, otherwise it
       // would be initialized by GET_GAME_SUCCESS later.
-      store.dispatch(hydrateLive(liveGame, liveGame.id));
+      store.dispatch(hydrateLive(buildLiveGames([liveGame]), liveGame.id));
       store.dispatch({ type: GET_GAME_REQUEST, gameId: newGame.id });
       store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
       await el.updateComplete;
@@ -411,7 +416,7 @@ describe('lineup-game-setup tests', () => {
       store.dispatch(formationSelected(FormationType.F4_3_3));
       store.dispatch(completeRoster(newGame.roster));
       await el.updateComplete;
-      liveGame = store.getState().live!.liveGame!;
+      liveGame = selectLiveGameById(store.getState(), newGame.id)!;
     });
 
     it('shows starter player sections for new game', async () => {
@@ -427,7 +432,7 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('dispatches starter selected action when sub selected', async () => {
-      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
@@ -475,7 +480,7 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('shows confirm starter UI when proposed starter exists', async () => {
-      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
@@ -490,7 +495,7 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('dispatches apply starter action when confirmed', async () => {
-      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
@@ -518,7 +523,7 @@ describe('lineup-game-setup tests', () => {
     });
 
     it('dispatches cancel starter action when cancelled', async () => {
-      const foundPlayer = liveGame.players!.find(player => (player.status === PlayerStatus.Off));
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 

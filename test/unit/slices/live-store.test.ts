@@ -23,10 +23,13 @@ function mockGetState(currentGame?: LiveGame, clock?: ClockState, shift?: ShiftS
   const liveState: LiveState = {
     hydrated: false,
     gameId: currentGame?.id || '',
-    liveGame: currentGame,
     clock,
     shift
   } as LiveState;
+  if (currentGame) {
+    liveState.games = {};
+    liveState.games[currentGame.id] = currentGame;
+  }
   return sinon.fake(() => {
     const mockState: RootState = {
       live: liveState,

@@ -1,6 +1,14 @@
 import { LivePlayer, LiveGame, GameStatus } from '@app/models/game';
+import { LiveGames } from '@app/models/live.js';
 import { Player, PlayerStatus } from '@app/models/player';
 import { STORED_GAME_ID } from './test_data';
+
+export function buildLiveGames(games: LiveGame[]): LiveGames {
+  return games.reduce((obj, game) => {
+    obj[game.id] = game;
+    return obj;
+  }, {} as LiveGames);
+}
 
 export function getLiveGame(players?: Player[], status?: GameStatus): LiveGame {
   return {

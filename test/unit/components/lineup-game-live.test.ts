@@ -13,7 +13,7 @@ import { PlayerStatus } from '@app/models/player.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
 import { endPeriod, startPeriod } from '@app/slices/live/clock-slice.js';
-import { cancelSub, cancelSwap, confirmSub, confirmSwap, gameCompleted, selectPlayer, toggleClock } from '@app/slices/live/live-slice.js';
+import { cancelSub, cancelSwap, confirmSub, confirmSwap, gameCompleted, selectCurrentLiveGame, selectLiveGameById, selectPlayer, toggleClock } from '@app/slices/live/live-slice.js';
 import { resetState, store } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
@@ -130,7 +130,7 @@ describe('lineup-game-live tests', () => {
 
   it('shows no game placeholder when no current game', async () => {
     expect(store.getState().live, 'LiveState should exist').to.be.ok;
-    expect(store.getState().live!.liveGame, 'LiveState should have game unset').to.not.be.ok;
+    expect(selectCurrentLiveGame(store.getState()), 'LiveState should have game unset').to.not.be.ok;
 
     const placeholder = el.shadowRoot!.querySelector('div p.empty-list');
     expect(placeholder, 'Missing empty placeholder element').to.be.ok;
@@ -169,9 +169,9 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, with the period in progress.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(live, live.id, undefined, shift));
+      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
       store.dispatch(startPeriod(/*gameAllowsStart =*/true));
-      liveGame = store.getState().live!.liveGame!;
+      liveGame = selectLiveGameById(store.getState(), live.id)!;
 
       await el.updateComplete;
     });
@@ -404,7 +404,7 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, in Start status
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(live, live.id, undefined, shift));
+      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
 
       await el.updateComplete;
     });
@@ -472,8 +472,8 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, in second half, ready to end.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(live, live.id, undefined, shift));
-      liveGame = store.getState().live!.liveGame!;
+      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
+      liveGame = selectLiveGameById(store.getState(), live.id)!;
 
       await el.updateComplete;
     });
