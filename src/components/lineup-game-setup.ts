@@ -121,6 +121,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
             value="">
             <option value="">Not set</option>
             <option value="4-3-3">4-3-3</option>
+            <option value="3-1-4-2">3-1-4-2</option>
           </select>
         </div>
         <div id="live-on">

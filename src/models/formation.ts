@@ -4,6 +4,7 @@
 
 export enum FormationType {
   F4_3_3 = '4-3-3',
+  F3_1_4_2 = '3-1-4-2',
 }
 
 export interface FormationLine {
@@ -33,47 +34,88 @@ export interface Position {
 
 export class FormationBuilder {
   static create(type: FormationType): Formation {
-    if (type !== FormationType.F4_3_3) {
-      throw new Error(`Unsupported formation type: ${type}`);
+    if (type === FormationType.F4_3_3) {
+      return {
+        type: FormationType.F4_3_3,
+        forward1: {
+          id: 'FWD1',
+          positions: [{ id: 'S', type: 'S' }]
+        },
+        forward2: {
+          id: 'FWD2',
+          positions: [
+            { id: 'LW', type: 'W' },
+            { id: 'RW', type: 'W' }
+          ]
+        },
+        midfield1: {
+          id: 'MID1',
+          positions: [
+            { id: 'AM1', type: 'AM' },
+            { id: 'AM2', type: 'AM' }
+          ]
+        },
+        midfield2: {
+          id: 'MID2',
+          positions: [{ id: 'HM', type: 'HM' }]
+        },
+        defense: {
+          id: 'DEF',
+          positions: [
+            { id: 'LFB', type: 'FB' },
+            { id: 'LCB', type: 'CB' },
+            { id: 'RCB', type: 'CB' },
+            { id: 'RFB', type: 'FB' },
+          ]
+        },
+        gk: {
+          id: 'GK',
+          positions: [{ id: 'GK', type: 'GK' }]
+        },
+      };
     }
-    return {
-      type: FormationType.F4_3_3,
-      forward1: {
-        id: 'FWD1',
-        positions: [{ id: 'S', type: 'S' }]
-      },
-      forward2: {
-        id: 'FWD2',
-        positions: [
-          { id: 'LW', type: 'W' },
-          { id: 'RW', type: 'W' }
-        ]
-      },
-      midfield1: {
-        id: 'MID1',
-        positions: [
-          { id: 'AM1', type: 'AM' },
-          { id: 'AM2', type: 'AM' }
-        ]
-      },
-      midfield2: {
-        id: 'MID2',
-        positions: [{ id: 'HM', type: 'HM' }]
-      },
-      defense: {
-        id: 'DEF',
-        positions: [
-          { id: 'LFB', type: 'FB' },
-          { id: 'LCB', type: 'CB' },
-          { id: 'RCB', type: 'CB' },
-          { id: 'RFB', type: 'FB' },
-        ]
-      },
-      gk: {
-        id: 'GK',
-        positions: [{ id: 'GK', type: 'GK' }]
-      },
-    };
+    if (type === FormationType.F3_1_4_2) {
+      return {
+        type: FormationType.F3_1_4_2,
+        forward1: {
+          id: 'FWD1',
+          positions: [
+            { id: 'S1', type: 'S' },
+            { id: 'S2', type: 'S' }
+          ]
+        },
+        forward2: {
+          id: 'FWD2',
+          positions: []
+        },
+        midfield1: {
+          id: 'MID1',
+          positions: [
+            { id: 'LW', type: 'W' },
+            { id: 'AM1', type: 'AM' },
+            { id: 'AM2', type: 'AM' },
+            { id: 'RW', type: 'W' }
+          ]
+        },
+        midfield2: {
+          id: 'MID2',
+          positions: [{ id: 'HM', type: 'HM' }]
+        },
+        defense: {
+          id: 'DEF',
+          positions: [
+            { id: 'LFB', type: 'FB' },
+            { id: 'CB', type: 'CB' },
+            { id: 'RFB', type: 'FB' },
+          ]
+        },
+        gk: {
+          id: 'GK',
+          positions: [{ id: 'GK', type: 'GK' }]
+        },
+      };
+    }
+    throw new Error(`Unsupported formation type: ${type}`);
   }
 }
 
