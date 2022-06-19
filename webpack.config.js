@@ -39,10 +39,6 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         'images/**',
-        {
-          from: 'node_modules/web-animations-js/web-animations-next-lite.min.js',
-          to: 'node_modules/web-animations-js/web-animations-next-lite.min.js'
-        },
         'manifest.json'
       ]
     }),
