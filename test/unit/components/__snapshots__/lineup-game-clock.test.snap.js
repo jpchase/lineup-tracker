@@ -2,16 +2,12 @@
 export const snapshots = {};
 snapshots["lineup-game-clock tests button states only Start button shown when first period is ready to be started"] = 
 `<span>
-  <span id="gamePeriod">
+  <span id="game-period">
     Period: 1
   </span>
-  <span id="periodTimer">
+  <span id="period-timer">
     00:00
   </span>
-  [
-  <span id="gameTimer">
-  </span>
-  ]
   <mwc-icon-button-toggle
     hidden=""
     id="toggle-button"
@@ -39,16 +35,12 @@ snapshots["lineup-game-clock tests button states only Start button shown when fi
 
 snapshots["lineup-game-clock tests button states only End and toggle buttons shown when period in progress"] = 
 `<span>
-  <span id="gamePeriod">
+  <span id="game-period">
     Period: 1
   </span>
-  <span id="periodTimer">
+  <span id="period-timer">
     02:10
   </span>
-  [
-  <span id="gameTimer">
-  </span>
-  ]
   <mwc-icon-button-toggle
     id="toggle-button"
     label="Start/pause the clock"
@@ -75,16 +67,12 @@ snapshots["lineup-game-clock tests button states only End and toggle buttons sho
 
 snapshots["lineup-game-clock tests button states all buttons hidden when game is done"] = 
 `<span>
-  <span id="gamePeriod">
+  <span id="game-period">
     Period: 2
   </span>
-  <span id="periodTimer">
+  <span id="period-timer">
     10:00
   </span>
-  [
-  <span id="gameTimer">
-  </span>
-  ]
   <mwc-icon-button-toggle
     hidden=""
     id="toggle-button"
@@ -113,15 +101,11 @@ snapshots["lineup-game-clock tests button states all buttons hidden when game is
 
 snapshots["lineup-game-clock tests toggle starts with clock not running"] = 
 `<span>
-  <span id="gamePeriod">
+  <span id="game-period">
     Period: 1
   </span>
-  <span id="periodTimer">
+  <span id="period-timer">
   </span>
-  [
-  <span id="gameTimer">
-  </span>
-  ]
   <mwc-icon-button-toggle
     hidden=""
     id="toggle-button"
@@ -150,16 +134,12 @@ snapshots["lineup-game-clock tests toggle starts with clock not running"] =
 
 snapshots["lineup-game-clock tests toggle starts running when timer data is running"] = 
 `<span>
-  <span id="gamePeriod">
+  <span id="game-period">
     Period: 1
   </span>
-  <span id="periodTimer">
+  <span id="period-timer">
     01:05
   </span>
-  [
-  <span id="gameTimer">
-  </span>
-  ]
   <mwc-icon-button-toggle
     hidden=""
     id="toggle-button"
@@ -189,16 +169,12 @@ snapshots["lineup-game-clock tests toggle starts running when timer data is runn
 
 snapshots["lineup-game-clock tests toggle stops running when timer data is stopped"] = 
 `<span>
-  <span id="gamePeriod">
+  <span id="game-period">
     Period: 1
   </span>
-  <span id="periodTimer">
+  <span id="period-timer">
     00:30
   </span>
-  [
-  <span id="gameTimer">
-  </span>
-  ]
   <mwc-icon-button-toggle
     hidden=""
     id="toggle-button"

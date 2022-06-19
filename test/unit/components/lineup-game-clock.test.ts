@@ -25,8 +25,14 @@ describe('lineup-game-clock tests', () => {
     fakeClock = sinon.useFakeTimers({ now: t0 });
   }
 
+  function getPeriodElement() {
+    const element = el.shadowRoot!.querySelector('#game-period');
+    expect(element, 'Missing period element').to.be.ok;
+    return element as HTMLElement;
+  }
+
   function getTimerElement() {
-    const element = el.shadowRoot!.querySelector('#periodTimer');
+    const element = el.shadowRoot!.querySelector('#period-timer');
     expect(element, 'Missing timer element').to.be.ok;
     return element as HTMLElement;
   }
@@ -239,7 +245,7 @@ describe('lineup-game-clock tests', () => {
   describe('start period', () => {
     it('fires start event when pressed', async () => {
       el.timerData = {
-        isRunning: true,
+        isRunning: false,
         startTime: startTime,
         duration: Duration.zero().toJSON()
       };
@@ -253,6 +259,9 @@ describe('lineup-game-clock tests', () => {
 
       setTimeout(() => startButton.click());
       await oneEvent(el, ClockStartPeriodEvent.eventName);
+
+      const periodElement = getPeriodElement();
+      expect(periodElement.innerText, 'Game period text').to.equal('Period: 1');
     });
 
   }); // describe('start period')
@@ -274,6 +283,9 @@ describe('lineup-game-clock tests', () => {
 
       setTimeout(() => endButton.click());
       await oneEvent(el, ClockEndPeriodEvent.eventName);
+
+      const periodElement = getPeriodElement();
+      expect(periodElement.innerText, 'Game period text').to.equal('Period: 1');
     });
 
     it('fires end event when pressed with clock paused', async () => {

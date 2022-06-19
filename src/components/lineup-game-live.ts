@@ -30,6 +30,8 @@ import './lineup-on-player-list.js';
 import './lineup-player-list.js';
 import { playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
+import { synchronizedTimerContext, SynchronizedTimerNotifier } from './synchronized-timer.js';
+import { SynchronizedTriggerController } from './timer-controller.js';
 
 // This element is connected to the Redux store.
 @customElement('lineup-game-live')
@@ -186,6 +188,18 @@ export class LineupGameLive extends connectStore()(LitElement) {
   @state()
   private trackerData?: PlayerTimeTrackerMapData;
 
+  // Update player timers every 10 seconds.
+  private timerTrigger = new SynchronizedTriggerController(this, 10000);
+  private timerNotifier = new SynchronizedTimerNotifier();
+
+  protected timerContext = new ContextProvider(this,
+    synchronizedTimerContext,
+    this.timerNotifier);
+
+  public requestTimerUpdate() {
+    this.timerNotifier.notifyTimers();
+  }
+
   // Protected as a workaround for "not read" TS error.
   protected playerResolver = new ContextProvider(this, playerResolverContext, {
     getPlayer: (playerId) => {
@@ -229,6 +243,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
     this.proposedSub = proposedSubSelector(state);
     this.proposedSwap = selectProposedSwap(state);
     this.trackerData = state.live.shift?.trackerMap;
+    this.timerTrigger.isRunning = !!this.trackerData?.clockRunning;
   }
 
   private _playerSelected(e: CustomEvent) {

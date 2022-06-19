@@ -2,6 +2,7 @@
 @license
 */
 
+import { ContextConsumer } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
@@ -12,6 +13,7 @@ import { Duration } from '../models/clock.js';
 import { LivePlayer } from '../models/game.js';
 import { PlayerTimeTracker, PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../models/shift.js';
 import { SharedStyles } from './shared-styles.js';
+import { synchronizedTimerContext } from './synchronized-timer.js';
 
 interface ShiftRow {
   id: string;
@@ -51,7 +53,15 @@ export class LineupGameShifts extends LitElement {
   }
 
   private trackerMap?: PlayerTimeTrackerMap;
-  private timerId?: number;
+
+  protected timerNotifier = new ContextConsumer(
+    this,
+    synchronizedTimerContext,
+    (notifier/*, dispose*/) => { // TODO: implement dispose to unregister from notifications
+      notifier.registerTimer(this);
+    },
+    true // we want updates when the notifier changes
+  );
 
   @property({ type: Object })
   public trackerData?: PlayerTimeTrackerMapData;
@@ -59,10 +69,12 @@ export class LineupGameShifts extends LitElement {
   @property({ type: Array })
   public players: LivePlayer[] = [];
 
+  // TODO: unsubscribe from notifier?
+  /*
   override disconnectedCallback() {
-    super.disconnectedCallback()
-    this.clearRefreshTimer();
+    super.disconnectedCallback();
   }
+  */
 
   override willUpdate(changedProperties: PropertyValues<this>) {
     if (!changedProperties.has('trackerData')) {
@@ -74,9 +86,6 @@ export class LineupGameShifts extends LitElement {
     }
 
     this.trackerMap = new PlayerTimeTrackerMap(this.trackerData);
-    if (this.trackerData?.clockRunning !== oldValue?.clockRunning) {
-      this.resetRefreshTimer();
-    }
   }
 
   private getShiftRows(): ShiftRow[] {
@@ -95,20 +104,8 @@ export class LineupGameShifts extends LitElement {
     }).sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  private clearRefreshTimer() {
-    window.clearInterval(this.timerId);
-    this.timerId = undefined;
-  }
-
-  private resetRefreshTimer() {
-    if (!this.trackerData?.clockRunning) {
-      this.clearRefreshTimer();
-      return;
-    }
-    // When the clock is running, update the shift times every 10 seconds.
-    this.timerId = window.setInterval(() => {
-      this.requestUpdate();
-    }, 10000);
+  public timerUpdateRequested() {
+    this.requestUpdate();
   }
 
   private getPlayer(players: LivePlayer[], playerId: string) {
