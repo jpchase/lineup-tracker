@@ -2,7 +2,7 @@
 @license
 */
 
-import { PageObject, PageOptions, PageOpenFunction } from './page-object.js';
+import { PageObject, PageOptions } from './page-object.js';
 import { ElementHandle } from 'puppeteer';
 
 export class TeamCreatePage extends PageObject {
@@ -14,10 +14,6 @@ export class TeamCreatePage extends PageObject {
       scenarioName: 'addNewTeam',
       route: 'addNewTeam'
     });
-  }
-
-  override get openFunc(): PageOpenFunction | undefined {
-    return;
   }
 
   async getCurrentTeam() {

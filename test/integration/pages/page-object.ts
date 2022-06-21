@@ -84,8 +84,15 @@ export class PageObject {
     await this._page.goto(`${config.appUrl}/${this._route}`);
     if (this.openFunc) {
       await this.openFunc();
+    } else {
+      await this.waitForAppInitialization();
     }
     await this._page.waitForTimeout(1500);
+  }
+
+  async waitForAppInitialization() {
+    await this.page.waitForSelector('body[data-app-initialized]',
+      { timeout: 10000 });
   }
 
   async signin() {

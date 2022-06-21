@@ -14,13 +14,12 @@ import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
-import { installRouter } from 'pwa-helpers/router.js';
 import { navigate, updateDrawerState, updateOffline } from '../actions/app';
-import { getUser, signIn } from '../actions/auth';
+import { signIn } from '../actions/auth';
 import { User } from '../models/auth';
 import { Teams } from '../models/team';
 import auth from '../reducers/auth';
-import { changeTeam, getTeams, team } from '../slices/team/team-slice.js';
+import { changeTeam, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
 import './lineup-team-selector';
@@ -348,22 +347,9 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   override firstUpdated() {
-    const urlParams = new URLSearchParams(location.search);
-
     installOfflineWatcher((offline) => store.dispatch(updateOffline(offline)));
     installMediaQueryWatcher(`(min-width: 460px)`,
       () => store.dispatch(updateDrawerState(false)));
-
-    // Get the authenticated user (if signed in), and then load the teams for
-    // that user.
-    store.dispatch(getUser()).then(() => {
-      // TODO: Make getTeams return a promise as well? Then can use finally() instead of dupe call in catch?
-      store.dispatch(getTeams(urlParams.get('team') || undefined));
-      installRouter((location) => store.dispatch(navigate(location)));
-    }).catch(() => {
-      // Wait for the loading actions to complete, before any navigation.
-      installRouter((location) => store.dispatch(navigate(location)));
-    });
   }
 
   override updated(changedProps: PropertyValues) {
