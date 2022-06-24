@@ -6,7 +6,6 @@ reports/
 test/integration/screenshots-current/
 src/**/*.js
 test/**/*.js
-!src/index.js
 !test/unit/components/__snapshots__/*.js
 dist/
 .DS_Store

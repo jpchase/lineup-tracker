@@ -39,16 +39,12 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         'images/**',
-        {
-          from: 'node_modules/web-animations-js/web-animations-next-lite.min.js',
-          to: 'node_modules/web-animations-js/web-animations-next-lite.min.js'
-        },
         'manifest.json'
       ]
     }),
     new HtmlWebpackPlugin({
       chunksSortMode: 'none',
-      template: 'index.html'
+      template: 'src/index.html'
     }) /*,
     new WorkboxWebpackPlugin.GenerateSW({
       include: ['index.html', 'manifest.json', /\.js$/],

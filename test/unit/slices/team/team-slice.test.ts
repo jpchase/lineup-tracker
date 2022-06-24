@@ -98,7 +98,7 @@ describe('Teams reducer', () => {
       const expectedTeams = buildTeams([getStoredTeam()]);
 
       const newState = team(TEAM_INITIAL_STATE, {
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: expectedTeams
         }
@@ -108,19 +108,18 @@ describe('Teams reducer', () => {
         teams: expectedTeams,
       });
 
-      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
     });
 
-    it('should set the current team when cachedTeamId provided', () => {
+    it('should set the current team when selectedTeamId provided', () => {
       const storedTeam = getStoredTeam();
       const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
 
       const newState = team(TEAM_INITIAL_STATE, {
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: expectedTeams,
-          cachedTeamId: storedTeam.id
+          selectedTeamId: storedTeam.id
         }
       });
 
@@ -130,11 +129,10 @@ describe('Teams reducer', () => {
         teamName: storedTeam.name
       });
 
-      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
     });
 
-    it('should ignore the cachedTeamId when current team already set', () => {
+    it('should ignore the selectedTeamId when current team already set', () => {
       const storedTeam = getStoredTeam();
       const currentState: TeamState = {
         ...TEAM_INITIAL_STATE,
@@ -144,10 +142,10 @@ describe('Teams reducer', () => {
       const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
 
       const newState = team(currentState, {
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: expectedTeams,
-          cachedTeamId: getPublicTeam().id
+          selectedTeamId: getPublicTeam().id
         }
       });
 
@@ -157,19 +155,18 @@ describe('Teams reducer', () => {
         teamName: storedTeam.name
       });
 
-      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
     });
 
-    it('should ignore the cachedTeamId when not in the team list', () => {
+    it('should ignore the selectedTeamId when not in the team list', () => {
       const storedTeam = getStoredTeam();
       const expectedTeams = buildTeams([storedTeam]);
 
       const newState = team(TEAM_INITIAL_STATE, {
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: expectedTeams,
-          cachedTeamId: getPublicTeam().id
+          selectedTeamId: getPublicTeam().id
         }
       });
 
@@ -179,7 +176,6 @@ describe('Teams reducer', () => {
       expect(newState.teamId).to.not.be.ok;
       expect(newState.teamName).to.not.be.ok;
 
-      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
     });
   }); // describe('GET_TEAMS')
@@ -376,26 +372,19 @@ describe('Team actions', () => {
   }
 
   describe('getTeams', () => {
-    it('should return a function to dispatch the getTeams action', () => {
-      expect(getTeams()).to.be.instanceof(Function);
-    });
-
     it('should dispatch an action with owned teams returned from storage, without cached team id', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
       const loadCollectionStub = mockLoadCollectionWithStoredTeams();
 
-      getTeams()(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      await getTeams()(dispatchMock, getStateMock, undefined);
 
       // Checks that the cached team id was retrieved from IDB.
       expect(mockedIDBGet).to.have.callCount(1);
       expect(mockedIDBGet).to.have.been.calledWith(KEY_TEAMID);
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: buildTeams([getStoredTeam()]),
         }
@@ -411,16 +400,13 @@ describe('Team actions', () => {
       const previousTeam = getStoredTeam();
       mockedIDBGet.onFirstCall().resolves(previousTeam.id);
 
-      getTeams(null)(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      await getTeams(undefined)(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: buildTeams([getStoredTeam()]),
-          cachedTeamId: previousTeam.id
+          selectedTeamId: previousTeam.id
         }
       }));
     });
@@ -432,16 +418,13 @@ describe('Team actions', () => {
       const previousTeam = getStoredTeam();
       mockedIDBGet.onFirstCall().resolves(previousTeam.id);
 
-      getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      await getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: buildTeams([getStoredTeam()]),
-          cachedTeamId: 'idfromurl'
+          selectedTeamId: 'idfromurl'
         }
       }));
     });
@@ -451,15 +434,12 @@ describe('Team actions', () => {
       const getStateMock = mockGetState([], getStoredTeam(), { signedIn: true, userId: TEST_USER_ID })
       mockLoadCollectionWithStoredTeams();
 
-      getTeams()(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      await getTeams()(dispatchMock, getStateMock, undefined);
 
       expect(mockedIDBGet).to.not.have.been.called;
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: buildTeams([getStoredTeam()]),
         }
@@ -471,15 +451,12 @@ describe('Team actions', () => {
       const getStateMock = mockGetState([], undefined, { signedIn: false })
       mockLoadCollectionWithPublicTeams();
 
-      getTeams(null)(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      await getTeams(undefined)(dispatchMock, getStateMock, undefined);
 
       expect(mockedIDBGet).to.not.have.been.called;
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: buildTeams([getPublicTeam()]),
         }
@@ -491,36 +468,30 @@ describe('Team actions', () => {
       const getStateMock = mockGetState([], undefined, { signedIn: false })
       mockLoadCollectionWithPublicTeams();
 
-      getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      await getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
 
       expect(mockedIDBGet).to.not.have.been.called;
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.GET_TEAMS,
+        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: buildTeams([getPublicTeam()]),
-          cachedTeamId: 'idfromurl'
+          selectedTeamId: 'idfromurl'
         }
       }));
     });
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
-
+      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
       readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        getTeams()(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
+      await getTeams()(dispatchMock, getStateMock, undefined);
 
-      // Waits for promises to resolve.
-      await Promise.resolve();
-
-      expect(dispatchMock).to.not.have.been.called;
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: actionTypes.rejected(actionTypes.GET_TEAMS),
+        error: { message: 'Storage failed with some error' }
+      }));
     });
 
   }); // describe('getTeams')

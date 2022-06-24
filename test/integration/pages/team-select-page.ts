@@ -15,6 +15,7 @@ export class TeamSelectPage extends PageObject {
 
   override get openFunc(): PageOpenFunction | undefined {
     return async () => {
+      await this.waitForAppInitialization();
       await this.page.evaluate(`(async () => {
         const teamSelector = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-team-selector').shadowRoot.querySelector('mwc-button');
         await teamSelector.click();
