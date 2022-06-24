@@ -14,9 +14,9 @@ import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
-import { clock, ClockState, endPeriod, startPeriod, StartPeriodPayload } from './clock-slice.js';
+import { clock, ClockState, endPeriod, startPeriod, StartPeriodPayload } from './clock-reducer-logic.js';
 import { shift, ShiftState } from './shift-slice.js';
-export { endPeriod, toggle as toggleClock } from './clock-slice.js';
+export { endPeriod, toggle as toggleClock } from './clock-reducer-logic.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {

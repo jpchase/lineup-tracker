@@ -12,7 +12,7 @@ import { getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import { endPeriod, startPeriod } from '@app/slices/live/clock-slice.js';
+import { endPeriod, startPeriod } from '@app/slices/live/clock-reducer-logic.js';
 import { cancelSub, cancelSwap, confirmSub, confirmSwap, gameCompleted, selectCurrentLiveGame, selectLiveGameById, selectPlayer, toggleClock } from '@app/slices/live/live-slice.js';
 import { resetState, store } from '@app/store.js';
 import { Button } from '@material/mwc-button';

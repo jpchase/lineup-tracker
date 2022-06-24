@@ -3,7 +3,7 @@ import { hydrateLive } from '../actions/live.js';
 import { LiveGame } from '../models/game.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
-import { ClockState } from './live/clock-slice.js';
+import { ClockState } from './live/clock-reducer-logic.js';
 import { clockSelector, live, selectCurrentLiveGame, selectCurrentShift } from './live/live-slice.js';
 import { ShiftState } from './live/shift-slice.js';
 

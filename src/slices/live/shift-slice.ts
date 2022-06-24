@@ -4,7 +4,7 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../../models/shift.js';
-import { endPeriod, startPeriod, StartPeriodPayload } from './clock-slice.js';
+import { endPeriod, startPeriod, StartPeriodPayload } from './clock-reducer-logic.js';
 import { applyPendingSubs, gameSetupCompleted, GameSetupCompletedPayload, PendingSubsAppliedPayload } from './live-slice.js';
 
 export interface ShiftState {

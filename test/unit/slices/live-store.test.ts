@@ -1,7 +1,7 @@
 import { hydrateLive } from '@app/actions/live.js';
 import { LiveGame } from '@app/models/game.js';
 import { hydrateState, persistState, resetCache } from '@app/slices/live-store.js';
-import { ClockState } from '@app/slices/live/clock-slice.js';
+import { ClockState } from '@app/slices/live/clock-reducer-logic.js';
 import { LiveState } from '@app/slices/live/live-slice.js';
 import { ShiftState } from '@app/slices/live/shift-slice.js';
 import { idb } from '@app/storage/idb-wrapper.js';
@@ -10,7 +10,7 @@ import { expect } from '@open-wc/testing';
 import { Store } from 'redux';
 import sinon from 'sinon';
 import { getLiveGameWithPlayers } from '../helpers/test-live-game-data.js';
-import { buildClockWithTimer } from './live/clock-slice.test.js';
+import { buildClockWithTimer } from './live/clock-reducer-logic.test.js';
 import { buildShiftWithTrackers } from './live/shift-slice.test.js';
 
 const KEY_CACHED_LIVE = 'CACHED_LIVE';

@@ -6,7 +6,7 @@ import { getPlayer, PeriodStatus } from '@app/models/live';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
-import { ClockState, startPeriod } from '@app/slices/live/clock-slice';
+import { ClockState, startPeriod } from '@app/slices/live/clock-reducer-logic.js';
 import {
   applyPendingSubs, applyStarter, cancelStarter, cancelSub, cancelSwap, completeRoster, confirmSub,
   confirmSwap,
@@ -28,7 +28,7 @@ import {
   getStoredPlayer,
   OTHER_STORED_GAME_ID
 } from '../../helpers/test_data.js';
-import { buildClockWithTimer, CLOCK_INITIAL_STATE } from './clock-slice.test.js';
+import { buildClockWithTimer, CLOCK_INITIAL_STATE } from './clock-reducer-logic.test.js';
 import { buildShiftWithTrackers, SHIFT_INITIAL_STATE } from './shift-slice.test.js';
 
 const LIVE_INITIAL_STATE: LiveGameState = {

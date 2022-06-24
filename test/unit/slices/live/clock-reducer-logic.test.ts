@@ -1,6 +1,6 @@
 import { Duration } from '@app/models/clock.js';
 import { PeriodStatus } from '@app/models/live.js';
-import { clock, ClockState, configurePeriods, endPeriod, startPeriod, toggle } from '@app/slices/live/clock-slice.js';
+import { clock, ClockState, configurePeriods, endPeriod, startPeriod, toggle } from '@app/slices/live/clock-reducer-logic.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';

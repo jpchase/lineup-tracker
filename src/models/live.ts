@@ -1,7 +1,7 @@
 /**
 @license
 */
-import { Game, LiveGame, GameDetail, LivePlayer, GameStatus } from './game';
+import { Game, LiveGame, GameDetail, LivePlayer, GameStatus } from './game.js';
 
 export enum PeriodStatus {
   Pending = 'PENDING',

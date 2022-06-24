@@ -2,7 +2,7 @@ import { Duration } from '@app/models/clock.js';
 import { LivePlayer } from '@app/models/game.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
-import { endPeriod, startPeriod } from '@app/slices/live/clock-slice.js';
+import { endPeriod, startPeriod } from '@app/slices/live/clock-reducer-logic.js';
 import { applyPendingSubs, gameSetupCompleted } from '@app/slices/live/live-slice.js';
 import { shift, ShiftState } from '@app/slices/live/shift-slice.js';
 import { expect } from '@open-wc/testing';
