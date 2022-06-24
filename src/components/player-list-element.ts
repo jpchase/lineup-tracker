@@ -1,6 +1,6 @@
 import { LitElement, PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
-import { LivePlayer } from '../models/game.js';
+import { LivePlayer } from '../models/live.js';
 import { PlayerTimeTracker, PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../models/shift.js';
 
 // The type and interface is required to get the typing to work.

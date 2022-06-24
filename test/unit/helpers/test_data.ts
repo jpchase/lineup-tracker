@@ -1,6 +1,7 @@
-import { Game, GameDetail, Games, GameStatus, LivePlayer } from '@app/models/game';
-import { Player, PlayerStatus, Roster } from '@app/models/player';
-import { Team, Teams } from '@app/models/team';
+import { Game, GameDetail, Games, GameStatus } from '@app/models/game.js';
+import { LivePlayer } from '@app/models/live.js';
+import { Player, PlayerStatus, Roster } from '@app/models/player.js';
+import { Team, Teams } from '@app/models/team.js';
 
 export function getFakeAction() {
   return { type: 'FAKE_ACTION' };

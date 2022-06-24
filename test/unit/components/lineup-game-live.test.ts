@@ -1,14 +1,14 @@
 import { hydrateLive } from '@app/actions/live.js';
 import { LineupGameClock } from '@app/components/lineup-game-clock.js';
-import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import '@app/components/lineup-game-live.js';
+import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { FormationType } from '@app/models/formation.js';
-import { GameDetail, GameStatus, LiveGame, LivePlayer } from '@app/models/game.js';
-import { getPlayer } from '@app/models/live.js';
+import { GameDetail, GameStatus } from '@app/models/game.js';
+import { getPlayer, LiveGame, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';

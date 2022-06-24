@@ -1,5 +1,5 @@
-import { Game, GameDetail, GameStatus, LiveGame } from '@app/models/game';
-import { LiveGameBuilder } from '@app/models/live';
+import { Game, GameDetail, GameStatus } from '@app/models/game.js';
+import { LiveGame, LiveGameBuilder } from '@app/models/live.js';
 import { expect } from '@open-wc/testing';
 import {
   buildLivePlayers, buildRoster,

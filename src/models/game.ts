@@ -1,8 +1,7 @@
 /**
 @license
 */
-import { FormationMetadata, Position } from './formation';
-import { Player, Roster } from './player';
+import { Roster } from './player';
 
 export interface GameMetadata {
   name: string;
@@ -34,15 +33,6 @@ export interface Games {
 }
 
 // TODO: Move all the live game/setup stuff to separate model file?
-export interface LiveGame {
-  id: string;
-  status: GameStatus;
-  dataCaptured?: boolean;
-  formation?: FormationMetadata;
-  players?: LivePlayer[];
-  setupTasks?: SetupTask[];
-}
-
 export enum SetupSteps {
   Formation,
   Roster,
@@ -60,12 +50,4 @@ export enum SetupStatus {
 export interface SetupTask {
   step: SetupSteps;
   status: SetupStatus;
-}
-
-export interface LivePlayer extends Player {
-  currentPosition?: Position;
-  replaces?: string;
-  nextPosition?: Position;
-  isSwap?: boolean;
-  selected?: boolean;
 }

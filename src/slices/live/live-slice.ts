@@ -6,8 +6,8 @@ import { createNextState, createSlice, PayloadAction, ThunkAction } from '@redux
 import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { FormationType, Position } from '../../models/formation.js';
-import { Game, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { gameCanStartPeriod, getPlayer, LiveGameBuilder, LiveGames, removePlayer } from '../../models/live.js';
+import { Game, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
+import { gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer, removePlayer } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';

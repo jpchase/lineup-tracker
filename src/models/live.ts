@@ -1,12 +1,31 @@
 /**
 @license
 */
-import { Game, LiveGame, GameDetail, LivePlayer, GameStatus } from './game.js';
+import { FormationMetadata, Position } from './formation.js';
+import { Game, GameDetail, GameStatus, SetupTask } from './game.js';
+import { Player } from './player.js';
 
 export enum PeriodStatus {
   Pending = 'PENDING',
   Running = 'RUNNING',
   Done = 'DONE'
+}
+
+export interface LivePlayer extends Player {
+  currentPosition?: Position;
+  replaces?: string;
+  nextPosition?: Position;
+  isSwap?: boolean;
+  selected?: boolean;
+}
+
+export interface LiveGame {
+  id: string;
+  status: GameStatus;
+  dataCaptured?: boolean;
+  formation?: FormationMetadata;
+  players?: LivePlayer[];
+  setupTasks?: SetupTask[];
 }
 
 export interface LiveGames {

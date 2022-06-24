@@ -10,7 +10,7 @@ import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { Duration } from '../models/clock.js';
-import { LivePlayer } from '../models/game.js';
+import { LivePlayer } from '../models/live.js';
 import { PlayerTimeTracker, PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../models/shift.js';
 import { SharedStyles } from './shared-styles.js';
 import { synchronizedTimerContext } from './synchronized-timer.js';

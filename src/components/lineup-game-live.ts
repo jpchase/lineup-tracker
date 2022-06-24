@@ -11,7 +11,7 @@ import { map } from 'lit/directives/map.js';
 import { connectStore } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
 import { Formation, FormationBuilder, FormationType, formatPosition, getPositions, Position } from '../models/formation.js';
-import { LiveGame, LivePlayer } from '../models/game.js';
+import { LiveGame, LivePlayer } from '../models/live.js';
 import { PeriodStatus } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.

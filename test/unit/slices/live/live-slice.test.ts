@@ -1,8 +1,8 @@
 import { hydrateLive } from '@app/actions/live.js';
 import { TimerData } from '@app/models/clock';
 import { FormationType, Position } from '@app/models/formation';
-import { GameDetail, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
-import { getPlayer, PeriodStatus } from '@app/models/live';
+import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
+import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';

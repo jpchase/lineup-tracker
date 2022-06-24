@@ -1,5 +1,5 @@
 import { CurrentTimeProvider, Duration, DurationData, Timer, TimerData } from './clock.js';
-import { LivePlayer } from './game.js';
+import { LivePlayer } from './live.js';
 import { PlayerStatus } from './player.js';
 
 export interface PlayerTimeTrackerData {

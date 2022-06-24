@@ -1,5 +1,5 @@
 import { hydrateLive } from '@app/actions/live.js';
-import { LiveGame } from '@app/models/game.js';
+import { LiveGame } from '@app/models/live.js';
 import { hydrateState, persistState, resetCache } from '@app/slices/live-store.js';
 import { ClockState } from '@app/slices/live/clock-reducer-logic.js';
 import { LiveState } from '@app/slices/live/live-slice.js';

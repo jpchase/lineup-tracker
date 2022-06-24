@@ -7,12 +7,12 @@ import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { LineupPlayerList } from '@app/components/lineup-player-list';
 import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares';
 import { FormationType } from '@app/models/formation';
-import { GameDetail, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '@app/models/game';
-import { LiveGameBuilder } from '@app/models/live.js';
+import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
+import { LiveGame, LiveGameBuilder, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import {
   GET_GAME_REQUEST,
-  GET_GAME_SUCCESS,
+  GET_GAME_SUCCESS
 } from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
 import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';

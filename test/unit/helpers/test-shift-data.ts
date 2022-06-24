@@ -1,4 +1,4 @@
-import { LivePlayer } from '@app/models/game';
+import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerData, PlayerTimeTrackerMap } from '@app/models/shift.js';
 import * as testlive from './test-live-game-data.js';

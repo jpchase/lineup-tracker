@@ -2,7 +2,7 @@ import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
 import '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { FormationBuilder, FormationType } from '@app/models/formation';
-import { LivePlayer } from '@app/models/game';
+import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { assert, expect, fixture } from '@open-wc/testing';
 
