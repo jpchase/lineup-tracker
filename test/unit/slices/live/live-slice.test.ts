@@ -16,6 +16,7 @@ import {
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, CLOCK_INITIAL_STATE, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
@@ -28,8 +29,6 @@ import {
   getStoredPlayer,
   OTHER_STORED_GAME_ID
 } from '../../helpers/test_data.js';
-import { buildClockWithTimer, CLOCK_INITIAL_STATE } from './clock-reducer-logic.test.js';
-import { buildShiftWithTrackers, SHIFT_INITIAL_STATE } from './shift-slice.test.js';
 
 const LIVE_INITIAL_STATE: LiveGameState = {
   gameId: '',
@@ -52,21 +51,6 @@ const INITIAL_OVERALL_STATE: LiveState = {
     ...SHIFT_INITIAL_STATE
   }
 };
-
-function buildLiveStateWithCurrentGame(game: LiveGame, rest?: Partial<LiveState>): LiveState {
-  const state: LiveState = {
-    ...INITIAL_OVERALL_STATE,
-    ...rest,
-  };
-  if (game) {
-    state.gameId = game.id;
-    if (!state.games) {
-      state.games = {};
-    }
-    state.games![game.id] = game;
-  }
-  return state;
-}
 
 function buildLiveGameWithPlayers(): LiveGame {
   return testlive.getLiveGameWithPlayers();

@@ -7,25 +7,14 @@ import { applyPendingSubs, gameSetupCompleted } from '@app/slices/live/live-slic
 import { shift, ShiftState } from '@app/slices/live/shift-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildShiftWithTrackers } from '../../helpers/live-state-setup.js';
 import { mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
-import { buildPlayerTracker, buildPlayerTrackerMap } from '../../helpers/test-shift-data.js';
+import { buildPlayerTracker } from '../../helpers/test-shift-data.js';
 
-export const SHIFT_INITIAL_STATE: ShiftState = {
+const SHIFT_INITIAL_STATE: ShiftState = {
   trackerMap: undefined,
 };
-
-export function buildShiftWithTrackers(existingPlayers?: LivePlayer[],
-  keepExistingStatus?: boolean): ShiftState {
-  if (existingPlayers) {
-    existingPlayers = existingPlayers.filter(player => !player.isSwap);
-  }
-  const trackerMap = buildPlayerTrackerMap(existingPlayers, keepExistingStatus);
-  return {
-    ...SHIFT_INITIAL_STATE,
-    trackerMap: trackerMap.toJSON()
-  };
-}
 
 describe('Shift slice', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();

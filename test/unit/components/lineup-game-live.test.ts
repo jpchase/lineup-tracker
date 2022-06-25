@@ -19,9 +19,9 @@ import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
 import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton } from '../helpers/clock-element-retrievers.js';
+import { buildShiftWithTrackers } from '../helpers/live-state-setup.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
-import { buildShiftWithTrackers } from '../slices/live/shift-slice.test.js';
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {

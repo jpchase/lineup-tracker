@@ -9,15 +9,10 @@ import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import { Store } from 'redux';
 import sinon from 'sinon';
+import { buildClockWithTimer, buildShiftWithTrackers } from '../helpers/live-state-setup.js';
 import { getLiveGameWithPlayers } from '../helpers/test-live-game-data.js';
-import { buildClockWithTimer } from './live/clock-reducer-logic.test.js';
-import { buildShiftWithTrackers } from './live/shift-slice.test.js';
 
 const KEY_CACHED_LIVE = 'CACHED_LIVE';
-
-function buildClock(): ClockState {
-  return buildClockWithTimer(true);
-}
 
 function mockGetState(currentGame?: LiveGame, clock?: ClockState, shift?: ShiftState) {
   const liveState: LiveState = {
@@ -78,7 +73,7 @@ describe('Live store', () => {
 
     it('should populate the live state when found in idb', async () => {
       const currentGame = getLiveGameWithPlayers();
-      const currentClock = buildClock();
+      const currentClock = buildClockWithTimer(/* isRunning= */true);
       const currentShift = buildShiftWithTrackers(currentGame.players);
       const cachedData = {
         currentGameId: currentGame.id,
@@ -120,7 +115,7 @@ describe('Live store', () => {
 
     it('should cache the live state when changed', async () => {
       const currentGame = getLiveGameWithPlayers();
-      const currentClock = buildClock();
+      const currentClock = buildClockWithTimer(/* isRunning= */true);
       const currentShift = buildShiftWithTrackers(currentGame.players);
       const getStateMock = mockGetState(currentGame, currentClock, currentShift);
       const storeMock = mockStore(getStateMock);
@@ -145,7 +140,7 @@ describe('Live store', () => {
 
     it('should do nothing if live state is already cached', async () => {
       const currentGame = getLiveGameWithPlayers();
-      const currentClock = buildClock();
+      const currentClock = buildClockWithTimer(/* isRunning= */true);
       const currentShift = buildShiftWithTrackers(currentGame.players);
       const getStateMock = mockGetState(currentGame, currentClock, currentShift);
       const storeMock = mockStore(getStateMock);
