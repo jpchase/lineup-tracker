@@ -12,8 +12,8 @@ import { getPlayer, LiveGame, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import { endPeriod, startPeriod } from '@app/slices/live/clock-reducer-logic.js';
-import { cancelSub, cancelSwap, confirmSub, confirmSwap, gameCompleted, selectCurrentLiveGame, selectLiveGameById, selectPlayer, toggleClock } from '@app/slices/live/live-slice.js';
+import { endPeriod } from '@app/slices/live/clock-reducer-logic.js';
+import { cancelSub, cancelSwap, confirmSub, confirmSwap, gameCompleted, selectCurrentLiveGame, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
 import { resetState, store } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
@@ -170,7 +170,7 @@ describe('lineup-game-live tests', () => {
       // Setup the live game, with the period in progress.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
       store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
-      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
+      store.dispatch(startPeriod(live.id,/*gameAllowsStart =*/true));
       liveGame = selectLiveGameById(store.getState(), live.id)!;
 
       await el.updateComplete;
@@ -397,10 +397,12 @@ describe('lineup-game-live tests', () => {
   }); // describe('Subs')
 
   describe('Clock', () => {
+    let gameId: string;
 
     beforeEach(async () => {
       const { game, live } = getGameDetail();
       const shift = buildShiftWithTrackers(live.players);
+      gameId = live.id;
 
       // Setup the live game, in Start status
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
@@ -421,12 +423,12 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        startPeriod(/*gameAllowsStart =*/true));
+        startPeriod(gameId,/*gameAllowsStart  =*/true));
     });
 
     it('dispatches end period action when event fired by clock component', async () => {
       // Get the clock component into a state that allows the period to end.
-      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
+      store.dispatch(startPeriod(gameId,/*gameAllowsStart =*/true));
       await el.updateComplete;
 
       // Trigger the event by clicking the end period button.
@@ -445,7 +447,7 @@ describe('lineup-game-live tests', () => {
 
     it('dispatches toggle clock action when fired by clock component', async () => {
       // Get the clock component into a state that allows the toggle.
-      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
+      store.dispatch(startPeriod(gameId, /*gameAllowsStart =*/true));
       await el.updateComplete;
 
       // Trigger the event by clicking the toggle button.
@@ -481,9 +483,9 @@ describe('lineup-game-live tests', () => {
     function advanceToAfterLastPeriod() {
       // Game has two periods (halves), and begins in "Start" status, before
       // the first half is started
-      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
+      store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/true));
       store.dispatch(endPeriod());
-      store.dispatch(startPeriod(/*gameAllowsStart =*/true));
+      store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/true));
       store.dispatch(endPeriod());
     }
 

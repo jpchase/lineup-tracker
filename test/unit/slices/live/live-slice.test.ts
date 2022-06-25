@@ -6,12 +6,11 @@ import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
-import { ClockState, startPeriod } from '@app/slices/live/clock-reducer-logic.js';
+import { ClockState } from '@app/slices/live/clock-reducer-logic.js';
 import {
   applyPendingSubs, applyStarter, cancelStarter, cancelSub, cancelSwap, completeRoster, confirmSub,
   confirmSwap,
-  discardPendingSubs, endPeriod, formationSelected, gameCompleted, gameSetupCompleted, live, LiveGameState, LiveState,
-  selectPlayer, selectStarter, selectStarterPosition, startersCompleted, startGamePeriod
+  discardPendingSubs, endPeriod, formationSelected, gameCompleted, gameSetupCompleted, live, LiveGameState, LiveState, selectPlayer, selectStarter, selectStarterPosition, startersCompleted, startGamePeriod, startPeriod
 } from '@app/slices/live/live-slice';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
@@ -1616,9 +1615,10 @@ describe('Live slice', () => {
         });
 
         it(`should change game status from ${status} to Live`, () => {
-          getCurrentGame(currentState)!.status = status;
+          const currentGame = getCurrentGame(currentState)!;
+          currentGame.status = status;
 
-          const newState = live(currentState, startPeriod(/*gameAllowsStart=*/true));
+          const newState = live(currentState, startPeriod(currentGame.id, /*gameAllowsStart=*/true));
 
           expect(getCurrentGame(newState)!?.status).to.equal(GameStatus.Live);
           expect(newState.clock?.periodStatus).to.equal(PeriodStatus.Running);
@@ -1672,9 +1672,10 @@ describe('Live slice', () => {
         });
 
         it(`should do nothing when game is in ${status} status`, () => {
-          getCurrentGame(currentState)!.status = status;
+          const currentGame = getCurrentGame(currentState)!;
+          currentGame.status = status;
 
-          const newState = live(currentState, startPeriod(/*gameAllowsStart=*/false));
+          const newState = live(currentState, startPeriod(currentGame.id, /*gameAllowsStart=*/false));
 
           expect(getCurrentGame(newState)?.status).to.equal(status);
           expect(newState).to.equal(currentState);

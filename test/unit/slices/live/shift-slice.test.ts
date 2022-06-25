@@ -2,8 +2,8 @@ import { Duration } from '@app/models/clock.js';
 import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
-import { endPeriod, startPeriod } from '@app/slices/live/clock-reducer-logic.js';
-import { applyPendingSubs, gameSetupCompleted } from '@app/slices/live/live-slice.js';
+import { endPeriod } from '@app/slices/live/clock-reducer-logic.js';
+import { applyPendingSubs, gameSetupCompleted, startPeriod } from '@app/slices/live/live-slice.js';
 import { shift, ShiftState } from '@app/slices/live/shift-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
@@ -73,6 +73,7 @@ describe('Shift slice', () => {
   describe('clock/startPeriod', () => {
     let currentState: ShiftState = SHIFT_INITIAL_STATE;
     let rosterPlayers: LivePlayer[];
+    const gameId = 'somegameid';
 
     before(() => {
       rosterPlayers = testlive.getLivePlayers(18);
@@ -85,7 +86,7 @@ describe('Shift slice', () => {
     it('should set the clock running and capture the start time', () => {
       mockCurrentTime(startTime);
 
-      const newState = shift(currentState, startPeriod(/*gameAllowsStart=*/true));
+      const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
 
       // Only need to check the first player tracker.
       const expectedTracker = buildPlayerTracker(rosterPlayers[0]);
@@ -110,7 +111,7 @@ describe('Shift slice', () => {
     it('should do nothing if game does not allow period to be started', () => {
       mockCurrentTime(startTime);
 
-      const newState = shift(currentState, startPeriod(/*gameAllowsStart=*/false));
+      const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/false));
 
       expect(newState.trackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
       expect(newState.trackerMap).to.equal(currentState.trackerMap);

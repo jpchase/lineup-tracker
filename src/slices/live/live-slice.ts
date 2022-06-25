@@ -14,7 +14,7 @@ import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
-import { clock, ClockState, endPeriod, startPeriod, StartPeriodPayload } from './clock-reducer-logic.js';
+import { clock, ClockState, configurePeriodsHandler, ConfigurePeriodsPayload, configurePeriodsPrepare, endPeriod, startPeriodHandler, StartPeriodPayload, startPeriodPrepare } from './clock-reducer-logic.js';
 import { shift, ShiftState } from './shift-slice.js';
 export { endPeriod, toggle as toggleClock } from './clock-reducer-logic.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
@@ -111,7 +111,7 @@ export const startGamePeriod: ActionCreator<ThunkAction<void, RootState, undefin
   if (!periodState) {
     return;
   }
-  dispatch(startPeriod(gameCanStartPeriod(game, periodState.currentPeriod, periodState.totalPeriods)));
+  dispatch(startPeriod(game.id, gameCanStartPeriod(game, periodState.currentPeriod, periodState.totalPeriods)));
 };
 
 export const live: Reducer<LiveState> = function (state, action) {
@@ -571,17 +571,38 @@ const liveSlice = createSlice({
         };
       }
     },
+
+    // Clock-related actions
+    configurePeriods: {
+      reducer: (state, action: PayloadAction<ConfigurePeriodsPayload>) => {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        return configurePeriodsHandler(game, action);
+      },
+      prepare: configurePeriodsPrepare
+    },
+
+    startPeriod: {
+      reducer: (state, action: PayloadAction<StartPeriodPayload>) => {
+        if (!action.payload.gameAllowsStart) {
+          return;
+        }
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        game.status = GameStatus.Live;
+        return startPeriodHandler(game, action);
+      },
+      prepare: startPeriodPrepare
+    },
+
   },
 
   extraReducers: (builder) => {
-    builder.addCase(startPeriod, (state, action: PayloadAction<StartPeriodPayload>) => {
-      if (!action.payload.gameAllowsStart) {
-        return;
-      }
-      // TODO: validate game matches?
-      const game = findCurrentGame(state)!;
-      game.status = GameStatus.Live;
-    }).addCase(endPeriod, (state: LiveState) => {
+    builder.addCase(endPeriod, (state: LiveState) => {
       // TODO: validate game matches?
       const game = findCurrentGame(state)!;
       if (game.status !== GameStatus.Live) {
@@ -602,6 +623,9 @@ export const {
   completeRoster,
   formationSelected, getLiveGame, startersCompleted, captainsCompleted, gameSetupCompleted,
   selectStarter, selectStarterPosition, applyStarter, cancelStarter,
+  // Clock-related actions
+  configurePeriods, startPeriod,
+  // Sub-related actions
   selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs, discardPendingSubs, gameCompleted
 } = actions;
 

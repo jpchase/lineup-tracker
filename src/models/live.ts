@@ -1,6 +1,7 @@
 /**
 @license
 */
+import { TimerData } from './clock.js';
 import { FormationMetadata, Position } from './formation.js';
 import { Game, GameDetail, GameStatus, SetupTask } from './game.js';
 import { Player } from './player.js';
@@ -19,10 +20,19 @@ export interface LivePlayer extends Player {
   selected?: boolean;
 }
 
+export interface LiveClock {
+  timer?: TimerData;
+  currentPeriod: number;
+  periodStatus: PeriodStatus;
+  totalPeriods: number;
+  periodLength: number;
+}
+
 export interface LiveGame {
   id: string;
   status: GameStatus;
   dataCaptured?: boolean;
+  clock?: LiveClock;
   formation?: FormationMetadata;
   players?: LivePlayer[];
   setupTasks?: SetupTask[];

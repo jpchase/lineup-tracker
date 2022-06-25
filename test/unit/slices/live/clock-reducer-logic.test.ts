@@ -1,10 +1,10 @@
 import { Duration } from '@app/models/clock.js';
 import { PeriodStatus } from '@app/models/live.js';
-import { configurePeriods, endPeriod, startPeriod, toggle } from '@app/slices/live/clock-reducer-logic.js';
-import { live, LiveState } from '@app/slices/live/live-slice.js';
+import { endPeriod, toggle } from '@app/slices/live/clock-reducer-logic.js';
+import { configurePeriods, live, LiveState, startPeriod } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers } from '../../helpers/live-state-setup.js';
+import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, getGame } from '../../helpers/live-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
@@ -28,20 +28,21 @@ describe('Clock reducer', () => {
 
   describe('clock/configurePeriods', () => {
     let currentState: LiveState;
+    let gameId: string;
 
     beforeEach(() => {
-      currentState = buildLiveStateWithCurrentGame(
-        testlive.getLiveGameWithPlayers(),
-        {
-          clock: buildClockWithTimer(),
-        });
+      const game = testlive.getLiveGameWithPlayers();
+      game.clock = buildClockWithTimer();
+      currentState = buildLiveStateWithCurrentGame(game);
+      gameId = game.id;
     });
 
     it('should set the period total/length', () => {
       const newState = live(currentState,
-        configurePeriods(/*totalPeriods=*/1, /*periodLength=*/20));
+        configurePeriods(gameId, /*totalPeriods=*/1, /*periodLength=*/20));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         totalPeriods: 1,
         periodLength: 20
       });
@@ -51,32 +52,34 @@ describe('Clock reducer', () => {
 
     it('should do nothing if totalPeriods is invalid', () => {
       const newState = live(currentState,
-        configurePeriods(/*totalPeriods=*/0, /*periodLength=*/45));
+        configurePeriods(gameId, /*totalPeriods=*/0, /*periodLength=*/45));
 
       expect(newState).to.equal(currentState);
     });
 
     it('should do nothing if periodLength is invalid', () => {
       const newState = live(currentState,
-        configurePeriods(/*totalPeriods=*/2, /*periodLength=*/5));
+        configurePeriods(gameId, /*totalPeriods=*/2, /*periodLength=*/5));
 
       expect(newState).to.equal(currentState);
     });
 
     it('should do nothing if already started', () => {
-      currentState.clock!.periodStatus = PeriodStatus.Running;
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock!.periodStatus = PeriodStatus.Running;
 
       const newState = live(currentState,
-        configurePeriods(/*totalPeriods=*/2, /*periodLength=*/35));
+        configurePeriods(gameId, /*totalPeriods=*/2, /*periodLength=*/35));
 
       expect(newState).to.equal(currentState);
     });
 
     it('should do nothing if already on period 1', () => {
-      currentState.clock!.currentPeriod = 1;
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock!.currentPeriod = 1;
 
       const newState = live(currentState,
-        configurePeriods(/*totalPeriods=*/2, /*periodLength=*/35));
+        configurePeriods(gameId, /*totalPeriods=*/2, /*periodLength=*/35));
 
       expect(newState).to.equal(currentState);
     });
@@ -84,21 +87,25 @@ describe('Clock reducer', () => {
 
   describe('clock/startPeriod', () => {
     let currentState: LiveState;
+    let gameId: string;
 
     beforeEach(() => {
+      const game = testlive.getLiveGameWithPlayers();
       currentState = buildLiveStateWithCurrentGame(
-        testlive.getLiveGameWithPlayers(),
+        game,
         {
           shift: buildShiftWithTrackers()
         });
+      gameId = game.id;
     });
 
     it('should set the clock running and capture the start time', () => {
       mockTimeProvider(startTime);
 
-      const newState = live(currentState, startPeriod(/*gameAllowsStart=*/true));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         timer: {
           isRunning: true,
           startTime: startTime,
@@ -107,15 +114,15 @@ describe('Clock reducer', () => {
       });
 
       expect(newState).not.to.equal(currentState);
-      expect(newState.clock?.timer).not.to.equal(currentState.clock?.timer);
     });
 
     it('should start the first period when currentPeriod not set', () => {
       mockTimeProvider(startTime);
 
-      const newState = live(currentState, startPeriod(/*gameAllowsStart=*/true));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
         periodStatus: PeriodStatus.Running
       });
@@ -125,11 +132,17 @@ describe('Clock reducer', () => {
 
     it('should start the next period when currentPeriod already set', () => {
       mockTimeProvider(startTime);
-      currentState.clock!.currentPeriod = 1;
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
+        /* timer= */undefined,
+        {
+          currentPeriod: 1,
+        });
 
-      const newState = live(currentState, startPeriod(/*gameAllowsStart=*/true));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 2,
         periodStatus: PeriodStatus.Running
       });
@@ -139,12 +152,18 @@ describe('Clock reducer', () => {
 
     it.skip('should do nothing if already at last period', () => {
       mockTimeProvider(startTime);
-      currentState.clock!.currentPeriod = 2;
-      currentState.clock!.totalPeriods = 2;
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
+        /* timer= */undefined,
+        {
+          currentPeriod: 2,
+          totalPeriods: 2,
+        });
 
-      const newState = live(currentState, startPeriod(/*gameAllowsStart=*/true));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 2,
         periodStatus: PeriodStatus.Pending
       });
@@ -157,12 +176,10 @@ describe('Clock reducer', () => {
     it('should do nothing if game does not allow period to be started', () => {
       mockTimeProvider(startTime);
 
-      const newState = live(currentState, startPeriod(/*gameAllowsStart=*/false));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/false));
 
-      expect(newState.clock).to.deep.include({
-        currentPeriod: 0,
-        periodStatus: PeriodStatus.Pending
-      });
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.not.be.ok;
 
       expect(newState).to.equal(currentState);
     });
