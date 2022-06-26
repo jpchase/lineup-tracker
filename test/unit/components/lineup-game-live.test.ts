@@ -12,8 +12,7 @@ import { getPlayer, LiveGame, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import { endPeriod } from '@app/slices/live/clock-reducer-logic.js';
-import { cancelSub, cancelSwap, confirmSub, confirmSwap, gameCompleted, selectCurrentLiveGame, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
+import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, selectCurrentLiveGame, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
 import { resetState, store } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
@@ -442,7 +441,7 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        endPeriod());
+        endPeriod(gameId));
     });
 
     it('dispatches toggle clock action when fired by clock component', async () => {
@@ -460,7 +459,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(toggleClock());
+      expect(actions[actions.length - 1]).to.include(toggleClock(gameId));
     });
 
   }); // describe('Clock')
@@ -484,9 +483,9 @@ describe('lineup-game-live tests', () => {
       // Game has two periods (halves), and begins in "Start" status, before
       // the first half is started
       store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/true));
-      store.dispatch(endPeriod());
+      store.dispatch(endPeriod(liveGame.id));
       store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/true));
-      store.dispatch(endPeriod());
+      store.dispatch(endPeriod(liveGame.id));
     }
 
     it('complete button is disabled initially', async () => {

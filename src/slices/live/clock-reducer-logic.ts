@@ -2,9 +2,11 @@
 @license
 */
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { Timer, TimerData } from '../../models/clock.js';
+import { GameStatus } from '../../models/game.js';
 import { LiveGame, PeriodStatus } from '../../models/live.js';
+import { ConfigurePeriodsPayload, StartPeriodPayload } from './live-action-types.js';
 
 export interface ClockState {
   timer?: TimerData;
@@ -12,17 +14,6 @@ export interface ClockState {
   periodStatus: PeriodStatus;
   totalPeriods: number;
   periodLength: number;
-}
-
-export interface ConfigurePeriodsPayload {
-  gameId: string;
-  totalPeriods: number;
-  periodLength: number;
-}
-
-export interface StartPeriodPayload {
-  gameId: string;
-  gameAllowsStart: boolean;
 }
 
 const INITIAL_STATE: ClockState = {
@@ -66,6 +57,8 @@ export const startPeriodHandler = (game: LiveGame, action: PayloadAction<StartPe
     || game.clock.periodStatus === PeriodStatus.Running)) {
     return;
   }
+  game.status = GameStatus.Live;
+
   const state = getInitializedClock(game);
   const timer = new Timer();
   timer.start();
@@ -87,43 +80,41 @@ export const startPeriodPrepare = (gameId: string, gameAllowsStart: boolean) => 
   };
 }
 
-const clockSlice = createSlice({
-  name: 'clock',
-  initialState: INITIAL_STATE,
-  reducers: {
-
-    endPeriod: (state) => {
-      if (state.periodStatus !== PeriodStatus.Running) {
-        return;
-      }
-      const timer = new Timer(state.timer);
-      timer.stop();
-      state.timer = timer.toJSON();
-      if (state.currentPeriod === state.totalPeriods) {
-        // Ending the last period of the game.
-        state.periodStatus = PeriodStatus.Done;
-      } else {
-        state.periodStatus = PeriodStatus.Pending;
-      }
-    },
-
-    toggle: (state) => {
-      const timer = new Timer(state.timer);
-
-      if (timer.isRunning) {
-        timer.stop();
-      } else {
-        timer.start();
-      }
-      state.timer = timer.toJSON();
-    },
+export const endPeriodHandler = (game: LiveGame) => {
+  if (game.status !== GameStatus.Live) {
+    return;
   }
-});
+  if (game.clock && (game.clock.periodStatus !== PeriodStatus.Running)) {
+    return;
+  }
+  const state = getInitializedClock(game);
+  const timer = new Timer(state.timer);
+  timer.stop();
+  state.timer = timer.toJSON();
+  if (state.currentPeriod === state.totalPeriods) {
+    // Ending the last period of the game.
+    game.status = GameStatus.Done;
+    state.periodStatus = PeriodStatus.Done;
+  } else {
+    game.status = GameStatus.Break;
+    state.periodStatus = PeriodStatus.Pending;
+  }
+}
 
-const { actions, reducer } = clockSlice;
+export const toggleHandler = (game: LiveGame) => {
+  if (!game.clock) {
+    return;
+  }
+  const state = getInitializedClock(game);
+  const timer = new Timer(state.timer);
 
-export const clock = reducer;
-export const { endPeriod, toggle } = actions;
+  if (timer.isRunning) {
+    timer.stop();
+  } else {
+    timer.start();
+  }
+  state.timer = timer.toJSON();
+}
 
 function getInitializedClock(game: LiveGame) {
   if (!game.clock) {

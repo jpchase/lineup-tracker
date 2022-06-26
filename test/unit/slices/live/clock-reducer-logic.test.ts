@@ -1,14 +1,14 @@
 import { Duration } from '@app/models/clock.js';
+import { GameStatus } from '@app/models/game.js';
 import { PeriodStatus } from '@app/models/live.js';
-import { endPeriod, toggle } from '@app/slices/live/clock-reducer-logic.js';
-import { configurePeriods, live, LiveState, startPeriod } from '@app/slices/live/live-slice.js';
+import { configurePeriods, live, LiveState, startPeriod, endPeriod, toggleClock } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, getGame } from '../../helpers/live-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
-describe('Clock reducer', () => {
+describe('Clock actions', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
   const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
   const time2 = new Date(2016, 0, 1, 14, 0, 10).getTime();
@@ -26,7 +26,7 @@ describe('Clock reducer', () => {
     fakeClock = sinon.useFakeTimers({ now: t0 });
   }
 
-  describe('clock/configurePeriods', () => {
+  describe('live/configurePeriods', () => {
     let currentState: LiveState;
     let gameId: string;
 
@@ -83,9 +83,9 @@ describe('Clock reducer', () => {
 
       expect(newState).to.equal(currentState);
     });
-  }); // describe('clock/configurePeriods')
+  }); // describe('live/configurePeriods')
 
-  describe('clock/startPeriod', () => {
+  describe('live/startPeriod', () => {
     let currentState: LiveState;
     let gameId: string;
 
@@ -184,28 +184,33 @@ describe('Clock reducer', () => {
       expect(newState).to.equal(currentState);
     });
 
-  }); // describe('clock/startPeriod')
+  }); // describe('live/startPeriod')
 
-  describe('clock/endPeriod', () => {
+  describe('live/endPeriod', () => {
     let currentState: LiveState;
+    let gameId: string;
 
     beforeEach(() => {
-      currentState = buildLiveStateWithCurrentGame(
-        testlive.getLiveGameWithPlayers());
+      const game = testlive.getLiveGameWithPlayers();
+      game.status = GameStatus.Live;
+      currentState = buildLiveStateWithCurrentGame(game);
+      gameId = game.id;
     });
 
     it('should stop the clock and save the duration', () => {
       mockTimeProvider(time2);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         buildRunningTimer(startTime),
         {
           currentPeriod: 1,
           periodStatus: PeriodStatus.Running,
         });
 
-      const newState = live(currentState, endPeriod());
+      const newState = live(currentState, endPeriod(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         timer: {
           isRunning: false,
           startTime: undefined,
@@ -214,21 +219,22 @@ describe('Clock reducer', () => {
       });
 
       expect(newState).not.to.equal(currentState);
-      expect(newState.clock?.timer).not.to.equal(currentState.clock?.timer);
     });
 
     it('should reset the period status', () => {
       mockTimeProvider(time2);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         /* timer= */undefined,
         {
           currentPeriod: 1,
           periodStatus: PeriodStatus.Running,
         });
 
-      const newState = live(currentState, endPeriod());
+      const newState = live(currentState, endPeriod(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
         periodStatus: PeriodStatus.Pending
       });
@@ -238,16 +244,18 @@ describe('Clock reducer', () => {
 
     it('should reset the period status when timer is not running', () => {
       mockTimeProvider(time2);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         buildStoppedTimer(),
         {
           currentPeriod: 1,
           periodStatus: PeriodStatus.Running,
         });
 
-      const newState = live(currentState, endPeriod());
+      const newState = live(currentState, endPeriod(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
         periodStatus: PeriodStatus.Pending,
       });
@@ -257,7 +265,8 @@ describe('Clock reducer', () => {
 
     it('should set the period status to done when on the last period', () => {
       mockTimeProvider(time2);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         /* timer= */undefined,
         {
           currentPeriod: 3,
@@ -265,9 +274,10 @@ describe('Clock reducer', () => {
           totalPeriods: 3
         });
 
-      const newState = live(currentState, endPeriod());
+      const newState = live(currentState, endPeriod(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 3,
         periodStatus: PeriodStatus.Done
       });
@@ -277,16 +287,18 @@ describe('Clock reducer', () => {
 
     it('should do nothing if period is not started', () => {
       mockTimeProvider(startTime);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         /* timer= */undefined,
         {
           currentPeriod: 1,
           periodStatus: PeriodStatus.Pending,
         });
 
-      const newState = live(currentState, endPeriod());
+      const newState = live(currentState, endPeriod(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
         periodStatus: PeriodStatus.Pending
       });
@@ -296,7 +308,8 @@ describe('Clock reducer', () => {
 
     it('should do nothing if periods are done', () => {
       mockTimeProvider(startTime);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         /* timer= */undefined,
         {
           currentPeriod: 3,
@@ -304,9 +317,10 @@ describe('Clock reducer', () => {
           totalPeriods: 3
         });
 
-      const newState = live(currentState, endPeriod());
+      const newState = live(currentState, endPeriod(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 3,
         periodStatus: PeriodStatus.Done
       });
@@ -314,23 +328,27 @@ describe('Clock reducer', () => {
       expect(newState).to.equal(currentState);
     });
 
-  }); // describe('clock/endPeriod')
+  }); // describe('live/endPeriod')
 
-  describe('clock/toggle', () => {
+  describe('live/toggle', () => {
     let currentState: LiveState;
+    let gameId: string;
 
     beforeEach(() => {
-      currentState = buildLiveStateWithCurrentGame(
-        testlive.getLiveGameWithPlayers());
+      const game = testlive.getLiveGameWithPlayers();
+      currentState = buildLiveStateWithCurrentGame(game);
+      gameId = game.id;
     });
 
     it('should start when no timer data exists', () => {
-      expect(currentState.clock?.timer).to.be.undefined;
       mockTimeProvider(time3);
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(/* timer= */undefined);
 
-      const newState = live(currentState, toggle());
+      const newState = live(currentState, toggleClock(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         timer: {
           isRunning: true,
           startTime: time3,
@@ -339,17 +357,18 @@ describe('Clock reducer', () => {
       });
 
       expect(newState).not.to.equal(currentState);
-      expect(newState.clock?.timer).not.to.equal(currentState.clock?.timer);
     });
 
     it('should start when timer is set to not running', () => {
       mockTimeProvider(startTime);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         buildStoppedTimer());
 
-      const newState = live(currentState, toggle());
+      const newState = live(currentState, toggleClock(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         timer: {
           isRunning: true,
           startTime: startTime,
@@ -358,17 +377,18 @@ describe('Clock reducer', () => {
       });
 
       expect(newState).not.to.equal(currentState);
-      expect(newState.clock?.timer).not.to.equal(currentState.clock?.timer);
     });
 
     it('should stop when timer is already running', () => {
       mockTimeProvider(time2);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         buildRunningTimer(time1));
 
-      const newState = live(currentState, toggle());
+      const newState = live(currentState, toggleClock(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         timer: {
           isRunning: false,
           startTime: undefined,
@@ -377,17 +397,18 @@ describe('Clock reducer', () => {
       });
 
       expect(newState).not.to.equal(currentState);
-      expect(newState.clock?.timer).not.to.equal(currentState.clock?.timer);
     });
 
     it('should stop when running and add to existing duration', () => {
       mockTimeProvider(time2);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         buildRunningTimer(startTime, 20));
 
-      const newState = live(currentState, toggle());
+      const newState = live(currentState, toggleClock(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         timer: {
           isRunning: false,
           startTime: undefined,
@@ -396,21 +417,22 @@ describe('Clock reducer', () => {
       });
 
       expect(newState).not.to.equal(currentState);
-      expect(newState.clock?.timer).not.to.equal(currentState.clock?.timer);
     });
 
     it('should not change the period when timer is set to not running', () => {
       mockTimeProvider(startTime);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         buildStoppedTimer(),
         {
           currentPeriod: 1,
           periodStatus: PeriodStatus.Running,
         });
 
-      const newState = live(currentState, toggle());
+      const newState = live(currentState, toggleClock(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
         periodStatus: PeriodStatus.Running,
       });
@@ -418,21 +440,23 @@ describe('Clock reducer', () => {
       expect(newState).not.to.equal(currentState);
       // Check the timer to make sure the toggle happened, but the values don't
       // matter for this test.
-      expect(newState.clock?.timer).not.to.equal(currentState.clock?.timer);
+      expect(newGame?.clock?.timer).not.to.equal(currentGame.clock?.timer);
     });
 
     it('should not change the period when timer is already running', () => {
       mockTimeProvider(time2);
-      currentState.clock = buildClock(
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
         buildRunningTimer(time1),
         {
           currentPeriod: 2,
           periodStatus: PeriodStatus.Running,
         });
 
-      const newState = live(currentState, toggle());
+      const newState = live(currentState, toggleClock(gameId));
 
-      expect(newState.clock).to.deep.include({
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
         currentPeriod: 2,
         periodStatus: PeriodStatus.Running,
       });
@@ -440,8 +464,8 @@ describe('Clock reducer', () => {
       expect(newState).not.to.equal(currentState);
       // Check the timer to make sure the toggle happened, but the values don't
       // matter for this test.
-      expect(newState.clock?.timer).not.to.equal(currentState.clock?.timer);
+      expect(newGame?.clock?.timer).not.to.equal(currentGame.clock?.timer);
     });
 
-  }); // describe('clock/toggle')
+  }); // describe('live/toggle')
 });

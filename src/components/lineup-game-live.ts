@@ -287,7 +287,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
   }
 
   private toggleClock() {
-    this.dispatch(toggleClock());
+    this.dispatch(toggleClock(this._game!.id));
   }
 
   private startClockPeriod() {
@@ -295,11 +295,11 @@ export class LineupGameLive extends connectStore()(LitElement) {
   }
 
   private endClockPeriod() {
-    this.dispatch(endPeriod());
+    this.dispatch(endPeriod(this._game!.id));
   }
 
   private completeGame() {
-    this.dispatch(gameCompleted(this._game?.id!));
+    this.dispatch(gameCompleted(this._game!.id));
   }
 
   private _findPlayer(playerId: string) {
