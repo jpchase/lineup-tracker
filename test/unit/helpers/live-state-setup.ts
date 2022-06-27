@@ -1,6 +1,5 @@
 import { TimerData } from '@app/models/clock.js';
 import { LiveClock, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
-import { ClockState } from '@app/slices/live/clock-reducer-logic.js';
 import { LiveGameState, LiveState } from '@app/slices/live/live-slice.js';
 import { ShiftState } from '@app/slices/live/shift-slice.js';
 import { buildRunningTimer, buildStoppedTimer } from './test-clock-data.js';
@@ -17,7 +16,7 @@ const LIVE_INITIAL_STATE: LiveGameState = {
   proposedSub: undefined,
 };
 
-export const CLOCK_INITIAL_STATE: ClockState = {
+const CLOCK_INITIAL_STATE: LiveClock = {
   timer: undefined,
   currentPeriod: 0,
   periodStatus: PeriodStatus.Pending,
@@ -35,9 +34,6 @@ export function buildInitialLiveState(): LiveState {
   return {
     hydrated: false,
     ...LIVE_INITIAL_STATE,
-    clock: {
-      ...CLOCK_INITIAL_STATE
-    },
     shift: {
       ...SHIFT_INITIAL_STATE
     }
@@ -59,15 +55,7 @@ export function buildLiveStateWithCurrentGame(game: LiveGame, rest?: Partial<Liv
   return state;
 }
 
-export function buildClock2(timer?: TimerData, rest?: Partial<LiveClock>): LiveClock {
-  return {
-    ...CLOCK_INITIAL_STATE,
-    ...rest,
-    timer,
-  }
-}
-
-export function buildClock(timer?: TimerData, rest?: Partial<ClockState>): ClockState {
+export function buildClock(timer?: TimerData, rest?: Partial<LiveClock>): LiveClock {
   return {
     ...CLOCK_INITIAL_STATE,
     ...rest,
@@ -76,7 +64,7 @@ export function buildClock(timer?: TimerData, rest?: Partial<ClockState>): Clock
 }
 
 export function buildClockWithTimer(isRunning?: boolean): LiveClock {
-  return buildClock2(isRunning ? buildRunningTimer() : buildStoppedTimer());
+  return buildClock(isRunning ? buildRunningTimer() : buildStoppedTimer());
 }
 
 export function buildShiftWithTrackers(existingPlayers?: LivePlayer[],

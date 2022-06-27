@@ -14,7 +14,7 @@ import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
-import { ClockState, configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
+import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
 import { ConfigurePeriodsPayload, LiveGamePayload, prepareLiveGamePayload, StartPeriodPayload } from "./live-action-types";
 import { shift, ShiftState } from './shift-slice.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
@@ -34,7 +34,6 @@ export interface LiveGameState {
 
 export interface LiveState extends LiveGameState {
   hydrated?: boolean;
-  clock?: ClockState;
   shift?: ShiftState;
 }
 
@@ -76,7 +75,6 @@ export const selectCurrentLiveGame = (state: RootState) => {
 
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
-export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
 export const selectPendingSubs = (state: RootState, selectedOnly?: boolean) => {
   const game = selectCurrentLiveGame(state);
@@ -145,9 +143,6 @@ const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
       for (const id in action.games) {
         state.games[id] = action.games[id];
       }
-    }
-    if (action.clock) {
-      state.clock = action.clock;
     }
     if (action.shift) {
       state.shift = action.shift;

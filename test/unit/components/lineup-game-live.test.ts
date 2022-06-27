@@ -18,7 +18,7 @@ import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
 import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton } from '../helpers/clock-element-retrievers.js';
-import { buildShiftWithTrackers } from '../helpers/live-state-setup.js';
+import { buildClock, buildShiftWithTrackers } from '../helpers/live-state-setup.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
 
@@ -168,7 +168,7 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, with the period in progress.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
+      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, shift));
       store.dispatch(startPeriod(live.id,/*gameAllowsStart =*/true));
       liveGame = selectLiveGameById(store.getState(), live.id)!;
 
@@ -400,12 +400,13 @@ describe('lineup-game-live tests', () => {
 
     beforeEach(async () => {
       const { game, live } = getGameDetail();
+      live.clock = buildClock();
       const shift = buildShiftWithTrackers(live.players);
       gameId = live.id;
 
       // Setup the live game, in Start status
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
+      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, shift));
 
       await el.updateComplete;
     });
@@ -459,7 +460,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(toggleClock(gameId));
+      expect(actions[actions.length - 1]).to.deep.include(toggleClock(gameId));
     });
 
   }); // describe('Clock')
@@ -473,7 +474,7 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, in second half, ready to end.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
-      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, undefined, shift));
+      store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, shift));
       liveGame = selectLiveGameById(store.getState(), live.id)!;
 
       await el.updateComplete;

@@ -3,20 +3,12 @@
 */
 
 import { PayloadAction } from '@reduxjs/toolkit';
-import { Timer, TimerData } from '../../models/clock.js';
+import { Timer } from '../../models/clock.js';
 import { GameStatus } from '../../models/game.js';
-import { LiveGame, PeriodStatus } from '../../models/live.js';
+import { LiveClock, LiveGame, PeriodStatus } from '../../models/live.js';
 import { ConfigurePeriodsPayload, StartPeriodPayload } from './live-action-types.js';
 
-export interface ClockState {
-  timer?: TimerData;
-  currentPeriod: number;
-  periodStatus: PeriodStatus;
-  totalPeriods: number;
-  periodLength: number;
-}
-
-const INITIAL_STATE: ClockState = {
+const INITIAL_STATE: LiveClock = {
   timer: undefined,
   currentPeriod: 0,
   periodStatus: PeriodStatus.Pending,

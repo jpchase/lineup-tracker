@@ -1,12 +1,10 @@
 import { hydrateLive } from '@app/actions/live.js';
-import { TimerData } from '@app/models/clock';
 import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
 import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
-import { ClockState } from '@app/slices/live/clock-reducer-logic.js';
 import {
   applyPendingSubs, applyStarter, cancelStarter, cancelSub, cancelSwap, completeRoster, confirmSub,
   confirmSwap,
@@ -15,7 +13,7 @@ import {
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, CLOCK_INITIAL_STATE, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup';
+import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
@@ -43,9 +41,6 @@ const LIVE_INITIAL_STATE: LiveGameState = {
 const INITIAL_OVERALL_STATE: LiveState = {
   hydrated: false,
   ...LIVE_INITIAL_STATE,
-  clock: {
-    ...CLOCK_INITIAL_STATE
-  },
   shift: {
     ...SHIFT_INITIAL_STATE
   }
@@ -85,13 +80,6 @@ function buildSwapPlayerPlaceholder(onPlayer: LivePlayer, position: Position) {
     isSwap: true
   };
   return swap;
-}
-
-function buildClock(timer?: TimerData): ClockState {
-  return {
-    ...CLOCK_INITIAL_STATE,
-    timer
-  }
 }
 
 function buildSetupTasks(): SetupTask[] {
@@ -154,21 +142,20 @@ describe('Live slice', () => {
 
     it('should set state to given cached data', () => {
       const inputGame = buildLiveGameWithPlayers();
-      const inputClock = {};
+      inputGame.clock = buildClock(buildRunningTimer(),
+        {
+          totalPeriods: 3
+        });
       const inputShift = buildShiftWithTrackers(inputGame.players);
 
       const newState = live(currentState, hydrateLive(
         testlive.buildLiveGames([inputGame]),
         inputGame.id,
-        inputClock,
         inputShift
       ));
 
       const expectedGame: LiveGame = {
         ...inputGame,
-      };
-      const expectedClock = {
-        ...inputClock
       };
       const expectedShift = {
         ...inputShift
@@ -178,12 +165,10 @@ describe('Live slice', () => {
         hydrated: true,
         gameId: inputGame.id,
         games: testlive.buildLiveGames([expectedGame]),
-        clock: expectedClock,
         shift: expectedShift
       });
 
       expect(getCurrentGame(newState)).not.to.equal(getCurrentGame(currentState));
-      expect(newState.clock).not.to.equal(currentState.clock);
       expect(newState.shift).not.to.equal(currentState.shift);
     });
 
@@ -195,19 +180,17 @@ describe('Live slice', () => {
       });
       expect(newState.gameId, 'gameId should not be set').to.not.be.ok;
       expect(getCurrentGame(newState)).to.be.undefined;
-      expect(newState.clock).to.equal(currentState.clock);
       expect(newState.shift).to.equal(currentState.shift);
     });
 
     it('should ignored cached values when hydrated flag already set', () => {
       const currentGame = buildLiveGameWithPlayers();
-      const currentClock = buildClock(buildRunningTimer());
+      currentGame.clock = buildClock(buildStoppedTimer());
       const currentShift = buildShiftWithTrackers(currentGame.players);
       currentState = buildLiveStateWithCurrentGame(
         currentGame,
         {
           gameId: currentGame.id,
-          clock: currentClock,
           shift: currentShift,
           hydrated: true,
         })
@@ -220,23 +203,19 @@ describe('Live slice', () => {
       const newState = live(currentState,
         hydrateLive(
           testlive.buildLiveGames([inputGame]),
-          inputGame.id,
-          buildClock(buildStoppedTimer())
+          inputGame.id
         )
       );
 
       const expectedState = buildLiveStateWithCurrentGame(currentGame,
         {
           hydrated: true,
-          clock: currentClock,
           shift: currentShift
         });
-      expectedState.clock = currentClock;
       expectedState.shift = currentShift;
 
       expect(newState).to.deep.include(expectedState);
       expect(getCurrentGame(newState)).to.equal(getCurrentGame(currentState));
-      expect(newState.clock).to.equal(currentState.clock);
       expect(newState.shift).to.equal(currentState.shift);
     });
   }); // describe('LIVE_HYDRATE')
@@ -1738,11 +1717,9 @@ describe('Live slice', () => {
     let currentState: LiveState;
 
     beforeEach(() => {
-      currentState = buildLiveStateWithCurrentGame(
-        buildLiveGameWithPlayers(),
-        {
-          clock: buildClockWithTimer(),
-        });
+      const game = buildLiveGameWithPlayers();
+      game.clock = buildClockWithTimer();
+      currentState = buildLiveStateWithCurrentGame(game);
     });
 
     afterEach(async () => {

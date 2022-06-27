@@ -17,7 +17,7 @@ import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
 import {
-  cancelSub, cancelSwap, clockSelector, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
+  cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
   gameCompleted,
   pendingSubsAppliedCreator,
   proposedSubSelector, selectCurrentLiveGame, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
@@ -227,7 +227,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
         this.formation = undefined;
       }
     }
-    const clock = clockSelector(state);
+    const clock = this._game.clock;
     if (clock) {
       this.clockData = clock.timer;
       this.clockPeriodData = {
