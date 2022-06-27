@@ -240,6 +240,7 @@ describe('Live slice', () => {
       const expectedGame = buildLiveGameWithSetupTasks(
         buildLivePlayers([getStoredPlayer()]), buildSetupTasks()
       );
+      expectedGame.clock = buildClock();
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
       currentState.gameId = inputGame.id;
@@ -262,6 +263,7 @@ describe('Live slice', () => {
 
       const expectedGame = buildLiveGameWithSetupTasks([], buildSetupTasks());
       expectedGame.id = currentGame.id;
+      expectedGame.clock = buildClock();
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
       currentState.gameId = inputGame.id;
@@ -279,7 +281,7 @@ describe('Live slice', () => {
 
   describe('live/gameSetupCompleted', () => {
 
-    it('should set status to Start and clear setup tasks and init shift trackers', () => {
+    it('should set status to Start, clear setup tasks, init clock and shift trackers', () => {
       const rosterPlayers = testlive.getLivePlayers(18);
       const completedTasks = buildSetupTasks();
       completedTasks.forEach(task => { task.status = SetupStatus.Complete; })
@@ -287,6 +289,7 @@ describe('Live slice', () => {
 
       const expectedGame = buildLiveGameWithSetupTasks(rosterPlayers, undefined);
       expectedGame.status = GameStatus.Start;
+      expectedGame.clock = buildClock();
       delete expectedGame.setupTasks;
       const expectedMap = new PlayerTimeTrackerMap();
       expectedMap.initialize(rosterPlayers);

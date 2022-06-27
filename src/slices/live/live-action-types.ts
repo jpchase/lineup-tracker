@@ -1,5 +1,11 @@
+import { LiveGame } from "../../models/live.js";
+
 export interface LiveGamePayload {
   gameId: string;
+}
+
+export interface GameSetupCompletedPayload extends LiveGamePayload {
+  liveGame: LiveGame;
 }
 
 export interface ConfigurePeriodsPayload extends LiveGamePayload {

@@ -5,16 +5,8 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { Timer } from '../../models/clock.js';
 import { GameStatus } from '../../models/game.js';
-import { LiveClock, LiveGame, PeriodStatus } from '../../models/live.js';
+import { LiveGame, LiveGameBuilder, PeriodStatus } from '../../models/live.js';
 import { ConfigurePeriodsPayload, StartPeriodPayload } from './live-action-types.js';
-
-const INITIAL_STATE: LiveClock = {
-  timer: undefined,
-  currentPeriod: 0,
-  periodStatus: PeriodStatus.Pending,
-  totalPeriods: 2,
-  periodLength: 45
-};
 
 export const configurePeriodsHandler = (game: LiveGame, action: PayloadAction<ConfigurePeriodsPayload>) => {
   const periods = action.payload.totalPeriods || 0;
@@ -110,7 +102,7 @@ export const toggleHandler = (game: LiveGame) => {
 
 function getInitializedClock(game: LiveGame) {
   if (!game.clock) {
-    game.clock = { ...INITIAL_STATE };
+    game.clock = LiveGameBuilder.createClock();
   }
   return game.clock;
 }

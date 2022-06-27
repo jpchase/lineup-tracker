@@ -15,7 +15,7 @@ import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
-import { ConfigurePeriodsPayload, LiveGamePayload, prepareLiveGamePayload, StartPeriodPayload } from "./live-action-types";
+import { ConfigurePeriodsPayload, GameSetupCompletedPayload, LiveGamePayload, prepareLiveGamePayload, StartPeriodPayload } from './live-action-types.js';
 import { shift, ShiftState } from './shift-slice.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
@@ -35,11 +35,6 @@ export interface LiveGameState {
 export interface LiveState extends LiveGameState {
   hydrated?: boolean;
   shift?: ShiftState;
-}
-
-export interface GameSetupCompletedPayload {
-  gameId: string;
-  liveGame: LiveGame;
 }
 
 export interface PendingSubsAppliedPayload {
@@ -232,6 +227,9 @@ const liveSlice = createSlice({
           return;
         }
         game.status = GameStatus.Start;
+        if (!game.clock) {
+          game.clock = LiveGameBuilder.createClock();
+        }
         delete game.setupTasks;
       },
 
@@ -541,7 +539,7 @@ const liveSlice = createSlice({
     },
 
     gameCompleted: {
-      reducer: (state, action: PayloadAction<{ gameId: string }>) => {
+      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
         const game = findGame(state, action.payload.gameId);
         if (!game) {
           return;

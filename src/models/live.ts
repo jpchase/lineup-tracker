@@ -53,7 +53,7 @@ export class LiveGameBuilder {
       status: game.status,
     };
 
-    // Setup live players from roster
+    // Setup live players from roster.
     const detail = game as GameDetail;
     if (detail.roster) {
       const players: LivePlayer[] = Object.keys(detail.roster).map((playerId) => {
@@ -62,7 +62,21 @@ export class LiveGameBuilder {
       });
       liveGame.players = players;
     }
+
+    // Initialize clock to default values.
+    liveGame.clock = this.createClock();
+
     return liveGame;
+  }
+
+  static createClock(): LiveClock {
+    return {
+      timer: undefined,
+      currentPeriod: 0,
+      periodStatus: PeriodStatus.Pending,
+      totalPeriods: 2,
+      periodLength: 45
+    };
   }
 }
 
