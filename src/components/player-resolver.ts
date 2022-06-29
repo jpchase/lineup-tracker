@@ -1,5 +1,5 @@
 import { createContext } from '@lit-labs/context';
-import { LivePlayer } from '../models/game.js';
+import { LivePlayer } from '../models/live.js';
 
 export interface PlayerResolver {
   getPlayer(playerId: string): LivePlayer | undefined;

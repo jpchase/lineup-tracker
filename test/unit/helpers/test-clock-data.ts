@@ -2,11 +2,11 @@ import { CurrentTimeProvider, Duration, ManualTimeProvider, TimerData } from '@a
 import { Assertion } from '@esm-bundle/chai';
 import sinon from 'sinon';
 
-export function buildRunningTimer(startTime?: number): TimerData {
+export function buildRunningTimer(startTime?: number, elapsedSeconds?: number): TimerData {
   return {
     isRunning: true,
     startTime: startTime || new Date(2016, 0, 1, 14, 0, 0).getTime(),
-    duration: Duration.zero().toJSON()
+    duration: (elapsedSeconds ? Duration.create(elapsedSeconds) : Duration.zero()).toJSON()
   };
 }
 

@@ -1,6 +1,7 @@
-import { Game, GameDetail, GameStatus, LiveGame } from '@app/models/game';
-import { LiveGameBuilder } from '@app/models/live';
+import { Game, GameDetail, GameStatus } from '@app/models/game.js';
+import { LiveGame, LiveGameBuilder } from '@app/models/live.js';
 import { expect } from '@open-wc/testing';
+import { buildClock } from '../helpers/live-state-setup.js';
 import {
   buildLivePlayers, buildRoster,
   getNewGame, getNewGameDetail, getNewPlayer, getStoredPlayer
@@ -26,6 +27,7 @@ describe('LiveGameBuilder', () => {
     const expected: LiveGame = {
       id: game.id,
       status: GameStatus.New,
+      clock: buildClock()
     };
 
     const newLiveGame = LiveGameBuilder.create(game);
@@ -39,6 +41,7 @@ describe('LiveGameBuilder', () => {
     const expected: LiveGame = {
       id: game.id,
       status: GameStatus.New,
+      clock: buildClock(),
       players: []
     };
 
@@ -53,6 +56,7 @@ describe('LiveGameBuilder', () => {
     const expected: LiveGame = {
       id: game.id,
       status: GameStatus.Start,
+      clock: buildClock(),
       players: buildLivePlayers([getNewPlayer(), getStoredPlayer()])
     };
 
@@ -60,4 +64,18 @@ describe('LiveGameBuilder', () => {
 
     expect(newLiveGame).to.deep.equal(expected);
   });
+
+  it('create intializes clock to defaults', () => {
+    const game = getNewGame();
+    const expected: LiveGame = {
+      id: game.id,
+      status: GameStatus.New,
+      clock: buildClock()
+    };
+
+    const newLiveGame = LiveGameBuilder.create(game);
+
+    expect(newLiveGame).to.deep.equal(expected);
+  });
+
 });

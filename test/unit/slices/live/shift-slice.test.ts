@@ -1,31 +1,19 @@
 import { Duration } from '@app/models/clock.js';
-import { LivePlayer } from '@app/models/game.js';
+import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
-import { endPeriod, startPeriod } from '@app/slices/live/clock-slice.js';
-import { applyPendingSubs, gameSetupCompleted } from '@app/slices/live/live-slice.js';
+import { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } from '@app/slices/live/live-slice.js';
 import { shift, ShiftState } from '@app/slices/live/shift-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildShiftWithTrackers } from '../../helpers/live-state-setup.js';
 import { mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
-import { buildPlayerTracker, buildPlayerTrackerMap } from '../../helpers/test-shift-data.js';
+import { buildPlayerTracker } from '../../helpers/test-shift-data.js';
 
-export const SHIFT_INITIAL_STATE: ShiftState = {
+const SHIFT_INITIAL_STATE: ShiftState = {
   trackerMap: undefined,
 };
-
-export function buildShiftWithTrackers(existingPlayers?: LivePlayer[],
-  keepExistingStatus?: boolean): ShiftState {
-  if (existingPlayers) {
-    existingPlayers = existingPlayers.filter(player => !player.isSwap);
-  }
-  const trackerMap = buildPlayerTrackerMap(existingPlayers, keepExistingStatus);
-  return {
-    ...SHIFT_INITIAL_STATE,
-    trackerMap: trackerMap.toJSON()
-  };
-}
 
 describe('Shift slice', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
@@ -84,6 +72,7 @@ describe('Shift slice', () => {
   describe('clock/startPeriod', () => {
     let currentState: ShiftState = SHIFT_INITIAL_STATE;
     let rosterPlayers: LivePlayer[];
+    const gameId = 'somegameid';
 
     before(() => {
       rosterPlayers = testlive.getLivePlayers(18);
@@ -96,7 +85,7 @@ describe('Shift slice', () => {
     it('should set the clock running and capture the start time', () => {
       mockCurrentTime(startTime);
 
-      const newState = shift(currentState, startPeriod(/*gameAllowsStart=*/true));
+      const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
 
       // Only need to check the first player tracker.
       const expectedTracker = buildPlayerTracker(rosterPlayers[0]);
@@ -121,7 +110,7 @@ describe('Shift slice', () => {
     it('should do nothing if game does not allow period to be started', () => {
       mockCurrentTime(startTime);
 
-      const newState = shift(currentState, startPeriod(/*gameAllowsStart=*/false));
+      const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/false));
 
       expect(newState.trackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
       expect(newState.trackerMap).to.equal(currentState.trackerMap);
@@ -134,6 +123,7 @@ describe('Shift slice', () => {
   describe('clock/endPeriod', () => {
     let currentState: ShiftState = SHIFT_INITIAL_STATE;
     let rosterPlayers: LivePlayer[];
+    const gameId = 'somegameid';
 
     before(() => {
       rosterPlayers = testlive.getLivePlayers(18);
@@ -154,7 +144,7 @@ describe('Shift slice', () => {
       // the shifts by the reducer.
       mockCurrentTime(time1);
 
-      const newState = shift(currentState, endPeriod());
+      const newState = shift(currentState, endPeriod(gameId));
 
       // Only need to check the first player tracker.
       const expectedTracker = buildPlayerTracker(rosterPlayers[0]);
@@ -179,7 +169,7 @@ describe('Shift slice', () => {
     it('should do nothing if game does not allow period to be ended', () => {
       mockCurrentTime(startTime);
 
-      const newState = shift(currentState, endPeriod());
+      const newState = shift(currentState, endPeriod(gameId));
 
       expect(newState.trackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
       expect(newState.trackerMap).to.equal(currentState.trackerMap);

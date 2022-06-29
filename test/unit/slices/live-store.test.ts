@@ -1,7 +1,6 @@
 import { hydrateLive } from '@app/actions/live.js';
-import { LiveGame } from '@app/models/game.js';
+import { LiveGame } from '@app/models/live.js';
 import { hydrateState, persistState, resetCache } from '@app/slices/live-store.js';
-import { ClockState } from '@app/slices/live/clock-slice.js';
 import { LiveState } from '@app/slices/live/live-slice.js';
 import { ShiftState } from '@app/slices/live/shift-slice.js';
 import { idb } from '@app/storage/idb-wrapper.js';
@@ -9,21 +8,15 @@ import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import { Store } from 'redux';
 import sinon from 'sinon';
+import { buildClockWithTimer, buildShiftWithTrackers } from '../helpers/live-state-setup.js';
 import { getLiveGameWithPlayers } from '../helpers/test-live-game-data.js';
-import { buildClockWithTimer } from './live/clock-slice.test.js';
-import { buildShiftWithTrackers } from './live/shift-slice.test.js';
 
 const KEY_CACHED_LIVE = 'CACHED_LIVE';
 
-function buildClock(): ClockState {
-  return buildClockWithTimer(true);
-}
-
-function mockGetState(currentGame?: LiveGame, clock?: ClockState, shift?: ShiftState) {
+function mockGetState(currentGame?: LiveGame, shift?: ShiftState) {
   const liveState: LiveState = {
     hydrated: false,
     gameId: currentGame?.id || '',
-    clock,
     shift
   } as LiveState;
   if (currentGame) {
@@ -78,12 +71,11 @@ describe('Live store', () => {
 
     it('should populate the live state when found in idb', async () => {
       const currentGame = getLiveGameWithPlayers();
-      const currentClock = buildClock();
+      currentGame.clock = buildClockWithTimer(/* isRunning= */true);
       const currentShift = buildShiftWithTrackers(currentGame.players);
       const cachedData = {
         currentGameId: currentGame.id,
         game: { ...currentGame },
-        clock: { ...currentClock },
         shift: { ...currentShift },
       };
       mockedIDBGet.onFirstCall().resolves(cachedData);
@@ -97,7 +89,7 @@ describe('Live store', () => {
       await Promise.resolve();
 
       const hydrateAction = hydrateLive(cachedData.game, cachedData.currentGameId,
-        cachedData.clock, cachedData.shift);
+        cachedData.shift);
 
       expect(storeMock.dispatch).to.have.been.calledWith(hydrateAction);
     });
@@ -120,9 +112,9 @@ describe('Live store', () => {
 
     it('should cache the live state when changed', async () => {
       const currentGame = getLiveGameWithPlayers();
-      const currentClock = buildClock();
+      currentGame.clock = buildClockWithTimer(/* isRunning= */true);
       const currentShift = buildShiftWithTrackers(currentGame.players);
-      const getStateMock = mockGetState(currentGame, currentClock, currentShift);
+      const getStateMock = mockGetState(currentGame, currentShift);
       const storeMock = mockStore(getStateMock);
 
       persistState(storeMock);
@@ -137,7 +129,6 @@ describe('Live store', () => {
       const expectedCachedData = {
         currentGameId: currentGame.id,
         game: { ...currentGame },
-        clock: { ...currentClock },
         shift: { ...currentShift },
       };
       expect(mockedIDBSet).to.have.been.calledWith(KEY_CACHED_LIVE, expectedCachedData);
@@ -145,9 +136,9 @@ describe('Live store', () => {
 
     it('should do nothing if live state is already cached', async () => {
       const currentGame = getLiveGameWithPlayers();
-      const currentClock = buildClock();
+      currentGame.clock = buildClockWithTimer(/* isRunning= */true);
       const currentShift = buildShiftWithTrackers(currentGame.players);
-      const getStateMock = mockGetState(currentGame, currentClock, currentShift);
+      const getStateMock = mockGetState(currentGame, currentShift);
       const storeMock = mockStore(getStateMock);
 
       // Call persist once, to setup the game in cache.

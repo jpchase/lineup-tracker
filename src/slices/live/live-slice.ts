@@ -6,17 +6,17 @@ import { createNextState, createSlice, PayloadAction, ThunkAction } from '@redux
 import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { FormationType, Position } from '../../models/formation.js';
-import { Game, GameStatus, LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { gameCanStartPeriod, getPlayer, LiveGameBuilder, LiveGames, removePlayer } from '../../models/live.js';
+import { Game, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
+import { gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer, removePlayer } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
-import { clock, ClockState, endPeriod, startPeriod, StartPeriodPayload } from './clock-slice.js';
+import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
+import { ConfigurePeriodsPayload, GameSetupCompletedPayload, LiveGamePayload, prepareLiveGamePayload, StartPeriodPayload } from './live-action-types.js';
 import { shift, ShiftState } from './shift-slice.js';
-export { endPeriod, toggle as toggleClock } from './clock-slice.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
@@ -34,13 +34,7 @@ export interface LiveGameState {
 
 export interface LiveState extends LiveGameState {
   hydrated?: boolean;
-  clock?: ClockState;
   shift?: ShiftState;
-}
-
-export interface GameSetupCompletedPayload {
-  gameId: string;
-  liveGame: LiveGame;
 }
 
 export interface PendingSubsAppliedPayload {
@@ -76,7 +70,6 @@ export const selectCurrentLiveGame = (state: RootState) => {
 
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
-export const clockSelector = (state: RootState) => state.live && state.live!.clock;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
 export const selectPendingSubs = (state: RootState, selectedOnly?: boolean) => {
   const game = selectCurrentLiveGame(state);
@@ -104,14 +97,10 @@ export const rosterCompleted: ActionCreator<ThunkAction<void, RootState, undefin
 export const startGamePeriod: ActionCreator<ThunkAction<void, RootState, undefined, AnyAction>> = () => (dispatch, getState) => {
   const state = getState();
   const game = selectCurrentLiveGame(state);
-  if (!game) {
+  if (!game || !game.clock) {
     return;
   }
-  const periodState = clockSelector(state);
-  if (!periodState) {
-    return;
-  }
-  dispatch(startPeriod(gameCanStartPeriod(game, periodState.currentPeriod, periodState.totalPeriods)));
+  dispatch(startPeriod(game.id, gameCanStartPeriod(game, game.clock.currentPeriod, game.clock.totalPeriods)));
 };
 
 export const live: Reducer<LiveState> = function (state, action) {
@@ -124,7 +113,6 @@ export const live: Reducer<LiveState> = function (state, action) {
   return createNextState(state || INITIAL_STATE as LiveState, (draft) => {
     Object.assign(draft, liveGame(draft, action));
     Object.assign(draft, liveSlice.reducer(draft, action));
-    draft!.clock = clock(draft?.clock, action);
     draft!.shift = shift(draft?.shift, action);
     Object.assign(draft, hydrateReducer(draft, action));
   }) as LiveState;
@@ -150,9 +138,6 @@ const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
       for (const id in action.games) {
         state.games[id] = action.games[id];
       }
-    }
-    if (action.clock) {
-      state.clock = action.clock;
     }
     if (action.shift) {
       state.shift = action.shift;
@@ -242,6 +227,9 @@ const liveSlice = createSlice({
           return;
         }
         game.status = GameStatus.Start;
+        if (!game.clock) {
+          game.clock = LiveGameBuilder.createClock();
+        }
         delete game.setupTasks;
       },
 
@@ -551,7 +539,7 @@ const liveSlice = createSlice({
     },
 
     gameCompleted: {
-      reducer: (state, action: PayloadAction<{ gameId: string }>) => {
+      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
         const game = findGame(state, action.payload.gameId);
         if (!game) {
           return;
@@ -571,28 +559,54 @@ const liveSlice = createSlice({
         };
       }
     },
-  },
 
-  extraReducers: (builder) => {
-    builder.addCase(startPeriod, (state, action: PayloadAction<StartPeriodPayload>) => {
-      if (!action.payload.gameAllowsStart) {
-        return;
-      }
-      // TODO: validate game matches?
-      const game = findCurrentGame(state)!;
-      game.status = GameStatus.Live;
-    }).addCase(endPeriod, (state: LiveState) => {
-      // TODO: validate game matches?
-      const game = findCurrentGame(state)!;
-      if (game.status !== GameStatus.Live) {
-        return;
-      }
-      if (state.clock?.currentPeriod === state.clock?.totalPeriods) {
-        game.status = GameStatus.Done;
-      } else {
-        game.status = GameStatus.Break;
-      }
-    });
+    // Clock-related actions
+    configurePeriods: {
+      reducer: (state, action: PayloadAction<ConfigurePeriodsPayload>) => {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        return configurePeriodsHandler(game, action);
+      },
+      prepare: configurePeriodsPrepare
+    },
+
+    startPeriod: {
+      reducer: (state, action: PayloadAction<StartPeriodPayload>) => {
+        if (!action.payload.gameAllowsStart) {
+          return;
+        }
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        return startPeriodHandler(game, action);
+      },
+      prepare: startPeriodPrepare
+    },
+
+    endPeriod: {
+      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        return endPeriodHandler(game);
+      },
+      prepare: prepareLiveGamePayload
+    },
+
+    toggleClock: {
+      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        return toggleHandler(game);
+      },
+      prepare: prepareLiveGamePayload
+    },
   },
 });
 
@@ -602,6 +616,9 @@ export const {
   completeRoster,
   formationSelected, getLiveGame, startersCompleted, captainsCompleted, gameSetupCompleted,
   selectStarter, selectStarterPosition, applyStarter, cancelStarter,
+  // Clock-related actions
+  configurePeriods, startPeriod, endPeriod, toggleClock,
+  // Sub-related actions
   selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs, discardPendingSubs, gameCompleted
 } = actions;
 

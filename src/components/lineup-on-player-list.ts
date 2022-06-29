@@ -7,7 +7,7 @@ import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { Formation, FormationLine, Position } from '../models/formation';
-import { LivePlayer } from '../models/game';
+import { LivePlayer } from '../models/live.js';
 import { PlayerStatus } from '../models/player';
 import './lineup-player-card';
 import { PlayerCardData } from './lineup-player-card';

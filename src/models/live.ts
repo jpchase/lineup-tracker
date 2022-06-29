@@ -1,12 +1,41 @@
 /**
 @license
 */
-import { Game, LiveGame, GameDetail, LivePlayer, GameStatus } from './game';
+import { TimerData } from './clock.js';
+import { FormationMetadata, Position } from './formation.js';
+import { Game, GameDetail, GameStatus, SetupTask } from './game.js';
+import { Player } from './player.js';
 
 export enum PeriodStatus {
   Pending = 'PENDING',
   Running = 'RUNNING',
   Done = 'DONE'
+}
+
+export interface LivePlayer extends Player {
+  currentPosition?: Position;
+  replaces?: string;
+  nextPosition?: Position;
+  isSwap?: boolean;
+  selected?: boolean;
+}
+
+export interface LiveClock {
+  timer?: TimerData;
+  currentPeriod: number;
+  periodStatus: PeriodStatus;
+  totalPeriods: number;
+  periodLength: number;
+}
+
+export interface LiveGame {
+  id: string;
+  status: GameStatus;
+  dataCaptured?: boolean;
+  clock?: LiveClock;
+  formation?: FormationMetadata;
+  players?: LivePlayer[];
+  setupTasks?: SetupTask[];
 }
 
 export interface LiveGames {
@@ -24,7 +53,7 @@ export class LiveGameBuilder {
       status: game.status,
     };
 
-    // Setup live players from roster
+    // Setup live players from roster.
     const detail = game as GameDetail;
     if (detail.roster) {
       const players: LivePlayer[] = Object.keys(detail.roster).map((playerId) => {
@@ -33,7 +62,21 @@ export class LiveGameBuilder {
       });
       liveGame.players = players;
     }
+
+    // Initialize clock to default values.
+    liveGame.clock = this.createClock();
+
     return liveGame;
+  }
+
+  static createClock(): LiveClock {
+    return {
+      timer: undefined,
+      currentPeriod: 0,
+      periodStatus: PeriodStatus.Pending,
+      totalPeriods: 2,
+      periodLength: 45
+    };
   }
 }
 

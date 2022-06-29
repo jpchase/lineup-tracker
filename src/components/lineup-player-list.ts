@@ -6,7 +6,7 @@ import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { LivePlayer } from '../models/game';
+import { LivePlayer } from '../models/live.js';
 import { PlayerStatus } from '../models/player';
 import { EVENT_PLAYERLISTCANCEL } from './events';
 import './lineup-player-card';

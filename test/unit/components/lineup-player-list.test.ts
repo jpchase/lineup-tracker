@@ -1,7 +1,7 @@
 import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { LineupPlayerList } from '@app/components/lineup-player-list';
 import '@app/components/lineup-player-list.js';
-import { LivePlayer } from '@app/models/game';
+import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { assert, expect, fixture } from '@open-wc/testing';
 

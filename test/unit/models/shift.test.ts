@@ -1,7 +1,7 @@
-import { CurrentTimeProvider, ManualTimeProvider } from '@app/models/clock';
-import { LivePlayer } from '@app/models/game.js';
+import { CurrentTimeProvider, ManualTimeProvider } from '@app/models/clock.js';
+import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { PlayerTimeTracker, PlayerTimeTrackerMap } from '@app/models/shift';
+import { PlayerTimeTracker, PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { Assertion } from '@esm-bundle/chai';
 import { expect } from '@open-wc/testing';
 import { addDurationAssertion, buildDuration, manualTimeProvider, mockTimeProvider } from '../helpers/test-clock-data.js';

@@ -26,6 +26,8 @@
 			"test:.*-.*",
 			"test:bs",
 			"test:compatibility.*"
-		]
+		],
+		"javascript.preferences.importModuleSpecifierEnding": "js",
+		"javascript.preferences.importModuleSpecifier": "shortest"
 	}
 }

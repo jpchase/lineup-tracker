@@ -4,8 +4,8 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../../models/shift.js';
-import { endPeriod, startPeriod, StartPeriodPayload } from './clock-slice.js';
-import { applyPendingSubs, gameSetupCompleted, GameSetupCompletedPayload, PendingSubsAppliedPayload } from './live-slice.js';
+import { GameSetupCompletedPayload, StartPeriodPayload } from './live-action-types.js';
+import { applyPendingSubs, endPeriod, gameSetupCompleted, PendingSubsAppliedPayload, startPeriod } from './live-slice.js';
 
 export interface ShiftState {
   trackerMap?: PlayerTimeTrackerMapData;

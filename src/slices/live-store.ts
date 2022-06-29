@@ -1,17 +1,15 @@
 import { Store } from 'redux';
 import { hydrateLive } from '../actions/live.js';
-import { LiveGame } from '../models/game.js';
+import { LiveGame } from '../models/live.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
-import { ClockState } from './live/clock-slice.js';
-import { clockSelector, live, selectCurrentLiveGame, selectCurrentShift } from './live/live-slice.js';
+import { live, selectCurrentLiveGame, selectCurrentShift } from './live/live-slice.js';
 import { ShiftState } from './live/shift-slice.js';
 
 const KEY_CACHED_LIVE = 'CACHED_LIVE';
 interface CachedLive {
   currentGameId?: string;
   game?: LiveGame;
-  clock?: ClockState;
   shift?: ShiftState;
 }
 let initialized = false;
@@ -56,7 +54,7 @@ export function hydrateState(storeInstance: Store<RootState>) {
     }
     cachedState = value as CachedLive;
     console.log('hydrateState: hydrate action about to send');
-    storeInstance.dispatch(hydrateLive(cachedState.game, cachedState.currentGameId, cachedState.clock, cachedState.shift));
+    storeInstance.dispatch(hydrateLive(cachedState.game, cachedState.currentGameId, cachedState.shift));
     console.log('hydrateState: hydrate action done');
   });
 }
@@ -71,12 +69,11 @@ export function persistState(storeInstance: Store<RootState>) {
     return;
   }
 
-  const currentClock = clockSelector(state);
   const currentShift = selectCurrentShift(state);
 
   // Checks if the state is already cached, by reference comparison.
   // As state is immutable, different references imply updates.
-  if (cachedState.game === currentGame && cachedState.clock === currentClock &&
+  if (cachedState.game === currentGame &&
     cachedState.shift == currentShift) {
     console.log(`persistState: current state already cached: ${currentGame.id}`);
     return;
@@ -86,7 +83,6 @@ export function persistState(storeInstance: Store<RootState>) {
     ...cachedState,
     currentGameId: currentGame.id,
     game: currentGame,
-    clock: currentClock,
     shift: currentShift
   };
   idb.set(KEY_CACHED_LIVE, newCache).then(() => {

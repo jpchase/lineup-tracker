@@ -11,13 +11,13 @@ import { map } from 'lit/directives/map.js';
 import { connectStore } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
 import { Formation, FormationBuilder, FormationType, formatPosition, getPositions, Position } from '../models/formation.js';
-import { LiveGame, LivePlayer } from '../models/game.js';
+import { LiveGame, LivePlayer } from '../models/live.js';
 import { PeriodStatus } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
 import {
-  cancelSub, cancelSwap, clockSelector, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
+  cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
   gameCompleted,
   pendingSubsAppliedCreator,
   proposedSubSelector, selectCurrentLiveGame, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
@@ -227,7 +227,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
         this.formation = undefined;
       }
     }
-    const clock = clockSelector(state);
+    const clock = this._game.clock;
     if (clock) {
       this.clockData = clock.timer;
       this.clockPeriodData = {
@@ -287,7 +287,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
   }
 
   private toggleClock() {
-    this.dispatch(toggleClock());
+    this.dispatch(toggleClock(this._game!.id));
   }
 
   private startClockPeriod() {
@@ -295,11 +295,11 @@ export class LineupGameLive extends connectStore()(LitElement) {
   }
 
   private endClockPeriod() {
-    this.dispatch(endPeriod());
+    this.dispatch(endPeriod(this._game!.id));
   }
 
   private completeGame() {
-    this.dispatch(gameCompleted(this._game?.id!));
+    this.dispatch(gameCompleted(this._game!.id));
   }
 
   private _findPlayer(playerId: string) {

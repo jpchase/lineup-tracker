@@ -7,13 +7,13 @@ import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { formatPosition, Position } from '../models/formation.js';
-import { LivePlayer } from '../models/game.js';
+import { LivePlayer } from '../models/live.js';
 import { PlayerTimeTracker } from '../models/shift.js';
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
-import { SynchronizedTimerController } from './timer-controller.js';
 import { synchronizedTimerContext } from './synchronized-timer.js';
+import { SynchronizedTimerController } from './timer-controller.js';
 
 export interface PlayerCardData {
   id: string;

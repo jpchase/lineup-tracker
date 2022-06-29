@@ -4,7 +4,7 @@ import '@app/components/lineup-player-card.js';
 import { SynchronizedTimerNotifier } from '@app/components/synchronized-timer.js';
 import { Duration } from '@app/models/clock.js';
 import { formatPosition } from '@app/models/formation.js';
-import { LivePlayer } from '@app/models/game';
+import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTracker } from '@app/models/shift.js';
 import { assert, expect, fixture, oneEvent } from '@open-wc/testing';
