@@ -13,7 +13,7 @@ import {
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
+import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, selectPlayers, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
@@ -63,14 +63,6 @@ function buildLiveGameWithSetupTasks(players?: LivePlayer[], tasks?: SetupTask[]
     game.setupTasks = tasks;
   }
   return game;
-}
-
-function selectPlayers(game: LiveGame, playerIds: string[], selected: boolean) {
-  for (const player of game.players!) {
-    if (playerIds.includes(player.id)) {
-      player.selected = selected;
-    }
-  }
 }
 
 function buildSwapPlayerPlaceholder(onPlayer: LivePlayer, position: Position) {

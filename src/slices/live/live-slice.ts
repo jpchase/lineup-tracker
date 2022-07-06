@@ -71,13 +71,16 @@ export const selectCurrentLiveGame = (state: RootState) => {
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
-export const selectPendingSubs = (state: RootState, selectedOnly?: boolean) => {
+export const selectPendingSubs = (state: RootState, selectedOnly?: boolean, includeSwaps?: boolean) => {
   const game = selectCurrentLiveGame(state);
   if (!game) {
     return;
   }
-  const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next, selectedOnly);
+  const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next, selectedOnly, includeSwaps);
   if (nextPlayers.some(player => {
+    if (includeSwaps && player.isSwap) {
+      return false;
+    }
     const replacedPlayer = getPlayer(game, player.replaces!);
     return (replacedPlayer?.status !== PlayerStatus.On);
   })) {
@@ -465,7 +468,7 @@ const liveSlice = createSlice({
         const game = findCurrentGame(state)!;
         action.payload.subs.forEach(sub => {
           const player = getPlayer(game, sub.id);
-          if (player?.status !== PlayerStatus.Next) {
+          if (!player || player.isSwap || player.status !== PlayerStatus.Next) {
             return;
           }
           const replacedPlayer = getPlayer(game, player.replaces!);
@@ -500,6 +503,42 @@ const liveSlice = createSlice({
 
           removePlayer(game, swapPlayer.id);
         });
+      },
+
+      prepare: (subs: LivePlayer[], selectedOnly?: boolean) => {
+        return {
+          payload: {
+            subs,
+            selectedOnly: !!selectedOnly
+          }
+        };
+      }
+    },
+
+    invalidPendingSubs: {
+      reducer: (_state, _action: PayloadAction<PendingSubsAppliedPayload>) => {
+        /*
+        const game = findCurrentGame(state)!;
+        action.payload.subs.forEach(sub => {
+          const player = getPlayer(game, sub.id);
+          if (player?.status !== PlayerStatus.Next) {
+            return;
+          }
+          const replacedPlayer = getPlayer(game, player.replaces!);
+          if (!(replacedPlayer && replacedPlayer.status === PlayerStatus.On)) {
+            return;
+          }
+
+          player.status = PlayerStatus.On;
+          player.replaces = undefined;
+          player.selected = false;
+
+          replacedPlayer.status = PlayerStatus.Off;
+          replacedPlayer.currentPosition = undefined;
+          replacedPlayer.selected = false;
+        });
+
+        });*/
       },
 
       prepare: (subs: LivePlayer[], selectedOnly?: boolean) => {
@@ -619,7 +658,7 @@ export const {
   // Clock-related actions
   configurePeriods, startPeriod, endPeriod, toggleClock,
   // Sub-related actions
-  selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs, discardPendingSubs, gameCompleted
+  selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs, invalidPendingSubs, discardPendingSubs, gameCompleted
 } = actions;
 
 function completeSetupStepForAction(state: LiveGameState, setupStepToComplete: SetupSteps) {

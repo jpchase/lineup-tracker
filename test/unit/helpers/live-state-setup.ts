@@ -85,3 +85,11 @@ export function getGame(state: LiveState, gameId: string) {
   }
   return state.games[gameId];
 }
+
+export function selectPlayers(game: LiveGame, playerIds: string[], selected: boolean) {
+  for (const player of game.players!) {
+    if (playerIds.includes(player.id)) {
+      player.selected = selected;
+    }
+  }
+}
