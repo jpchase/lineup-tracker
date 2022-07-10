@@ -1063,6 +1063,7 @@ describe('Live slice', () => {
     const swapOnPlayerIds = ['P9', 'P11', 'P12'];
     const swapNextPlayerIds = ['P9_swap', 'P11_swap', 'P12_swap'];
     let currentState: LiveState;
+    let gameId: string;
 
     interface SubIds {
       // Players in Next status
@@ -1127,6 +1128,7 @@ describe('Live slice', () => {
         {
           shift: buildShiftWithTrackers(game.players, true)
         });
+      gameId = game.id;
     }
 
     function getIdsByStatus(game: LiveGame) {
@@ -1185,7 +1187,7 @@ describe('Live slice', () => {
         });
 
         const newState: LiveState = live(currentState, applyPendingSubs(
-          getPlayersByIds(getCurrentGame(currentState)!, nextPlayerIds)
+          gameId, getPlayersByIds(getCurrentGame(currentState)!, nextPlayerIds)
         ));
         const newGame = getCurrentGame(newState)!;
         const newIds = getIdsByStatus(newGame);
@@ -1203,7 +1205,7 @@ describe('Live slice', () => {
         });
 
         const newState: LiveState = live(currentState, applyPendingSubs(
-          /* subs */[]
+          gameId, /* subs */[]
         ));
         const newGame = getCurrentGame(newState)!;
         const newIds = getIdsByStatus(newGame);
@@ -1226,7 +1228,7 @@ describe('Live slice', () => {
         });
 
         const newState: LiveState = live(currentState, applyPendingSubs(
-          getPlayersByIds(getCurrentGame(currentState)!, nextPlayerIds)
+          gameId, getPlayersByIds(getCurrentGame(currentState)!, nextPlayerIds)
         ));
         const newGame = getCurrentGame(newState)!;
         const newIds = getIdsByStatus(newGame);
@@ -1254,6 +1256,7 @@ describe('Live slice', () => {
         selectPlayers(currentGame, nowPlayingIds, true);
 
         const newState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, nowPlayingIds),
           /* selectedOnly */ true));
         const newGame = getCurrentGame(newState)!;
@@ -1303,7 +1306,7 @@ describe('Live slice', () => {
         selectPlayers(getCurrentGame(currentState)!, swappedNextIds, true);
 
         const newState = live(currentState, applyPendingSubs(
-          /* subs */[], /* selectedOnly */ true));
+          gameId, /* subs */[], /* selectedOnly */ true));
         const newGame = getCurrentGame(newState)!;
         const newIds = getIdsByStatus(newGame);
 
@@ -1360,6 +1363,7 @@ describe('Live slice', () => {
         selectPlayers(currentGame, toBeSelected, true);
 
         const newState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, nowPlayingIds),
           /* selectedOnly */ true));
         const newGame = getCurrentGame(newState)!;
@@ -1414,6 +1418,7 @@ describe('Live slice', () => {
         selectPlayers(currentGame, ['P4', 'P6'], true);
 
         const newState: LiveState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, nowPlayingIds),
           /* selectedOnly */ false));
         const newGame = getCurrentGame(newState)!;

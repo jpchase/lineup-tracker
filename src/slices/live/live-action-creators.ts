@@ -8,6 +8,7 @@ import { FormationBuilder, getPositions } from '../../models/formation.js';
 import { getPlayer, LiveGame, LivePlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { RootState } from '../../store.js';
+import { extractIdFromSwapPlayerId } from './live-action-types.js';
 import { applyPendingSubs, invalidPendingSubs, selectCurrentLiveGame, selectPendingSubs } from './live-slice.js';
 
 export const pendingSubsAppliedCreator = (selectedOnly?: boolean): ThunkAction<void, RootState, undefined, AnyAction> => (dispatch, getState) => {
@@ -23,10 +24,10 @@ export const pendingSubsAppliedCreator = (selectedOnly?: boolean): ThunkAction<v
   }
   const invalidSubs = validatePendingSubs(game, subs);
   if (invalidSubs.size) {
-    dispatch(invalidPendingSubs([]));
+    dispatch(invalidPendingSubs(game.id, Array.from(invalidSubs.keys())));
     return;
   }
-  dispatch(applyPendingSubs(subs, selectedOnly));
+  dispatch(applyPendingSubs(game.id, subs, selectedOnly));
 };
 
 function replacer(_key: any, value: any) {
@@ -47,20 +48,12 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
 
   const formation = FormationBuilder.create(game.formation?.type!);
   const requiredPositions = getPositions(formation);
-  const filledPositions =
-    game.players!.reduce((result, player) => {
-      if (player.status === PlayerStatus.On) {
-        const ids = result.get(player.currentPosition!.id) || [];
-        ids.push(player.id);
-        result.set(player.currentPosition!.id, ids);
-      }
-      return result;
-    }, new Map<string, string[]>());
+  const filledPositions = new FilledPositionMap(game.players!);
 
   if (filledPositions?.size !== requiredPositions.length) {
     console.log(`Invalid positions for current On players`);
   }
-  console.log(`before, subs = ${JSON.stringify(subs)} filledPositions = ${JSON.stringify(filledPositions, replacer)}`)
+  console.log(`before, subs = ${JSON.stringify(subs)} filledPositions = ${JSON.stringify(filledPositions)}`)
 
   for (const sub of subs) {
     console.log(`sub: ${JSON.stringify(sub)}, next = ${seenNextIds.size}, ${JSON.stringify(seenNextIds, replacer)}, replaced = ${seenReplacedIds.size}, ${JSON.stringify(seenReplacedIds, replacer)}`);
@@ -75,26 +68,12 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
         continue;
       }
 
-      const replacedIds = filledPositions.get(sub.currentPosition!.id);
-      const replacedIndex = replacedIds ? replacedIds?.indexOf(sub.id) : -1;
-
-      console.log(`Swap old position: ${JSON.stringify(replacedIds)}, ${replacedIndex}`)
-      if (replacedIndex >= 0) {
-        replacedIds!.splice(replacedIndex, 1);
-        filledPositions.set(sub.currentPosition!.id, replacedIds!);
-      }
-
-      let newIds = filledPositions.get(sub.nextPosition!.id);
-      const newIndex = newIds ? newIds?.indexOf(sub.id) : -1;
-
-      console.log(`newIds: ${JSON.stringify(newIds)}, ${newIndex}`)
-
-      if (newIndex < 0) {
-        newIds = newIds || [];
-        newIds.push(sub.id);
-        filledPositions.set(sub.nextPosition!.id, newIds!);
-      }
-      console.log(`swap - after filledPositions = ${JSON.stringify(filledPositions, replacer)}`)
+      // Apply the swap:
+      //  - Removing the filled position for the swap player's current position.
+      //  - Adding to the filled position for the new position.
+      filledPositions.removePlayer(sub.currentPosition!.id, sub.id);
+      filledPositions.addPlayer(sub.nextPosition!.id, sub.id);
+      console.log(`swap - after filledPositions = ${JSON.stringify(filledPositions)}`)
       continue;
     }
     if (!sub.replaces) {
@@ -120,40 +99,83 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
     seenReplacedIds.set(sub.replaces, sub.id);
     console.log(`valid sub: ${sub.id}, next = ${seenNextIds.size}, replaced = ${seenReplacedIds.size},`);
 
-    // Apply the sub, depending
-    //  - Removing the filled position for the player to be replaced
-    //  - Adding to the filled position for the next player
-    const replacedIds = filledPositions.get(replacedPlayer.currentPosition!.id);
-    const replacedIndex = replacedIds ? replacedIds?.indexOf(sub.replaces) : -1;
-
-    console.log(`Replaced: ${JSON.stringify(replacedIds)}, ${replacedIndex}`)
-    if (replacedIndex >= 0) {
-      replacedIds!.splice(replacedIndex, 1);
-      filledPositions.set(replacedPlayer.currentPosition!.id, replacedIds!);
-    }
-
-    let newIds = filledPositions.get(sub.currentPosition!.id);
-    const newIndex = newIds ? newIds?.indexOf(sub.replaces) : -1;
-
-    console.log(`newIds: ${JSON.stringify(newIds)}, ${newIndex}`)
-
-    if (newIndex < 0) {
-      newIds = newIds || [];
-      newIds.push(sub.id);
-      filledPositions.set(sub.currentPosition!.id, newIds!);
-    }
-    console.log(`sub - after filledPositions = ${JSON.stringify(filledPositions, replacer)}`)
+    // Apply the sub:
+    //  - Removing the filled position for the player to be replaced.
+    //  - Adding to the filled position for the next player.
+    filledPositions.removePlayer(replacedPlayer.currentPosition!.id, sub.replaces);
+    filledPositions.addPlayer(sub.currentPosition!.id, sub.id);
+    console.log(`sub - after filledPositions = ${JSON.stringify(filledPositions)}`)
   }
 
-  console.log(`all subs/swaps: invalidSubs = ${JSON.stringify(invalidSubs, replacer)}, filledPositions = ${JSON.stringify(filledPositions, replacer)}`)
+  console.log(`all subs/swaps: invalidSubs = ${JSON.stringify(invalidSubs, replacer)}, filledPositions = ${JSON.stringify(filledPositions)}`)
 
   for (const filled of filledPositions) {
     const position = filled[0];
     const ids = filled[1];
     if (ids.length !== 1) {
       console.log(`Filled check wrong: ${JSON.stringify(filled)}`);
-      invalidSubs.set(position, `Position [${JSON.stringify(position)}] should have 1 id, instead as ${ids.length}`);
+      invalidSubs.set(position, `Position [${position}] should have 1 id, instead as ${ids.length}`);
     }
   }
   return invalidSubs;
+}
+
+export class FilledPositionMap {
+  private filled: Map<string, string[]>;
+
+  constructor(protected players: LivePlayer[]) {
+    this.filled = players.reduce((result, player) => {
+      if (player.status === PlayerStatus.On) {
+        const ids = result.get(player.currentPosition!.id) || [];
+        ids.push(player.id);
+        result.set(player.currentPosition!.id, ids);
+      }
+      return result;
+    }, new Map<string, string[]>());
+  }
+
+  get size(): number {
+    return this.filled.size;
+  }
+
+  has(positionId: string): boolean {
+    return this.filled.has(positionId);
+  }
+
+  [Symbol.iterator]() {
+    return this.filled.entries();
+  }
+
+  removePlayer(positionId: string, playerId: string) {
+    playerId = extractIdFromSwapPlayerId(playerId);
+    const { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, playerId);
+    console.log(`Removing ${playerId} from ${positionId}: ${JSON.stringify(idsInPosition)}, ${playerIdIndex}`);
+
+    if (playerIdIndex >= 0) {
+      idsInPosition!.splice(playerIdIndex, 1);
+      this.filled.set(positionId, idsInPosition!);
+    }
+  }
+
+  addPlayer(positionId: string, playerId: string) {
+    playerId = extractIdFromSwapPlayerId(playerId);
+    let { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, playerId);
+    console.log(`Adding ${playerId} to ${positionId}: ${JSON.stringify(idsInPosition)}, ${playerIdIndex}`);
+
+    if (playerIdIndex < 0) {
+      idsInPosition = idsInPosition || [];
+      idsInPosition.push(playerId);
+      this.filled.set(positionId, idsInPosition!);
+    }
+  }
+
+  toJSON() {
+    return Array.from(this.filled.entries());
+  }
+
+  private getIdsInPosition(positionId: string, playerId: string) {
+    let idsInPosition = this.filled.get(positionId);
+    const playerIdIndex = idsInPosition ? idsInPosition.indexOf(playerId) : -1;
+    return { idsInPosition, playerIdIndex };
+  }
 }

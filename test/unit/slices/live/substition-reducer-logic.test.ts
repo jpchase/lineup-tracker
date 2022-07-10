@@ -192,7 +192,7 @@ describe('Substitution actions', () => {
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
           applyPendingSubs(
-            getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
+            gameId, getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
           ));
       });
 
@@ -201,7 +201,7 @@ describe('Substitution actions', () => {
         setupSubState(subs);
 
         const newState: LiveState = live(currentState, applyPendingSubs(
-          getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
+          gameId, getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
         ));
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
@@ -216,7 +216,7 @@ describe('Substitution actions', () => {
         setupSubState(subs);
 
         const newState: LiveState = live(currentState, applyPendingSubs(
-          getPlayersByIds(getGame(currentState, gameId)!, getSwapNextIds(subs))
+          gameId, getPlayersByIds(getGame(currentState, gameId)!, getSwapNextIds(subs))
         ));
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
@@ -259,7 +259,9 @@ describe('Substitution actions', () => {
         const subbedOffIds = getReplacedIds(subs);
 
         const newState: LiveState = live(currentState, applyPendingSubs(
-          getPlayersByIds(getGame(currentState, gameId)!, nowPlayingIds.concat(getSwapNextIds(swaps)))
+          gameId,
+          getPlayersByIds(getGame(currentState, gameId)!,
+            nowPlayingIds.concat(getSwapNextIds(swaps)))
         ));
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
@@ -287,6 +289,7 @@ describe('Substitution actions', () => {
         selectPlayers(currentGame, nowPlayingIds, true);
 
         const newState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, nowPlayingIds),
           /* selectedOnly */ true));
         const newGame = getGame(newState, gameId)!;
@@ -336,6 +339,7 @@ describe('Substitution actions', () => {
         selectPlayers(currentGame, swappedNextIds, true);
 
         const newState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, swappedNextIds),
            /* selectedOnly */ true));
         const newGame = getGame(newState, gameId)!;
@@ -399,6 +403,7 @@ describe('Substitution actions', () => {
         selectPlayers(currentGame, toBeSelected, true);
 
         const newState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, toBeSelected),
           /* selectedOnly */ true));
         const newGame = getGame(newState, gameId)!;
@@ -450,6 +455,7 @@ describe('Substitution actions', () => {
         selectPlayers(currentGame, getReplacedIds(selectedSubs), true);
 
         const newState: LiveState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, nowPlayingIds),
           /* selectedOnly */ false));
         const newGame = getGame(newState, gameId)!;
@@ -485,9 +491,7 @@ describe('Substitution actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          invalidPendingSubs([]
-            // getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
-          ));
+          invalidPendingSubs(gameId, [sub3.nextId]));
       });
 
       it('should dispatch error with invalid subs, when sub and swap into same position and not selectedOnly', async () => {
@@ -503,10 +507,15 @@ describe('Substitution actions', () => {
 
         expect(dispatchMock).to.have.callCount(1);
 
+        // Invalid subs should contain:
+        //   - Current position of the swap, since that was left empty.
+        //   - Next position of the swap, since there are now two players there.
+        const currentGame = getGame(currentState, gameId)!;
+        const swapPlayer = getPlayer(currentGame, swap1.nextId)!;
+        const positionPlayer = getPlayer(currentGame, sub1.replacedId!)!;
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          invalidPendingSubs([]
-            // getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
-          ));
+          invalidPendingSubs(gameId,
+            [positionPlayer.currentPosition!.id, swapPlayer.currentPosition!.id]));
       });
 
       it('should dispatch error with invalid subs, when sub into different position without replacement and not selectedOnly', async () => {
@@ -528,10 +537,15 @@ describe('Substitution actions', () => {
 
         expect(dispatchMock).to.have.callCount(1);
 
+        // Invalid subs should contain:
+        //   - Position of the player that was replaced, since that was left empty.
+        //   - Position override for the incoming player, since there are now two players there.
+        const currentGame = getGame(currentState, gameId)!;
+        const replacedPlayer = getPlayer(currentGame, sub1.replacedId!)!;
+        const replacedPositionPlayer = getPlayer(currentGame, sub2.replacedId!)!;
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          invalidPendingSubs([]
-            // getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
-          ));
+          invalidPendingSubs(gameId,
+            [replacedPlayer.currentPosition!.id, replacedPositionPlayer.currentPosition!.id]));
       });
 
       it('should dispatch error with invalid subs, when one swap leaves open position and not selectedOnly', async () => {
@@ -546,10 +560,15 @@ describe('Substitution actions', () => {
 
         expect(dispatchMock).to.have.callCount(1);
 
+        // Invalid subs should contain:
+        //   - Current position of the swap, since that was left empty.
+        //   - Next position of the swap, since there are now two players there.
+        const currentGame = getGame(currentState, gameId)!;
+        const swapPlayer = getPlayer(currentGame, swap1.nextId)!;
+        const replacedPositionPlayer = getPlayer(currentGame, swap1.replacedId!)!;
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          invalidPendingSubs([]
-            // getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
-          ));
+          invalidPendingSubs(gameId,
+            [replacedPositionPlayer.currentPosition!.id, swapPlayer.currentPosition!.id]));
       });
 
       it('should dispatch error with invalid subs, when multiple swaps leave open position and not selectedOnly', async () => {
@@ -567,10 +586,15 @@ describe('Substitution actions', () => {
 
         expect(dispatchMock).to.have.callCount(1);
 
+        // Invalid subs should contain:
+        //   - Current position of A, since that was left empty.
+        //   - Next position of B (current of C), since there are now two players there.
+        const currentGame = getGame(currentState, gameId)!;
+        const swapPlayer = getPlayer(currentGame, swap1.nextId)!;
+        const replacedPositionPlayer = getPlayer(currentGame, swap2.replacedId!)!;
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          invalidPendingSubs([]
-            // getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
-          ));
+          invalidPendingSubs(gameId,
+            [replacedPositionPlayer.currentPosition!.id, swapPlayer.currentPosition!.id]));
       });
 
     }); // describe('live/applyPendingSubs')

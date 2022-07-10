@@ -15,7 +15,7 @@ import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
-import { ConfigurePeriodsPayload, GameSetupCompletedPayload, LiveGamePayload, prepareLiveGamePayload, StartPeriodPayload } from './live-action-types.js';
+import { buildSwapPlayerId, ConfigurePeriodsPayload, extractIdFromSwapPlayerId, GameSetupCompletedPayload, LiveGamePayload, PendingSubsAppliedPayload, PendingSubsInvalidPayload, prepareLiveGamePayload, StartPeriodPayload } from './live-action-types.js';
 import { shift, ShiftState } from './shift-slice.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
@@ -36,13 +36,6 @@ export interface LiveState extends LiveGameState {
   hydrated?: boolean;
   shift?: ShiftState;
 }
-
-export interface PendingSubsAppliedPayload {
-  subs: LivePlayer[],
-  selectedOnly?: boolean
-}
-
-const SWAP_ID_SUFFIX = '_swap';
 
 const INITIAL_STATE: LiveGameState = {
   gameId: '',
@@ -465,7 +458,10 @@ const liveSlice = createSlice({
 
     applyPendingSubs: {
       reducer: (state, action: PayloadAction<PendingSubsAppliedPayload>) => {
-        const game = findCurrentGame(state)!;
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
         action.payload.subs.forEach(sub => {
           const player = getPlayer(game, sub.id);
           if (!player || player.isSwap || player.status !== PlayerStatus.Next) {
@@ -505,9 +501,10 @@ const liveSlice = createSlice({
         });
       },
 
-      prepare: (subs: LivePlayer[], selectedOnly?: boolean) => {
+      prepare: (gameId: string, subs: LivePlayer[], selectedOnly?: boolean) => {
         return {
           payload: {
+            gameId,
             subs,
             selectedOnly: !!selectedOnly
           }
@@ -516,7 +513,7 @@ const liveSlice = createSlice({
     },
 
     invalidPendingSubs: {
-      reducer: (_state, _action: PayloadAction<PendingSubsAppliedPayload>) => {
+      reducer: (_state, _action: PayloadAction<PendingSubsInvalidPayload>) => {
         /*
         const game = findCurrentGame(state)!;
         action.payload.subs.forEach(sub => {
@@ -541,11 +538,11 @@ const liveSlice = createSlice({
         });*/
       },
 
-      prepare: (subs: LivePlayer[], selectedOnly?: boolean) => {
+      prepare: (gameId: string, invalidSubs: string[]) => {
         return {
           payload: {
-            subs,
-            selectedOnly: !!selectedOnly
+            gameId,
+            invalidSubs,
           }
         };
       }
@@ -812,17 +809,6 @@ function setCurrentGame(state: LiveState, game: LiveGame) {
   }
   state.gameId = game.id;
   state.games[game.id] = game;
-}
-
-function buildSwapPlayerId(playerId: string) {
-  return playerId + SWAP_ID_SUFFIX;
-}
-
-function extractIdFromSwapPlayerId(swapPlayerId: string) {
-  if (!swapPlayerId.endsWith(SWAP_ID_SUFFIX)) {
-    return swapPlayerId;
-  }
-  return swapPlayerId.slice(0, swapPlayerId.length - SWAP_ID_SUFFIX.length);
 }
 
 function findPlayersByStatus(game: LiveGame, status: PlayerStatus,

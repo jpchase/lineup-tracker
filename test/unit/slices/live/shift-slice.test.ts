@@ -186,9 +186,11 @@ describe('Shift slice', () => {
     let currentState: ShiftState;
     let players: LivePlayer[];
     let subs: LivePlayer[] = [];
+    let gameId: string;
 
     beforeEach(() => {
-      players = testlive.getLivePlayers(18);
+      const game = testlive.getLiveGameWithPlayers();
+      players = game.players!;
       subs = [];
       for (let i = 0; i < nextPlayerIds.length; i++) {
         const nextId = nextPlayerIds[i];
@@ -204,6 +206,7 @@ describe('Shift slice', () => {
         subs.push(nextPlayer);
       }
       currentState = buildShiftWithTrackers(players);
+      gameId = game.id;
     });
 
     function getTrackersByIds(state: ShiftState, ids: string[]) {
@@ -221,7 +224,7 @@ describe('Shift slice', () => {
       // the shifts by the reducer.
       mockCurrentTime(time1);
 
-      const newState = shift(currentState, applyPendingSubs(subs));
+      const newState = shift(currentState, applyPendingSubs(gameId, subs));
 
       // Check that the next players are now on, with timer running
       const newOnTrackers = getTrackersByIds(newState, nextPlayerIds);
@@ -277,7 +280,7 @@ describe('Shift slice', () => {
       // the shifts by the reducer.
       mockCurrentTime(time1);
 
-      const newState = shift(currentState, applyPendingSubs(subs));
+      const newState = shift(currentState, applyPendingSubs(gameId, subs));
 
       // Check that the next players are now on, with timer running
       const newOnTrackers = getTrackersByIds(newState, nextPlayerIds);
