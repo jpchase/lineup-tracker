@@ -33,13 +33,13 @@ describe('Substitution actions', () => {
     };
     // Swaps: three on players move to other positions, no overlap with subs above.
     const swap1: SubData = {
-      nextId: 'P8', replacedId: 'P1', isSwap: true, swapNextId: 'P8_swap'
+      nextId: 'P8', replacedId: 'P9', isSwap: true, swapNextId: 'P8_swap'
     };
     const swap2: SubData = {
-      nextId: 'P9', replacedId: 'P2', isSwap: true, swapNextId: 'P9_swap'
+      nextId: 'P9', replacedId: 'P10', isSwap: true, swapNextId: 'P9_swap'
     };
     const swap3: SubData = {
-      nextId: 'P10', replacedId: 'P3', isSwap: true, swapNextId: 'P10_swap'
+      nextId: 'P10', replacedId: 'P8', isSwap: true, swapNextId: 'P10_swap'
     };
     let currentState: LiveState;
     let gameId: string;
@@ -179,23 +179,6 @@ describe('Substitution actions', () => {
 
     describe('live/applyPendingSubs', () => {
 
-      it('should dispatch action with all next subs, when valid and not selectedOnly', async () => {
-        const subs = buildSubs(sub1, sub2, sub3);
-        setupSubState(subs);
-
-        const dispatchMock = sinon.stub();
-        const getStateMock = mockGetState(currentState);
-
-        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
-
-        expect(dispatchMock).to.have.callCount(1);
-
-        expect(dispatchMock.lastCall).to.have.been.calledWith(
-          applyPendingSubs(
-            gameId, getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
-          ));
-      });
-
       it('should apply all next subs, when not selectedOnly', () => {
         const subs = buildSubs(sub1, sub2, sub3);
         setupSubState(subs);
@@ -214,6 +197,12 @@ describe('Substitution actions', () => {
       it('should apply all the next swaps, when not selectedOnly', () => {
         const subs = buildSubs(swap1, swap2, swap3);
         setupSubState(subs);
+
+        const currentGame = getGame(currentState, gameId)!;
+        subs.forEach(swap => {
+          const positionPlayer = getPlayer(currentGame, swap.replacedId!)!;
+          swap.expectedFinalPosition = { ...positionPlayer.currentPosition! };
+        })
 
         const newState: LiveState = live(currentState, applyPendingSubs(
           gameId, getPlayersByIds(getGame(currentState, gameId)!, getSwapNextIds(subs))
@@ -251,7 +240,7 @@ describe('Substitution actions', () => {
           // Set D to swap to B's position.
           { ...swap2, replacedId: sub1.replacedId!, expectedFinalPosition: sub1ReplacedPlayer.currentPosition },
           // Other swaps are unchanged.
-          swap3
+          { ...swap3, expectedFinalPosition: swap1Player.currentPosition }
         ];
         setupSubState(buildSubs(...subs, ...swaps));
 
@@ -337,6 +326,11 @@ describe('Substitution actions', () => {
 
         const currentGame = getGame(currentState, gameId)!;
         selectPlayers(currentGame, swappedNextIds, true);
+
+        selectedSwaps.forEach(swap => {
+          const positionPlayer = getPlayer(currentGame, swap.replacedId!)!;
+          swap.expectedFinalPosition = { ...positionPlayer.currentPosition! };
+        })
 
         const newState = live(currentState, applyPendingSubs(
           gameId,
@@ -476,6 +470,85 @@ describe('Substitution actions', () => {
           expect(player.selected, `Now off [${player.id}], the selected property should be false`).to.not.be.ok;
         }
       });
+    }); // describe('live/applyPendingSubs')
+
+    describe('apply action creator', () => {
+      it('should dispatch action with all next subs, when valid and not selectedOnly', async () => {
+        const subs = buildSubs(sub1, sub2, sub3);
+        setupSubState(subs);
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(currentState);
+
+        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          applyPendingSubs(
+            gameId, getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
+          ));
+      });
+
+      it('should dispatch action with all next swaps, when valid and not selectedOnly', async () => {
+        const subs = buildSubs(swap1, swap2, swap3);
+        setupSubState(subs);
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(currentState);
+
+        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          applyPendingSubs(
+            gameId, getPlayersByIds(getGame(currentState, gameId)!, getSwapNextIds(subs))
+          ));
+      });
+
+      it('should dispatch action with all next subs and swaps, when valid and not selectedOnly', async () => {
+        // Setup a combination of a swap and sub, e.g.:
+        //  - A replaces B, but in C's position
+        //  - C swaps to D's position, and D swaps to B's position
+        // A = next player to be subbed on from |sub1|
+        // B = player to be replaced from |sub1|
+        // C = player to be swapped from |swap1|
+        // D = player to be swapped from |swap2|
+        const game = testlive.getLiveGameWithPlayers();
+        const sub1ReplacedPlayer = getPlayer(game, sub1.replacedId!)!;
+        const swap1Player = getPlayer(game, swap1.nextId!)!;
+        const swap2Player = getPlayer(game, swap2.nextId!)!;
+
+        const subs = [
+          // Set A to go into C's position, instead of taking B's position by default.
+          { ...sub1, positionOverride: { ...swap1Player.currentPosition! } },
+          // Other subs are unchanged.
+          sub2, sub3
+        ];
+        const swaps = [
+          // Set C to swap to D's position.
+          { ...swap1, replacedId: swap2.nextId!, expectedFinalPosition: swap2Player.currentPosition },
+          // Set D to swap to B's position.
+          { ...swap2, replacedId: sub1.replacedId!, expectedFinalPosition: sub1ReplacedPlayer.currentPosition },
+          // Other swaps are unchanged.
+          // swap3
+        ];
+        setupSubState(buildSubs(...subs, ...swaps));
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(currentState);
+
+        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          applyPendingSubs(
+            gameId, getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs).concat(getSwapNextIds(swaps))
+            ))
+        );
+      });
 
       it('should dispatch error with invalid subs, when two players subbing for same player and not selectedOnly', async () => {
         // Two subs for the same on player
@@ -515,7 +588,7 @@ describe('Substitution actions', () => {
         const positionPlayer = getPlayer(currentGame, sub1.replacedId!)!;
         expect(dispatchMock.lastCall).to.have.been.calledWith(
           invalidPendingSubs(gameId,
-            [positionPlayer.currentPosition!.id, swapPlayer.currentPosition!.id]));
+            [positionPlayer.currentPosition!.id, swapPlayer.currentPosition!.id].sort()));
       });
 
       it('should dispatch error with invalid subs, when sub into different position without replacement and not selectedOnly', async () => {
@@ -545,7 +618,7 @@ describe('Substitution actions', () => {
         const replacedPositionPlayer = getPlayer(currentGame, sub2.replacedId!)!;
         expect(dispatchMock.lastCall).to.have.been.calledWith(
           invalidPendingSubs(gameId,
-            [replacedPlayer.currentPosition!.id, replacedPositionPlayer.currentPosition!.id]));
+            [replacedPlayer.currentPosition!.id, replacedPositionPlayer.currentPosition!.id].sort()));
       });
 
       it('should dispatch error with invalid subs, when one swap leaves open position and not selectedOnly', async () => {
@@ -594,10 +667,10 @@ describe('Substitution actions', () => {
         const replacedPositionPlayer = getPlayer(currentGame, swap2.replacedId!)!;
         expect(dispatchMock.lastCall).to.have.been.calledWith(
           invalidPendingSubs(gameId,
-            [replacedPositionPlayer.currentPosition!.id, swapPlayer.currentPosition!.id]));
+            [swapPlayer.currentPosition!.id, replacedPositionPlayer.currentPosition!.id].sort()));
       });
 
-    }); // describe('live/applyPendingSubs')
+    }); // describe('apply action creator')
 
     describe('live/discardPendingSubs', () => {
 

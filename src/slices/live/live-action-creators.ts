@@ -24,7 +24,7 @@ export const pendingSubsAppliedCreator = (selectedOnly?: boolean): ThunkAction<v
   }
   const invalidSubs = validatePendingSubs(game, subs);
   if (invalidSubs.size) {
-    dispatch(invalidPendingSubs(game.id, Array.from(invalidSubs.keys())));
+    dispatch(invalidPendingSubs(game.id, Array.from(invalidSubs.keys()).sort()));
     return;
   }
   dispatch(applyPendingSubs(game.id, subs, selectedOnly));
