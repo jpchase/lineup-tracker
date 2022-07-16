@@ -13,7 +13,7 @@ import {
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
+import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, selectPlayers, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
@@ -63,14 +63,6 @@ function buildLiveGameWithSetupTasks(players?: LivePlayer[], tasks?: SetupTask[]
     game.setupTasks = tasks;
   }
   return game;
-}
-
-function selectPlayers(game: LiveGame, playerIds: string[], selected: boolean) {
-  for (const player of game.players!) {
-    if (playerIds.includes(player.id)) {
-      player.selected = selected;
-    }
-  }
 }
 
 function buildSwapPlayerPlaceholder(onPlayer: LivePlayer, position: Position) {
@@ -1071,6 +1063,7 @@ describe('Live slice', () => {
     const swapOnPlayerIds = ['P9', 'P11', 'P12'];
     const swapNextPlayerIds = ['P9_swap', 'P11_swap', 'P12_swap'];
     let currentState: LiveState;
+    let gameId: string;
 
     interface SubIds {
       // Players in Next status
@@ -1135,6 +1128,7 @@ describe('Live slice', () => {
         {
           shift: buildShiftWithTrackers(game.players, true)
         });
+      gameId = game.id;
     }
 
     function getIdsByStatus(game: LiveGame) {
@@ -1193,7 +1187,7 @@ describe('Live slice', () => {
         });
 
         const newState: LiveState = live(currentState, applyPendingSubs(
-          getPlayersByIds(getCurrentGame(currentState)!, nextPlayerIds)
+          gameId, getPlayersByIds(getCurrentGame(currentState)!, nextPlayerIds)
         ));
         const newGame = getCurrentGame(newState)!;
         const newIds = getIdsByStatus(newGame);
@@ -1211,7 +1205,7 @@ describe('Live slice', () => {
         });
 
         const newState: LiveState = live(currentState, applyPendingSubs(
-          /* subs */[]
+          gameId, /* subs */[]
         ));
         const newGame = getCurrentGame(newState)!;
         const newIds = getIdsByStatus(newGame);
@@ -1234,7 +1228,7 @@ describe('Live slice', () => {
         });
 
         const newState: LiveState = live(currentState, applyPendingSubs(
-          getPlayersByIds(getCurrentGame(currentState)!, nextPlayerIds)
+          gameId, getPlayersByIds(getCurrentGame(currentState)!, nextPlayerIds)
         ));
         const newGame = getCurrentGame(newState)!;
         const newIds = getIdsByStatus(newGame);
@@ -1262,6 +1256,7 @@ describe('Live slice', () => {
         selectPlayers(currentGame, nowPlayingIds, true);
 
         const newState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, nowPlayingIds),
           /* selectedOnly */ true));
         const newGame = getCurrentGame(newState)!;
@@ -1311,7 +1306,7 @@ describe('Live slice', () => {
         selectPlayers(getCurrentGame(currentState)!, swappedNextIds, true);
 
         const newState = live(currentState, applyPendingSubs(
-          /* subs */[], /* selectedOnly */ true));
+          gameId, /* subs */[], /* selectedOnly */ true));
         const newGame = getCurrentGame(newState)!;
         const newIds = getIdsByStatus(newGame);
 
@@ -1368,6 +1363,7 @@ describe('Live slice', () => {
         selectPlayers(currentGame, toBeSelected, true);
 
         const newState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, nowPlayingIds),
           /* selectedOnly */ true));
         const newGame = getCurrentGame(newState)!;
@@ -1422,6 +1418,7 @@ describe('Live slice', () => {
         selectPlayers(currentGame, ['P4', 'P6'], true);
 
         const newState: LiveState = live(currentState, applyPendingSubs(
+          gameId,
           getPlayersByIds(currentGame, nowPlayingIds),
           /* selectedOnly */ false));
         const newGame = getCurrentGame(newState)!;

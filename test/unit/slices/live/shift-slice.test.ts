@@ -1,5 +1,6 @@
 import { Duration } from '@app/models/clock.js';
-import { LivePlayer } from '@app/models/live.js';
+import { GameStatus } from '@app/models/game.js';
+import { getPlayer, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } from '@app/slices/live/live-slice.js';
@@ -185,9 +186,11 @@ describe('Shift slice', () => {
     let currentState: ShiftState;
     let players: LivePlayer[];
     let subs: LivePlayer[] = [];
+    let gameId: string;
 
     beforeEach(() => {
-      players = testlive.getLivePlayers(18);
+      const game = testlive.getLiveGameWithPlayers();
+      players = game.players!;
       subs = [];
       for (let i = 0; i < nextPlayerIds.length; i++) {
         const nextId = nextPlayerIds[i];
@@ -203,6 +206,7 @@ describe('Shift slice', () => {
         subs.push(nextPlayer);
       }
       currentState = buildShiftWithTrackers(players);
+      gameId = game.id;
     });
 
     function getTrackersByIds(state: ShiftState, ids: string[]) {
@@ -220,7 +224,63 @@ describe('Shift slice', () => {
       // the shifts by the reducer.
       mockCurrentTime(time1);
 
-      const newState = shift(currentState, applyPendingSubs(subs));
+      const newState = shift(currentState, applyPendingSubs(gameId, subs));
+
+      // Check that the next players are now on, with timer running
+      const newOnTrackers = getTrackersByIds(newState, nextPlayerIds);
+      expect(newOnTrackers).to.have.length(nextPlayerIds.length, 'Number of subs');
+      newOnTrackers.forEach(tracker => {
+        expect(tracker).to.deep.include({
+          isOn: true,
+          shiftCount: 1,
+          onTimer: {
+            isRunning: true,
+            startTime: time1,
+            duration: Duration.zero().toJSON()
+          }
+        });
+      });
+
+      const newOffTrackers = getTrackersByIds(newState, onPlayerIds);
+      expect(newOffTrackers).to.have.length(nextPlayerIds.length, 'Number of replaced');
+      newOffTrackers.forEach(tracker => {
+        expect(tracker).to.deep.include({
+          isOn: false,
+          shiftCount: 1,
+          offTimer: {
+            isRunning: true,
+            startTime: time1,
+            duration: Duration.zero().toJSON()
+          }
+        });
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.trackerMap).not.to.equal(currentState.trackerMap);
+    });
+
+    it('should ignore swaps', () => {
+      const swapPlayer = getPlayer({ id: 'foo', status: GameStatus.Live, players: players }, 'P8');
+      const swap = {
+        ...swapPlayer,
+        id: `${swapPlayer?.id}_swap`,
+        isSwap: true,
+      } as LivePlayer;
+      players.push(swap);
+      subs.push(swap);
+      currentState = buildShiftWithTrackers(players);
+
+      // Set the start time for starting shifts.
+      const timeProvider = mockTimeProvider(startTime);
+      const trackerMap = new PlayerTimeTrackerMap(currentState.trackerMap, timeProvider);
+      trackerMap.startShiftTimers();
+      currentState.trackerMap = trackerMap.toJSON();
+
+      // Now, mock the underlying time, to be used when changing
+      // the shifts by the reducer.
+      mockCurrentTime(time1);
+
+      const newState = shift(currentState, applyPendingSubs(gameId, subs));
 
       // Check that the next players are now on, with timer running
       const newOnTrackers = getTrackersByIds(newState, nextPlayerIds);

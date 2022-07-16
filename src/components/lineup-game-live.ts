@@ -5,14 +5,13 @@
 import { ContextProvider } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon';
-import { html, LitElement } from 'lit';
+import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { connectStore } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
 import { Formation, FormationBuilder, FormationType, formatPosition, getPositions, Position } from '../models/formation.js';
-import { LiveGame, LivePlayer } from '../models/live.js';
-import { PeriodStatus } from '../models/live.js';
+import { LiveGame, LivePlayer, PeriodStatus } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
@@ -20,7 +19,7 @@ import {
   cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
   gameCompleted,
   pendingSubsAppliedCreator,
-  proposedSubSelector, selectCurrentLiveGame, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
+  proposedSubSelector, selectCurrentLiveGame, selectInvalidSubs, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
@@ -41,6 +40,10 @@ export class LineupGameLive extends connectStore()(LitElement) {
       ${SharedStyles}
       <style>
         :host { display: block; }
+
+        #sub-errors {
+          color: red;
+        }
       </style>
       <div>
       ${this._game ? html`
@@ -77,6 +80,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
         <div>
           <mwc-button id="sub-apply-btn" @click="${this._applySubs}">Sub</mwc-button>
           <mwc-button id="sub-discard-btn" @click="${this._discardSubs}">Discard</mwc-button>
+          ${this.getSubErrors()}
         </div>
         <lineup-player-list mode="next" .players="${players}" .trackerData="${trackerData}" >
         </lineup-player-list>
@@ -105,7 +109,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
 
   private getConfirmSub() {
     if (!this.proposedSub) {
-      return '';
+      return nothing;
     }
     const sub = this.proposedSub;
     const replaced = this._findPlayer(sub.replaces!)!;
@@ -136,7 +140,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
 
   private getConfirmSwap() {
     if (!this.proposedSwap) {
-      return '';
+      return nothing;
     }
     const swap = this.proposedSwap;
     let positionText = formatPosition(swap.nextPosition!);
@@ -149,6 +153,19 @@ export class LineupGameLive extends connectStore()(LitElement) {
         <mwc-button class="cancel" @click="${this.cancelSwapClicked}">Cancel</mwc-button>
         <mwc-button class="ok" autofocus @click="${this.confirmSwapClicked}">Confirm</mwc-button>
       </div>
+    `;
+  }
+
+  private getSubErrors() {
+    if (!this.invalidSubs?.length) {
+      return nothing;
+    }
+    let errorText = this.invalidSubs.join(', ');
+    return html`
+      <span id="sub-errors">
+        <mwc-icon>report</mwc-icon>
+        <span class="error">Invalid subs: ${errorText}</span>
+      </span>
     `;
   }
 
@@ -175,6 +192,9 @@ export class LineupGameLive extends connectStore()(LitElement) {
 
   @state()
   private proposedSwap?: LivePlayer;
+
+  @state()
+  private invalidSubs?: string[];
 
   @state()
   private clockData?: TimerData;
@@ -242,6 +262,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
     }
     this.proposedSub = proposedSubSelector(state);
     this.proposedSwap = selectProposedSwap(state);
+    this.invalidSubs = selectInvalidSubs(state);
     this.trackerData = state.live.shift?.trackerMap;
     this.timerTrigger.isRunning = !!this.trackerData?.clockRunning;
   }

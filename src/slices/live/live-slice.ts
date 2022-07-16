@@ -15,8 +15,9 @@ import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
-import { ConfigurePeriodsPayload, GameSetupCompletedPayload, LiveGamePayload, prepareLiveGamePayload, StartPeriodPayload } from './live-action-types.js';
+import { buildSwapPlayerId, ConfigurePeriodsPayload, extractIdFromSwapPlayerId, GameSetupCompletedPayload, LiveGamePayload, PendingSubsAppliedPayload, PendingSubsInvalidPayload, prepareLiveGamePayload, StartPeriodPayload } from './live-action-types.js';
 import { shift, ShiftState } from './shift-slice.js';
+import { invalidPendingSubsHandler, invalidPendingSubsPrepare } from './substitution-reducer-logic.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
@@ -30,19 +31,13 @@ export interface LiveGameState {
   selectedOnPlayer2?: string;
   proposedSub?: LivePlayer;
   proposedSwap?: LivePlayer;
+  invalidSubs?: string[];
 }
 
 export interface LiveState extends LiveGameState {
   hydrated?: boolean;
   shift?: ShiftState;
 }
-
-export interface PendingSubsAppliedPayload {
-  subs: LivePlayer[],
-  selectedOnly?: boolean
-}
-
-const SWAP_ID_SUFFIX = '_swap';
 
 const INITIAL_STATE: LiveGameState = {
   gameId: '',
@@ -53,6 +48,7 @@ const INITIAL_STATE: LiveGameState = {
   selectedOffPlayer: undefined,
   selectedOnPlayer: undefined,
   proposedSub: undefined,
+  invalidSubs: undefined
 };
 
 export const selectLiveGameById = (state: RootState, gameId: string) => {
@@ -70,14 +66,18 @@ export const selectCurrentLiveGame = (state: RootState) => {
 
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
+export const selectInvalidSubs = (state: RootState) => state.live?.invalidSubs;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
-export const selectPendingSubs = (state: RootState, selectedOnly?: boolean) => {
+export const selectPendingSubs = (state: RootState, selectedOnly?: boolean, includeSwaps?: boolean) => {
   const game = selectCurrentLiveGame(state);
   if (!game) {
     return;
   }
-  const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next, selectedOnly);
+  const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next, selectedOnly, includeSwaps);
   if (nextPlayers.some(player => {
+    if (includeSwaps && player.isSwap) {
+      return false;
+    }
     const replacedPlayer = getPlayer(game, player.replaces!);
     return (replacedPlayer?.status !== PlayerStatus.On);
   })) {
@@ -462,10 +462,13 @@ const liveSlice = createSlice({
 
     applyPendingSubs: {
       reducer: (state, action: PayloadAction<PendingSubsAppliedPayload>) => {
-        const game = findCurrentGame(state)!;
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
         action.payload.subs.forEach(sub => {
           const player = getPlayer(game, sub.id);
-          if (player?.status !== PlayerStatus.Next) {
+          if (!player || player.isSwap || player.status !== PlayerStatus.Next) {
             return;
           }
           const replacedPlayer = getPlayer(game, player.replaces!);
@@ -502,14 +505,27 @@ const liveSlice = createSlice({
         });
       },
 
-      prepare: (subs: LivePlayer[], selectedOnly?: boolean) => {
+      prepare: (gameId: string, subs: LivePlayer[], selectedOnly?: boolean) => {
         return {
           payload: {
+            gameId,
             subs,
             selectedOnly: !!selectedOnly
           }
         };
       }
+    },
+
+    invalidPendingSubs: {
+      reducer: (state, action: PayloadAction<PendingSubsInvalidPayload>) => {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        return invalidPendingSubsHandler(state, action);
+      },
+
+      prepare: invalidPendingSubsPrepare
     },
 
     discardPendingSubs: {
@@ -528,6 +544,7 @@ const liveSlice = createSlice({
           player.currentPosition = undefined;
           player.selected = false;
         });
+        state.invalidSubs = undefined;
       },
       prepare: (selectedOnly?: boolean) => {
         return {
@@ -619,7 +636,7 @@ export const {
   // Clock-related actions
   configurePeriods, startPeriod, endPeriod, toggleClock,
   // Sub-related actions
-  selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs, discardPendingSubs, gameCompleted
+  selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs, invalidPendingSubs, discardPendingSubs, gameCompleted
 } = actions;
 
 function completeSetupStepForAction(state: LiveGameState, setupStepToComplete: SetupSteps) {
@@ -773,17 +790,6 @@ function setCurrentGame(state: LiveState, game: LiveGame) {
   }
   state.gameId = game.id;
   state.games[game.id] = game;
-}
-
-function buildSwapPlayerId(playerId: string) {
-  return playerId + SWAP_ID_SUFFIX;
-}
-
-function extractIdFromSwapPlayerId(swapPlayerId: string) {
-  if (!swapPlayerId.endsWith(SWAP_ID_SUFFIX)) {
-    return swapPlayerId;
-  }
-  return swapPlayerId.slice(0, swapPlayerId.length - SWAP_ID_SUFFIX.length);
 }
 
 function findPlayersByStatus(game: LiveGame, status: PlayerStatus,

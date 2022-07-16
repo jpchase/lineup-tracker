@@ -4,8 +4,8 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../../models/shift.js';
-import { GameSetupCompletedPayload, StartPeriodPayload } from './live-action-types.js';
-import { applyPendingSubs, endPeriod, gameSetupCompleted, PendingSubsAppliedPayload, startPeriod } from './live-slice.js';
+import { GameSetupCompletedPayload, PendingSubsAppliedPayload, StartPeriodPayload } from './live-action-types.js';
+import { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } from './live-slice.js';
 
 export interface ShiftState {
   trackerMap?: PlayerTimeTrackerMapData;
@@ -50,9 +50,13 @@ const shiftSlice = createSlice({
       if (!action.payload.subs?.length) {
         return;
       }
-      const subs = action.payload.subs.map(player => {
+      const subs = action.payload.subs.filter(player => !player.isSwap).map(player => {
         return { in: player.id, out: player.replaces! };
       });
+      if (!subs.length) {
+        // This might be empty if there are only swaps provided.
+        return;
+      }
       const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
       trackerMap.substitutePlayers(subs);
       state.trackerMap = trackerMap.toJSON();
