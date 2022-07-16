@@ -31,7 +31,11 @@ export function buildPlayerTrackerMap(existingPlayers?: LivePlayer[],
   }
   if (!keepExistingStatus) {
     players.forEach((player, index) => {
-      player.status = (index < 11) ? PlayerStatus.On : PlayerStatus.Off;
+      // Set the first 11 players to be On, the last player to be Out, and the
+      // remaining players to be Off.
+      player.status = (index < 11) ?
+        PlayerStatus.On :
+        (index === 17) ? PlayerStatus.Out : PlayerStatus.Off;
     });
   }
   return new PlayerTimeTrackerMap().initialize(players);

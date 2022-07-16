@@ -53,6 +53,11 @@ snapshots["lineup-game-live tests shows all player sections for started game"] =
     <h5>
       Subs
     </h5>
+    <div>
+      <mwc-button id="out-mark-btn">
+        Out
+      </mwc-button>
+    </div>
     <lineup-player-list mode="off">
     </lineup-player-list>
   </div>
@@ -60,6 +65,11 @@ snapshots["lineup-game-live tests shows all player sections for started game"] =
     <h5>
       Unavailable
     </h5>
+    <div>
+      <mwc-button id="out-return-btn">
+        Return
+      </mwc-button>
+    </div>
     <lineup-player-list mode="out">
     </lineup-player-list>
   </div>
