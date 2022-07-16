@@ -55,7 +55,9 @@ export default {
     },
     {
       name: 'single',
-      files: 'test/unit/slices/game/game-slice.test.js'
+      files: 'test/unit/components/lineup-game-live.test.js'
+      // files: 'test/unit/slices/live/substition-reducer-logic.test.js'
+      // files: 'test/unit/slices/live/**.test.js'
     }
   ],
   // Custom html as a workaround for setting root hooks or global initialization.

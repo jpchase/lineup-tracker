@@ -175,3 +175,15 @@ snapshots["lineup-game-live tests Subs shows confirm swap UI when proposed swap 
 `;
 /* end snapshot lineup-game-live tests Subs shows confirm swap UI when proposed swap exists */
 
+snapshots["lineup-game-live tests Subs shows errors when pending subs are invalid"] = 
+`<span id="sub-errors">
+  <mwc-icon>
+    report
+  </mwc-icon>
+  <span class="error">
+    Invalid subs: LCB, S
+  </span>
+</span>
+`;
+/* end snapshot lineup-game-live tests Subs shows errors when pending subs are invalid */
+

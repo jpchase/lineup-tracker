@@ -472,6 +472,22 @@ describe('Substitution actions', () => {
       });
     }); // describe('live/applyPendingSubs')
 
+    describe('live/invalidPendingSubs', () => {
+
+      it('should save the invalid subs, when two players subbing for same player', async () => {
+        // Two subs for the same on player
+        const subs = buildSubs(sub1, sub2,
+          { ...sub2, nextId: sub3.nextId });
+        setupSubState(subs);
+
+        const newState: LiveState = live(currentState, invalidPendingSubs(
+          gameId, [sub3.nextId]));
+
+        expect(newState.invalidSubs).to.deep.equal([sub3.nextId]);
+      });
+
+    }); // describe('live/invalidPendingSubs')
+
     describe('apply action creator', () => {
       it('should dispatch action with all next subs, when valid and not selectedOnly', async () => {
         const subs = buildSubs(sub1, sub2, sub3);
@@ -762,7 +778,33 @@ describe('Substitution actions', () => {
         expect(newIds[PlayerStatus.Next]).to.have.members(stillNextIds, 'Next players not specified should remain');
       });
 
+      it('should clear any invalid subs, when not selected only', () => {
+        // Two subs for the same on player
+        const subs = buildSubs(sub1, sub2,
+          { ...sub2, nextId: sub3.nextId });
+        setupSubState(subs);
+        currentState.invalidSubs = [sub3.nextId];
+
+        const newState = live(currentState, discardPendingSubs());
+
+        expect(newState.invalidSubs, 'Invalid subs should be cleared').not.to.be.ok;
+      });
+
+      it('should clear any invalid subs, when selected only', () => {
+        // Two subs for the same on player
+        const subs = buildSubs(sub1, sub2,
+          { ...sub2, nextId: sub3.nextId });
+        setupSubState(subs);
+        currentState.invalidSubs = [sub3.nextId];
+
+        selectPlayers(getGame(currentState, gameId)!, [sub1.nextId], true);
+
+        const newState = live(currentState, discardPendingSubs(/* selectedOnly */ true));
+
+        expect(newState.invalidSubs, 'Invalid subs should be cleared').not.to.be.ok;
+      });
+
     }); // describe('live/discardPendingSubs')
-  }); // describe('Next Subs')
+  }); // describe('Pending Subs')
 
 });

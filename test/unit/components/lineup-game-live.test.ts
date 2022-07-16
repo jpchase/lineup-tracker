@@ -175,6 +175,29 @@ describe('lineup-game-live tests', () => {
       await el.updateComplete;
     });
 
+    async function preparePendingSwap() {
+      const onPlayer = getPlayer(liveGame, 'P0')!;
+      const onPlayer2 = getPlayer(liveGame, 'P1')!;
+
+      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      await el.updateComplete;
+
+      const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
+      expect(confirmSection, 'Missing confirm swap element').to.be.ok;
+
+      const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      expect(applyButton, 'Missing apply button').to.be.ok;
+
+      applyButton.click();
+
+      // Verifies that the apply swap action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.include(confirmSwap());
+    }
+
     it('dispatches select player action when off player selected', async () => {
       const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
@@ -391,6 +414,36 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.include(cancelSwap());
+    });
+
+    it.only('shows errors when pending subs are invalid', async () => {
+      await preparePendingSwap();
+
+      const onPlayer = getPlayer(liveGame, 'P0')!;
+      const onPlayer2 = getPlayer(liveGame, 'P1')!;
+
+      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      await el.updateComplete;
+
+      const applyButton = el.shadowRoot!.querySelector('#sub-apply-btn') as Button;
+      expect(applyButton, 'Missing apply button').to.be.ok;
+
+      applyButton.click();
+      await el.updateComplete;
+
+      const errorElement = el.shadowRoot!.querySelector('#sub-errors');
+      expect(errorElement, 'Missing sub error element').to.be.ok;
+
+      const errorText = errorElement!.querySelector('.error');
+      expect(errorText, 'Missing sub error text').to.be.ok;
+
+      const expectedInvalidPositions = [
+        onPlayer.currentPosition?.id,
+        onPlayer2.currentPosition?.id].sort().join(', ');
+      expect(errorText!.textContent, 'Sub error text should contain invalid swap positions').to.contain(expectedInvalidPositions);
+
+      await expect(errorElement).dom.to.equalSnapshot();
     });
 
   }); // describe('Subs')
