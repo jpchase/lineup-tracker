@@ -416,7 +416,7 @@ describe('lineup-game-live tests', () => {
       expect(actions[actions.length - 1]).to.include(cancelSwap());
     });
 
-    it.only('shows errors when pending subs are invalid', async () => {
+    it('shows errors when pending subs are invalid', async () => {
       await preparePendingSwap();
 
       const onPlayer = getPlayer(liveGame, 'P0')!;
