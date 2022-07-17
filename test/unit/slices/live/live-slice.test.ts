@@ -283,8 +283,7 @@ describe('Live slice', () => {
       expectedGame.status = GameStatus.Start;
       expectedGame.clock = buildClock();
       delete expectedGame.setupTasks;
-      const expectedMap = new PlayerTimeTrackerMap();
-      expectedMap.initialize(rosterPlayers);
+      const expectedMap = PlayerTimeTrackerMap.createFromGame(currentGame);
       const expectedState = buildLiveStateWithCurrentGame(expectedGame,
         {
           shift: {

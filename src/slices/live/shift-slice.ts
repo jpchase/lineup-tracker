@@ -27,15 +27,14 @@ const shiftSlice = createSlice({
         return;
       }
       // TODO: validate game matches?
-      const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
-      trackerMap.initialize(action.payload.liveGame.players);
+      const trackerMap = PlayerTimeTrackerMap.createFromGame(action.payload.liveGame);
       state.trackerMap = trackerMap.toJSON();
     }).addCase(startPeriod, (state, action: PayloadAction<StartPeriodPayload>) => {
       if (!action.payload.gameAllowsStart) {
         return;
       }
       // TODO: validate game matches?
-      const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
+      const trackerMap = PlayerTimeTrackerMap.create(state.trackerMap!);
       trackerMap.startShiftTimers();
       state.trackerMap = trackerMap.toJSON();
     }).addCase(endPeriod, (state) => {
@@ -43,7 +42,7 @@ const shiftSlice = createSlice({
         return;
       }
       // TODO: validate game matches?
-      const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
+      const trackerMap = PlayerTimeTrackerMap.create(state.trackerMap!);
       trackerMap.stopShiftTimers();
       state.trackerMap = trackerMap.toJSON();
     }).addCase(applyPendingSubs, (state, action: PayloadAction<PendingSubsAppliedPayload>) => {
@@ -57,7 +56,7 @@ const shiftSlice = createSlice({
         // This might be empty if there are only swaps provided.
         return;
       }
-      const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
+      const trackerMap = PlayerTimeTrackerMap.create(state.trackerMap!);
       trackerMap.substitutePlayers(subs);
       state.trackerMap = trackerMap.toJSON();
     });

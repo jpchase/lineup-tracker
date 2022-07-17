@@ -46,8 +46,7 @@ describe('Shift slice', () => {
     it('should initialize trackers from live players', () => {
       const rosterPlayers = testlive.getLivePlayers(18);
       const game = testlive.getLiveGame(rosterPlayers);
-      const expectedMap = new PlayerTimeTrackerMap();
-      expectedMap.initialize(rosterPlayers);
+      const expectedMap = PlayerTimeTrackerMap.createFromGame(game);
 
       expect(currentState.trackerMap, 'trackerMap should be empty').to.not.be.ok;
 
@@ -137,7 +136,7 @@ describe('Shift slice', () => {
     it('should stop the clock and capture the end time', () => {
       // Set the start time for starting shifts.
       const timeProvider = mockTimeProvider(startTime);
-      const trackerMap = new PlayerTimeTrackerMap(currentState.trackerMap, timeProvider);
+      const trackerMap = PlayerTimeTrackerMap.create(currentState.trackerMap!, timeProvider);
       trackerMap.startShiftTimers();
       currentState.trackerMap = trackerMap.toJSON();
 
@@ -216,7 +215,7 @@ describe('Shift slice', () => {
     it('should sub all next players, when not selectedOnly', () => {
       // Set the start time for starting shifts.
       const timeProvider = mockTimeProvider(startTime);
-      const trackerMap = new PlayerTimeTrackerMap(currentState.trackerMap, timeProvider);
+      const trackerMap = PlayerTimeTrackerMap.create(currentState.trackerMap!, timeProvider);
       trackerMap.startShiftTimers();
       currentState.trackerMap = trackerMap.toJSON();
 
@@ -272,7 +271,7 @@ describe('Shift slice', () => {
 
       // Set the start time for starting shifts.
       const timeProvider = mockTimeProvider(startTime);
-      const trackerMap = new PlayerTimeTrackerMap(currentState.trackerMap, timeProvider);
+      const trackerMap = PlayerTimeTrackerMap.create(currentState.trackerMap!, timeProvider);
       trackerMap.startShiftTimers();
       currentState.trackerMap = trackerMap.toJSON();
 

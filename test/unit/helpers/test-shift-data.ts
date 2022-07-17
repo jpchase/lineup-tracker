@@ -1,4 +1,4 @@
-import { LivePlayer } from '@app/models/live.js';
+import { LiveGame, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerData, PlayerTimeTrackerMap } from '@app/models/shift.js';
 import * as testlive from './test-live-game-data.js';
@@ -38,5 +38,6 @@ export function buildPlayerTrackerMap(existingPlayers?: LivePlayer[],
         (index === 17) ? PlayerStatus.Out : PlayerStatus.Off;
     });
   }
-  return new PlayerTimeTrackerMap().initialize(players);
+  const game = { id: 'thegameid', players } as LiveGame;
+  return PlayerTimeTrackerMap.createFromGame(game);
 }

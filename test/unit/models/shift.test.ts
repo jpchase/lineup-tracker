@@ -1,7 +1,7 @@
 import { CurrentTimeProvider, ManualTimeProvider } from '@app/models/clock.js';
-import { LivePlayer } from '@app/models/live.js';
+import { LiveGame, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { PlayerTimeTracker, PlayerTimeTrackerMap } from '@app/models/shift.js';
+import { PlayerTimeTracker, PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '@app/models/shift.js';
 import { Assertion } from '@esm-bundle/chai';
 import { expect } from '@open-wc/testing';
 import { addDurationAssertion, buildDuration, manualTimeProvider, mockTimeProvider } from '../helpers/test-clock-data.js';
@@ -92,19 +92,15 @@ describe('PlayerTimeTrackerMap', () => {
 
   let map: PlayerTimeTrackerMap;
 
-  beforeEach(() => {
-    map = new PlayerTimeTrackerMap();
-  });
-
   addTimingMatchers();
 
   Assertion.addMethod('initialized', function (this) {
     const map = this._obj as PlayerTimeTrackerMap;
-    const pass = map && !map.clockRunning && (!map.trackers || !map.trackers.length);
+    const pass = map && map.id.length && !map.clockRunning && (!map.trackers || !map.trackers.length);
 
     let expected = '', actual = '';
     if (!pass && map) {
-      expected = JSON.stringify(new PlayerTimeTrackerMap().toJSON());
+      expected = JSON.stringify(PlayerTimeTrackerMap.create({ id: map.id }).toJSON());
       actual = JSON.stringify(map.toJSON());
     }
 
@@ -180,17 +176,20 @@ describe('PlayerTimeTrackerMap', () => {
 
   describe('uninitialized', () => {
 
-    it('should be empty', () => {
-      expect(map).to.be.initialized();
-    });
-
     it('should throw when no players to initialize', () => {
+      const game = {
+        id: 'gameid',
+        players: [] as LivePlayer[]
+      } as LiveGame;
+
       expect(() => {
-        map.initialize([]);
+        map = PlayerTimeTrackerMap.createFromGame(game);
       }).to.throw('Players must be provided to initialize');
     });
 
     it('should throw for operations', () => {
+      map = PlayerTimeTrackerMap.create({ id: 'nodataid' });
+
       const tracker = map.get('');
       expect(tracker, 'tracker should be undefined').to.not.be.ok;
       expect(() => {
@@ -212,7 +211,8 @@ describe('PlayerTimeTrackerMap', () => {
   describe('initialized', () => {
 
     beforeEach(() => {
-      map.initialize(players);
+      const game = { id: 'gameid', players } as LiveGame;
+      map = PlayerTimeTrackerMap.createFromGame(game);
     });
 
     it('should be empty after reset', () => {
@@ -382,8 +382,8 @@ describe('PlayerTimeTrackerMap', () => {
   describe('Shift timing', () => {
 
     function initMapWithProvider(provider: CurrentTimeProvider | undefined) {
-      map = new PlayerTimeTrackerMap(undefined, provider);
-      map.initialize(players);
+      const game = { id: 'gameid', players } as LiveGame;
+      map = PlayerTimeTrackerMap.createFromGame(game, provider);
       expect(map).to.have.size(4);
     }
 
@@ -821,12 +821,13 @@ describe('PlayerTimeTrackerMap', () => {
 
     it('should not have the time provider serialized', () => {
       let data = {
+        id: 'someid',
         trackers: [
           { id: playerOnId, isOn: true },
           { id: playerOffId, isOn: false },
         ],
       }
-      map = new PlayerTimeTrackerMap(data);
+      map = PlayerTimeTrackerMap.create(data);
 
       expect(map).to.have.size(2);
       expect(map.clockRunning).to.be.false;
@@ -847,30 +848,35 @@ describe('PlayerTimeTrackerMap', () => {
       });
     });
 
-    it('should be initialized correctly for null data', () => {
-      map = new PlayerTimeTrackerMap(undefined);
-      expect(map).to.be.initialized();
+    it('should throw if no id provided in data', () => {
+      expect(() => {
+        map = PlayerTimeTrackerMap.create({} as PlayerTimeTrackerMapData);
+      }).to.throw('id must be provided');
+      expect(() => {
+        map = PlayerTimeTrackerMap.create({ id: '' });
+      }).to.throw('id must be provided');
     });
 
     it('should be initialized correctly for empty data', () => {
-      map = new PlayerTimeTrackerMap({});
+      map = PlayerTimeTrackerMap.create({ id: 'nodataid' });
       expect(map).to.be.initialized();
     });
 
-    it('should be serialized correctly when uninitialized', () => {
-      map = new PlayerTimeTrackerMap({});
+    it('should be serialized correctly for empty data', () => {
+      map = PlayerTimeTrackerMap.create({ id: 'nodataid' });
       const mapData = map.toJSON();
       expect(mapData).to.deep.equal({
+        id: 'nodataid',
         clockRunning: false,
         trackers: []
       });
     });
 
-    it('should be initialized correctly from live players', () => {
-      map = new PlayerTimeTrackerMap();
+    it('should be initialized correctly from live game', () => {
+      const game = { id: 'thegameid', players } as LiveGame;
+      map = PlayerTimeTrackerMap.createFromGame(game);
 
-      map.initialize(players);
-
+      expect(map.id).to.equal('thegameid');
       expect(map).to.have.size(4);
       expect(map.clockRunning).to.be.false;
 
@@ -888,13 +894,14 @@ describe('PlayerTimeTrackerMap', () => {
 
     it('should be initialized correctly from stopped data', () => {
       let expected = {
+        id: 'stoppedgameid',
         clockRunning: false,
         trackers: [
           { id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 1 },
           { id: playerOffId, isOn: false },
         ],
       }
-      map = new PlayerTimeTrackerMap(expected);
+      map = PlayerTimeTrackerMap.create(expected);
 
       expect(map).to.have.size(2);
       expect(map.clockRunning).to.be.false;
@@ -914,6 +921,7 @@ describe('PlayerTimeTrackerMap', () => {
 
     it('should be initialized correctly from stopped data, with duration', () => {
       let expected = {
+        id: 'stoppedgameid',
         clockRunning: false,
         trackers: [
           {
@@ -932,7 +940,7 @@ describe('PlayerTimeTrackerMap', () => {
           },
         ],
       }
-      map = new PlayerTimeTrackerMap(expected);
+      map = PlayerTimeTrackerMap.create(expected);
 
       expect(map).to.have.size(2);
       expect(map.clockRunning).to.be.false;
@@ -956,6 +964,7 @@ describe('PlayerTimeTrackerMap', () => {
 
     it('should be serialized correctly after starting and stopping', () => {
       let expected = {
+        id: 'serializedgameid',
         clockRunning: false,
         trackers: [
           {
@@ -974,7 +983,7 @@ describe('PlayerTimeTrackerMap', () => {
           },
         ],
       }
-      map = new PlayerTimeTrackerMap(expected);
+      map = PlayerTimeTrackerMap.create(expected);
 
       const mapData = map.toJSON();
       expect(mapData).to.deep.equal(expected);
@@ -982,6 +991,7 @@ describe('PlayerTimeTrackerMap', () => {
 
     it('should be initialized correctly from running data', () => {
       let expected = {
+        id: 'runninggameid',
         clockRunning: true,
         trackers: [
           {
@@ -1003,7 +1013,7 @@ describe('PlayerTimeTrackerMap', () => {
       // Current time is 5 seconds after the start time in saved data
       const provider = manualTimeProvider(time1);
 
-      map = new PlayerTimeTrackerMap(expected, provider);
+      map = PlayerTimeTrackerMap.create(expected, provider);
 
       expect(map).to.have.size(2);
       expect(map.clockRunning).to.be.true;
@@ -1027,6 +1037,7 @@ describe('PlayerTimeTrackerMap', () => {
 
     it('should be serialized correctly when running', () => {
       let expected = {
+        id: 'runninggameid',
         clockRunning: true,
         trackers: [
           {
@@ -1048,7 +1059,7 @@ describe('PlayerTimeTrackerMap', () => {
       // Current time is 5 seconds after the start time in saved data
       const provider = manualTimeProvider(time1);
 
-      map = new PlayerTimeTrackerMap(expected, provider);
+      map = PlayerTimeTrackerMap.create(expected, provider);
 
       const mapData = map.toJSON();
       expect(mapData).to.deep.equal(expected);
