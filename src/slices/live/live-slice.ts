@@ -17,7 +17,7 @@ import { LIVE_HYDRATE } from '../live-types.js';
 import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
 import { buildSwapPlayerId, ConfigurePeriodsPayload, extractIdFromSwapPlayerId, GameSetupCompletedPayload, LiveGamePayload, PendingSubsAppliedPayload, PendingSubsInvalidPayload, prepareLiveGamePayload, StartPeriodPayload } from './live-action-types.js';
 import { shift, ShiftState } from './shift-slice.js';
-import { invalidPendingSubsHandler, invalidPendingSubsPrepare } from './substitution-reducer-logic.js';
+import { invalidPendingSubsHandler, invalidPendingSubsPrepare, markPlayerOutHandler, returnOutPlayerHandler } from './substitution-reducer-logic.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
@@ -29,6 +29,7 @@ export interface LiveGameState {
   selectedOffPlayer?: string;
   selectedOnPlayer?: string;
   selectedOnPlayer2?: string;
+  selectedOutPlayer?: string;
   proposedSub?: LivePlayer;
   proposedSwap?: LivePlayer;
   invalidSubs?: string[];
@@ -340,15 +341,22 @@ const liveSlice = createSlice({
         // Always sets the selected flag to true/false as appropriate.
         selectedPlayer.selected = !!action.payload.selected;
 
-        // Only On and Off statuses need further handling.
-        if (selectedPlayer.status !== PlayerStatus.On &&
-          selectedPlayer.status !== PlayerStatus.Off) {
-          return;
+        // Only On, Off, Out statuses need further handling.
+        switch (selectedPlayer.status) {
+          case PlayerStatus.On:
+          case PlayerStatus.Off:
+          case PlayerStatus.Out:
+            break;
+          default:
+            return;
         }
 
         const status = selectedPlayer.status;
         if (action.payload.selected) {
           setCurrentSelected(state, status, playerId);
+          if (status === PlayerStatus.Out) {
+            return;
+          }
           const madeSub = prepareSubIfPossible(state);
           if (!madeSub) {
             prepareSwapIfPossible(state);
@@ -555,6 +563,30 @@ const liveSlice = createSlice({
       }
     },
 
+    markPlayerOut: {
+      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        return markPlayerOutHandler(state, game, action);
+      },
+
+      prepare: prepareLiveGamePayload
+    },
+
+    returnOutPlayer: {
+      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        return returnOutPlayerHandler(state, game, action);
+      },
+
+      prepare: prepareLiveGamePayload
+    },
+
     gameCompleted: {
       reducer: (state, action: PayloadAction<LiveGamePayload>) => {
         const game = findGame(state, action.payload.gameId);
@@ -636,7 +668,10 @@ export const {
   // Clock-related actions
   configurePeriods, startPeriod, endPeriod, toggleClock,
   // Sub-related actions
-  selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs, invalidPendingSubs, discardPendingSubs, gameCompleted
+  selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs,
+  invalidPendingSubs, discardPendingSubs, markPlayerOut, returnOutPlayer,
+  // Game status actions
+  gameCompleted
 } = actions;
 
 function completeSetupStepForAction(state: LiveGameState, setupStepToComplete: SetupSteps) {
@@ -817,6 +852,8 @@ function getCurrentSelected(state: LiveState, status: PlayerStatus) {
       return state.selectedOffPlayer;
     case PlayerStatus.On:
       return state.selectedOnPlayer;
+    case PlayerStatus.Out:
+      return state.selectedOutPlayer;
   }
   throw new Error(`Unsupported status: ${status}`);
 }
@@ -836,6 +873,9 @@ function setCurrentSelected(state: LiveState, status: PlayerStatus, value: strin
         // player selected,
         state.selectedOnPlayer = value;
       }
+      break;
+    case PlayerStatus.Out:
+      state.selectedOutPlayer = value;
       break;
     default:
       throw new Error(`Unsupported status: ${status}`);

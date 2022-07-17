@@ -18,8 +18,9 @@ import { getLiveStore } from '../slices/live-store.js';
 import {
   cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
   gameCompleted,
+  markPlayerOut,
   pendingSubsAppliedCreator,
-  proposedSubSelector, selectCurrentLiveGame, selectInvalidSubs, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
+  proposedSubSelector, returnOutPlayer, selectCurrentLiveGame, selectInvalidSubs, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
@@ -93,13 +94,20 @@ export class LineupGameLive extends connectStore()(LitElement) {
       </div>
       <div id="live-off">
         <h5>Subs</h5>
+        <div>
+          <mwc-button id="out-mark-btn" @click="${this.markUnavailable}">Out</mwc-button>
+        </div>
         <lineup-player-list mode="off" .players="${players}"
                             .trackerData="${this.trackerData}"
                             @playerselected="${this._playerSelected}"></lineup-player-list>
       </div>
       <div id="live-out">
         <h5>Unavailable</h5>
-        <lineup-player-list mode="out" .players="${players}"></lineup-player-list>
+        <div>
+          <mwc-button id="out-return-btn" @click="${this.markAvailable}">Return</mwc-button>
+        </div>
+        <lineup-player-list mode="out" .players="${players}"
+                            @playerselected="${this._playerSelected}"></lineup-player-list>
       </div>
       <div id="live-totals">
         <h5>Playing Time</h5>
@@ -305,6 +313,14 @@ export class LineupGameLive extends connectStore()(LitElement) {
   private _discardSubs() {
     // TODO: Pass selectedOnly param, based on if any next cards are selected
     this.dispatch(discardPendingSubs());
+  }
+
+  private markUnavailable() {
+    this.dispatch(markPlayerOut(this._game!.id));
+  }
+
+  private markAvailable() {
+    this.dispatch(returnOutPlayer(this._game!.id));
   }
 
   private toggleClock() {

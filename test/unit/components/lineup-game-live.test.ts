@@ -12,7 +12,7 @@ import { getPlayer, LiveGame, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, selectCurrentLiveGame, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
+import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, markPlayerOut, returnOutPlayer, selectCurrentLiveGame, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
 import { resetState, store } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
@@ -127,6 +127,13 @@ describe('lineup-game-live tests', () => {
     return element as LineupPlayerList;
   }
 
+  function getOutList(): LineupPlayerList {
+    const element = el.shadowRoot!.querySelector('lineup-player-list[mode="out"]');
+    expect(element, 'Missing subs player list').to.be.ok;
+
+    return element as LineupPlayerList;
+  }
+
   it('shows no game placeholder when no current game', async () => {
     expect(store.getState().live, 'LiveState should exist').to.be.ok;
     expect(selectCurrentLiveGame(store.getState()), 'LiveState should have game unset').to.not.be.ok;
@@ -163,6 +170,7 @@ describe('lineup-game-live tests', () => {
 
     beforeEach(async () => {
       const { game, live } = getGameDetail();
+
       live.formation = { type: FormationType.F4_3_3 };
       const shift = buildShiftWithTrackers(live.players);
 
@@ -226,6 +234,25 @@ describe('lineup-game-live tests', () => {
       const playerElement = getOnPlayerElement(onList, player);
 
       // Simulates selection of the position.
+      playerElement.click();
+
+      // Verifies that the select player action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        selectPlayer(player.id, /*selected =*/true));
+    });
+
+    it('dispatches select player action when out player selected', async () => {
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Out);
+      expect(foundPlayer, 'Missing player with out status').to.be.ok;
+      const player = foundPlayer!;
+
+      const outList = getOutList();
+      const playerElement = getPlayerElement(outList, player);
+
+      // Simulates selection of the player.
       playerElement.click();
 
       // Verifies that the select player action was dispatched.
@@ -444,6 +471,70 @@ describe('lineup-game-live tests', () => {
       expect(errorText!.textContent, 'Sub error text should contain invalid swap positions').to.contain(expectedInvalidPositions);
 
       await expect(errorElement).dom.to.equalSnapshot();
+    });
+
+    it('dispatches mark player out action', async () => {
+      let foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
+      expect(foundPlayer, 'Missing player with off status').to.be.ok;
+      const offPlayer = foundPlayer!;
+
+      // Verifies the off player is initially in the Off section.
+      const subsList = getSubsList();
+      const subElement = getPlayerElement(subsList, offPlayer);
+      expect(subElement, 'Missing player card in Off section').to.be.ok;
+
+      // Simulates selection of the player.
+      subElement.click();
+      await el.updateComplete;
+
+      const outButton = el.shadowRoot!.querySelector('#out-mark-btn') as Button;
+      expect(outButton, 'Missing out button').to.be.ok;
+
+      outButton.click();
+      await el.updateComplete;
+
+      // Verifies that the mark player out action was dispatched.
+      expect(dispatchStub).to.have.callCount(2);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(markPlayerOut(liveGame.id));
+
+      // Verifies the off player is now in the Out section.
+      const outList = getOutList();
+      const outElement = getPlayerElement(outList, offPlayer);
+      expect(outElement, 'Missing player card in Out section').to.be.ok;
+    });
+
+    it('dispatches return out player action', async () => {
+      let foundPlayer = findPlayer(liveGame, PlayerStatus.Out);
+      expect(foundPlayer, 'Missing player with out status').to.be.ok;
+      const outPlayer = foundPlayer!;
+
+      // Verifies the out player is initially in the Out section.
+      const outList = getOutList();
+      const outElement = getPlayerElement(outList, outPlayer);
+      expect(outElement, 'Missing player card in Out section').to.be.ok;
+
+      // Simulates selection of the player.
+      outElement.click();
+      await el.updateComplete;
+
+      const returnButton = el.shadowRoot!.querySelector('#out-return-btn') as Button;
+      expect(returnButton, 'Missing out return button').to.be.ok;
+
+      returnButton.click();
+      await el.updateComplete;
+
+      // Verifies that the return out player action was dispatched.
+      expect(dispatchStub).to.have.callCount(2);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(returnOutPlayer(liveGame.id));
+
+      // Verifies the out player is now back in the Off section.
+      const subsList = getSubsList();
+      const subElement = getPlayerElement(subsList, outPlayer);
+      expect(subElement, 'Missing player card in Off section').to.be.ok;
     });
 
   }); // describe('Subs')
