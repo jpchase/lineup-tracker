@@ -271,7 +271,8 @@ export class LineupGameLive extends connectStore()(LitElement) {
     this.proposedSub = proposedSubSelector(state);
     this.proposedSwap = selectProposedSwap(state);
     this.invalidSubs = selectInvalidSubs(state);
-    this.trackerData = state.live.shift?.trackerMap;
+    const trackerMaps = state.live.shift?.trackerMaps;
+    this.trackerData = trackerMaps ? trackerMaps[this._game.id] : undefined;
     this.timerTrigger.isRunning = !!this.trackerData?.clockRunning;
   }
 

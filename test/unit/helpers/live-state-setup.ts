@@ -25,7 +25,7 @@ const CLOCK_INITIAL_STATE: LiveClock = {
 };
 
 export const SHIFT_INITIAL_STATE: ShiftState = {
-  trackerMap: undefined,
+  trackerMaps: undefined,
 };
 
 export const INITIAL_OVERALL_STATE = buildInitialLiveState();
@@ -67,16 +67,28 @@ export function buildClockWithTimer(isRunning?: boolean): LiveClock {
   return buildClock(isRunning ? buildRunningTimer() : buildStoppedTimer());
 }
 
-export function buildShiftWithTrackers(existingPlayers?: LivePlayer[],
+export function buildShiftWithTrackersFromGame(game: LiveGame,
+  keepExistingStatus?: boolean): ShiftState {
+  return buildShiftWithTrackers(game.id, game.players, keepExistingStatus);
+}
+
+export function buildShiftWithTrackers(gameId: string, existingPlayers?: LivePlayer[],
   keepExistingStatus?: boolean): ShiftState {
   if (existingPlayers) {
     existingPlayers = existingPlayers.filter(player => !player.isSwap);
   }
-  const trackerMap = buildPlayerTrackerMap(existingPlayers, keepExistingStatus);
+  const trackerMap = buildPlayerTrackerMap(gameId, existingPlayers, keepExistingStatus);
   return {
     ...SHIFT_INITIAL_STATE,
-    trackerMap: trackerMap.toJSON()
+    trackerMaps: { [trackerMap.id]: trackerMap.toJSON() }
   };
+}
+
+export function getTrackerMap(state: ShiftState, gameId: string) {
+  if (!state.trackerMaps) {
+    return;
+  }
+  return state.trackerMaps[gameId];
 }
 
 export function getGame(state: LiveState, gameId: string) {

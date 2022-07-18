@@ -5,7 +5,7 @@ import { applyPendingSubs, discardPendingSubs, invalidPendingSubs, live, LiveSta
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildLiveStateWithCurrentGame, buildShiftWithTrackers, getGame, selectPlayers } from '../../helpers/live-state-setup.js';
+import { buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame, getGame, selectPlayers } from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
 function mockGetState(currentState: LiveState) {
@@ -99,7 +99,7 @@ describe('Substitution actions', () => {
       currentState = buildLiveStateWithCurrentGame(
         game,
         {
-          shift: buildShiftWithTrackers(game.players, true)
+          shift: buildShiftWithTrackersFromGame(game, true)
         });
       gameId = game.id;
     }

@@ -21,7 +21,7 @@ export function buildPlayerTracker(player: LivePlayer): PlayerTimeTrackerData {
   return tracker;
 }
 
-export function buildPlayerTrackerMap(existingPlayers?: LivePlayer[],
+export function buildPlayerTrackerMap(gameId: string, existingPlayers?: LivePlayer[],
   keepExistingStatus?: boolean) {
   let players;
   if (existingPlayers) {
@@ -38,6 +38,6 @@ export function buildPlayerTrackerMap(existingPlayers?: LivePlayer[],
         (index === 17) ? PlayerStatus.Out : PlayerStatus.Off;
     });
   }
-  const game = { id: 'thegameid', players } as LiveGame;
+  const game = { id: gameId || 'thegameid', players } as LiveGame;
   return PlayerTimeTrackerMap.createFromGame(game);
 }

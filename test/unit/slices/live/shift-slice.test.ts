@@ -7,20 +7,14 @@ import { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } from '@a
 import { shift, ShiftState } from '@app/slices/live/shift-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildShiftWithTrackers } from '../../helpers/live-state-setup.js';
+import { buildShiftWithTrackers, buildShiftWithTrackersFromGame, getTrackerMap, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
 import { mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import { buildPlayerTracker } from '../../helpers/test-shift-data.js';
 
-const SHIFT_INITIAL_STATE: ShiftState = {
-  trackerMap: undefined,
-};
-
 describe('Shift slice', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
   const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
-  // const time2 = new Date(2016, 0, 1, 14, 0, 10).getTime();
-  // const time3 = new Date(2016, 0, 1, 14, 1, 55).getTime();
   let fakeClock: sinon.SinonFakeTimers;
 
   afterEach(async () => {
@@ -48,13 +42,13 @@ describe('Shift slice', () => {
       const game = testlive.getLiveGame(rosterPlayers);
       const expectedMap = PlayerTimeTrackerMap.createFromGame(game);
 
-      expect(currentState.trackerMap, 'trackerMap should be empty').to.not.be.ok;
+      expect(currentState.trackerMaps, 'trackerMap should be empty').to.not.be.ok;
 
       const newState = shift(currentState,
         gameSetupCompleted(game.id, game));
 
       expect(newState).to.deep.include({
-        trackerMap: expectedMap.toJSON()
+        trackerMaps: { [expectedMap.id]: expectedMap.toJSON() }
       });
       expect(newState).not.to.equal(currentState);
     });
@@ -79,7 +73,7 @@ describe('Shift slice', () => {
     });
 
     beforeEach(() => {
-      currentState = buildShiftWithTrackers(rosterPlayers);
+      currentState = buildShiftWithTrackers(gameId, rosterPlayers);
     });
 
     it('should set the clock running and capture the start time', () => {
@@ -96,13 +90,14 @@ describe('Shift slice', () => {
         duration: Duration.zero().toJSON()
       }
 
-      const firstTracker = newState.trackerMap?.trackers?.find(
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      const firstTracker = newTrackerMap?.trackers?.find(
         (tracker) => (tracker.id === expectedTracker.id));
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
 
-      expect(newState.trackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.true;
-      expect(newState.trackerMap).not.to.equal(currentState.trackerMap);
+      expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.true;
+      expect(newTrackerMap).not.to.equal(getTrackerMap(currentState, gameId));
 
       expect(newState).not.to.equal(currentState);
     });
@@ -112,8 +107,9 @@ describe('Shift slice', () => {
 
       const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/false));
 
-      expect(newState.trackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
-      expect(newState.trackerMap).to.equal(currentState.trackerMap);
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
+      expect(newTrackerMap).to.equal(getTrackerMap(currentState, gameId));
 
       expect(newState).to.equal(currentState);
     });
@@ -130,15 +126,17 @@ describe('Shift slice', () => {
     });
 
     beforeEach(() => {
-      currentState = buildShiftWithTrackers(rosterPlayers);
+      currentState = buildShiftWithTrackers(gameId, rosterPlayers);
     });
 
     it('should stop the clock and capture the end time', () => {
       // Set the start time for starting shifts.
       const timeProvider = mockTimeProvider(startTime);
-      const trackerMap = PlayerTimeTrackerMap.create(currentState.trackerMap!, timeProvider);
+      let currentTrackerMapData = getTrackerMap(currentState, gameId);
+      const trackerMap = PlayerTimeTrackerMap.create(currentTrackerMapData!, timeProvider);
       trackerMap.startShiftTimers();
-      currentState.trackerMap = trackerMap.toJSON();
+      currentTrackerMapData = trackerMap.toJSON();
+      currentState.trackerMaps![gameId] = currentTrackerMapData;
 
       // Now, mock the underlying time, to be used when stopping
       // the shifts by the reducer.
@@ -155,13 +153,14 @@ describe('Shift slice', () => {
         duration: Duration.create(5).toJSON()
       }
 
-      const firstTracker = newState.trackerMap?.trackers?.find(
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      const firstTracker = newTrackerMap?.trackers?.find(
         (tracker) => (tracker.id === expectedTracker.id));
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
 
-      expect(newState.trackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
-      expect(newState.trackerMap).not.to.equal(currentState.trackerMap);
+      expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
+      expect(newTrackerMap).not.to.equal(currentTrackerMapData);
 
       expect(newState).not.to.equal(currentState);
     });
@@ -171,8 +170,9 @@ describe('Shift slice', () => {
 
       const newState = shift(currentState, endPeriod(gameId));
 
-      expect(newState.trackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
-      expect(newState.trackerMap).to.equal(currentState.trackerMap);
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
+      expect(newTrackerMap).to.equal(getTrackerMap(currentState, gameId));
 
       expect(newState).to.equal(currentState);
     });
@@ -204,20 +204,23 @@ describe('Shift slice', () => {
         nextPlayer.replaces = onPlayer.id;
         subs.push(nextPlayer);
       }
-      currentState = buildShiftWithTrackers(players);
+      currentState = buildShiftWithTrackersFromGame(game);
       gameId = game.id;
     });
 
-    function getTrackersByIds(state: ShiftState, ids: string[]) {
-      return state.trackerMap?.trackers?.filter((player) => (ids.includes(player.id))) || [];
+    function getTrackersByIds(state: ShiftState, gameId: string, ids: string[]) {
+      const trackerMap = getTrackerMap(state, gameId);
+      return trackerMap?.trackers?.filter((player) => (ids.includes(player.id))) || [];
     }
 
     it('should sub all next players, when not selectedOnly', () => {
       // Set the start time for starting shifts.
       const timeProvider = mockTimeProvider(startTime);
-      const trackerMap = PlayerTimeTrackerMap.create(currentState.trackerMap!, timeProvider);
+      let currentTrackerMapData = getTrackerMap(currentState, gameId);
+      const trackerMap = PlayerTimeTrackerMap.create(currentTrackerMapData!, timeProvider);
       trackerMap.startShiftTimers();
-      currentState.trackerMap = trackerMap.toJSON();
+      currentTrackerMapData = trackerMap.toJSON();
+      currentState.trackerMaps![gameId] = currentTrackerMapData;
 
       // Now, mock the underlying time, to be used when changing
       // the shifts by the reducer.
@@ -226,7 +229,7 @@ describe('Shift slice', () => {
       const newState = shift(currentState, applyPendingSubs(gameId, subs));
 
       // Check that the next players are now on, with timer running
-      const newOnTrackers = getTrackersByIds(newState, nextPlayerIds);
+      const newOnTrackers = getTrackersByIds(newState, gameId, nextPlayerIds);
       expect(newOnTrackers).to.have.length(nextPlayerIds.length, 'Number of subs');
       newOnTrackers.forEach(tracker => {
         expect(tracker).to.deep.include({
@@ -240,7 +243,7 @@ describe('Shift slice', () => {
         });
       });
 
-      const newOffTrackers = getTrackersByIds(newState, onPlayerIds);
+      const newOffTrackers = getTrackersByIds(newState, gameId, onPlayerIds);
       expect(newOffTrackers).to.have.length(nextPlayerIds.length, 'Number of replaced');
       newOffTrackers.forEach(tracker => {
         expect(tracker).to.deep.include({
@@ -254,8 +257,8 @@ describe('Shift slice', () => {
         });
       });
 
-      expect(newState).not.to.equal(currentState);
-      expect(newState.trackerMap).not.to.equal(currentState.trackerMap);
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      expect(newTrackerMap).not.to.equal(currentTrackerMapData);
     });
 
     it('should ignore swaps', () => {
@@ -267,13 +270,15 @@ describe('Shift slice', () => {
       } as LivePlayer;
       players.push(swap);
       subs.push(swap);
-      currentState = buildShiftWithTrackers(players);
+      currentState = buildShiftWithTrackers(gameId, players);
+      let currentTrackerMapData = getTrackerMap(currentState, gameId);
 
       // Set the start time for starting shifts.
       const timeProvider = mockTimeProvider(startTime);
-      const trackerMap = PlayerTimeTrackerMap.create(currentState.trackerMap!, timeProvider);
+      const trackerMap = PlayerTimeTrackerMap.create(currentTrackerMapData!, timeProvider);
       trackerMap.startShiftTimers();
-      currentState.trackerMap = trackerMap.toJSON();
+      currentTrackerMapData = trackerMap.toJSON();
+      currentState.trackerMaps![gameId] = currentTrackerMapData;
 
       // Now, mock the underlying time, to be used when changing
       // the shifts by the reducer.
@@ -282,7 +287,7 @@ describe('Shift slice', () => {
       const newState = shift(currentState, applyPendingSubs(gameId, subs));
 
       // Check that the next players are now on, with timer running
-      const newOnTrackers = getTrackersByIds(newState, nextPlayerIds);
+      const newOnTrackers = getTrackersByIds(newState, gameId, nextPlayerIds);
       expect(newOnTrackers).to.have.length(nextPlayerIds.length, 'Number of subs');
       newOnTrackers.forEach(tracker => {
         expect(tracker).to.deep.include({
@@ -296,7 +301,7 @@ describe('Shift slice', () => {
         });
       });
 
-      const newOffTrackers = getTrackersByIds(newState, onPlayerIds);
+      const newOffTrackers = getTrackersByIds(newState, gameId, onPlayerIds);
       expect(newOffTrackers).to.have.length(nextPlayerIds.length, 'Number of replaced');
       newOffTrackers.forEach(tracker => {
         expect(tracker).to.deep.include({
@@ -310,8 +315,8 @@ describe('Shift slice', () => {
         });
       });
 
-      expect(newState).not.to.equal(currentState);
-      expect(newState.trackerMap).not.to.equal(currentState.trackerMap);
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      expect(newTrackerMap).not.to.equal(currentTrackerMapData);
     });
 
   }); // describe('live/applyPendingSubs')

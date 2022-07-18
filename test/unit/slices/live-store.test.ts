@@ -8,7 +8,7 @@ import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import { Store } from 'redux';
 import sinon from 'sinon';
-import { buildClockWithTimer, buildShiftWithTrackers } from '../helpers/live-state-setup.js';
+import { buildClockWithTimer, buildShiftWithTrackersFromGame } from '../helpers/live-state-setup.js';
 import { getLiveGameWithPlayers } from '../helpers/test-live-game-data.js';
 
 const KEY_CACHED_LIVE = 'CACHED_LIVE';
@@ -72,7 +72,7 @@ describe('Live store', () => {
     it('should populate the live state when found in idb', async () => {
       const currentGame = getLiveGameWithPlayers();
       currentGame.clock = buildClockWithTimer(/* isRunning= */true);
-      const currentShift = buildShiftWithTrackers(currentGame.players);
+      const currentShift = buildShiftWithTrackersFromGame(currentGame);
       const cachedData = {
         currentGameId: currentGame.id,
         game: { ...currentGame },
@@ -113,7 +113,7 @@ describe('Live store', () => {
     it('should cache the live state when changed', async () => {
       const currentGame = getLiveGameWithPlayers();
       currentGame.clock = buildClockWithTimer(/* isRunning= */true);
-      const currentShift = buildShiftWithTrackers(currentGame.players);
+      const currentShift = buildShiftWithTrackersFromGame(currentGame);
       const getStateMock = mockGetState(currentGame, currentShift);
       const storeMock = mockStore(getStateMock);
 
@@ -137,7 +137,7 @@ describe('Live store', () => {
     it('should do nothing if live state is already cached', async () => {
       const currentGame = getLiveGameWithPlayers();
       currentGame.clock = buildClockWithTimer(/* isRunning= */true);
-      const currentShift = buildShiftWithTrackers(currentGame.players);
+      const currentShift = buildShiftWithTrackersFromGame(currentGame);
       const getStateMock = mockGetState(currentGame, currentShift);
       const storeMock = mockStore(getStateMock);
 

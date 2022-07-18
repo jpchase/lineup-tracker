@@ -18,7 +18,7 @@ import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
 import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton } from '../helpers/clock-element-retrievers.js';
-import { buildClock, buildShiftWithTrackers } from '../helpers/live-state-setup.js';
+import { buildClock, buildShiftWithTrackersFromGame } from '../helpers/live-state-setup.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
 
@@ -172,7 +172,7 @@ describe('lineup-game-live tests', () => {
       const { game, live } = getGameDetail();
 
       live.formation = { type: FormationType.F4_3_3 };
-      const shift = buildShiftWithTrackers(live.players);
+      const shift = buildShiftWithTrackersFromGame(live);
 
       // Setup the live game, with the period in progress.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
@@ -545,7 +545,7 @@ describe('lineup-game-live tests', () => {
     beforeEach(async () => {
       const { game, live } = getGameDetail();
       live.clock = buildClock();
-      const shift = buildShiftWithTrackers(live.players);
+      const shift = buildShiftWithTrackersFromGame(live);
       gameId = live.id;
 
       // Setup the live game, in Start status
@@ -614,7 +614,7 @@ describe('lineup-game-live tests', () => {
 
     beforeEach(async () => {
       const { game, live } = getGameDetail();
-      const shift = buildShiftWithTrackers(live.players);
+      const shift = buildShiftWithTrackersFromGame(live);
 
       // Setup the live game, in second half, ready to end.
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
