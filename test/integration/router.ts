@@ -89,12 +89,12 @@ async function testNavigationInADifferentWay(page: Page, href: string, linkText:
   const query = `lineup-app::shadow a[href="/${href}"]`;
 
   const linkHandle = await page.evaluateHandle(deepQuerySelector, query);
-  const text = await page.evaluate((el) => el.textContent, linkHandle);
+  const text = await page.evaluate((el) => el?.textContent, linkHandle);
   expect(text).equal(linkText);
 
   const [] = await Promise.all([
     page.waitForNavigation(), // The promise resolves after navigation has finished
-    page.evaluate((el) => el.click(), linkHandle), // Clicking the link will indirectly cause a navigation
+    page.evaluate((el) => { if (el?.nodeType === Node.ELEMENT_NODE) { (el as HTMLElement).click(); } }, linkHandle), // Clicking the link will indirectly cause a navigation
   ]);
   const newUrl = await page.evaluate('window.location.href');
   expect(newUrl).equal(`${config.appUrl}/${href}`);
