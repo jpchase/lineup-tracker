@@ -85,7 +85,8 @@ export class LineupGameShifts extends LitElement {
       return;
     }
 
-    this.trackerMap = new PlayerTimeTrackerMap(this.trackerData);
+    this.trackerMap = this.trackerData ?
+      PlayerTimeTrackerMap.create(this.trackerData) : undefined;
   }
 
   private getShiftRows(): ShiftRow[] {

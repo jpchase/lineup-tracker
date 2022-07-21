@@ -1,5 +1,5 @@
 import { CurrentTimeProvider, Duration, DurationData, Timer, TimerData } from './clock.js';
-import { LivePlayer } from './live.js';
+import { LiveGame, LivePlayer } from './live.js';
 import { PlayerStatus } from './player.js';
 
 export interface PlayerTimeTrackerData {
@@ -114,33 +114,54 @@ export class PlayerTimeTracker {
 }
 
 export interface PlayerTimeTrackerMapData {
+  id: string;
   clockRunning?: boolean;
   trackers?: PlayerTimeTrackerData[];
 }
 
 export class PlayerTimeTrackerMap {
   timeProvider: CurrentTimeProvider;
+  id: string;
   clockRunning: boolean;
   trackers: PlayerTimeTracker[];
 
-  constructor(passedData?: PlayerTimeTrackerMapData, timeProvider?: CurrentTimeProvider) {
-    let data = passedData || {};
+  private constructor(data: PlayerTimeTrackerMapData, timeProvider?: CurrentTimeProvider) {
     this.timeProvider = timeProvider || new CurrentTimeProvider();
+    this.id = data.id;
     this.trackers = [];
     this.clockRunning = data.clockRunning || false;
-    if (data.trackers && data.trackers.length) {
+    if (data.trackers?.length) {
       this.initialize(data.trackers);
     }
   }
 
+  static create(data: PlayerTimeTrackerMapData, timeProvider?: CurrentTimeProvider): PlayerTimeTrackerMap {
+    if (!data.id) {
+      throw new Error('id must be provided');
+    }
+    return new PlayerTimeTrackerMap(data, timeProvider);
+  }
+
+  static createFromGame(game: LiveGame, timeProvider?: CurrentTimeProvider): PlayerTimeTrackerMap {
+    if (!game) {
+      throw new Error('game must be provided');
+    }
+    const trackerMap = this.create({ id: game.id }, timeProvider);
+    if (game.players) {
+      trackerMap.initialize(game.players);
+    }
+    return trackerMap;
+  }
+
   toJSON() {
     return {
+      id: this.id,
       clockRunning: this.clockRunning,
       trackers: this.trackers.map((tracker) => tracker.toJSON()),
     };
   }
 
-  initialize(players: PlayerTimeTrackerData[] | LivePlayer[]): PlayerTimeTrackerMap {
+  private initialize(players: PlayerTimeTrackerData[] | LivePlayer[]): PlayerTimeTrackerMap {
     if (!players || !players.length) {
       throw new Error('Players must be provided to initialize');
     }

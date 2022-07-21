@@ -4,7 +4,7 @@ import { PeriodStatus } from '@app/models/live.js';
 import { configurePeriods, live, LiveState, startPeriod, endPeriod, toggleClock } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, getGame } from '../../helpers/live-state-setup.js';
+import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame, getGame } from '../../helpers/live-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
@@ -94,7 +94,7 @@ describe('Clock actions', () => {
       currentState = buildLiveStateWithCurrentGame(
         game,
         {
-          shift: buildShiftWithTrackers()
+          shift: buildShiftWithTrackersFromGame(game)
         });
       gameId = game.id;
     });

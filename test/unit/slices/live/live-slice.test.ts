@@ -13,7 +13,7 @@ import {
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, selectPlayers, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
+import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackers, buildShiftWithTrackersFromGame, getTrackerMap, selectPlayers, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
@@ -138,7 +138,7 @@ describe('Live slice', () => {
         {
           totalPeriods: 3
         });
-      const inputShift = buildShiftWithTrackers(inputGame.players);
+      const inputShift = buildShiftWithTrackersFromGame(inputGame);
 
       const newState = live(currentState, hydrateLive(
         testlive.buildLiveGames([inputGame]),
@@ -178,7 +178,7 @@ describe('Live slice', () => {
     it('should ignored cached values when hydrated flag already set', () => {
       const currentGame = buildLiveGameWithPlayers();
       currentGame.clock = buildClock(buildStoppedTimer());
-      const currentShift = buildShiftWithTrackers(currentGame.players);
+      const currentShift = buildShiftWithTrackersFromGame(currentGame);
       currentState = buildLiveStateWithCurrentGame(
         currentGame,
         {
@@ -283,12 +283,11 @@ describe('Live slice', () => {
       expectedGame.status = GameStatus.Start;
       expectedGame.clock = buildClock();
       delete expectedGame.setupTasks;
-      const expectedMap = new PlayerTimeTrackerMap();
-      expectedMap.initialize(rosterPlayers);
+      const expectedMap = PlayerTimeTrackerMap.createFromGame(currentGame);
       const expectedState = buildLiveStateWithCurrentGame(expectedGame,
         {
           shift: {
-            trackerMap: expectedMap.toJSON()
+            trackerMaps: { [expectedMap.id]: expectedMap.toJSON() }
           }
         });
 
@@ -1126,7 +1125,7 @@ describe('Live slice', () => {
       currentState = buildLiveStateWithCurrentGame(
         game,
         {
-          shift: buildShiftWithTrackers(game.players, true)
+          shift: buildShiftWithTrackersFromGame(game, true)
         });
       gameId = game.id;
     }
@@ -1550,12 +1549,12 @@ describe('Live slice', () => {
       fakeClock = sinon.useFakeTimers({ now: startTime });
       const game = buildLiveGameWithPlayers();
       game.clock = buildClockWithTimer();
+      gameId = game.id;
       currentState = buildLiveStateWithCurrentGame(
         game,
         {
-          shift: buildShiftWithTrackers()
+          shift: buildShiftWithTrackers(gameId)
         });
-      gameId = game.id;
     });
 
     afterEach(async () => {
@@ -1601,7 +1600,8 @@ describe('Live slice', () => {
           const newGame = getCurrentGame(newState)!;
           expect(newGame.status).to.equal(GameStatus.Live);
           expect(newGame.clock?.periodStatus).to.equal(PeriodStatus.Running);
-          expect(newState.shift?.trackerMap?.clockRunning).to.be.true;
+          const newTrackerMap = getTrackerMap(newState.shift!, currentGame.id);
+          expect(newTrackerMap?.clockRunning).to.be.true;
         });
 
         it(`should dispatch action allow start = false when already at last period in ${status} status`, async () => {
@@ -1621,7 +1621,6 @@ describe('Live slice', () => {
           expect(dispatchMock.lastCall).to.have.been.calledWith(
             startPeriod(gameId, /* gameAllowsStart= */ false));
         });
-
       }
 
       const startInvalidStatuses = endAllowedStatuses.concat(otherStatuses);
@@ -1662,14 +1661,16 @@ describe('Live slice', () => {
         currentGame.status = GameStatus.Live;
         currentGame.clock!.currentPeriod = 1;
         currentGame.clock!.periodStatus = PeriodStatus.Running;
-        currentState.shift!.trackerMap!.clockRunning = true;
+        const currentTrackerMap = getTrackerMap(currentState.shift!, currentGame.id);
+        currentTrackerMap!.clockRunning = true;
 
         const newState = live(currentState, endPeriod(currentGame.id));
 
         const newGame = getCurrentGame(newState)!;
         expect(newGame.status).to.equal(GameStatus.Break);
         expect(newGame.clock?.periodStatus).to.equal(PeriodStatus.Pending);
-        expect(newState.shift?.trackerMap?.clockRunning).to.be.false;
+        const newTrackerMap = getTrackerMap(newState.shift!, currentGame.id);
+        expect(newTrackerMap?.clockRunning, 'clockRunning').to.be.false;
       });
 
       it(`should change game status to Break for middle period`, () => {

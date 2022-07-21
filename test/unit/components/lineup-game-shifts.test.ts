@@ -37,8 +37,9 @@ describe('lineup-game-shifts tests', () => {
   }
 
   it('renders shift table', async () => {
-    const players = testlive.getLivePlayers(18);
-    const trackerMap = buildPlayerTrackerMap(players);
+    const game = testlive.getLiveGameWithPlayers();
+    const players = game.players!;
+    const trackerMap = buildPlayerTrackerMap(game.id, players);
 
     el.players = players;
     el.trackerData = trackerMap.toJSON();
@@ -76,8 +77,9 @@ describe('lineup-game-shifts tests', () => {
 
   it('updates shift times when clock is running', async () => {
     mockCurrentTime(startTime);
-    const players = testlive.getLivePlayers(18);
-    const trackerMap = buildPlayerTrackerMap(players);
+    const game = testlive.getLiveGameWithPlayers();
+    const players = game.players!;
+    const trackerMap = buildPlayerTrackerMap(game.id, players);
     trackerMap.startShiftTimers();
 
     el.players = players;

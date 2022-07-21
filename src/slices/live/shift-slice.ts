@@ -2,17 +2,20 @@
 @license
 */
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../../models/shift.js';
-import { GameSetupCompletedPayload, PendingSubsAppliedPayload, StartPeriodPayload } from './live-action-types.js';
 import { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } from './live-slice.js';
 
 export interface ShiftState {
-  trackerMap?: PlayerTimeTrackerMapData;
+  trackerMaps?: TrackerMaps;
+}
+
+export interface TrackerMaps {
+  [index: string]: PlayerTimeTrackerMapData;
 }
 
 const INITIAL_STATE: ShiftState = {
-  trackerMap: undefined,
+  trackerMaps: undefined,
 };
 
 const shiftSlice = createSlice({
@@ -22,31 +25,32 @@ const shiftSlice = createSlice({
   },
 
   extraReducers: (builder) => {
-    builder.addCase(gameSetupCompleted, (state, action: PayloadAction<GameSetupCompletedPayload>) => {
+    builder.addCase(gameSetupCompleted, (state, action) => {
       if (!action.payload.gameId || !action.payload.liveGame?.players?.length) {
         return;
       }
-      // TODO: validate game matches?
-      const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
-      trackerMap.initialize(action.payload.liveGame.players);
-      state.trackerMap = trackerMap.toJSON();
-    }).addCase(startPeriod, (state, action: PayloadAction<StartPeriodPayload>) => {
+      const trackerMap = PlayerTimeTrackerMap.createFromGame(action.payload.liveGame);
+      setTrackerMap(state, trackerMap);
+    }).addCase(startPeriod, (state, action) => {
       if (!action.payload.gameAllowsStart) {
         return;
       }
-      // TODO: validate game matches?
-      const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
-      trackerMap.startShiftTimers();
-      state.trackerMap = trackerMap.toJSON();
-    }).addCase(endPeriod, (state) => {
-      if (!state.trackerMap?.clockRunning) {
+      const trackerMap = getTrackerMap(state, action.payload.gameId);
+      if (!trackerMap) {
+        // TODO: Error or message to distinguish failure cases?
         return;
       }
-      // TODO: validate game matches?
-      const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
+      trackerMap.startShiftTimers();
+      setTrackerMap(state, trackerMap);
+    }).addCase(endPeriod, (state, action) => {
+      const trackerMap = getTrackerMap(state, action.payload.gameId);
+      if (!trackerMap || !trackerMap.clockRunning) {
+        // TODO: Error or message to distinguish failure cases?
+        return;
+      }
       trackerMap.stopShiftTimers();
-      state.trackerMap = trackerMap.toJSON();
-    }).addCase(applyPendingSubs, (state, action: PayloadAction<PendingSubsAppliedPayload>) => {
+      setTrackerMap(state, trackerMap);
+    }).addCase(applyPendingSubs, (state, action) => {
       if (!action.payload.subs?.length) {
         return;
       }
@@ -57,9 +61,13 @@ const shiftSlice = createSlice({
         // This might be empty if there are only swaps provided.
         return;
       }
-      const trackerMap = new PlayerTimeTrackerMap(state.trackerMap);
+      const trackerMap = getTrackerMap(state, action.payload.gameId);
+      if (!trackerMap) {
+        // TODO: Error or message to distinguish failure cases?
+        return;
+      }
       trackerMap.substitutePlayers(subs);
-      state.trackerMap = trackerMap.toJSON();
+      setTrackerMap(state, trackerMap);
     });
   },
 
@@ -68,3 +76,21 @@ const shiftSlice = createSlice({
 const { reducer } = shiftSlice;
 
 export const shift = reducer;
+
+function getTrackerMap(state: ShiftState, gameId: string): PlayerTimeTrackerMap | undefined {
+  if (!state.trackerMaps || !(gameId in state.trackerMaps)) {
+    return;
+  }
+  const data = state.trackerMaps[gameId];
+  if (!data) {
+    return;
+  }
+  return PlayerTimeTrackerMap.create(data);
+}
+
+function setTrackerMap(state: ShiftState, trackerMap: PlayerTimeTrackerMap) {
+  if (!state.trackerMaps) {
+    state.trackerMaps = {};
+  }
+  state.trackerMaps[trackerMap.id] = trackerMap.toJSON();
+}

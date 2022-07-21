@@ -36,7 +36,8 @@ export const PlayerListMixin = <T extends Constructor<LitElement>>(superClass: T
         return;
       }
 
-      this.trackerMap = new PlayerTimeTrackerMap(this.trackerData);
+      this.trackerMap = this.trackerData ?
+        PlayerTimeTrackerMap.create(this.trackerData) : undefined;
       this.trackerMapReset();
     }
 
