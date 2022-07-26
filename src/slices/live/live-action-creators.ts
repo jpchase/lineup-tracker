@@ -9,7 +9,7 @@ import { getPlayer, LiveGame, LivePlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { RootState } from '../../store.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
-import { applyPendingSubs, invalidPendingSubs, selectCurrentLiveGame, selectPendingSubs } from './live-slice.js';
+import { applyPendingSubs, invalidPendingSubs, invalidStarters, selectCurrentLiveGame, selectLiveGameById, selectPendingSubs, startersCompleted } from './live-slice.js';
 
 export const pendingSubsAppliedCreator = (selectedOnly?: boolean): ThunkAction<void, RootState, undefined, AnyAction> => (dispatch, getState) => {
   const state = getState();
@@ -30,18 +30,26 @@ export const pendingSubsAppliedCreator = (selectedOnly?: boolean): ThunkAction<v
   dispatch(applyPendingSubs(game.id, subs, selectedOnly));
 };
 
+export const startersCompletedCreator = (gameId: string): ThunkAction<void, RootState, undefined, AnyAction> => (dispatch, getState) => {
+  const state = getState();
+  const game = selectLiveGameById(state, gameId);
+  if (!game) {
+    return;
+  }
+  const invalidPositions = validateStarters(game);
+  if (invalidPositions.size) {
+    dispatch(invalidStarters(game.id, Array.from(invalidPositions.keys()).sort()));
+    return;
+  }
+  dispatch(startersCompleted(/*game.id*/));
+};
+
 function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
   const seenNextIds = new Map<string, string>();
   const seenReplacedIds = new Map<string, string>();
   const invalidSubs = new Map<string, string>();
 
-  const formation = FormationBuilder.create(game.formation?.type!);
-  const requiredPositions = getPositions(formation);
   const filledPositions = new FilledPositionMap(game.players!);
-
-  if (filledPositions?.size !== requiredPositions.length) {
-    console.log(`Invalid positions for current On players`);
-  }
 
   for (const sub of subs) {
     if (sub.isSwap) {
@@ -90,14 +98,45 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
     filledPositions.addPlayer(sub.currentPosition!.id, sub.id);
   }
 
+  const invalidPositions = validateFilledPositions(game, filledPositions);
+  if (invalidPositions.size) {
+    for (const invalid of invalidPositions) {
+      invalidSubs.set(invalid[0], invalid[1]);
+    }
+  }
+  return invalidSubs;
+}
+
+function validateStarters(game: LiveGame) {
+  const filledPositions = new FilledPositionMap(game.players!);
+  const invalidPositions = validateFilledPositions(game, filledPositions);
+  return invalidPositions;
+}
+
+function validateFilledPositions(game: LiveGame, filledPositions: FilledPositionMap) {
+  const invalidPositions = new Map<string, string>();
+
   for (const filled of filledPositions) {
     const position = filled[0];
     const ids = filled[1];
     if (ids.length !== 1) {
-      invalidSubs.set(position, `Position [${position}] should have 1 id, instead as ${ids.length}`);
+      invalidPositions.set(position, `Position [${position}] should have 1 id, instead has ${ids.length}`);
     }
   }
-  return invalidSubs;
+
+  const formation = FormationBuilder.create(game.formation?.type!);
+  const requiredPositions = getPositions(formation);
+
+  if (filledPositions?.size !== requiredPositions.length) {
+    console.log(`Formation has unfilled positions with current On players`);
+    for (const position of requiredPositions) {
+      if (!filledPositions.has(position.id)) {
+        invalidPositions.set(position.id, `Position [${position.id}] is empty`);
+      }
+    }
+  }
+
+  return invalidPositions;
 }
 
 export class FilledPositionMap {

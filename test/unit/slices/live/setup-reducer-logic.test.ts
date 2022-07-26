@@ -1,19 +1,50 @@
-import { Position } from '@app/models/formation.js';
+import { FormationBuilder, FormationType, getPositions, Position } from '@app/models/formation.js';
 import { SetupStatus, SetupSteps } from '@app/models/game.js';
 import { getPlayer, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { applyStarter, cancelStarter, live, LiveState, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
+import { startersCompletedCreator } from '@app/slices/live/live-action-creators.js';
+import { applyStarter, cancelStarter, invalidStarters, live, LiveState, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
+import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
+import sinon from 'sinon';
 import { buildLiveStateWithCurrentGame, buildSetupTasks, getGame, selectPlayers } from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import { getNewPlayer } from '../../helpers/test_data.js';
 
+function mockGetState(currentState: LiveState) {
+  return sinon.fake(() => {
+    const mockState: RootState = {
+      live: currentState
+    };
+    return mockState;
+  });
+}
+
 describe('Live slice: Setup actions', () => {
   describe('Starters', () => {
+    let currentState: LiveState;
     let gameId: string;
+    const formationType = FormationType.F4_3_3;
+
+    function setupStarterState(openPositions?: string[]) {
+      const game = testlive.getLiveGameWithPlayers();
+      game.formation = { type: formationType };
+
+      // Set the first 11 players as starters, unless their position is left open.
+      for (let i = 0; i < 11; i++) {
+        const player = getPlayer(game, `P${i}`)!;
+        if (openPositions?.includes(player.currentPosition?.id!)) {
+          continue;
+        }
+        player.status = PlayerStatus.On;
+      }
+
+      currentState = buildLiveStateWithCurrentGame(
+        game);
+      gameId = game.id;
+    }
 
     describe('live/selectStarter', () => {
-      let currentState: LiveState;
       let selectedStarter: LivePlayer;
 
       beforeEach(() => {
@@ -141,10 +172,8 @@ describe('Live slice: Setup actions', () => {
     }); // describe('live/selectStarterPosition')
 
     describe('live/applyStarter', () => {
-      let currentState: LiveState;
       let selectedPlayer: LivePlayer;
       let selectedPosition: Position;
-      let gameId: string;
 
       beforeEach(() => {
         selectedPlayer = testlive.getLivePlayer();
@@ -232,7 +261,6 @@ describe('Live slice: Setup actions', () => {
     }); // describe('live/applyStarter')
 
     describe('live/cancelStarter', () => {
-      let currentState: LiveState;
       let selectedPlayer: LivePlayer;
       let selectedPosition: Position;
 
@@ -300,5 +328,69 @@ describe('Live slice: Setup actions', () => {
         expect(newState).not.to.equal(state);
       });
     }); // describe('live/startersCompleted')
+
+    describe('live/invalidStarters', () => {
+      beforeEach(() => {
+        currentState = buildLiveStateWithCurrentGame(testlive.getLiveGameWithPlayers());
+      });
+
+      it('should save the invalid starters, when positions are left open', async () => {
+        setupStarterState();
+
+        const newState: LiveState = live(currentState, invalidStarters(
+          gameId, ['AM1']));
+
+        expect(newState.invalidStarters).to.deep.equal(['AM1']);
+      });
+
+    }); // describe('live/invalidStarters')
+
+    describe('completed action creator', () => {
+      it('should dispatch completed action, when all positions are filled correctly', async () => {
+        setupStarterState();
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(currentState);
+
+        await startersCompletedCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          startersCompleted(/*gameId*/));
+      });
+
+      it('should dispatch error with invalid starters, when no positions are filled', async () => {
+        const formation = FormationBuilder.create(formationType);
+        const allOpenPositions = getPositions(formation).map((position) => position.id);
+        setupStarterState(allOpenPositions);
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(currentState);
+
+        await startersCompletedCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          invalidStarters(gameId, allOpenPositions.sort()));
+      });
+
+      it('should dispatch error with invalid starters, when one position left open', async () => {
+        setupStarterState(['GK']);
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(currentState);
+
+        await startersCompletedCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          invalidStarters(gameId, ['GK']));
+      });
+
+    }); // describe('completed action creator')
+
   }); // describe('Starters')
 });
