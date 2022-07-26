@@ -32,7 +32,6 @@ export class HomePage extends PageObject {
       return;
     }
     return async () => {
-      await this.waitForAppInitialization();
       await this.page.waitForTimeout(500);
       await this.page.evaluate(`(async () => {
         console.log('click the menu button');

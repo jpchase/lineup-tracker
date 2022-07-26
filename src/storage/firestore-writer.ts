@@ -98,7 +98,7 @@ function saveNewDocument<T extends Model>(
       debugError(`saveNewDocument: failed - ${reason}`);
     });
   })();
-  debugFirestore(`saveNewDocument: after, data = ${JSON.stringify(model)}`);
+  debugFirestore(`saveNewDocument: after, document[${document.id}] = ${JSON.stringify(document)}`);
   model.id = document.id;
 }
 
