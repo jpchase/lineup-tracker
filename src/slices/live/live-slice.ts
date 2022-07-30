@@ -70,6 +70,7 @@ export const selectCurrentLiveGame = (state: RootState) => {
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
 export const selectInvalidSubs = (state: RootState) => state.live?.invalidSubs;
+export const selectInvalidStarters = (state: RootState) => state.live?.invalidStarters;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
 export const selectPendingSubs = (state: RootState, selectedOnly?: boolean, includeSwaps?: boolean) => {
   const game = selectCurrentLiveGame(state);

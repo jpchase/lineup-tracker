@@ -4,7 +4,7 @@
 
 import '@material/mwc-button';
 import '@material/mwc-icon';
-import { html, LitElement } from 'lit';
+import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
@@ -16,11 +16,12 @@ import { LivePlayer } from '../models/live.js';
 import { getGameStore } from '../slices/game-store';
 import { gameSetupCompletedCreator } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store';
+import { startersCompletedCreator } from '../slices/live/live-action-creators.js';
 import {
   applyStarter, cancelStarter, captainsCompleted, formationSelected, getLiveGame,
   rosterCompleted,
-  selectLiveGameById,
-  selectStarter, selectStarterPosition, startersCompleted
+  selectInvalidStarters, selectLiveGameById,
+  selectStarter, selectStarterPosition
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-on-player-list';
@@ -115,6 +116,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
                       icon="done_all"
                       ?disabled="${!this.tasksComplete}"
                       @click="${this.completeGameSetup}">Complete Setup</mwc-button>
+          ${this.renderStarterErrors()}
         </div>
         <div class="formation" ?active="${this.showFormation}">
           <select
@@ -165,6 +167,19 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     `;
   }
 
+  private renderStarterErrors() {
+    if (!this.invalidStarters?.length) {
+      return nothing;
+    }
+    let errorText = this.invalidStarters.join(', ');
+    return html`
+      <span id="starter-errors">
+        <mwc-icon>report</mwc-icon>
+        <span class="error">Invalid starters: ${errorText}</span>
+      </span>
+    `;
+  }
+
   private renderTaskStatus(task: SetupTask) {
     if (task.status === SetupStatus.InProgress) {
       return html`spinner here`;
@@ -208,6 +223,9 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   @state()
   private proposedStarter: LivePlayer | undefined;
 
+  @state()
+  private invalidStarters?: string[];
+
   override firstUpdated() {
     getGameStore(this.store);
   }
@@ -235,6 +253,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
     this.players = liveGame.players || [];
     this.selectedStarterPosition = state.live.selectedStarterPosition;
     this.proposedStarter = state.live.proposedStarter;
+    this.invalidStarters = selectInvalidStarters(state);
   }
 
   private getStepHref(task: SetupTask) {
@@ -277,7 +296,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
         break;
 
       case SetupSteps.Starters:
-        this.dispatch(startersCompleted());
+        this.dispatch(startersCompletedCreator(this.game!.id));
         break;
 
       default:

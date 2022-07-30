@@ -6,7 +6,7 @@ import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
 import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { LineupPlayerList } from '@app/components/lineup-player-list';
 import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares';
-import { FormationType } from '@app/models/formation';
+import { FormationBuilder, FormationType, getPositions } from '@app/models/formation';
 import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
 import { LiveGame, LiveGameBuilder, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
@@ -164,6 +164,13 @@ describe('lineup-game-setup tests', () => {
     return taskElement as HTMLDivElement;
   }
 
+  function getTaskDoneButton(step: SetupSteps) {
+    const taskElement = getTaskElement(step, step);
+    const button = taskElement.querySelector('.status mwc-button.finish');
+    expect(button, `Missing task ${step} done button`).to.be.ok;
+    return button as Button;
+  }
+
   function getCompleteSetupButton() {
     const button = el.shadowRoot!.querySelector('#complete-button');
     expect(button, 'Missing complete setup button').to.be.ok;
@@ -275,6 +282,12 @@ describe('lineup-game-setup tests', () => {
           liveGame = LiveGameBuilder.create(newGame);
           liveGame.setupTasks = tasks;
 
+          // If the current step is after Formation, the game formation must be
+          // initialized to a valid value.
+          if (stepTest.step > SetupSteps.Formation) {
+            liveGame.formation = { type: FormationType.F4_3_3 };
+          }
+
           // Use hydration to set the constructed live game, otherwise it
           // would be initialized by GET_GAME_SUCCESS later.
           store.dispatch(hydrateLive(buildLiveGames([liveGame]), liveGame.id));
@@ -318,14 +331,11 @@ describe('lineup-game-setup tests', () => {
 
         if (stepTest.hasDoneButton) {
           it('done handler dispatches action', async () => {
-            const taskElement = getTaskElement(stepTest.step, stepTest.step);
-
             // Spies on the handler, because we want it to execute to verify dispatch of actions.
             const doneSpy = sinon.spy(el, <any>'finishStep');
 
             // Simulates a click on the done button.
-            const doneButton = taskElement.querySelector('.status mwc-button.finish') as Button;
-            assert.isOk(doneButton, 'Missing done button for task');
+            const doneButton = getTaskDoneButton(stepTest.step);
             doneButton.click();
 
             // Verifies that action dispatched.
@@ -415,6 +425,7 @@ describe('lineup-game-setup tests', () => {
       // Simulates the completion of the setup tasks need to work on starters.
       store.dispatch(formationSelected(FormationType.F4_3_3));
       store.dispatch(completeRoster(newGame.roster));
+      store.dispatch(captainsCompleted());
       await el.updateComplete;
       liveGame = selectLiveGameById(store.getState(), newGame.id)!;
     });
@@ -548,6 +559,27 @@ describe('lineup-game-setup tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.include(cancelStarter());
+    });
+
+    it('shows errors when all starter positions are empty', async () => {
+      const doneButton = getTaskDoneButton(SetupSteps.Starters);
+      expect(doneButton, 'Missing done button for starters').to.be.ok;
+
+      doneButton.click();
+      await el.updateComplete;
+
+      const errorElement = el.shadowRoot!.querySelector('#starter-errors');
+      expect(errorElement, 'Missing starter error element').to.be.ok;
+
+      const errorText = errorElement!.querySelector('.error');
+      expect(errorText, 'Missing starter error text').to.be.ok;
+
+      const expectedInvalidPositions = getPositions(
+        FormationBuilder.create(liveGame.formation!.type))
+        .map(position => position.id).sort().join(', ');
+      expect(errorText!.textContent, 'Starter error text should contain invalid positions').to.contain(expectedInvalidPositions);
+
+      await expect(errorElement).dom.to.equalSnapshot();
     });
 
   }); // describe('Starters')
