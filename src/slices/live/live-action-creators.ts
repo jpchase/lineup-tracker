@@ -30,17 +30,6 @@ export const pendingSubsAppliedCreator = (selectedOnly?: boolean): ThunkAction<v
   dispatch(applyPendingSubs(game.id, subs, selectedOnly));
 };
 
-function replacer(_key: any, value: any) {
-  if (value instanceof Map) {
-    return {
-      dataType: 'Map',
-      value: Array.from(value.entries()), // or with spread: value: [...value]
-    };
-  } else {
-    return value;
-  }
-}
-
 function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
   const seenNextIds = new Map<string, string>();
   const seenReplacedIds = new Map<string, string>();
@@ -53,11 +42,8 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
   if (filledPositions?.size !== requiredPositions.length) {
     console.log(`Invalid positions for current On players`);
   }
-  console.log(`before, subs = ${JSON.stringify(subs)} filledPositions = ${JSON.stringify(filledPositions)}`)
 
   for (const sub of subs) {
-    console.log(`sub: ${JSON.stringify(sub)}, next = ${seenNextIds.size}, ${JSON.stringify(seenNextIds, replacer)}, replaced = ${seenReplacedIds.size}, ${JSON.stringify(seenReplacedIds, replacer)}`);
-    console.log(`invalidSubs = ${JSON.stringify(invalidSubs, replacer)}`)
     if (sub.isSwap) {
       if (!sub.nextPosition) {
         invalidSubs.set(sub.id, 'missing next position for swap');
@@ -73,7 +59,6 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
       //  - Adding to the filled position for the new position.
       filledPositions.removePlayer(sub.currentPosition!.id, sub.id);
       filledPositions.addPlayer(sub.nextPosition!.id, sub.id);
-      console.log(`swap - after filledPositions = ${JSON.stringify(filledPositions)}`)
       continue;
     }
     if (!sub.replaces) {
@@ -97,23 +82,18 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
     }
     seenNextIds.set(sub.id, sub.replaces);
     seenReplacedIds.set(sub.replaces, sub.id);
-    console.log(`valid sub: ${sub.id}, next = ${seenNextIds.size}, replaced = ${seenReplacedIds.size},`);
 
     // Apply the sub:
     //  - Removing the filled position for the player to be replaced.
     //  - Adding to the filled position for the next player.
     filledPositions.removePlayer(replacedPlayer.currentPosition!.id, sub.replaces);
     filledPositions.addPlayer(sub.currentPosition!.id, sub.id);
-    console.log(`sub - after filledPositions = ${JSON.stringify(filledPositions)}`)
   }
-
-  console.log(`all subs/swaps: invalidSubs = ${JSON.stringify(invalidSubs, replacer)}, filledPositions = ${JSON.stringify(filledPositions)}`)
 
   for (const filled of filledPositions) {
     const position = filled[0];
     const ids = filled[1];
     if (ids.length !== 1) {
-      console.log(`Filled check wrong: ${JSON.stringify(filled)}`);
       invalidSubs.set(position, `Position [${position}] should have 1 id, instead as ${ids.length}`);
     }
   }
@@ -149,7 +129,6 @@ export class FilledPositionMap {
   removePlayer(positionId: string, playerId: string) {
     playerId = extractIdFromSwapPlayerId(playerId);
     const { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, playerId);
-    console.log(`Removing ${playerId} from ${positionId}: ${JSON.stringify(idsInPosition)}, ${playerIdIndex}`);
 
     if (playerIdIndex >= 0) {
       idsInPosition!.splice(playerIdIndex, 1);
@@ -160,7 +139,6 @@ export class FilledPositionMap {
   addPlayer(positionId: string, playerId: string) {
     playerId = extractIdFromSwapPlayerId(playerId);
     let { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, playerId);
-    console.log(`Adding ${playerId} to ${positionId}: ${JSON.stringify(idsInPosition)}, ${playerIdIndex}`);
 
     if (playerIdIndex < 0) {
       idsInPosition = idsInPosition || [];
