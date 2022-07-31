@@ -327,6 +327,17 @@ describe('Live slice: Setup actions', () => {
 
         expect(newState).not.to.equal(state);
       });
+
+      it('should clear any invalid starters', () => {
+        const game = testlive.getLiveGameWithPlayers();
+        const state = buildLiveStateWithCurrentGame(game);
+        state.invalidStarters = ['GK'];
+
+        const newState = live(state, startersCompleted());
+
+        expect(newState.invalidStarters, 'Invalid starters should be cleared').not.to.be.ok;
+      });
+
     }); // describe('live/startersCompleted')
 
     describe('live/invalidStarters', () => {

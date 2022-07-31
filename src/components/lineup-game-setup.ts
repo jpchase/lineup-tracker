@@ -94,6 +94,10 @@ export class LineupGameSetup extends connectStore()(LitElement) {
           display: block;
         }
 
+        #starter-errors {
+          color: red;
+        }
+
         .status mwc-icon[done] {
           color: green;
         }

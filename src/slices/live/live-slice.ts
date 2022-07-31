@@ -215,6 +215,7 @@ const liveSlice = createSlice({
 
     startersCompleted: (state) => {
       completeSetupStepForAction(state, SetupSteps.Starters);
+      state.invalidStarters = undefined;
     },
 
     invalidStarters: {
