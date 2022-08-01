@@ -48,8 +48,9 @@ describe('Game functional tests', function () {
 
   it('copy roster from team', async function () {
     const gameRosterPage = pageObject = new GameRosterPage({
-      teamId: integrationTestData.TEAM1.ID,
-      gameId: integrationTestData.TEAM1.NEW_GAME_ID
+      userId: integrationTestData.TEAM2.OWNER_ID,
+      teamId: integrationTestData.TEAM2.ID,
+      gameId: integrationTestData.TEAM2.NEW_GAME_ID
     });
     await gameRosterPage.init();
     await gameRosterPage.open({ signIn: true });
@@ -62,7 +63,7 @@ describe('Game functional tests', function () {
 
     // Verify that the game roster now contains all the players from the team.
     const players = await gameRosterPage.getPlayers();
-    expect(players.length, 'All players should be copied from team roster').to.equal(18);
+    expect(players.length, 'All players should be copied from team roster').to.equal(16);
 
     // Verify that the players are stored for the game roster.
     // TODO: Implement check once Firebase writes are working

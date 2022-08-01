@@ -42,6 +42,6 @@ export class GameRosterPage extends PageObject {
       return copyButton;
     })) as ElementHandle;
     await buttonHandle.click();
-    // await this.page.waitForTimeout(3000);
+    await this.page.waitForTimeout(3000);
   }
 }

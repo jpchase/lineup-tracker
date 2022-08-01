@@ -14,6 +14,7 @@ export type PageOpenFunction = () => Promise<void>;
 export interface PageOptions {
   scenarioName?: string;
   route?: string;
+  userId?: string;
   teamId?: string;
   gameId?: string;
   viewPort?: Viewport
@@ -31,8 +32,17 @@ export class PageObject {
   private readonly _viewPort?: Viewport;
 
   constructor(options: PageOptions = {}) {
+    let route = options.route || '';
+    // Add the userId to the route, if necessary.
+    if (options.userId) {
+      const userParam = `user=${options.userId}`;
+      if (!route.includes(userParam)) {
+        const hasQuery = route.includes('?');
+        route += `${hasQuery ? '&' : '?'}${userParam}`;
+      }
+    }
     this.scenarioName = options.scenarioName || '';
-    this._route = options.route || '';
+    this._route = route;
     this._viewPort = options.viewPort;
   }
 
