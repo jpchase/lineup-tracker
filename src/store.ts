@@ -10,7 +10,6 @@ declare global {
 }
 
 import { lazyReducerEnhancer, LazyStore } from 'pwa-helpers/lazy-reducer-enhancer.js';
-import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk';
 import {
   Action,
   AnyAction,
@@ -23,10 +22,11 @@ import {
   Store,
   StoreEnhancer
 } from 'redux';
+import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import app, { AppState } from './reducers/app';
-import { AuthState } from './reducers/auth';
 import { GameState } from './reducers/game';
+import type { AuthState } from './slices/auth/auth-slice.js';
 import type { LiveState } from './slices/live/live-slice.js';
 import type { TeamState } from './slices/team/team-slice.js';
 

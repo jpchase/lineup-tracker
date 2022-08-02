@@ -4,11 +4,11 @@
 
 import { Reducer } from 'redux';
 import { createSelector } from 'reselect';
-import { User } from '../models/auth';
+import { User } from '../../models/auth';
 import {
   GET_USER_SUCCESS
-} from '../slices/auth-types';
-import { RootState } from '../store.js';
+} from '../auth-types';
+import { RootState } from '../../store.js';
 
 export interface AuthState {
   user: User | undefined;

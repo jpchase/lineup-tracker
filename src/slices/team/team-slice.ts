@@ -8,10 +8,10 @@ import { ThunkAction } from 'redux-thunk';
 import { debug } from '../../common/debug.js';
 import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
-import { currentUserIdSelector } from '../../reducers/auth.js';
 import { CollectionFilter, whereFilter } from '../../storage/firestore-reader.js';
 import { idb } from '../../storage/idb-wrapper.js';
 import { RootState } from '../../store.js';
+import { currentUserIdSelector } from '../auth/auth-slice.js';
 import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from './team-storage.js';
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
