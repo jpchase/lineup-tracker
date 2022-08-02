@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { DevServer, startTestServer } from './server/test-server.js';
 import { PageObject } from './pages/page-object.js';
 import { TeamCreatePage } from './pages/team-create-page.js';
+import { DevServer, startTestServer } from './server/test-server.js';
 // import { TeamRosterPage } from './pages/team-roster-page';
 
 describe('functional tests', function () {
@@ -49,22 +49,4 @@ describe('functional tests', function () {
       // including asserting that player is persisted to storage correctly.
     });
   }); // describe('Team')
-
-  describe('Game', function () {
-    it.skip('create new game', async function () {
-      // TODO: Implement test for adding a new game,
-      // including asserting that game is persisted to storage correctly.
-    });
-
-    it.skip('copy roster from team', async function () {
-      // TODO: Implement test for changing between existing teams,
-      // including asserting that list of players is retrieved/persisted correctly.
-    });
-
-    it.skip('add player to team roster', async function () {
-      // TODO: Implement test for adding a new player to game roster,
-      // including asserting that player is persisted to storage correctly.
-    });
-  }); // describe('Team')
-
 });

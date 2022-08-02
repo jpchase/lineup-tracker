@@ -54,10 +54,19 @@ export const signIn: ActionCreator<ThunkResult> = () => () => {
   let signinPromise: Promise<UserCredential>;
 
   if (env.firebase.useEmulators) {
-    debugAuth('Sign in with test credential')
-    const credential = GoogleAuthProvider.credential(
-      `{"sub": "3FK9P5Ledx4voK8w5Ep07DS6dCUc", "email": "algae.orange.312@test.com", "email_verified": true}`
-    )
+    debugAuth('Sign in with test credential');
+    //TODO: Get this from env.config instead (or some kind of plugin?)
+    const defaultCredentialToken = `{"sub": "3FK9P5Ledx4voK8w5Ep07DS6dCUc", "email": "algae.orange.312@test.com", "email_verified": true}`;
+    let credentialToken = defaultCredentialToken;
+
+    const urlParams = new URLSearchParams(location.search);
+    const testUserId = urlParams.get('user');
+
+    if (testUserId && testUserId === 'dkRjNwwKIkB6OVQH2SRkBpmYHo8A') {
+      credentialToken = `{"sub": "dkRjNwwKIkB6OVQH2SRkBpmYHo8A", "email": "grass.panda.936@test.com", "email_verified": true}`;
+    }
+
+    const credential = GoogleAuthProvider.credential(credentialToken);
     signinPromise = signInWithCredential(firebaseRefs.auth, credential);
   } else {
     debugAuth('Sign in with popup, as usual');

@@ -1,30 +1,32 @@
 import { installRouter } from 'pwa-helpers/router';
 import { navigate } from './actions/app.js';
 import { getUser } from './actions/auth.js';
+import { debug } from './common/debug.js';
 import { getTeams } from './slices/team/team-slice.js';
 import { store } from './store.js';
 
+const debugInit = debug('initApp');
 let globalErrorHandler = false;
 let appInitialized = false;
 
 export async function initApp() {
   if (appInitialized) {
-    console.log(`initApp: already done`);
+    debugInit(`already done`);
     return;
   }
-  console.log(`initApp: starting`);
+  debugInit(`starting`);
   // enableAllPlugins();
   const urlParams = new URLSearchParams(location.search);
 
   // Get the authenticated user (if signed in), and then load the teams for
   // that user.
   try {
-    console.log(`initApp: get user`);
+    debugInit(`get user`);
     await store.dispatch(getUser());
-    console.log(`initApp: get teams`);
+    debugInit(`get teams`);
     await store.dispatch(getTeams(urlParams.get('team') || undefined));
   } catch (e: unknown) {
-    console.log(`initApp: some error`);
+    debugInit(`error during init: ${e}`);
     if (e instanceof Error) {
       console.error(`Error initializing teams [${e.name}]: ${e.message}\nat ${e.stack}`);
     }
@@ -34,11 +36,11 @@ export async function initApp() {
   window.document.body.dataset.appInitialized = 'true';
 
   // Wait for the loading actions to complete (success or error), before any navigation.
-  console.log(`initApp: install router`);
+  debugInit(`install router`);
   installRouter((location) => store.dispatch(navigate(location)));
 
   appInitialized = true;
-  console.log(`initApp: finished\n${JSON.stringify(window.document.body.dataset)}`);
+  debugInit(`finished\n${JSON.stringify(window.document.body.dataset)}`);
 }
 
 if (!globalErrorHandler) {

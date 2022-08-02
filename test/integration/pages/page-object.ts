@@ -14,7 +14,14 @@ export type PageOpenFunction = () => Promise<void>;
 export interface PageOptions {
   scenarioName?: string;
   route?: string;
+  userId?: string;
+  teamId?: string;
+  gameId?: string;
   viewPort?: Viewport
+}
+
+export interface OpenOptions {
+  signIn?: boolean;
 }
 
 export class PageObject {
@@ -25,8 +32,17 @@ export class PageObject {
   private readonly _viewPort?: Viewport;
 
   constructor(options: PageOptions = {}) {
+    let route = options.route || '';
+    // Add the userId to the route, if necessary.
+    if (options.userId) {
+      const userParam = `user=${options.userId}`;
+      if (!route.includes(userParam)) {
+        const hasQuery = route.includes('?');
+        route += `${hasQuery ? '&' : '?'}${userParam}`;
+      }
+    }
     this.scenarioName = options.scenarioName || '';
-    this._route = options.route || '';
+    this._route = route;
     this._viewPort = options.viewPort;
   }
 
@@ -72,7 +88,7 @@ export class PageObject {
     await this._browser?.close();
   }
 
-  async open() {
+  async open(options: OpenOptions = {}) {
     if (!this._page) {
       throw new Error('Page not initialized. Did you call init()?');
     }
@@ -82,10 +98,12 @@ export class PageObject {
     }
 
     await this._page.goto(`${config.appUrl}/${this._route}`);
+    await this.waitForAppInitialization();
+    if (options.signIn) {
+      await this.signin();
+    }
     if (this.openFunc) {
       await this.openFunc();
-    } else {
-      await this.waitForAppInitialization();
     }
     await this._page.waitForTimeout(1500);
   }

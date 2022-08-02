@@ -1,0 +1,29 @@
+team 1: 
+id = test_team1
+name = First Test Team
+is public = true
+owner_uid = 3FK9P5Ledx4voK8w5Ep07DS6dCUc
+
+games:
+id = test_game1
+status = NEW
+has roster = false
+
+id = test_game2
+status = START
+has roster = true
+
+================
+team 2:
+id = u05MxrB7sEWZOJ3F5kyN
+name = A Second Team
+owner_uid = dkRjNwwKIkB6OVQH2SRkBpmYHo8A
+
+games:
+id = szFJ5VVPkJn42DV2f2Ag
+status = NEW
+has roster = false
+
+id = KASxLPgbQqe38dwkH76D
+status = START
+has roster = true
