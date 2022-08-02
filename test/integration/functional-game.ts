@@ -46,7 +46,7 @@ describe('Game functional tests', function () {
     // TODO: Implement check once Firebase writes are working
   });
 
-  it('copy roster from team', async function () {
+  it.skip('copy roster from team', async function () {
     const gameRosterPage = pageObject = new GameRosterPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       teamId: integrationTestData.TEAM2.ID,
