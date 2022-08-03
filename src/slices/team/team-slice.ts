@@ -11,7 +11,7 @@ import { Team, Teams } from '../../models/team.js';
 import { CollectionFilter, whereFilter } from '../../storage/firestore-reader.js';
 import { idb } from '../../storage/idb-wrapper.js';
 import { RootState } from '../../store.js';
-import { currentUserIdSelector } from '../auth/auth-slice.js';
+import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from './team-storage.js';
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
@@ -42,7 +42,7 @@ export const getTeams = createAsyncThunk<
   async (selectedTeamId, thunkAPI) => {
     // Show the user's teams, when signed in. Otherwise, only show public data.
     // TODO: Extract into helper function somewhere?
-    const currentUserId = currentUserIdSelector(thunkAPI.getState());
+    const currentUserId = selectCurrentUserId(thunkAPI.getState());
     let teamFilter: CollectionFilter;
     if (currentUserId) {
       debugTeam(`Get teams for owner = ${currentUserId}, selected = ${selectedTeamId}`);

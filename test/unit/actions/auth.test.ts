@@ -1,9 +1,9 @@
 import * as actions from '@app/actions/auth';
 import { auth } from '@app/firebase';
 import { User } from '@app/models/auth';
-import * as actionTypes from '@app/slices/auth-types';
-import { OperationType, User as FirebaseUser, UserCredential, onAuthStateChanged } from 'firebase/auth';
+import { getUserSuccess } from '@app/slices/auth/auth-slice.js';
 import { expect } from '@open-wc/testing';
+import { onAuthStateChanged, OperationType, User as FirebaseUser, UserCredential } from 'firebase/auth';
 import sinon from 'sinon';
 
 type AuthStateChangedFn = (typeof onAuthStateChanged);
@@ -70,10 +70,8 @@ describe('getUser', () => {
       id: 'su1', name: 'Signed in user 1', email: '', imageUrl: ''
     };
 
-    expect(dispatchMock).to.have.been.calledWith({
-      type: actionTypes.GET_USER_SUCCESS,
-      user: signedInUser,
-    });
+    expect(dispatchMock).to.have.been.calledWith(
+      getUserSuccess(signedInUser));
   });
 
   it('should dispatch an action with no user after sign out', () => {
@@ -87,10 +85,8 @@ describe('getUser', () => {
     // Checks that onAuthStateChanged() was called with a callback.
     expect(changedStub).to.have.callCount(1);
 
-    expect(dispatchMock).to.have.been.calledWith({
-      type: actionTypes.GET_USER_SUCCESS,
-      user: {},
-    });
+    expect(dispatchMock).to.have.been.calledWith(
+      getUserSuccess({} as User));
   });
 
 });

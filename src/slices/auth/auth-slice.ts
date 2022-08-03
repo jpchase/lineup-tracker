@@ -1,17 +1,9 @@
-/**
-@license
-*/
-
-import { Reducer } from 'redux';
-import { createSelector } from 'reselect';
-import { User } from '../../models/auth';
-import {
-  GET_USER_SUCCESS
-} from '../auth-types';
+import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { User } from '../../models/auth.js';
 import { RootState } from '../../store.js';
 
 export interface AuthState {
-  user: User | undefined;
+  user?: User;
   error: string;
 }
 
@@ -20,26 +12,26 @@ const INITIAL_STATE: AuthState = {
   error: ''
 };
 
-const auth: Reducer<AuthState> = (state = INITIAL_STATE, action) => {
-  switch (action.type) {
-    case GET_USER_SUCCESS:
-      console.log(`auth.ts - reducer: ${JSON.stringify(action)}, ${state}`);
-      return {
-        user: action.user,
-        error: ''
-      };
+const authSlice = createSlice({
+  name: 'auth',
+  initialState: INITIAL_STATE,
+  reducers: {
+    getUserSuccess: (state, action: PayloadAction<User>) => {
+      state.user = action.payload;
+      state.error = '';
+    },
+  },
+});
 
-    default:
-      return state;
-  }
-};
+const { actions, reducer } = authSlice;
 
-export default auth;
+export const { getUserSuccess } = actions;
+export const auth = reducer;
 
-export const userSelector = (state: RootState) => state.auth && state.auth.user;
+export const selectCurrentUser = (state: RootState) => state.auth?.user;
 
-export const currentUserIdSelector = createSelector(
-  userSelector,
+export const selectCurrentUserId = createSelector(
+  selectCurrentUser,
   (user) => {
     if (!user) {
       return;

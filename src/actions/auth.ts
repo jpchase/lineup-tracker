@@ -4,20 +4,17 @@
 */
 
 import { GoogleAuthProvider, signInWithCredential, User as FirebaseUser, UserCredential } from 'firebase/auth';
-import { Action, ActionCreator } from 'redux';
+import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { getEnv } from '../app/environment.js';
 import { debug } from '../common/debug';
 import { auth, firebaseRefs } from '../firebase';
 import { User } from '../models/auth';
-import { GET_USER_SUCCESS } from '../slices/auth-types';
+import { getUserSuccess } from '../slices/auth/auth-slice.js';
 import { RootState } from '../store';
 
-export interface AuthActionGetUser extends Action<typeof GET_USER_SUCCESS> { user: User };
-export type AuthAction = AuthActionGetUser;
-
-type ThunkResult = ThunkAction<void, RootState, undefined, AuthAction>;
-type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AuthAction>;
+type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
+type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AnyAction>;
 
 const env = getEnv();
 const debugAuth = debug('auth');
@@ -32,17 +29,11 @@ export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) =>
   auth.onAuthStateChanged(firebaseRefs.auth, (user: FirebaseUser | null) => {
     if (user) {
       debugAuth(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
-      dispatch({
-        type: GET_USER_SUCCESS,
-        user: getUserFromFirebaseUser(user)
-      });
+      dispatch(getUserSuccess(getUserFromFirebaseUser(user)));
       resolveFunc(true);
     } else {
       debugAuth(`onAuthStateChanged: user = ${user}`);
-      dispatch({
-        type: GET_USER_SUCCESS,
-        user: {} as User
-      });
+      dispatch(getUserSuccess({} as User));
       resolveFunc(false);
     }
   });

@@ -18,7 +18,7 @@ import { navigate, updateDrawerState, updateOffline } from '../actions/app';
 import { signIn } from '../actions/auth';
 import { User } from '../models/auth';
 import { Teams } from '../models/team';
-import auth from '../slices/auth/auth-slice.js';
+import { auth } from '../slices/auth/auth-slice.js';
 import { changeTeam, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
