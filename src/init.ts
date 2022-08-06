@@ -1,7 +1,7 @@
 import { installRouter } from 'pwa-helpers/router';
 import { navigate } from './actions/app.js';
-import { getUser } from './actions/auth.js';
 import { debug } from './common/debug.js';
+import { getUser } from './slices/auth/auth-slice.js';
 import { getTeams } from './slices/team/team-slice.js';
 import { store } from './store.js';
 
