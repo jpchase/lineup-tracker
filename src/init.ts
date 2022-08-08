@@ -1,8 +1,9 @@
 import { installRouter } from 'pwa-helpers/router';
 import { navigate } from './actions/app.js';
+import { setupAuthListeners, startAppListening } from './app/action-listeners.js';
 import { debug } from './common/debug.js';
 import { getUser } from './slices/auth/auth-slice.js';
-import { getTeams } from './slices/team/team-slice.js';
+// import { getTeams } from './slices/team/team-slice.js';
 import { store } from './store.js';
 
 const debugInit = debug('initApp');
@@ -18,13 +19,27 @@ export async function initApp() {
   // enableAllPlugins();
   const urlParams = new URLSearchParams(location.search);
 
+  // Initialize action listeners to handle changes in auth state.
+  setupAuthListeners(startAppListening);
+
+  const initTeamId = urlParams.get('team');
+  const initUserId = urlParams.get('user');
+  if (initTeamId || initUserId) {
+    // save in state for later use retrieving teams
+    // store.dispatch(appInitValues(initTeamId, initUserId));
+  }
+
   // Get the authenticated user (if signed in), and then load the teams for
   // that user.
   try {
     debugInit(`get user`);
-    await store.dispatch(getUser());
-    debugInit(`get teams`);
-    await store.dispatch(getTeams(urlParams.get('team') || undefined));
+    const userSignedId = await store.dispatch(getUser());
+    if (userSignedId) {
+      debugInit(`signed in, get teams`);
+      // await teamsLoaded();
+    } else {
+      debugInit(`not signed in`);
+    }
   } catch (e: unknown) {
     debugInit(`error during init: ${e}`);
     if (e instanceof Error) {

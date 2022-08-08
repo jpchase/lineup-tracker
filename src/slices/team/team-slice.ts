@@ -137,6 +137,8 @@ export const savePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (di
 
 export interface TeamState {
   teams: Teams;
+  teamsLoaded: boolean;
+  teamsLoading: boolean;
   teamId: string;
   teamName: string;
   roster: Roster;
@@ -145,6 +147,8 @@ export interface TeamState {
 
 const INITIAL_STATE: TeamState = {
   teams: {},
+  teamsLoaded: false,
+  teamsLoading: false,
   teamId: '',
   teamName: '',
   roster: {},
@@ -176,7 +180,13 @@ const teamSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder.addCase(getTeams.pending, (state) => {
+      state.teamsLoading = true;
+      state.teamsLoaded = false;
+    });
     builder.addCase(getTeams.fulfilled, (state, action) => {
+      state.teamsLoading = false;
+      state.teamsLoaded = true;
       state.teams = action.payload.teams;
       const selectedTeamId = action.payload.selectedTeamId;
       if (!state.teamId && selectedTeamId && state.teams[selectedTeamId]) {
@@ -207,3 +217,7 @@ function setCurrentTeam(state: TeamState, teamId: string) {
 }
 
 export const currentTeamIdSelector = (state: RootState) => state.team && state.team.teamId;
+
+export const selectCurrentTeamId = (state: RootState) => state.team?.teamId;
+
+export const selectTeamsLoaded = (state: RootState) => state.team?.teamsLoaded;

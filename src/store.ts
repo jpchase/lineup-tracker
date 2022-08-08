@@ -23,6 +23,7 @@ import {
   StoreEnhancer
 } from 'redux';
 import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk';
+import { listenerMiddleware } from './app/action-listeners.js';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import app, { AppState } from './reducers/app';
 import { GameState } from './reducers/game';
@@ -82,10 +83,12 @@ export const store: RootStore = createStore(
   state => state as Reducer<RootState>,
   devCompose(
     lazyReducerEnhancer(combineReducersWithReset),
-    applyMiddleware(thunk as ThunkMiddleware<RootState>, dynamicMiddlewares))
+    applyMiddleware(thunk as ThunkMiddleware<RootState>, listenerMiddleware.middleware, dynamicMiddlewares))
 );
 
 // Initially loaded reducers.
 store.addReducers({
   app
 });
+
+export type AppDispatch = typeof store.dispatch;

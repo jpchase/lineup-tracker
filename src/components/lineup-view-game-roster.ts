@@ -4,7 +4,7 @@
 
 import '@material/mwc-button';
 import '@material/mwc-circular-progress';
-import { html } from 'lit';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { addNewGamePlayer, copyRoster, getGame } from '../actions/game';
@@ -51,8 +51,8 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
         ` : html`
           <div class="empty-list">
             <div>Roster is empty.</div>
-            <mwc-button icon="file_copy" ?disabled="${this._copyingInProgress}"
-                             @click="${this._copyTeamRoster}">Copy From Team</mwc-button>
+            <mwc-button id='copy-button' icon="file_copy" ?disabled="${this._copyingInProgress}"
+                        @click="${this._copyTeamRoster}">Copy From Team</mwc-button>
             ${this._getLoadingContent()}
           </div>
         `}
@@ -67,7 +67,7 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
 
   private _getLoadingContent() {
     if (!this._copyingInProgress) {
-      return '';
+      return nothing;
     }
 
     return html`

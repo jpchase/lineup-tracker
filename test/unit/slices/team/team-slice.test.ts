@@ -34,6 +34,8 @@ const actionTypes = {
 
 const TEAM_INITIAL_STATE: TeamState = {
   teams: {} as Teams,
+  teamsLoaded: false,
+  teamsLoading: false,
   teamId: '',
   teamName: '',
   roster: {},
@@ -106,6 +108,8 @@ describe('Teams reducer', () => {
 
       expect(newState).to.deep.include({
         teams: expectedTeams,
+        teamsLoading: false,
+        teamsLoaded: true,
       });
 
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
