@@ -4,10 +4,10 @@ import {
 } from 'firebase/firestore';
 import { debug, debugError } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
-import { Model, ModelWriter } from './model-converter.js';
-import { currentUserIdSelector } from '../reducers/auth.js';
+import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { currentTeamIdSelector } from '../slices/team/team-slice.js';
 import { RootState } from '../store.js';
+import { Model, ModelWriter } from './model-converter.js';
 
 const debugFirestore = debug('firestore');
 
@@ -70,7 +70,7 @@ function saveNewDocument<T extends Model>(
       }
     }
     if (options.addUserId && !options.currentUserId) {
-      options.currentUserId = currentUserIdSelector(state);
+      options.currentUserId = selectCurrentUserId(state);
       debugFirestore(`saveNewDocument: currentUserId = ${options.currentUserId}`);
       if (!options.currentUserId) {
         throw new Error('No current user to set owner_uid');

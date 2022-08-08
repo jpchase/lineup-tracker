@@ -1,9 +1,8 @@
-import * as actions from '@app/actions/auth';
 import { auth } from '@app/firebase';
 import { User } from '@app/models/auth';
-import * as actionTypes from '@app/slices/auth-types';
-import { OperationType, User as FirebaseUser, UserCredential, onAuthStateChanged } from 'firebase/auth';
+import { getUser, getUserSuccess, signIn } from '@app/slices/auth/auth-slice.js';
 import { expect } from '@open-wc/testing';
+import { onAuthStateChanged, OperationType, User as FirebaseUser, UserCredential } from 'firebase/auth';
 import sinon from 'sinon';
 
 type AuthStateChangedFn = (typeof onAuthStateChanged);
@@ -45,7 +44,7 @@ describe('getUser', () => {
   });
 
   it('should return a function to dispatch the getUser action', () => {
-    expect(actions.getUser()).to.be.instanceof(Function);
+    expect(getUser()).to.be.instanceof(Function);
   });
 
   it('should dispatch an action to get user after sign in', () => {
@@ -60,7 +59,7 @@ describe('getUser', () => {
 
     changedStub.onFirstCall().callsFake(mockAuthStateChanged(firebaseUser));
 
-    actions.getUser()(dispatchMock, getStateMock, undefined);
+    getUser()(dispatchMock, getStateMock, undefined);
 
     // Checks that onAuthStateChanged() was called with a callback.
     expect(changedStub).to.have.callCount(1);
@@ -70,10 +69,8 @@ describe('getUser', () => {
       id: 'su1', name: 'Signed in user 1', email: '', imageUrl: ''
     };
 
-    expect(dispatchMock).to.have.been.calledWith({
-      type: actionTypes.GET_USER_SUCCESS,
-      user: signedInUser,
-    });
+    expect(dispatchMock).to.have.been.calledWith(
+      getUserSuccess(signedInUser));
   });
 
   it('should dispatch an action with no user after sign out', () => {
@@ -82,15 +79,13 @@ describe('getUser', () => {
 
     changedStub.onFirstCall().callsFake(mockAuthStateChanged(null));
 
-    actions.getUser()(dispatchMock, getStateMock, undefined);
+    getUser()(dispatchMock, getStateMock, undefined);
 
     // Checks that onAuthStateChanged() was called with a callback.
     expect(changedStub).to.have.callCount(1);
 
-    expect(dispatchMock).to.have.been.calledWith({
-      type: actionTypes.GET_USER_SUCCESS,
-      user: {},
-    });
+    expect(dispatchMock).to.have.been.calledWith(
+      getUserSuccess({} as User));
   });
 
 });
@@ -109,7 +104,7 @@ describe('signIn', () => {
   });
 
   it('should return a function to do the sign in', () => {
-    expect(actions.signIn()).to.be.instanceof(Function);
+    expect(signIn()).to.be.instanceof(Function);
   });
 
   it('should call the Firebase sign in method and log success', () => {
@@ -119,7 +114,7 @@ describe('signIn', () => {
     const result: UserCredential = buildUserCredential(buildFirebaseUser(1234));
     signInSpy.onFirstCall().resolves(result);
 
-    actions.signIn()(dispatchMock, getStateMock, undefined);
+    signIn()(dispatchMock, getStateMock, undefined);
 
     // Checks that signInWithPopup() was called.
     expect(signInSpy).to.have.callCount(1);
@@ -131,7 +126,7 @@ describe('signIn', () => {
 
     signInSpy.onFirstCall().rejects(new Error('Some error'));
 
-    actions.signIn()(dispatchMock, getStateMock, undefined);
+    signIn()(dispatchMock, getStateMock, undefined);
 
     // Checks that signInWithPopup() was called.
     expect(signInSpy).to.have.callCount(1);

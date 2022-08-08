@@ -1,23 +1,25 @@
-
-/**
-@license
-*/
-
+import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { GoogleAuthProvider, signInWithCredential, User as FirebaseUser, UserCredential } from 'firebase/auth';
-import { Action, ActionCreator } from 'redux';
+import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { getEnv } from '../app/environment.js';
-import { debug } from '../common/debug';
-import { auth, firebaseRefs } from '../firebase';
-import { User } from '../models/auth';
-import { GET_USER_SUCCESS } from '../slices/auth-types';
-import { RootState } from '../store';
+import { getEnv } from '../../app/environment.js';
+import { debug } from '../../common/debug.js';
+import { auth as authApi, firebaseRefs } from '../../firebase.js';
+import { User } from '../../models/auth.js';
+import { RootState } from '../../store.js';
 
-export interface AuthActionGetUser extends Action<typeof GET_USER_SUCCESS> { user: User };
-export type AuthAction = AuthActionGetUser;
+export interface AuthState {
+  user?: User;
+  error: string;
+}
 
-type ThunkResult = ThunkAction<void, RootState, undefined, AuthAction>;
-type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AuthAction>;
+const INITIAL_STATE: AuthState = {
+  user: undefined,
+  error: ''
+};
+
+type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
+type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AnyAction>;
 
 const env = getEnv();
 const debugAuth = debug('auth');
@@ -29,20 +31,14 @@ export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) =>
     resolveFunc = resolve;
   });
 
-  auth.onAuthStateChanged(firebaseRefs.auth, (user: FirebaseUser | null) => {
+  authApi.onAuthStateChanged(firebaseRefs.auth, (user: FirebaseUser | null) => {
     if (user) {
       debugAuth(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
-      dispatch({
-        type: GET_USER_SUCCESS,
-        user: getUserFromFirebaseUser(user)
-      });
+      dispatch(getUserSuccess(getUserFromFirebaseUser(user)));
       resolveFunc(true);
     } else {
       debugAuth(`onAuthStateChanged: user = ${user}`);
-      dispatch({
-        type: GET_USER_SUCCESS,
-        user: {} as User
-      });
+      dispatch(getUserSuccess({} as User));
       resolveFunc(false);
     }
   });
@@ -70,7 +66,7 @@ export const signIn: ActionCreator<ThunkResult> = () => () => {
     signinPromise = signInWithCredential(firebaseRefs.auth, credential);
   } else {
     debugAuth('Sign in with popup, as usual');
-    signinPromise = auth.signInWithPopup(firebaseRefs.auth, auth.provider);
+    signinPromise = authApi.signInWithPopup(firebaseRefs.auth, authApi.provider);
   }
   signinPromise
     .then((result: UserCredential) => {
@@ -81,6 +77,34 @@ export const signIn: ActionCreator<ThunkResult> = () => () => {
     })
     .finally(() => { console.log('got to the finally clause') });
 };
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState: INITIAL_STATE,
+  reducers: {
+    getUserSuccess: (state, action: PayloadAction<User>) => {
+      state.user = action.payload;
+      state.error = '';
+    },
+  },
+});
+
+const { actions, reducer } = authSlice;
+
+export const { getUserSuccess } = actions;
+export const auth = reducer;
+
+export const selectCurrentUser = (state: RootState) => state.auth?.user;
+
+export const selectCurrentUserId = createSelector(
+  selectCurrentUser,
+  (user) => {
+    if (!user) {
+      return;
+    }
+    return user.id;
+  }
+);
 
 function getUserFromFirebaseUser(firebaseUser: FirebaseUser): User {
   return {

@@ -6,9 +6,9 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { Game, Games, GameStatus } from '../../models/game.js';
-import { currentUserIdSelector } from '../../reducers/auth.js';
 import type { GameState } from '../../reducers/game.js';
 import { RootState } from '../../store.js';
+import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
 export { GameState } from '../../reducers/game.js';
@@ -28,7 +28,7 @@ export const getGames = createAsyncThunk<
 >(
   'game/getGames',
   async (teamId, thunkAPI) => {
-    const currentUserId = currentUserIdSelector(thunkAPI.getState());
+    const currentUserId = selectCurrentUserId(thunkAPI.getState());
 
     return loadGames(teamId, currentUserId);
   },
