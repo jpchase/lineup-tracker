@@ -410,8 +410,6 @@ export class LineupApp extends connect(store)(LitElement) {
 
     this._teamId = state.team!.teamId;
     this._teams = state.team!.teams;
-    const teamsLoaded = selectTeamsLoaded(state);
-    console.log(`app stated updated: teams loaded, old = ${this.teamsLoaded}, new = ${teamsLoaded}`);
     this.teamsLoaded = selectTeamsLoaded(state) || false;
   }
 }

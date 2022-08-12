@@ -101,6 +101,7 @@ export class PageObject {
     await this.waitForAppInitialization();
     if (options.signIn) {
       await this.signin();
+      await this.waitForTeamsLoaded();
     }
     if (this.openFunc) {
       await this.openFunc();
@@ -130,7 +131,7 @@ export class PageObject {
     let loaded = false;
     console.time('wait for teams-loaded');
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 15;
     for (; attempts < maxAttempts; attempts++) {
       const mainDataset = await this.getMainElementDataset();
       if (mainDataset) {

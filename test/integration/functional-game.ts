@@ -23,7 +23,10 @@ describe('Game functional tests', function () {
   });
 
   it('create new game', async function () {
-    const addGamePage = pageObject = new GameCreatePage({ teamId: integrationTestData.TEAM1.ID });
+    const addGamePage = pageObject = new GameCreatePage({
+      userId: integrationTestData.TEAM2.OWNER_ID,
+      teamId: integrationTestData.TEAM2.ID
+    });
     await addGamePage.init();
     await addGamePage.open({ signIn: true });
 
@@ -54,7 +57,6 @@ describe('Game functional tests', function () {
     });
     await gameRosterPage.init();
     await gameRosterPage.open({ signIn: true });
-    await gameRosterPage.waitForTeamsLoaded();
 
     // TODO: Implement waiting for view to be loaded/rendered
     await gameRosterPage.page.waitForTimeout(500);
