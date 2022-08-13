@@ -1,5 +1,4 @@
 import { Player } from '@app/models/player.js';
-import { ElementHandle } from 'puppeteer';
 import { PageObject, PageOptions } from './page-object.js';
 
 export class GameRosterPage extends PageObject {
@@ -35,13 +34,12 @@ export class GameRosterPage extends PageObject {
   }
 
   async copyTeamRoster() {
-    const buttonHandle = await this.page.evaluateHandle((async () => {
-      const app = document.querySelector('lineup-app');
-      const view = app!.shadowRoot!.querySelector('lineup-view-game-roster');
-      const copyButton = view!.shadowRoot!.querySelector('mwc-button');
-      return copyButton;
-    })) as ElementHandle;
+    const buttonHandle = await this.querySelectorInView('lineup-view-game-roster', '#copy-button');
+    if (!buttonHandle) {
+      throw new Error('Copy roster button not found');
+    }
     await buttonHandle.click();
+    // TODO: Check for spinner/loading, instead of just waiting for arbitrary amount of time.
     await this.page.waitForTimeout(3000);
   }
 }

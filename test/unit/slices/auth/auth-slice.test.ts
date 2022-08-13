@@ -1,6 +1,6 @@
 import { auth } from '@app/firebase';
 import { User } from '@app/models/auth';
-import { getUser, getUserSuccess, signIn } from '@app/slices/auth/auth-slice.js';
+import { getUser, signIn, userSignedIn, userSignedOut } from '@app/slices/auth/auth-slice.js';
 import { expect } from '@open-wc/testing';
 import { onAuthStateChanged, OperationType, User as FirebaseUser, UserCredential } from 'firebase/auth';
 import sinon from 'sinon';
@@ -70,7 +70,7 @@ describe('getUser', () => {
     };
 
     expect(dispatchMock).to.have.been.calledWith(
-      getUserSuccess(signedInUser));
+      userSignedIn(signedInUser));
   });
 
   it('should dispatch an action with no user after sign out', () => {
@@ -85,7 +85,7 @@ describe('getUser', () => {
     expect(changedStub).to.have.callCount(1);
 
     expect(dispatchMock).to.have.been.calledWith(
-      getUserSuccess({} as User));
+      userSignedOut());
   });
 
 });

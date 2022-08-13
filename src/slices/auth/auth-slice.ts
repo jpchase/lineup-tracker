@@ -34,11 +34,11 @@ export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) =>
   authApi.onAuthStateChanged(firebaseRefs.auth, (user: FirebaseUser | null) => {
     if (user) {
       debugAuth(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
-      dispatch(getUserSuccess(getUserFromFirebaseUser(user)));
+      dispatch(userSignedIn(getUserFromFirebaseUser(user)));
       resolveFunc(true);
     } else {
       debugAuth(`onAuthStateChanged: user = ${user}`);
-      dispatch(getUserSuccess({} as User));
+      dispatch(userSignedOut());
       resolveFunc(false);
     }
   });
@@ -82,8 +82,12 @@ const authSlice = createSlice({
   name: 'auth',
   initialState: INITIAL_STATE,
   reducers: {
-    getUserSuccess: (state, action: PayloadAction<User>) => {
+    userSignedIn: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
+      state.error = '';
+    },
+    userSignedOut: (state) => {
+      state.user = undefined;
       state.error = '';
     },
   },
@@ -91,7 +95,7 @@ const authSlice = createSlice({
 
 const { actions, reducer } = authSlice;
 
-export const { getUserSuccess } = actions;
+export const { userSignedIn, userSignedOut } = actions;
 export const auth = reducer;
 
 export const selectCurrentUser = (state: RootState) => state.auth?.user;

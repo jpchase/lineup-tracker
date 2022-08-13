@@ -10,6 +10,7 @@ import '@material/mwc-top-app-bar';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
@@ -18,7 +19,7 @@ import { navigate, updateDrawerState, updateOffline } from '../actions/app';
 import { User } from '../models/auth';
 import { Teams } from '../models/team';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
-import { changeTeam, team } from '../slices/team/team-slice.js';
+import { changeTeam, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
 import './lineup-team-selector';
@@ -43,6 +44,7 @@ interface Pages {
 @customElement('lineup-app')
 export class LineupApp extends connect(store)(LitElement) {
   override render() {
+    const mainClasses = { 'teams-loaded': this.teamsLoaded };
     return html`
     <style>
       :host {
@@ -272,7 +274,7 @@ export class LineupApp extends connect(store)(LitElement) {
           </nav>
         </mwc-top-app-bar>
         <!-- Main content -->
-        <main role="main" class="main-content">
+        <main role="main" class="main-content ${classMap(mainClasses)}" data-teams-loaded="${this.teamsLoaded}">
           <lineup-view-home class="page" ?active="${this._page === 'viewHome'}"></lineup-view-home>
           <lineup-view-games class="page" ?active="${this._page === 'viewGames'}"></lineup-view-games>
           <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
@@ -337,6 +339,9 @@ export class LineupApp extends connect(store)(LitElement) {
 
   @property({ type: Object })
   private _teams: Teams = {};
+
+  @state()
+  private teamsLoaded = false;
 
   constructor() {
     super();
@@ -405,5 +410,6 @@ export class LineupApp extends connect(store)(LitElement) {
 
     this._teamId = state.team!.teamId;
     this._teams = state.team!.teams;
+    this.teamsLoaded = selectTeamsLoaded(state) || false;
   }
 }

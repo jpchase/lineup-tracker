@@ -19,7 +19,10 @@ snapshots["lineup-view-game-roster tests shows roster placeholder when game rost
     <div>
       Roster is empty.
     </div>
-    <mwc-button icon="file_copy">
+    <mwc-button
+      icon="file_copy"
+      id="copy-button"
+    >
       Copy From Team
     </mwc-button>
   </div>

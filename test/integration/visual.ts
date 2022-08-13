@@ -13,7 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
-import { PageObject } from './pages/page-object.js';
+import { OpenOptions, PageObject } from './pages/page-object.js';
 import { createScreenshotDirectories, getAllVisualPages } from './pages/visual-page-factory.js';
 import { config, DevServer, startTestServer } from './server/test-server.js';
 
@@ -49,7 +49,7 @@ describe('👀 page screenshots are correct', function () {
       for (const pageConfig of getAllVisualPages(breakpoint)) {
         it(pageConfig.name, async function () {
           pageObject = pageConfig.page;
-          await takeAndCompareScreenshot(pageObject, breakpoint.name);
+          await takeAndCompareScreenshot(pageObject, breakpoint.name, pageConfig.openOptions);
 
           const result = await pageObject.checkAccessibility();
           console.log(`${breakpoint.name}-${pageConfig.name}: ${result.violationCount} accessibility violations`);
@@ -60,9 +60,9 @@ describe('👀 page screenshots are correct', function () {
   }
 });
 
-async function takeAndCompareScreenshot(page: PageObject, filePrefix: string) {
+async function takeAndCompareScreenshot(page: PageObject, filePrefix: string, openOptions?: OpenOptions) {
   await page.init();
-  await page.open();
+  await page.open(openOptions);
   const viewName = await page.screenshot(path.join(config.currentDir, filePrefix));
   // TODO: Pass filePrefix as an explicit parameter.
   return compareScreenshots(path.join(filePrefix, viewName));

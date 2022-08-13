@@ -101,6 +101,7 @@ export class PageObject {
     await this.waitForAppInitialization();
     if (options.signIn) {
       await this.signin();
+      await this.waitForTeamsLoaded();
     }
     if (this.openFunc) {
       await this.openFunc();
@@ -113,6 +114,87 @@ export class PageObject {
       { timeout: 10000 });
   }
 
+  private async getMainElementDataset() {
+    return await this.page.evaluate(async () => {
+      const app = document.querySelector('lineup-app');
+      const mainElement = app?.shadowRoot?.querySelector('mwc-drawer > div[slot=appContent] > main');
+      if (mainElement) {
+        const teamsLoaded = (mainElement as HTMLElement).dataset.teamsLoaded;
+        console.log(`main data attributes: ${teamsLoaded}`);
+        return Object.fromEntries(Object.entries((mainElement as HTMLElement).dataset));
+      }
+      return undefined;
+    });
+  }
+
+  private async waitForTeamsLoadedManual() {
+    let loaded = false;
+    console.time('wait for teams-loaded');
+    let attempts = 0;
+    const maxAttempts = 15;
+    for (; attempts < maxAttempts; attempts++) {
+      const mainDataset = await this.getMainElementDataset();
+      if (mainDataset) {
+        const teamsLoadedValue = mainDataset.teamsLoaded;
+        console.log(`[Attempt ${attempts + 1}] teams loaded value: ${teamsLoadedValue}`);
+        if (teamsLoadedValue === 'true') {
+          attempts++;
+          loaded = true;
+          break;
+        }
+      }
+      if (attempts < maxAttempts - 1) {
+        console.timeLog('wait for teams-loaded');
+        await this.page.waitForTimeout(200);
+      }
+    }
+    console.timeEnd('wait for teams-loaded');
+    console.log(`done waiting for teams, loaded = ${loaded}, attempts = ${attempts}`);
+    if (!loaded) {
+      throw new Error(`Teams not loaded after ${attempts} attempts`);
+    }
+  }
+
+  async waitForTeamsLoaded() {
+    await this.waitForTeamsLoadedManual();
+    /*
+    const mainElement = await this.page.evaluate(async () => {
+      const app = document.querySelector('lineup-app');
+      const mainElement = app?.shadowRoot?.querySelector('mwc-drawer > div[slot=appContent] > main');
+      if (mainElement) {
+        const teamsLoaded = (mainElement as HTMLElement).dataset.teamsLoaded;
+        console.log(`main data attributes: ${teamsLoaded}`);
+        return mainElement as HTMLElement;
+      }
+      return undefined;
+    });
+    */
+    /*
+    let mainDataset = await this.getMainElementDataset();
+    if (mainDataset) {
+      const teamsLoadedValue = mainDataset.teamsLoaded;
+      console.log(`teams loaded value: ${teamsLoadedValue}`);
+      if (teamsLoadedValue === 'true') {
+        return;
+      }
+    }
+    const appHandle = await this.page.$('lineup-app');
+    console.time('wait for teams-loaded');
+    try {
+      await this.page.waitForSelector('.teams-loaded',
+        { root: appHandle || undefined, timeout: 10000 });
+    } catch (e) {
+      console.log(`error in waitForSelector: ${(e as Error).message}`);
+      console.timeLog('wait for teams-loaded');
+    }
+    console.timeEnd('wait for teams-loaded');
+    await this.page.waitForTimeout(2000);
+    console.log('done waiting: ' + new Date().toTimeString());
+    mainDataset = await this.getMainElementDataset();
+    console.log(`teams loaded value 2: ${mainDataset?.teamsLoaded}`);
+    */
+  }
+
   async signin() {
     const buttonHandle = await this.page.evaluateHandle(`(async () => {
       console.log('get signin button');
@@ -122,6 +204,14 @@ export class PageObject {
     await buttonHandle.click();
     // TODO: Is this wait needed to let promises resolve, or does the sign in actually need the time.
     await this.page.waitForTimeout(100);
+  }
+
+  async querySelectorInView(viewName: string, selector: string) {
+    const viewHandle = await this.page.$(`pierce/${viewName}`);
+    if (!viewHandle) {
+      throw new Error(`View not found: ${viewName}`);
+    }
+    return viewHandle.$(`pierce/${selector}`);
   }
 
   protected get openFunc(): PageOpenFunction | undefined {

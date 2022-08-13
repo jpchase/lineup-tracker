@@ -1,11 +1,11 @@
-import { expect } from 'chai';
-import { DevServer, startTestServer } from './server/test-server.js';
-import { PageObject } from './pages/page-object.js';
-import { GameCreatePage } from './pages/game-create-page.js';
 import { Game } from '@app/models/game.js';
 import rtk from '@reduxjs/toolkit';
-import { GameRosterPage } from './pages/game-roster-page.js';
+import { expect } from 'chai';
 import { integrationTestData } from './data/integration-data-constants.js';
+import { GameCreatePage } from './pages/game-create-page.js';
+import { GameRosterPage } from './pages/game-roster-page.js';
+import { PageObject } from './pages/page-object.js';
+import { DevServer, startTestServer } from './server/test-server.js';
 const { nanoid } = rtk;
 
 describe('Game functional tests', function () {
@@ -23,7 +23,10 @@ describe('Game functional tests', function () {
   });
 
   it('create new game', async function () {
-    const addGamePage = pageObject = new GameCreatePage({ teamId: integrationTestData.TEAM1.ID });
+    const addGamePage = pageObject = new GameCreatePage({
+      userId: integrationTestData.TEAM2.OWNER_ID,
+      teamId: integrationTestData.TEAM2.ID
+    });
     await addGamePage.init();
     await addGamePage.open({ signIn: true });
 
@@ -46,7 +49,7 @@ describe('Game functional tests', function () {
     // TODO: Implement check once Firebase writes are working
   });
 
-  it.skip('copy roster from team', async function () {
+  it('copy roster from team', async function () {
     const gameRosterPage = pageObject = new GameRosterPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       teamId: integrationTestData.TEAM2.ID,
@@ -54,6 +57,9 @@ describe('Game functional tests', function () {
     });
     await gameRosterPage.init();
     await gameRosterPage.open({ signIn: true });
+
+    // TODO: Implement waiting for view to be loaded/rendered
+    await gameRosterPage.page.waitForTimeout(500);
 
     // Verify that the game roster is initially empty.
     const emptyPlayers = await gameRosterPage.getPlayers();

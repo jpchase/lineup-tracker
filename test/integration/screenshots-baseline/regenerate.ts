@@ -9,7 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import * as path from 'path';
-import { PageObject } from '../pages/page-object.js';
+import { OpenOptions, PageObject } from '../pages/page-object.js';
 import { createScreenshotDirectories, getAllVisualPages } from '../pages/visual-page-factory.js';
 import { config, DevServer, startTestServer } from '../server/test-server.js';
 
@@ -29,16 +29,16 @@ describe('🎁 regenerate screenshots', function () {
     describe(`${breakpoint.name} viewport`, function () {
       for (const pageConfig of getAllVisualPages(breakpoint)) {
         it(pageConfig.name, async function () {
-          return generateScreenshot(pageConfig.page, breakpoint.name);
+          return generateScreenshot(pageConfig.page, breakpoint.name, pageConfig.openOptions);
         });
       }
     }); // describe(`${breakpoint.name} viewport`
   }
 });
 
-async function generateScreenshot(page: PageObject, filePrefix: string) {
+async function generateScreenshot(page: PageObject, filePrefix: string, openOptions?: OpenOptions) {
   await page.init();
-  await page.open();
+  await page.open(openOptions);
   await page.screenshot(path.join(config.baselineDir, filePrefix));
   await page.close();
 }
