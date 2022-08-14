@@ -8,7 +8,7 @@ import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildSh
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
-describe('Clock actions', () => {
+describe('Live slice: Clock actions', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
   const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
   const time2 = new Date(2016, 0, 1, 14, 0, 10).getTime();

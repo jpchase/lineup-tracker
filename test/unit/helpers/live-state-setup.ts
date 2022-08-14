@@ -1,4 +1,5 @@
 import { TimerData } from '@app/models/clock.js';
+import { SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
 import { LiveClock, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
 import { LiveGameState, LiveState } from '@app/slices/live/live-slice.js';
 import { ShiftState } from '@app/slices/live/shift-slice.js';
@@ -53,6 +54,27 @@ export function buildLiveStateWithCurrentGame(game: LiveGame, rest?: Partial<Liv
     state.games![game.id] = game;
   }
   return state;
+}
+
+export function buildSetupTasks(): SetupTask[] {
+  return [
+    {
+      step: SetupSteps.Formation,
+      status: SetupStatus.Active
+    },
+    {
+      step: SetupSteps.Roster,
+      status: SetupStatus.Pending
+    },
+    {
+      step: SetupSteps.Captains,
+      status: SetupStatus.Pending
+    },
+    {
+      step: SetupSteps.Starters,
+      status: SetupStatus.Pending
+    }
+  ]
 }
 
 export function buildClock(timer?: TimerData, rest?: Partial<LiveClock>): LiveClock {

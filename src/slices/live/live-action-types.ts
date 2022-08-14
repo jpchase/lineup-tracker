@@ -28,6 +28,10 @@ export interface PendingSubsInvalidPayload extends LiveGamePayload {
   invalidSubs: string[]
 }
 
+export interface StartersInvalidPayload extends LiveGamePayload {
+  invalidStarters: string[]
+}
+
 export const prepareLiveGamePayload = (gameId: string) => {
   return {
     payload: {

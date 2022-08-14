@@ -131,3 +131,15 @@ snapshots["lineup-game-setup tests Starters shows confirm starter UI when propos
 `;
 /* end snapshot lineup-game-setup tests Starters shows confirm starter UI when proposed starter exists */
 
+snapshots["lineup-game-setup tests Starters shows errors when all starter positions are empty"] = 
+`<span id="starter-errors">
+  <mwc-icon>
+    report
+  </mwc-icon>
+  <span class="error">
+    Invalid starters: AM1, AM2, GK, HM, LCB, LFB, LW, RCB, RFB, RW, S
+  </span>
+</span>
+`;
+/* end snapshot lineup-game-setup tests Starters shows errors when all starter positions are empty */
+

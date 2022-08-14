@@ -17,7 +17,7 @@ function mockGetState(currentState: LiveState) {
   });
 }
 
-describe('Substitution actions', () => {
+describe('Live slice: Substitution actions', () => {
 
   describe('Pending Subs', () => {
     // The first 11 players (ids P0 - P10) fill all the positions for the 4-3-3 formation.

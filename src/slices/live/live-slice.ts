@@ -15,7 +15,8 @@ import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
-import { buildSwapPlayerId, ConfigurePeriodsPayload, extractIdFromSwapPlayerId, GameSetupCompletedPayload, LiveGamePayload, PendingSubsAppliedPayload, PendingSubsInvalidPayload, prepareLiveGamePayload, StartPeriodPayload } from './live-action-types.js';
+import { buildSwapPlayerId, ConfigurePeriodsPayload, extractIdFromSwapPlayerId, GameSetupCompletedPayload, LiveGamePayload, PendingSubsAppliedPayload, PendingSubsInvalidPayload, prepareLiveGamePayload, StartersInvalidPayload, StartPeriodPayload } from './live-action-types.js';
+import { invalidStartersHandler, invalidStartersPrepare } from './setup-reducer-logic.js';
 import { shift, ShiftState } from './shift-slice.js';
 import { invalidPendingSubsHandler, invalidPendingSubsPrepare, markPlayerOutHandler, returnOutPlayerHandler } from './substitution-reducer-logic.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
@@ -26,6 +27,7 @@ export interface LiveGameState {
   selectedStarterPlayer?: string;
   selectedStarterPosition?: Position;
   proposedStarter?: LivePlayer;
+  invalidStarters?: string[];
   selectedOffPlayer?: string;
   selectedOnPlayer?: string;
   selectedOnPlayer2?: string;
@@ -68,6 +70,7 @@ export const selectCurrentLiveGame = (state: RootState) => {
 export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
 export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
 export const selectInvalidSubs = (state: RootState) => state.live?.invalidSubs;
+export const selectInvalidStarters = (state: RootState) => state.live?.invalidStarters;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
 export const selectPendingSubs = (state: RootState, selectedOnly?: boolean, includeSwaps?: boolean) => {
   const game = selectCurrentLiveGame(state);
@@ -212,6 +215,19 @@ const liveSlice = createSlice({
 
     startersCompleted: (state) => {
       completeSetupStepForAction(state, SetupSteps.Starters);
+      state.invalidStarters = undefined;
+    },
+
+    invalidStarters: {
+      reducer: (state, action: PayloadAction<StartersInvalidPayload>) => {
+        const game = findGame(state, action.payload.gameId);
+        if (!game) {
+          return;
+        }
+        return invalidStartersHandler(state, action);
+      },
+
+      prepare: invalidStartersPrepare
     },
 
     captainsCompleted: (state) => {
@@ -664,7 +680,8 @@ export const {
   // TODO: Remove this export of completeRoster when no longer needed in reducers/game.ts
   completeRoster,
   formationSelected, getLiveGame, startersCompleted, captainsCompleted, gameSetupCompleted,
-  selectStarter, selectStarterPosition, applyStarter, cancelStarter,
+  // Starter-related actions
+  selectStarter, selectStarterPosition, applyStarter, cancelStarter, invalidStarters,
   // Clock-related actions
   configurePeriods, startPeriod, endPeriod, toggleClock,
   // Sub-related actions
