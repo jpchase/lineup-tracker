@@ -53,7 +53,7 @@ describe('Game functional tests', function () {
     const gameRosterPage = pageObject = new GameRosterPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       teamId: integrationTestData.TEAM2.ID,
-      gameId: integrationTestData.TEAM2.NEW_GAME_ID
+      gameId: integrationTestData.TEAM2.games.NEW
     });
     await gameRosterPage.init();
     await gameRosterPage.open({ signIn: true });
