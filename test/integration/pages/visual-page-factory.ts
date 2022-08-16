@@ -9,6 +9,7 @@ import { TeamCreatePage } from './team-create-page.js';
 import { TeamRosterPage } from './team-roster-page.js';
 import { TeamSelectPage } from './team-select-page.js';
 import { BreakpointConfig, config } from '../server/test-server.js';
+import { integrationTestData } from '../data/integration-data-constants.js';
 
 export interface VisualPageConfig {
   name: string;
@@ -42,7 +43,12 @@ export function* getAllVisualPages(breakpoint: BreakpointConfig): Generator<Visu
   yield { name: '/viewGames', page: new GameListPage(pageOptions), openOptions: { signIn: true } };
 
   // Game detail page: /game
-  yield { name: '/game', page: new GameDetailPage(pageOptions), openOptions: { signIn: true } };
+  const gameOptions: PageOptions = {
+    ...pageOptions,
+    gameId: integrationTestData.TEAM1.NEW_GAME_ID,
+    teamId: integrationTestData.TEAM1.ID
+  };
+  yield { name: '/game', page: new GameDetailPage(gameOptions), openOptions: { signIn: true } };
 
   // Team pages
   // Team roster page: /viewRoster

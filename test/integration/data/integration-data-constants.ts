@@ -7,6 +7,10 @@ export const integrationTestData = {
   TEAM2: {
     ID: 'u05MxrB7sEWZOJ3F5kyN',
     OWNER_ID: 'dkRjNwwKIkB6OVQH2SRkBpmYHo8A',
-    NEW_GAME_ID: 'szFJ5VVPkJn42DV2f2Ag'
+    NEW_GAME_ID: 'szFJ5VVPkJn42DV2f2Ag',
+    games: {
+      NEW: 'szFJ5VVPkJn42DV2f2Ag',
+      NEW_WITH_ROSTER: 'KASxLPgbQqe38dwkH76D',
+    }
   },
 };

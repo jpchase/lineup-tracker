@@ -6,7 +6,7 @@ export class GameRosterPage extends PageObject {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
-      scenarioName: 'addNewGame',
+      scenarioName: 'game roster',
       route: `gameroster/${options.gameId}?team=${options.teamId}`
     });
   }
