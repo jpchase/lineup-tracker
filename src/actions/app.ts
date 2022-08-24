@@ -36,7 +36,7 @@ export const navigate: ActionCreator<ThunkResult> = (location: Location) => (dis
   const parts = pathname.slice(1).split('/');
   let page = parts[0] || 'viewHome';
 
-  console.log(`navigate: got page = ${page} from location`, location);
+  console.log(`navigate: got page = ${page} from location`, location.href);
   // Game views have path: /{view}/{gameId}
   const gameId = parts[1];
 
