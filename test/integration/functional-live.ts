@@ -39,10 +39,20 @@ describe('functional tests', function () {
     console.log('check formation step status')
     await expectStepComplete(gameSetupPage, SetupSteps.Formation);
 
+    console.log('reload at formation step');
+    await gameSetupPage.reload({ signIn: true });
+    console.log('after reload, check formation step status')
+    await expectStepComplete(gameSetupPage, SetupSteps.Formation);
+
     // Roster is already populated on the game, mark the step as done.
     console.log('mark roster done')
     await gameSetupPage.markStepDone(SetupSteps.Roster);
     console.log('check roster step status')
+    await expectStepComplete(gameSetupPage, SetupSteps.Roster);
+
+    console.log('reload at roster step');
+    await gameSetupPage.reload({ signIn: true });
+    console.log('after reload, check roster step status')
     await expectStepComplete(gameSetupPage, SetupSteps.Roster);
 
     // Captains step is currently a no-op, mark the step as done.
@@ -51,6 +61,10 @@ describe('functional tests', function () {
     console.log('check captains step status')
     await expectStepComplete(gameSetupPage, SetupSteps.Captains);
 
+    console.log('reload at captains step');
+    await gameSetupPage.reload({ signIn: true });
+    console.log('after reload, check captains step status')
+    await expectStepComplete(gameSetupPage, SetupSteps.Captains);
     // complete each setup step and refresh?
   });
 

@@ -24,6 +24,11 @@ export interface OpenOptions {
   signIn?: boolean;
 }
 
+enum PageLoadType {
+  Navigation,
+  Reload
+}
+
 export class PageObject {
   private _browser?: Browser;
   private _page?: Page;
@@ -89,15 +94,20 @@ export class PageObject {
   }
 
   async open(options: OpenOptions = {}) {
-    if (!this._page) {
-      throw new Error('Page not initialized. Did you call init()?');
-    }
-
     if (this._viewPort) {
-      this._page.setViewport(this._viewPort);
+      this.page.setViewport(this._viewPort);
     }
 
-    await this._page.goto(`${config.appUrl}/${this._route}`);
+    await this.page.goto(`${config.appUrl}/${this._route}`);
+    await this.waitForLoad(PageLoadType.Navigation, options);
+  }
+
+  async reload(options: OpenOptions = {}) {
+    await this.page.reload();
+    await this.waitForLoad(PageLoadType.Reload, options);
+  }
+
+  private async waitForLoad(_loadType: PageLoadType, options: OpenOptions = {}) {
     await this.waitForAppInitialization();
     if (options.signIn) {
       await this.signin();
@@ -106,7 +116,7 @@ export class PageObject {
     if (this.openFunc) {
       await this.openFunc();
     }
-    await this._page.waitForTimeout(1500);
+    await this.page.waitForTimeout(1500);
   }
 
   async waitForAppInitialization() {
