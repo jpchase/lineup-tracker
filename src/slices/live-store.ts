@@ -1,10 +1,13 @@
 import { Store } from 'redux';
 import { hydrateLive } from '../actions/live.js';
-import { LiveGame } from '../models/live.js';
+import { debug } from '../common/debug';
+import { LiveGame, LiveGames } from '../models/live.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
 import { live, selectCurrentLiveGame, selectCurrentShift } from './live/live-slice.js';
 import { ShiftState } from './live/shift-slice.js';
+
+const debugStore = debug('live-store');
 
 const KEY_CACHED_LIVE = 'CACHED_LIVE';
 interface CachedLive {
@@ -16,21 +19,21 @@ let initialized = false;
 let cachedState: CachedLive = {};
 
 export function getLiveStore(storeInstance?: RootStore, hydrate: boolean = true): RootStore {
-  console.log(`getLiveStore called: storeInstance is set ${storeInstance ? true : false}`);
+  debugStore(`getLiveStore called: storeInstance is set ${storeInstance ? true : false}`);
   const store = storeInstance || globalStore;
   if (!initialized) {
-    console.log('getLiveStore: first call, do initialization');
+    debugStore('getLiveStore: first call, do initialization');
     // Lazy load the reducer
     store.addReducers({
       live
     });
 
     if (hydrate) {
-      console.log('getLiveStore: setup hydration');
+      debugStore('getLiveStore: setup hydration');
       hydrateState(store);
 
       store.subscribe(() => {
-        console.log('getLiveStore: in store.subscribe()');
+        debugStore('getLiveStore: in store.subscribe()');
         persistState(store);
       });
     }
@@ -46,26 +49,30 @@ export function getLiveStoreConfigurator(hydrate: boolean): SliceStoreConfigurat
 }
 
 export function hydrateState(storeInstance: Store<RootState>) {
-  console.log('hydrateState: start');
+  debugStore('hydrateState: start');
   idb.get(KEY_CACHED_LIVE).then((value) => {
     if (!value) {
-      console.log('hydrateState: nothing in idb');
+      debugStore('hydrateState: nothing in idb');
       return;
     }
     cachedState = value as CachedLive;
-    console.log('hydrateState: hydrate action about to send');
-    storeInstance.dispatch(hydrateLive(cachedState.game, cachedState.currentGameId, cachedState.shift));
-    console.log('hydrateState: hydrate action done');
+    debugStore(`hydrateState: hydrate action about to send:\n${JSON.stringify(cachedState)}`);
+    const games: LiveGames = {};
+    if (cachedState.game) {
+      games[cachedState.game.id] = cachedState.game;
+    }
+    storeInstance.dispatch(hydrateLive(games, cachedState.currentGameId, cachedState.shift));
+    debugStore('hydrateState: hydrate action done');
   });
 }
 
 export function persistState(storeInstance: Store<RootState>) {
-  console.log('persistState: start');
+  debugStore('persistState: start');
   const state = storeInstance.getState();
 
   const currentGame = selectCurrentLiveGame(state);
   if (!currentGame) {
-    console.log('persistState: current game missing');
+    debugStore('persistState: current game missing');
     return;
   }
 
@@ -75,7 +82,7 @@ export function persistState(storeInstance: Store<RootState>) {
   // As state is immutable, different references imply updates.
   if (cachedState.game === currentGame &&
     cachedState.shift == currentShift) {
-    console.log(`persistState: current state already cached: ${currentGame.id}`);
+    debugStore(`persistState: current state already cached: ${currentGame.id}`);
     return;
   }
   // Store games in idb
@@ -86,7 +93,7 @@ export function persistState(storeInstance: Store<RootState>) {
     shift: currentShift
   };
   idb.set(KEY_CACHED_LIVE, newCache).then(() => {
-    console.log(`persistState: idb updated for: ${currentGame.id}`);
+    debugStore(`persistState: idb updated for: ${currentGame.id}`);
     cachedState = newCache;
   });
 }

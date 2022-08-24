@@ -1,7 +1,7 @@
 import { hydrateLive } from '@app/actions/live.js';
 import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
-import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
+import { getPlayer, LiveGame, LiveGames, LivePlayer, PeriodStatus } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
@@ -134,7 +134,7 @@ describe('Live slice', () => {
     });
 
     it('should set hydrated flag when cached values are missing', () => {
-      const newState = live(currentState, hydrateLive());
+      const newState = live(currentState, hydrateLive(undefined as unknown as LiveGames));
 
       expect(newState).to.include({
         hydrated: true,

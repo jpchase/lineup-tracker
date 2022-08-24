@@ -88,7 +88,7 @@ describe('Live store', () => {
       // Waits for promises to resolve.
       await Promise.resolve();
 
-      const hydrateAction = hydrateLive(cachedData.game, cachedData.currentGameId,
+      const hydrateAction = hydrateLive({ [cachedData.currentGameId]: cachedData.game }, cachedData.currentGameId,
         cachedData.shift);
 
       expect(storeMock.dispatch).to.have.been.calledWith(hydrateAction);
