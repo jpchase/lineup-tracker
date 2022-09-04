@@ -38,6 +38,12 @@ export function getLiveStore(storeInstance?: RootStore, hydrate: boolean = true)
       });
     }
     initialized = true;
+  } else if (!store.getState().live) {
+    debugStore('getLiveStore: live state missing, add reducer');
+    // Lazy load the reducer
+    store.addReducers({
+      live
+    });
   }
   return store;
 }

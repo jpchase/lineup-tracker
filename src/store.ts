@@ -2,21 +2,21 @@
 @license
 */
 
-import { configureStore } from '@reduxjs/toolkit';
-import { lazyReducerEnhancer, LazyStore } from 'pwa-helpers/lazy-reducer-enhancer.js';
 import {
   Action,
   AnyAction,
   combineReducers,
+  configureStore,
   Reducer,
   ReducersMapObject,
-  Store
-} from 'redux';
-import { ThunkDispatch } from 'redux-thunk';
+  Store,
+  ThunkDispatch
+} from '@reduxjs/toolkit';
+import { lazyReducerEnhancer, LazyStore } from 'pwa-helpers/lazy-reducer-enhancer.js';
 import { listenerMiddleware } from './app/action-listeners.js';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import app, { AppState } from './reducers/app';
-import { GameState } from './reducers/game';
+import type { GameState } from './reducers/game.js';
 import type { AuthState } from './slices/auth/auth-slice.js';
 import type { LiveState } from './slices/live/live-slice.js';
 import type { TeamState } from './slices/team/team-slice.js';
@@ -57,22 +57,28 @@ export function combineReducersWithReset<S, A extends Action>(
   return rootReducer;
 }
 
-// Initializes the Redux store with a lazyReducerEnhancer, to allow adding reducers
-// after the store is created.
-//  - Type magic is a workaround for https://github.com/reduxjs/redux-toolkit/issues/2241
-export const baseStore = configureStore({
-  reducer: (state => state) as Reducer<RootState>,
-  enhancers: [lazyReducerEnhancer(combineReducersWithReset)],
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(listenerMiddleware.middleware, dynamicMiddlewares)
-});
-type BaseStore = typeof baseStore;
+export function setupStore() {
+  // Initializes the Redux store with a lazyReducerEnhancer, to allow adding reducers
+  // after the store is created.
+  //  - Type magic is a workaround for https://github.com/reduxjs/redux-toolkit/issues/2241
+  const baseStore = configureStore({
+    reducer: (state => state) as Reducer<RootState>,
+    enhancers: [lazyReducerEnhancer(combineReducersWithReset)],
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(listenerMiddleware.middleware, dynamicMiddlewares)
+  });
+  type BaseStore = typeof baseStore;
 
-export const store: RootStore = baseStore as BaseStore & LazyStore;
+  const store: RootStore = baseStore as BaseStore & LazyStore;
 
-// Initially loaded reducers.
-store.addReducers({
-  app
-});
+  // Initially loaded reducers.
+  store.addReducers({
+    app
+  });
+
+  return store;
+}
+
+export const store: RootStore = setupStore();
 
 export type AppDispatch = typeof store.dispatch;

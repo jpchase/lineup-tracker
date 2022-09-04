@@ -17,7 +17,7 @@ import {
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
 import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
-import { resetState, store } from '@app/store';
+import { setupStore } from '@app/store';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
@@ -70,9 +70,9 @@ function findPlayer(game: LiveGame, status: PlayerStatus) {
 describe('lineup-game-setup tests', () => {
   let el: LineupGameSetup;
   let dispatchStub: sinon.SinonSpy;
+
   beforeEach(async () => {
-    // Resets to the initial store state.
-    store.dispatch(resetState());
+    const store = setupStore();
 
     sinon.restore();
 
@@ -87,6 +87,10 @@ describe('lineup-game-setup tests', () => {
   afterEach(async () => {
     removeMiddleware(actionLoggerMiddleware);
   });
+
+  function getStore() {
+    return el.store!;
+  }
 
   function getPlayerElement(list: LineupPlayerList, player: LivePlayer): LineupPlayerCard {
     const items = list.shadowRoot!.querySelectorAll('lineup-player-card');
@@ -185,7 +189,7 @@ describe('lineup-game-setup tests', () => {
   });
 
   it('renders all the tasks', async () => {
-    store.dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
+    getStore().dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
     await el.updateComplete;
 
     const items = getTaskElements();
@@ -218,7 +222,7 @@ describe('lineup-game-setup tests', () => {
     expect(tasks[0].status).to.equal(SetupStatus.Active);
     expect(tasks[1].status).to.equal(SetupStatus.Pending);
 
-    store.dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
+    getStore().dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
     await el.updateComplete;
 
     const items = getTaskElements();
@@ -290,6 +294,7 @@ describe('lineup-game-setup tests', () => {
 
           // Use hydration to set the constructed live game, otherwise it
           // would be initialized by GET_GAME_SUCCESS later.
+          const store = getStore();
           store.dispatch(hydrateLive(buildLiveGames([liveGame]), liveGame.id));
           store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
           await el.updateComplete;
@@ -351,7 +356,7 @@ describe('lineup-game-setup tests', () => {
 
   describe('complete setup', () => {
     it('complete setup button is disabled initially', async () => {
-      store.dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
+      getStore().dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
       await el.updateComplete;
 
       const completeButton = getCompleteSetupButton();
@@ -360,6 +365,7 @@ describe('lineup-game-setup tests', () => {
 
     it('complete setup button is enabled after tasks are completed', async () => {
       const game = getGameDetail();
+      const store = getStore();
       store.dispatch({ type: GET_GAME_SUCCESS, game });
       await el.updateComplete;
 
@@ -395,6 +401,7 @@ describe('lineup-game-setup tests', () => {
 
       // Use hydration to set the constructed live game, otherwise it
       // would be initialized by GET_GAME_SUCCESS later.
+      const store = getStore();
       store.dispatch(hydrateLive(buildLiveGames([liveGame]), liveGame.id));
       store.dispatch({ type: GET_GAME_REQUEST, gameId: newGame.id });
       store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
@@ -420,6 +427,7 @@ describe('lineup-game-setup tests', () => {
       const newGame = getGameDetail();
       expect(newGame.status).to.equal(GameStatus.New);
 
+      const store = getStore();
       store.dispatch({ type: GET_GAME_SUCCESS, game: newGame });
 
       // Simulates the completion of the setup tasks need to work on starters.
@@ -495,6 +503,7 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
+      const store = getStore();
       store.dispatch(selectStarter(player.id, /*selected =*/true));
       store.dispatch(selectStarterPosition({ id: 'AM1', type: 'AM' }));
       await el.updateComplete;
@@ -510,6 +519,7 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
+      const store = getStore();
       store.dispatch(selectStarter(player.id, /*selected =*/true));
       store.dispatch(selectStarterPosition({ id: 'LW', type: 'W' }));
       await el.updateComplete;
@@ -538,6 +548,7 @@ describe('lineup-game-setup tests', () => {
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
 
+      const store = getStore();
       store.dispatch(selectStarter(player.id, /*selected =*/true));
       store.dispatch(selectStarterPosition({ id: 'RW', type: 'W' }));
       await el.updateComplete;
