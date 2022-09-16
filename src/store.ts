@@ -2,31 +2,21 @@
 @license
 */
 
-declare global {
-  interface Window {
-    process?: Object;
-    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: typeof compose;
-  }
-}
-
-import { lazyReducerEnhancer, LazyStore } from 'pwa-helpers/lazy-reducer-enhancer.js';
 import {
   Action,
   AnyAction,
-  applyMiddleware,
   combineReducers,
-  compose,
-  createStore,
+  configureStore,
   Reducer,
   ReducersMapObject,
   Store,
-  StoreEnhancer
-} from 'redux';
-import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk';
+  ThunkDispatch
+} from '@reduxjs/toolkit';
 import { listenerMiddleware } from './app/action-listeners.js';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
+import { lazyReducerEnhancer, LazyStore } from './middleware/lazy-reducers.js';
 import app, { AppState } from './reducers/app';
-import { GameState } from './reducers/game';
+import type { GameState } from './reducers/game.js';
 import type { AuthState } from './slices/auth/auth-slice.js';
 import type { LiveState } from './slices/live/live-slice.js';
 import type { TeamState } from './slices/team/team-slice.js';
@@ -67,28 +57,29 @@ export function combineReducersWithReset<S, A extends Action>(
   return rootReducer;
 }
 
-// Sets up a Chrome extension for time travel debugging.
-// See https://github.com/zalmoxisus/redux-devtools-extension for more information.
-const devCompose: <Ext0, Ext1, StateExt0, StateExt1>(
-  f1: StoreEnhancer<Ext0, StateExt0>, f2: StoreEnhancer<Ext1, StateExt1>
-) => StoreEnhancer<Ext0 & Ext1, StateExt0 & StateExt1> =
-  window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+export function setupStore(preloadedState?: RootState) {
+  // Initializes the Redux store with a lazyReducerEnhancer, to allow adding reducers
+  // after the store is created.
+  //  - Type magic is a workaround for https://github.com/reduxjs/redux-toolkit/issues/2241
+  const baseStore = configureStore({
+    reducer: (state => state) as Reducer<RootState>,
+    preloadedState,
+    enhancers: [lazyReducerEnhancer(combineReducersWithReset)],
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(listenerMiddleware.middleware, dynamicMiddlewares)
+  });
+  type BaseStore = typeof baseStore;
 
-// Initializes the Redux store with a lazyReducerEnhancer (so that you can
-// lazily add reducers after the store has been created) and redux-thunk (so
-// that you can dispatch async actions). See the "Redux and state management"
-// section of the wiki for more details:
-// https://github.com/Polymer/pwa-starter-kit/wiki/4.-Redux-and-state-management
-export const store: RootStore = createStore(
-  state => state as Reducer<RootState>,
-  devCompose(
-    lazyReducerEnhancer(combineReducersWithReset),
-    applyMiddleware(thunk as ThunkMiddleware<RootState>, listenerMiddleware.middleware, dynamicMiddlewares))
-);
+  const store: RootStore = baseStore as BaseStore & LazyStore;
 
-// Initially loaded reducers.
-store.addReducers({
-  app
-});
+  // Initially loaded reducers.
+  store.addReducers({
+    app
+  });
+
+  return store;
+}
+
+export const store: RootStore = setupStore();
 
 export type AppDispatch = typeof store.dispatch;

@@ -35,6 +35,12 @@ export function getGameStore(storeInstance?: RootStore, hydrate: boolean = true)
       });
     }
     initialized = true;
+  } else if (!store.hasReducer('game')) {
+    debugStore('getGameStore: game state missing, add reducer');
+    // Lazy load the reducer
+    store.addReducers({
+      game
+    });
   }
   return store;
 }

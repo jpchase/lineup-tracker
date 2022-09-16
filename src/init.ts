@@ -51,7 +51,7 @@ export async function initApp() {
   window.document.body.dataset.appInitialized = 'true';
 
   // Wait for the loading actions to complete (success or error), before any navigation.
-  debugInit(`install router`);
+  debugInit(`install router: ${location.href}`);
   installRouter((location) => store.dispatch(navigate(location)));
 
   appInitialized = true;
