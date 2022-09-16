@@ -12,9 +12,9 @@ import {
   Store,
   ThunkDispatch
 } from '@reduxjs/toolkit';
-import { lazyReducerEnhancer, LazyStore } from 'pwa-helpers/lazy-reducer-enhancer.js';
 import { listenerMiddleware } from './app/action-listeners.js';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
+import { lazyReducerEnhancer, LazyStore } from './middleware/lazy-reducers.js';
 import app, { AppState } from './reducers/app';
 import type { GameState } from './reducers/game.js';
 import type { AuthState } from './slices/auth/auth-slice.js';
@@ -57,12 +57,13 @@ export function combineReducersWithReset<S, A extends Action>(
   return rootReducer;
 }
 
-export function setupStore() {
+export function setupStore(preloadedState?: RootState) {
   // Initializes the Redux store with a lazyReducerEnhancer, to allow adding reducers
   // after the store is created.
   //  - Type magic is a workaround for https://github.com/reduxjs/redux-toolkit/issues/2241
   const baseStore = configureStore({
     reducer: (state => state) as Reducer<RootState>,
+    preloadedState,
     enhancers: [lazyReducerEnhancer(combineReducersWithReset)],
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(listenerMiddleware.middleware, dynamicMiddlewares)

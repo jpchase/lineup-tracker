@@ -38,7 +38,7 @@ export function getLiveStore(storeInstance?: RootStore, hydrate: boolean = true)
       });
     }
     initialized = true;
-  } else if (!store.getState().live) {
+  } else if (!store.hasReducer('live')) {
     debugStore('getLiveStore: live state missing, add reducer');
     // Lazy load the reducer
     store.addReducers({
