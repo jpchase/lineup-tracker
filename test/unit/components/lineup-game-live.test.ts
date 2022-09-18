@@ -13,7 +13,7 @@ import { PlayerStatus } from '@app/models/player.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
 import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, markPlayerOut, returnOutPlayer, selectCurrentLiveGame, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
-import { resetState, store } from '@app/store.js';
+import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
@@ -43,21 +43,28 @@ describe('lineup-game-live tests', () => {
   let el: LineupGameLive;
   let dispatchStub: sinon.SinonSpy;
   beforeEach(async () => {
-    // Resets to the initial store state.
-    store.dispatch(resetState());
-
     actions = [];
     addMiddleware(actionLoggerMiddleware);
 
-    const template = html`<lineup-game-live .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-live>`;
-    el = await fixture(template);
-    dispatchStub = sinon.spy(el, 'dispatch');
+    await setupElement();
   });
 
   afterEach(async () => {
     sinon.restore();
     removeMiddleware(actionLoggerMiddleware);
   });
+
+  async function setupElement(preloadedState?: RootState) {
+    const store = setupStore(preloadedState);
+
+    const template = html`<lineup-game-live .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-live>`;
+    el = await fixture(template);
+    dispatchStub = sinon.spy(el, 'dispatch');
+  }
+
+  function getStore() {
+    return el.store!;
+  }
 
   function getClockElement(): LineupGameClock {
     const element = el.shadowRoot!.querySelector('lineup-game-clock');
@@ -135,6 +142,7 @@ describe('lineup-game-live tests', () => {
   }
 
   it('shows no game placeholder when no current game', async () => {
+    const store = getStore();
     expect(store.getState().live, 'LiveState should exist').to.be.ok;
     expect(selectCurrentLiveGame(store.getState()), 'LiveState should have game unset').to.not.be.ok;
 
@@ -147,6 +155,7 @@ describe('lineup-game-live tests', () => {
   it('shows all player sections for started game', async () => {
     const { game } = getGameDetail();
 
+    const store = getStore();
     store.dispatch({ type: GET_GAME_SUCCESS, game });
     await el.updateComplete;
 
@@ -175,6 +184,7 @@ describe('lineup-game-live tests', () => {
       const shift = buildShiftWithTrackersFromGame(live);
 
       // Setup the live game, with the period in progress.
+      const store = getStore();
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
       store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, shift));
       store.dispatch(startPeriod(live.id,/*gameAllowsStart =*/true));
@@ -187,6 +197,7 @@ describe('lineup-game-live tests', () => {
       const onPlayer = getPlayer(liveGame, 'P0')!;
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
+      const store = getStore();
       store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
@@ -287,6 +298,7 @@ describe('lineup-game-live tests', () => {
       expect(foundPlayer, 'Missing player with on status').to.be.ok;
       const onPlayer = foundPlayer!;
 
+      const store = getStore();
       store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
       store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       await el.updateComplete;
@@ -306,6 +318,7 @@ describe('lineup-game-live tests', () => {
       expect(foundPlayer, 'Missing player with on status').to.be.ok;
       const onPlayer = foundPlayer!;
 
+      const store = getStore();
       store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
       store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       await el.updateComplete;
@@ -330,6 +343,7 @@ describe('lineup-game-live tests', () => {
       const offPlayer = getPlayer(liveGame, 'P11')!;
       const otherPositionPlayer = getPlayer(liveGame, 'P1')!;
 
+      const store = getStore();
       store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
       store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       await el.updateComplete;
@@ -364,6 +378,7 @@ describe('lineup-game-live tests', () => {
       expect(foundPlayer, 'Missing player with on status').to.be.ok;
       const onPlayer = foundPlayer!;
 
+      const store = getStore();
       store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
       store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       await el.updateComplete;
@@ -387,6 +402,7 @@ describe('lineup-game-live tests', () => {
       const onPlayer = getPlayer(liveGame, 'P0')!;
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
+      const store = getStore();
       store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
@@ -401,6 +417,7 @@ describe('lineup-game-live tests', () => {
       const onPlayer = getPlayer(liveGame, 'P0')!;
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
+      const store = getStore();
       store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
@@ -424,6 +441,7 @@ describe('lineup-game-live tests', () => {
       const onPlayer = getPlayer(liveGame, 'P0')!;
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
+      const store = getStore();
       store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
@@ -449,6 +467,7 @@ describe('lineup-game-live tests', () => {
       const onPlayer = getPlayer(liveGame, 'P0')!;
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
+      const store = getStore();
       store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
       store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
@@ -549,6 +568,7 @@ describe('lineup-game-live tests', () => {
       gameId = live.id;
 
       // Setup the live game, in Start status
+      const store = getStore();
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
       store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, shift));
 
@@ -572,7 +592,7 @@ describe('lineup-game-live tests', () => {
 
     it('dispatches end period action when event fired by clock component', async () => {
       // Get the clock component into a state that allows the period to end.
-      store.dispatch(startPeriod(gameId,/*gameAllowsStart =*/true));
+      getStore().dispatch(startPeriod(gameId,/*gameAllowsStart =*/true));
       await el.updateComplete;
 
       // Trigger the event by clicking the end period button.
@@ -591,7 +611,7 @@ describe('lineup-game-live tests', () => {
 
     it('dispatches toggle clock action when fired by clock component', async () => {
       // Get the clock component into a state that allows the toggle.
-      store.dispatch(startPeriod(gameId, /*gameAllowsStart =*/true));
+      getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/true));
       await el.updateComplete;
 
       // Trigger the event by clicking the toggle button.
@@ -617,6 +637,7 @@ describe('lineup-game-live tests', () => {
       const shift = buildShiftWithTrackersFromGame(live);
 
       // Setup the live game, in second half, ready to end.
+      const store = getStore();
       store.dispatch({ type: GET_GAME_SUCCESS, game: game });
       store.dispatch(hydrateLive(testlive.buildLiveGames([live]), live.id, shift));
       liveGame = selectLiveGameById(store.getState(), live.id)!;
@@ -627,6 +648,7 @@ describe('lineup-game-live tests', () => {
     function advanceToAfterLastPeriod() {
       // Game has two periods (halves), and begins in "Start" status, before
       // the first half is started
+      const store = getStore();
       store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/true));
       store.dispatch(endPeriod(liveGame.id));
       store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/true));
