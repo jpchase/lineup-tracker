@@ -9,9 +9,6 @@ import { FormationBuilder, FormationType, getPositions } from '@app/models/forma
 import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
 import { LiveGame, LiveGameBuilder, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
-import {
-  GET_GAME_SUCCESS
-} from '@app/slices/game-types';
 import { getLiveStoreConfigurator } from '@app/slices/live-store';
 import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
@@ -227,7 +224,11 @@ describe('lineup-game-setup tests', () => {
   });
 
   it('renders all the tasks', async () => {
-    getStore().dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
+    const game = getGameDetail();
+    const gameState = buildGameStateWithCurrentGame(game);
+    const liveState = buildLiveStateWithTasks(game);
+
+    await setupElement(buildRootState(gameState, liveState));
     await el.updateComplete;
 
     const items = getTaskElements();
@@ -255,13 +256,18 @@ describe('lineup-game-setup tests', () => {
   });
 
   it('task links are disabled unless task is active', async () => {
-    const tasks = getTasks();
+    const game = getGameDetail();
+    const gameState = buildGameStateWithCurrentGame(game);
+    const liveState = buildLiveStateWithTasks(game);
+
+    await setupElement(buildRootState(gameState, liveState));
+    await el.updateComplete;
+
     // Verify that test tasks cover active and non-active status.
+    const liveGame = selectLiveGameById(getStore().getState(), game.id)!;
+    const tasks = liveGame.setupTasks!;
     expect(tasks[0].status).to.equal(SetupStatus.Active);
     expect(tasks[1].status).to.equal(SetupStatus.Pending);
-
-    getStore().dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
-    await el.updateComplete;
 
     const items = getTaskElements();
 
@@ -370,7 +376,11 @@ describe('lineup-game-setup tests', () => {
 
   describe('complete setup', () => {
     it('complete setup button is disabled initially', async () => {
-      getStore().dispatch({ type: GET_GAME_SUCCESS, game: getGameDetail() });
+      const game = getGameDetail();
+      const gameState = buildGameStateWithCurrentGame(game);
+      const liveState = buildLiveStateWithTasks(game);
+
+      await setupElement(buildRootState(gameState, liveState));
       await el.updateComplete;
 
       const completeButton = getCompleteSetupButton();
@@ -379,14 +389,17 @@ describe('lineup-game-setup tests', () => {
 
     it('complete setup button is enabled after tasks are completed', async () => {
       const game = getGameDetail();
-      const store = getStore();
-      store.dispatch({ type: GET_GAME_SUCCESS, game });
+      const gameState = buildGameStateWithCurrentGame(game);
+      const liveState = buildLiveStateWithTasks(game);
+
+      await setupElement(buildRootState(gameState, liveState));
       await el.updateComplete;
 
       let completeButton = getCompleteSetupButton();
       expect(completeButton.disabled, 'Complete setup should be disabled').to.be.true;
 
       // Simulates the completion of all the setup tasks.
+      const store = getStore();
       store.dispatch(formationSelected(FormationType.F4_3_3));
       store.dispatch(completeRoster(game.roster));
       store.dispatch(captainsCompleted());
