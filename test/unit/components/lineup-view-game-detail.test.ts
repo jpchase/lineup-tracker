@@ -1,27 +1,40 @@
 import { LineupViewGameDetail } from '@app/components/lineup-view-game-detail';
 import '@app/components/lineup-view-game-detail.js';
 import { GameDetail, GameStatus } from '@app/models/game';
+import { LiveGame } from '@app/models/live.js';
 import { getGameStoreConfigurator } from '@app/slices/game-store';
-import { GET_GAME_SUCCESS } from '@app/slices/game-types';
-import { resetState, store } from '@app/store';
+import { RootState, setupStore } from '@app/store';
 import { expect, fixture, html } from '@open-wc/testing';
-import { buildRoster, getNewGameDetail, getStoredPlayer } from '../helpers/test_data';
+import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
+import { buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
+import { buildRootState } from '../helpers/root-state-setup.js';
+import * as testlive from '../helpers/test-live-game-data.js';
+import { buildRoster, getNewGameDetail } from '../helpers/test_data';
 
-function getGameDetail(): GameDetail {
-  return getNewGameDetail(buildRoster([getStoredPlayer()]));
+function getGameDetail(): { game: GameDetail, live: LiveGame } {
+  const live = testlive.getLiveGameWithPlayers();
+  const game = getNewGameDetail(buildRoster(live.players));
+  return { game, live };
 }
 
 describe('lineup-view-game-detail tests', () => {
   let el: LineupViewGameDetail;
-  beforeEach(async () => {
-    // Resets to the initial store state.
-    store.dispatch(resetState());
+
+  async function setupElement(preloadedState?: RootState) {
+    const store = setupStore(preloadedState);
 
     const template = html`<lineup-view-game-detail active .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-view-game-detail>`;
     el = await fixture(template);
-  });
+  }
+
+  function getStore() {
+    return el.store!;
+  }
 
   it('shows no game placeholder when no current game', async () => {
+    await setupElement();
+
+    const store = getStore();
     expect(store.getState().game).to.be.ok;
     expect(store.getState().game!.game, 'GameState should have game unset').to.not.be.ok;
 
@@ -29,35 +42,37 @@ describe('lineup-view-game-detail tests', () => {
     expect(placeholder, 'Missing empty placeholder element').to.be.ok;
 
     await expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).to.be.accessible();
   });
 
   it('shows setup component for new game', async () => {
-    const game = getGameDetail();
-    game.status = GameStatus.New;
+    const { game, live } = getGameDetail();
+    game.status = live.status = GameStatus.New;
+    const gameState = buildGameStateWithCurrentGame(game);
+    const liveState = buildLiveStateWithCurrentGame(live);
 
-    store.dispatch({ type: GET_GAME_SUCCESS, game });
+    await setupElement(buildRootState(gameState, liveState));
     await el.updateComplete;
 
-    const setupElement = el.shadowRoot!.querySelector('section lineup-game-setup');
-    expect(setupElement, 'Live element should be shown').to.be.ok;
+    const gameSetupElement = el.shadowRoot!.querySelector('section lineup-game-setup');
+    expect(gameSetupElement, 'Live element should be shown').to.be.ok;
 
     await expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).to.be.accessible();
   });
 
   it('shows live component for started game', async () => {
-    const game = getGameDetail();
-    game.status = GameStatus.Start;
+    const { game, live } = getGameDetail();
+    game.status = live.status = GameStatus.Start;
+    const gameState = buildGameStateWithCurrentGame(game);
+    const liveState = buildLiveStateWithCurrentGame(live);
 
-    store.dispatch({ type: GET_GAME_SUCCESS, game });
-    await el.updateComplete;
+    await setupElement(buildRootState(gameState, liveState));
 
     const liveElement = el.shadowRoot!.querySelector('section lineup-game-live');
     expect(liveElement, 'Live element should be shown').to.be.ok;
 
     await expect(el).shadowDom.to.equalSnapshot();
-  });
-
-  it('a11y', async () => {
     await expect(el).to.be.accessible();
   });
 });
