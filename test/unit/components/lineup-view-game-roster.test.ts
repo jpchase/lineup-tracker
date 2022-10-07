@@ -1,12 +1,13 @@
-import { LineupRoster } from '@app/components/lineup-roster';
-import { LineupViewGameRoster } from '@app/components/lineup-view-game-roster';
+import { LineupRoster } from '@app/components/lineup-roster.js';
+import { LineupViewGameRoster } from '@app/components/lineup-view-game-roster.js';
 import '@app/components/lineup-view-game-roster.js';
-import { GameDetail, GameStatus } from '@app/models/game';
-import { getGameStoreConfigurator } from '@app/slices/game-store';
-import { GET_GAME_SUCCESS } from '@app/slices/game-types';
-import { resetState, store } from '@app/store';
+import { GameDetail, GameStatus } from '@app/models/game.js';
+import { getGameStoreConfigurator } from '@app/slices/game-store.js';
+import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
-import { buildRoster, getNewGameDetail, getStoredPlayer } from '../helpers/test_data';
+import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
+import { buildRootState } from '../helpers/root-state-setup.js';
+import { buildRoster, getNewGameDetail, getStoredPlayer } from '../helpers/test_data.js';
 
 function getGameWithRosterPlayers(): GameDetail {
   return getNewGameDetail(buildRoster([getStoredPlayer()]));
@@ -18,15 +19,22 @@ function getGameWithEmptyRoster(): GameDetail {
 
 describe('lineup-view-game-roster tests', () => {
   let el: LineupViewGameRoster;
-  beforeEach(async () => {
-    // Resets to the initial store state.
-    store.dispatch(resetState());
+
+  async function setupElement(preloadedState?: RootState) {
+    const store = setupStore(preloadedState);
 
     const template = html`<lineup-view-game-roster active .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-view-game-roster>`;
     el = await fixture(template);
-  });
+  }
+
+  function getStore() {
+    return el.store!;
+  }
 
   it('shows no game placeholder when no current game', async () => {
+    await setupElement();
+
+    const store = getStore();
     expect(store.getState().game).to.be.ok;
     expect(store.getState().game!.game, 'GameState should have game unset').to.not.be.ok;
 
@@ -43,8 +51,9 @@ describe('lineup-view-game-roster tests', () => {
   it('shows roster placeholder when game roster is empty', async () => {
     const game = getGameWithEmptyRoster();
     game.status = GameStatus.New;
+    const gameState = buildGameStateWithCurrentGame(game);
 
-    store.dispatch({ type: GET_GAME_SUCCESS, game });
+    await setupElement(buildRootState(gameState));
     await el.updateComplete;
 
     const placeholder = el.shadowRoot!.querySelector('section div.empty-list');
@@ -63,8 +72,9 @@ describe('lineup-view-game-roster tests', () => {
   it('shows player list when game roster is not empty', async () => {
     const game = getGameWithRosterPlayers();
     game.status = GameStatus.New;
+    const gameState = buildGameStateWithCurrentGame(game);
 
-    store.dispatch({ type: GET_GAME_SUCCESS, game });
+    await setupElement(buildRootState(gameState));
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
@@ -82,8 +92,9 @@ describe('lineup-view-game-roster tests', () => {
   it('roster adds allowed for new game', async () => {
     const game = getGameWithRosterPlayers();
     game.status = GameStatus.New;
+    const gameState = buildGameStateWithCurrentGame(game);
 
-    store.dispatch({ type: GET_GAME_SUCCESS, game });
+    await setupElement(buildRootState(gameState));
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
@@ -95,8 +106,9 @@ describe('lineup-view-game-roster tests', () => {
   it('roster adds not allowed for live game', async () => {
     const game = getGameWithRosterPlayers();
     game.status = GameStatus.Live;
+    const gameState = buildGameStateWithCurrentGame(game);
 
-    store.dispatch({ type: GET_GAME_SUCCESS, game });
+    await setupElement(buildRootState(gameState));
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');

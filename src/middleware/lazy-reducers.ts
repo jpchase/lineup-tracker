@@ -19,11 +19,21 @@ export const lazyReducerEnhancer =
         const combinePreservingInitialState = (reducers: ReducersMap) => {
           if (preloadedState) {
             const reducerNames = Object.keys(reducers);
+            let placeholders: ReducersMap = {};
             Object.keys(preloadedState).forEach(item => {
-              if (!reducerNames.includes(item)) {
-                reducers[item] = (state = null) => state;
+              if (reducerNames.includes(item)) {
+                return;
               }
+              placeholders[item] = (state = null) => state;
             });
+            // When adding placeholders, do not modify the input `reducers`
+            // object, create a copy instead.
+            if (Object.keys(placeholders).length > 0) {
+              reducers = {
+                ...reducers,
+                ...placeholders
+              };
+            }
           }
           return combineReducers(reducers);
         };

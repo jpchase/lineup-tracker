@@ -16,6 +16,9 @@ const INITIAL_STATE: GameState = {
 export function buildInitialGameState(): GameState {
   return {
     ...INITIAL_STATE,
+    // Set to a new object, otherwise multiple tests will share the instance
+    // on the constant.
+    games: {}
   };
 }
 
