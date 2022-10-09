@@ -291,11 +291,11 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private finishStep(e: Event, step: SetupSteps) {
     switch (step) {
       case SetupSteps.Captains:
-        this.dispatch(captainsCompleted());
+        this.dispatch(captainsCompleted(this.game!.id));
         break;
 
       case SetupSteps.Roster:
-        this.dispatch(rosterCompleted());
+        this.dispatch(rosterCompleted(this.game!.id));
         break;
 
       case SetupSteps.Starters:
@@ -316,7 +316,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private onFormationChange(e: Event) {
     const select: HTMLSelectElement = e.target as HTMLSelectElement;
 
-    this.dispatch(formationSelected(select.value as any));
+    this.dispatch(formationSelected(this.game!.id, select.value as any));
 
     // TODO: Clear select after setting, otherwise will be pre-filled on other games
     this.showFormation = false;

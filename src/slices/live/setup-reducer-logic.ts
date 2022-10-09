@@ -3,12 +3,18 @@ import { FormationType, Position } from '../../models/formation.js';
 import { GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 import { getPlayer, LiveGame, LiveGameBuilder, LivePlayer } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
-import { GameSetupCompletedPayload, SelectPlayerPayload, StartersInvalidPayload } from './live-action-types.js';
+import {
+  FormationSelectedPayload,
+  GameSetupCompletedPayload,
+  LiveGamePayload,
+  RosterCompletedPayload,
+  SelectPlayerPayload, StartersInvalidPayload
+} from './live-action-types.js';
 import { LiveState } from './live-slice.js';
 
-export const rosterCompletedHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<Roster>) => {
+export const rosterCompletedHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<RosterCompletedPayload>) => {
   // Setup live players from roster
-  const roster = action.payload;
+  const roster = action.payload.roster;
   const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
     const player = roster[playerId];
     return { ...player } as LivePlayer;
@@ -19,7 +25,16 @@ export const rosterCompletedHandler = (_state: LiveState, game: LiveGame, action
   completeSetupStepForAction(game, SetupSteps.Roster);
 }
 
-export const formationSelectedHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<{ formationType: FormationType }>) => {
+export const rosterCompletedPrepare = (gameId: string, roster: Roster) => {
+  return {
+    payload: {
+      gameId,
+      roster,
+    }
+  };
+}
+
+export const formationSelectedHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<FormationSelectedPayload>) => {
   if (!action.payload.formationType) {
     return;
   }
@@ -28,9 +43,10 @@ export const formationSelectedHandler = (_state: LiveState, game: LiveGame, acti
   completeSetupStepForAction(game, SetupSteps.Formation);
 }
 
-export const formationSelectedPrepare = (formationType: FormationType) => {
+export const formationSelectedPrepare = (gameId: string, formationType: FormationType) => {
   return {
     payload: {
+      gameId,
       formationType
     }
   };
@@ -115,7 +131,7 @@ export const cancelStarterHandler = (state: LiveState, game: LiveGame, _action: 
   clearProposedStarter(state);
 }
 
-export const startersCompletedHandler = (state: LiveState, game: LiveGame, _action: AnyAction) => {
+export const startersCompletedHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
   completeSetupStepForAction(game, SetupSteps.Starters);
   state.invalidStarters = undefined;
 }
@@ -137,7 +153,7 @@ export const invalidStartersPrepare = (gameId: string, invalidStarters: string[]
   };
 }
 
-export const captainsCompletedHandler = (_state: LiveState, game: LiveGame, _action: AnyAction) => {
+export const captainsCompletedHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
   completeSetupStepForAction(game, SetupSteps.Captains);
 }
 

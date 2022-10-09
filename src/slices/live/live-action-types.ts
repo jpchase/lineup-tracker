@@ -1,5 +1,6 @@
-import { Position } from '../../models/formation.js';
+import { FormationType, Position } from '../../models/formation.js';
 import { LiveGame, LivePlayer } from '../../models/live.js';
+import { Roster } from '../../models/player.js';
 
 const SWAP_ID_SUFFIX = '_swap';
 
@@ -7,19 +8,20 @@ export interface LiveGamePayload {
   gameId: string;
 }
 
-export interface SelectPlayerPayload {
-  playerId: string;
-  selected: boolean;
-};
+// Setup action payloads
+export interface RosterCompletedPayload extends LiveGamePayload {
+  roster: Roster;
+}
 
-export interface ConfirmSubPayload {
-  newPosition?: Position;
-};
+export interface FormationSelectedPayload extends LiveGamePayload {
+  formationType: FormationType;
+}
 
 export interface GameSetupCompletedPayload extends LiveGamePayload {
   liveGame: LiveGame;
 }
 
+// Game period action payloads
 export interface ConfigurePeriodsPayload extends LiveGamePayload {
   totalPeriods: number;
   periodLength: number;
@@ -28,6 +30,16 @@ export interface ConfigurePeriodsPayload extends LiveGamePayload {
 export interface StartPeriodPayload extends LiveGamePayload {
   gameAllowsStart: boolean;
 }
+
+// Substitution action payloads
+export interface SelectPlayerPayload {
+  playerId: string;
+  selected: boolean;
+};
+
+export interface ConfirmSubPayload {
+  newPosition?: Position;
+};
 
 export interface PendingSubsAppliedPayload extends LiveGamePayload {
   subs: LivePlayer[],

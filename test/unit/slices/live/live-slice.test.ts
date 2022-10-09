@@ -278,10 +278,11 @@ describe('Live slice', () => {
       const expectedState = buildLiveStateWithCurrentGame(
         buildLiveGameWithSetupTasks(rosterPlayers, updatedTasks));
 
-      const state = buildLiveStateWithCurrentGame(testlive.getLiveGame());
+      const game = testlive.getLiveGame();
+      const state = buildLiveStateWithCurrentGame(game);
       expect(getCurrentGame(state)?.players, 'players should be empty').to.deep.equal([]);
 
-      const newState = live(state, completeRoster(buildRoster(rosterPlayers)));
+      const newState = live(state, completeRoster(game.id, buildRoster(rosterPlayers)));
 
       expect(newState).to.deep.include(expectedState);
     });
@@ -304,16 +305,16 @@ describe('Live slice', () => {
           status: GameStatus.New
         });
 
-      const newState = live(state, formationSelected(FormationType.F4_3_3));
+      const newState = live(state, formationSelected(expectedGame.id, FormationType.F4_3_3));
 
       expect(newState).to.deep.include(expectedState);
     });
 
     it('should do nothing if formation input is missing', () => {
-      const state = buildLiveStateWithCurrentGame(
-        buildLiveGameWithPlayers());
+      const game = buildLiveGameWithPlayers();
+      const state = buildLiveStateWithCurrentGame(game);
 
-      const newState = live(state, formationSelected(undefined as any));
+      const newState = live(state, formationSelected(game.id, undefined as any));
 
       expect(newState).to.equal(state);
     });

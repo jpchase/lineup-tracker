@@ -41,7 +41,7 @@ export const startersCompletedCreator = (gameId: string): ThunkAction<void, Root
     dispatch(invalidStarters(game.id, Array.from(invalidPositions.keys()).sort()));
     return;
   }
-  dispatch(startersCompleted(/*game.id*/));
+  dispatch(startersCompleted(game.id));
 };
 
 function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {

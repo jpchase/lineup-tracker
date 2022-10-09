@@ -400,10 +400,10 @@ describe('lineup-game-setup tests', () => {
 
       // Simulates the completion of all the setup tasks.
       const store = getStore();
-      store.dispatch(formationSelected(FormationType.F4_3_3));
-      store.dispatch(completeRoster(game.roster));
-      store.dispatch(captainsCompleted());
-      store.dispatch(startersCompleted());
+      store.dispatch(formationSelected(game.id, FormationType.F4_3_3));
+      store.dispatch(completeRoster(game.id, game.roster));
+      store.dispatch(captainsCompleted(game.id));
+      store.dispatch(startersCompleted(game.id));
       await el.updateComplete;
 
       completeButton = getCompleteSetupButton();

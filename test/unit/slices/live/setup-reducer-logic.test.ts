@@ -321,7 +321,7 @@ describe('Live slice: Setup actions', () => {
         expectedGame.setupTasks = expectedTasks;
         const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
-        const newState = live(state, startersCompleted());
+        const newState = live(state, startersCompleted(game.id));
 
         expect(newState).to.deep.include(expectedState);
 
@@ -333,7 +333,7 @@ describe('Live slice: Setup actions', () => {
         const state = buildLiveStateWithCurrentGame(game);
         state.invalidStarters = ['GK'];
 
-        const newState = live(state, startersCompleted());
+        const newState = live(state, startersCompleted(game.id));
 
         expect(newState.invalidStarters, 'Invalid starters should be cleared').not.to.be.ok;
       });
@@ -368,7 +368,7 @@ describe('Live slice: Setup actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          startersCompleted(/*gameId*/));
+          startersCompleted(gameId));
       });
 
       it('should dispatch error with invalid starters, when no positions are filled', async () => {

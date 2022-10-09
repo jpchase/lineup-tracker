@@ -26,7 +26,7 @@ import {
   captainsCompletedHandler,
   formationSelectedHandler, formationSelectedPrepare,
   invalidStartersHandler, invalidStartersPrepare,
-  rosterCompletedHandler,
+  rosterCompletedHandler, rosterCompletedPrepare,
   selectStarterHandler, selectStarterPositionHandler, selectStarterPositionPrepare, selectStarterPrepare,
   setupCompletedHandler, startersCompletedHandler
 } from './setup-reducer-logic.js';
@@ -114,12 +114,12 @@ export const selectPendingSubs = (state: RootState, selectedOnly?: boolean, incl
   return nextPlayers;
 }
 
-export const rosterCompleted: ActionCreator<ThunkAction<void, RootState, undefined, AnyAction>> = () => (dispatch, getState) => {
+export const rosterCompleted = (gameId: string): ThunkAction<void, RootState, undefined, AnyAction> => (dispatch, getState) => {
   const game = selectCurrentGame(getState());
   if (!game) {
     return;
   }
-  dispatch(actions.completeRoster(game.roster));
+  dispatch(actions.completeRoster(gameId, game.roster));
 };
 
 export const startGamePeriod: ActionCreator<ThunkAction<void, RootState, undefined, AnyAction>> = () => (dispatch, getState) => {
@@ -201,21 +201,30 @@ const liveSlice = createSlice({
       setCurrentGame(state, liveGame);
     },
 
-    completeRoster: buildCGActionHandler(rosterCompletedHandler),
+    completeRoster: {
+      reducer: buildActionHandler(rosterCompletedHandler),
+      prepare: rosterCompletedPrepare
+    },
 
     formationSelected: {
-      reducer: buildCGActionHandler(formationSelectedHandler),
+      reducer: buildActionHandler(formationSelectedHandler),
       prepare: formationSelectedPrepare
     },
 
-    startersCompleted: buildCGActionHandler(startersCompletedHandler),
+    startersCompleted: {
+      reducer: buildActionHandler(startersCompletedHandler),
+      prepare: prepareLiveGamePayload
+    },
 
     invalidStarters: {
       reducer: buildActionHandler(invalidStartersHandler),
       prepare: invalidStartersPrepare
     },
 
-    captainsCompleted: buildCGActionHandler(captainsCompletedHandler),
+    captainsCompleted: {
+      reducer: buildActionHandler(captainsCompletedHandler),
+      prepare: prepareLiveGamePayload
+    },
 
     gameSetupCompleted: {
       reducer: buildActionHandler(setupCompletedHandler),
