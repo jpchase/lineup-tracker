@@ -260,20 +260,29 @@ const liveSlice = createSlice({
     },
 
     selectPlayer: {
-      reducer: buildCGActionHandler(selectPlayerHandler),
+      reducer: buildActionHandler(selectPlayerHandler),
       prepare: selectPlayerPrepare
     },
 
     confirmSub: {
-      reducer: buildCGActionHandler(confirmSubHandler),
+      reducer: buildActionHandler(confirmSubHandler),
       prepare: confirmSubPrepare
     },
 
-    cancelSub: buildCGActionHandler(cancelSubHandler),
+    cancelSub: {
+      reducer: buildActionHandler(cancelSubHandler),
+      prepare: prepareLiveGamePayload
+    },
 
-    confirmSwap: buildCGActionHandler(confirmSwapHandler),
+    confirmSwap: {
+      reducer: buildActionHandler(confirmSwapHandler),
+      prepare: prepareLiveGamePayload
+    },
 
-    cancelSwap: buildCGActionHandler(cancelSwapHandler),
+    cancelSwap: {
+      reducer: buildActionHandler(cancelSwapHandler),
+      prepare: prepareLiveGamePayload
+    },
 
     applyPendingSubs: {
       reducer: buildActionHandler(pendingSubsAppliedHandler),
@@ -286,7 +295,7 @@ const liveSlice = createSlice({
     },
 
     discardPendingSubs: {
-      reducer: buildCGActionHandler(discardPendingSubsHandler),
+      reducer: buildActionHandler(discardPendingSubsHandler),
       prepare: discardPendingSubsPrepare
     },
 
@@ -367,25 +376,6 @@ function buildActionHandler<P extends LiveGamePayload>(handler: ActionHandler<P>
 function invokeActionHandler<P extends LiveGamePayload>(state: LiveState, action: PayloadAction<P>,
   handler: ActionHandler<P>) {
   const game = findGame(state, action.payload.gameId);
-  if (!game) {
-    return;
-  }
-  return handler(state, game, action);
-}
-
-// Temporary, until actions are changed to include gameId
-type CGActionHandler<A extends AnyAction> =
-  (state: LiveState, game: LiveGame, action: A) => void;
-
-function buildCGActionHandler<A extends AnyAction>(handler: CGActionHandler<A>) {
-  return (state: LiveState, action: A) => {
-    return invokeCGActionHandler(state, action, handler);
-  }
-}
-
-function invokeCGActionHandler<A extends AnyAction>(state: LiveState, action: A,
-  handler: CGActionHandler<A>) {
-  const game = findCurrentGame(state);
   if (!game) {
     return;
   }

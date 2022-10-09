@@ -1,4 +1,4 @@
-import { AnyAction, PayloadAction } from '@reduxjs/toolkit';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { Position } from '../../models/formation.js';
 import { findPlayersByStatus, getPlayer, LiveGame, LivePlayer, removePlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
@@ -7,7 +7,7 @@ import {
   ConfirmSubPayload,
   extractIdFromSwapPlayerId,
   LiveGamePayload,
-  PendingSubsAppliedPayload, PendingSubsInvalidPayload,
+  PendingSubsAppliedPayload, PendingSubsDiscardedPayload, PendingSubsInvalidPayload,
   SelectPlayerPayload
 } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
@@ -50,9 +50,10 @@ export const selectPlayerHandler = (state: LiveState, game: LiveGame, action: Pa
   }
 }
 
-export const selectPlayerPrepare = (playerId: string, selected: boolean) => {
+export const selectPlayerPrepare = (gameId: string, playerId: string, selected: boolean) => {
   return {
     payload: {
+      gameId,
       playerId,
       selected: !!selected
     }
@@ -81,15 +82,16 @@ export const confirmSubHandler = (state: LiveState, game: LiveGame, action: Payl
   clearProposedSub(state);
 }
 
-export const confirmSubPrepare = (newPosition?: Position) => {
+export const confirmSubPrepare = (gameId: string, newPosition?: Position) => {
   return {
     payload: {
+      gameId,
       newPosition
     }
   };
 }
 
-export const cancelSubHandler = (state: LiveState, game: LiveGame, _action: AnyAction) => {
+export const cancelSubHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
   if (!state.proposedSub) {
     return;
   }
@@ -103,7 +105,7 @@ export const cancelSubHandler = (state: LiveState, game: LiveGame, _action: AnyA
   clearProposedSub(state);
 }
 
-export const confirmSwapHandler = (state: LiveState, game: LiveGame, _action: AnyAction) => {
+export const confirmSwapHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
   const swap = state.proposedSwap;
   if (!swap) {
     return;
@@ -128,7 +130,7 @@ export const confirmSwapHandler = (state: LiveState, game: LiveGame, _action: An
   clearProposedSwap(state);
 }
 
-export const cancelSwapHandler = (state: LiveState, game: LiveGame, _action: AnyAction) => {
+export const cancelSwapHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
   if (!state.proposedSwap) {
     return;
   }
@@ -209,7 +211,7 @@ export const invalidPendingSubsPrepare = (gameId: string, invalidSubs: string[])
   };
 }
 
-export const discardPendingSubsHandler = (state: LiveState, game: LiveGame, action: PayloadAction<{ selectedOnly?: boolean }>) => {
+export const discardPendingSubsHandler = (state: LiveState, game: LiveGame, action: PayloadAction<PendingSubsDiscardedPayload>) => {
   const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next,
     action.payload.selectedOnly, /* includeSwaps */ true);
   nextPlayers.forEach(player => {
@@ -226,9 +228,10 @@ export const discardPendingSubsHandler = (state: LiveState, game: LiveGame, acti
   state.invalidSubs = undefined;
 }
 
-export const discardPendingSubsPrepare = (selectedOnly?: boolean) => {
+export const discardPendingSubsPrepare = (gameId: string, selectedOnly?: boolean) => {
   return {
     payload: {
+      gameId,
       selectedOnly: !!selectedOnly
     }
   };

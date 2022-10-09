@@ -41,12 +41,12 @@ export interface StartPeriodPayload extends LiveGamePayload {
 }
 
 // Substitution action payloads
-export interface SelectPlayerPayload {
+export interface SelectPlayerPayload extends LiveGamePayload {
   playerId: string;
   selected: boolean;
 };
 
-export interface ConfirmSubPayload {
+export interface ConfirmSubPayload extends LiveGamePayload {
   newPosition?: Position;
 };
 
@@ -57,6 +57,10 @@ export interface PendingSubsAppliedPayload extends LiveGamePayload {
 
 export interface PendingSubsInvalidPayload extends LiveGamePayload {
   invalidSubs: string[]
+}
+
+export interface PendingSubsDiscardedPayload extends LiveGamePayload {
+  selectedOnly?: boolean
 }
 
 export interface StartersInvalidPayload extends LiveGamePayload {

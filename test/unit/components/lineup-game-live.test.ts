@@ -178,6 +178,7 @@ describe('lineup-game-live tests', () => {
 
   describe('Subs', () => {
     let liveGame: LiveGame;
+    let gameId: string;
 
     beforeEach(async () => {
       const { game, live } = getGameDetail();
@@ -198,6 +199,7 @@ describe('lineup-game-live tests', () => {
       await setupElement(buildRootState(gameState, liveState));
       await el.updateComplete;
       liveGame = selectLiveGameById(getStore().getState(), live.id)!;
+      gameId = liveGame.id;
     });
 
     async function preparePendingSwap() {
@@ -205,8 +207,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
@@ -221,7 +223,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(confirmSwap());
+      expect(actions[actions.length - 1]).to.deep.include(confirmSwap(gameId));
     }
 
     it('dispatches select player action when off player selected', async () => {
@@ -240,7 +242,7 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        selectPlayer(player.id, /*selected =*/true));
+        selectPlayer(gameId, player.id, /*selected =*/true));
     });
 
     it('dispatches select player action when on player in formation selected', async () => {
@@ -259,7 +261,7 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        selectPlayer(player.id, /*selected =*/true));
+        selectPlayer(gameId, player.id, /*selected =*/true));
     });
 
     it('dispatches select player action when out player selected', async () => {
@@ -278,7 +280,7 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        selectPlayer(player.id, /*selected =*/true));
+        selectPlayer(gameId, player.id, /*selected =*/true));
     });
 
     it('on player card is selected after selection is processed', async () => {
@@ -306,8 +308,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -326,8 +328,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -342,7 +344,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(confirmSub());
+      expect(actions[actions.length - 1]).to.deep.include(confirmSub(gameId));
     });
 
     it('dispatches confirm sub action with new position when confirmed', async () => {
@@ -351,8 +353,8 @@ describe('lineup-game-live tests', () => {
       const otherPositionPlayer = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -373,7 +375,7 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        confirmSub(otherPositionPlayer.currentPosition));
+        confirmSub(gameId, otherPositionPlayer.currentPosition));
     });
 
     it('dispatches cancel sub action when cancelled', async () => {
@@ -386,8 +388,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(offPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -402,7 +404,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(cancelSub());
+      expect(actions[actions.length - 1]).to.deep.include(cancelSub(gameId));
     });
 
     it('shows confirm swap UI when proposed swap exists', async () => {
@@ -410,8 +412,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
@@ -425,8 +427,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
@@ -441,16 +443,16 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(confirmSwap());
+      expect(actions[actions.length - 1]).to.deep.include(confirmSwap(gameId));
     });
 
-    it('dispatches cancel sub action when cancelled', async () => {
+    it('dispatches cancel swap action when cancelled', async () => {
       const onPlayer = getPlayer(liveGame, 'P0')!;
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
@@ -465,7 +467,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(cancelSwap());
+      expect(actions[actions.length - 1]).to.deep.include(cancelSwap(gameId));
     });
 
     it('shows errors when pending subs are invalid', async () => {
@@ -475,8 +477,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
       await el.updateComplete;
 
       const applyButton = el.shadowRoot!.querySelector('#sub-apply-btn') as Button;
@@ -523,7 +525,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(2);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(markPlayerOut(liveGame.id));
+      expect(actions[actions.length - 1]).to.deep.include(markPlayerOut(gameId));
 
       // Verifies the off player is now in the Out section.
       const outList = getOutList();
@@ -555,7 +557,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(2);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(returnOutPlayer(liveGame.id));
+      expect(actions[actions.length - 1]).to.deep.include(returnOutPlayer(gameId));
 
       // Verifies the out player is now back in the Off section.
       const subsList = getSubsList();
