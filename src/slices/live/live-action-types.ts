@@ -1,3 +1,4 @@
+import { Position } from '../../models/formation.js';
 import { LiveGame, LivePlayer } from '../../models/live.js';
 
 const SWAP_ID_SUFFIX = '_swap';
@@ -9,6 +10,10 @@ export interface LiveGamePayload {
 export interface SelectPlayerPayload {
   playerId: string;
   selected: boolean;
+};
+
+export interface ConfirmSubPayload {
+  newPosition?: Position;
 };
 
 export interface GameSetupCompletedPayload extends LiveGamePayload {

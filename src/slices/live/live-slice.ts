@@ -7,15 +7,20 @@ import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { Position } from '../../models/formation.js';
 import { Game, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer, removePlayer } from '../../models/live.js';
+import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
-import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
-import { buildSwapPlayerId, LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
+import {
+  configurePeriodsHandler, configurePeriodsPrepare,
+  endPeriodHandler,
+  startPeriodHandler, startPeriodPrepare,
+  toggleHandler
+} from './clock-reducer-logic.js';
+import { LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
 import {
   applyStarterHandler, cancelStarterHandler,
   captainsCompletedHandler,
@@ -26,7 +31,18 @@ import {
   setupCompletedHandler, startersCompletedHandler
 } from './setup-reducer-logic.js';
 import { shift, ShiftState } from './shift-slice.js';
-import { invalidPendingSubsHandler, invalidPendingSubsPrepare, markPlayerOutHandler, pendingSubsAppliedHandler, pendingSubsAppliedPrepare, returnOutPlayerHandler } from './substitution-reducer-logic.js';
+import {
+  cancelSubHandler,
+  cancelSwapHandler,
+  confirmSubHandler, confirmSubPrepare,
+  confirmSwapHandler,
+  discardPendingSubsHandler, discardPendingSubsPrepare,
+  invalidPendingSubsHandler, invalidPendingSubsPrepare,
+  markPlayerOutHandler,
+  pendingSubsAppliedHandler, pendingSubsAppliedPrepare,
+  returnOutPlayerHandler,
+  selectPlayerHandler, selectPlayerPrepare
+} from './substitution-reducer-logic.js';
 export { pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
@@ -173,8 +189,6 @@ const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
   },
 });
 
-type SelectPlayer = { playerId: string; selected: boolean };
-
 const liveSlice = createSlice({
   name: 'live',
   initialState: INITIAL_STATE,
@@ -231,143 +245,20 @@ const liveSlice = createSlice({
     cancelStarter: buildCGActionHandler(cancelStarterHandler),
 
     selectPlayer: {
-      reducer: (state, action: PayloadAction<SelectPlayer>) => {
-        const game = findCurrentGame(state)!;
-        const playerId = action.payload.playerId;
-        const selectedPlayer = getPlayer(game, playerId);
-        if (!selectedPlayer) {
-          return;
-        }
-
-        // Always sets the selected flag to true/false as appropriate.
-        selectedPlayer.selected = !!action.payload.selected;
-
-        // Only On, Off, Out statuses need further handling.
-        switch (selectedPlayer.status) {
-          case PlayerStatus.On:
-          case PlayerStatus.Off:
-          case PlayerStatus.Out:
-            break;
-          default:
-            return;
-        }
-
-        const status = selectedPlayer.status;
-        if (action.payload.selected) {
-          setCurrentSelected(state, status, playerId);
-          if (status === PlayerStatus.Out) {
-            return;
-          }
-          const madeSub = prepareSubIfPossible(state);
-          if (!madeSub) {
-            prepareSwapIfPossible(state);
-          }
-        } else {
-          // De-selection.
-          if (getCurrentSelected(state, status) === playerId) {
-            setCurrentSelected(state, status, undefined);
-          }
-        }
-      },
-
-      prepare: (playerId: string, selected: boolean) => {
-        return {
-          payload: {
-            playerId,
-            selected: !!selected
-          }
-        };
-      }
+      reducer: buildCGActionHandler(selectPlayerHandler),
+      prepare: selectPlayerPrepare
     },
 
     confirmSub: {
-      reducer: (state, action: PayloadAction<{ newPosition?: Position }>) => {
-        const sub = state.proposedSub;
-        if (!sub) {
-          return;
-        }
-
-        const game = findCurrentGame(state)!;
-        game.players!.forEach(player => {
-          if (player.id === sub.id) {
-            player.selected = false;
-            player.status = PlayerStatus.Next;
-            player.currentPosition = action.payload.newPosition || sub.currentPosition;
-            player.replaces = sub.replaces;
-            return;
-          }
-          if (player.id === sub.replaces) {
-            player.selected = false;
-          }
-        });
-
-        clearProposedSub(state);
-      },
-
-      prepare: (newPosition?: Position) => {
-        return {
-          payload: {
-            newPosition
-          }
-        };
-      }
+      reducer: buildCGActionHandler(confirmSubHandler),
+      prepare: confirmSubPrepare
     },
 
-    cancelSub: (state) => {
-      if (!state.proposedSub) {
-        return;
-      }
-      const game = findCurrentGame(state)!;
-      const cancelIds = [state.selectedOffPlayer!, state.selectedOnPlayer!];
-      for (const playerId of cancelIds) {
-        const selectedPlayer = getPlayer(game, playerId);
-        if (selectedPlayer && selectedPlayer.selected) {
-          selectedPlayer.selected = false;
-        }
-      }
-      clearProposedSub(state);
-    },
+    cancelSub: buildCGActionHandler(cancelSubHandler),
 
-    confirmSwap: (state) => {
-      const swap = state.proposedSwap;
-      if (!swap) {
-        return;
-      }
+    confirmSwap: buildCGActionHandler(confirmSwapHandler),
 
-      const game = findCurrentGame(state)!;
-      const swapIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
-      for (const playerId of swapIds) {
-        const selectedPlayer = getPlayer(game, playerId);
-        if (!!selectedPlayer?.selected) {
-          selectedPlayer.selected = false;
-        }
-      }
-
-      const nextSwap: LivePlayer = {
-        ...swap,
-        id: buildSwapPlayerId(swap.id),
-        status: PlayerStatus.Next,
-        selected: false
-      }
-      game.players!.push(nextSwap);
-
-      clearProposedSwap(state);
-    },
-
-    cancelSwap: (state) => {
-      if (!state.proposedSwap) {
-        return;
-      }
-      const game = findCurrentGame(state)!;
-      const cancelIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
-      for (const playerId of cancelIds) {
-        const selectedPlayer = getPlayer(game, playerId);
-        if (!!selectedPlayer?.selected) {
-          selectedPlayer.selected = false;
-        }
-      }
-      clearProposedSwap(state);
-    },
+    cancelSwap: buildCGActionHandler(cancelSwapHandler),
 
     applyPendingSubs: {
       reducer: buildActionHandler(pendingSubsAppliedHandler),
@@ -380,30 +271,8 @@ const liveSlice = createSlice({
     },
 
     discardPendingSubs: {
-      reducer: (state, action: PayloadAction<{ selectedOnly?: boolean }>) => {
-        const game = findCurrentGame(state)!;
-        const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next,
-          action.payload.selectedOnly, /* includeSwaps */ true);
-        nextPlayers.forEach(player => {
-          if (player.isSwap) {
-            removePlayer(game, player.id);
-            return;
-          }
-
-          player.status = PlayerStatus.Off;
-          player.replaces = undefined;
-          player.currentPosition = undefined;
-          player.selected = false;
-        });
-        state.invalidSubs = undefined;
-      },
-      prepare: (selectedOnly?: boolean) => {
-        return {
-          payload: {
-            selectedOnly: !!selectedOnly
-          }
-        };
-      }
+      reducer: buildCGActionHandler(discardPendingSubsHandler),
+      prepare: discardPendingSubsPrepare
     },
 
     markPlayerOut: {
@@ -547,70 +416,6 @@ function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedStep?: Set
   game.setupTasks = tasks;
 }
 
-function prepareSubIfPossible(state: LiveState): boolean {
-  if (!state.selectedOffPlayer || !state.selectedOnPlayer) {
-    // Need both an On and Off player selected to set up a sub
-    return false;
-  }
-
-  const game = findCurrentGame(state)!;
-  const offPlayer = getPlayer(game, state.selectedOffPlayer);
-  if (!offPlayer) {
-    return false;
-  }
-  const onPlayer = getPlayer(game, state.selectedOnPlayer);
-  if (!onPlayer) {
-    return false;
-  }
-
-  state.proposedSub = {
-    ...offPlayer,
-    currentPosition: {
-      ...onPlayer.currentPosition!
-    },
-    replaces: onPlayer.id
-  }
-  return true;
-}
-
-function clearProposedSub(state: LiveState) {
-  delete state.selectedOffPlayer;
-  delete state.selectedOnPlayer;
-  delete state.proposedSub;
-}
-
-function prepareSwapIfPossible(state: LiveState) {
-  if (!state.selectedOnPlayer || !state.selectedOnPlayer2) {
-    // Need two On players selected to set up a swap.
-    return;
-  }
-
-  const game = findCurrentGame(state)!;
-  const onPlayer = getPlayer(game, state.selectedOnPlayer);
-  if (!onPlayer) {
-    return;
-  }
-  const positionPlayer = getPlayer(game, state.selectedOnPlayer2);
-  if (!positionPlayer) {
-    return;
-  }
-
-  const swap: LivePlayer = {
-    ...onPlayer,
-    nextPosition: {
-      ...positionPlayer.currentPosition!
-    },
-    isSwap: true
-  }
-  state.proposedSwap = swap;
-}
-
-function clearProposedSwap(state: LiveState) {
-  state.selectedOnPlayer = undefined;
-  state.selectedOnPlayer2 = undefined;
-  state.proposedSwap = undefined;
-}
-
 function findCurrentGame(state: LiveState) {
   return findGame(state, state.gameId);
 }
@@ -628,40 +433,4 @@ function setCurrentGame(state: LiveState, game: LiveGame) {
   }
   state.gameId = game.id;
   state.games[game.id] = game;
-}
-
-function getCurrentSelected(state: LiveState, status: PlayerStatus) {
-  switch (status) {
-    case PlayerStatus.Off:
-      return state.selectedOffPlayer;
-    case PlayerStatus.On:
-      return state.selectedOnPlayer;
-    case PlayerStatus.Out:
-      return state.selectedOutPlayer;
-  }
-  throw new Error(`Unsupported status: ${status}`);
-}
-
-function setCurrentSelected(state: LiveState, status: PlayerStatus, value: string | undefined) {
-  switch (status) {
-    case PlayerStatus.Off:
-      state.selectedOffPlayer = value;
-      break;
-    case PlayerStatus.On:
-      if (value && state.selectedOnPlayer) {
-        // Second On player selected.
-        state.selectedOnPlayer2 = value;
-      } else {
-        // Otherwise, this is either the first On player to be selected, or is
-        // de-selecting. When de-selecting, there should only ever by one On
-        // player selected,
-        state.selectedOnPlayer = value;
-      }
-      break;
-    case PlayerStatus.Out:
-      state.selectedOutPlayer = value;
-      break;
-    default:
-      throw new Error(`Unsupported status: ${status}`);
-  }
 }
