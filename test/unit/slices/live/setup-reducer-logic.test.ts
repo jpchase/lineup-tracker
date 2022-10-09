@@ -26,14 +26,19 @@ describe('Live slice: Setup actions', () => {
     let gameId: string;
     const formationType = FormationType.F4_3_3;
 
-    function setupStarterState(openPositions?: string[]) {
+    afterEach(() => {
+      currentState = {} as LiveState;
+      gameId = '';
+    });
+
+    function setupStarterState(openPositions?: string[] | 'all') {
       const game = testlive.getLiveGameWithPlayers();
       game.formation = { type: formationType };
 
       // Set the first 11 players as starters, unless their position is left open.
       for (let i = 0; i < 11; i++) {
         const player = getPlayer(game, `P${i}`)!;
-        if (openPositions?.includes(player.currentPosition?.id!)) {
+        if (openPositions === 'all' || openPositions?.includes(player.currentPosition?.id!)) {
           continue;
         }
         player.status = PlayerStatus.On;
@@ -49,13 +54,15 @@ describe('Live slice: Setup actions', () => {
 
       beforeEach(() => {
         selectedStarter = testlive.getLivePlayer();
-        currentState = buildLiveStateWithCurrentGame(testlive.getLiveGameWithPlayers());
+        const game = testlive.getLiveGameWithPlayers();
+        currentState = buildLiveStateWithCurrentGame(game);
+        gameId = game.id;
       });
 
       it('should only set selectedStarterPlayer with nothing selected', () => {
         expect(currentState.selectedStarterPlayer).to.be.undefined;
 
-        const newState = live(currentState, selectStarter(selectedStarter.id, true));
+        const newState = live(currentState, selectStarter(gameId, selectedStarter.id, true));
 
         const expectedGame = testlive.getLiveGameWithPlayers();
         selectPlayers(expectedGame, [selectedStarter.id], true);
@@ -77,7 +84,7 @@ describe('Live slice: Setup actions', () => {
           selectedStarterPlayer: selectedStarter.id
         });
 
-        const newState = live(state, selectStarter(selectedStarter.id, false));
+        const newState = live(state, selectStarter(gameId, selectedStarter.id, false));
 
         const expectedGame = testlive.getLiveGameWithPlayers();
         selectPlayers(expectedGame, [selectedStarter.id], false);
@@ -97,7 +104,7 @@ describe('Live slice: Setup actions', () => {
         currentState.selectedStarterPosition = { ...selectedPosition };
         expect(currentState.selectedStarterPlayer).to.be.undefined;
 
-        const newState = live(currentState, selectStarter(selectedStarter.id, true));
+        const newState = live(currentState, selectStarter(gameId, selectedStarter.id, true));
 
         const starter: LivePlayer = {
           ...selectedStarter,
@@ -122,12 +129,12 @@ describe('Live slice: Setup actions', () => {
     describe('live/selectStarterPosition', () => {
 
       it('should only set selectedPosition with nothing selected', () => {
-        const state = buildLiveStateWithCurrentGame(
-          testlive.getLiveGameWithPlayers());
+        const game = testlive.getLiveGameWithPlayers();
+        const state = buildLiveStateWithCurrentGame(game);
         expect(state.selectedStarterPosition).to.be.undefined;
 
         const selectedPosition: Position = { id: 'AM1', type: 'AM' };
-        const newState = live(state, selectStarterPosition(selectedPosition));
+        const newState = live(state, selectStarterPosition(game.id, selectedPosition));
 
         const expectedState = buildLiveStateWithCurrentGame(
           testlive.getLiveGameWithPlayers(),
@@ -151,7 +158,7 @@ describe('Live slice: Setup actions', () => {
         });
         expect(state.selectedStarterPosition).to.be.undefined;
 
-        const newState = live(state, selectStarterPosition(selectedPosition));
+        const newState = live(state, selectStarterPosition(game.id, selectedPosition));
 
         const starter: LivePlayer = {
           ...selectedPlayer,
@@ -196,7 +203,7 @@ describe('Live slice: Setup actions', () => {
       });
 
       it('should set live player to ON with currentPosition', () => {
-        const newState: LiveState = live(currentState, applyStarter());
+        const newState: LiveState = live(currentState, applyStarter(gameId));
 
         const newGame = getGame(newState, gameId)!;
         const newPlayer = getPlayer(newGame, selectedPlayer.id);
@@ -210,7 +217,7 @@ describe('Live slice: Setup actions', () => {
       });
 
       it('should clear selected starter player/position and proposed starter', () => {
-        const newState = live(currentState, applyStarter());
+        const newState = live(currentState, applyStarter(gameId));
 
         expect(newState.selectedStarterPlayer).to.be.undefined;
         expect(newState.selectedStarterPosition).to.be.undefined;
@@ -226,7 +233,7 @@ describe('Live slice: Setup actions', () => {
         const currentGame = getGame(currentState, gameId)!;
         currentGame!.players!.push(existingStarter);
 
-        const newState: LiveState = live(currentState, applyStarter());
+        const newState: LiveState = live(currentState, applyStarter(gameId));
         const newGame = getGame(newState, gameId)!;
 
         expect(newGame.players).to.not.be.undefined;
@@ -254,7 +261,7 @@ describe('Live slice: Setup actions', () => {
         const game = testlive.getLiveGameWithPlayers();
         selectPlayers(game, [selectedPlayer.id], true);
         currentState = buildLiveStateWithCurrentGame(game);
-        const newState = live(currentState, applyStarter());
+        const newState = live(currentState, applyStarter(gameId));
 
         expect(newState).to.equal(currentState);
       });
@@ -286,7 +293,7 @@ describe('Live slice: Setup actions', () => {
       });
 
       it('should clear selected player/position and proposed starter', () => {
-        const newState = live(currentState, cancelStarter());
+        const newState = live(currentState, cancelStarter(gameId));
 
         const newGame = getGame(newState, gameId)!;
         const cancelledPlayer = getPlayer(newGame, selectedPlayer.id);
@@ -303,7 +310,7 @@ describe('Live slice: Setup actions', () => {
         selectPlayers(game, [selectedPlayer.id], true);
         currentState = buildLiveStateWithCurrentGame(game);
 
-        const newState = live(currentState, cancelStarter());
+        const newState = live(currentState, cancelStarter(gameId));
 
         expect(newState).to.equal(currentState);
       });

@@ -1,4 +1,4 @@
-import { AnyAction, PayloadAction } from '@reduxjs/toolkit';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { FormationType, Position } from '../../models/formation.js';
 import { GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 import { getPlayer, LiveGame, LiveGameBuilder, LivePlayer } from '../../models/live.js';
@@ -8,7 +8,7 @@ import {
   GameSetupCompletedPayload,
   LiveGamePayload,
   RosterCompletedPayload,
-  SelectPlayerPayload, StartersInvalidPayload
+  SelectStarterPayload, SelectStarterPositionPayload, StartersInvalidPayload
 } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
 
@@ -52,7 +52,7 @@ export const formationSelectedPrepare = (gameId: string, formationType: Formatio
   };
 }
 
-export const selectStarterHandler = (state: LiveState, game: LiveGame, action: PayloadAction<SelectPlayerPayload>) => {
+export const selectStarterHandler = (state: LiveState, game: LiveGame, action: PayloadAction<SelectStarterPayload>) => {
   const playerId = action.payload.playerId;
   const selectedPlayer = getPlayer(game, playerId);
   if (selectedPlayer) {
@@ -71,30 +71,32 @@ export const selectStarterHandler = (state: LiveState, game: LiveGame, action: P
   prepareStarterIfPossible(state, game);
 }
 
-export const selectStarterPrepare = (playerId: string, selected: boolean) => {
+export const selectStarterPrepare = (gameId: string, playerId: string, selected: boolean) => {
   return {
     payload: {
+      gameId,
       playerId,
       selected: !!selected
     }
   };
 }
 
-export const selectStarterPositionHandler = (state: LiveState, game: LiveGame, action: PayloadAction<{ position: Position }>) => {
+export const selectStarterPositionHandler = (state: LiveState, game: LiveGame, action: PayloadAction<SelectStarterPositionPayload>) => {
   state.selectedStarterPosition = action.payload.position;
 
   prepareStarterIfPossible(state, game);
 }
 
-export const selectStarterPositionPrepare = (position: Position) => {
+export const selectStarterPositionPrepare = (gameId: string, position: Position) => {
   return {
     payload: {
+      gameId,
       position
     }
   };
 }
 
-export const applyStarterHandler = (state: LiveState, game: LiveGame, _action: AnyAction) => {
+export const applyStarterHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
   if (!state.proposedStarter) {
     return;
   }
@@ -120,7 +122,7 @@ export const applyStarterHandler = (state: LiveState, game: LiveGame, _action: A
   clearProposedStarter(state);
 }
 
-export const cancelStarterHandler = (state: LiveState, game: LiveGame, _action: AnyAction) => {
+export const cancelStarterHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
   if (!state.proposedStarter) {
     return;
   }

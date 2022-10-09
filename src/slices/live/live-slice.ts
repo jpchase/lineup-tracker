@@ -240,18 +240,24 @@ const liveSlice = createSlice({
     },
 
     selectStarter: {
-      reducer: buildCGActionHandler(selectStarterHandler),
+      reducer: buildActionHandler(selectStarterHandler),
       prepare: selectStarterPrepare
     },
 
     selectStarterPosition: {
-      reducer: buildCGActionHandler(selectStarterPositionHandler),
+      reducer: buildActionHandler(selectStarterPositionHandler),
       prepare: selectStarterPositionPrepare
     },
 
-    applyStarter: buildCGActionHandler(applyStarterHandler),
+    applyStarter: {
+      reducer: buildActionHandler(applyStarterHandler),
+      prepare: prepareLiveGamePayload
+    },
 
-    cancelStarter: buildCGActionHandler(cancelStarterHandler),
+    cancelStarter: {
+      reducer: buildActionHandler(cancelStarterHandler),
+      prepare: prepareLiveGamePayload
+    },
 
     selectPlayer: {
       reducer: buildCGActionHandler(selectPlayerHandler),

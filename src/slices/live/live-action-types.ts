@@ -17,6 +17,15 @@ export interface FormationSelectedPayload extends LiveGamePayload {
   formationType: FormationType;
 }
 
+export interface SelectStarterPayload extends LiveGamePayload {
+  playerId: string;
+  selected: boolean;
+};
+
+export interface SelectStarterPositionPayload extends LiveGamePayload {
+  position: Position;
+};
+
 export interface GameSetupCompletedPayload extends LiveGamePayload {
   liveGame: LiveGame;
 }

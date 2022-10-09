@@ -323,19 +323,19 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   private playerSelected(e: CustomEvent) {
-    this.dispatch(selectStarter(e.detail.player.id, e.detail.selected));
+    this.dispatch(selectStarter(this.game!.id, e.detail.player.id, e.detail.selected));
   }
 
   private positionSelected(e: CustomEvent) {
-    this.dispatch(selectStarterPosition(e.detail.position));
+    this.dispatch(selectStarterPosition(this.game!.id, e.detail.position));
   }
 
   private applyStarter() {
-    this.dispatch(applyStarter());
+    this.dispatch(applyStarter(this.game!.id));
   }
 
   private cancelStarter() {
-    this.dispatch(cancelStarter());
+    this.dispatch(cancelStarter(this.game!.id));
   }
 
 }
