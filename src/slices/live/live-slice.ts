@@ -5,10 +5,10 @@
 import { createNextState, createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
 import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
-import { FormationType, Position } from '../../models/formation.js';
+import { Position } from '../../models/formation.js';
 import { Game, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer, removePlayer } from '../../models/live.js';
-import { PlayerStatus, Roster } from '../../models/player.js';
+import { PlayerStatus } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
@@ -16,10 +16,10 @@ import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
 import { buildSwapPlayerId, LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
-import { invalidStartersHandler, invalidStartersPrepare, setupCompletedHandler } from './setup-reducer-logic.js';
+import { captainsCompletedHandler, formationSelectedHandler, formationSelectedPrepare, invalidStartersHandler, invalidStartersPrepare, rosterCompletedHandler, setupCompletedHandler, startersCompletedHandler } from './setup-reducer-logic.js';
 import { shift, ShiftState } from './shift-slice.js';
 import { invalidPendingSubsHandler, invalidPendingSubsPrepare, markPlayerOutHandler, pendingSubsAppliedHandler, pendingSubsAppliedPrepare, returnOutPlayerHandler } from './substitution-reducer-logic.js';
-export { pendingSubsAppliedCreator } from './live-action-creators.js';
+export { pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
   gameId: string;
@@ -179,53 +179,21 @@ const liveSlice = createSlice({
       setCurrentGame(state, liveGame);
     },
 
-    completeRoster: (state, action: PayloadAction<Roster>) => {
-      // Setup live players from roster
-      const roster = action.payload;
-      const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
-        const player = roster[playerId];
-        return { ...player } as LivePlayer;
-      });
-
-      const liveGame = findCurrentGame(state);
-      liveGame!.players = players;
-
-      completeSetupStepForAction(state, SetupSteps.Roster);
-    },
+    completeRoster: buildCGActionHandler(rosterCompletedHandler),
 
     formationSelected: {
-      reducer: (state, action: PayloadAction<{ formationType: FormationType }>) => {
-        if (!action.payload.formationType) {
-          return;
-        }
-        const game = findCurrentGame(state)!;
-        game.formation = { type: action.payload.formationType };
-
-        completeSetupStepForAction(state, SetupSteps.Formation);
-      },
-
-      prepare: (formationType: FormationType) => {
-        return {
-          payload: {
-            formationType
-          }
-        };
-      }
+      reducer: buildCGActionHandler(formationSelectedHandler),
+      prepare: formationSelectedPrepare
     },
 
-    startersCompleted: (state) => {
-      completeSetupStepForAction(state, SetupSteps.Starters);
-      state.invalidStarters = undefined;
-    },
+    startersCompleted: buildCGActionHandler(startersCompletedHandler),
 
     invalidStarters: {
       reducer: buildActionHandler(invalidStartersHandler),
       prepare: invalidStartersPrepare
     },
 
-    captainsCompleted: (state) => {
-      completeSetupStepForAction(state, SetupSteps.Captains);
-    },
+    captainsCompleted: buildCGActionHandler(captainsCompletedHandler),
 
     gameSetupCompleted: {
       reducer: buildActionHandler(setupCompletedHandler),
@@ -584,10 +552,23 @@ function invokeActionHandler<P extends LiveGamePayload>(state: LiveState, action
   return handler(state, game, action);
 }
 
-function completeSetupStepForAction(state: LiveGameState, setupStepToComplete: SetupSteps) {
-  const game = findCurrentGame(state)!;
+// Temporary, until actions are changed to include gameId
+type CGActionHandler<A extends AnyAction> =
+  (state: LiveState, game: LiveGame, action: A) => void;
 
-  updateTasks(game, game.setupTasks, setupStepToComplete);
+function buildCGActionHandler<A extends AnyAction>(handler: CGActionHandler<A>) {
+  return (state: LiveState, action: A) => {
+    return invokeCGActionHandler(state, action, handler);
+  }
+}
+
+function invokeCGActionHandler<A extends AnyAction>(state: LiveState, action: A,
+  handler: CGActionHandler<A>) {
+  const game = findCurrentGame(state);
+  if (!game) {
+    return;
+  }
+  return handler(state, game, action);
 }
 
 function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedStep?: SetupSteps) {

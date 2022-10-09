@@ -16,12 +16,11 @@ import { LivePlayer } from '../models/live.js';
 import { getGameStore } from '../slices/game-store';
 import { gameSetupCompletedCreator } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store';
-import { startersCompletedCreator } from '../slices/live/live-action-creators.js';
 import {
   applyStarter, cancelStarter, captainsCompleted, formationSelected, getLiveGame,
   rosterCompleted,
   selectInvalidStarters, selectLiveGameById,
-  selectStarter, selectStarterPosition
+  selectStarter, selectStarterPosition, startersCompletedCreator
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-on-player-list';
