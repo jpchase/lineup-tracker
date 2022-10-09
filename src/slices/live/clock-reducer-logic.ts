@@ -6,9 +6,10 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { Timer } from '../../models/clock.js';
 import { GameStatus } from '../../models/game.js';
 import { LiveGame, LiveGameBuilder, PeriodStatus } from '../../models/live.js';
-import { ConfigurePeriodsPayload, StartPeriodPayload } from './live-action-types.js';
+import { ConfigurePeriodsPayload, LiveGamePayload, StartPeriodPayload } from './live-action-types.js';
+import { LiveState } from './live-slice.js';
 
-export const configurePeriodsHandler = (game: LiveGame, action: PayloadAction<ConfigurePeriodsPayload>) => {
+export const configurePeriodsHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<ConfigurePeriodsPayload>) => {
   const periods = action.payload.totalPeriods || 0;
   const length = action.payload.periodLength || 0;
   if (periods < 1 || length < 10) {
@@ -33,7 +34,7 @@ export const configurePeriodsPrepare = (gameId: string, totalPeriods: number, pe
   };
 }
 
-export const startPeriodHandler = (game: LiveGame, action: PayloadAction<StartPeriodPayload>) => {
+export const startPeriodHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<StartPeriodPayload>) => {
   if (!action.payload.gameAllowsStart) {
     return;
   }
@@ -64,7 +65,7 @@ export const startPeriodPrepare = (gameId: string, gameAllowsStart: boolean) => 
   };
 }
 
-export const endPeriodHandler = (game: LiveGame) => {
+export const endPeriodHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
   if (game.status !== GameStatus.Live) {
     return;
   }
@@ -85,7 +86,7 @@ export const endPeriodHandler = (game: LiveGame) => {
   }
 }
 
-export const toggleHandler = (game: LiveGame) => {
+export const toggleHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
   if (!game.clock) {
     return;
   }

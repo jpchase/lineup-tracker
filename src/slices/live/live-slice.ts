@@ -7,7 +7,7 @@ import { ActionCreator, AnyAction, Reducer } from 'redux';
 import { LiveActionHydrate } from '../../actions/live.js';
 import { FormationType, Position } from '../../models/formation.js';
 import { Game, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer, removePlayer } from '../../models/live.js';
+import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer, removePlayer } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';
@@ -15,10 +15,10 @@ import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
-import { buildSwapPlayerId, ConfigurePeriodsPayload, extractIdFromSwapPlayerId, GameSetupCompletedPayload, LiveGamePayload, PendingSubsAppliedPayload, PendingSubsInvalidPayload, prepareLiveGamePayload, StartersInvalidPayload, StartPeriodPayload } from './live-action-types.js';
-import { invalidStartersHandler, invalidStartersPrepare } from './setup-reducer-logic.js';
+import { buildSwapPlayerId, LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
+import { invalidStartersHandler, invalidStartersPrepare, setupCompletedHandler } from './setup-reducer-logic.js';
 import { shift, ShiftState } from './shift-slice.js';
-import { invalidPendingSubsHandler, invalidPendingSubsPrepare, markPlayerOutHandler, returnOutPlayerHandler } from './substitution-reducer-logic.js';
+import { invalidPendingSubsHandler, invalidPendingSubsPrepare, markPlayerOutHandler, pendingSubsAppliedHandler, pendingSubsAppliedPrepare, returnOutPlayerHandler } from './substitution-reducer-logic.js';
 export { pendingSubsAppliedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
@@ -219,14 +219,7 @@ const liveSlice = createSlice({
     },
 
     invalidStarters: {
-      reducer: (state, action: PayloadAction<StartersInvalidPayload>) => {
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        return invalidStartersHandler(state, action);
-      },
-
+      reducer: buildActionHandler(invalidStartersHandler),
       prepare: invalidStartersPrepare
     },
 
@@ -235,20 +228,7 @@ const liveSlice = createSlice({
     },
 
     gameSetupCompleted: {
-      reducer: (state, action: PayloadAction<GameSetupCompletedPayload>) => {
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        if (game.status !== GameStatus.New) {
-          return;
-        }
-        game.status = GameStatus.Start;
-        if (!game.clock) {
-          game.clock = LiveGameBuilder.createClock();
-        }
-        delete game.setupTasks;
-      },
+      reducer: buildActionHandler(setupCompletedHandler),
 
       prepare: (gameId: string, game: LiveGame) => {
         return {
@@ -485,70 +465,12 @@ const liveSlice = createSlice({
     },
 
     applyPendingSubs: {
-      reducer: (state, action: PayloadAction<PendingSubsAppliedPayload>) => {
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        action.payload.subs.forEach(sub => {
-          const player = getPlayer(game, sub.id);
-          if (!player || player.isSwap || player.status !== PlayerStatus.Next) {
-            return;
-          }
-          const replacedPlayer = getPlayer(game, player.replaces!);
-          if (!(replacedPlayer && replacedPlayer.status === PlayerStatus.On)) {
-            return;
-          }
-
-          player.status = PlayerStatus.On;
-          player.replaces = undefined;
-          player.selected = false;
-
-          replacedPlayer.status = PlayerStatus.Off;
-          replacedPlayer.currentPosition = undefined;
-          replacedPlayer.selected = false;
-        });
-
-        // Apply any position swaps
-        const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next,
-          action.payload.selectedOnly, /* includeSwaps */ true);
-        nextPlayers.forEach(swapPlayer => {
-          if (!swapPlayer.isSwap) {
-            return;
-          }
-          const actualPlayerId = extractIdFromSwapPlayerId(swapPlayer.id);
-          const player = getPlayer(game, actualPlayerId);
-          if (player?.status !== PlayerStatus.On) {
-            return;
-          }
-
-          player.currentPosition = { ...swapPlayer.nextPosition! };
-          player.selected = false;
-
-          removePlayer(game, swapPlayer.id);
-        });
-      },
-
-      prepare: (gameId: string, subs: LivePlayer[], selectedOnly?: boolean) => {
-        return {
-          payload: {
-            gameId,
-            subs,
-            selectedOnly: !!selectedOnly
-          }
-        };
-      }
+      reducer: buildActionHandler(pendingSubsAppliedHandler),
+      prepare: pendingSubsAppliedPrepare
     },
 
     invalidPendingSubs: {
-      reducer: (state, action: PayloadAction<PendingSubsInvalidPayload>) => {
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        return invalidPendingSubsHandler(state, action);
-      },
-
+      reducer: buildActionHandler(invalidPendingSubsHandler),
       prepare: invalidPendingSubsPrepare
     },
 
@@ -580,26 +502,12 @@ const liveSlice = createSlice({
     },
 
     markPlayerOut: {
-      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        return markPlayerOutHandler(state, game, action);
-      },
-
+      reducer: buildActionHandler(markPlayerOutHandler),
       prepare: prepareLiveGamePayload
     },
 
     returnOutPlayer: {
-      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        return returnOutPlayerHandler(state, game, action);
-      },
-
+      reducer: buildActionHandler(returnOutPlayerHandler),
       prepare: prepareLiveGamePayload
     },
 
@@ -616,60 +524,27 @@ const liveSlice = createSlice({
         game.dataCaptured = true;
       },
 
-      prepare: (gameId: string) => {
-        return {
-          payload: {
-            gameId
-          }
-        };
-      }
+      prepare: prepareLiveGamePayload
     },
 
     // Clock-related actions
     configurePeriods: {
-      reducer: (state, action: PayloadAction<ConfigurePeriodsPayload>) => {
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        return configurePeriodsHandler(game, action);
-      },
+      reducer: buildActionHandler(configurePeriodsHandler),
       prepare: configurePeriodsPrepare
     },
 
     startPeriod: {
-      reducer: (state, action: PayloadAction<StartPeriodPayload>) => {
-        if (!action.payload.gameAllowsStart) {
-          return;
-        }
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        return startPeriodHandler(game, action);
-      },
+      reducer: buildActionHandler(startPeriodHandler),
       prepare: startPeriodPrepare
     },
 
     endPeriod: {
-      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        return endPeriodHandler(game);
-      },
+      reducer: buildActionHandler(endPeriodHandler),
       prepare: prepareLiveGamePayload
     },
 
     toggleClock: {
-      reducer: (state, action: PayloadAction<LiveGamePayload>) => {
-        const game = findGame(state, action.payload.gameId);
-        if (!game) {
-          return;
-        }
-        return toggleHandler(game);
-      },
+      reducer: buildActionHandler(toggleHandler),
       prepare: prepareLiveGamePayload
     },
   },
@@ -690,6 +565,24 @@ export const {
   // Game status actions
   gameCompleted
 } = actions;
+
+type ActionHandler<P extends LiveGamePayload> =
+  (state: LiveState, game: LiveGame, action: PayloadAction<P>) => void;
+
+function buildActionHandler<P extends LiveGamePayload>(handler: ActionHandler<P>) {
+  return (state: LiveState, action: PayloadAction<P>) => {
+    return invokeActionHandler(state, action, handler);
+  }
+}
+
+function invokeActionHandler<P extends LiveGamePayload>(state: LiveState, action: PayloadAction<P>,
+  handler: ActionHandler<P>) {
+  const game = findGame(state, action.payload.gameId);
+  if (!game) {
+    return;
+  }
+  return handler(state, game, action);
+}
 
 function completeSetupStepForAction(state: LiveGameState, setupStepToComplete: SetupSteps) {
   const game = findCurrentGame(state)!;
@@ -842,25 +735,6 @@ function setCurrentGame(state: LiveState, game: LiveGame) {
   }
   state.gameId = game.id;
   state.games[game.id] = game;
-}
-
-function findPlayersByStatus(game: LiveGame, status: PlayerStatus,
-  selectedOnly?: boolean, includeSwaps?: boolean) {
-  let matches: LivePlayer[] = [];
-  game.players!.forEach(player => {
-    if (player.status !== status) {
-      return;
-    }
-    if (selectedOnly && !player.selected) {
-      return;
-    }
-    if (!includeSwaps && player.isSwap) {
-      return;
-    }
-
-    matches.push(player);
-  });
-  return matches;
 }
 
 function getCurrentSelected(state: LiveState, status: PlayerStatus) {

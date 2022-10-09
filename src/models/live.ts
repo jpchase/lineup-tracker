@@ -4,7 +4,7 @@
 import { TimerData } from './clock.js';
 import { FormationMetadata, Position } from './formation.js';
 import { Game, GameDetail, GameStatus, SetupTask } from './game.js';
-import { Player } from './player.js';
+import { Player, PlayerStatus } from './player.js';
 
 export enum PeriodStatus {
   Pending = 'PENDING',
@@ -78,6 +78,25 @@ export class LiveGameBuilder {
       periodLength: 45
     };
   }
+}
+
+export function findPlayersByStatus(game: LiveGame, status: PlayerStatus,
+  selectedOnly?: boolean, includeSwaps?: boolean) {
+  let matches: LivePlayer[] = [];
+  game.players!.forEach(player => {
+    if (player.status !== status) {
+      return;
+    }
+    if (selectedOnly && !player.selected) {
+      return;
+    }
+    if (!includeSwaps && player.isSwap) {
+      return;
+    }
+
+    matches.push(player);
+  });
+  return matches;
 }
 
 export function getPlayer(game: LiveGame, playerId: string) {
