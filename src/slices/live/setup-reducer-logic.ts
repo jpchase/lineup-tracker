@@ -1,9 +1,9 @@
 import { AnyAction, PayloadAction } from '@reduxjs/toolkit';
-import { FormationType } from '../../models/formation.js';
+import { FormationType, Position } from '../../models/formation.js';
 import { GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { LiveGame, LiveGameBuilder, LivePlayer } from '../../models/live.js';
-import { Roster } from '../../models/player.js';
-import { GameSetupCompletedPayload, StartersInvalidPayload } from './live-action-types.js';
+import { getPlayer, LiveGame, LiveGameBuilder, LivePlayer } from '../../models/live.js';
+import { PlayerStatus, Roster } from '../../models/player.js';
+import { GameSetupCompletedPayload, SelectPlayerPayload, StartersInvalidPayload } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
 
 export const rosterCompletedHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<Roster>) => {
@@ -34,6 +34,85 @@ export const formationSelectedPrepare = (formationType: FormationType) => {
       formationType
     }
   };
+}
+
+export const selectStarterHandler = (state: LiveState, game: LiveGame, action: PayloadAction<SelectPlayerPayload>) => {
+  const playerId = action.payload.playerId;
+  const selectedPlayer = getPlayer(game, playerId);
+  if (selectedPlayer) {
+    selectedPlayer.selected = !!action.payload.selected;
+  }
+
+  // Handles de-selection.
+  if (!action.payload.selected) {
+    if (state.selectedStarterPlayer === playerId) {
+      state.selectedStarterPlayer = undefined;
+    }
+    return;
+  }
+  state.selectedStarterPlayer = playerId;
+
+  prepareStarterIfPossible(state, game);
+}
+
+export const selectStarterPrepare = (playerId: string, selected: boolean) => {
+  return {
+    payload: {
+      playerId,
+      selected: !!selected
+    }
+  };
+}
+
+export const selectStarterPositionHandler = (state: LiveState, game: LiveGame, action: PayloadAction<{ position: Position }>) => {
+  state.selectedStarterPosition = action.payload.position;
+
+  prepareStarterIfPossible(state, game);
+}
+
+export const selectStarterPositionPrepare = (position: Position) => {
+  return {
+    payload: {
+      position
+    }
+  };
+}
+
+export const applyStarterHandler = (state: LiveState, game: LiveGame, _action: AnyAction) => {
+  if (!state.proposedStarter) {
+    return;
+  }
+  const starter = state.proposedStarter;
+  const positionId = starter.currentPosition!.id;
+
+  game.players!.forEach(player => {
+    if (player.id === starter.id) {
+      player.selected = false;
+      player.status = PlayerStatus.On;
+      player.currentPosition = starter.currentPosition;
+      return;
+    }
+
+    // Checks for an existing starter in the position.
+    if (player.status === PlayerStatus.On && player.currentPosition!.id === positionId) {
+      // Replace the starter, moving the player to off.
+      player.status = PlayerStatus.Off;
+      player.currentPosition = undefined;
+    }
+  });
+
+  clearProposedStarter(state);
+}
+
+export const cancelStarterHandler = (state: LiveState, game: LiveGame, _action: AnyAction) => {
+  if (!state.proposedStarter) {
+    return;
+  }
+  const selectedPlayer = getPlayer(game, state.selectedStarterPlayer!);
+  if (selectedPlayer && selectedPlayer.selected) {
+    selectedPlayer.selected = false;
+  }
+  clearProposedStarter(state);
 }
 
 export const startersCompletedHandler = (state: LiveState, game: LiveGame, _action: AnyAction) => {
@@ -114,4 +193,28 @@ function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedStep?: Set
   });
 
   game.setupTasks = tasks;
+}
+
+function prepareStarterIfPossible(state: LiveState, game: LiveGame) {
+  if (!state.selectedStarterPlayer || !state.selectedStarterPosition) {
+    // Need both a position and player selected to setup a starter
+    return;
+  }
+  const player = getPlayer(game, state.selectedStarterPlayer);
+  if (!player) {
+    return;
+  }
+
+  state.proposedStarter = {
+    ...player,
+    currentPosition: {
+      ...state.selectedStarterPosition
+    }
+  }
+}
+
+function clearProposedStarter(state: LiveState) {
+  delete state.selectedStarterPlayer;
+  delete state.selectedStarterPosition;
+  delete state.proposedStarter;
 }

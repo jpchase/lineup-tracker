@@ -16,7 +16,15 @@ import { GET_GAME_SUCCESS } from '../game-types.js';
 import { LIVE_HYDRATE } from '../live-types.js';
 import { configurePeriodsHandler, configurePeriodsPrepare, endPeriodHandler, startPeriodHandler, startPeriodPrepare, toggleHandler } from './clock-reducer-logic.js';
 import { buildSwapPlayerId, LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
-import { captainsCompletedHandler, formationSelectedHandler, formationSelectedPrepare, invalidStartersHandler, invalidStartersPrepare, rosterCompletedHandler, setupCompletedHandler, startersCompletedHandler } from './setup-reducer-logic.js';
+import {
+  applyStarterHandler, cancelStarterHandler,
+  captainsCompletedHandler,
+  formationSelectedHandler, formationSelectedPrepare,
+  invalidStartersHandler, invalidStartersPrepare,
+  rosterCompletedHandler,
+  selectStarterHandler, selectStarterPositionHandler, selectStarterPositionPrepare, selectStarterPrepare,
+  setupCompletedHandler, startersCompletedHandler
+} from './setup-reducer-logic.js';
 import { shift, ShiftState } from './shift-slice.js';
 import { invalidPendingSubsHandler, invalidPendingSubsPrepare, markPlayerOutHandler, pendingSubsAppliedHandler, pendingSubsAppliedPrepare, returnOutPlayerHandler } from './substitution-reducer-logic.js';
 export { pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
@@ -209,89 +217,18 @@ const liveSlice = createSlice({
     },
 
     selectStarter: {
-      reducer: (state, action: PayloadAction<SelectPlayer>) => {
-        const game = findCurrentGame(state)!;
-        const playerId = action.payload.playerId;
-        const selectedPlayer = getPlayer(game, playerId);
-        if (selectedPlayer) {
-          selectedPlayer.selected = !!action.payload.selected;
-        }
-
-        // Handles de-selection.
-        if (!action.payload.selected) {
-          if (state.selectedStarterPlayer === playerId) {
-            state.selectedStarterPlayer = undefined;
-          }
-          return;
-        }
-        state.selectedStarterPlayer = playerId;
-
-        prepareStarterIfPossible(state);
-      },
-
-      prepare: (playerId: string, selected: boolean) => {
-        return {
-          payload: {
-            playerId,
-            selected: !!selected
-          }
-        };
-      }
+      reducer: buildCGActionHandler(selectStarterHandler),
+      prepare: selectStarterPrepare
     },
 
     selectStarterPosition: {
-      reducer: (state, action: PayloadAction<{ position: Position }>) => {
-        state.selectedStarterPosition = action.payload.position;
-
-        prepareStarterIfPossible(state);
-      },
-      prepare: (position: Position) => {
-        return {
-          payload: {
-            position
-          }
-        };
-      }
+      reducer: buildCGActionHandler(selectStarterPositionHandler),
+      prepare: selectStarterPositionPrepare
     },
 
-    applyStarter: (state) => {
-      if (!state.proposedStarter) {
-        return;
-      }
-      const starter = state.proposedStarter;
-      const positionId = starter.currentPosition!.id;
+    applyStarter: buildCGActionHandler(applyStarterHandler),
 
-      const game = findCurrentGame(state)!;
-      game.players!.forEach(player => {
-        if (player.id === starter.id) {
-          player.selected = false;
-          player.status = PlayerStatus.On;
-          player.currentPosition = starter.currentPosition;
-          return;
-        }
-
-        // Checks for an existing starter in the position.
-        if (player.status === PlayerStatus.On && player.currentPosition!.id === positionId) {
-          // Replace the starter, moving the player to off.
-          player.status = PlayerStatus.Off;
-          player.currentPosition = undefined;
-        }
-      });
-
-      clearProposedStarter(state);
-    },
-
-    cancelStarter: (state) => {
-      if (!state.proposedStarter) {
-        return;
-      }
-      const game = findCurrentGame(state)!;
-      const selectedPlayer = getPlayer(game, state.selectedStarterPlayer!);
-      if (selectedPlayer && selectedPlayer.selected) {
-        selectedPlayer.selected = false;
-      }
-      clearProposedStarter(state);
-    },
+    cancelStarter: buildCGActionHandler(cancelStarterHandler),
 
     selectPlayer: {
       reducer: (state, action: PayloadAction<SelectPlayer>) => {
@@ -608,31 +545,6 @@ function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedStep?: Set
   });
 
   game.setupTasks = tasks;
-}
-
-function prepareStarterIfPossible(state: LiveState) {
-  if (!state.selectedStarterPlayer || !state.selectedStarterPosition) {
-    // Need both a position and player selected to setup a starter
-    return;
-  }
-  const game = findCurrentGame(state)!;
-  const player = getPlayer(game, state.selectedStarterPlayer);
-  if (!player) {
-    return;
-  }
-
-  state.proposedStarter = {
-    ...player,
-    currentPosition: {
-      ...state.selectedStarterPosition
-    }
-  }
-}
-
-function clearProposedStarter(state: LiveState) {
-  delete state.selectedStarterPlayer;
-  delete state.selectedStarterPosition;
-  delete state.proposedStarter;
 }
 
 function prepareSubIfPossible(state: LiveState): boolean {

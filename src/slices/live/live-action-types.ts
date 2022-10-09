@@ -6,6 +6,11 @@ export interface LiveGamePayload {
   gameId: string;
 }
 
+export interface SelectPlayerPayload {
+  playerId: string;
+  selected: boolean;
+};
+
 export interface GameSetupCompletedPayload extends LiveGamePayload {
   liveGame: LiveGame;
 }
