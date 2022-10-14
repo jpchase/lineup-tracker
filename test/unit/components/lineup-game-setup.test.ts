@@ -400,10 +400,10 @@ describe('lineup-game-setup tests', () => {
 
       // Simulates the completion of all the setup tasks.
       const store = getStore();
-      store.dispatch(formationSelected(FormationType.F4_3_3));
-      store.dispatch(completeRoster(game.roster));
-      store.dispatch(captainsCompleted());
-      store.dispatch(startersCompleted());
+      store.dispatch(formationSelected(game.id, FormationType.F4_3_3));
+      store.dispatch(completeRoster(game.id, game.roster));
+      store.dispatch(captainsCompleted(game.id));
+      store.dispatch(startersCompleted(game.id));
       await el.updateComplete;
 
       completeButton = getCompleteSetupButton();
@@ -441,6 +441,7 @@ describe('lineup-game-setup tests', () => {
 
   describe('Starters', () => {
     let liveGame: LiveGame;
+    let gameId: string;
 
     beforeEach(async () => {
       // Set state to have setup tasks prior to starters completed.
@@ -454,6 +455,7 @@ describe('lineup-game-setup tests', () => {
       await el.updateComplete;
 
       liveGame = selectLiveGameById(getStore().getState(), newGame.id)!;
+      gameId = liveGame.id;
     });
 
     it('shows starter player sections for new game', async () => {
@@ -483,7 +485,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(selectStarter(player.id, true));
+      expect(actions[actions.length - 1]).to.deep.include(selectStarter(gameId, player.id, true));
     });
 
     it('dispatches starter position selected action when card in formation selected', async () => {
@@ -498,7 +500,7 @@ describe('lineup-game-setup tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        selectStarterPosition(playerElement.data!.position));
+        selectStarterPosition(gameId, playerElement.data!.position));
     });
 
     it('position card is selected after selection is processed', async () => {
@@ -521,8 +523,8 @@ describe('lineup-game-setup tests', () => {
       const player = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectStarter(player.id, /*selected =*/true));
-      store.dispatch(selectStarterPosition({ id: 'AM1', type: 'AM' }));
+      store.dispatch(selectStarter(gameId, player.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition(gameId, { id: 'AM1', type: 'AM' }));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -537,8 +539,8 @@ describe('lineup-game-setup tests', () => {
       const player = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectStarter(player.id, /*selected =*/true));
-      store.dispatch(selectStarterPosition({ id: 'LW', type: 'W' }));
+      store.dispatch(selectStarter(gameId, player.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition(gameId, { id: 'LW', type: 'W' }));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -557,7 +559,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(applyStarter());
+      expect(actions[actions.length - 1]).to.deep.include(applyStarter(gameId));
     });
 
     it('dispatches cancel starter action when cancelled', async () => {
@@ -566,8 +568,8 @@ describe('lineup-game-setup tests', () => {
       const player = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectStarter(player.id, /*selected =*/true));
-      store.dispatch(selectStarterPosition({ id: 'RW', type: 'W' }));
+      store.dispatch(selectStarter(gameId, player.id, /*selected =*/true));
+      store.dispatch(selectStarterPosition(gameId, { id: 'RW', type: 'W' }));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
@@ -586,7 +588,7 @@ describe('lineup-game-setup tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.include(cancelStarter());
+      expect(actions[actions.length - 1]).to.deep.include(cancelStarter(gameId));
     });
 
     it('shows errors when all starter positions are empty', async () => {

@@ -277,7 +277,7 @@ export class LineupGameLive extends connectStore()(LitElement) {
   }
 
   private _playerSelected(e: CustomEvent) {
-    this.dispatch(selectPlayer(e.detail.player.id, e.detail.selected));
+    this.dispatch(selectPlayer(this._game!.id, e.detail.player.id, e.detail.selected));
   }
 
   private getPositionSelect() {
@@ -291,29 +291,29 @@ export class LineupGameLive extends connectStore()(LitElement) {
       const allPositions = getPositions(this.formation!);
       newPosition = allPositions.find(p => (p.id === select.value));
     }
-    this.dispatch(confirmSub(newPosition));
+    this.dispatch(confirmSub(this._game!.id, newPosition));
   }
 
   private cancelSubClicked() {
-    this.dispatch(cancelSub());
+    this.dispatch(cancelSub(this._game!.id));
   }
 
   private confirmSwapClicked() {
-    this.dispatch(confirmSwap());
+    this.dispatch(confirmSwap(this._game!.id));
   }
 
   private cancelSwapClicked() {
-    this.dispatch(cancelSwap());
+    this.dispatch(cancelSwap(this._game!.id));
   }
 
   private _applySubs() {
     // TODO: Pass selectedOnly param, based on if any next cards are selected
-    this.dispatch(pendingSubsAppliedCreator());
+    this.dispatch(pendingSubsAppliedCreator(this._game!.id));
   }
 
   private _discardSubs() {
     // TODO: Pass selectedOnly param, based on if any next cards are selected
-    this.dispatch(discardPendingSubs());
+    this.dispatch(discardPendingSubs(this._game!.id));
   }
 
   private markUnavailable() {

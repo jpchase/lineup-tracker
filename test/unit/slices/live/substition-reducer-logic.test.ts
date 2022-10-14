@@ -496,7 +496,7 @@ describe('Live slice: Substitution actions', () => {
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(currentState);
 
-        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+        await pendingSubsAppliedCreator(gameId)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
@@ -513,7 +513,7 @@ describe('Live slice: Substitution actions', () => {
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(currentState);
 
-        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+        await pendingSubsAppliedCreator(gameId)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
@@ -555,7 +555,7 @@ describe('Live slice: Substitution actions', () => {
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(currentState);
 
-        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+        await pendingSubsAppliedCreator(gameId)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
@@ -575,7 +575,7 @@ describe('Live slice: Substitution actions', () => {
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(currentState);
 
-        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+        await pendingSubsAppliedCreator(gameId)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
@@ -592,7 +592,7 @@ describe('Live slice: Substitution actions', () => {
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(currentState);
 
-        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+        await pendingSubsAppliedCreator(gameId)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
@@ -622,7 +622,7 @@ describe('Live slice: Substitution actions', () => {
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(currentState);
 
-        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+        await pendingSubsAppliedCreator(gameId)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
@@ -645,7 +645,7 @@ describe('Live slice: Substitution actions', () => {
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(currentState);
 
-        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+        await pendingSubsAppliedCreator(gameId)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
@@ -671,7 +671,7 @@ describe('Live slice: Substitution actions', () => {
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(currentState);
 
-        await pendingSubsAppliedCreator()(dispatchMock, getStateMock, undefined);
+        await pendingSubsAppliedCreator(gameId)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
@@ -697,7 +697,7 @@ describe('Live slice: Substitution actions', () => {
 
         setupSubState(subs);
 
-        const newState = live(currentState, discardPendingSubs());
+        const newState = live(currentState, discardPendingSubs(gameId));
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
 
@@ -720,7 +720,7 @@ describe('Live slice: Substitution actions', () => {
 
         selectPlayers(getGame(currentState, gameId)!, nowOffIds, true);
 
-        const newState = live(currentState, discardPendingSubs(/* selectedOnly */ true));
+        const newState = live(currentState, discardPendingSubs(gameId, /* selectedOnly */ true));
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
 
@@ -748,7 +748,7 @@ describe('Live slice: Substitution actions', () => {
         const subs = buildSubs(swap1, swap2, swap3);
         setupSubState(subs);
 
-        const newState = live(currentState, discardPendingSubs());
+        const newState = live(currentState, discardPendingSubs(gameId));
         const newGame = getGame(newState, gameId)!;
 
         expectPositionSwapsApplied(newGame, subs,
@@ -771,7 +771,7 @@ describe('Live slice: Substitution actions', () => {
 
         selectPlayers(getGame(currentState, gameId)!, discardedNextIds, true);
 
-        const newState = live(currentState, discardPendingSubs(/* selectedOnly */ true));
+        const newState = live(currentState, discardPendingSubs(gameId, /* selectedOnly */ true));
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
 
@@ -785,7 +785,7 @@ describe('Live slice: Substitution actions', () => {
         setupSubState(subs);
         currentState.invalidSubs = [sub3.nextId];
 
-        const newState = live(currentState, discardPendingSubs());
+        const newState = live(currentState, discardPendingSubs(gameId));
 
         expect(newState.invalidSubs, 'Invalid subs should be cleared').not.to.be.ok;
       });
@@ -799,7 +799,7 @@ describe('Live slice: Substitution actions', () => {
 
         selectPlayers(getGame(currentState, gameId)!, [sub1.nextId], true);
 
-        const newState = live(currentState, discardPendingSubs(/* selectedOnly */ true));
+        const newState = live(currentState, discardPendingSubs(gameId, /* selectedOnly */ true));
 
         expect(newState.invalidSubs, 'Invalid subs should be cleared').not.to.be.ok;
       });

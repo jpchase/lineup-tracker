@@ -16,12 +16,11 @@ import { LivePlayer } from '../models/live.js';
 import { getGameStore } from '../slices/game-store';
 import { gameSetupCompletedCreator } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store';
-import { startersCompletedCreator } from '../slices/live/live-action-creators.js';
 import {
   applyStarter, cancelStarter, captainsCompleted, formationSelected, getLiveGame,
   rosterCompleted,
   selectInvalidStarters, selectLiveGameById,
-  selectStarter, selectStarterPosition
+  selectStarter, selectStarterPosition, startersCompletedCreator
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-on-player-list';
@@ -292,11 +291,11 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private finishStep(e: Event, step: SetupSteps) {
     switch (step) {
       case SetupSteps.Captains:
-        this.dispatch(captainsCompleted());
+        this.dispatch(captainsCompleted(this.game!.id));
         break;
 
       case SetupSteps.Roster:
-        this.dispatch(rosterCompleted());
+        this.dispatch(rosterCompleted(this.game!.id));
         break;
 
       case SetupSteps.Starters:
@@ -317,26 +316,26 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   private onFormationChange(e: Event) {
     const select: HTMLSelectElement = e.target as HTMLSelectElement;
 
-    this.dispatch(formationSelected(select.value as any));
+    this.dispatch(formationSelected(this.game!.id, select.value as any));
 
     // TODO: Clear select after setting, otherwise will be pre-filled on other games
     this.showFormation = false;
   }
 
   private playerSelected(e: CustomEvent) {
-    this.dispatch(selectStarter(e.detail.player.id, e.detail.selected));
+    this.dispatch(selectStarter(this.game!.id, e.detail.player.id, e.detail.selected));
   }
 
   private positionSelected(e: CustomEvent) {
-    this.dispatch(selectStarterPosition(e.detail.position));
+    this.dispatch(selectStarterPosition(this.game!.id, e.detail.position));
   }
 
   private applyStarter() {
-    this.dispatch(applyStarter());
+    this.dispatch(applyStarter(this.game!.id));
   }
 
   private cancelStarter() {
-    this.dispatch(cancelStarter());
+    this.dispatch(cancelStarter(this.game!.id));
   }
 
 }

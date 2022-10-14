@@ -9,11 +9,11 @@ import { getPlayer, LiveGame, LivePlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { RootState } from '../../store.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
-import { applyPendingSubs, invalidPendingSubs, invalidStarters, selectCurrentLiveGame, selectLiveGameById, selectPendingSubs, startersCompleted } from './live-slice.js';
+import { applyPendingSubs, invalidPendingSubs, invalidStarters, selectLiveGameById, selectPendingSubs, startersCompleted } from './live-slice.js';
 
-export const pendingSubsAppliedCreator = (selectedOnly?: boolean): ThunkAction<void, RootState, undefined, AnyAction> => (dispatch, getState) => {
+export const pendingSubsAppliedCreator = (gameId: string, selectedOnly?: boolean): ThunkAction<void, RootState, undefined, AnyAction> => (dispatch, getState) => {
   const state = getState();
-  const game = selectCurrentLiveGame(state);
+  const game = selectLiveGameById(state, gameId);
   if (!game) {
     return;
   }
@@ -41,7 +41,7 @@ export const startersCompletedCreator = (gameId: string): ThunkAction<void, Root
     dispatch(invalidStarters(game.id, Array.from(invalidPositions.keys()).sort()));
     return;
   }
-  dispatch(startersCompleted(/*game.id*/));
+  dispatch(startersCompleted(game.id));
 };
 
 function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
