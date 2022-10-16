@@ -7,6 +7,7 @@ import {
   AnyAction,
   combineReducers,
   configureStore,
+  EmptyObject,
   Reducer,
   ReducersMapObject,
   Store,
@@ -44,7 +45,7 @@ export interface SliceStoreConfigurator {
 // Action creator to cause the store to be reset (primarily intended for testing).
 export const resetState = (): RootActionReset => ({ type: RESET_STATE });
 
-export function combineReducersWithReset<S, A extends Action>(
+export function combineReducersWithReset<S extends EmptyObject, A extends Action>(
   reducers: ReducersMapObject<S, A>
 ): Reducer<S, A> {
   const combinedReducer = combineReducers(reducers);
