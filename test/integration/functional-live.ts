@@ -4,7 +4,7 @@ import { GameSetupPage, SetupStatus, SetupSteps } from './pages/game-setup-page.
 import { PageObject } from './pages/page-object.js';
 import { DevServer, startTestServer } from './server/test-server.js';
 
-describe('functional tests', function () {
+describe('Live functional tests', function () {
   let server: DevServer;
   let pageObject: PageObject;
 
