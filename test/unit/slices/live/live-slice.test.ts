@@ -101,7 +101,7 @@ describe('Live slice', () => {
       };
     });
 
-    it('should set state to given cached data', () => {
+    it.skip('should set state to given cached data', () => {
       const inputGame = buildLiveGameWithPlayers();
       inputGame.clock = buildClock(buildRunningTimer(),
         {

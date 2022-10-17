@@ -1,14 +1,17 @@
 import { Store } from 'redux';
+import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { hydrateLive } from '../actions/live.js';
 import { debug } from '../common/debug';
+import { IdbPersistStorage } from '../middleware/idb-persist-storage.js';
 import { LiveGame, LiveGames } from '../models/live.js';
 import { idb } from '../storage/idb-wrapper';
 import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
-import { live, selectCurrentLiveGame, selectCurrentShift } from './live/live-slice.js';
+import { live, LiveState, selectCurrentLiveGame, selectCurrentShift } from './live/live-slice.js';
 import { ShiftState } from './live/shift-slice.js';
 
 const debugStore = debug('live-store');
 
+const REDUCER_KEY = 'live';
 const KEY_CACHED_LIVE = 'CACHED_LIVE';
 interface CachedLive {
   currentGameId?: string;
@@ -24,9 +27,7 @@ export function getLiveStore(storeInstance?: RootStore, hydrate: boolean = true)
   if (!initialized) {
     debugStore('getLiveStore: first call, do initialization');
     // Lazy load the reducer
-    store.addReducers({
-      live
-    });
+    initReducer(store);
 
     if (hydrate) {
       debugStore('getLiveStore: setup hydration');
@@ -38,14 +39,29 @@ export function getLiveStore(storeInstance?: RootStore, hydrate: boolean = true)
       });
     }
     initialized = true;
-  } else if (!store.hasReducer('live')) {
+  } else if (!store.hasReducer(REDUCER_KEY)) {
     debugStore('getLiveStore: live state missing, add reducer');
     // Lazy load the reducer
-    store.addReducers({
-      live
-    });
+    initReducer(store);
   }
   return store;
+}
+
+function initReducer(store: RootStore) {
+  const persistConfig: PersistConfig<LiveState> = {
+    key: REDUCER_KEY,
+    storage: new IdbPersistStorage(),
+    whitelist: ['games', 'shift'],
+    debug: true
+  }
+
+  const liveReducer = persistReducer(persistConfig, live);
+
+  debugStore('initReducer: add the persist-wrapped reducer');
+  store.addReducers({
+    [REDUCER_KEY]: liveReducer
+  });
+  return persistStore(store);
 }
 
 export function getLiveStoreConfigurator(hydrate: boolean): SliceStoreConfigurator {

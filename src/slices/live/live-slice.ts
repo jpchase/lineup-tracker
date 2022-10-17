@@ -158,6 +158,8 @@ const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
     if (!action.games) {
       return;
     }
+    console.log(`Would have hydrated here`);
+    /*
     // TODO: This will overwrite a currently loaded game with different game id
     state.gameId = action.gameId;
     if (!state.games) {
@@ -170,6 +172,7 @@ const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
     if (action.shift) {
       state.shift = action.shift;
     }
+    */
   },
 });
 
