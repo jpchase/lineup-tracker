@@ -4,7 +4,6 @@
 
 import { createNextState, createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
 import { ActionCreator, AnyAction, Reducer } from 'redux';
-import { LiveActionHydrate } from '../../actions/live.js';
 import { Position } from '../../models/formation.js';
 import { Game, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer } from '../../models/live.js';
@@ -13,7 +12,6 @@ import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
-import { LIVE_HYDRATE } from '../live-types.js';
 import {
   configurePeriodsHandler, configurePeriodsPrepare,
   endPeriodHandler,
@@ -142,39 +140,8 @@ export const live: Reducer<LiveState> = function (state, action) {
     Object.assign(draft, liveGame(draft, action));
     Object.assign(draft, liveSlice.reducer(draft, action));
     draft!.shift = shift(draft?.shift, action);
-    Object.assign(draft, hydrateReducer(draft, action));
   }) as LiveState;
 }
-
-const hydrateReducer: Reducer<LiveState> = createReducer({} as LiveState, {
-  [LIVE_HYDRATE]: (state, action: LiveActionHydrate) => {
-    if (state.hydrated) {
-      return;
-    }
-    state.hydrated = true;
-    if (!action.gameId) {
-      return;
-    }
-    if (!action.games) {
-      return;
-    }
-    console.log(`Would have hydrated here`);
-    /*
-    // TODO: This will overwrite a currently loaded game with different game id
-    state.gameId = action.gameId;
-    if (!state.games) {
-      state.games = action.games;
-    } else {
-      for (const id in action.games) {
-        state.games[id] = action.games[id];
-      }
-    }
-    if (action.shift) {
-      state.shift = action.shift;
-    }
-    */
-  },
-});
 
 const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
   [GET_GAME_SUCCESS]: (state, action) => {

@@ -1,7 +1,6 @@
-import { hydrateLive } from '@app/actions/live.js';
 import { FormationType, Position } from '@app/models/formation';
 import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
-import { getPlayer, LiveGame, LiveGames, LivePlayer, PeriodStatus } from '@app/models/live.js';
+import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { GET_GAME_SUCCESS } from '@app/slices/game-types';
@@ -12,16 +11,14 @@ import {
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildSetupTasks, buildShiftWithTrackers, buildShiftWithTrackersFromGame, getTrackerMap, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
-import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
+import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildSetupTasks, buildShiftWithTrackers, getTrackerMap, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
   buildLivePlayers,
   buildRoster,
   getFakeAction,
   getNewGame, getStoredGame,
-  getStoredPlayer,
-  OTHER_STORED_GAME_ID
+  getStoredPlayer
 } from '../../helpers/test_data.js';
 
 const LIVE_INITIAL_STATE: LiveGameState = {
@@ -91,95 +88,6 @@ describe('Live slice', () => {
       live(INITIAL_OVERALL_STATE, getFakeAction())
     ).to.equal(INITIAL_OVERALL_STATE);
   });
-
-  describe('LIVE_HYDRATE', () => {
-    let currentState: LiveState;
-
-    beforeEach(() => {
-      currentState = {
-        ...INITIAL_OVERALL_STATE,
-      };
-    });
-
-    it.skip('should set state to given cached data', () => {
-      const inputGame = buildLiveGameWithPlayers();
-      inputGame.clock = buildClock(buildRunningTimer(),
-        {
-          totalPeriods: 3
-        });
-      const inputShift = buildShiftWithTrackersFromGame(inputGame);
-
-      const newState = live(currentState, hydrateLive(
-        testlive.buildLiveGames([inputGame]),
-        inputGame.id,
-        inputShift
-      ));
-
-      const expectedGame: LiveGame = {
-        ...inputGame,
-      };
-      const expectedShift = {
-        ...inputShift
-      };
-
-      expect(newState).to.deep.include({
-        hydrated: true,
-        gameId: inputGame.id,
-        games: testlive.buildLiveGames([expectedGame]),
-        shift: expectedShift
-      });
-
-      expect(getCurrentGame(newState)).not.to.equal(getCurrentGame(currentState));
-      expect(newState.shift).not.to.equal(currentState.shift);
-    });
-
-    it('should set hydrated flag when cached values are missing', () => {
-      const newState = live(currentState, hydrateLive(undefined as unknown as LiveGames));
-
-      expect(newState).to.include({
-        hydrated: true,
-      });
-      expect(newState.gameId, 'gameId should not be set').to.not.be.ok;
-      expect(getCurrentGame(newState)).to.be.undefined;
-      expect(newState.shift).to.equal(currentState.shift);
-    });
-
-    it('should ignored cached values when hydrated flag already set', () => {
-      const currentGame = buildLiveGameWithPlayers();
-      currentGame.clock = buildClock(buildStoppedTimer());
-      const currentShift = buildShiftWithTrackersFromGame(currentGame);
-      currentState = buildLiveStateWithCurrentGame(
-        currentGame,
-        {
-          gameId: currentGame.id,
-          shift: currentShift,
-          hydrated: true,
-        })
-
-      const inputGame = buildLiveGameWithPlayers();
-      inputGame.id = OTHER_STORED_GAME_ID;
-
-      expect(inputGame.id).not.to.equal(currentGame.id);
-
-      const newState = live(currentState,
-        hydrateLive(
-          testlive.buildLiveGames([inputGame]),
-          inputGame.id
-        )
-      );
-
-      const expectedState = buildLiveStateWithCurrentGame(currentGame,
-        {
-          hydrated: true,
-          shift: currentShift
-        });
-      expectedState.shift = currentShift;
-
-      expect(newState).to.deep.include(expectedState);
-      expect(getCurrentGame(newState)).to.equal(getCurrentGame(currentState));
-      expect(newState.shift).to.equal(currentState.shift);
-    });
-  }); // describe('LIVE_HYDRATE')
 
   describe('GET_GAME_SUCCESS', () => {
     let currentState: LiveState;
