@@ -93,7 +93,6 @@ export const gameCompletedCreator: ActionCreator<ThunkResult> = (gameId: string)
 };
 
 const INITIAL_STATE: GameState = {
-  hydrated: false,
   gameId: '',
   game: undefined,
   games: {},

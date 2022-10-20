@@ -4,19 +4,18 @@
 
 import { Action, ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { Game, GameDetail, Games } from '../models/game';
-import { Player, Roster } from '../models/player';
+import { Game, GameDetail } from '../models/game.js';
+import { Player, Roster } from '../models/player.js';
 import { currentGameIdSelector } from '../reducers/game';
 import {
   ADD_GAME_PLAYER, COPY_ROSTER_FAIL, COPY_ROSTER_REQUEST,
-  COPY_ROSTER_SUCCESS, GAME_HYDRATE, GET_GAME_FAIL, GET_GAME_REQUEST,
+  COPY_ROSTER_SUCCESS, GET_GAME_FAIL, GET_GAME_REQUEST,
   GET_GAME_SUCCESS
 } from '../slices/game-types';
 import { loadGame, loadGameRoster, persistGamePlayer } from '../slices/game/game-storage.js';
 import { loadTeamRoster } from '../slices/team/team-storage.js';
 import { RootState } from '../store.js';
 
-export interface GameActionHydrate extends Action<typeof GAME_HYDRATE> { gameId?: string, games: Games };
 interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
 export interface GameActionGetGameSuccess extends Action<typeof GET_GAME_SUCCESS> { game: GameDetail };
 interface GameActionGetGameFail extends Action<typeof GET_GAME_FAIL> { error: string };
@@ -27,14 +26,6 @@ interface GameActionAddPlayer extends Action<typeof ADD_GAME_PLAYER> { player: P
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AnyAction>;
-
-export const hydrateGame: ActionCreator<GameActionHydrate> = (games: Games, gameId?: string) => {
-  return {
-    type: GAME_HYDRATE,
-    gameId,
-    games
-  }
-};
 
 export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (dispatch, getState) => {
   if (!gameId) {

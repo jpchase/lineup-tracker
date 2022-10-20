@@ -1,6 +1,6 @@
 import {
-  GameDetail, Games, GameStatus,
-} from '@app/models/game';
+  GameDetail, GameStatus
+} from '@app/models/game.js';
 import { Player } from '@app/models/player';
 import { game, GameState } from '@app/reducers/game';
 import {
@@ -8,10 +8,9 @@ import {
   COPY_ROSTER_FAIL,
   COPY_ROSTER_REQUEST,
   COPY_ROSTER_SUCCESS,
-  GAME_HYDRATE,
   GET_GAME_FAIL,
   GET_GAME_REQUEST,
-  GET_GAME_SUCCESS,
+  GET_GAME_SUCCESS
 } from '@app/slices/game-types';
 import { expect } from '@open-wc/testing';
 import {
@@ -22,7 +21,6 @@ import {
 } from '../helpers/test_data';
 
 const GAME_INITIAL_STATE: GameState = {
-  hydrated: false,
   gameId: '',
   game: undefined,
   games: {},
@@ -44,83 +42,6 @@ describe('Game reducer', () => {
       game(GAME_INITIAL_STATE, getFakeAction())
     ).to.equal(GAME_INITIAL_STATE);
   });
-
-  describe('GAME_HYDRATE', () => {
-    let currentState: GameState = GAME_INITIAL_STATE;
-
-    beforeEach(() => {
-      currentState = {
-        ...GAME_INITIAL_STATE,
-      };
-    });
-
-    it('should set game to given cached game', () => {
-      const inputGame = buildNewGameDetailAndRoster();
-      const inputGames: Games = {};
-      inputGames[inputGame.id] = inputGame;
-
-      const newState = game(currentState, {
-        type: GAME_HYDRATE,
-        gameId: inputGame.id,
-        games: inputGames
-      });
-
-      const gameDetail: GameDetail = {
-        ...inputGame,
-      };
-
-      expect(newState).to.deep.include({
-        hydrated: true,
-        gameId: inputGame.id,
-        game: gameDetail,
-      });
-
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game).not.to.equal(currentState.game);
-    });
-
-    it('should set hydrated flag when cached values are missing', () => {
-      const newState = game(currentState, {
-        type: GAME_HYDRATE,
-        games: {}
-      });
-
-      expect(newState).to.include({
-        hydrated: true,
-      });
-      expect(newState.gameId, 'gameId should not be set').to.not.be.ok;
-      expect(newState.game).to.be.undefined;
-
-      expect(newState).not.to.equal(currentState);
-    });
-
-    it('should ignored cached values when hydrated flag already set', () => {
-      const currentGame = buildNewGameDetailAndRoster();
-      currentState.gameId = currentGame.id;
-      currentState.game = currentGame;
-      currentState.hydrated = true;
-
-      const inputGame = getStoredGame();
-      const inputGames: Games = {};
-      inputGames[inputGame.id] = inputGame;
-
-      expect(inputGame.id).not.to.equal(currentGame.id);
-
-      const newState = game(currentState, {
-        type: GAME_HYDRATE,
-        gameId: inputGame.id,
-        games: inputGames
-      });
-
-      expect(newState).to.include({
-        hydrated: true,
-        game: currentGame,
-      });
-
-      expect(newState).to.equal(currentState);
-      expect(newState.game).to.equal(currentState.game);
-    });
-  }); // describe('GAME_HYDRATE')
 
   describe('GET_GAME_REQUEST', () => {
     it('should set game id and loading flag', () => {

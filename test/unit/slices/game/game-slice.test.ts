@@ -28,7 +28,6 @@ const actionTypes = {
 };
 
 const GAME_INITIAL_STATE: GameState = {
-  hydrated: false,
   gameId: '',
   game: undefined,
   games: {},

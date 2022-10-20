@@ -33,7 +33,6 @@ export const INITIAL_OVERALL_STATE = buildInitialLiveState();
 
 export function buildInitialLiveState(): LiveState {
   return {
-    hydrated: false,
     ...LIVE_INITIAL_STATE,
     shift: {
       ...SHIFT_INITIAL_STATE
