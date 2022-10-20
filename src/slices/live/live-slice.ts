@@ -60,7 +60,6 @@ export interface LiveGameState {
 }
 
 export interface LiveState extends LiveGameState {
-  hydrated?: boolean;
   shift?: ShiftState;
 }
 

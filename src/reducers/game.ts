@@ -2,10 +2,10 @@
 @license
 */
 
-import { GameActionGetGameSuccess, GameActionHydrate } from '@app/actions/game';
+import { GameActionGetGameSuccess } from '@app/actions/game';
 import { Reducer } from 'redux';
 import {
-  GameDetail, Games, GameStatus,
+  GameDetail, Games, GameStatus
 } from '../models/game';
 import { Player, Roster } from '../models/player';
 import {
@@ -13,17 +13,15 @@ import {
   COPY_ROSTER_FAIL,
   COPY_ROSTER_REQUEST,
   COPY_ROSTER_SUCCESS,
-  GAME_HYDRATE,
   GET_GAME_FAIL,
   GET_GAME_REQUEST,
-  GET_GAME_SUCCESS,
+  GET_GAME_SUCCESS
 } from '../slices/game-types';
 import { gamesReducer } from '../slices/game/game-slice.js';
 import { RootState } from '../store.js';
 import { createReducer } from './createReducer'; // 'redux-starter-kit';
 
 export interface GameState {
-  hydrated: boolean;
   gameId: string;
   game?: GameDetail;
   games: Games;
@@ -35,7 +33,6 @@ export interface GameState {
 }
 
 const INITIAL_STATE: GameState = {
-  hydrated: false,
   gameId: '',
   game: undefined,
   games: {},
@@ -54,22 +51,6 @@ export const game: Reducer<GameState> = function (state, action) {
 }
 
 const oldReducer: Reducer<GameState> = createReducer(INITIAL_STATE, {
-  [GAME_HYDRATE]: (newState, action: GameActionHydrate) => {
-    if (newState.hydrated) {
-      return;
-    }
-    newState.hydrated = true;
-    if (!action.gameId) {
-      return;
-    }
-    const cachedGame = action.games[action.gameId];
-    if (!cachedGame || !cachedGame.hasDetail) {
-      return;
-    }
-    newState.gameId = cachedGame.id;
-    newState.game = cachedGame as GameDetail;
-  },
-
   [GET_GAME_REQUEST]: (newState, action) => {
     newState.gameId = action.gameId;
     newState.detailFailure = false;

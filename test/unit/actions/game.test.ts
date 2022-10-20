@@ -44,7 +44,6 @@ function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
     const mockState: RootState = {
       auth: getMockAuthState(),
       game: {
-        hydrated: false,
         gameId: '',
         game: undefined,
         games: buildGames(games || []),

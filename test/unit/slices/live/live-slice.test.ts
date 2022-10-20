@@ -33,7 +33,6 @@ const LIVE_INITIAL_STATE: LiveGameState = {
 };
 
 const INITIAL_OVERALL_STATE: LiveState = {
-  hydrated: false,
   ...LIVE_INITIAL_STATE,
   shift: {
     ...SHIFT_INITIAL_STATE

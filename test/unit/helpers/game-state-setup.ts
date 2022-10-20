@@ -2,7 +2,6 @@ import { GameDetail } from '@app/models/game.js';
 import { GameState } from '@app/slices/game/game-slice.js';
 
 const INITIAL_STATE: GameState = {
-  hydrated: false,
   gameId: '',
   game: undefined,
   games: {},
