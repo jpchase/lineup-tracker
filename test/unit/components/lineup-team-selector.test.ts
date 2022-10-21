@@ -1,10 +1,10 @@
-import { LineupTeamSelector, LineupTeamSelectorDialog } from '@app/components/lineup-team-selector';
+import { LineupTeamSelector, LineupTeamSelectorDialog } from '@app/components/lineup-team-selector.js';
 import '@app/components/lineup-team-selector.js';
-import { Team } from '@app/models/team';
+import { Team } from '@app/models/team.js';
 import { Button } from '@material/mwc-button';
 import { ListItem } from '@material/mwc-list/mwc-list-item';
 import { expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
-import { buildTeams } from '../helpers/test_data';
+import { buildTeams } from '../helpers/test_data.js';
 
 const TEAMS: Team[] = [
   {
@@ -38,14 +38,15 @@ describe('lineup-team-selector tests', () => {
   }
 
   it('starts empty', () => {
-    expect(el.teamId).to.equal('', 'teamId');
-    expect(el.teams).to.deep.equal({}, 'teams');
+    expect(el.currentTeam).to.be.undefined;
   });
 
   it('renders name for current team', async () => {
     const teams = getTeams();
-    el.teamId = 't1';
-    el.teams = teams;
+    el.currentTeam = {
+      id: 't1',
+      name: teams['t1'].name
+    };
     await el.updateComplete;
 
     const button = getTeamButton();
@@ -54,8 +55,8 @@ describe('lineup-team-selector tests', () => {
     expect(button.textContent).to.be.equal(teams['t1'].name, 'Team name');
   });
 
-  it('renders placeholder when no teams created yet', async () => {
-    el.teams = {};
+  it('renders placeholder when no current team set', async () => {
+    el.currentTeam = undefined;
     await el.updateComplete;
 
     const button = getTeamButton();
@@ -69,8 +70,10 @@ describe('lineup-team-selector tests', () => {
 
   it('fires event to select team, with existing team selected', async () => {
     const teams = getTeams();
-    el.teamId = 't1';
-    el.teams = teams;
+    el.currentTeam = {
+      id: 't1',
+      name: teams['t1'].name
+    };
     await el.updateComplete;
 
     const teamButton = getTeamButton();
@@ -81,8 +84,8 @@ describe('lineup-team-selector tests', () => {
     expect(detail, 'Select team event has no detail').not.to.exist;
   });
 
-  it('fires event to select team, when no teams created yet', async () => {
-    el.teams = {};
+  it('fires event to select team, when no current team set', async () => {
+    el.currentTeam = undefined;
     await el.updateComplete;
 
     const teamButton = getTeamButton();
@@ -95,8 +98,10 @@ describe('lineup-team-selector tests', () => {
 
   it('a11y', async () => {
     const teams = getTeams();
-    el.teamId = 't1';
-    el.teams = teams;
+    el.currentTeam = {
+      id: 't1',
+      name: teams['t1'].name
+    };
     await el.updateComplete;
 
     await expect(el).to.be.accessible();

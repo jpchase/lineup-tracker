@@ -1,7 +1,7 @@
 /* @web/test-runner snapshot v1 */
 export const snapshots = {};
 
-snapshots["lineup-team-selector tests renders placeholder when no teams created yet"] = 
+snapshots["lineup-team-selector tests renders placeholder when no current team set"] = 
 `<mwc-button
   aria-label="No team selected. Hit enter to select a team."
   icon="arrow_drop_down"
@@ -11,7 +11,7 @@ snapshots["lineup-team-selector tests renders placeholder when no teams created 
   Select a team
 </mwc-button>
 `;
-/* end snapshot lineup-team-selector tests renders placeholder when no teams created yet */
+/* end snapshot lineup-team-selector tests renders placeholder when no current team set */
 
 snapshots["lineup-team-selector tests a11y"] = 
 `<mwc-button

@@ -46,7 +46,7 @@ export const getTeams = createAsyncThunk<
 
       let teamId;
       if (!selectedTeamId) {
-        teamId = currentTeamIdSelector(thunkAPI.getState());
+        teamId = selectCurrentTeamId(thunkAPI.getState());
       }
       if (!selectedTeamId && !teamId) {
         // No team id selected, which happens on initial load. Check for a
@@ -126,7 +126,7 @@ export const addNewPlayer = (newPlayer: Player): ThunkResult => (dispatch, getSt
 
 export const savePlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
-  const teamId = currentTeamIdSelector(getState())!;
+  const teamId = selectCurrentTeamId(getState())!;
   savePlayerToTeamRoster(newPlayer, teamId);
   dispatch(addPlayer(newPlayer));
 };
@@ -215,5 +215,15 @@ function setCurrentTeam(state: TeamState, teamId: string) {
 export const currentTeamIdSelector = (state: RootState) => state.team && state.team.teamId;
 
 export const selectCurrentTeamId = (state: RootState) => state.team?.teamId;
+
+export const selectCurrentTeam = (state: RootState): Team | undefined => {
+  if (!state.team?.teamId) {
+    return undefined;
+  }
+  return {
+    id: state.team.teamId,
+    name: state.team.teamName,
+  };
+}
 
 export const selectTeamsLoaded = (state: RootState) => state.team?.teamsLoaded;

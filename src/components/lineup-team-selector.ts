@@ -18,6 +18,8 @@ import { SharedStyles } from './shared-styles';
 @customElement('lineup-team-selector')
 export class LineupTeamSelector extends LitElement {
   override render() {
+    const teamName = this.currentTeam ? this.currentTeam.name : 'Select a team';
+
     return html`
       ${SharedStyles}
       <style>
@@ -29,69 +31,18 @@ export class LineupTeamSelector extends LitElement {
         }
       </style>
       <mwc-button id="team-switcher-button" icon="arrow_drop_down" trailingicon
-          aria-label="${this.getTeamLabel()}" @click="${this.switcherClicked}">${this.teamName}</mwc-button>
+          aria-label="${this.getTeamLabel()}" @click="${this.switcherClicked}">${teamName}</mwc-button>
     `;
   }
 
-  @property({ type: String })
-  private teamId_ = '';
-
-  get teamId() {
-    return this.teamId_;
-  }
-  set teamId(value: string) {
-    const oldValue = this.teamId_;
-    this.teamId_ = value;
-    if (value !== oldValue) {
-      this.updateCurrentTeam();
-    }
-    this.requestUpdate('teamId', oldValue);
-  }
-
   @property({ type: Object })
-  private teams_: Teams = {};
-
-  get teams() {
-    return this.teams_;
-  }
-  set teams(value: Teams) {
-    const oldValue = this.teams_;
-    this.teams_ = value;
-    if (value !== oldValue) {
-      this.updateCurrentTeam();
-    }
-    this.requestUpdate('teams', oldValue);
-  }
-
-  @state()
-  protected teamName = '';
-
-  @state()
-  protected teamSelected = false;
+  currentTeam?: Team;
 
   private getTeamLabel() {
-    if (this.teamSelected) {
-      return `You are currently working with team ${this.teamName}. Hit enter to switch teams.`;
+    if (this.currentTeam) {
+      return `You are currently working with team ${this.currentTeam.name}. Hit enter to switch teams.`;
     }
     return 'No team selected. Hit enter to select a team.';
-  }
-
-  private updateCurrentTeam() {
-    let text = '';
-    let selected = false;
-    if (this.teamId && this.teams) {
-      const currentTeam = this.teams[this.teamId];
-      if (currentTeam) {
-        text = currentTeam.name;
-        selected = true;
-      }
-    }
-    if (selected) {
-      this.teamName = text;
-    } else {
-      this.teamName = 'Select a team';
-    }
-    this.teamSelected = selected;
   }
 
   private switcherClicked() {
@@ -174,7 +125,7 @@ export class LineupTeamSelectorDialog extends LitElement {
   }
 
   @property({ type: String })
-  teamId = '';
+  teamId?= '';
 
   @property({ type: Object })
   teams: Teams = {};
