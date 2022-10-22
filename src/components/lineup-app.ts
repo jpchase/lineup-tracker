@@ -23,7 +23,9 @@ import { auth, signIn } from '../slices/auth/auth-slice.js';
 import { changeTeam, selectCurrentTeam, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
-import './lineup-team-selector';
+import './lineup-team-selector-dialog.js';
+import { TeamChangedEvent } from './lineup-team-selector-dialog.js';
+import './lineup-team-selector.js';
 import './snack-bar';
 
 // Lazy load the reducers.
@@ -396,7 +398,7 @@ export class LineupApp extends connect(store)(LitElement) {
     dialog.show();
   }
 
-  private teamChanged(e: CustomEvent) {
+  private teamChanged(e: TeamChangedEvent) {
     store.dispatch(changeTeam(e.detail.teamId));
   }
 
