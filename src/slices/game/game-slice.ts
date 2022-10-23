@@ -3,17 +3,13 @@
 */
 
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ActionCreator, AnyAction } from 'redux';
-import { ThunkAction } from 'redux-thunk';
 import { Game, Games, GameStatus } from '../../models/game.js';
 import type { GameState } from '../../reducers/game.js';
-import { RootState } from '../../store.js';
+import { RootState, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
 export { GameState } from '../../reducers/game.js';
-
-type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 
 export const getGames = createAsyncThunk<
   // Return type of the payload creator
@@ -42,7 +38,7 @@ export const getGames = createAsyncThunk<
   }
 );
 
-export const addNewGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch, getState) => {
+export const addNewGame = (newGame: Game): ThunkResult => (dispatch, getState) => {
   if (!newGame) {
     return;
   }
@@ -62,7 +58,7 @@ export const addNewGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispat
 };
 
 // Saves the new game in local storage, before adding to the store
-export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch, getState) => {
+export const saveGame = (newGame: Game): ThunkResult => (dispatch, getState) => {
   if (!newGame.status) {
     newGame.status = GameStatus.New;
   }
@@ -70,7 +66,7 @@ export const saveGame: ActionCreator<ThunkResult> = (newGame: Game) => (dispatch
   dispatch(addGame(newGame));
 };
 
-export const gameSetupCompletedCreator: ActionCreator<ThunkResult> = (gameId: string) => (dispatch, getState) => {
+export const gameSetupCompletedCreator = (gameId: string): ThunkResult => (dispatch, getState) => {
   // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
   //       so don't have to duplicate logic.
   const game = selectLiveGameById(getState(), gameId);
@@ -83,7 +79,7 @@ export const gameSetupCompletedCreator: ActionCreator<ThunkResult> = (gameId: st
   dispatch(gameSetupCompleted(gameId, game));
 };
 
-export const gameCompletedCreator: ActionCreator<ThunkResult> = (gameId: string) => (dispatch) => {
+export const gameCompletedCreator = (gameId: string): ThunkResult => (dispatch) => {
   // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
   //       so don't have to duplicate logic.
   updateExistingGame(gameId, {

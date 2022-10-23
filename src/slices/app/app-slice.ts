@@ -1,10 +1,8 @@
-import { AnyAction, createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getEnv } from '../../app/environment.js';
-import { RootState } from '../../store.js';
+import { ThunkResult } from '../../store.js';
 
 const env = getEnv();
-
-type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 
 export const navigate = (location: Location): ThunkResult => (dispatch) => {
   // Extract the page name from path.

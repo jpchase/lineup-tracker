@@ -1,12 +1,10 @@
 import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { GoogleAuthProvider, signInWithCredential, User as FirebaseUser, UserCredential } from 'firebase/auth';
-import { ActionCreator, AnyAction } from 'redux';
-import { ThunkAction } from 'redux-thunk';
 import { getEnv } from '../../app/environment.js';
 import { debug } from '../../common/debug.js';
 import { auth as authApi, firebaseRefs } from '../../firebase.js';
 import { User } from '../../models/auth.js';
-import { RootState } from '../../store.js';
+import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 
 export interface AuthState {
   user?: User;
@@ -18,13 +16,10 @@ const INITIAL_STATE: AuthState = {
   error: ''
 };
 
-type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
-type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AnyAction>;
-
 const env = getEnv();
 const debugAuth = debug('auth');
 
-export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) => {
+export const getUser = (): ThunkPromise<boolean> => (dispatch) => {
   // Return a promise that resolves once the auth state is known, via callback.
   let resolveFunc: Function;
   const changedPromise = new Promise<boolean>((resolve) => {
@@ -46,7 +41,7 @@ export const getUser: ActionCreator<ThunkPromise<boolean>> = () => (dispatch) =>
   return changedPromise;
 };
 
-export const signIn: ActionCreator<ThunkResult> = () => () => {
+export const signIn = (): ThunkResult => () => {
   let signinPromise: Promise<UserCredential>;
 
   if (env.firebase.useEmulators) {

@@ -92,17 +92,13 @@ describe('Game actions', () => {
   }
 
   describe('getGame', () => {
-    it('should return a function to dispatch the getGame action', () => {
-      expect(actions.getGame()).to.be.instanceof(Function);
-    });
-
     it('should do nothing if game id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
       let getRejected = false;
       try {
-        await actions.getGame()(dispatchMock, getStateMock, undefined);
+        await actions.getGame(undefined as unknown as string)(dispatchMock, getStateMock, undefined);
       } catch {
         getRejected = true;
       }
@@ -288,18 +284,13 @@ describe('Game actions', () => {
   }); // describe('getGame')
 
   describe('copyRoster', () => {
-
-    it('should return a function to dispatch the copyRoster action', () => {
-      expect(actions.copyRoster()).to.be.instanceof(Function);
-    });
-
     it('should do nothing if game id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
       let copyRejected = false;
       try {
-        await actions.copyRoster()(dispatchMock, getStateMock, undefined);
+        await actions.copyRoster(undefined as unknown as string)(dispatchMock, getStateMock, undefined);
       } catch {
         copyRejected = true;
       }
@@ -428,15 +419,11 @@ describe('Game actions', () => {
   }); // describe('copyRoster')
 
   describe('addNewGamePlayer', () => {
-    it('should return a function to dispatch the action', () => {
-      expect(actions.addNewGamePlayer()).to.be.instanceof(Function);
-    });
-
     it('should do nothing if new player is missing', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      actions.addNewGamePlayer()(dispatchMock, getStateMock, undefined);
+      actions.addNewGamePlayer(undefined as unknown as Player)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.not.have.been.called;
 
@@ -473,10 +460,6 @@ describe('Game actions', () => {
   });  // describe('addNewGamePlayer')
 
   describe('saveGamePlayer', () => {
-    it('should return a function to dispatch the action', () => {
-      expect(actions.saveGamePlayer()).to.be.instanceof(Function);
-    });
-
     it('should save to storage and dispatch an action to add player', async () => {
       const expectedId = 'randomGamePlayerID68097';
       const expectedSavedPlayer: Player = {

@@ -2,8 +2,7 @@
 @license
 */
 
-import { Action, ActionCreator, AnyAction } from 'redux';
-import { ThunkAction } from 'redux-thunk';
+import { Action, ActionCreator } from 'redux';
 import { Game, GameDetail } from '../models/game.js';
 import { Player, Roster } from '../models/player.js';
 import { currentGameIdSelector } from '../reducers/game';
@@ -14,7 +13,7 @@ import {
 } from '../slices/game-types';
 import { loadGame, loadGameRoster, persistGamePlayer } from '../slices/game/game-storage.js';
 import { loadTeamRoster } from '../slices/team/team-storage.js';
-import { RootState } from '../store.js';
+import { ThunkPromise, ThunkResult } from '../store.js';
 
 interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
 export interface GameActionGetGameSuccess extends Action<typeof GET_GAME_SUCCESS> { game: GameDetail };
@@ -24,10 +23,7 @@ interface GameActionCopyRosterSuccess extends Action<typeof COPY_ROSTER_SUCCESS>
 interface GameActionCopyRosterFail extends Action<typeof COPY_ROSTER_FAIL> { error: string };
 interface GameActionAddPlayer extends Action<typeof ADD_GAME_PLAYER> { player: Player };
 
-type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
-type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AnyAction>;
-
-export const getGame: ActionCreator<ThunkPromise<void>> = (gameId: string) => (dispatch, getState) => {
+export const getGame = (gameId: string): ThunkPromise<void> => (dispatch, getState) => {
   if (!gameId) {
     return Promise.reject();
   }
@@ -87,7 +83,7 @@ const getGameFail: ActionCreator<GameActionGetGameFail> = (error: string) => {
   };
 };
 
-export const copyRoster: ActionCreator<ThunkPromise<void>> = (gameId: string) => (dispatch, getState) => {
+export const copyRoster = (gameId: string): ThunkPromise<void> => (dispatch, getState) => {
   if (!gameId) {
     return Promise.reject('gameId is missing');
   }
@@ -159,7 +155,7 @@ const copyRosterFail: ActionCreator<GameActionCopyRosterFail> = (error: string) 
   };
 };
 
-export const addNewGamePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
+export const addNewGamePlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
   if (!newPlayer) {
     return;
   }
@@ -172,7 +168,7 @@ export const addNewGamePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) 
   dispatch(saveGamePlayer(newPlayer));
 };
 
-export const saveGamePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
+export const saveGamePlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
   const gameId = currentGameIdSelector(getState())!;
   persistGamePlayer(newPlayer, gameId, true);

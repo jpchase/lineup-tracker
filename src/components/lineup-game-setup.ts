@@ -310,7 +310,7 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   }
 
   private completeGameSetup() {
-    this.dispatch(gameSetupCompletedCreator(this.game?.id));
+    this.dispatch(gameSetupCompletedCreator(this.game!.id));
   }
 
   private onFormationChange(e: Event) {

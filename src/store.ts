@@ -11,6 +11,7 @@ import {
   Reducer,
   ReducersMapObject,
   Store,
+  ThunkAction,
   ThunkDispatch
 } from '@reduxjs/toolkit';
 import { listenerMiddleware } from './app/action-listeners.js';
@@ -84,3 +85,5 @@ export function setupStore(preloadedState?: RootState) {
 export const store: RootStore = setupStore();
 
 export type AppDispatch = typeof store.dispatch;
+export type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
+export type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AnyAction>;
