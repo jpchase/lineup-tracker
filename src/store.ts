@@ -16,7 +16,7 @@ import {
 import { listenerMiddleware } from './app/action-listeners.js';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import { lazyReducerEnhancer, LazyStore } from './middleware/lazy-reducers.js';
-import app, { AppState } from './reducers/app';
+import { app, AppState } from './reducers/app.js';
 import type { GameState } from './reducers/game.js';
 import type { AuthState } from './slices/auth/auth-slice.js';
 import type { LiveState } from './slices/live/live-slice.js';

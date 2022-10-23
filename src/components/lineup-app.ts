@@ -15,9 +15,10 @@ import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
-import { navigate, updateDrawerState, updateOffline } from '../actions/app';
+import { navigate, offlineChanged } from '../actions/app.js';
 import { User } from '../models/auth';
 import { Teams } from '../models/team';
+import { updateDrawerState } from '../reducers/app.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
 import { changeTeam, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
@@ -351,7 +352,7 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   override firstUpdated() {
-    installOfflineWatcher((offline) => store.dispatch(updateOffline(offline)));
+    installOfflineWatcher((offline) => store.dispatch(offlineChanged(offline)));
     installMediaQueryWatcher(`(min-width: 460px)`,
       () => store.dispatch(updateDrawerState(false)));
   }

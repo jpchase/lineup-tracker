@@ -1,21 +1,4 @@
-/**
-@license
-Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
-*/
-
-import { Reducer } from 'redux';
-import {
-  CLOSE_SNACKBAR,
-  OPEN_SNACKBAR,
-  UPDATE_DRAWER_STATE,
-  UPDATE_OFFLINE,
-  UPDATE_PAGE
-} from '../actions/app';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface AppState {
   page: string;
@@ -31,36 +14,47 @@ const INITIAL_STATE: AppState = {
   snackbarOpened: false,
 };
 
-const app: Reducer<AppState> = (state = INITIAL_STATE, action) => {
-  switch (action.type) {
-    case UPDATE_PAGE:
-      return {
-        ...state,
-        page: action.page
-      };
-    case UPDATE_OFFLINE:
-      return {
-        ...state,
-        offline: action.offline
-      };
-    case UPDATE_DRAWER_STATE:
-      return {
-        ...state,
-        drawerOpened: action.opened
-      };
-    case OPEN_SNACKBAR:
-      return {
-        ...state,
-        snackbarOpened: true
-      };
-    case CLOSE_SNACKBAR:
-      return {
-        ...state,
-        snackbarOpened: false
-      };
-    default:
-      return state;
-  }
-};
+const appSlice = createSlice({
+  name: 'app',
+  initialState: INITIAL_STATE,
+  reducers: {
+    updatePage: {
+      reducer: (state, action: PayloadAction<{ page: string }>) => {
+        state.page = action.payload.page;
+      },
+      prepare: (page: string) => {
+        return { payload: { page } };
+      }
+    },
+    updateOffline: {
+      reducer: (state, action: PayloadAction<{ offline: boolean }>) => {
+        state.offline = action.payload.offline;
+      },
+      prepare: (offline: boolean) => {
+        return { payload: { offline } };
+      }
+    },
+    updateDrawerState: {
+      reducer: (state, action: PayloadAction<{ opened: boolean }>) => {
+        state.drawerOpened = action.payload.opened;
+      },
+      prepare: (opened: boolean) => {
+        return { payload: { opened } };
+      }
+    },
+    openSnackBar: (state) => {
+      state.snackbarOpened = true;
+    },
+    closeSnackBar: (state) => {
+      state.snackbarOpened = false;
+    },
+  },
+});
 
-export default app;
+const { actions, reducer } = appSlice;
+
+export const {
+  openSnackBar, closeSnackBar,
+  updateDrawerState, updateOffline, updatePage
+} = actions;
+export const app = reducer;
