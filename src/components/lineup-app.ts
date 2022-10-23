@@ -18,7 +18,7 @@ import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { navigate, offlineChanged } from '../actions/app.js';
 import { User } from '../models/auth';
 import { Teams } from '../models/team';
-import { updateDrawerState } from '../reducers/app.js';
+import { updateDrawerState } from '../slices/app/app-slice.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
 import { changeTeam, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';

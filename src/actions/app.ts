@@ -2,7 +2,7 @@ import { AnyAction } from '@reduxjs/toolkit';
 import { ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { getEnv } from '../app/environment.js';
-import { closeSnackBar, openSnackBar, updateDrawerState, updateOffline, updatePage } from '../reducers/app.js';
+import { closeSnackBar, openSnackBar, updateDrawerState, updateOffline, updatePage } from '../slices/app/app-slice.js';
 import { RootState } from '../store.js';
 
 const env = getEnv();
