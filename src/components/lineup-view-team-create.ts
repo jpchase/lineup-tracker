@@ -5,7 +5,7 @@
 import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { navigate } from '../actions/app';
+import { navigate } from '../slices/app/app-slice.js';
 import { addNewTeam, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { EVENT_NEWTEAMCREATED } from './events';

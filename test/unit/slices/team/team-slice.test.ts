@@ -510,15 +510,11 @@ describe('Team actions', () => {
   }); // describe('changeTeam')
 
   describe('addNewTeam', () => {
-    it('should return a function to dispatch the action', () => {
-      expect(addNewTeam()).to.be.instanceof(Function);
-    });
-
     it('should do nothing if new team is missing', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      addNewTeam()(dispatchMock, getStateMock, undefined);
+      addNewTeam(undefined as unknown as Team)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.not.have.been.called;
 
@@ -529,7 +525,7 @@ describe('Team actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([{ id: 'EX', name: 'Existing team' }]);
 
-      addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
+      addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
@@ -540,7 +536,7 @@ describe('Team actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([newTeamSaved]);
 
-      addNewTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
+      addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
@@ -549,10 +545,6 @@ describe('Team actions', () => {
   }); // describe('addNewTeam')
 
   describe('saveTeam', () => {
-    it('should return a function to dispatch the action', () => {
-      expect(saveTeam()).to.be.instanceof(Function);
-    });
-
     it('should save to storage and dispatch an action to add team', async () => {
       const expectedId = 'randomGeneratedID45234';
       const expectedSavedTeam: Team = {
@@ -567,7 +559,7 @@ describe('Team actions', () => {
       );
 
       const inputTeam = getNewTeam();
-      saveTeam(inputTeam)(dispatchMock, getStateMock, undefined);
+      saveTeam(inputTeam as Team)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new team was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
@@ -589,7 +581,7 @@ describe('Team actions', () => {
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
-        saveTeam(getNewTeam())(dispatchMock, getStateMock, undefined);
+        saveTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
       }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
@@ -671,15 +663,11 @@ describe('Team actions', () => {
   }); // describe('getRoster')
 
   describe('addNewPlayer', () => {
-    it('should return a function to dispatch the action', () => {
-      expect(addNewPlayer()).to.be.instanceof(Function);
-    });
-
     it('should do nothing if new player is missing', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      addNewPlayer()(dispatchMock, getStateMock, undefined);
+      addNewPlayer(undefined as unknown as Player)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.not.have.been.called;
 
@@ -710,10 +698,6 @@ describe('Team actions', () => {
   }); // describe('addNewPlayer')
 
   describe('savePlayer', () => {
-    it('should return a function to dispatch the action', () => {
-      expect(savePlayer()).to.be.instanceof(Function);
-    });
-
     it('should save to storage and dispatch an action to add player', async () => {
       const expectedId = 'randomGeneratedPlayerID45234';
       const expectedSavedPlayer: Player = {

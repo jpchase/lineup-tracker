@@ -2,16 +2,14 @@
 @license
 */
 
-import { ThunkAction } from '@reduxjs/toolkit';
-import { AnyAction } from 'redux';
 import { FormationBuilder, getPositions } from '../../models/formation.js';
 import { getPlayer, LiveGame, LivePlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
-import { RootState } from '../../store.js';
+import { ThunkResult } from '../../store.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
 import { applyPendingSubs, invalidPendingSubs, invalidStarters, selectLiveGameById, selectPendingSubs, startersCompleted } from './live-slice.js';
 
-export const pendingSubsAppliedCreator = (gameId: string, selectedOnly?: boolean): ThunkAction<void, RootState, undefined, AnyAction> => (dispatch, getState) => {
+export const pendingSubsAppliedCreator = (gameId: string, selectedOnly?: boolean): ThunkResult => (dispatch, getState) => {
   const state = getState();
   const game = selectLiveGameById(state, gameId);
   if (!game) {
@@ -30,7 +28,7 @@ export const pendingSubsAppliedCreator = (gameId: string, selectedOnly?: boolean
   dispatch(applyPendingSubs(game.id, subs, selectedOnly));
 };
 
-export const startersCompletedCreator = (gameId: string): ThunkAction<void, RootState, undefined, AnyAction> => (dispatch, getState) => {
+export const startersCompletedCreator = (gameId: string): ThunkResult => (dispatch, getState) => {
   const state = getState();
   const game = selectLiveGameById(state, gameId);
   if (!game) {

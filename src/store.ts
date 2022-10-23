@@ -11,13 +11,14 @@ import {
   Reducer,
   ReducersMapObject,
   Store,
+  ThunkAction,
   ThunkDispatch
 } from '@reduxjs/toolkit';
 import { listenerMiddleware } from './app/action-listeners.js';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import { lazyReducerEnhancer, LazyStore } from './middleware/lazy-reducers.js';
-import app, { AppState } from './reducers/app';
 import type { GameState } from './reducers/game.js';
+import { app, AppState } from './slices/app/app-slice.js';
 import type { AuthState } from './slices/auth/auth-slice.js';
 import type { LiveState } from './slices/live/live-slice.js';
 import type { TeamState } from './slices/team/team-slice.js';
@@ -84,3 +85,5 @@ export function setupStore(preloadedState?: RootState) {
 export const store: RootStore = setupStore();
 
 export type AppDispatch = typeof store.dispatch;
+export type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
+export type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AnyAction>;

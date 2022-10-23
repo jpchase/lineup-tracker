@@ -2,15 +2,15 @@
 @license
 */
 
-import { createNextState, createSlice, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
-import { ActionCreator, AnyAction, Reducer } from 'redux';
+import { createNextState, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Reducer } from 'redux';
 import { Position } from '../../models/formation.js';
 import { Game, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { createReducer } from '../../reducers/createReducer.js';
 import { selectCurrentGame } from '../../slices/game/game-slice.js';
-import { RootState } from '../../store.js';
+import { RootState, ThunkResult } from '../../store.js';
 import { GET_GAME_SUCCESS } from '../game-types.js';
 import {
   configurePeriodsHandler, configurePeriodsPrepare,
@@ -111,7 +111,7 @@ export const selectPendingSubs = (state: RootState, selectedOnly?: boolean, incl
   return nextPlayers;
 }
 
-export const rosterCompleted = (gameId: string): ThunkAction<void, RootState, undefined, AnyAction> => (dispatch, getState) => {
+export const rosterCompleted = (gameId: string): ThunkResult => (dispatch, getState) => {
   const game = selectCurrentGame(getState());
   if (!game) {
     return;
@@ -119,7 +119,7 @@ export const rosterCompleted = (gameId: string): ThunkAction<void, RootState, un
   dispatch(actions.completeRoster(gameId, game.roster));
 };
 
-export const startGamePeriod: ActionCreator<ThunkAction<void, RootState, undefined, AnyAction>> = () => (dispatch, getState) => {
+export const startGamePeriod = (): ThunkResult => (dispatch, getState) => {
   const state = getState();
   const game = selectCurrentLiveGame(state);
   if (!game || !game.clock) {

@@ -3,18 +3,14 @@
 */
 
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ActionCreator, AnyAction } from 'redux';
-import { ThunkAction } from 'redux-thunk';
 import { debug } from '../../common/debug.js';
 import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
 import { CollectionFilter, whereFilter } from '../../storage/firestore-reader.js';
 import { idb } from '../../storage/idb-wrapper.js';
-import { RootState } from '../../store.js';
+import { RootState, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from './team-storage.js';
-
-type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
@@ -74,7 +70,7 @@ export const getTeams = createAsyncThunk<
   }
 );
 
-export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
+export const addNewTeam = (newTeam: Team): ThunkResult => (dispatch, getState) => {
   if (!newTeam) {
     return;
   }
@@ -93,7 +89,7 @@ export const addNewTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispat
   dispatch(saveTeam(newTeam));
 };
 
-export const saveTeam: ActionCreator<ThunkResult> = (newTeam: Team) => (dispatch, getState) => {
+export const saveTeam = (newTeam: Team): ThunkResult => (dispatch, getState) => {
   // Save the team to Firestore, before adding to the store.
   persistTeam(newTeam, getState());
   cacheTeamId(newTeam.id);
@@ -115,7 +111,7 @@ export const getRoster = createAsyncThunk(
   }
 );
 
-export const addNewPlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
+export const addNewPlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
   if (!newPlayer) {
     return;
   }
@@ -128,7 +124,7 @@ export const addNewPlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (
   dispatch(savePlayer(newPlayer));
 };
 
-export const savePlayer: ActionCreator<ThunkResult> = (newPlayer: Player) => (dispatch, getState) => {
+export const savePlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
   const teamId = currentTeamIdSelector(getState())!;
   savePlayerToTeamRoster(newPlayer, teamId);

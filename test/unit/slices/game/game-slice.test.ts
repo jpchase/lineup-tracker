@@ -246,7 +246,7 @@ describe('Games actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      addNewGame()(dispatchMock, getStateMock, undefined);
+      addNewGame(undefined as unknown as Game)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.not.have.been.called;
 
@@ -257,7 +257,7 @@ describe('Games actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([getStoredGame()]);
 
-      addNewGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
+      addNewGame(getNewGameMetadata() as Game)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
@@ -268,7 +268,7 @@ describe('Games actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([getNewGameSaved()]);
 
-      addNewGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
+      addNewGame(getNewGameMetadata() as Game)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
@@ -290,7 +290,7 @@ describe('Games actions', () => {
       );
 
       const inputGame = getNewGameMetadata();
-      saveGame(inputGame)(dispatchMock, getStateMock, undefined);
+      saveGame(inputGame as Game)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new game was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
@@ -313,7 +313,7 @@ describe('Games actions', () => {
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
-        saveGame(getNewGameMetadata())(dispatchMock, getStateMock, undefined);
+        saveGame(getNewGameMetadata() as Game)(dispatchMock, getStateMock, undefined);
       }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
@@ -442,7 +442,7 @@ describe('Games actions', () => {
       writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       expect(() => {
-        gameCompletedCreator()(dispatchMock, getStateMock, undefined);
+        gameCompletedCreator(undefined as unknown as string)(dispatchMock, getStateMock, undefined);
       }).to.throw('Storage failed');
 
       // Waits for promises to resolve.
