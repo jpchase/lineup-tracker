@@ -101,7 +101,8 @@ export class LineupTeamSelectorDialog extends LitElement {
     console.log(`dialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
     switch (e.detail.action) {
       case 'select': {
-        this.dispatchEvent(new TeamChangedEvent({ teamId: this.changedTeamId }));
+        const teamName = this.teams[this.changedTeamId].name;
+        this.dispatchEvent(new TeamChangedEvent({ teamId: this.changedTeamId, teamName }));
         break;
       }
       case 'new-team': {
@@ -135,6 +136,7 @@ export class LineupTeamSelectorDialog extends LitElement {
 
 export interface TeamChangedDetail {
   teamId: string;
+  teamName: string;
 }
 
 const TEAM_CHANGED_EVENT_NAME = 'team-changed';

@@ -136,7 +136,6 @@ export interface TeamState {
   teamsLoaded: boolean;
   teamsLoading: boolean;
   teamId: string;
-  teamName: string;
   roster: Roster;
   error?: string;
 }
@@ -146,7 +145,6 @@ const INITIAL_STATE: TeamState = {
   teamsLoaded: false,
   teamsLoading: false,
   teamId: '',
-  teamName: '',
   roster: {},
   error: ''
 };
@@ -162,11 +160,11 @@ const teamSlice = createSlice({
     },
 
     changeTeam: {
-      reducer: (state, action: PayloadAction<{ teamId: string }>) => {
+      reducer: (state, action: PayloadAction<{ teamId: string, teamName: string }>) => {
         setCurrentTeam(state, action.payload.teamId);
       },
-      prepare: (teamId: string) => {
-        return { payload: { teamId } };
+      prepare: (teamId: string, teamName: string) => {
+        return { payload: { teamId, teamName } };
       }
     },
 
@@ -209,21 +207,10 @@ function setCurrentTeam(state: TeamState, teamId: string) {
     return;
   }
   state.teamId = team.id;
-  state.teamName = team.name;
 }
 
 export const currentTeamIdSelector = (state: RootState) => state.team && state.team.teamId;
 
 export const selectCurrentTeamId = (state: RootState) => state.team?.teamId;
-
-export const selectCurrentTeam = (state: RootState): Team | undefined => {
-  if (!state.team?.teamId) {
-    return undefined;
-  }
-  return {
-    id: state.team.teamId,
-    name: state.team.teamName,
-  };
-}
 
 export const selectTeamsLoaded = (state: RootState) => state.team?.teamsLoaded;

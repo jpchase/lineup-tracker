@@ -18,8 +18,6 @@ import sinon from 'sinon';
 
 const actionTypes = {
   ADD_PLAYER: 'team/addPlayer',
-  ADD_TEAM: 'team/addTeam',
-  CHANGE_TEAM: 'team/changeTeam',
   GET_ROSTER: 'team/getRoster',
   GET_TEAMS: 'team/getTeams',
 
@@ -37,7 +35,6 @@ const TEAM_INITIAL_STATE: TeamState = {
   teamsLoaded: false,
   teamsLoading: false,
   teamId: '',
-  teamName: '',
   roster: {},
   error: ''
 };
@@ -70,7 +67,6 @@ function mockGetState(teams: Team[], currentTeam?: Team, options?: MockAuthState
       auth: getMockAuthState(options),
       team: {
         teamId: currentTeam ? currentTeam.id : '',
-        teamName: currentTeam ? currentTeam.name : '',
         teams: teamData,
         roster: rosterData
       }
@@ -129,8 +125,7 @@ describe('Teams reducer', () => {
 
       expect(newState).to.deep.include({
         teams: expectedTeams,
-        teamId: storedTeam.id,
-        teamName: storedTeam.name
+        teamId: storedTeam.id
       });
 
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
@@ -141,7 +136,6 @@ describe('Teams reducer', () => {
       const currentState: TeamState = {
         ...TEAM_INITIAL_STATE,
         teamId: storedTeam.id,
-        teamName: storedTeam.name
       }
       const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
 
@@ -155,8 +149,7 @@ describe('Teams reducer', () => {
 
       expect(newState).to.deep.include({
         teams: expectedTeams,
-        teamId: storedTeam.id,
-        teamName: storedTeam.name
+        teamId: storedTeam.id
       });
 
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
@@ -178,7 +171,6 @@ describe('Teams reducer', () => {
         teams: expectedTeams
       });
       expect(newState.teamId).to.not.be.ok;
-      expect(newState.teamName).to.not.be.ok;
 
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
     });
@@ -192,19 +184,14 @@ describe('Teams reducer', () => {
       } as TeamState;
       state.teams = buildTeams([getStoredTeam(), newTeam]);
 
-      const newState = team(state, {
-        type: actionTypes.CHANGE_TEAM,
-        payload: { teamId: newTeam.id }
-      });
+      const newState = team(state, changeTeam(newTeam.id, newTeam.name));
 
       expect(newState).to.include({
         teamId: newTeam.id,
-        teamName: newTeam.name
       });
 
       expect(newState).to.not.equal(state);
       expect(newState.teamId).to.not.equal(state.teamId);
-      expect(newState.teamName).to.not.equal(state.teamName);
     });
 
     it('should do nothing if no teams exist', () => {
@@ -212,11 +199,9 @@ describe('Teams reducer', () => {
         ...TEAM_INITIAL_STATE,
         teams: {} as Teams
       } as TeamState;
+      const newTeam = getStoredTeam();
 
-      const newState = team(state, {
-        type: actionTypes.CHANGE_TEAM,
-        payload: { teamId: getStoredTeam().id }
-      });
+      const newState = team(state, changeTeam(newTeam.id, newTeam.name));
 
       expect(newState).to.equal(state);
     });
@@ -228,10 +213,7 @@ describe('Teams reducer', () => {
       } as TeamState;
       state.teams = buildTeams([getStoredTeam(), newTeam]);
 
-      const newState = team(state, {
-        type: actionTypes.CHANGE_TEAM,
-        payload: { teamId: 'nosuchid' }
-      });
+      const newState = team(state, changeTeam('nosuchid', ''));
 
       expect(newState).to.equal(state);
     });
@@ -241,15 +223,11 @@ describe('Teams reducer', () => {
       const state = {
         ...TEAM_INITIAL_STATE,
         teamId: storedTeam.id,
-        teamName: storedTeam.name,
         teams: {} as Teams
       } as TeamState;
       state.teams = buildTeams([storedTeam]);
 
-      const newState = team(state, {
-        type: actionTypes.CHANGE_TEAM,
-        payload: { teamId: storedTeam.id }
-      });
+      const newState = team(state, changeTeam(storedTeam.id, storedTeam.name));
 
       expect(newState).to.equal(state);
     });
@@ -260,15 +238,11 @@ describe('Teams reducer', () => {
     it('should populate an empty teams list and set the current team', () => {
       const expectedTeams = buildTeams([newTeam]);
 
-      const newState = team(TEAM_INITIAL_STATE, {
-        type: actionTypes.ADD_TEAM,
-        payload: newTeam
-      });
+      const newState = team(TEAM_INITIAL_STATE, addTeam(newTeam));
 
       expect(newState).to.deep.include({
         teams: expectedTeams,
-        teamId: newTeam.id,
-        teamName: newTeam.name
+        teamId: newTeam.id
       });
 
       expect(newState).to.not.equal(TEAM_INITIAL_STATE);
@@ -283,15 +257,11 @@ describe('Teams reducer', () => {
 
       const expectedTeams = buildTeams([getStoredTeam(), newTeam]);
 
-      const newState = team(state, {
-        type: actionTypes.ADD_TEAM,
-        payload: newTeam
-      });
+      const newState = team(state, addTeam(newTeam));
 
       expect(newState).to.deep.include({
         teams: expectedTeams,
-        teamId: newTeam.id,
-        teamName: newTeam.name
+        teamId: newTeam.id
       });
 
       expect(newState).to.not.equal(state);
@@ -499,15 +469,6 @@ describe('Team actions', () => {
     });
 
   }); // describe('getTeams')
-
-  describe('changeTeam', () => {
-    it('should return an action to change the selected team', async () => {
-      expect(changeTeam(newTeamSaved.id)).to.deep.equal({
-        type: changeTeam.type,
-        payload: { teamId: newTeamSaved.id },
-      });
-    });
-  }); // describe('changeTeam')
 
   describe('addNewTeam', () => {
     it('should do nothing if new team is missing', () => {

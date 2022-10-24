@@ -1,5 +1,5 @@
 import '@app/components/lineup-team-selector-dialog.js';
-import { LineupTeamSelectorDialog } from '@app/components/lineup-team-selector-dialog.js';
+import { AddNewTeamEvent, LineupTeamSelectorDialog, TeamChangedEvent } from '@app/components/lineup-team-selector-dialog.js';
 import { Team } from '@app/models/team.js';
 import { Button } from '@material/mwc-button';
 import { ListItem } from '@material/mwc-list/mwc-list-item';
@@ -135,7 +135,7 @@ describe('lineup-team-selector-dialog tests', () => {
 
   it('fires event when team selected', async () => {
     const selectedTeamId = 't3';
-    populateDialog('t1');
+    const teams = populateDialog('t1');
     await el.show();
 
     const teamElement = getTeamItem(selectedTeamId);
@@ -145,11 +145,12 @@ describe('lineup-team-selector-dialog tests', () => {
     const selectButton = getSelectButton();
     setTimeout(() => selectButton.click());
 
-    const { detail } = await oneEvent(el, 'team-changed');
+    const { detail } = await oneEvent(el, TeamChangedEvent.eventName);
 
     expect(detail).to.deep.equal(
       {
         teamId: selectedTeamId,
+        teamName: teams.find(team => team.id === selectedTeamId)!.name
       });
   });
 
@@ -160,7 +161,7 @@ describe('lineup-team-selector-dialog tests', () => {
     const newTeamButton = getNewTeamButton();
     setTimeout(() => newTeamButton.click());
 
-    const { detail } = await oneEvent(el, 'add-new-team');
+    const { detail } = await oneEvent(el, AddNewTeamEvent.eventName);
 
     expect(detail, 'New team event has no detail').not.to.exist;
   });
@@ -195,7 +196,7 @@ describe('lineup-team-selector-dialog tests', () => {
 
     const selectButton = getSelectButton();
     setTimeout(() => selectButton.click());
-    await oneEvent(el, 'team-changed');
+    await oneEvent(el, TeamChangedEvent.eventName);
 
     await el.show();
     expect(teamElement.hasAttribute('selected'),
