@@ -46,7 +46,7 @@ export function* getAllVisualPages(breakpoint: BreakpointConfig): Generator<Visu
   const gameOptions: PageOptions = {
     ...pageOptions,
     gameId: integrationTestData.TEAM1.NEW_GAME_ID,
-    teamId: integrationTestData.TEAM1.ID
+    team: { teamId: integrationTestData.TEAM1.ID }
   };
   yield { name: '/game', page: new GameDetailPage(gameOptions), openOptions: { signIn: true } };
 

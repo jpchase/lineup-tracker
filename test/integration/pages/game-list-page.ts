@@ -1,3 +1,4 @@
+import { integrationTestData } from '../data/integration-data-constants.js';
 import { PageObject, PageOptions } from './page-object.js';
 
 export class GameListPage extends PageObject {
@@ -6,7 +7,8 @@ export class GameListPage extends PageObject {
     super({
       ...options,
       scenarioName: 'viewGames',
-      route: 'viewGames?team=test_team1'
+      route: 'viewGames',
+      team: { teamId: integrationTestData.TEAM1.ID }
     });
   }
 

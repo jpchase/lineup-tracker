@@ -25,7 +25,7 @@ describe('Game functional tests', function () {
   it('create new game', async function () {
     const addGamePage = pageObject = new GameCreatePage({
       userId: integrationTestData.TEAM2.OWNER_ID,
-      teamId: integrationTestData.TEAM2.ID
+      team: { teamId: integrationTestData.TEAM2.ID }
     });
     await addGamePage.init();
     await addGamePage.open({ signIn: true });
@@ -52,7 +52,7 @@ describe('Game functional tests', function () {
   it('copy roster from team', async function () {
     const gameRosterPage = pageObject = new GameRosterPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
-      teamId: integrationTestData.TEAM2.ID,
+      team: { teamId: integrationTestData.TEAM2.ID },
       gameId: integrationTestData.TEAM2.games.NEW
     });
     await gameRosterPage.init();

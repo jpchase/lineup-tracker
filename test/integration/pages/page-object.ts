@@ -15,13 +15,17 @@ export interface PageOptions {
   scenarioName?: string;
   route?: string;
   userId?: string;
-  teamId?: string;
+  team?: TeamOptions;
   gameId?: string;
   viewPort?: Viewport
 }
 
 export interface OpenOptions {
   signIn?: boolean;
+}
+
+export interface TeamOptions {
+  teamId: string;
 }
 
 enum PageLoadType {
@@ -37,17 +41,8 @@ export class PageObject {
   private readonly _viewPort?: Viewport;
 
   constructor(options: PageOptions = {}) {
-    let route = options.route || '';
-    // Add the userId to the route, if necessary.
-    if (options.userId) {
-      const userParam = `user=${options.userId}`;
-      if (!route.includes(userParam)) {
-        const hasQuery = route.includes('?');
-        route += `${hasQuery ? '&' : '?'}${userParam}`;
-      }
-    }
     this.scenarioName = options.scenarioName || '';
-    this._route = route;
+    this._route = buildRoute(options);
     this._viewPort = options.viewPort;
   }
 
@@ -247,6 +242,36 @@ export class PageObject {
       };
     });
   }
+}
+
+function buildRoute(options: PageOptions) {
+  console.log(`buildRoute: options = ${JSON.stringify(options)}`);
+  let params: URLSearchParams;
+  const routeParts = (options.route || '').split('?');
+  if (routeParts.length === 1) {
+    // No params in route.
+    params = new URLSearchParams();
+  } else {
+    params = new URLSearchParams(routeParts[1]);
+  }
+
+  // Add the userId to the route, if necessary.
+  if (options.userId && !params.has('user')) {
+    params.append('user', options.userId);
+  }
+
+  // Add the team to the route, if necessary.
+  if (options.team?.teamId && !params.has('team')) {
+    params.append('team', options.team.teamId);
+  }
+
+  let finalRoute = routeParts[0];
+  const paramsString = params.toString();
+  if (paramsString.length > 0) {
+    finalRoute += `?${paramsString}`;
+  }
+  console.log(`buildRoute: result = ${finalRoute}`);
+  return finalRoute;
 }
 
 function processAxeResults(results: AxeResults) {

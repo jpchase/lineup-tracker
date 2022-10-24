@@ -2,6 +2,7 @@
 @license
 */
 
+import { integrationTestData } from '../data/integration-data-constants.js';
 import { PageObject, PageOptions } from './page-object.js';
 
 export class TeamRosterPage extends PageObject {
@@ -10,7 +11,8 @@ export class TeamRosterPage extends PageObject {
     super({
       ...options,
       scenarioName: 'viewRoster',
-      route: 'viewRoster?team=test_team1'
+      route: 'viewRoster',
+      team: { teamId: integrationTestData.TEAM1.ID }
     });
   }
 

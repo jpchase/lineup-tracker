@@ -6,7 +6,7 @@ export class GameDetailPage extends PageObject {
     super({
       ...options,
       scenarioName: 'viewGameDetail',
-      route: `game/${options.gameId}?team=${options.teamId}`
+      route: `game/${options.gameId}`
     });
   }
 

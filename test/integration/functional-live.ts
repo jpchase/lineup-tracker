@@ -27,7 +27,7 @@ describe('Live functional tests', function () {
   it('setup existing game, which is persisted after refresh', async function () {
     const gameSetupPage = pageObject = new GameSetupPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
-      teamId: integrationTestData.TEAM2.ID,
+      team: { teamId: integrationTestData.TEAM2.ID },
       gameId: integrationTestData.TEAM2.games.NEW_WITH_ROSTER
     });
     await gameSetupPage.init();

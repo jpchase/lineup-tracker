@@ -8,7 +8,7 @@ export class GameCreatePage extends PageObject {
     super({
       ...options,
       scenarioName: 'addNewGame',
-      route: `viewGames?team=${options.teamId}`
+      route: 'viewGames'
     });
   }
 
