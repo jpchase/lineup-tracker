@@ -1,9 +1,3 @@
-/**
-@license
-Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-*/
-
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
@@ -20,7 +14,7 @@ import { User } from '../models/auth';
 import { Team, Teams } from '../models/team.js';
 import { navigate, offlineChanged, selectCurrentTeam, updateDrawerState } from '../slices/app/app-slice.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
-import { changeTeam, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
+import { changeTeam, selectTeamsLoaded, team, getTeams } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
 import './lineup-team-selector-dialog.js';
@@ -393,6 +387,9 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   private selectTeam() {
+    if (!this.teamsLoaded) {
+      store.dispatch(getTeams());
+    }
     // TODO: Dynamically create the dialog when it actually needs to be opened.
     const dialog = this.shadowRoot!.querySelector('lineup-team-selector-dialog')!;
     dialog.show();

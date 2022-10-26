@@ -209,8 +209,7 @@ function setCurrentTeam(state: TeamState, teamId: string) {
   state.teamId = team.id;
 }
 
-export const currentTeamIdSelector = (state: RootState) => state.team && state.team.teamId;
 
-export const selectCurrentTeamId = (state: RootState) => state.team?.teamId;
+const selectCurrentTeamId = (state: RootState) => state.team?.teamId;
 
 export const selectTeamsLoaded = (state: RootState) => state.team?.teamsLoaded;

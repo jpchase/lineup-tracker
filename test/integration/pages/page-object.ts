@@ -6,14 +6,19 @@ import { AxePuppeteer } from '@axe-core/puppeteer';
 import { AxeResults } from 'axe-core';
 import * as path from 'path';
 import puppeteer, { Browser, ConsoleMessage, ElementHandle, HTTPRequest, Page, ScreenshotOptions, Viewport } from 'puppeteer';
+import { integrationTestData } from '../data/integration-data-constants.js';
 import { serveHermeticFont } from '../server/hermetic-fonts.js';
 import { config } from '../server/test-server.js';
+
+const APP_COMPONENT_NAME = 'lineup-app';
 
 export type PageOpenFunction = () => Promise<void>;
 
 export interface PageOptions {
   scenarioName?: string;
   route?: string;
+  // Name of the page view component (e.g. lineup-view-*)
+  componentName?: string;
   userId?: string;
   team?: TeamOptions;
   gameId?: string;
@@ -26,6 +31,7 @@ export interface OpenOptions {
 
 export interface TeamOptions {
   teamId: string;
+  teamName?: string;
 }
 
 enum PageLoadType {
@@ -36,7 +42,8 @@ enum PageLoadType {
 export class PageObject {
   private _browser?: Browser;
   private _page?: Page;
-  protected readonly scenarioName: string;
+  readonly scenarioName: string;
+  readonly componentName?: string;
   private readonly _route: string;
   private readonly _viewPort?: Viewport;
 
@@ -44,6 +51,7 @@ export class PageObject {
     this.scenarioName = options.scenarioName || '';
     this._route = buildRoute(options);
     this._viewPort = options.viewPort;
+    this.componentName = options.componentName;
   }
 
   get currentRoute(): string {
@@ -58,14 +66,25 @@ export class PageObject {
     return this._page;
   }
 
+  // Derived classes can override to provide custom logic for when
+  // the page has completed loading/rendering.
+  protected get openFunc(): PageOpenFunction | undefined {
+    return undefined;
+  }
+
+  protected log(message: string) {
+    // TODO: Add ability to turn off for certain pages?
+    logWithTime(message);
+  }
+
   async init() {
     const browser = this._browser = await puppeteer.launch({ args: ['--disable-gpu', '--font-render-hinting=none'] });
 
     const page = this._page = await browser.newPage();
 
-    page.on('console', (msg: ConsoleMessage) => console.log('PAGE LOG:', msg.text()));
+    page.on('console', (msg: ConsoleMessage) => logWithTime(msg.text(), 'PAGE LOG'));
 
-    page.on('pageerror', (error: Error) => console.log(`PAGE ERROR: ${error}`));
+    page.on('pageerror', (error: Error) => logWithTime(`${error}`, 'PAGE ERROR'));
 
     page.on('requestfailed', (request: HTTPRequest) => {
       console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure()!.errorText);
@@ -106,17 +125,46 @@ export class PageObject {
     await this.waitForAppInitialization();
     if (options.signIn) {
       await this.signin();
-      await this.waitForTeamsLoaded();
     }
+    await this.waitForViewReady();
     if (this.openFunc) {
       await this.openFunc();
     }
-    await this.page.waitForTimeout(1500);
+    if (!this.componentName) {
+      this.log(`waitForLoad: last wait for timeout`);
+      await this.page.waitForTimeout(1500);
+    }
+    this.log(`waitForLoad: finished`);
   }
 
   async waitForAppInitialization() {
+    this.log(`waitForAppInitialization: start`);
     await this.page.waitForSelector('body[data-app-initialized]',
       { timeout: 10000 });
+  }
+
+  async waitForViewReady() {
+    if (!this.componentName) {
+      this.log(`waitForViewReady: no component name`);
+      return;
+    }
+    this.log(`waitForViewReady: get main element`);
+    const main = await this.getMainElement();
+    this.log(`waitForViewReady: start for ${this.componentName}`);
+    await main.waitForSelector(`pierce/${this.componentName}[ready]`,
+      { timeout: 5000 });
+  }
+
+  private async getMainElement() {
+    const appHandle = await this.page.$(`pierce/${APP_COMPONENT_NAME}`);
+    if (!appHandle) {
+      throw new Error(`App element not found: ${APP_COMPONENT_NAME}`);
+    }
+    const mainHandle = await appHandle.$('pierce/mwc-drawer > div[slot=appContent] > main');
+    if (!mainHandle) {
+      throw new Error('Main element not found');
+    }
+    return mainHandle!;
   }
 
   private async getMainElementDataset() {
@@ -141,7 +189,7 @@ export class PageObject {
       const mainDataset = await this.getMainElementDataset();
       if (mainDataset) {
         const teamsLoadedValue = mainDataset.teamsLoaded;
-        console.log(`[Attempt ${attempts + 1}] teams loaded value: ${teamsLoadedValue}`);
+        this.log(`[Attempt ${attempts + 1}] teams loaded value: ${teamsLoadedValue}`);
         if (teamsLoadedValue === 'true') {
           attempts++;
           loaded = true;
@@ -154,7 +202,7 @@ export class PageObject {
       }
     }
     console.timeEnd('wait for teams-loaded');
-    console.log(`done waiting for teams, loaded = ${loaded}, attempts = ${attempts}`);
+    this.log(`done waiting for teams, loaded = ${loaded}, attempts = ${attempts}`);
     if (!loaded) {
       throw new Error(`Teams not loaded after ${attempts} attempts`);
     }
@@ -219,10 +267,6 @@ export class PageObject {
     return viewHandle.$(`pierce/${selector}`);
   }
 
-  protected get openFunc(): PageOpenFunction | undefined {
-    return undefined;
-  }
-
   async screenshot(directory?: string): Promise<string> {
     const viewName = this.scenarioName || this._route || 'unknown';
     const params: ScreenshotOptions = {
@@ -262,7 +306,8 @@ function buildRoute(options: PageOptions) {
 
   // Add the team to the route, if necessary.
   if (options.team?.teamId && !params.has('team')) {
-    params.append('team', options.team.teamId);
+    const teamName = getTeamName(options.team);
+    params.append('team', `${options.team.teamId}|${encodeURIComponent(teamName)}`);
   }
 
   let finalRoute = routeParts[0];
@@ -272,6 +317,21 @@ function buildRoute(options: PageOptions) {
   }
   console.log(`buildRoute: result = ${finalRoute}`);
   return finalRoute;
+}
+
+function getTeamName(team: TeamOptions) {
+  if (team.teamName) {
+    return team.teamName;
+  }
+
+  switch (team.teamId) {
+    case integrationTestData.TEAM1.ID:
+      return integrationTestData.TEAM1.NAME;
+    case integrationTestData.TEAM2.ID:
+      return integrationTestData.TEAM2.NAME;
+    default:
+      return `Team ${team.teamId}`;
+  }
 }
 
 function processAxeResults(results: AxeResults) {
@@ -300,4 +360,17 @@ function processAxeResults(results: AxeResults) {
   }
 
   return messages.join('\n');
+}
+
+export function logWithTime(message: string, prefix?: string) {
+  prefix = prefix || 'TEST LOG';
+  console.log(`${prefix} [${currentTimeForLog()}]:`, message);
+}
+
+export function currentTimeForLog(): string {
+  const options: any = {
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    fractionalSecondDigits: 3, hour12: false,
+  };
+  return new Intl.DateTimeFormat('default', options).format(Date.now());
 }

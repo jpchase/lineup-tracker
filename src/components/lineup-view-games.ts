@@ -1,38 +1,19 @@
-/**
-@license
-Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
-*/
-
-import { html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { PageViewElement } from './page-view-element';
-
-import { Games } from '../models/game';
-
-// This element is connected to the Redux store.
-import { connectStore } from '../middleware/connect-mixin.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
-
-// import { GameState } from '../reducers/game';
-import { TeamState } from '../slices/team/team-slice.js';
-
-// We are lazy loading its reducer.
-import { addNewGame, getGames } from '../slices/game/game-slice.js';
-// The game-specific store configurator, which handles initialization/lazy-loading.
-import { getGameStore } from '../slices/game-store';
-
-// These are the elements needed by this element.
 import '@material/mwc-fab';
-import './lineup-game-create';
-import './lineup-game-list';
+import { html, PropertyValues } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { debug } from '../common/debug.js';
+import { connectStore } from '../middleware/connect-mixin.js';
+import { Games } from '../models/game.js';
+import { selectCurrentTeam } from '../slices/app/app-slice.js';
+import { getGameStore } from '../slices/game-store.js';
+import { addNewGame, getGames } from '../slices/game/game-slice.js';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import './lineup-game-create.js';
+import './lineup-game-list.js';
+import { PageViewElement } from './page-view-element.js';
+import { SharedStyles } from './shared-styles.js';
 
-// These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles';
+const debugGames = debug('view-games');
 
 // This element is connected to the Redux store.
 @customElement('lineup-view-games')
@@ -72,21 +53,26 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getGameStore;
 
-  @property({ type: String })
-  private _teamId = '';
+  @state()
+  private teamId?: string;
 
-  @property({ type: Boolean })
+  @state()
   private _showCreate = false;
 
-  @property({ type: Object })
+  @state()
   private _games: Games = {};
+
+  @property({ type: Boolean, reflect: true })
+  ready = false;
+
+  private gamesLoaded = false;
 
   private _addButtonClicked() {
     this._showCreate = true;
   }
 
   private _newGameCreated(e: CustomEvent) {
-    console.log(`New game: ${JSON.stringify(e.detail.game)}`);
+    debugGames(`New game: ${JSON.stringify(e.detail.game)}`);
     this.dispatch(addNewGame(e.detail.game));
     this._showCreate = false;
   }
@@ -97,15 +83,33 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
 
   // This is called every time something is updated in the store.
   override stateChanged(state: RootState) {
-    if (!state.team || !state.game) {
+    const currentTeam = selectCurrentTeam(state);
+    if (!currentTeam || !state.game) {
+      if (this.ready) {
+        this.resetData();
+      }
       return;
     }
-    const teamState: TeamState = state.team!;
-    if (this._teamId !== teamState.teamId) {
-      this._teamId = teamState.teamId;
-      this.dispatch(getGames(this._teamId));
+    if (this.teamId !== currentTeam.id) {
+      this.resetData();
+      this.teamId = currentTeam.id;
+      this.dispatch(getGames(this.teamId));
       return;
     }
-    this._games = state.game!.games;
+    this._games = state.game.games;
+    this.gamesLoaded = (Object.keys(this._games).length > 0);
+  }
+
+  override willUpdate(_changedProperties: PropertyValues<this>) {
+    if (!this.ready && this.gamesLoaded) {
+      this.ready = true;
+    }
+  }
+
+  private resetData() {
+    this.ready = false;
+    this.gamesLoaded = false;
+    this.teamId = undefined;
+    this._games = {};
   }
 }

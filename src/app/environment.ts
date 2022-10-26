@@ -21,12 +21,12 @@ export interface FirebaseConfig {
 }
 
 export interface EnvironmentConfig {
-  environment: string;
+  environment: 'dev' | 'test' | 'staging' | 'prod';
   // Turns off the logic and UI to react to changes in online/offline status.
   disableOfflineDetection?: boolean;
   firebase: FirebaseConfig;
 }
 
 export function getEnv(): EnvironmentConfig {
-  return envConfig;
+  return envConfig as EnvironmentConfig;
 }
