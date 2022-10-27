@@ -28,7 +28,7 @@ export function configureAppStore(storeInstance: RootStore, hydrate: boolean = t
       reducer = appReducer;
     }
 
-    debugStore(`initReducer: add the ${hydrate ? 'persist-wrapped' : 'app'} reducer`);
+    debugStore(`configureAppStore: add the ${hydrate ? 'persist-wrapped' : 'app'} reducer`);
     storeInstance.addReducers({
       [APP_SLICE_NAME]: reducer
     });

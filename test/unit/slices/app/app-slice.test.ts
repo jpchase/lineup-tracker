@@ -1,6 +1,6 @@
 import { Team } from '@app/models/team.js';
-import { appReducer as app, AppState, INITIAL_STATE as APP_INITIAL_STATE } from '@app/slices/app/app-slice.js';
-import { addTeam, changeTeam } from '@app/slices/team/team-slice.js';
+import { appReducer as app, AppState, APP_INITIAL_STATE, currentTeamChanged } from '@app/slices/app/app-slice.js';
+import { addTeam } from '@app/slices/team/team-slice.js';
 import { expect } from '@open-wc/testing';
 import { getStoredTeam } from '../../helpers/test_data.js';
 
@@ -9,13 +9,13 @@ describe('App slice', () => {
     id: 'nt1', name: 'New team 1'
   };
 
-  describe('team/changeTeam', () => {
+  describe('app/currentTeamChanged', () => {
     it('should update the current team id and name', () => {
       const state = {
         ...APP_INITIAL_STATE,
       } as AppState;
 
-      const newState = app(state, changeTeam(newTeam.id, newTeam.name));
+      const newState = app(state, currentTeamChanged(newTeam.id, newTeam.name));
 
       expect(newState).to.include({
         teamId: newTeam.id,
@@ -35,12 +35,12 @@ describe('App slice', () => {
         teamName: storedTeam.name
       } as AppState;
 
-      const newState = app(state, changeTeam(storedTeam.id, storedTeam.name));
+      const newState = app(state, currentTeamChanged(storedTeam.id, storedTeam.name));
 
       expect(newState).to.equal(state);
     });
 
-  }); // describe('team/changeTeam')
+  }); // describe('app/currentTeamChanged')
 
   describe('team/addTeam', () => {
     it('should set the current team', () => {

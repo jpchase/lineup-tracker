@@ -1,8 +1,8 @@
 import { createListenerMiddleware, TypedStartListening, Unsubscribe } from '@reduxjs/toolkit';
 import { getEnv } from '../app/environment.js';
 import { debug } from '../common/debug.js';
+import { currentTeamChanged } from '../slices/app/app-slice.js';
 import { userSignedIn } from '../slices/auth/auth-slice.js';
-import { changeTeam } from '../slices/team/team-slice.js';
 import type { AppDispatch, RootState } from '../store.js';
 
 const debugListeners = debug('listeners');
@@ -57,5 +57,5 @@ function initializeTeam(teamParam: string | null) {
     return;
   }
   const teamName = decodeURIComponent(teamParts[1]);
-  return changeTeam(teamParts[0], teamName);
+  return currentTeamChanged(teamParts[0], teamName);
 }

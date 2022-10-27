@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getEnv } from '../../app/environment.js';
 import { Team } from '../../models/team.js';
 import type { RootState, ThunkResult } from '../../store.js';
-import { addTeam, changeTeam } from '../team/team-slice.js';
+import { addTeam } from '../team/team-slice.js';
 
 const env = getEnv();
 
@@ -99,7 +99,7 @@ export interface AppState {
   teamName: string;
 }
 
-export const INITIAL_STATE: AppState = {
+export const APP_INITIAL_STATE: AppState = {
   page: '',
   offline: false,
   drawerOpened: false,
@@ -110,8 +110,16 @@ export const INITIAL_STATE: AppState = {
 
 const appSlice = createSlice({
   name: APP_SLICE_NAME,
-  initialState: INITIAL_STATE,
+  initialState: APP_INITIAL_STATE,
   reducers: {
+    currentTeamChanged: {
+      reducer: (state, action: PayloadAction<{ teamId: string, teamName: string }>) => {
+        setCurrentTeam(state, action.payload.teamId, action.payload.teamName);
+      },
+      prepare: (teamId: string, teamName: string) => {
+        return { payload: { teamId, teamName } };
+      }
+    },
     updatePage: {
       reducer: (state, action: PayloadAction<{ page: string }>) => {
         state.page = action.payload.page;
@@ -144,9 +152,6 @@ const appSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(changeTeam, (state, action) => {
-      setCurrentTeam(state, action.payload.teamId, action.payload.teamName);
-    });
     builder.addCase(addTeam, (state, action) => {
       setCurrentTeam(state, action.payload.id, action.payload.name);
     });
@@ -156,6 +161,7 @@ const appSlice = createSlice({
 const { actions, reducer } = appSlice;
 
 export const {
+  currentTeamChanged,
   openSnackBar, closeSnackBar,
   updateDrawerState, updateOffline, updatePage
 } = actions;

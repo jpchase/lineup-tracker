@@ -12,9 +12,9 @@ import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { User } from '../models/auth';
 import { Team, Teams } from '../models/team.js';
-import { navigate, offlineChanged, selectCurrentTeam, updateDrawerState } from '../slices/app/app-slice.js';
+import { currentTeamChanged, navigate, offlineChanged, selectCurrentTeam, updateDrawerState } from '../slices/app/app-slice.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
-import { changeTeam, selectTeamsLoaded, team, getTeams } from '../slices/team/team-slice.js';
+import { selectTeamsLoaded, team, getTeams } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
 import './lineup-team-selector-dialog.js';
@@ -396,7 +396,7 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   private teamChanged(e: TeamChangedEvent) {
-    store.dispatch(changeTeam(e.detail.teamId, e.detail.teamName));
+    store.dispatch(currentTeamChanged(e.detail.teamId, e.detail.teamName));
   }
 
   private addNewTeam() {
