@@ -1,7 +1,3 @@
-/**
-@license
-*/
-
 import {
   Action,
   AnyAction,
@@ -18,14 +14,15 @@ import { listenerMiddleware } from './app/action-listeners.js';
 import dynamicMiddlewares from './middleware/dynamic-middlewares';
 import { lazyReducerEnhancer, LazyStore } from './middleware/lazy-reducers.js';
 import type { GameState } from './reducers/game.js';
-import { app, AppState } from './slices/app/app-slice.js';
+import { configureAppStore } from './slices/app/app-module-configurator.js';
+import type { AppState, APP_SLICE_NAME } from './slices/app/app-slice.js';
 import type { AuthState } from './slices/auth/auth-slice.js';
 import type { LiveState } from './slices/live/live-slice.js';
 import type { TeamState } from './slices/team/team-slice.js';
 
 // Overall state extends static states and partials lazy states.
 export interface RootState {
-  app?: AppState;
+  [APP_SLICE_NAME]?: AppState;
   auth?: AuthState;
   game?: GameState;
   live?: LiveState;
@@ -75,9 +72,7 @@ export function setupStore(preloadedState?: RootState) {
   const store: RootStore = baseStore as BaseStore & LazyStore;
 
   // Initially loaded reducers.
-  store.addReducers({
-    app
-  });
+  configureAppStore(store);
 
   return store;
 }

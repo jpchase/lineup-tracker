@@ -1,5 +1,5 @@
 import { Team } from '@app/models/team.js';
-import { app, AppState, INITIAL_STATE as APP_INITIAL_STATE } from '@app/slices/app/app-slice.js';
+import { appReducer as app, AppState, INITIAL_STATE as APP_INITIAL_STATE } from '@app/slices/app/app-slice.js';
 import { addTeam, changeTeam } from '@app/slices/team/team-slice.js';
 import { expect } from '@open-wc/testing';
 import { getStoredTeam } from '../../helpers/test_data.js';

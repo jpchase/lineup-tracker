@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getEnv } from '../../app/environment.js';
 import { Team } from '../../models/team.js';
-import { RootState, ThunkResult } from '../../store.js';
+import type { RootState, ThunkResult } from '../../store.js';
 import { addTeam, changeTeam } from '../team/team-slice.js';
 
 const env = getEnv();
@@ -88,6 +88,8 @@ export const selectCurrentTeam = (state: RootState): Team | undefined => {
   };
 }
 
+export const APP_SLICE_NAME = 'app';
+
 export interface AppState {
   page: string;
   offline: boolean;
@@ -107,7 +109,7 @@ export const INITIAL_STATE: AppState = {
 };
 
 const appSlice = createSlice({
-  name: 'app',
+  name: APP_SLICE_NAME,
   initialState: INITIAL_STATE,
   reducers: {
     updatePage: {
@@ -157,7 +159,7 @@ export const {
   openSnackBar, closeSnackBar,
   updateDrawerState, updateOffline, updatePage
 } = actions;
-export const app = reducer;
+export const appReducer = reducer;
 
 function setCurrentTeam(state: AppState, teamId: string, teamName: string) {
   state.teamId = teamId;

@@ -27,6 +27,7 @@ export interface PageOptions {
 
 export interface OpenOptions {
   signIn?: boolean;
+  ignoreTeamOption?: boolean;
 }
 
 export interface TeamOptions {
@@ -117,7 +118,17 @@ export class PageObject {
   }
 
   async reload(options: OpenOptions = {}) {
-    await this.page.reload();
+    if (options.ignoreTeamOption) {
+      const url = new URL(this.page.url());
+      if (url.searchParams.has('team')) {
+        url.searchParams.delete('team');
+      }
+      const reloadUrl = url.toString();
+      this.log(`Reload modified url ${reloadUrl}, was ${this.page.url()}`);
+      await this.page.goto(reloadUrl);
+    } else {
+      await this.page.reload();
+    }
     await this.waitForLoad(PageLoadType.Reload, options);
   }
 
@@ -265,6 +276,33 @@ export class PageObject {
       throw new Error(`View not found: ${viewName}`);
     }
     return viewHandle.$(`pierce/${selector}`);
+  }
+
+  async getCurrentTeam() {
+    // this.exposeGetTeamSelectorFunc();
+    /*
+    return await this.page.evaluate(() => {
+      // @ts-ignore
+      const teamSelector = window.getTeamSelectorComponent();
+      if (!teamSelector) { return; }
+      const selectedItem = teamSelector.selectedItem;
+      return {
+        id: selectedItem.id,
+        name: teamSelector.value
+      }
+    });
+    */
+    return await this.page.evaluate(`(async () => {
+  // @ts-ignore
+  const teamSelector = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-team-selector').shadowRoot.querySelector('#team-switcher-button');
+  if (!teamSelector) { return; }
+  /* const selectedItem = teamSelector.selectedItem; */
+  console.log('selected: ',teamSelector,'value: ',teamSelector.innerText);
+  return {
+    id: '', // teamSelector.contentElement.selected, /* selectedItem.id,*/
+    name: teamSelector.innerText
+  }
+})()`) as { id: string, name: string };
   }
 
   async screenshot(directory?: string): Promise<string> {
