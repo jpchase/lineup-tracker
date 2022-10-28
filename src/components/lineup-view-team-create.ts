@@ -1,11 +1,7 @@
-/**
-@license
-*/
-
 import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { navigate } from '../slices/app/app-slice.js';
+
 import { addNewTeam, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { EVENT_NEWTEAMCREATED } from './events';
@@ -43,8 +39,8 @@ export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
 
   private _newTeamCreated(e: CustomEvent) {
     store.dispatch(addNewTeam(e.detail.team));
+    // TODO: Pass router via context?
     window.history.pushState({}, '', `/viewHome`);
-    store.dispatch(navigate(window.location));
   }
 
 }

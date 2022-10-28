@@ -6,23 +6,7 @@ import { addTeam } from '../team/team-slice.js';
 
 const env = getEnv();
 
-export const navigate = (location: Location): ThunkResult => (dispatch) => {
-  // Extract the page name from path.
-  const pathname = location.pathname;
-  const parts = pathname.slice(1).split('/');
-  let page = parts[0] || 'viewHome';
-
-  console.log(`navigate: got page = ${page} from location`, location.href);
-  // Game views have path: /{view}/{gameId}
-  const gameId = parts[1];
-
-  dispatch(loadPage(page, gameId));
-
-  // Close the drawer - in case the *path* change came from a link in the drawer.
-  dispatch(updateDrawerState(false));
-};
-
-const loadPage = (page: string, gameId: string): ThunkResult => async (dispatch) => {
+export const loadPage = (page: string, gameId?: string): ThunkResult => async (dispatch) => {
   console.log(`loadPage: page = ${page}, gameId = ${gameId}`);
   switch (page) {
     case 'viewHome':
@@ -38,13 +22,13 @@ const loadPage = (page: string, gameId: string): ThunkResult => async (dispatch)
       const detailModule = await import('../../components/lineup-view-game-detail');
       // Fetch the data for the given game id.
       console.log(`loading game detail page for ${gameId}`);
-      await dispatch(detailModule.getGame(gameId));
+      await dispatch(detailModule.getGame(gameId!));
       break;
     case 'gameroster':
       const rosterModule = await import('../../components/lineup-view-game-roster');
       // Fetch the data for the given game id.
       console.log(`loading game roster page for ${gameId}`);
-      await dispatch(rosterModule.getGame(gameId));
+      await dispatch(rosterModule.getGame(gameId!));
       break;
     case 'viewRoster':
       import('../../components/lineup-view-roster');

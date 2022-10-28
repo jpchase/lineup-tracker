@@ -1,7 +1,3 @@
-/**
-@license
-*/
-
 import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement, nothing } from 'lit';
@@ -12,7 +8,6 @@ import { connectStore } from '../middleware/connect-mixin';
 import { FormationBuilder, FormationMetadata, formatPosition, Position } from '../models/formation';
 import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '../models/game.js';
 import { LivePlayer } from '../models/live.js';
-import { navigate } from '../slices/app/app-slice.js';
 import { getGameStore } from '../slices/game-store';
 import { gameSetupCompletedCreator } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store';
@@ -276,8 +271,8 @@ export class LineupGameSetup extends connectStore()(LitElement) {
           break;
 
         case SetupSteps.Roster:
+          // TODO: Pass router via context?
           window.history.pushState({}, '', `/gameroster/${this.game!.id}`);
-          this.dispatch(navigate(window.location));
           break;
 
         default:

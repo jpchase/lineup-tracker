@@ -1,7 +1,5 @@
-import { installRouter } from 'pwa-helpers/router';
 import { setupAuthListeners, startAppListening } from './app/action-listeners.js';
 import { debug } from './common/debug.js';
-import { navigate } from './slices/app/app-slice.js';
 import { getUser } from './slices/auth/auth-slice.js';
 import { store } from './store.js';
 
@@ -43,14 +41,7 @@ export async function initApp() {
       console.error(`Error initializing teams [${e.name}]: ${e.message}\nat ${e.stack}`);
     }
   }
-  // Set the initialized data flag before installing the router. The router will
-  // load a page, which may depend on the initialization being complete.
   window.document.body.dataset.appInitialized = 'true';
-
-  // Wait for the loading actions to complete (success or error), before any navigation.
-  debugInit(`install router: ${location.href}`);
-  installRouter((location) => store.dispatch(navigate(location)));
-
   appInitialized = true;
   debugInit(`finished\n${JSON.stringify(window.document.body.dataset)}`);
 }

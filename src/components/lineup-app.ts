@@ -1,3 +1,4 @@
+import { BaseRouteConfig, PathRouteConfig, Router } from '@lit-labs/router';
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
@@ -12,9 +13,9 @@ import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { User } from '../models/auth';
 import { Team, Teams } from '../models/team.js';
-import { currentTeamChanged, navigate, offlineChanged, selectCurrentTeam, updateDrawerState } from '../slices/app/app-slice.js';
+import { currentTeamChanged, loadPage, offlineChanged, selectCurrentTeam, updateDrawerState } from '../slices/app/app-slice.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
-import { selectTeamsLoaded, team, getTeams } from '../slices/team/team-slice.js';
+import { getTeams, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
 import './lineup-team-selector-dialog.js';
@@ -30,6 +31,10 @@ store.addReducers({
 
 interface Page {
   page: string;
+  label: string;
+}
+
+export interface PageRouteConfig extends PathRouteConfig {
   label: string;
 }
 
@@ -329,6 +334,69 @@ export class LineupApp extends connect(store)(LitElement) {
     'view404': { page: 'view404', label: 'Page not found' },
   };
 
+  private routes: PageRouteConfig[] = [
+    {
+      name: 'viewGames', label: 'Games', path: '/viewGames',
+      enter: async () => {
+        return this.navigateToPage('viewGames');
+      }
+    },
+    {
+      name: 'game', label: 'Game Detail', path: '/game/:gameId',
+      enter: async ({ gameId }) => {
+        return this.navigateToPage('game', gameId)
+      },
+    },
+    {
+      name: 'gameroster', label: 'Game Roster', path: '/gameroster/:gameId',
+      enter: async ({ gameId }) => {
+        return this.navigateToPage('gameroster', gameId)
+      },
+    },
+    {
+      name: 'viewRoster', label: 'Roster', path: '/viewRoster',
+      enter: async () => {
+        return this.navigateToPage('viewRoster');
+      }
+    },
+    {
+      name: 'addNewTeam', label: 'New Team', path: '/addNewTeam',
+      enter: async () => {
+        return this.navigateToPage('addNewTeam');
+      }
+    },
+    {
+      name: 'viewHome', label: 'Overview', path: '/viewHome',
+      enter: async () => {
+        return this.navigateToPage('viewHome');
+      }
+    },
+    {
+      name: 'viewHome', label: 'Overview', path: '/',
+      enter: async () => {
+        return this.navigateToPage('viewHome');
+      }
+    },
+  ];
+  private fallbackRoute: BaseRouteConfig = {
+    name: 'view404',
+    enter: async () => {
+      return this.navigateToPage('view404');
+    }
+  };
+
+  private router = new Router(this, this.routes, { fallback: this.fallbackRoute });
+
+  private navigateToPage(page: string, gameId?: string) {
+    console.log(`navigateToPage: page = ${page}, location  = ${location.href}, router params = ${JSON.stringify(this.router.params)}`);
+
+    store.dispatch(loadPage(page, gameId));
+
+    // Close the drawer - in case the *path* change came from a link in the drawer.
+    store.dispatch(updateDrawerState(false));
+    return true;
+  }
+
   @property({ type: Boolean })
   private _authInitialized = true;
 
@@ -401,7 +469,7 @@ export class LineupApp extends connect(store)(LitElement) {
 
   private addNewTeam() {
     window.history.pushState({}, '', `/addNewTeam`);
-    store.dispatch(navigate(window.location));
+    // this.router.goto('/addNewTeam');
   }
 
   override stateChanged(state: RootState) {

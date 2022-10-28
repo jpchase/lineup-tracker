@@ -308,10 +308,16 @@ describe('lineup-game-setup tests', () => {
     for (const stepTest of stepTests) {
       const stepName = SetupSteps[stepTest.step];
       describe(stepName, () => {
+        let pushStateSpy: sinon.SinonSpy;
+        let gameId: string;
 
         beforeEach(async () => {
+          pushStateSpy = sinon.spy(window.history, 'pushState');
+
           const newGame = getGameDetail();
           expect(newGame.status).to.equal(GameStatus.New);
+
+          gameId = newGame.id;
 
           const gameState = buildGameStateWithCurrentGame(newGame);
 
@@ -320,6 +326,10 @@ describe('lineup-game-setup tests', () => {
 
           await setupElement(buildRootState(gameState, liveState));
           await el.updateComplete;
+        });
+
+        afterEach(() => {
+          pushStateSpy?.restore();
         });
 
         it('perform handler fires only when active', async () => {
@@ -346,8 +356,7 @@ describe('lineup-game-setup tests', () => {
           } else if (stepTest.step === SetupSteps.Roster) {
             // Verifies that it navigated to the roster page.
             await el.updateComplete;
-            // TODO: Verify param to dispatch call when it's a simple action instead of a thunk.
-            expect(dispatchStub).to.have.callCount(1);
+            expect(pushStateSpy).to.be.calledOnceWith({}, '', `/gameroster/${gameId}`);
           } else {
             // Other steps should do nothing (they don't have an href on the link).
             expect(dispatchStub).to.not.have.been.called;
