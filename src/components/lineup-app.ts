@@ -1,9 +1,3 @@
-/**
-@license
-Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-*/
-
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
@@ -11,18 +5,21 @@ import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js'
 import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { User } from '../models/auth';
-import { Teams } from '../models/team';
-import { navigate, offlineChanged, updateDrawerState } from '../slices/app/app-slice.js';
+import { Team, Teams } from '../models/team.js';
+import { currentTeamChanged, navigate, offlineChanged, selectCurrentTeam, updateDrawerState } from '../slices/app/app-slice.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
-import { changeTeam, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
+import { selectTeamsLoaded, team, getTeams } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
-import './lineup-team-selector';
+import './lineup-team-selector-dialog.js';
+import { TeamChangedEvent } from './lineup-team-selector-dialog.js';
+import './lineup-team-selector.js';
 import './snack-bar';
 
 // Lazy load the reducers.
@@ -243,9 +240,7 @@ export class LineupApp extends connect(store)(LitElement) {
     <mwc-drawer type="modal" .open="${this.drawerOpen}"
                 @MDCDrawer:closed="${this.drawerClosedHandler}">
       <div>
-        <lineup-team-selector .teamId=${this._teamId} .teams=${this._teams}
-                              @select-team="${this.selectTeam}">
-        </lineup-team-selector>
+        ${this.renderTeamSelector()}
       </div>
       <nav class="drawer-list">
         <a ?selected="${this._page === 'viewHome'}" href="/viewHome">Overview</a>
@@ -257,10 +252,7 @@ export class LineupApp extends connect(store)(LitElement) {
           <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
           <h1 slot="title">${this.appTitle}</h1>
           <div slot="actionItems" class="toolbar-top-right" ?hidden="${this._page === 'view404'}">
-            <lineup-team-selector class="toolbar-actions"
-                                  .teamId=${this._teamId} .teams=${this._teams}
-                                  @select-team="${this.selectTeam}">
-            </lineup-team-selector>
+            ${this.renderTeamSelector('toolbar-actions')}
             <button class="signin-btn" aria-label="Sign In" ?visible="${this._authInitialized}"
                 @click="${this._signinButtonClicked}">
               ${this._user && this._user.imageUrl ? html`<img src="${this._user.imageUrl}">` : accountIcon}
@@ -292,13 +284,22 @@ export class LineupApp extends connect(store)(LitElement) {
       </div>
     </mwc-drawer>
 
-    <lineup-team-selector-dialog .teamId=${this._teamId} .teams=${this._teams}
+    <lineup-team-selector-dialog .teamId=${this.currentTeam?.id} .teams=${this._teams}
                                 @team-changed="${this.teamChanged}"
                                 @add-new-team="${this.addNewTeam}">
     </lineup-team-selector-dialog>
 
     <snack-bar ?active="${this._snackbarOpened}">
         You are now ${this._offline ? 'offline' : 'online'}.</snack-bar>
+    `;
+  }
+
+  private renderTeamSelector(className?: string) {
+    return html`
+      <lineup-team-selector class="${ifDefined(className)}"
+                            .currentTeam=${this.currentTeam}
+                            @select-team="${this.selectTeam}">
+      </lineup-team-selector>
     `;
   }
 
@@ -334,8 +335,8 @@ export class LineupApp extends connect(store)(LitElement) {
   @property({ type: Object })
   private _user?: User;
 
-  @property({ type: String })
-  private _teamId = '';
+  @state()
+  private currentTeam?: Team;
 
   @property({ type: Object })
   private _teams: Teams = {};
@@ -386,13 +387,16 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   private selectTeam() {
+    if (!this.teamsLoaded) {
+      store.dispatch(getTeams());
+    }
     // TODO: Dynamically create the dialog when it actually needs to be opened.
     const dialog = this.shadowRoot!.querySelector('lineup-team-selector-dialog')!;
     dialog.show();
   }
 
-  private teamChanged(e: CustomEvent) {
-    store.dispatch(changeTeam(e.detail.teamId));
+  private teamChanged(e: TeamChangedEvent) {
+    store.dispatch(currentTeamChanged(e.detail.teamId, e.detail.teamName));
   }
 
   private addNewTeam() {
@@ -408,8 +412,8 @@ export class LineupApp extends connect(store)(LitElement) {
 
     this._user = state.auth!.user;
 
-    this._teamId = state.team!.teamId;
     this._teams = state.team!.teams;
+    this.currentTeam = selectCurrentTeam(state);
     this.teamsLoaded = selectTeamsLoaded(state) || false;
   }
 }

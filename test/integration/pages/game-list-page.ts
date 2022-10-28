@@ -8,6 +8,7 @@ export class GameListPage extends PageObject {
       ...options,
       scenarioName: 'viewGames',
       route: 'viewGames',
+      componentName: 'lineup-view-games',
       team: { teamId: integrationTestData.TEAM1.ID }
     });
   }

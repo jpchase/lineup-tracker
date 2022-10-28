@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getEnv } from '../../app/environment.js';
-import { ThunkResult } from '../../store.js';
+import { Team } from '../../models/team.js';
+import type { RootState, ThunkResult } from '../../store.js';
+import { addTeam } from '../team/team-slice.js';
 
 const env = getEnv();
 
@@ -76,24 +78,48 @@ export const offlineChanged = (offline: boolean): ThunkResult => (dispatch, getS
   dispatch(updateOffline(offline));
 };
 
+export const selectCurrentTeam = (state: RootState): Team | undefined => {
+  if (!state.app?.teamId) {
+    return undefined;
+  }
+  return {
+    id: state.app.teamId,
+    name: state.app.teamName,
+  };
+}
+
+export const APP_SLICE_NAME = 'app';
+
 export interface AppState {
   page: string;
   offline: boolean;
   drawerOpened: boolean;
   snackbarOpened: boolean;
+  teamId: string;
+  teamName: string;
 }
 
-const INITIAL_STATE: AppState = {
+export const APP_INITIAL_STATE: AppState = {
   page: '',
   offline: false,
   drawerOpened: false,
   snackbarOpened: false,
+  teamId: '',
+  teamName: '',
 };
 
 const appSlice = createSlice({
-  name: 'app',
-  initialState: INITIAL_STATE,
+  name: APP_SLICE_NAME,
+  initialState: APP_INITIAL_STATE,
   reducers: {
+    currentTeamChanged: {
+      reducer: (state, action: PayloadAction<{ teamId: string, teamName: string }>) => {
+        setCurrentTeam(state, action.payload.teamId, action.payload.teamName);
+      },
+      prepare: (teamId: string, teamName: string) => {
+        return { payload: { teamId, teamName } };
+      }
+    },
     updatePage: {
       reducer: (state, action: PayloadAction<{ page: string }>) => {
         state.page = action.payload.page;
@@ -125,12 +151,23 @@ const appSlice = createSlice({
       state.snackbarOpened = false;
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(addTeam, (state, action) => {
+      setCurrentTeam(state, action.payload.id, action.payload.name);
+    });
+  },
 });
 
 const { actions, reducer } = appSlice;
 
 export const {
+  currentTeamChanged,
   openSnackBar, closeSnackBar,
   updateDrawerState, updateOffline, updatePage
 } = actions;
-export const app = reducer;
+export const appReducer = reducer;
+
+function setCurrentTeam(state: AppState, teamId: string, teamName: string) {
+  state.teamId = teamId;
+  state.teamName = teamName;
+}

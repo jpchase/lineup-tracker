@@ -1,7 +1,3 @@
-/**
-@license
-*/
-
 import { PageObject, PageOptions } from './page-object.js';
 import { ElementHandle } from 'puppeteer';
 
@@ -14,33 +10,6 @@ export class TeamCreatePage extends PageObject {
       scenarioName: 'addNewTeam',
       route: 'addNewTeam'
     });
-  }
-
-  async getCurrentTeam() {
-    this.exposeGetTeamSelectorFunc();
-    /*
-    return await this.page.evaluate(() => {
-      // @ts-ignore
-      const teamSelector = window.getTeamSelectorComponent();
-      if (!teamSelector) { return; }
-      const selectedItem = teamSelector.selectedItem;
-      return {
-        id: selectedItem.id,
-        name: teamSelector.value
-      }
-    });
-    */
-    return await this.page.evaluate(`(async () => {
-  // @ts-ignore
-  const teamSelector = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-team-selector').shadowRoot.querySelector('#team-switcher-button');
-  if (!teamSelector) { return; }
-  /* const selectedItem = teamSelector.selectedItem; */
-  console.log('selected: ',teamSelector,'value: ',teamSelector.innerText);
-  return {
-    id: '', // teamSelector.contentElement.selected, /* selectedItem.id,*/
-    name: teamSelector.innerText
-  }
-})()`) as { id: string, name: string };
   }
 
   async fillTeamDetails(teamName: string) {
@@ -126,12 +95,4 @@ export class TeamCreatePage extends PageObject {
   // private get getTeamCreateAsString() {
   //   return `document.querySelector('lineup-app').shadowRoot.querySelector('lineup-view-team-create').shadowRoot.querySelector('lineup-team-create')`;
   // }
-
-  private async exposeGetTeamSelectorFunc() {
-    await this.page.exposeFunction('getTeamSelectorComponent', () => {
-      return document.querySelector('lineup-app')?.
-        shadowRoot!.querySelector('lineup-team-selector')?.
-        shadowRoot!.querySelector('paper-dropdown-menu');
-    });
-  }
 }

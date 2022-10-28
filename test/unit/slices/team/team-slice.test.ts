@@ -1,25 +1,19 @@
-import { Player } from '@app/models/player';
-import { Team, Teams, TeamData } from '@app/models/team';
-import { addNewPlayer, addNewTeam, savePlayer, saveTeam, team, TeamState } from '@app/slices/team/team-slice';
+import { Player } from '@app/models/player.js';
+import { Team, TeamData } from '@app/models/team.js';
+import { addNewPlayer, addNewTeam, addPlayer, addTeam, getRoster, getTeams, savePlayer, saveTeam, team, TeamState, TEAM_INITIAL_STATE } from '@app/slices/team/team-slice.js';
+import { reader } from '@app/storage/firestore-reader.js';
+import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
+import sinon from 'sinon';
 import {
   buildRoster, buildTeams,
-  getFakeAction,
   getNewPlayer,
   getStoredPlayer, getStoredTeam, getPublicTeam, getMockAuthState, getNewPlayerData,
   MockAuthStateOptions, TEST_USER_ID
 } from '../../helpers/test_data.js';
 
-import { addPlayer, addTeam, changeTeam, getRoster, getTeams } from '@app/slices/team/team-slice';
-import { reader } from '@app/storage/firestore-reader';
-import { writer } from '@app/storage/firestore-writer';
-import { idb } from '@app/storage/idb-wrapper';
-import sinon from 'sinon';
-
 const actionTypes = {
   ADD_PLAYER: 'team/addPlayer',
-  ADD_TEAM: 'team/addTeam',
-  CHANGE_TEAM: 'team/changeTeam',
   GET_ROSTER: 'team/getRoster',
   GET_TEAMS: 'team/getTeams',
 
@@ -32,18 +26,7 @@ const actionTypes = {
   },
 };
 
-const TEAM_INITIAL_STATE: TeamState = {
-  teams: {} as Teams,
-  teamsLoaded: false,
-  teamsLoading: false,
-  teamId: '',
-  teamName: '',
-  roster: {},
-  error: ''
-};
-
 const KEY_TEAMS = 'teams';
-const KEY_TEAMID = 'teamId';
 const KEY_ROSTER = 'roster';
 
 export function getNewTeamData() {
@@ -67,10 +50,12 @@ function mockGetState(teams: Team[], currentTeam?: Team, options?: MockAuthState
     const rosterData = buildRoster(players);
 
     return {
+      app: {
+        teamId: currentTeam ? currentTeam.id : undefined,
+        teamName: currentTeam ? currentTeam.name : undefined,
+      },
       auth: getMockAuthState(options),
       team: {
-        teamId: currentTeam ? currentTeam.id : '',
-        teamName: currentTeam ? currentTeam.name : '',
         teams: teamData,
         roster: rosterData
       }
@@ -83,19 +68,7 @@ describe('Teams reducer', () => {
     id: 'nt1', name: 'New team 1'
   };
 
-  it('should return the initial state', () => {
-    expect(
-      team(TEAM_INITIAL_STATE, getFakeAction())
-    ).to.equal(TEAM_INITIAL_STATE);
-  });
-
-  it('should return the initial state when none provided', () => {
-    expect(
-      team(undefined, getFakeAction())
-    ).to.deep.equal(TEAM_INITIAL_STATE);
-  });
-
-  describe('GET_TEAMS', () => {
+  describe('getTeams', () => {
     it('should set the teams state to the retrieved list', () => {
       const expectedTeams = buildTeams([getStoredTeam()]);
 
@@ -114,168 +87,23 @@ describe('Teams reducer', () => {
 
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
     });
-
-    it('should set the current team when selectedTeamId provided', () => {
-      const storedTeam = getStoredTeam();
-      const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
-
-      const newState = team(TEAM_INITIAL_STATE, {
-        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
-        payload: {
-          teams: expectedTeams,
-          selectedTeamId: storedTeam.id
-        }
-      });
-
-      expect(newState).to.deep.include({
-        teams: expectedTeams,
-        teamId: storedTeam.id,
-        teamName: storedTeam.name
-      });
-
-      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
-    });
-
-    it('should ignore the selectedTeamId when current team already set', () => {
-      const storedTeam = getStoredTeam();
-      const currentState: TeamState = {
-        ...TEAM_INITIAL_STATE,
-        teamId: storedTeam.id,
-        teamName: storedTeam.name
-      }
-      const expectedTeams = buildTeams([storedTeam, getPublicTeam()]);
-
-      const newState = team(currentState, {
-        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
-        payload: {
-          teams: expectedTeams,
-          selectedTeamId: getPublicTeam().id
-        }
-      });
-
-      expect(newState).to.deep.include({
-        teams: expectedTeams,
-        teamId: storedTeam.id,
-        teamName: storedTeam.name
-      });
-
-      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
-    });
-
-    it('should ignore the selectedTeamId when not in the team list', () => {
-      const storedTeam = getStoredTeam();
-      const expectedTeams = buildTeams([storedTeam]);
-
-      const newState = team(TEAM_INITIAL_STATE, {
-        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
-        payload: {
-          teams: expectedTeams,
-          selectedTeamId: getPublicTeam().id
-        }
-      });
-
-      expect(newState).to.include({
-        teams: expectedTeams
-      });
-      expect(newState.teamId).to.not.be.ok;
-      expect(newState.teamName).to.not.be.ok;
-
-      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
-    });
-  }); // describe('GET_TEAMS')
-
-  describe('CHANGE_TEAM', () => {
-    it('should update the current team id and name', () => {
-      const state = {
-        ...TEAM_INITIAL_STATE,
-        teams: {} as Teams
-      } as TeamState;
-      state.teams = buildTeams([getStoredTeam(), newTeam]);
-
-      const newState = team(state, {
-        type: actionTypes.CHANGE_TEAM,
-        payload: { teamId: newTeam.id }
-      });
-
-      expect(newState).to.include({
-        teamId: newTeam.id,
-        teamName: newTeam.name
-      });
-
-      expect(newState).to.not.equal(state);
-      expect(newState.teamId).to.not.equal(state.teamId);
-      expect(newState.teamName).to.not.equal(state.teamName);
-    });
-
-    it('should do nothing if no teams exist', () => {
-      const state = {
-        ...TEAM_INITIAL_STATE,
-        teams: {} as Teams
-      } as TeamState;
-
-      const newState = team(state, {
-        type: actionTypes.CHANGE_TEAM,
-        payload: { teamId: getStoredTeam().id }
-      });
-
-      expect(newState).to.equal(state);
-    });
-
-    it('should do nothing if team id does not exist', () => {
-      const state = {
-        ...TEAM_INITIAL_STATE,
-        teams: {} as Teams
-      } as TeamState;
-      state.teams = buildTeams([getStoredTeam(), newTeam]);
-
-      const newState = team(state, {
-        type: actionTypes.CHANGE_TEAM,
-        payload: { teamId: 'nosuchid' }
-      });
-
-      expect(newState).to.equal(state);
-    });
-
-    it('should do nothing if team id already set as current team', () => {
-      const storedTeam = getStoredTeam();
-      const state = {
-        ...TEAM_INITIAL_STATE,
-        teamId: storedTeam.id,
-        teamName: storedTeam.name,
-        teams: {} as Teams
-      } as TeamState;
-      state.teams = buildTeams([storedTeam]);
-
-      const newState = team(state, {
-        type: actionTypes.CHANGE_TEAM,
-        payload: { teamId: storedTeam.id }
-      });
-
-      expect(newState).to.equal(state);
-    });
-
-  }); // describe('CHANGE_TEAM')
+  }); // describe('getTeams')
 
   describe('ADD_TEAM', () => {
-    it('should populate an empty teams list and set the current team', () => {
+    it('should populate an empty teams list', () => {
       const expectedTeams = buildTeams([newTeam]);
 
-      const newState = team(TEAM_INITIAL_STATE, {
-        type: actionTypes.ADD_TEAM,
-        payload: newTeam
-      });
+      const newState = team(TEAM_INITIAL_STATE, addTeam(newTeam));
 
       expect(newState).to.deep.include({
-        teams: expectedTeams,
-        teamId: newTeam.id,
-        teamName: newTeam.name
+        teams: expectedTeams
       });
 
       expect(newState).to.not.equal(TEAM_INITIAL_STATE);
       expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
     });
 
-    it('should add to existing teams list and set the current team', () => {
+    it('should add to existing teams list', () => {
       const state: TeamState = {
         ...TEAM_INITIAL_STATE
       };
@@ -283,15 +111,10 @@ describe('Teams reducer', () => {
 
       const expectedTeams = buildTeams([getStoredTeam(), newTeam]);
 
-      const newState = team(state, {
-        type: actionTypes.ADD_TEAM,
-        payload: newTeam
-      });
+      const newState = team(state, addTeam(newTeam));
 
       expect(newState).to.deep.include({
-        teams: expectedTeams,
-        teamId: newTeam.id,
-        teamName: newTeam.name
+        teams: expectedTeams
       });
 
       expect(newState).to.not.equal(state);
@@ -348,17 +171,12 @@ describe('Teams reducer', () => {
 describe('Team actions', () => {
   let readerStub: sinon.SinonStubbedInstance<typeof reader>;
   let writerStub: sinon.SinonStubbedInstance<typeof writer>;
-  let mockedIDBGet: sinon.SinonStub;
-  let mockedIDBSet: sinon.SinonStub;
 
   beforeEach(() => {
     sinon.restore();
 
     readerStub = sinon.stub<typeof reader>(reader);
     writerStub = sinon.stub<typeof writer>(writer);
-
-    mockedIDBGet = sinon.stub(idb, 'get').resolves(undefined);
-    mockedIDBSet = sinon.stub(idb, 'set').resolves(undefined);
   });
 
   function mockLoadCollectionWithStoredTeams() {
@@ -376,16 +194,12 @@ describe('Team actions', () => {
   }
 
   describe('getTeams', () => {
-    it('should dispatch an action with owned teams returned from storage, without cached team id', async () => {
+    it('should dispatch an action with owned teams returned from storage', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
       const loadCollectionStub = mockLoadCollectionWithStoredTeams();
 
       await getTeams()(dispatchMock, getStateMock, undefined);
-
-      // Checks that the cached team id was retrieved from IDB.
-      expect(mockedIDBGet).to.have.callCount(1);
-      expect(mockedIDBGet).to.have.been.calledWith(KEY_TEAMID);
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
@@ -397,90 +211,17 @@ describe('Team actions', () => {
       expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
     });
 
-    it('should dispatch an action with owned teams returned from storage, with cached team id', async () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
-      mockLoadCollectionWithStoredTeams();
-      const previousTeam = getStoredTeam();
-      mockedIDBGet.onFirstCall().resolves(previousTeam.id);
-
-      await getTeams(undefined)(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
-        payload: {
-          teams: buildTeams([getStoredTeam()]),
-          selectedTeamId: previousTeam.id
-        }
-      }));
-    });
-
-    it('should dispatch an action with owned teams returned from storage, with override to cached team id', async () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
-      mockLoadCollectionWithStoredTeams();
-      const previousTeam = getStoredTeam();
-      mockedIDBGet.onFirstCall().resolves(previousTeam.id);
-
-      await getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
-
-      expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
-        payload: {
-          teams: buildTeams([getStoredTeam()]),
-          selectedTeamId: 'idfromurl'
-        }
-      }));
-    });
-
-    it('should dispatch an action with owned teams returned from storage, with already selected team', async () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], getStoredTeam(), { signedIn: true, userId: TEST_USER_ID })
-      mockLoadCollectionWithStoredTeams();
-
-      await getTeams()(dispatchMock, getStateMock, undefined);
-
-      expect(mockedIDBGet).to.not.have.been.called;
-
-      expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
-        payload: {
-          teams: buildTeams([getStoredTeam()]),
-        }
-      }));
-    });
-
     it('should dispatch an action with public teams when not signed in', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: false })
       mockLoadCollectionWithPublicTeams();
 
-      await getTeams(undefined)(dispatchMock, getStateMock, undefined);
-
-      expect(mockedIDBGet).to.not.have.been.called;
+      await getTeams()(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
         type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
         payload: {
           teams: buildTeams([getPublicTeam()]),
-        }
-      }));
-    });
-
-    it('should dispatch an action with public teams when not signed in, with selected team id', async () => {
-      const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], undefined, { signedIn: false })
-      mockLoadCollectionWithPublicTeams();
-
-      await getTeams('idfromurl')(dispatchMock, getStateMock, undefined);
-
-      expect(mockedIDBGet).to.not.have.been.called;
-
-      expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.fulfilled(actionTypes.GET_TEAMS),
-        payload: {
-          teams: buildTeams([getPublicTeam()]),
-          selectedTeamId: 'idfromurl'
         }
       }));
     });
@@ -499,15 +240,6 @@ describe('Team actions', () => {
     });
 
   }); // describe('getTeams')
-
-  describe('changeTeam', () => {
-    it('should return an action to change the selected team', async () => {
-      expect(changeTeam(newTeamSaved.id)).to.deep.equal({
-        type: changeTeam.type,
-        payload: { teamId: newTeamSaved.id },
-      });
-    });
-  }); // describe('changeTeam')
 
   describe('addNewTeam', () => {
     it('should do nothing if new team is missing', () => {
@@ -565,9 +297,6 @@ describe('Team actions', () => {
       expect(saveNewDocumentStub).calledOnceWith(
         inputTeam, KEY_TEAMS, undefined, sinon.match.object, { addUserId: true });
       expect(inputTeam, 'Input team should have properties set by saving').to.deep.equal(expectedSavedTeam);
-
-      // Checks that the new selected team was cached in IDB.
-      expect(mockedIDBSet).to.have.been.calledWith(KEY_TEAMID, expectedId);
 
       expect(dispatchMock).to.have.been.calledWith({
         type: addTeam.type,

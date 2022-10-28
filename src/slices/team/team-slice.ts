@@ -1,33 +1,24 @@
-/**
-@license
-*/
-
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { debug } from '../../common/debug.js';
 import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
 import { CollectionFilter, whereFilter } from '../../storage/firestore-reader.js';
-import { idb } from '../../storage/idb-wrapper.js';
 import { RootState, ThunkResult } from '../../store.js';
+import { selectCurrentTeam } from '../app/app-slice.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from './team-storage.js';
 
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
-const KEY_TEAMID = 'teamId';
 
 const debugTeam = debug('team');
 
-// Caches the currently selected team, for return visits.
-function cacheTeamId(teamId: string) {
-  idb.set(KEY_TEAMID, teamId).then();
-}
-
 export const getTeams = createAsyncThunk<
   // Return type of the payload creator
-  { teams: Teams, selectedTeamId?: string },
+  { teams: Teams },
   // First argument to the payload creator
-  string | undefined,
+  // Unused, but required to allow the type of the state to be specified
+  void,
   {
     // Optional fields for defining thunkApi field types
     // dispatch: AppDispatch
@@ -35,38 +26,23 @@ export const getTeams = createAsyncThunk<
   }
 >(
   'team/getTeams',
-  async (selectedTeamId, thunkAPI) => {
+  async (_unused, thunkAPI) => {
     // Show the user's teams, when signed in. Otherwise, only show public data.
     // TODO: Extract into helper function somewhere?
     const currentUserId = selectCurrentUserId(thunkAPI.getState());
     let teamFilter: CollectionFilter;
     if (currentUserId) {
-      debugTeam(`Get teams for owner = ${currentUserId}, selected = ${selectedTeamId}`);
+      debugTeam(`Get teams for owner = ${currentUserId}`);
       teamFilter = whereFilter(FIELD_OWNER, '==', currentUserId);
-
-      let teamId;
-      if (!selectedTeamId) {
-        teamId = currentTeamIdSelector(thunkAPI.getState());
-      }
-      if (!selectedTeamId && !teamId) {
-        // No team id selected, which happens on initial load. Check for a
-        // cached team id from previous visits.
-        debugTeam('No team selected');
-        const value = await idb.get(KEY_TEAMID);
-        debugTeam('Done idb lookup for cached team id');
-        if (value) {
-          selectedTeamId = value as string;
-        }
-      }
     } else {
-      debugTeam(`Get public teams, selected = ${selectedTeamId}`);
+      debugTeam(`Get public teams`);
       teamFilter = whereFilter(FIELD_PUBLIC, '==', true);
     }
 
-    debugTeam(`Get docs for teams, cachedTeamId = ${selectedTeamId!}`);
+    debugTeam(`Get docs for teams`);
 
     const teams = await loadTeams(teamFilter);
-    return { teams, selectedTeamId };
+    return { teams };
   }
 );
 
@@ -92,7 +68,6 @@ export const addNewTeam = (newTeam: Team): ThunkResult => (dispatch, getState) =
 export const saveTeam = (newTeam: Team): ThunkResult => (dispatch, getState) => {
   // Save the team to Firestore, before adding to the store.
   persistTeam(newTeam, getState());
-  cacheTeamId(newTeam.id);
   dispatch(addTeam(newTeam));
 };
 
@@ -126,7 +101,7 @@ export const addNewPlayer = (newPlayer: Player): ThunkResult => (dispatch, getSt
 
 export const savePlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
-  const teamId = currentTeamIdSelector(getState())!;
+  const teamId = selectCurrentTeam(getState())?.id!;
   savePlayerToTeamRoster(newPlayer, teamId);
   dispatch(addPlayer(newPlayer));
 };
@@ -135,39 +110,25 @@ export interface TeamState {
   teams: Teams;
   teamsLoaded: boolean;
   teamsLoading: boolean;
-  teamId: string;
-  teamName: string;
   roster: Roster;
   error?: string;
 }
 
-const INITIAL_STATE: TeamState = {
+export const TEAM_INITIAL_STATE: TeamState = {
   teams: {},
   teamsLoaded: false,
   teamsLoading: false,
-  teamId: '',
-  teamName: '',
   roster: {},
   error: ''
 };
 
 const teamSlice = createSlice({
   name: 'team',
-  initialState: INITIAL_STATE,
+  initialState: TEAM_INITIAL_STATE,
   reducers: {
     addTeam: (state, action: PayloadAction<Team>) => {
       const team = action.payload;
       state.teams[team.id] = team;
-      setCurrentTeam(state, team.id);
-    },
-
-    changeTeam: {
-      reducer: (state, action: PayloadAction<{ teamId: string }>) => {
-        setCurrentTeam(state, action.payload.teamId);
-      },
-      prepare: (teamId: string) => {
-        return { payload: { teamId } };
-      }
     },
 
     addPlayer: (state, action: PayloadAction<Player>) => {
@@ -184,10 +145,6 @@ const teamSlice = createSlice({
       state.teamsLoading = false;
       state.teamsLoaded = true;
       state.teams = action.payload.teams;
-      const selectedTeamId = action.payload.selectedTeamId;
-      if (!state.teamId && selectedTeamId && state.teams[selectedTeamId]) {
-        setCurrentTeam(state, selectedTeamId);
-      }
     });
     builder.addCase(getRoster.fulfilled, (state, action) => {
       state.roster = action.payload!;
@@ -198,22 +155,6 @@ const teamSlice = createSlice({
 const { actions, reducer } = teamSlice;
 
 export const team = reducer;
-export const { addTeam, changeTeam, addPlayer } = actions;
-
-function setCurrentTeam(state: TeamState, teamId: string) {
-  if (state.teamId === teamId) {
-    return;
-  }
-  const team = state.teams[teamId];
-  if (!team) {
-    return;
-  }
-  state.teamId = team.id;
-  state.teamName = team.name;
-}
-
-export const currentTeamIdSelector = (state: RootState) => state.team && state.team.teamId;
-
-export const selectCurrentTeamId = (state: RootState) => state.team?.teamId;
+export const { addTeam, addPlayer } = actions;
 
 export const selectTeamsLoaded = (state: RootState) => state.team?.teamsLoaded;

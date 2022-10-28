@@ -1,19 +1,9 @@
-/**
-@license
-Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
-*/
-
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
-import { OpenOptions, PageObject } from './pages/page-object.js';
+import { logWithTime, OpenOptions, PageObject } from './pages/page-object.js';
 import { createScreenshotDirectories, getAllVisualPages } from './pages/visual-page-factory.js';
 import { config, DevServer, startTestServer } from './server/test-server.js';
 
@@ -61,10 +51,14 @@ describe('👀 page screenshots are correct', function () {
 });
 
 async function takeAndCompareScreenshot(page: PageObject, filePrefix: string, openOptions?: OpenOptions) {
+  logWithTime(`tACS (${page.scenarioName}) - init`);
   await page.init();
+  logWithTime(`tACS (${page.scenarioName}) - open`);
   await page.open(openOptions);
+  logWithTime(`tACS (${page.scenarioName}) - screenshot`);
   const viewName = await page.screenshot(path.join(config.currentDir, filePrefix));
   // TODO: Pass filePrefix as an explicit parameter.
+  logWithTime(`tACS (${page.scenarioName}) - compare`);
   return compareScreenshots(path.join(filePrefix, viewName));
 }
 

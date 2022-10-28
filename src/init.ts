@@ -3,7 +3,6 @@ import { setupAuthListeners, startAppListening } from './app/action-listeners.js
 import { debug } from './common/debug.js';
 import { navigate } from './slices/app/app-slice.js';
 import { getUser } from './slices/auth/auth-slice.js';
-// import { getTeams } from './slices/team/team-slice.js';
 import { store } from './store.js';
 
 const debugInit = debug('initApp');
@@ -29,14 +28,12 @@ export async function initApp() {
     // store.dispatch(appInitValues(initTeamId, initUserId));
   }
 
-  // Get the authenticated user (if signed in), and then load the teams for
-  // that user.
+  // Get the authenticated user (if signed in).
   try {
     debugInit(`get user`);
-    const userSignedId = await store.dispatch(getUser());
-    if (userSignedId) {
-      debugInit(`signed in, get teams`);
-      // await teamsLoaded();
+    const userSignedIn = await store.dispatch(getUser());
+    if (userSignedIn) {
+      debugInit(`signed in, set team`);
     } else {
       debugInit(`not signed in`);
     }

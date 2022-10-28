@@ -4,26 +4,19 @@
 
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { PageViewElement } from './page-view-element';
-
-import { Roster } from '../models/player';
-
-// This element is connected to the Redux store.
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { store, RootState } from '../store';
-import { addNewPlayer, getRoster, TeamState } from '../slices/team/team-slice.js';
+import { Roster } from '../models/player.js';
+import { selectCurrentTeam } from '../slices/app/app-slice.js';
+import { addNewPlayer, getRoster, team, TeamState } from '../slices/team/team-slice.js';
+import { RootState, store } from '../store.js';
+import './lineup-roster.js';
+import { PageViewElement } from './page-view-element.js';
+import { SharedStyles } from './shared-styles.js';
 
 // We are lazy loading its reducer.
-import { team } from '../slices/team/team-slice.js';
 store.addReducers({
   team
 });
-
-// These are the elements needed by this element.
-import './lineup-roster';
-
-// These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles';
 
 @customElement('lineup-view-roster')
 export class LineupViewRoster extends connect(store)(PageViewElement) {
@@ -49,16 +42,20 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
 
   // This is called every time something is updated in the store.
   override stateChanged(state: RootState) {
+    const currentTeam = selectCurrentTeam(state);
+    if (!currentTeam) {
+      return;
+    }
     if (!state.team) {
       return;
     }
     const teamState: TeamState = state.team!;
-    if (this._teamId !== teamState.teamId) {
-      this._teamId = teamState.teamId;
+    if (this._teamId !== currentTeam.id) {
+      this._teamId = currentTeam.id;
       store.dispatch(getRoster(this._teamId));
       return;
     }
-    this._teamName = teamState.teamName;
+    this._teamName = currentTeam.name;
     this._roster = teamState.roster;
   }
 

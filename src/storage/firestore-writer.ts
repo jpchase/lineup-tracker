@@ -4,8 +4,8 @@ import {
 } from 'firebase/firestore';
 import { debug, debugError } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
+import { selectCurrentTeam } from '../slices/app/app-slice.js';
 import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
-import { currentTeamIdSelector } from '../slices/team/team-slice.js';
 import { RootState } from '../store.js';
 import { Model, ModelWriter } from './model-converter.js';
 
@@ -63,7 +63,7 @@ function saveNewDocument<T extends Model>(
   // Set parent ids, if necessary.
   if (options && state) {
     if (options.addTeamId) {
-      model.teamId = currentTeamIdSelector(state);
+      model.teamId = selectCurrentTeam(state)?.id;
       debugFirestore(`saveNewDocument: teamId = ${model.teamId}`);
       if (!model.teamId) {
         throw new Error('No current team id');
