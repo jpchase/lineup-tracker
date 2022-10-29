@@ -72,3 +72,22 @@ jobs:
       with:
         name: code-coverage-report
         path: reports/lcov-report/
+
+  lhci:
+    name: Lighthouse
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3.1.0
+
+    - name: npm install, build
+      run: |
+        npm ci
+        npm run build:test
+
+    - name: run Lighthouse CI
+      run: |
+        npm install -g @lhci/cli@0.9.x
+        lhci autorun --config=./config/lighthouserc.js
+      env:
+        LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
