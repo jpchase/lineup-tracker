@@ -88,6 +88,6 @@ jobs:
     - name: run Lighthouse CI
       run: |
         npm install -g @lhci/cli@0.9.x
-        lhci autorun --config=./config/lighthouserc.js
+        lhci autorun --config=./config/lighthouserc.js --settings.disableStorageReset
       env:
         LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
