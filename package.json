@@ -27,7 +27,8 @@
     "test:storage": "tsc && npm run env:copy_dev && web-test-runner --group storage --config config/web-test-runner.config.mjs",
     "test:unit": "tsc && npm run env:copy_dev && web-test-runner --group unit --config config/web-test-runner.config.mjs",
     "test:unit_single": "tsc && npm run env:copy_dev && web-test-runner --group single --config config/web-test-runner.config.mjs",
-    "test:unit_single_watch": "tsc && npm run env:copy_dev && web-test-runner --watch --group single --config config/web-test-runner.config.mjs"
+    "test:unit_single_watch": "tsc && npm run env:copy_dev && web-test-runner --watch --group single --config config/web-test-runner.config.mjs",
+    "lhci:local": "lhci collect --config=./config/lighthouserc.js"
   },
   "eslintConfig": {
     "extends": "google"
@@ -74,6 +75,7 @@
     "@babel/preset-env": "^7.19.4",
     "@blockquote/test-runner-mocha-style-reporter": "^1.4.1",
     "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@lhci/cli": "^0.9.0",
     "@open-wc/testing": "^3.1.6",
     "@types/debug": "^4.1.7",
     "@types/mocha": "^10.0.0",

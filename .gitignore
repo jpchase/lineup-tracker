@@ -10,6 +10,7 @@ test/**/*.js
 dist/
 .DS_Store
 .tmp
+.lighthouseci/
 app.yaml
 *.sublime-workspace
 src/env-config.json
