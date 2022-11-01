@@ -6,44 +6,6 @@ import { addTeam } from '../team/team-slice.js';
 
 const env = getEnv();
 
-export const loadPage = (page: string, gameId?: string): ThunkResult => async (dispatch) => {
-  console.log(`loadPage: page = ${page}, gameId = ${gameId}`);
-  switch (page) {
-    case 'viewHome':
-      import('../../components/lineup-view-home').then(() => {
-        // Put code in here that you want to run every time when
-        // navigating to viewHome after lineup-view-home.js is loaded.
-      });
-      break;
-    case 'viewGames':
-      import('../../components/lineup-view-games');
-      break;
-    case 'game':
-      const detailModule = await import('../../components/lineup-view-game-detail');
-      // Fetch the data for the given game id.
-      console.log(`loading game detail page for ${gameId}`);
-      await dispatch(detailModule.getGame(gameId!));
-      break;
-    case 'gameroster':
-      const rosterModule = await import('../../components/lineup-view-game-roster');
-      // Fetch the data for the given game id.
-      console.log(`loading game roster page for ${gameId}`);
-      await dispatch(rosterModule.getGame(gameId!));
-      break;
-    case 'viewRoster':
-      import('../../components/lineup-view-roster');
-      break;
-    case 'addNewTeam':
-      import('../../components/lineup-view-team-create');
-      break;
-    default:
-      page = 'view404';
-      import('../../components/lineup-view404');
-  }
-
-  dispatch(updatePage(page));
-};
-
 let snackbarTimer: number;
 
 export const showSnackbar = (): ThunkResult => (dispatch) => {

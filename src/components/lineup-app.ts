@@ -1,4 +1,4 @@
-import { BaseRouteConfig, PathRouteConfig, Router } from '@lit-labs/router';
+import { BaseRouteConfig, PathRouteConfig, Router, URLPatternRouteConfig } from '@lit-labs/router';
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
@@ -13,7 +13,7 @@ import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { User } from '../models/auth';
 import { Team, Teams } from '../models/team.js';
-import { currentTeamChanged, loadPage, offlineChanged, selectCurrentTeam, updateDrawerState } from '../slices/app/app-slice.js';
+import { currentTeamChanged, offlineChanged, selectCurrentTeam, updateDrawerState, updatePage } from '../slices/app/app-slice.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
 import { getTeams, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
@@ -34,9 +34,13 @@ interface Page {
   label: string;
 }
 
-export interface PageRouteConfig extends PathRouteConfig {
+export interface PagePathRouteConfig extends PathRouteConfig {
   label: string;
 }
+export interface PagePatternRouteConfig extends URLPatternRouteConfig {
+  label: string;
+}
+export type PageRouteConfig = PagePathRouteConfig | PagePatternRouteConfig;
 
 interface Pages {
   [index: string]: Page;
@@ -272,13 +276,7 @@ export class LineupApp extends connect(store)(LitElement) {
         </mwc-top-app-bar>
         <!-- Main content -->
         <main role="main" class="main-content ${classMap(mainClasses)}" data-teams-loaded="${this.teamsLoaded}">
-          <lineup-view-home class="page" ?active="${this._page === 'viewHome'}"></lineup-view-home>
-          <lineup-view-games class="page" ?active="${this._page === 'viewGames'}"></lineup-view-games>
-          <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
-          <lineup-view-game-roster class="page" ?active="${this._page === 'gameroster'}"></lineup-view-game-roster>
-          <lineup-view-roster class="page" ?active="${this._page === 'viewRoster'}"></lineup-view-roster>
-          <lineup-view-team-create class="page" ?active="${this._page === 'addNewTeam'}"></lineup-view-team-create>
-          <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
+          ${this.router.outlet()}
         </main>
 
         <!--
@@ -337,60 +335,76 @@ export class LineupApp extends connect(store)(LitElement) {
   private routes: PageRouteConfig[] = [
     {
       name: 'viewGames', label: 'Games', path: '/viewGames',
+      render: () => html`<lineup-view-games class="page" active></lineup-view-games>`,
       enter: async () => {
+        await import('./lineup-view-games.js');
         return this.navigateToPage('viewGames');
       }
     },
     {
       name: 'game', label: 'Game Detail', path: '/game/:gameId',
+      render: () => html`<lineup-view-game-detail class="page" active></lineup-view-game-detail>`,
       enter: async ({ gameId }) => {
-        return this.navigateToPage('game', gameId)
+        const detailModule = await import('./lineup-view-game-detail.js');
+        // Fetch the data for the given game id.
+        console.log(`loading game detail page for ${gameId}`);
+        await store.dispatch(detailModule.getGame(gameId!));
+        return this.navigateToPage('game')
       },
     },
     {
       name: 'gameroster', label: 'Game Roster', path: '/gameroster/:gameId',
+      render: () => html`<lineup-view-game-roster class="page" active></lineup-view-game-roster>`,
       enter: async ({ gameId }) => {
-        return this.navigateToPage('gameroster', gameId)
+        const rosterModule = await import('./lineup-view-game-roster.js');
+        // Fetch the data for the given game id.
+        console.log(`loading game roster page for ${gameId}`);
+        await store.dispatch(rosterModule.getGame(gameId!));
+        return this.navigateToPage('gameroster')
       },
     },
     {
       name: 'viewRoster', label: 'Roster', path: '/viewRoster',
+      render: () => html`<lineup-view-roster class="page" active></lineup-view-roster>`,
       enter: async () => {
+        await import('./lineup-view-roster.js');
         return this.navigateToPage('viewRoster');
       }
     },
     {
       name: 'addNewTeam', label: 'New Team', path: '/addNewTeam',
+      render: () => html`<lineup-view-team-create class="page" active></lineup-view-team-create>`,
       enter: async () => {
+        await import('./lineup-view-team-create.js');
         return this.navigateToPage('addNewTeam');
       }
     },
     {
-      name: 'viewHome', label: 'Overview', path: '/viewHome',
+      // TODO: Figure out typing for URLPattern
+      // @ts-expect-error
+      name: 'viewHome', label: 'Overview', pattern: new URLPattern({ pathname: '/{viewHome}?' }),
+      render: () => html`<lineup-view-home class="page" active></lineup-view-home>`,
       enter: async () => {
-        return this.navigateToPage('viewHome');
-      }
-    },
-    {
-      name: 'viewHome', label: 'Overview', path: '/',
-      enter: async () => {
+        await import('./lineup-view-home.js');
         return this.navigateToPage('viewHome');
       }
     },
   ];
   private fallbackRoute: BaseRouteConfig = {
     name: 'view404',
+    render: () => html`<lineup-view404 class="page" active></lineup-view404>`,
     enter: async () => {
+      await import('./lineup-view404.js');
       return this.navigateToPage('view404');
     }
   };
 
   private router = new Router(this, this.routes, { fallback: this.fallbackRoute });
 
-  private navigateToPage(page: string, gameId?: string) {
+  private navigateToPage(page: string) {
     console.log(`navigateToPage: page = ${page}, location  = ${location.href}, router params = ${JSON.stringify(this.router.params)}`);
 
-    store.dispatch(loadPage(page, gameId));
+    store.dispatch(updatePage(page));
 
     // Close the drawer - in case the *path* change came from a link in the drawer.
     store.dispatch(updateDrawerState(false));
