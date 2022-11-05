@@ -1,11 +1,12 @@
+import { contextProvided } from '@lit-labs/context';
 import { html } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
-
 import { addNewTeam, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { EVENT_NEWTEAMCREATED } from './events';
 import './lineup-team-create';
+import { pageRouterContext, PageRouter } from './page-router.js';
 import { PageViewElement } from './page-view-element';
 import { SharedStyles } from './shared-styles';
 
@@ -27,6 +28,10 @@ export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
     `;
   }
 
+  @contextProvided({ context: pageRouterContext, subscribe: true })
+  @property({ attribute: false })
+  pageRouter!: PageRouter;
+
   override firstUpdated() {
     window.addEventListener(EVENT_NEWTEAMCREATED, this._newTeamCreated.bind(this) as EventListener);
   }
@@ -39,8 +44,8 @@ export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
 
   private _newTeamCreated(e: CustomEvent) {
     store.dispatch(addNewTeam(e.detail.team));
-    // TODO: Pass router via context?
-    window.history.pushState({}, '', `/viewHome`);
+    // TODO: Pass page and params separately
+    this.pageRouter.gotoPage(`/viewHome`);
   }
 
 }

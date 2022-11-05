@@ -1,3 +1,4 @@
+import { contextProvided } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement, nothing } from 'lit';
@@ -20,6 +21,7 @@ import {
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-on-player-list';
 import './lineup-player-list';
+import { PageRouter, pageRouterContext } from './page-router.js';
 import { SharedStyles } from './shared-styles';
 
 function getStepName(step: SetupSteps): string {
@@ -197,6 +199,10 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getLiveStore;
 
+  @contextProvided({ context: pageRouterContext, subscribe: true })
+  @property({ attribute: false })
+  pageRouter!: PageRouter;
+
   @state()
   private game: GameDetail | undefined;
 
@@ -271,8 +277,8 @@ export class LineupGameSetup extends connectStore()(LitElement) {
           break;
 
         case SetupSteps.Roster:
-          // TODO: Pass router via context?
-          window.history.pushState({}, '', `/gameroster/${this.game!.id}`);
+          // TODO: Pass page and params separately
+          this.pageRouter.gotoPage(`/gameroster/${this.game!.id}`);
           break;
 
         default:

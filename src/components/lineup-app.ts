@@ -1,4 +1,5 @@
-import { BaseRouteConfig, PathRouteConfig, Router, URLPatternRouteConfig } from '@lit-labs/router';
+import { ContextProvider } from '@lit-labs/context';
+import { BaseRouteConfig, RouteConfig, Router } from '@lit-labs/router';
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
@@ -15,12 +16,14 @@ import { User } from '../models/auth';
 import { Team, Teams } from '../models/team.js';
 import { currentTeamChanged, offlineChanged, selectCurrentTeam, updateDrawerState, updatePage } from '../slices/app/app-slice.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
+import { getGameStore } from '../slices/game-store.js';
 import { getTeams, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
 import './lineup-team-selector-dialog.js';
 import { TeamChangedEvent } from './lineup-team-selector-dialog.js';
 import './lineup-team-selector.js';
+import { pageRouterContext } from './page-router.js';
 import './snack-bar';
 
 // Lazy load the reducers.
@@ -33,14 +36,6 @@ interface Page {
   page: string;
   label: string;
 }
-
-export interface PagePathRouteConfig extends PathRouteConfig {
-  label: string;
-}
-export interface PagePatternRouteConfig extends URLPatternRouteConfig {
-  label: string;
-}
-export type PageRouteConfig = PagePathRouteConfig | PagePatternRouteConfig;
 
 interface Pages {
   [index: string]: Page;
@@ -332,9 +327,9 @@ export class LineupApp extends connect(store)(LitElement) {
     'view404': { page: 'view404', label: 'Page not found' },
   };
 
-  private routes: PageRouteConfig[] = [
+  private routes: RouteConfig[] = [
     {
-      name: 'viewGames', label: 'Games', path: '/viewGames',
+      name: 'viewGames', path: '/viewGames',
       render: () => html`<lineup-view-games class="page" active></lineup-view-games>`,
       enter: async () => {
         await import('./lineup-view-games.js');
@@ -342,29 +337,31 @@ export class LineupApp extends connect(store)(LitElement) {
       }
     },
     {
-      name: 'game', label: 'Game Detail', path: '/game/:gameId',
+      name: 'game', path: '/game/:gameId',
       render: () => html`<lineup-view-game-detail class="page" active></lineup-view-game-detail>`,
       enter: async ({ gameId }) => {
         const detailModule = await import('./lineup-view-game-detail.js');
         // Fetch the data for the given game id.
         console.log(`loading game detail page for ${gameId}`);
+        getGameStore(store);
         await store.dispatch(detailModule.getGame(gameId!));
         return this.navigateToPage('game')
       },
     },
     {
-      name: 'gameroster', label: 'Game Roster', path: '/gameroster/:gameId',
+      name: 'gameroster', path: '/gameroster/:gameId',
       render: () => html`<lineup-view-game-roster class="page" active></lineup-view-game-roster>`,
       enter: async ({ gameId }) => {
         const rosterModule = await import('./lineup-view-game-roster.js');
         // Fetch the data for the given game id.
         console.log(`loading game roster page for ${gameId}`);
+        getGameStore(store);
         await store.dispatch(rosterModule.getGame(gameId!));
         return this.navigateToPage('gameroster')
       },
     },
     {
-      name: 'viewRoster', label: 'Roster', path: '/viewRoster',
+      name: 'viewRoster', path: '/viewRoster',
       render: () => html`<lineup-view-roster class="page" active></lineup-view-roster>`,
       enter: async () => {
         await import('./lineup-view-roster.js');
@@ -372,7 +369,7 @@ export class LineupApp extends connect(store)(LitElement) {
       }
     },
     {
-      name: 'addNewTeam', label: 'New Team', path: '/addNewTeam',
+      name: 'addNewTeam', path: '/addNewTeam',
       render: () => html`<lineup-view-team-create class="page" active></lineup-view-team-create>`,
       enter: async () => {
         await import('./lineup-view-team-create.js');
@@ -382,7 +379,7 @@ export class LineupApp extends connect(store)(LitElement) {
     {
       // TODO: Figure out typing for URLPattern
       // @ts-expect-error
-      name: 'viewHome', label: 'Overview', pattern: new URLPattern({ pathname: '/{viewHome}?' }),
+      name: 'viewHome', pattern: new URLPattern({ pathname: '/{viewHome}?' }),
       render: () => html`<lineup-view-home class="page" active></lineup-view-home>`,
       enter: async () => {
         await import('./lineup-view-home.js');
@@ -390,6 +387,7 @@ export class LineupApp extends connect(store)(LitElement) {
       }
     },
   ];
+
   private fallbackRoute: BaseRouteConfig = {
     name: 'view404',
     render: () => html`<lineup-view404 class="page" active></lineup-view404>`,
@@ -400,6 +398,13 @@ export class LineupApp extends connect(store)(LitElement) {
   };
 
   private router = new Router(this, this.routes, { fallback: this.fallbackRoute });
+
+  protected pageRouter = new ContextProvider(this, pageRouterContext, {
+    gotoPage: async (pathname) => {
+      window.history.pushState({}, '', pathname);
+      await this.router.goto(pathname);
+    }
+  });
 
   private navigateToPage(page: string) {
     console.log(`navigateToPage: page = ${page}, location  = ${location.href}, router params = ${JSON.stringify(this.router.params)}`);
@@ -482,8 +487,7 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   private addNewTeam() {
-    window.history.pushState({}, '', `/addNewTeam`);
-    // this.router.goto('/addNewTeam');
+    this.pageRouter.value.gotoPage(`/addNewTeam`);
   }
 
   override stateChanged(state: RootState) {
