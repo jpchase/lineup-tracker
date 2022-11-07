@@ -1,7 +1,3 @@
-/**
-@license
-*/
-
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Game, Games, GameStatus } from '../../models/game.js';
 import type { GameState } from '../../reducers/game.js';
@@ -10,6 +6,7 @@ import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
 export { GameState } from '../../reducers/game.js';
+export { addNewGamePlayer, copyRoster } from './roster-logic.js';
 
 export const getGames = createAsyncThunk<
   // Return type of the payload creator
