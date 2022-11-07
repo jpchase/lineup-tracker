@@ -1,8 +1,8 @@
 import * as actions from '@app/actions/game';
 import { Game, GameDetail } from '@app/models/game.js';
 import { Roster } from '@app/models/player.js';
-import { GameState } from '@app/reducers/game';
 import * as actionTypes from '@app/slices/game-types';
+import { GameState } from '@app/slices/game/game-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { RootState } from '@app/store';
 import { expect } from '@open-wc/testing';

@@ -1,11 +1,10 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Game, Games, GameStatus } from '../../models/game.js';
-import type { GameState } from '../../reducers/game.js';
+import { createAsyncThunk, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
+import { Game, GameDetail, Games, GameStatus } from '../../models/game.js';
+import { oldReducer } from '../../reducers/game.js';
 import { RootState, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
-export { GameState } from '../../reducers/game.js';
 export { addNewGamePlayer, copyRoster } from './roster-logic.js';
 
 export const getGames = createAsyncThunk<
@@ -85,7 +84,18 @@ export const gameCompletedCreator = (gameId: string): ThunkResult => (dispatch) 
   dispatch(gameCompleted(gameId));
 };
 
-const INITIAL_STATE: GameState = {
+export interface GameState {
+  gameId: string;
+  game?: GameDetail;
+  games: Games;
+  detailLoading: boolean;
+  detailFailure: boolean;
+  rosterLoading: boolean;
+  rosterFailure: boolean;
+  error?: string;
+}
+
+export const GAME_INITIAL_STATE: GameState = {
   gameId: '',
   game: undefined,
   games: {},
@@ -98,7 +108,7 @@ const INITIAL_STATE: GameState = {
 
 const gameSlice = createSlice({
   name: 'game',
-  initialState: INITIAL_STATE,
+  initialState: GAME_INITIAL_STATE,
   reducers: {
     addGame: (state, action: PayloadAction<Game>) => {
       const game = action.payload;
@@ -126,8 +136,10 @@ const gameSlice = createSlice({
 
 const { actions, reducer } = gameSlice;
 
-export const gamesReducer = reducer;
-export const gameReducer = reducer;
+export const gameReducer: Reducer<GameState> = function (state, action) {
+  return oldReducer(reducer(state, action), action);
+}
+
 export const { addGame } = actions;
 
 export const selectCurrentGameId = (state: RootState) => state.game?.gameId;

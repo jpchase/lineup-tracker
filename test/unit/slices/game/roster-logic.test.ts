@@ -1,8 +1,8 @@
-import * as actions from '@app/slices/game/roster-logic.js';
 import { Game, GameDetail } from '@app/models/game.js';
 import { Player, Roster } from '@app/models/player.js';
-import { GameState } from '@app/reducers/game';
 import * as actionTypes from '@app/slices/game-types';
+import { GameState } from '@app/slices/game/game-slice.js';
+import * as actions from '@app/slices/game/roster-logic.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState } from '@app/store';

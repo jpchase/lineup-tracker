@@ -1,11 +1,8 @@
-/**
-@license
-*/
-
 import { GameActionGetGameSuccess } from '@app/actions/game';
+import { GameState } from '@app/slices/game/game-slice.js';
 import { Reducer } from 'redux';
 import {
-  GameDetail, Games, GameStatus
+  GameDetail, GameStatus
 } from '../models/game';
 import { Player, Roster } from '../models/player';
 import {
@@ -17,21 +14,10 @@ import {
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS
 } from '../slices/game-types';
-import { gamesReducer } from '../slices/game/game-slice.js';
 import { RootState } from '../store.js';
 import { createReducer } from './createReducer'; // 'redux-starter-kit';
 
-export interface GameState {
-  gameId: string;
-  game?: GameDetail;
-  games: Games;
-  detailLoading: boolean;
-  detailFailure: boolean;
-  rosterLoading: boolean;
-  rosterFailure: boolean;
-  error?: string;
-}
-
+// This is duplicated from the slice file to avoid circular imports.
 const INITIAL_STATE: GameState = {
   gameId: '',
   game: undefined,
@@ -46,11 +32,7 @@ const INITIAL_STATE: GameState = {
 export const currentGameIdSelector = (state: RootState) => state.game && state.game.gameId;
 export const currentGameSelector = (state: RootState) => state.game && state.game.game;
 
-export const game: Reducer<GameState> = function (state, action) {
-  return oldReducer(gamesReducer(state, action), action);
-}
-
-const oldReducer: Reducer<GameState> = createReducer(INITIAL_STATE, {
+export const oldReducer: Reducer<GameState> = createReducer(INITIAL_STATE, {
   [GET_GAME_REQUEST]: (newState, action) => {
     newState.gameId = action.gameId;
     newState.detailFailure = false;

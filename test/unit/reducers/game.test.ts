@@ -2,7 +2,6 @@ import {
   GameDetail, GameStatus
 } from '@app/models/game.js';
 import { Player } from '@app/models/player';
-import { game, GameState } from '@app/reducers/game';
 import {
   ADD_GAME_PLAYER,
   COPY_ROSTER_FAIL,
@@ -12,6 +11,7 @@ import {
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS
 } from '@app/slices/game-types';
+import { gameReducer as game, GameState } from '@app/slices/game/game-slice.js';
 import { expect } from '@open-wc/testing';
 import {
   buildRoster,
