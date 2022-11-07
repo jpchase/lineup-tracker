@@ -199,8 +199,7 @@ const gameSlice = createSlice({
       }
 
       state.game = gameDetail;
-      // TODO: Ensure games state has latest game detail
-      // newState.games[action.game.id] = action.game;
+      state.games[action.payload.id] = gameDetail;
     });
     builder.addCase(getGame.rejected, (state: GameState,
       action: ReturnType<typeof copyRoster.rejected>) => {
@@ -237,3 +236,14 @@ export const { addGame, gamePlayerAdded } = actions;
 
 export const selectCurrentGameId = (state: RootState) => state.game?.gameId;
 export const selectCurrentGame = (state: RootState) => state.game?.game;
+
+export const selectGameById = (state: RootState, gameId: string) => {
+  if (!gameId) {
+    return;
+  }
+  return state.game?.games[gameId] as GameDetail;
+}
+
+export const selectGameRosterLoading = (state: RootState) => {
+  return state.game?.rosterLoading;
+}

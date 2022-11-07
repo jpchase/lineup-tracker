@@ -1,10 +1,11 @@
 import { LineupRoster } from '@app/components/lineup-roster.js';
-import { LineupViewGameRoster } from '@app/components/lineup-view-game-roster.js';
 import '@app/components/lineup-view-game-roster.js';
+import { LineupViewGameRoster } from '@app/components/lineup-view-game-roster.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { getGameStoreConfigurator } from '@app/slices/game-store.js';
 import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import { buildRoster, getNewGameDetail, getStoredPlayer } from '../helpers/test_data.js';
@@ -20,10 +21,10 @@ function getGameWithEmptyRoster(): GameDetail {
 describe('lineup-view-game-roster tests', () => {
   let el: LineupViewGameRoster;
 
-  async function setupElement(preloadedState?: RootState) {
+  async function setupElement(preloadedState?: RootState, gameId?: string) {
     const store = setupStore(preloadedState);
 
-    const template = html`<lineup-view-game-roster active .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-view-game-roster>`;
+    const template = html`<lineup-view-game-roster gameId="${ifDefined(gameId)}" active .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-view-game-roster>`;
     el = await fixture(template);
   }
 
@@ -53,7 +54,7 @@ describe('lineup-view-game-roster tests', () => {
     game.status = GameStatus.New;
     const gameState = buildGameStateWithCurrentGame(game);
 
-    await setupElement(buildRootState(gameState));
+    await setupElement(buildRootState(gameState), game.id);
     await el.updateComplete;
 
     const placeholder = el.shadowRoot!.querySelector('section div.empty-list');
@@ -74,7 +75,7 @@ describe('lineup-view-game-roster tests', () => {
     game.status = GameStatus.New;
     const gameState = buildGameStateWithCurrentGame(game);
 
-    await setupElement(buildRootState(gameState));
+    await setupElement(buildRootState(gameState), game.id);
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
@@ -89,12 +90,30 @@ describe('lineup-view-game-roster tests', () => {
     });
   });
 
+  it('clears data when game id changes', async () => {
+    const game = getGameWithRosterPlayers();
+    game.status = GameStatus.New;
+    const gameState = buildGameStateWithCurrentGame(game);
+
+    await setupElement(buildRootState(gameState), game.id);
+    await el.updateComplete;
+
+    let rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
+    expect(rosterElement, 'Roster element should be shown').to.be.ok;
+
+    el.gameId = undefined;
+    await el.updateComplete;
+
+    rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
+    expect(rosterElement, 'Roster element should no longer be shown').to.not.be.ok;
+  });
+
   it('roster adds allowed for new game', async () => {
     const game = getGameWithRosterPlayers();
     game.status = GameStatus.New;
     const gameState = buildGameStateWithCurrentGame(game);
 
-    await setupElement(buildRootState(gameState));
+    await setupElement(buildRootState(gameState), game.id);
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
@@ -108,7 +127,7 @@ describe('lineup-view-game-roster tests', () => {
     game.status = GameStatus.Live;
     const gameState = buildGameStateWithCurrentGame(game);
 
-    await setupElement(buildRootState(gameState));
+    await setupElement(buildRootState(gameState), game.id);
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');

@@ -350,13 +350,10 @@ export class LineupApp extends connect(store)(LitElement) {
     },
     {
       name: 'gameroster', path: '/gameroster/:gameId',
-      render: () => html`<lineup-view-game-roster class="page" active></lineup-view-game-roster>`,
+      render: ({ gameId }) => html`<lineup-view-game-roster gameId="${ifDefined(gameId)}" class="page" active></lineup-view-game-roster>`,
       enter: async ({ gameId }) => {
-        const rosterModule = await import('./lineup-view-game-roster.js');
-        // Fetch the data for the given game id.
+        await import('./lineup-view-game-roster.js');
         console.log(`loading game roster page for ${gameId}`);
-        getGameStore(store);
-        await store.dispatch(rosterModule.getGame(gameId!));
         return this.navigateToPage('gameroster')
       },
     },
