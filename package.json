@@ -94,7 +94,7 @@
     "eslint": "^8.25.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-lit": "^1.6.1",
-    "firebase-tools": "^11.14.4",
+    "firebase-tools": "^11.17.0",
     "html-webpack-plugin": "^5.5.0",
     "mocha": "^10.1.0",
     "mochawesome": "^7.0.1",
