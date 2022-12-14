@@ -5,6 +5,7 @@ import { RootState, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
+import { copyRoster, rosterCopiedHandler, rosterCopyFailedHandler, rosterCopyPendingHandler } from './roster-logic.js';
 export { addNewGamePlayer, copyRoster } from './roster-logic.js';
 
 export const getGames = createAsyncThunk<
@@ -118,7 +119,13 @@ const gameSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(getGames.fulfilled, (state, action) => {
       state.games = action.payload;
-    }).addCase(gameSetupCompleted, (state, action: PayloadAction<{ gameId: string }>) => {
+    });
+    // Copy roster actions
+    builder.addCase(copyRoster.pending, rosterCopyPendingHandler);
+    builder.addCase(copyRoster.fulfilled, rosterCopiedHandler);
+    builder.addCase(copyRoster.rejected, rosterCopyFailedHandler);
+    // Game setup actions
+    builder.addCase(gameSetupCompleted, (state, action: PayloadAction<{ gameId: string }>) => {
       const game = state.game!;
       if (action.payload.gameId !== game.id) {
         return;

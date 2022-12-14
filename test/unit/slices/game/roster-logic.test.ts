@@ -1,7 +1,7 @@
 import { Game, GameDetail } from '@app/models/game.js';
 import { Player, Roster } from '@app/models/player.js';
 import * as actionTypes from '@app/slices/game-types';
-import { GameState } from '@app/slices/game/game-slice.js';
+import { copyRoster, GameState } from '@app/slices/game/game-slice.js';
 import * as actions from '@app/slices/game/roster-logic.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
@@ -78,13 +78,7 @@ describe('Game slice: roster actions', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      let copyRejected = false;
-      try {
-        await actions.copyRoster(undefined as unknown as string)(dispatchMock, getStateMock, undefined);
-      } catch {
-        copyRejected = true;
-      }
-      expect(copyRejected, 'copyRoster() rejected').to.be.true;
+      await actions.copyRoster(undefined as unknown as string)(dispatchMock, getStateMock, undefined);
 
       expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
@@ -96,17 +90,17 @@ describe('Game slice: roster actions', () => {
       const getStateMock = mockGetState([]);
 
       const gameId = 'nosuchgame';
-      let copyRejected = false;
-      try {
-        await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
-      } catch {
-        copyRejected = true;
-      }
-      expect(copyRejected, 'copyRoster() rejected').to.be.true;
+      await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
 
       expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
-      expect(dispatchMock).to.not.have.been.called;
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).to.have.callCount(2);
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: copyRoster.rejected.type,
+        error: { message: 'No existing game found for id: nosuchgame' }
+      }));
     });
 
     it('should do nothing if game already loaded has a roster with players', async () => {
@@ -128,8 +122,10 @@ describe('Game slice: roster actions', () => {
       expect(dispatchMock).to.have.callCount(2);
 
       expect(dispatchMock.lastCall).to.have.been.calledWithMatch({
-        type: actionTypes.COPY_ROSTER_SUCCESS,
-        gameId: loadedGame.id,
+        type: copyRoster.fulfilled.type,
+        payload: {
+          gameId: loadedGame.id,
+        }
       });
 
     });
@@ -166,19 +162,23 @@ describe('Game slice: roster actions', () => {
       expect(dispatchMock).to.have.callCount(2);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock.firstCall).to.have.been.calledWith({
-        type: actionTypes.COPY_ROSTER_REQUEST,
-        gameId: gameId,
-      });
+      expect(dispatchMock.firstCall).to.have.been.calledWith(sinon.match({
+        type: copyRoster.pending.type,
+        meta: {
+          gameId: gameId,
+        }
+      }));
 
-      expect(dispatchMock.lastCall).to.have.been.calledWith({
-        type: actionTypes.COPY_ROSTER_SUCCESS,
-        gameId: gameId,
-        gameRoster: { ...teamRoster }
-      });
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: copyRoster.fulfilled.type,
+        payload: {
+          gameId: gameId,
+          gameRoster: { ...teamRoster }
+        }
+      }));
     });
 
-    it('should dispatch only request action when storage access fails', async () => {
+    it('should dispatch rejected action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const loadedGame: GameDetail = {
         ...getStoredGameDetail(),
@@ -194,17 +194,22 @@ describe('Game slice: roster actions', () => {
 
       readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
+      await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).to.have.callCount(1);
+      expect(dispatchMock).to.have.callCount(2);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock.lastCall).to.have.been.calledWith({
-        type: actionTypes.COPY_ROSTER_REQUEST,
-        gameId: gameId,
-      });
+      expect(dispatchMock).to.have.been.calledWith(sinon.match({
+        type: copyRoster.pending.type,
+        meta: {
+          gameId: gameId,
+        }
+      }));
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: copyRoster.rejected.type,
+        error: { message: 'Storage failed with some error' }
+      }));
     });
   }); // describe('copyRoster')
 

@@ -1,6 +1,6 @@
 import { ElementHandle } from 'puppeteer';
 import { GameDetailPage } from './game-detail-page.js';
-import { PageOptions } from './page-object.js';
+import { PageOpenFunction, PageOptions } from './page-object.js';
 
 export enum SetupSteps {
   Formation,
@@ -23,6 +23,13 @@ export class GameSetupPage extends GameDetailPage {
       scenarioName: 'viewGameDetail',
       route: `game/${options.gameId}`
     });
+  }
+
+  override get openFunc(): PageOpenFunction | undefined {
+    return async () => {
+      this.log('in openFunc for more waiting');
+      await this.page.waitForTimeout(2000);
+    };
   }
 
   private async getSetupComponent() {

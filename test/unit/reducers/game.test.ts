@@ -4,14 +4,11 @@ import {
 import { Player } from '@app/models/player';
 import {
   ADD_GAME_PLAYER,
-  COPY_ROSTER_FAIL,
-  COPY_ROSTER_REQUEST,
-  COPY_ROSTER_SUCCESS,
   GET_GAME_FAIL,
   GET_GAME_REQUEST,
   GET_GAME_SUCCESS
 } from '@app/slices/game-types';
-import { gameReducer as game, GameState } from '@app/slices/game/game-slice.js';
+import { copyRoster, gameReducer as game, GameState } from '@app/slices/game/game-slice.js';
 import { expect } from '@open-wc/testing';
 import {
   buildRoster,
@@ -185,8 +182,10 @@ describe('Game reducer', () => {
     it('should set copying flag', () => {
       const gameId = 'agameid';
       const newState = game(GAME_INITIAL_STATE, {
-        type: COPY_ROSTER_REQUEST,
-        gameId: gameId
+        type: copyRoster.pending.type,
+        meta: {
+          gameId: gameId
+        }
       });
 
       expect(newState).to.include({
@@ -220,8 +219,10 @@ describe('Game reducer', () => {
       currentState.game!.roster = buildRoster([getStoredPlayer()]);
 
       const newState = game(currentState, {
-        type: COPY_ROSTER_SUCCESS,
-        gameId: currentState.game!.id
+        type: copyRoster.fulfilled.type,
+        payload: {
+          gameId: currentState.game!.id
+        }
       });
 
       const gameDetail: GameDetail = {
@@ -245,9 +246,11 @@ describe('Game reducer', () => {
       expect(currentState.game!.roster).to.deep.equal({});
 
       const newState = game(currentState, {
-        type: COPY_ROSTER_SUCCESS,
-        gameId: currentState.game!.id,
-        gameRoster: buildRoster(rosterPlayers)
+        type: copyRoster.fulfilled.type,
+        payload: {
+          gameId: currentState.game!.id,
+          gameRoster: buildRoster(rosterPlayers)
+        }
       });
 
       const gameDetail: GameDetail = {
@@ -272,8 +275,8 @@ describe('Game reducer', () => {
     it('should set failure flag and error message', () => {
 
       const newState = game(GAME_INITIAL_STATE, {
-        type: COPY_ROSTER_FAIL,
-        error: 'What a roster failure!'
+        type: copyRoster.rejected.type,
+        error: { message: 'What a roster failure!' }
       });
 
       expect(newState).to.include({
