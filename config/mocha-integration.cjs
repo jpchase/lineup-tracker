@@ -1,8 +1,7 @@
 module.exports = {
   extension: ['js'],
   spec: ['test/integration'],
-  // spec: ['test/integration/functional.js', 'test/integration/router.js', 'test/integration/visual.js'],
-  timeout: '15000',
+  timeout: '25000',
   reporter: 'mochawesome',
   'reporter-option': [
     'reportDir=reports/tests-integration',

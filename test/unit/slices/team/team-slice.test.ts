@@ -226,7 +226,7 @@ describe('Team actions', () => {
       }));
     });
 
-    it('should not dispatch an action when storage access fails', async () => {
+    it('should dispatch rejected action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
       readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });

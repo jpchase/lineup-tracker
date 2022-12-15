@@ -1,17 +1,14 @@
-/**
-@license
-*/
-
 import '@material/mwc-button';
 import '@material/mwc-circular-progress';
 import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { addNewGamePlayer, copyRoster, getGame } from '../actions/game';
+import { getGame } from '../actions/game';
 import { connectStore } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
 import { getGameStore } from '../slices/game-store';
+import { addNewGamePlayer, copyRoster } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-roster';
 import { PageViewElement } from './page-view-element';

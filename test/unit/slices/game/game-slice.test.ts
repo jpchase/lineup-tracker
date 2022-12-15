@@ -1,7 +1,6 @@
 import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
 import { LiveGameBuilder } from '@app/models/live.js';
-import { game } from '@app/reducers/game.js';
-import { addNewGame, gameCompletedCreator, gameSetupCompletedCreator, gamesReducer as games, GameState, getGames, saveGame } from '@app/slices/game/game-slice';
+import { addNewGame, gameCompletedCreator, gameSetupCompletedCreator, gameReducer as game, GameState, getGames, saveGame, GAME_INITIAL_STATE } from '@app/slices/game/game-slice.js';
 import { gameCompleted, gameSetupCompleted, LiveState } from '@app/slices/live/live-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
@@ -25,17 +24,6 @@ const actionTypes = {
   rejected(typePrefix: string) {
     return `${typePrefix}/rejected`;
   },
-};
-
-const GAME_INITIAL_STATE: GameState = {
-  gameId: '',
-  game: undefined,
-  games: {},
-  detailLoading: false,
-  detailFailure: false,
-  rosterLoading: false,
-  rosterFailure: false,
-  error: ''
 };
 
 const KEY_GAMES = 'games';
@@ -98,19 +86,19 @@ describe('Games reducer', () => {
 
   it('should return the initial state', () => {
     expect(
-      games(GAME_INITIAL_STATE, getFakeAction())
+      game(GAME_INITIAL_STATE, getFakeAction())
     ).to.equal(GAME_INITIAL_STATE);
   });
 
   it('should return the initial state when none provided', () => {
     expect(
-      games(undefined, getFakeAction())
+      game(undefined, getFakeAction())
     ).to.deep.equal(GAME_INITIAL_STATE);
   });
 
   describe('ADD_GAME', () => {
     it('should handle ADD_GAME with empty games', () => {
-      const newState = games(GAME_INITIAL_STATE, {
+      const newState = game(GAME_INITIAL_STATE, {
         type: actionTypes.ADD_GAME,
         payload: newGame
       });
@@ -129,7 +117,7 @@ describe('Games reducer', () => {
       };
       state.games = buildGames([existingGame]);
 
-      const newState = games(state, {
+      const newState = game(state, {
         type: actionTypes.ADD_GAME,
         payload: newGame
       });
@@ -192,7 +180,7 @@ describe('Games actions', () => {
 
     it('should set the games to the retrieved list', () => {
       const existingGame = getStoredGame();
-      const newState = games(GAME_INITIAL_STATE, {
+      const newState = game(GAME_INITIAL_STATE, {
         type: actionTypes.fulfilled(actionTypes.GET_GAMES),
         payload: buildGames([existingGame])
       });
