@@ -1,5 +1,4 @@
-import { GameActionGetGameSuccess } from '@app/actions/game';
-import { GameState } from '@app/slices/game/game-slice.js';
+import { GameActionGetGameSuccess, GameState } from '../slices/game/game-slice.js';
 import { Reducer } from 'redux';
 import {
   GameDetail, GameStatus
