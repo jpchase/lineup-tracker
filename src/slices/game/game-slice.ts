@@ -1,12 +1,11 @@
-import { createAsyncThunk, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Game, GameDetail, Games, GameStatus } from '../../models/game.js';
-import { oldReducer } from '../../reducers/game.js';
 import { RootState, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { GamePayload } from './game-action-types.js';
 import { loadGame, loadGameRoster, loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
-import { copyRoster, rosterCopiedHandler, rosterCopyFailedHandler, rosterCopyPendingHandler } from './roster-logic.js';
+import { copyRoster, gamePlayerAddedHandler, gamePlayerAddedPrepare, rosterCopiedHandler, rosterCopyFailedHandler, rosterCopyPendingHandler } from './roster-logic.js';
 export { addNewGamePlayer, copyRoster } from './roster-logic.js';
 
 export const getGames = createAsyncThunk<
@@ -166,6 +165,10 @@ const gameSlice = createSlice({
       const game = action.payload;
       state.games[game.id] = game;
     },
+    gamePlayerAdded: {
+      reducer: gamePlayerAddedHandler,
+      prepare: gamePlayerAddedPrepare
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(getGames.fulfilled, (state, action) => {
@@ -228,11 +231,9 @@ const gameSlice = createSlice({
 
 const { actions, reducer } = gameSlice;
 
-export const gameReducer: Reducer<GameState> = function (state, action) {
-  return oldReducer(reducer(state, action), action);
-}
+export const gameReducer = reducer;
 
-export const { addGame } = actions;
+export const { addGame, gamePlayerAdded } = actions;
 
 export const selectCurrentGameId = (state: RootState) => state.game?.gameId;
 export const selectCurrentGame = (state: RootState) => state.game?.game;

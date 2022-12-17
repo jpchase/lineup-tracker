@@ -1,7 +1,6 @@
 import { Game, GameDetail } from '@app/models/game.js';
 import { Player, Roster } from '@app/models/player.js';
-import * as actionTypes from '@app/slices/game-types';
-import { copyRoster, GameState } from '@app/slices/game/game-slice.js';
+import { copyRoster, gamePlayerAdded, GameState } from '@app/slices/game/game-slice.js';
 import * as actions from '@app/slices/game/roster-logic.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
@@ -284,10 +283,7 @@ describe('Game slice: roster actions', () => {
 
       // Waits for promises to resolve.
       await Promise.resolve();
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ADD_GAME_PLAYER,
-        player: expectedSavedPlayer,
-      });
+      expect(dispatchMock).to.have.been.calledWith(gamePlayerAdded(expectedSavedPlayer));
     });
 
     it('should not dispatch an action when storage access fails', async () => {
@@ -308,14 +304,5 @@ describe('Game slice: roster actions', () => {
       expect(dispatchMock).to.not.have.been.called;
     });
   }); // describe('saveGamePlayer')
-
-  describe('addGamePlayer', () => {
-    it('should dispatch an action to add the player', () => {
-      expect(actions.addGamePlayer(getNewPlayer())).to.deep.equal({
-        type: actionTypes.ADD_GAME_PLAYER,
-        player: getNewPlayer(),
-      });
-    });
-  }); // describe('addGamePlayer')
 
 }); // describe('Game slice: roster actions')

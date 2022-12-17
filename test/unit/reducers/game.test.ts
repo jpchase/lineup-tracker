@@ -2,10 +2,7 @@ import {
   GameDetail, GameStatus
 } from '@app/models/game.js';
 import { Player } from '@app/models/player';
-import {
-  ADD_GAME_PLAYER,
-} from '@app/slices/game-types';
-import { copyRoster, gameReducer as game, GameState, getGame } from '@app/slices/game/game-slice.js';
+import { copyRoster, gamePlayerAdded, gameReducer as game, GameState, getGame } from '@app/slices/game/game-slice.js';
 import { expect } from '@open-wc/testing';
 import {
   buildRoster,
@@ -301,10 +298,7 @@ describe('Game reducer', () => {
     });
 
     it('should add new player to empty roster', () => {
-      const newState = game(currentState, {
-        type: ADD_GAME_PLAYER,
-        player: newPlayer
-      });
+      const newState = game(currentState, gamePlayerAdded(newPlayer));
 
       expect(newState.game).to.deep.include({
         roster: buildRoster([newPlayer]),
@@ -317,10 +311,7 @@ describe('Game reducer', () => {
     it('should add new player to roster with existing players', () => {
       currentState.game!.roster = buildRoster([existingPlayer]);
 
-      const newState = game(currentState, {
-        type: ADD_GAME_PLAYER,
-        player: newPlayer
-      });
+      const newState = game(currentState, gamePlayerAdded(newPlayer));
 
       expect(newState.game).to.deep.include({
         roster: buildRoster([existingPlayer, newPlayer]),
