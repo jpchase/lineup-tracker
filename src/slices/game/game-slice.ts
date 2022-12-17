@@ -1,21 +1,13 @@
-import { Action, ActionCreator, createAsyncThunk, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
 import { Game, GameDetail, Games, GameStatus } from '../../models/game.js';
-import { Roster } from '../../models/player.js';
 import { oldReducer } from '../../reducers/game.js';
-import {
-  GET_GAME_FAIL, GET_GAME_REQUEST,
-  GET_GAME_SUCCESS
-} from '../../slices/game-types.js';
-import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
+import { RootState, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
+import { GamePayload } from './game-action-types.js';
 import { loadGame, loadGameRoster, loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
 import { copyRoster, rosterCopiedHandler, rosterCopyFailedHandler, rosterCopyPendingHandler } from './roster-logic.js';
 export { addNewGamePlayer, copyRoster } from './roster-logic.js';
-
-interface GameActionGetGameRequest extends Action<typeof GET_GAME_REQUEST> { gameId: string };
-export interface GameActionGetGameSuccess extends Action<typeof GET_GAME_SUCCESS> { game: GameDetail };
-interface GameActionGetGameFail extends Action<typeof GET_GAME_FAIL> { error: string };
 
 export const getGames = createAsyncThunk<
   // Return type of the payload creator
@@ -44,65 +36,55 @@ export const getGames = createAsyncThunk<
   }
 );
 
-export const getGame = (gameId: string): ThunkPromise<void> => (dispatch, getState) => {
-  if (!gameId) {
-    return Promise.reject();
+export const getGame = createAsyncThunk<
+  // Return type of the payload creator.
+  GameDetail,
+  // The gameId is the first argument to the payload creator.
+  string,
+  {
+    // Optional fields for defining thunkApi field types
+    state: RootState,
+    // The game id is added to the meta for the pending action.
+    pendingMeta: { gameId: string }
   }
-  dispatch(getGameRequest(gameId));
+>(
+  'game/getGame',
+  async (gameId, thunkAPI) => {
+    // Gets the retrieved game. The game must exist as the copy can only be triggered when viewing
+    // a loaded game.
+    const state = thunkAPI.getState();
+    let existingGame: Game | undefined;
+    if (state.game?.game?.id === gameId) {
+      existingGame = state.game.game!;
+    } else {
+      existingGame = state.game?.games[gameId];
+    }
+    if (existingGame && existingGame.hasDetail) {
+      return existingGame as GameDetail;
+    }
 
-  // TODO: Check for game cached in IDB (similar to getTeams action)
-  // Checks if the game has already been retrieved.
-  const state = getState();
-  let existingGame: Game | undefined;
-  if (state.game && state.game.game && state.game.game.id === gameId) {
-    existingGame = state.game.game!;
-  } else {
-    existingGame = state.game?.games[gameId];
+    // TODO: Use Promise.all?
+    const game = await loadGame(gameId);
+    const gameRoster = await loadGameRoster(gameId);
+
+    const gameDetail: GameDetail = {
+      ...game,
+      roster: gameRoster
+    };
+    return gameDetail;
+  },
+  {
+    condition: (gameId) => {
+      if (!gameId) {
+        return false;
+      }
+      return true;
+    },
+    getPendingMeta: (base) => {
+      return { gameId: base.arg };
+    }
   }
-  if (existingGame && existingGame.hasDetail) {
-    dispatch(getGameSuccess(existingGame));
-    // let the calling code know there's nothing to wait for.
-    return Promise.resolve();
-  }
-
-  let game: Game;
-  return loadGame(gameId)
-    .then((result) => {
-      game = result;
-      return loadGameRoster(gameId);
-    })
-    .then((gameRoster: Roster) => {
-      const gameDetail: GameDetail = {
-        ...game,
-        roster: gameRoster
-      };
-      dispatch(getGameSuccess(gameDetail));
-    })
-    .catch((error: any) => {
-      dispatch(getGameFail(error.toString()));
-    });
-}
-
-const getGameRequest: ActionCreator<GameActionGetGameRequest> = (gameId: string) => {
-  return {
-    type: GET_GAME_REQUEST,
-    gameId
-  };
-};
-
-const getGameSuccess: ActionCreator<GameActionGetGameSuccess> = (game: GameDetail) => {
-  return {
-    type: GET_GAME_SUCCESS,
-    game
-  };
-};
-
-const getGameFail: ActionCreator<GameActionGetGameFail> = (error: string) => {
-  return {
-    type: GET_GAME_FAIL,
-    error
-  };
-};
+);
 
 export const addNewGame = (newGame: Game): ThunkResult => (dispatch, getState) => {
   if (!newGame) {
@@ -189,18 +171,52 @@ const gameSlice = createSlice({
     builder.addCase(getGames.fulfilled, (state, action) => {
       state.games = action.payload;
     });
+    // Get game actions
+    builder.addCase(getGame.pending, (state: GameState,
+      action: ReturnType<typeof getGame.pending>) => {
+      state.gameId = action.meta.gameId;
+      state.detailFailure = false;
+      state.detailLoading = true;
+    });
+    builder.addCase(getGame.fulfilled, (state: GameState,
+      action: PayloadAction<GameDetail>) => {
+      state.detailFailure = false;
+      state.detailLoading = false;
+
+      if (state.game?.id === action.payload.id) {
+        // Game has already been retrieved.
+        return;
+      }
+      const gameDetail: GameDetail = {
+        ...action.payload
+      };
+      gameDetail.hasDetail = true;
+      if (!gameDetail.status) {
+        gameDetail.status = GameStatus.New;
+      }
+
+      state.game = gameDetail;
+      // TODO: Ensure games state has latest game detail
+      // newState.games[action.game.id] = action.game;
+    });
+    builder.addCase(getGame.rejected, (state: GameState,
+      action: ReturnType<typeof copyRoster.rejected>) => {
+      state.error = action.error.message || action.error.name;
+      state.detailFailure = true;
+      state.detailLoading = false;
+    });
     // Copy roster actions
     builder.addCase(copyRoster.pending, rosterCopyPendingHandler);
     builder.addCase(copyRoster.fulfilled, rosterCopiedHandler);
     builder.addCase(copyRoster.rejected, rosterCopyFailedHandler);
     // Game setup actions
-    builder.addCase(gameSetupCompleted, (state, action: PayloadAction<{ gameId: string }>) => {
+    builder.addCase(gameSetupCompleted, (state, action: PayloadAction<GamePayload>) => {
       const game = state.game!;
       if (action.payload.gameId !== game.id) {
         return;
       }
       game.status = GameStatus.Start;
-    }).addCase(gameCompleted, (state, action: PayloadAction<{ gameId: string }>) => {
+    }).addCase(gameCompleted, (state, action: PayloadAction<GamePayload>) => {
       const game = state.game!;
       if (action.payload.gameId !== game.id) {
         return;

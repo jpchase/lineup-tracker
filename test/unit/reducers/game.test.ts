@@ -4,11 +4,8 @@ import {
 import { Player } from '@app/models/player';
 import {
   ADD_GAME_PLAYER,
-  GET_GAME_FAIL,
-  GET_GAME_REQUEST,
-  GET_GAME_SUCCESS
 } from '@app/slices/game-types';
-import { copyRoster, gameReducer as game, GameState } from '@app/slices/game/game-slice.js';
+import { copyRoster, gameReducer as game, GameState, getGame } from '@app/slices/game/game-slice.js';
 import { expect } from '@open-wc/testing';
 import {
   buildRoster,
@@ -44,8 +41,10 @@ describe('Game reducer', () => {
     it('should set game id and loading flag', () => {
       const gameId = 'idfornewgame';
       const newState = game(GAME_INITIAL_STATE, {
-        type: GET_GAME_REQUEST,
-        gameId: gameId
+        type: getGame.pending.type,
+        meta: {
+          gameId: gameId
+        }
       });
 
       expect(newState).to.include({
@@ -77,10 +76,8 @@ describe('Game reducer', () => {
       };
 
       currentState.gameId = inputGame.id;
-      const newState = game(currentState, {
-        type: GET_GAME_SUCCESS,
-        game: inputGame
-      });
+      const newState = game(currentState,
+        getGame.fulfilled(inputGame, 'unused', 'unused'));
 
       const gameDetail: GameDetail = {
         ...existingGame,
@@ -108,10 +105,8 @@ describe('Game reducer', () => {
       };
 
       currentState.gameId = inputGame.id;
-      const newState = game(currentState, {
-        type: GET_GAME_SUCCESS,
-        game: inputGame
-      });
+      const newState = game(currentState,
+        getGame.fulfilled(inputGame, 'unused', 'unused'));
 
       const gameDetail: GameDetail = {
         ...currentGame,
@@ -136,10 +131,8 @@ describe('Game reducer', () => {
       currentState.gameId = currentGame.id;
       currentState.game = currentGame;
 
-      const newState = game(currentState, {
-        type: GET_GAME_SUCCESS,
-        game: currentGame
-      });
+      const newState = game(currentState,
+        getGame.fulfilled(currentGame, 'unused', 'unused'));
 
       const gameDetail: GameDetail = {
         ...currentGame,
@@ -163,8 +156,8 @@ describe('Game reducer', () => {
     it('should set failure flag and error message', () => {
 
       const newState = game(GAME_INITIAL_STATE, {
-        type: GET_GAME_FAIL,
-        error: 'What a game failure!'
+        type: getGame.rejected.type,
+        error: { message: 'What a game failure!' }
       });
 
       expect(newState).to.include({

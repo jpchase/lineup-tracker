@@ -1,7 +1,6 @@
 import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
 import { LiveGameBuilder } from '@app/models/live.js';
 import { Roster } from '@app/models/player.js';
-import { GET_GAME_FAIL, GET_GAME_REQUEST, GET_GAME_SUCCESS } from '@app/slices/game-types.js';
 import { addNewGame, gameCompletedCreator, gameSetupCompletedCreator, gameReducer as game, GameState, getGames, saveGame, GAME_INITIAL_STATE, getGame } from '@app/slices/game/game-slice.js';
 import { gameCompleted, gameSetupCompleted, LiveState } from '@app/slices/live/live-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
@@ -147,7 +146,6 @@ describe('Games reducer', () => {
 
 });
 
-
 describe('Game slice', () => {
   let readerStub: sinon.SinonStubbedInstance<typeof reader>;
   let writerStub: sinon.SinonStubbedInstance<typeof writer>;
@@ -260,13 +258,7 @@ describe('Game slice', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      let getRejected = false;
-      try {
-        await getGame(undefined as unknown as string)(dispatchMock, getStateMock, undefined);
-      } catch {
-        getRejected = true;
-      }
-      expect(getRejected, 'getGame() rejected').to.be.true;
+      await getGame(undefined as unknown as string)(dispatchMock, getStateMock, undefined);
 
       expect(readerStub.loadDocument, 'loadDocument').to.not.have.been.called;
       expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
@@ -291,15 +283,17 @@ describe('Game slice', () => {
       expect(dispatchMock, 'dispatch').to.have.callCount(2);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock.firstCall).to.have.been.calledWith({
-        type: GET_GAME_REQUEST,
-        gameId: expectedGameDetail.id,
-      });
+      expect(dispatchMock.firstCall).to.have.been.calledWith(sinon.match({
+        type: getGame.pending.type,
+        meta: {
+          gameId: expectedGameDetail.id,
+        }
+      }));
 
-      expect(dispatchMock.lastCall).to.have.been.calledWith({
-        type: GET_GAME_SUCCESS,
-        game: expectedGameDetail,
-      });
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: expectedGameDetail,
+      }));
     });
 
     it('should dispatch success action when game roster is empty', async () => {
@@ -322,10 +316,10 @@ describe('Game slice', () => {
       // The request action is dispatched, regardless.
       expect(dispatchMock).to.have.callCount(2);
 
-      expect(dispatchMock.lastCall).to.have.been.calledWith({
-        type: GET_GAME_SUCCESS,
-        game: storedGame
-      });
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: storedGame,
+      }));
     });
 
     it('should use the already loaded game from game detail in state, without retrieving from storage', async () => {
@@ -347,10 +341,10 @@ describe('Game slice', () => {
       // The request action is dispatched, regardless.
       expect(dispatchMock).to.have.callCount(2);
 
-      expect(dispatchMock.lastCall).to.have.been.calledWith({
-        type: GET_GAME_SUCCESS,
-        game: loadedGame,
-      });
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: loadedGame,
+      }));
     });
 
     it('should use the already loaded game from games list in state, without retrieving from storage', async () => {
@@ -369,10 +363,10 @@ describe('Game slice', () => {
       // The request action is dispatched, regardless.
       expect(dispatchMock).to.have.callCount(2);
 
-      expect(dispatchMock.lastCall).to.have.been.calledWith({
-        type: GET_GAME_SUCCESS,
-        game: loadedGame,
-      });
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: loadedGame,
+      }));
     });
 
     it('should retrieve from storage when already loaded game is missing detail', async () => {
@@ -395,10 +389,10 @@ describe('Game slice', () => {
       // The request action is dispatched, regardless.
       expect(dispatchMock).to.have.callCount(2);
 
-      expect(dispatchMock.lastCall).to.have.been.calledWith({
-        type: GET_GAME_SUCCESS,
-        game: expectedGameDetail,
-      });
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: expectedGameDetail,
+      }));
     });
 
     it('should fail when game not found in storage', async () => {
@@ -415,35 +409,42 @@ describe('Game slice', () => {
       expect(dispatchMock).to.have.callCount(2);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock.firstCall).to.have.been.calledWith({
-        type: GET_GAME_REQUEST,
-        gameId: gameId,
-      });
+      expect(dispatchMock.firstCall).to.have.been.calledWith(sinon.match({
+        type: getGame.pending.type,
+        meta: {
+          gameId: gameId,
+        }
+      }));
 
-      expect(dispatchMock.lastCall).to.have.been.calledWith({
-        type: GET_GAME_FAIL,
-        error: `Error: Document not found: ${KEY_GAMES}/${gameId}`,
-      });
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.rejected.type,
+        error: { message: `Document not found: ${KEY_GAMES}/${gameId}` },
+      }));
     });
 
-    it('should dispatch only request action when storage access fails', async () => {
+    it('should dispatch rejected action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([]);
       const gameId = getStoredGame().id;
 
       readerStub.loadDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        getGame(gameId)(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
+      await getGame(gameId)(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).to.have.callCount(1);
+      expect(dispatchMock).to.have.callCount(2);
 
       // Checks that first dispatch was the request action
-      expect(dispatchMock.lastCall).to.have.been.calledWith({
-        type: GET_GAME_REQUEST,
-        gameId: gameId,
-      });
+      expect(dispatchMock.firstCall).to.have.been.calledWith(sinon.match({
+        type: getGame.pending.type,
+        meta: {
+          gameId: gameId,
+        }
+      }));
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.rejected.type,
+        error: { message: 'Storage failed with some error' }
+      }));
     });
   }); // describe('getGame')
 
@@ -679,4 +680,4 @@ describe('Game slice', () => {
 
   }); // describe('gameCompleted')
 
-}); // describe('Game actions')
+}); // describe('Game slice')

@@ -3,7 +3,7 @@ import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app
 import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
-import { GET_GAME_SUCCESS } from '@app/slices/game-types';
+import { getGame as getGameCreator } from '@app/slices/game/game-slice.js';
 import {
   cancelSub, cancelSwap, completeRoster, confirmSub,
   confirmSwap, endPeriod, formationSelected, gameCompleted, gameSetupCompleted, live, LiveGameState, LiveState, selectPlayer, startGamePeriod, startPeriod
@@ -112,10 +112,8 @@ describe('Live slice', () => {
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
       currentState.gameId = inputGame.id;
-      const newState = live(currentState, {
-        type: GET_GAME_SUCCESS,
-        game: inputGame
-      });
+      const newState = live(currentState,
+        getGameCreator.fulfilled(inputGame, 'unused', 'unused'));
 
       expect(newState).to.deep.include(expectedState);
 
@@ -135,10 +133,8 @@ describe('Live slice', () => {
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
       currentState.gameId = inputGame.id;
-      const newState = live(currentState, {
-        type: GET_GAME_SUCCESS,
-        game: inputGame
-      });
+      const newState = live(currentState,
+        getGameCreator.fulfilled(inputGame, 'unused', 'unused'));
 
       expect(newState).to.deep.include(expectedState);
 
