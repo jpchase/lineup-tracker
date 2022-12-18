@@ -1,6 +1,6 @@
 import { Game, GameDetail } from '@app/models/game.js';
 import { Player, Roster } from '@app/models/player.js';
-import { copyRoster, gamePlayerAdded, GameState } from '@app/slices/game/game-slice.js';
+import { copyRoster, gamePlayerAdded, gameReducer, GameState, GAME_INITIAL_STATE } from '@app/slices/game/game-slice.js';
 import * as actions from '@app/slices/game/roster-logic.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
@@ -9,6 +9,7 @@ import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
   buildGames, buildRoster, getMockAuthState,
+  getNewGame, getNewGameDetail,
   getNewPlayer, getNewPlayerData,
   getOtherStoredPlayer,
   getStoredGame, getStoredPlayer, STORED_GAME_ID
@@ -72,7 +73,25 @@ describe('Game slice: roster actions', () => {
       .resolves(roster);
   }
 
+  function initCurrentState(currentGame?: Game) {
+    const state = {
+      ...GAME_INITIAL_STATE
+    };
+
+    if (currentGame) {
+      state.game = {
+        ...currentGame,
+        hasDetail: true,
+        roster: {}
+      }
+    }
+    return state;
+  }
+
   describe('copyRoster', () => {
+    let currentState: GameState;
+    let currentGame = getNewGame();
+
     it('should do nothing if game id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
@@ -82,6 +101,26 @@ describe('Game slice: roster actions', () => {
       expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
       expect(dispatchMock).to.not.have.been.called;
+    });
+
+    it('should set copying flag', () => {
+      currentState = initCurrentState();
+      const gameId = 'agameid';
+      const newState = gameReducer(currentState, {
+        type: copyRoster.pending.type,
+        meta: {
+          gameId: gameId
+        }
+      });
+
+      expect(newState).to.include({
+        gameId: gameId,
+        rosterLoading: true,
+        rosterFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.gameId).not.to.equal(currentState.gameId);
     });
 
     it('should do nothing when game id does not match loaded game', async () => {
@@ -100,6 +139,33 @@ describe('Game slice: roster actions', () => {
         type: copyRoster.rejected.type,
         error: { message: 'No existing game found for id: nosuchgame' }
       }));
+    });
+
+    it('should update only flags when roster already set', () => {
+      currentState = initCurrentState(currentGame);
+      currentState.rosterLoading = true;
+      currentState.game!.roster = buildRoster([getStoredPlayer()]);
+
+      const newState = gameReducer(currentState, {
+        type: copyRoster.fulfilled.type,
+        payload: {
+          gameId: currentState.game!.id
+        }
+      });
+
+      const gameDetail: GameDetail = {
+        ...currentState.game as GameDetail
+      };
+
+      expect(newState).to.deep.include({
+        game: gameDetail,
+        rosterLoading: false,
+        rosterFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).to.equal(currentState.game);
+      expect(newState.game!.roster).to.equal(currentState.game!.roster);
     });
 
     it('should do nothing if game already loaded has a roster with players', async () => {
@@ -126,7 +192,6 @@ describe('Game slice: roster actions', () => {
           gameId: loadedGame.id,
         }
       });
-
     });
 
     it('should dispatch success action with team roster copied to game in storage', async () => {
@@ -177,6 +242,37 @@ describe('Game slice: roster actions', () => {
       }));
     });
 
+    it('should set roster and update flags', () => {
+      currentState = initCurrentState(currentGame);
+      const rosterPlayers = [getStoredPlayer()];
+
+      expect(currentState.game!.roster).to.deep.equal({});
+
+      const newState = gameReducer(currentState, {
+        type: copyRoster.fulfilled.type,
+        payload: {
+          gameId: currentState.game!.id,
+          gameRoster: buildRoster(rosterPlayers)
+        }
+      });
+
+      const gameDetail: GameDetail = {
+        ...currentGame,
+        hasDetail: true,
+        roster: buildRoster(rosterPlayers)
+      };
+
+      expect(newState).to.deep.include({
+        game: gameDetail,
+        rosterLoading: false,
+        rosterFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
+      expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
+    });
+
     it('should dispatch rejected action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const loadedGame: GameDetail = {
@@ -209,6 +305,24 @@ describe('Game slice: roster actions', () => {
         type: copyRoster.rejected.type,
         error: { message: 'Storage failed with some error' }
       }));
+    });
+
+    it('should set failure flag and error message', () => {
+      currentState = initCurrentState();
+
+      const newState = gameReducer(currentState, {
+        type: copyRoster.rejected.type,
+        error: { message: 'What a roster failure!' }
+      });
+
+      expect(newState).to.include({
+        error: 'What a roster failure!',
+        rosterLoading: false,
+        rosterFailure: true
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.error).not.to.equal(currentState.error);
     });
   }); // describe('copyRoster')
 
@@ -305,4 +419,45 @@ describe('Game slice: roster actions', () => {
     });
   }); // describe('saveGamePlayer')
 
+  describe('gamePlayerAdded', () => {
+    let newPlayer: Player;
+    let existingPlayer: Player;
+    let currentState: GameState;// = GAME_INITIAL_STATE;
+
+    beforeEach(() => {
+      newPlayer = getNewPlayer();
+      existingPlayer = getStoredPlayer();
+
+      currentState = {
+        ...GAME_INITIAL_STATE,
+        game: {
+          ...getNewGameDetail()
+        }
+      };
+    });
+
+    it('should add new player to empty roster', () => {
+      const newState = gameReducer(currentState, gamePlayerAdded(newPlayer));
+
+      expect(newState.game).to.deep.include({
+        roster: buildRoster([newPlayer]),
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
+    });
+
+    it('should add new player to roster with existing players', () => {
+      currentState.game!.roster = buildRoster([existingPlayer]);
+
+      const newState = gameReducer(currentState, gamePlayerAdded(newPlayer));
+
+      expect(newState.game).to.deep.include({
+        roster: buildRoster([existingPlayer, newPlayer]),
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
+    });
+  }); // describe('gamePlayerAdded')
 }); // describe('Game slice: roster actions')

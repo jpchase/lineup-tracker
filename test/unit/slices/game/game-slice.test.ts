@@ -242,6 +242,8 @@ describe('Game slice', () => {
   }); // describe('getGames')
 
   describe('getGame', () => {
+    let currentState: GameState;
+
     function mockLoadDocumentWithGame(game: Game) {
       return readerStub.loadDocument
         .withArgs(`${KEY_GAMES}/${game.id}`, sinon.match.object)
@@ -254,6 +256,12 @@ describe('Game slice', () => {
         .resolves(roster);
     }
 
+    function initCurrentState() {
+      return {
+        ...GAME_INITIAL_STATE,
+      };
+    }
+
     it('should do nothing if game id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
@@ -264,6 +272,26 @@ describe('Game slice', () => {
       expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
       expect(dispatchMock).to.not.have.been.called;
+    });
+
+    it('should set game id and loading flag for pending', () => {
+      currentState = initCurrentState();
+      const gameId = 'idfornewgame';
+      const newState = game(currentState, {
+        type: getGame.pending.type,
+        meta: {
+          gameId: gameId
+        }
+      });
+
+      expect(newState).to.include({
+        gameId: gameId,
+        detailLoading: true,
+        detailFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.gameId).not.to.equal(currentState.gameId);
     });
 
     it('should dispatch success action with game returned from storage', async () => {
@@ -296,6 +324,37 @@ describe('Game slice', () => {
       }));
     });
 
+    it('should set game to retrieved game with full detail', () => {
+      currentState = initCurrentState();
+      currentState.detailLoading = true;
+      const existingGame = getStoredGame(GameStatus.Start);
+      const inputGame: GameDetail = {
+        ...existingGame,
+        roster: buildRoster([getStoredPlayer()])
+      };
+
+      currentState.gameId = inputGame.id;
+      const newState = game(currentState,
+        getGame.fulfilled(inputGame, 'unused', 'unused'));
+
+      const gameDetail: GameDetail = {
+        ...existingGame,
+        hasDetail: true,
+        roster: buildRoster([getStoredPlayer()])
+      };
+
+      expect(newState).to.deep.include({
+        game: gameDetail,
+        // TODO: Ensure games state has latest game detail
+        // games: buildGames([gameDetail]),
+        detailLoading: false,
+        detailFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
+    });
+
     it('should dispatch success action when game roster is empty', async () => {
       const storedGame: GameDetail = {
         ...getOtherStoredGameWithoutDetail(),
@@ -320,6 +379,37 @@ describe('Game slice', () => {
         type: getGame.fulfilled.type,
         payload: storedGame,
       }));
+    });
+
+    it('should initialize detail when game roster is empty', () => {
+      currentState = initCurrentState();
+      currentState.detailLoading = true;
+      const currentGame = getNewGame();
+      const inputGame: GameDetail = {
+        ...currentGame,
+        roster: {}
+      };
+
+      currentState.gameId = inputGame.id;
+      const newState = game(currentState,
+        getGame.fulfilled(inputGame, 'unused', 'unused'));
+
+      const gameDetail: GameDetail = {
+        ...currentGame,
+        hasDetail: true,
+        roster: {},
+      };
+
+      expect(newState).to.deep.include({
+        game: gameDetail,
+        // TODO: Ensure games state has latest game detail
+        // games: buildGames([gameDetail]),
+        detailLoading: false,
+        detailFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
     });
 
     it('should use the already loaded game from game detail in state, without retrieving from storage', async () => {
@@ -367,6 +457,33 @@ describe('Game slice', () => {
         type: getGame.fulfilled.type,
         payload: loadedGame,
       }));
+    });
+
+    it('should update only loading flag when game set to current game', () => {
+      currentState = initCurrentState();
+      const currentGame = buildNewGameDetailAndRoster();
+      currentState.gameId = currentGame.id;
+      currentState.game = currentGame;
+      currentState.detailLoading = true;
+
+      const newState = game(currentState,
+        getGame.fulfilled(currentGame, 'unused', 'unused'));
+
+      const gameDetail: GameDetail = {
+        ...currentGame,
+      };
+
+      expect(newState).to.deep.include({
+        game: gameDetail,
+        // TODO: Ensure games state has latest game detail
+        // games: buildGames([gameDetail]),
+        detailLoading: false,
+        detailFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).to.equal(currentState.game);
+      expect(newState.game!.roster).to.equal(currentState.game!.roster);
     });
 
     it('should retrieve from storage when already loaded game is missing detail', async () => {
@@ -445,6 +562,23 @@ describe('Game slice', () => {
         type: getGame.rejected.type,
         error: { message: 'Storage failed with some error' }
       }));
+    });
+
+    it('should set failure flag and error message', () => {
+      currentState = initCurrentState();
+      const newState = game(currentState, {
+        type: getGame.rejected.type,
+        error: { message: 'What a game failure!' }
+      });
+
+      expect(newState).to.include({
+        error: 'What a game failure!',
+        detailLoading: false,
+        detailFailure: true
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.error).not.to.equal(currentState.error);
     });
   }); // describe('getGame')
 
