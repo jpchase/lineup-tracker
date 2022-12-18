@@ -3,7 +3,6 @@ import '@material/mwc-circular-progress';
 import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { getGame } from '../actions/game';
 import { connectStore } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game';
 import { Roster } from '../models/player';
@@ -15,7 +14,7 @@ import { PageViewElement } from './page-view-element';
 import { SharedStyles } from './shared-styles';
 
 // Expose action for use in loading view.
-export { getGame };
+export { getGame } from '../slices/game/game-slice.js';
 
 // This element is connected to the Redux store.
 @customElement('lineup-view-game-roster')

@@ -1,31 +1,19 @@
-/**
-@license
-*/
-
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { PageViewElement } from './page-view-element';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-
-import { GameDetail, GameStatus } from '../models/game';
-
-// This element is connected to the Redux store.
 import { connectStore } from '../middleware/connect-mixin';
+import { GameDetail, GameStatus } from '../models/game.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
-
+import { PageViewElement } from './page-view-element.js';
 // The game-specific store configurator, which handles initialization/lazy-loading.
-import { getGameStore } from '../slices/game-store';
-
-// These are the actions needed by this element.
-import { getGame } from '../actions/game';
-
-// These are the elements needed by this element.
 import '@material/mwc-button';
+import { getGameStore } from '../slices/game-store';
 import './lineup-game-live';
 import './lineup-game-setup';
-
-// These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
+
+// Expose action for use in loading view.
+export { getGame } from '../slices/game/game-slice.js';
 
 @customElement('lineup-view-game-detail')
 export class LineupViewGameDetail extends connectStore()(PageViewElement) {
@@ -93,6 +81,3 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
       game.date.getDate();
   }
 }
-
-// Expose action for use in loading view.
-export { getGame };

@@ -1,6 +1,7 @@
 import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
 import { LiveGameBuilder } from '@app/models/live.js';
-import { addNewGame, gameCompletedCreator, gameSetupCompletedCreator, gameReducer as game, GameState, getGames, saveGame, GAME_INITIAL_STATE } from '@app/slices/game/game-slice.js';
+import { Roster } from '@app/models/player.js';
+import { addNewGame, gameCompletedCreator, gameSetupCompletedCreator, gameReducer as game, GameState, getGames, saveGame, GAME_INITIAL_STATE, getGame } from '@app/slices/game/game-slice.js';
 import { gameCompleted, gameSetupCompleted, LiveState } from '@app/slices/live/live-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
@@ -9,9 +10,10 @@ import sinon from 'sinon';
 import {
   buildGames, buildRoster, getFakeAction, getMockAuthState, getMockTeamState, getNewGame,
   getNewGameDetail,
+  getOtherStoredPlayer,
   getPublicGame, getPublicTeam, getStoredGame, getStoredGameData, getStoredPlayer, getStoredTeam,
   MockAuthStateOptions, OTHER_STORED_GAME_ID, TEST_USER_ID
-} from '../../helpers/test_data';
+} from '../../helpers/test_data.js';
 
 const actionTypes = {
   ADD_GAME: 'game/addGame',
@@ -48,6 +50,17 @@ function getNewGameSaved(): Game {
 function buildNewGameDetailAndRoster(): GameDetail {
   return getNewGameDetail(buildRoster([getStoredPlayer()]));
 }
+
+function getTeamRoster() {
+  return buildRoster([getStoredPlayer(), getOtherStoredPlayer()]);
+};
+
+function getStoredGameDetail(): GameDetail {
+  return {
+    ...getStoredGame(),
+    roster: getTeamRoster()
+  };
+};
 
 interface MockStateUpdateFunc {
   (state: GameState, live: LiveState): void;
@@ -133,8 +146,7 @@ describe('Games reducer', () => {
 
 });
 
-
-describe('Games actions', () => {
+describe('Game slice', () => {
   let readerStub: sinon.SinonStubbedInstance<typeof reader>;
   let writerStub: sinon.SinonStubbedInstance<typeof writer>;
 
@@ -228,6 +240,213 @@ describe('Games actions', () => {
     });
 
   }); // describe('getGames')
+
+  describe('getGame', () => {
+    function mockLoadDocumentWithGame(game: Game) {
+      return readerStub.loadDocument
+        .withArgs(`${KEY_GAMES}/${game.id}`, sinon.match.object)
+        .resolves(game);
+    }
+
+    function mockLoadCollectionWithGameRoster(gameId: string, roster: Roster) {
+      return readerStub.loadCollection
+        .withArgs(`${KEY_GAMES}/${gameId}/roster`, sinon.match.object)
+        .resolves(roster);
+    }
+
+    it('should do nothing if game id is missing', async () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = sinon.stub();
+
+      await getGame(undefined as unknown as string)(dispatchMock, getStateMock, undefined);
+
+      expect(readerStub.loadDocument, 'loadDocument').to.not.have.been.called;
+      expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
+
+      expect(dispatchMock).to.not.have.been.called;
+    });
+
+    it('should dispatch success action with game returned from storage', async () => {
+      const expectedGame = getStoredGame();
+      const expectedGameDetail = getStoredGameDetail();
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([]);
+      const loadDocumentStub = mockLoadDocumentWithGame(expectedGame);
+      const loadCollectionStub = mockLoadCollectionWithGameRoster(
+        expectedGameDetail.id, expectedGameDetail.roster);
+
+      await getGame(expectedGameDetail.id)(dispatchMock, getStateMock, undefined);
+
+      expect(loadDocumentStub, 'loadDocument').to.have.callCount(1);
+      expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
+
+      expect(dispatchMock, 'dispatch').to.have.callCount(2);
+
+      // Checks that first dispatch was the request action
+      expect(dispatchMock.firstCall).to.have.been.calledWith(sinon.match({
+        type: getGame.pending.type,
+        meta: {
+          gameId: expectedGameDetail.id,
+        }
+      }));
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: expectedGameDetail,
+      }));
+    });
+
+    it('should dispatch success action when game roster is empty', async () => {
+      const storedGame: GameDetail = {
+        ...getOtherStoredGameWithoutDetail(),
+        roster: {}
+      }
+
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([]);
+      const loadDocumentStub = mockLoadDocumentWithGame(storedGame);
+      const loadCollectionStub = mockLoadCollectionWithGameRoster(
+        storedGame.id, {});
+
+      await getGame(OTHER_STORED_GAME_ID)(dispatchMock, getStateMock, undefined);
+
+      expect(loadDocumentStub, 'loadDocument').to.have.callCount(1);
+      expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).to.have.callCount(2);
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: storedGame,
+      }));
+    });
+
+    it('should use the already loaded game from game detail in state, without retrieving from storage', async () => {
+      const dispatchMock = sinon.stub();
+      const loadedGame: GameDetail = {
+        ...getStoredGameDetail(),
+        hasDetail: true
+      };
+      const getStateMock = mockGetState([], undefined, undefined, (gameState) => {
+        gameState.gameId = loadedGame.id;
+        gameState.game = loadedGame;
+      });
+
+      await getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
+
+      expect(readerStub.loadDocument, 'loadDocument').to.not.have.been.called;
+      expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).to.have.callCount(2);
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: loadedGame,
+      }));
+    });
+
+    it('should use the already loaded game from games list in state, without retrieving from storage', async () => {
+      const dispatchMock = sinon.stub();
+      const loadedGame: GameDetail = {
+        ...getStoredGameDetail(),
+        hasDetail: true
+      };
+      const getStateMock = mockGetState([loadedGame]);
+
+      await getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
+
+      expect(readerStub.loadDocument, 'loadDocument').to.not.have.been.called;
+      expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).to.have.callCount(2);
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: loadedGame,
+      }));
+    });
+
+    it('should retrieve from storage when already loaded game is missing detail', async () => {
+      const expectedGame = getStoredGame();
+      const expectedGameDetail = getStoredGameDetail();
+
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([{
+        ...expectedGameDetail, hasDetail: false
+      }]);
+      const loadDocumentStub = mockLoadDocumentWithGame(expectedGame);
+      const loadCollectionStub = mockLoadCollectionWithGameRoster(
+        expectedGameDetail.id, expectedGameDetail.roster);
+
+      await getGame(expectedGame.id)(dispatchMock, getStateMock, undefined);
+
+      expect(loadDocumentStub, 'loadDocument').to.have.callCount(1);
+      expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
+
+      // The request action is dispatched, regardless.
+      expect(dispatchMock).to.have.callCount(2);
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.fulfilled.type,
+        payload: expectedGameDetail,
+      }));
+    });
+
+    it('should fail when game not found in storage', async () => {
+      const gameId = 'nosuchgame';
+
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([]);
+      readerStub.loadDocument
+        .withArgs(`${KEY_GAMES}/${gameId}`, sinon.match.object)
+        .rejects(new Error(`Document not found: ${KEY_GAMES}/${gameId}`));
+
+      await getGame(gameId)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.callCount(2);
+
+      // Checks that first dispatch was the request action
+      expect(dispatchMock.firstCall).to.have.been.calledWith(sinon.match({
+        type: getGame.pending.type,
+        meta: {
+          gameId: gameId,
+        }
+      }));
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.rejected.type,
+        error: { message: `Document not found: ${KEY_GAMES}/${gameId}` },
+      }));
+    });
+
+    it('should dispatch rejected action when storage access fails', async () => {
+      const dispatchMock = sinon.stub();
+      const getStateMock = mockGetState([]);
+      const gameId = getStoredGame().id;
+
+      readerStub.loadDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+
+      await getGame(gameId)(dispatchMock, getStateMock, undefined);
+
+      expect(dispatchMock).to.have.callCount(2);
+
+      // Checks that first dispatch was the request action
+      expect(dispatchMock.firstCall).to.have.been.calledWith(sinon.match({
+        type: getGame.pending.type,
+        meta: {
+          gameId: gameId,
+        }
+      }));
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(sinon.match({
+        type: getGame.rejected.type,
+        error: { message: 'Storage failed with some error' }
+      }));
+    });
+  }); // describe('getGame')
 
   describe('addNewGame', () => {
     it('should do nothing if new game is missing', () => {
@@ -461,4 +680,4 @@ describe('Games actions', () => {
 
   }); // describe('gameCompleted')
 
-}); // describe('Game actions')
+}); // describe('Game slice')

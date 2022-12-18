@@ -1,18 +1,11 @@
 import { createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Action, ActionCreator } from 'redux';
 import { Game, GameDetail } from '../../models/game.js';
 import { Player, Roster } from '../../models/player.js';
-import { currentGameIdSelector } from '../../reducers/game.js';
 import { RootState, ThunkResult } from '../../store.js';
-import {
-  ADD_GAME_PLAYER
-} from '../game-types.js';
 import { loadTeamRoster } from '../team/team-storage.js';
 import { RosterCopiedPayload } from './game-action-types.js';
-import { GameState } from './game-slice.js';
+import { gamePlayerAdded, GameState, selectCurrentGameId } from './game-slice.js';
 import { persistGamePlayer } from './game-storage.js';
-
-interface GameActionAddPlayer extends Action<typeof ADD_GAME_PLAYER> { player: Player };
 
 export const copyRoster = createAsyncThunk<
   // Return type of the payload creator.
@@ -127,14 +120,17 @@ export const addNewGamePlayer = (newPlayer: Player): ThunkResult => (dispatch, g
 
 export const saveGamePlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
-  const gameId = currentGameIdSelector(getState())!;
+  const gameId = selectCurrentGameId(getState())!;
   persistGamePlayer(newPlayer, gameId, true);
-  dispatch(addGamePlayer(newPlayer));
+  dispatch(gamePlayerAdded(newPlayer));
 };
 
-export const addGamePlayer: ActionCreator<GameActionAddPlayer> = (player: Player) => {
-  return {
-    type: ADD_GAME_PLAYER,
-    player
-  };
+export const gamePlayerAddedHandler = (state: GameState, action: PayloadAction<Player>) => {
+  state.game!.roster[action.payload.id] = action.payload;
 };
+
+export const gamePlayerAddedPrepare = (player: Player) => {
+  return {
+    payload: player
+  };
+}

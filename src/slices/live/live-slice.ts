@@ -1,17 +1,10 @@
-/**
-@license
-*/
-
-import { createNextState, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Reducer } from 'redux';
+import { createNextState, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
 import { Position } from '../../models/formation.js';
-import { Game, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
+import { Game, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
-import { createReducer } from '../../reducers/createReducer.js';
-import { selectCurrentGame } from '../../slices/game/game-slice.js';
+import { getGame, selectCurrentGame } from '../../slices/game/game-slice.js';
 import { RootState, ThunkResult } from '../../store.js';
-import { GET_GAME_SUCCESS } from '../game-types.js';
 import {
   configurePeriodsHandler, configurePeriodsPrepare,
   endPeriodHandler,
@@ -136,27 +129,10 @@ export const live: Reducer<LiveState> = function (state, action) {
   //   As a workaround, pass the |INITIAL_STATE|, even though it seems redundant with
   //   the inner reducers.
   return createNextState(state || INITIAL_STATE as LiveState, (draft) => {
-    Object.assign(draft, liveGame(draft, action));
     Object.assign(draft, liveSlice.reducer(draft, action));
     draft!.shift = shift(draft?.shift, action);
   }) as LiveState;
 }
-
-const liveGame: Reducer<LiveGameState> = createReducer(INITIAL_STATE, {
-  [GET_GAME_SUCCESS]: (state, action) => {
-    if (findGame(state, action.game.id)) {
-      // Game has already been initialized.
-      return;
-    }
-
-    const game: LiveGame = LiveGameBuilder.create(action.game);
-    if (action.game.status === GameStatus.New) {
-      updateTasks(game);
-    }
-
-    setCurrentGame(state, game);
-  },
-});
 
 const liveSlice = createSlice({
   name: 'live',
@@ -315,6 +291,22 @@ const liveSlice = createSlice({
       prepare: prepareLiveGamePayload
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(getGame.fulfilled, (state: LiveGameState,
+      action: PayloadAction<GameDetail>) => {
+      if (findGame(state, action.payload.id)) {
+        // Game has already been initialized.
+        return;
+      }
+
+      const game: LiveGame = LiveGameBuilder.create(action.payload);
+      if (action.payload.status === GameStatus.New) {
+        updateTasks(game);
+      }
+
+      setCurrentGame(state, game);
+    });
+  }
 });
 
 const { actions } = liveSlice;
