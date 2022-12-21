@@ -88,7 +88,7 @@ describe('Live slice', () => {
     ).to.equal(INITIAL_OVERALL_STATE);
   });
 
-  describe('GET_GAME_SUCCESS', () => {
+  describe('game/getGame', () => {
     let currentState: LiveState;
 
     beforeEach(() => {
@@ -141,7 +141,7 @@ describe('Live slice', () => {
       expect(getCurrentGame(newState)).not.to.equal(getCurrentGame(currentState));
     });
 
-  }); // describe('GET_GAME_SUCCESS')
+  }); // describe('game/getGame')
 
   describe('live/gameSetupCompleted', () => {
 

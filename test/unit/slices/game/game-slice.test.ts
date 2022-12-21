@@ -1,32 +1,19 @@
 import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
 import { LiveGameBuilder } from '@app/models/live.js';
 import { Roster } from '@app/models/player.js';
-import { addNewGame, gameCompletedCreator, gameSetupCompletedCreator, gameReducer as game, GameState, getGames, saveGame, GAME_INITIAL_STATE, getGame } from '@app/slices/game/game-slice.js';
+import { addGame, addNewGame, gameCompletedCreator, gameReducer as game, gameSetupCompletedCreator, GameState, GAME_INITIAL_STATE, getGame, getGames, saveGame } from '@app/slices/game/game-slice.js';
 import { gameCompleted, gameSetupCompleted, LiveState } from '@app/slices/live/live-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
-  buildGames, buildRoster, getFakeAction, getMockAuthState, getMockTeamState, getNewGame,
+  buildGames, buildRoster, getMockAuthState, getMockTeamState, getNewGame,
   getNewGameDetail,
   getOtherStoredPlayer,
   getPublicGame, getPublicTeam, getStoredGame, getStoredGameData, getStoredPlayer, getStoredTeam,
   MockAuthStateOptions, OTHER_STORED_GAME_ID, TEST_USER_ID
 } from '../../helpers/test_data.js';
-
-const actionTypes = {
-  ADD_GAME: 'game/addGame',
-  GET_GAMES: 'game/getGames',
-
-  fulfilled(typePrefix: string) {
-    return `${typePrefix}/fulfilled`;
-  },
-
-  rejected(typePrefix: string) {
-    return `${typePrefix}/rejected`;
-  },
-};
 
 const KEY_GAMES = 'games';
 
@@ -93,59 +80,6 @@ function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?:
   });
 }
 
-describe('Games reducer', () => {
-  const existingGame = getStoredGame();
-  const newGame = getNewGame();
-
-  it('should return the initial state', () => {
-    expect(
-      game(GAME_INITIAL_STATE, getFakeAction())
-    ).to.equal(GAME_INITIAL_STATE);
-  });
-
-  it('should return the initial state when none provided', () => {
-    expect(
-      game(undefined, getFakeAction())
-    ).to.deep.equal(GAME_INITIAL_STATE);
-  });
-
-  describe('ADD_GAME', () => {
-    it('should handle ADD_GAME with empty games', () => {
-      const newState = game(GAME_INITIAL_STATE, {
-        type: actionTypes.ADD_GAME,
-        payload: newGame
-      });
-
-      expect(newState).to.deep.include({
-        games: buildGames([newGame]),
-      });
-
-      expect(newState).to.not.equal(GAME_INITIAL_STATE);
-      expect(newState.games).to.not.equal(GAME_INITIAL_STATE.games);
-    });
-
-    it('should handle ADD_GAME with existing games', () => {
-      const state: GameState = {
-        ...GAME_INITIAL_STATE
-      };
-      state.games = buildGames([existingGame]);
-
-      const newState = game(state, {
-        type: actionTypes.ADD_GAME,
-        payload: newGame
-      });
-
-      expect(newState).to.deep.include({
-        games: buildGames([existingGame, newGame]),
-      });
-
-      expect(newState).to.not.equal(state);
-      expect(newState.games).to.not.equal(state.games);
-    });
-  }); // describe('ADD_GAME')
-
-});
-
 describe('Game slice', () => {
   let readerStub: sinon.SinonStubbedInstance<typeof reader>;
   let writerStub: sinon.SinonStubbedInstance<typeof writer>;
@@ -158,11 +92,11 @@ describe('Game slice', () => {
   });
 
   describe('getGames', () => {
-    it('should do nothing if team id is missing', () => {
+    it('should do nothing if team id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      getGames('')(dispatchMock, getStateMock, undefined);
+      await getGames('')(dispatchMock, getStateMock, undefined);
 
       expect(readerStub.loadCollection).to.not.have.been.called;
 
@@ -184,7 +118,7 @@ describe('Game slice', () => {
       await getGames(storedTeamId)(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.fulfilled(actionTypes.GET_GAMES),
+        type: getGames.fulfilled.type,
         payload: { ...expectedGames },
       }));
       expect(loadCollectionStub).to.have.callCount(1);
@@ -193,7 +127,7 @@ describe('Game slice', () => {
     it('should set the games to the retrieved list', () => {
       const existingGame = getStoredGame();
       const newState = game(GAME_INITIAL_STATE, {
-        type: actionTypes.fulfilled(actionTypes.GET_GAMES),
+        type: getGames.fulfilled.type,
         payload: buildGames([existingGame])
       });
 
@@ -220,7 +154,7 @@ describe('Game slice', () => {
       await getGames(publicTeamId)(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.fulfilled(actionTypes.GET_GAMES),
+        type: getGames.fulfilled.type,
         payload: { ...expectedGames },
       }));
     });
@@ -234,7 +168,7 @@ describe('Game slice', () => {
       await getGames(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: actionTypes.rejected(actionTypes.GET_GAMES),
+        type: getGames.rejected.type,
         error: { message: 'Storage failed with some error' }
       }));
     });
@@ -242,6 +176,8 @@ describe('Game slice', () => {
   }); // describe('getGames')
 
   describe('getGame', () => {
+    let currentState: GameState;
+
     function mockLoadDocumentWithGame(game: Game) {
       return readerStub.loadDocument
         .withArgs(`${KEY_GAMES}/${game.id}`, sinon.match.object)
@@ -254,6 +190,12 @@ describe('Game slice', () => {
         .resolves(roster);
     }
 
+    function initCurrentState() {
+      return {
+        ...GAME_INITIAL_STATE,
+      };
+    }
+
     it('should do nothing if game id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
@@ -264,6 +206,26 @@ describe('Game slice', () => {
       expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
 
       expect(dispatchMock).to.not.have.been.called;
+    });
+
+    it('should set game id and loading flag for pending', () => {
+      currentState = initCurrentState();
+      const gameId = 'idfornewgame';
+      const newState = game(currentState, {
+        type: getGame.pending.type,
+        meta: {
+          gameId: gameId
+        }
+      });
+
+      expect(newState).to.include({
+        gameId: gameId,
+        detailLoading: true,
+        detailFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.gameId).not.to.equal(currentState.gameId);
     });
 
     it('should dispatch success action with game returned from storage', async () => {
@@ -296,6 +258,37 @@ describe('Game slice', () => {
       }));
     });
 
+    it('should set game to retrieved game with full detail', () => {
+      currentState = initCurrentState();
+      currentState.detailLoading = true;
+      const existingGame = getStoredGame(GameStatus.Start);
+      const inputGame: GameDetail = {
+        ...existingGame,
+        roster: buildRoster([getStoredPlayer()])
+      };
+
+      currentState.gameId = inputGame.id;
+      const newState = game(currentState,
+        getGame.fulfilled(inputGame, 'unused', 'unused'));
+
+      const gameDetail: GameDetail = {
+        ...existingGame,
+        hasDetail: true,
+        roster: buildRoster([getStoredPlayer()])
+      };
+
+      expect(newState).to.deep.include({
+        game: gameDetail,
+        // TODO: Ensure games state has latest game detail
+        // games: buildGames([gameDetail]),
+        detailLoading: false,
+        detailFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
+    });
+
     it('should dispatch success action when game roster is empty', async () => {
       const storedGame: GameDetail = {
         ...getOtherStoredGameWithoutDetail(),
@@ -320,6 +313,37 @@ describe('Game slice', () => {
         type: getGame.fulfilled.type,
         payload: storedGame,
       }));
+    });
+
+    it('should initialize detail when game roster is empty', () => {
+      currentState = initCurrentState();
+      currentState.detailLoading = true;
+      const currentGame = getNewGame();
+      const inputGame: GameDetail = {
+        ...currentGame,
+        roster: {}
+      };
+
+      currentState.gameId = inputGame.id;
+      const newState = game(currentState,
+        getGame.fulfilled(inputGame, 'unused', 'unused'));
+
+      const gameDetail: GameDetail = {
+        ...currentGame,
+        hasDetail: true,
+        roster: {},
+      };
+
+      expect(newState).to.deep.include({
+        game: gameDetail,
+        // TODO: Ensure games state has latest game detail
+        // games: buildGames([gameDetail]),
+        detailLoading: false,
+        detailFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).not.to.equal(currentState.game);
     });
 
     it('should use the already loaded game from game detail in state, without retrieving from storage', async () => {
@@ -367,6 +391,33 @@ describe('Game slice', () => {
         type: getGame.fulfilled.type,
         payload: loadedGame,
       }));
+    });
+
+    it('should update only loading flag when game set to current game', () => {
+      currentState = initCurrentState();
+      const currentGame = buildNewGameDetailAndRoster();
+      currentState.gameId = currentGame.id;
+      currentState.game = currentGame;
+      currentState.detailLoading = true;
+
+      const newState = game(currentState,
+        getGame.fulfilled(currentGame, 'unused', 'unused'));
+
+      const gameDetail: GameDetail = {
+        ...currentGame,
+      };
+
+      expect(newState).to.deep.include({
+        game: gameDetail,
+        // TODO: Ensure games state has latest game detail
+        // games: buildGames([gameDetail]),
+        detailLoading: false,
+        detailFailure: false
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.game).to.equal(currentState.game);
+      expect(newState.game!.roster).to.equal(currentState.game!.roster);
     });
 
     it('should retrieve from storage when already loaded game is missing detail', async () => {
@@ -446,6 +497,23 @@ describe('Game slice', () => {
         error: { message: 'Storage failed with some error' }
       }));
     });
+
+    it('should set failure flag and error message', () => {
+      currentState = initCurrentState();
+      const newState = game(currentState, {
+        type: getGame.rejected.type,
+        error: { message: 'What a game failure!' }
+      });
+
+      expect(newState).to.include({
+        error: 'What a game failure!',
+        detailLoading: false,
+        detailFailure: true
+      });
+
+      expect(newState).not.to.equal(currentState);
+      expect(newState.error).not.to.equal(currentState.error);
+    });
   }); // describe('getGame')
 
   describe('addNewGame', () => {
@@ -483,6 +551,38 @@ describe('Game slice', () => {
     });
   });  // describe('addNewGame')
 
+  describe('addGame', () => {
+    const existingGame = getStoredGame();
+    const newGame = getNewGame();
+
+    it('should handle addGame with empty games', () => {
+      const newState = game(GAME_INITIAL_STATE, addGame(newGame));
+
+      expect(newState).to.deep.include({
+        games: buildGames([newGame]),
+      });
+
+      expect(newState).to.not.equal(GAME_INITIAL_STATE);
+      expect(newState.games).to.not.equal(GAME_INITIAL_STATE.games);
+    });
+
+    it('should handle addGame with existing games', () => {
+      const state: GameState = {
+        ...GAME_INITIAL_STATE
+      };
+      state.games = buildGames([existingGame]);
+
+      const newState = game(state, addGame(newGame));
+
+      expect(newState).to.deep.include({
+        games: buildGames([existingGame, newGame]),
+      });
+
+      expect(newState).to.not.equal(state);
+      expect(newState.games).to.not.equal(state.games);
+    });
+  }); // describe('addGame')
+
   describe('saveGame', () => {
     it('should save to storage and dispatch an action to add game', async () => {
       const expectedSavedGame = getNewGameSaved();
@@ -504,10 +604,8 @@ describe('Game slice', () => {
         inputGame, KEY_GAMES, undefined, sinon.match.object, { addTeamId: true, addUserId: true });
       expect(inputGame, 'Input game should have properties set by saving').to.deep.equal(expectedSavedGame);
 
-      expect(dispatchMock).to.have.been.calledWith({
-        type: actionTypes.ADD_GAME,
-        payload: expectedSavedGame,
-      });
+      expect(dispatchMock).to.have.been.calledWith(
+        addGame(expectedSavedGame));
 
       // Waits for promises to resolve.
       await Promise.resolve();
