@@ -60,7 +60,7 @@
     "firebase": "^9.12.1",
     "idb-keyval": "^6.2.0",
     "immer": "^9.0.16",
-    "lit": "^2.4.0",
+    "lit": "^2.5.0",
     "pwa-helpers": "^0.9.0",
     "redux": "^4.2.0",
     "redux-persist": "^6.0.0",
