@@ -84,7 +84,7 @@ export const rosterCopyPendingHandler = (state: GameState,
 export const rosterCopiedHandler = (state: GameState, action: PayloadAction<RosterCopiedPayload>) => {
   // Set new roster, if required.
   if (action.payload.gameRoster && (Object.keys(state.game!.roster).length === 0)) {
-    const gameRoster = action.payload.gameRoster!;
+    const gameRoster = action.payload.gameRoster;
     const roster: Roster = {};
     Object.keys(gameRoster).forEach((key) => {
       const teamPlayer: Player = gameRoster[key];

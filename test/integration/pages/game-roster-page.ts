@@ -7,7 +7,8 @@ export class GameRosterPage extends PageObject {
     super({
       ...options,
       scenarioName: 'game roster',
-      route: `gameroster/${options.gameId}`
+      route: `gameroster/${options.gameId}`,
+      componentName: 'lineup-view-game-roster',
     });
   }
 
