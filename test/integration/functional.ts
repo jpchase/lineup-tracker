@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { integrationTestData } from './data/integration-data-constants.js';
 import { PageObject } from './pages/page-object.js';
 import { TeamCreatePage } from './pages/team-create-page.js';
 import { DevServer, startTestServer } from './server/test-server.js';
@@ -20,10 +21,11 @@ describe('functional tests', function () {
 
   describe('Team', function () {
     it('creates new team', async function () {
-      const addTeamPage = pageObject = new TeamCreatePage();
+      const addTeamPage = pageObject = new TeamCreatePage({
+        userId: integrationTestData.TEAM2.OWNER_ID,
+      });
       await addTeamPage.init();
-      await addTeamPage.open();
-      await addTeamPage.signin();
+      await addTeamPage.open({ signIn: true });
 
       await addTeamPage.fillTeamDetails('A functional team');
       await addTeamPage.saveNewTeam();

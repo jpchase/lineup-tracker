@@ -192,7 +192,7 @@ describe('Team slice', () => {
       );
 
       const inputTeam = getNewTeam();
-      saveTeam(inputTeam as Team)(dispatchMock, getStateMock, undefined);
+      await saveTeam(inputTeam as Team)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new team was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
@@ -210,12 +210,13 @@ describe('Team slice', () => {
       const getStateMock = sinon.stub();
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        saveTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      let rejected = false;
+      try {
+        await saveTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
+      } catch {
+        rejected = true;
+      }
+      expect(rejected, 'saveTeam should reject promise').to.be.true;
 
       expect(dispatchMock).to.not.have.been.called;
     });
@@ -373,10 +374,7 @@ describe('Team slice', () => {
       );
 
       const inputPlayer = getNewPlayer();
-      savePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      await savePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new player was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
@@ -396,12 +394,13 @@ describe('Team slice', () => {
       const getStateMock = mockGetState([], undefined);
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      let rejected = false;
+      try {
+        await savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+      } catch {
+        rejected = true;
+      }
+      expect(rejected, 'savePlayer should reject promise').to.be.true;
 
       expect(dispatchMock).to.not.have.been.called;
     });

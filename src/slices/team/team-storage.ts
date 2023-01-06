@@ -29,10 +29,10 @@ export function loadTeamRoster(teamId: string): Promise<Roster> {
   return reader.loadCollection(buildTeamRosterPath(teamId), playerConverter);
 }
 
-export function persistTeam(newTeam: Team, state: RootState) {
-  writer.saveNewDocument(newTeam, KEY_TEAMS, undefined, state, { addUserId: true });
+export async function persistTeam(newTeam: Team, state: RootState) {
+  return writer.saveNewDocument(newTeam, KEY_TEAMS, undefined, state, { addUserId: true });
 }
 
-export function savePlayerToTeamRoster(newPlayer: Player, teamId: string) {
-  writer.saveNewDocument(newPlayer, buildTeamRosterPath(teamId), playerConverter);
+export async function savePlayerToTeamRoster(newPlayer: Player, teamId: string) {
+  return writer.saveNewDocument(newPlayer, buildTeamRosterPath(teamId), playerConverter);
 }
