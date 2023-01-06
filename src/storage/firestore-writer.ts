@@ -55,7 +55,7 @@ class WriterConverter<T extends Model> implements FirestoreDataConverter<T>  {
   }
 }
 
-function saveNewDocument<T extends Model>(
+async function saveNewDocument<T extends Model>(
   model: T,
   collectionPathOrReference: string,
   modelWriter?: ModelWriter<T>,
@@ -87,17 +87,15 @@ function saveNewDocument<T extends Model>(
   // NOTE: Firestore requires the parameter to be omitted entirely, it will throw for any value
   // that is not a non-empty string.
   const document: DocumentReference = (options?.keepExistingId && model.id) ?
-    doc(collectionRef, model.id) : doc(collectionRef);;
+    doc(collectionRef, model.id) : doc(collectionRef);
 
   debugFirestore(`saveNewDocument: data = ${JSON.stringify(model)}`);
-  (() => {
-    debugFirestore('saveNewDocument: about to call set');
-    setDoc(document, model).then(result => {
-      debugFirestore('saveNewDocument: then -> ', result);
-    }).catch((reason: any) => {
-      debugError(`saveNewDocument: failed - ${reason}`);
-    });
-  })();
+  try {
+    await setDoc(document, model);
+  } catch (reason: any) {
+    debugError(`saveNewDocument: failed - ${reason}`);
+  };
+
   debugFirestore(`saveNewDocument: after, document[${document.id}] = ${JSON.stringify(document)}`);
   model.id = document.id;
 }

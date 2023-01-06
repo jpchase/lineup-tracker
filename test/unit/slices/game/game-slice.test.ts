@@ -592,7 +592,8 @@ describe('Game slice', () => {
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
         (model) => {
           model.id = expectedSavedGame.id;
-          model.teamId = expectedSavedGame.teamId
+          model.teamId = expectedSavedGame.teamId;
+          return Promise.resolve();
         }
       );
 

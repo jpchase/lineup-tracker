@@ -1,7 +1,7 @@
 import { createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Game, GameDetail } from '../../models/game.js';
 import { Player, Roster } from '../../models/player.js';
-import { RootState, ThunkResult } from '../../store.js';
+import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { loadTeamRoster } from '../team/team-storage.js';
 import { RosterCopiedPayload } from './game-action-types.js';
 import { gamePlayerAdded, GameState, selectCurrentGameId } from './game-slice.js';
@@ -46,16 +46,18 @@ export const copyRoster = createAsyncThunk<
 
     // TODO: Use batched writes? (Firestore transactions don't work offline)
     const roster: Roster = {};
-    Object.keys(teamRoster).forEach((key) => {
+    await Promise.all(Object.keys(teamRoster).map((key) => {
       // Copies the team player to a new player object.
       const gamePlayer: Player = {
         ...teamRoster[key]
       };
       // Saves player to game roster storage, but keep the same id. This allows matching up player
       // from team roster across games.
-      persistGamePlayer(gamePlayer, gameId, false);
-      roster[gamePlayer.id] = gamePlayer;
-    });
+      return persistGamePlayer(gamePlayer, gameId, false).then(() => {
+        roster[gamePlayer.id] = gamePlayer;
+        return;
+      })
+    }));
 
     return { gameId, gameRoster: roster };
   },
@@ -118,10 +120,10 @@ export const addNewGamePlayer = (newPlayer: Player): ThunkResult => (dispatch, g
   dispatch(saveGamePlayer(newPlayer));
 };
 
-export const saveGamePlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
+export const saveGamePlayer = (newPlayer: Player): ThunkPromise<void> => async (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
   const gameId = selectCurrentGameId(getState())!;
-  persistGamePlayer(newPlayer, gameId, true);
+  await persistGamePlayer(newPlayer, gameId, true);
   dispatch(gamePlayerAdded(newPlayer));
 };
 

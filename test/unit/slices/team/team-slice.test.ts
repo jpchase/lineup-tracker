@@ -185,7 +185,10 @@ describe('Team slice', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
-        (model) => { model.id = expectedId; }
+        (model) => {
+          model.id = expectedId;
+          return Promise.resolve();
+        }
       );
 
       const inputTeam = getNewTeam();
@@ -363,7 +366,10 @@ describe('Team slice', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([team], team, { signedIn: true, userId: TEST_USER_ID });
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
-        (model) => { model.id = expectedId; }
+        (model) => {
+          model.id = expectedId;
+          return Promise.resolve();
+        }
       );
 
       const inputPlayer = getNewPlayer();
