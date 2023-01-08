@@ -3,9 +3,9 @@
   "disableOfflineDetection": true,
   "firebase": {
     "options": {
-      "apiKey": "AIzaSyBLpPCwxt2wiFEmVgEPZSsnHw8u-6EfMPI",
+      "apiKey": "unused-integration-key",
       "authDomain": "resplendent-fire-4542.firebaseapp.com",
-      "projectId": "resplendent-fire-4542"
+      "projectId": "demo-integration"
     },
     "enablePersistence": false,
     "useEmulators": true,
