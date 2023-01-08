@@ -140,33 +140,33 @@ describe('Team slice', () => {
   }); // describe('getTeams')
 
   describe('addNewTeam', () => {
-    it('should do nothing if new team is missing', () => {
+    it('should do nothing if new team is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      addNewTeam(undefined as unknown as Team)(dispatchMock, getStateMock, undefined);
+      await addNewTeam(undefined as unknown as Team)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.not.have.been.called;
 
       expect(dispatchMock).to.not.have.been.called;
     });
 
-    it('should dispatch an action to add a new team that is unique', () => {
+    it('should dispatch an action to add a new team that is unique', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([{ id: 'EX', name: 'Existing team' }]);
 
-      addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
+      await addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match.instanceOf(Function));
     });
 
-    it('should do nothing with a new team that is not unique', () => {
+    it('should do nothing with a new team that is not unique', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([newTeamSaved]);
 
-      addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
+      await addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
@@ -185,11 +185,14 @@ describe('Team slice', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
-        (model) => { model.id = expectedId; }
+        (model) => {
+          model.id = expectedId;
+          return Promise.resolve();
+        }
       );
 
       const inputTeam = getNewTeam();
-      saveTeam(inputTeam as Team)(dispatchMock, getStateMock, undefined);
+      await saveTeam(inputTeam as Team)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new team was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
@@ -207,12 +210,13 @@ describe('Team slice', () => {
       const getStateMock = sinon.stub();
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        saveTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      let rejected = false;
+      try {
+        await saveTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
+      } catch {
+        rejected = true;
+      }
+      expect(rejected, 'saveTeam should reject promise').to.be.true;
 
       expect(dispatchMock).to.not.have.been.called;
     });
@@ -363,14 +367,14 @@ describe('Team slice', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([team], team, { signedIn: true, userId: TEST_USER_ID });
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
-        (model) => { model.id = expectedId; }
+        (model) => {
+          model.id = expectedId;
+          return Promise.resolve();
+        }
       );
 
       const inputPlayer = getNewPlayer();
-      savePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      await savePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new player was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
@@ -390,12 +394,13 @@ describe('Team slice', () => {
       const getStateMock = mockGetState([], undefined);
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      let rejected = false;
+      try {
+        await savePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+      } catch {
+        rejected = true;
+      }
+      expect(rejected, 'savePlayer should reject promise').to.be.true;
 
       expect(dispatchMock).to.not.have.been.called;
     });

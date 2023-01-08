@@ -381,14 +381,14 @@ describe('Game slice: roster actions', () => {
         gameState.game = getStoredGameDetail();
       });
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
-        (model) => { model.id = expectedId; }
+        (model) => {
+          model.id = expectedId;
+          return Promise.resolve();
+        }
       );
 
       const inputPlayer = getNewPlayer();
-      actions.saveGamePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      await actions.saveGamePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new player was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
@@ -408,12 +408,13 @@ describe('Game slice: roster actions', () => {
       });
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        actions.saveGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      let rejected = false;
+      try {
+        await actions.saveGamePlayer(getNewPlayer())(dispatchMock, getStateMock, undefined);
+      } catch {
+        rejected = true;
+      }
+      expect(rejected, 'saveGamePlayer should reject promise').to.be.true;
 
       expect(dispatchMock).to.not.have.been.called;
     });

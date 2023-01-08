@@ -3,7 +3,7 @@ import { debug } from '../../common/debug.js';
 import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
 import { CollectionFilter, whereFilter } from '../../storage/firestore-reader.js';
-import { RootState, ThunkResult } from '../../store.js';
+import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { selectCurrentTeam } from '../app/app-slice.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from './team-storage.js';
@@ -46,7 +46,7 @@ export const getTeams = createAsyncThunk<
   }
 );
 
-export const addNewTeam = (newTeam: Team): ThunkResult => (dispatch, getState) => {
+export const addNewTeam = (newTeam: Team): ThunkPromise<void> => async (dispatch, getState) => {
   if (!newTeam) {
     return;
   }
@@ -62,12 +62,12 @@ export const addNewTeam = (newTeam: Team): ThunkResult => (dispatch, getState) =
       return;
     }
   }
-  dispatch(saveTeam(newTeam));
+  await dispatch(saveTeam(newTeam));
 };
 
-export const saveTeam = (newTeam: Team): ThunkResult => (dispatch, getState) => {
+export const saveTeam = (newTeam: Team): ThunkPromise<void> => async (dispatch, getState) => {
   // Save the team to Firestore, before adding to the store.
-  persistTeam(newTeam, getState());
+  await persistTeam(newTeam, getState());
   dispatch(addTeam(newTeam));
 };
 
@@ -99,10 +99,10 @@ export const addNewPlayer = (newPlayer: Player): ThunkResult => (dispatch, getSt
   dispatch(savePlayer(newPlayer));
 };
 
-export const savePlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
+export const savePlayer = (newPlayer: Player): ThunkPromise<void> => async (dispatch, getState) => {
   // Save the player to Firestore, before adding to the store.
   const teamId = selectCurrentTeam(getState())?.id!;
-  savePlayerToTeamRoster(newPlayer, teamId);
+  await savePlayerToTeamRoster(newPlayer, teamId);
   dispatch(addPlayer(newPlayer));
 };
 

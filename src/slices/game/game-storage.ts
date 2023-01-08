@@ -67,8 +67,8 @@ export function loadGameRoster(gameId: string): Promise<Roster> {
   return reader.loadCollection(buildGameRosterPath(gameId), playerConverter);
 }
 
-export function persistGamePlayer(newPlayer: Player, gameId: string, isNew: boolean) {
+export async function persistGamePlayer(newPlayer: Player, gameId: string, isNew: boolean) {
   const options: NewDocOptions = isNew ? {} : { keepExistingId: true };
-  writer.saveNewDocument(newPlayer, buildGameRosterPath(gameId), playerConverter,
+  return writer.saveNewDocument(newPlayer, buildGameRosterPath(gameId), playerConverter,
     undefined, options);
 }
