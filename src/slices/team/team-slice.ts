@@ -46,7 +46,7 @@ export const getTeams = createAsyncThunk<
   }
 );
 
-export const addNewTeam = (newTeam: Team): ThunkResult => (dispatch, getState) => {
+export const addNewTeam = (newTeam: Team): ThunkPromise<void> => async (dispatch, getState) => {
   if (!newTeam) {
     return;
   }
@@ -62,7 +62,7 @@ export const addNewTeam = (newTeam: Team): ThunkResult => (dispatch, getState) =
       return;
     }
   }
-  dispatch(saveTeam(newTeam));
+  await dispatch(saveTeam(newTeam));
 };
 
 export const saveTeam = (newTeam: Team): ThunkPromise<void> => async (dispatch, getState) => {

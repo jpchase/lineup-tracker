@@ -140,33 +140,33 @@ describe('Team slice', () => {
   }); // describe('getTeams')
 
   describe('addNewTeam', () => {
-    it('should do nothing if new team is missing', () => {
+    it('should do nothing if new team is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
-      addNewTeam(undefined as unknown as Team)(dispatchMock, getStateMock, undefined);
+      await addNewTeam(undefined as unknown as Team)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.not.have.been.called;
 
       expect(dispatchMock).to.not.have.been.called;
     });
 
-    it('should dispatch an action to add a new team that is unique', () => {
+    it('should dispatch an action to add a new team that is unique', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([{ id: 'EX', name: 'Existing team' }]);
 
-      addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
+      await addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 
       expect(dispatchMock).to.have.been.calledWith(sinon.match.instanceOf(Function));
     });
 
-    it('should do nothing with a new team that is not unique', () => {
+    it('should do nothing with a new team that is not unique', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([newTeamSaved]);
 
-      addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
+      await addNewTeam(getNewTeam() as Team)(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.have.been.called;
 

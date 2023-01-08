@@ -52,7 +52,9 @@ export class GameCreatePage extends PageObject {
       return saveButton;
     })()`) as ElementHandle;
     await buttonHandle.click();
-    await this.page.waitForTimeout(3000);
+    this.log(`game create button clicked`);
+    await this.page.waitForTimeout(3500);
+    this.log(`wait for team create finished`);
   }
 
   async getGameId(game: Game) {
