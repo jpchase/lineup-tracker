@@ -598,7 +598,7 @@ describe('Game slice', () => {
       );
 
       const inputGame = getNewGameMetadata();
-      saveGame(inputGame as Game)(dispatchMock, getStateMock, undefined);
+      await saveGame(inputGame as Game)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new game was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
@@ -618,12 +618,13 @@ describe('Game slice', () => {
 
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
-      expect(() => {
-        saveGame(getNewGameMetadata() as Game)(dispatchMock, getStateMock, undefined);
-      }).to.throw('Storage failed');
-
-      // Waits for promises to resolve.
-      await Promise.resolve();
+      let rejected = false;
+      try {
+        await saveGame(getNewGameMetadata() as Game)(dispatchMock, getStateMock, undefined);
+      } catch {
+        rejected = true;
+      }
+      expect(rejected, 'saveGame should reject promise').to.be.true;
 
       expect(dispatchMock).to.not.have.been.called;
     });
