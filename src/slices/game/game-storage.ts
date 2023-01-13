@@ -51,8 +51,8 @@ export function loadGames(teamId: string, currentUserId?: string): Promise<Games
     whereFilter(FIELD_TEAMID, '==', teamId));
 }
 
-export function persistNewGame(newGame: Game, state: RootState) {
-  writer.saveNewDocument(newGame, KEY_GAMES, undefined, state, { addTeamId: true, addUserId: true });
+export async function persistNewGame(newGame: Game, state: RootState) {
+  return writer.saveNewDocument(newGame, KEY_GAMES, undefined, state, { addTeamId: true, addUserId: true });
 }
 
 export function updateExistingGame(gameId: string, game: Partial<Game>) {

@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Game, GameDetail, Games, GameStatus } from '../../models/game.js';
-import { RootState, ThunkResult } from '../../store.js';
+import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { GamePayload } from './game-action-types.js';
@@ -105,11 +105,11 @@ export const addNewGame = (newGame: Game): ThunkResult => (dispatch, getState) =
 };
 
 // Saves the new game in local storage, before adding to the store
-export const saveGame = (newGame: Game): ThunkResult => (dispatch, getState) => {
+export const saveGame = (newGame: Game): ThunkPromise<void> => async (dispatch, getState) => {
   if (!newGame.status) {
     newGame.status = GameStatus.New;
   }
-  persistNewGame(newGame, getState());
+  await persistNewGame(newGame, getState());
   dispatch(addGame(newGame));
 };
 
