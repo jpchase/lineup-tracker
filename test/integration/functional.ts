@@ -2,18 +2,10 @@ import { expect } from 'chai';
 import { integrationTestData } from './data/integration-data-constants.js';
 import { PageObject } from './pages/page-object.js';
 import { TeamCreatePage } from './pages/team-create-page.js';
-import { DevServer, startTestServer } from './server/test-server.js';
 // import { TeamRosterPage } from './pages/team-roster-page';
 
 describe('functional tests', function () {
-  let server: DevServer;
   let pageObject: PageObject;
-
-  before(async function () {
-    server = await startTestServer();
-  });
-
-  after(async () => server.stop());
 
   afterEach(async () => {
     await pageObject?.close();
