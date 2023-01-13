@@ -5,7 +5,7 @@ import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 import { logWithTime, OpenOptions, PageObject } from './pages/page-object.js';
 import { createScreenshotDirectories, getAllVisualPages } from './pages/visual-page-factory.js';
-import { config, DevServer, startTestServer } from './server/test-server.js';
+import { config } from './server/test-server.js';
 
 function getBaselineFile(view: string) {
   return path.join(config.baselineDir, `${view}.png`);
@@ -16,17 +16,12 @@ function getCurrentFile(view: string) {
 }
 
 describe('👀 page screenshots are correct', function () {
-  let server: DevServer;
   let pageObject: PageObject;
 
   before(async function () {
-    server = await startTestServer();
-
     // Create the test directories if needed.
     createScreenshotDirectories('current');
   });
-
-  after(async () => await server.stop());
 
   afterEach(async () => {
     await pageObject?.close();

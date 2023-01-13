@@ -5,18 +5,10 @@ import { integrationTestData } from './data/integration-data-constants.js';
 import { GameCreatePage } from './pages/game-create-page.js';
 import { GameRosterPage } from './pages/game-roster-page.js';
 import { PageObject } from './pages/page-object.js';
-import { DevServer, startTestServer } from './server/test-server.js';
 const { nanoid } = rtk;
 
 describe('Game functional tests', function () {
-  let server: DevServer;
   let pageObject: PageObject;
-
-  before(async function () {
-    server = await startTestServer();
-  });
-
-  after(async () => server.stop());
 
   afterEach(async () => {
     await pageObject?.close();

@@ -19,7 +19,7 @@ const authRef = getAuth(firebaseApp);
 if (env.firebase.useEmulators && env.firebase.emulators) {
   // Connect to the emulators, instead of the actual services.
   debugFirebase('Use the Firebase emulators');
-  const emulators = env.firebase.emulators
+  const emulators = env.firebase.emulators;
   connectFirestoreEmulator(firestore, emulators.firestore.hostname, emulators.firestore.port);
   connectAuthEmulator(authRef, `http://${emulators.auth.hostname}:${emulators.auth.port}/`, { disableWarnings: true });
 }
@@ -31,12 +31,12 @@ if (env.firebase.enablePersistence) {
         // Multiple tabs open, persistence can only be enabled
         // in one tab at a a time.
         // ...
-        console.log('Multiple tabs open, offline storage not available');
+        debugFirebase('Multiple tabs open, offline storage not available');
       } else if (err.code == 'unimplemented') {
         // The current browser does not support all of the
         // features required to enable persistence
         // ...
-        console.log('Offline storage not supported');
+        debugFirebase('Offline storage not supported');
       }
     });
 }
