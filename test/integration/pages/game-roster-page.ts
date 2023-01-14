@@ -40,7 +40,6 @@ export class GameRosterPage extends PageObject {
       throw new Error('Copy roster button not found');
     }
     await buttonHandle.click();
-    // TODO: Check for spinner/loading, instead of just waiting for arbitrary amount of time.
-    await this.page.waitForTimeout(3000);
+    await this.waitForViewReady();
   }
 }

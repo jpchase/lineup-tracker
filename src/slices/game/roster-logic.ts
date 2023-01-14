@@ -92,8 +92,9 @@ export const rosterCopiedHandler = (state: GameState, action: PayloadAction<Rost
       roster[player.id] = player;
     });
     state.game!.roster = roster;
-    // TODO: Ensure games state has latest game detail
-    // newState.games[action.game.id] = gameWithRoster;
+    const game = state.games[action.payload.gameId] as GameDetail;
+    game.hasDetail = true;
+    game.roster = roster;
   }
 
   state.rosterFailure = false;
