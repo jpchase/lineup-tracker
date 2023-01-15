@@ -1,6 +1,6 @@
 import '@material/mwc-button';
 import '@material/mwc-circular-progress';
-import { html, nothing, PropertyValues } from 'lit';
+import { html, LitElement, nothing, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { connectStore } from '../middleware/connect-mixin';
@@ -10,7 +10,7 @@ import { getGameStore } from '../slices/game-store.js';
 import { addNewGamePlayer, copyRoster, getGame, selectGameById, selectGameRosterLoading } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-roster.js';
-import { PageViewElement } from './page-view-element.js';
+import { PageViewMixin } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 // Expose action for use in loading view.
@@ -18,7 +18,7 @@ export { getGame } from '../slices/game/game-slice.js';
 
 // This element is connected to the Redux store.
 @customElement('lineup-view-game-roster')
-export class LineupViewGameRoster extends connectStore()(PageViewElement) {
+export class LineupViewGameRoster extends connectStore()(PageViewMixin(LitElement)) {
   // TODO: Extract common logic (duplicated from LineupViewGameDetail)
   override render() {
     let gameExists = false;
@@ -84,9 +84,6 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
   @property({ type: String })
   gameId?: string;
 
-  @property({ type: Boolean, reflect: true })
-  ready = false;
-
   @state()
   private game?: GameDetail;
 
@@ -109,6 +106,7 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
   }
 
   override willUpdate(changedProperties: PropertyValues<this>) {
+    super.willUpdate(changedProperties);
     if (changedProperties.has('gameId')) {
       this.resetData();
       if (this.gameId) {
@@ -116,17 +114,17 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
       }
       return;
     }
-    if (!this.ready && this.gameLoaded && !this._copyingInProgress) {
-      this.ready = true;
-    }
   }
 
-  private resetData() {
-    this.ready = false;
+  protected override resetDataProperties() {
     this.gameLoaded = false;
     this.game = undefined;
     this._roster = {};
     this._copyingInProgress = false;
+  }
+
+  protected override isDataReady() {
+    return this.gameLoaded && !this._copyingInProgress;
   }
 
   private _copyTeamRoster(e: Event) {
