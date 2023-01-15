@@ -13,7 +13,6 @@ import './lineup-roster.js';
 import { PageViewMixin } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
-
 // This element is connected to the Redux store.
 @customElement('lineup-view-game-roster')
 export class LineupViewGameRoster extends connectStore()(PageViewMixin(LitElement)) {

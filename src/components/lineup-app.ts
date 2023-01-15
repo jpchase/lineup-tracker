@@ -16,7 +16,6 @@ import { User } from '../models/auth';
 import { Team, Teams } from '../models/team.js';
 import { currentTeamChanged, offlineChanged, selectCurrentTeam, updateDrawerState, updatePage } from '../slices/app/app-slice.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
-import { getGameStore } from '../slices/game-store.js';
 import { getTeams, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
@@ -338,14 +337,11 @@ export class LineupApp extends connect(store)(LitElement) {
     },
     {
       name: 'game', path: '/game/:gameId',
-      render: () => html`<lineup-view-game-detail class="page" active></lineup-view-game-detail>`,
+      render: ({ gameId }) => html`<lineup-view-game-detail gameId="${ifDefined(gameId)}" class="page" active></lineup-view-game-detail>`,
       enter: async ({ gameId }) => {
-        const detailModule = await import('./lineup-view-game-detail.js');
-        // Fetch the data for the given game id.
+        await import('./lineup-view-game-detail.js');
         console.log(`loading game detail page for ${gameId}`);
-        getGameStore(store);
-        await store.dispatch(detailModule.getGame(gameId!));
-        return this.navigateToPage('game')
+        return this.navigateToPage('game');
       },
     },
     {
@@ -354,7 +350,7 @@ export class LineupApp extends connect(store)(LitElement) {
       enter: async ({ gameId }) => {
         await import('./lineup-view-game-roster.js');
         console.log(`loading game roster page for ${gameId}`);
-        return this.navigateToPage('gameroster')
+        return this.navigateToPage('gameroster');
       },
     },
     {

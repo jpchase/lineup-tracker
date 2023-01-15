@@ -1,15 +1,16 @@
-import { LineupViewGameDetail } from '@app/components/lineup-view-game-detail';
+import { LineupViewGameDetail } from '@app/components/lineup-view-game-detail.js';
 import '@app/components/lineup-view-game-detail.js';
-import { GameDetail, GameStatus } from '@app/models/game';
+import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame } from '@app/models/live.js';
-import { getGameStoreConfigurator } from '@app/slices/game-store';
-import { RootState, setupStore } from '@app/store';
+import { getGameStoreConfigurator } from '@app/slices/game-store.js';
+import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import * as testlive from '../helpers/test-live-game-data.js';
-import { buildRoster, getNewGameDetail } from '../helpers/test_data';
+import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
 
 function getGameDetail(): { game: GameDetail, live: LiveGame } {
   const live = testlive.getLiveGameWithPlayers();
@@ -20,10 +21,10 @@ function getGameDetail(): { game: GameDetail, live: LiveGame } {
 describe('lineup-view-game-detail tests', () => {
   let el: LineupViewGameDetail;
 
-  async function setupElement(preloadedState?: RootState) {
+  async function setupElement(preloadedState?: RootState, gameId?: string) {
     const store = setupStore(preloadedState);
 
-    const template = html`<lineup-view-game-detail active .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-view-game-detail>`;
+    const template = html`<lineup-view-game-detail gameId="${ifDefined(gameId)}" active .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-view-game-detail>`;
     el = await fixture(template);
   }
 
@@ -51,7 +52,7 @@ describe('lineup-view-game-detail tests', () => {
     const gameState = buildGameStateWithCurrentGame(game);
     const liveState = buildLiveStateWithCurrentGame(live);
 
-    await setupElement(buildRootState(gameState, liveState));
+    await setupElement(buildRootState(gameState, liveState), game.id);
     await el.updateComplete;
 
     const gameSetupElement = el.shadowRoot!.querySelector('section lineup-game-setup');
@@ -67,7 +68,7 @@ describe('lineup-view-game-detail tests', () => {
     const gameState = buildGameStateWithCurrentGame(game);
     const liveState = buildLiveStateWithCurrentGame(live);
 
-    await setupElement(buildRootState(gameState, liveState));
+    await setupElement(buildRootState(gameState, liveState), game.id);
 
     const liveElement = el.shadowRoot!.querySelector('section lineup-game-live');
     expect(liveElement, 'Live element should be shown').to.be.ok;
