@@ -1,6 +1,6 @@
 import '@material/mwc-button';
 import '@material/mwc-circular-progress';
-import { html, LitElement, nothing, PropertyValues } from 'lit';
+import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { connectStore } from '../middleware/connect-mixin';
@@ -13,8 +13,6 @@ import './lineup-roster.js';
 import { PageViewMixin } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
-// Expose action for use in loading view.
-export { getGame } from '../slices/game/game-slice.js';
 
 // This element is connected to the Redux store.
 @customElement('lineup-view-game-roster')
@@ -105,14 +103,11 @@ export class LineupViewGameRoster extends connectStore()(PageViewMixin(LitElemen
     this._copyingInProgress = !!selectGameRosterLoading(state);
   }
 
-  override willUpdate(changedProperties: PropertyValues<this>) {
-    super.willUpdate(changedProperties);
-    if (changedProperties.has('gameId')) {
-      this.resetData();
-      if (this.gameId) {
-        this.dispatch(getGame(this.gameId));
-      }
-      return;
+  protected override keyPropertyName = 'gameId';
+
+  protected override loadData() {
+    if (this.gameId) {
+      this.dispatch(getGame(this.gameId));
     }
   }
 
