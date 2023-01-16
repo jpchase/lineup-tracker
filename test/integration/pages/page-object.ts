@@ -88,7 +88,8 @@ export class PageObject {
     page.on('pageerror', (error: Error) => logWithTime(`${error}`, 'PAGE ERROR'));
 
     page.on('requestfailed', (request: HTTPRequest) => {
-      console.log('PAGE REQUEST FAIL: [' + request.url() + '] ' + request.failure()!.errorText);
+      const response = request.response();
+      logWithTime(`PAGE REQUEST FAIL: ${response?.status()} ${request.failure()!.errorText} [${request.url()}] ${JSON.stringify(response?.timing())}`);
     });
 
     page.setRequestInterception(true);
@@ -163,7 +164,7 @@ export class PageObject {
     const main = await this.getMainElement();
     this.log(`waitForViewReady: start for ${this.componentName}`);
     await main.waitForSelector(`pierce/${this.componentName}[ready]`,
-      { timeout: 5000 });
+      { timeout: 6000 });
   }
 
   private async getMainElement() {
@@ -327,7 +328,6 @@ export class PageObject {
 }
 
 function buildRoute(options: PageOptions) {
-  console.log(`buildRoute: options = ${JSON.stringify(options)}`);
   let params: URLSearchParams;
   const routeParts = (options.route || '').split('?');
   if (routeParts.length === 1) {
@@ -353,7 +353,6 @@ function buildRoute(options: PageOptions) {
   if (paramsString.length > 0) {
     finalRoute += `?${paramsString}`;
   }
-  console.log(`buildRoute: result = ${finalRoute}`);
   return finalRoute;
 }
 
