@@ -4,6 +4,7 @@ import '@app/components/lineup-game-setup.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
 import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { LineupPlayerList } from '@app/components/lineup-player-list';
+import { PageRouter } from '@app/components/page-router.js';
 import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares';
 import { FormationBuilder, FormationType, getPositions } from '@app/models/formation';
 import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
@@ -18,6 +19,7 @@ import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
+import { mockPageRouter } from '../helpers/mock-page-router.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
 
@@ -115,12 +117,21 @@ describe('lineup-game-setup tests', () => {
     removeMiddleware(actionLoggerMiddleware);
   });
 
-  async function setupElement(preloadedState?: RootState) {
+  async function setupElement(preloadedState?: RootState): Promise<PageRouter> {
     const store = setupStore(preloadedState);
 
+    const mockRouter = {
+      gotoPage: () => {
+        // No-op, meant to be spied.
+        return Promise.resolve();
+      }
+    }
+    const parentNode = document.createElement('div');
+    mockPageRouter(parentNode, mockRouter);
     const template = html`<lineup-game-setup .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-setup>`;
-    el = await fixture(template);
+    el = await fixture(template, { parentNode });
     dispatchStub = sinon.spy(el, 'dispatch');
+    return mockRouter;
   }
 
   function getStore() {
@@ -308,18 +319,27 @@ describe('lineup-game-setup tests', () => {
     for (const stepTest of stepTests) {
       const stepName = SetupSteps[stepTest.step];
       describe(stepName, () => {
+        let pageRouterSpy: sinon.SinonSpy;
+        let gameId: string;
 
         beforeEach(async () => {
           const newGame = getGameDetail();
           expect(newGame.status).to.equal(GameStatus.New);
+
+          gameId = newGame.id;
 
           const gameState = buildGameStateWithCurrentGame(newGame);
 
           // Sets up the current step as active.
           const liveState = buildLiveStateWithTasks(newGame, stepTest.step - 1);
 
-          await setupElement(buildRootState(gameState, liveState));
+          const mockRouter = await setupElement(buildRootState(gameState, liveState));
+          pageRouterSpy = sinon.spy(mockRouter, 'gotoPage');
           await el.updateComplete;
+        });
+
+        afterEach(() => {
+          pageRouterSpy?.restore();
         });
 
         it('perform handler fires only when active', async () => {
@@ -346,8 +366,7 @@ describe('lineup-game-setup tests', () => {
           } else if (stepTest.step === SetupSteps.Roster) {
             // Verifies that it navigated to the roster page.
             await el.updateComplete;
-            // TODO: Verify param to dispatch call when it's a simple action instead of a thunk.
-            expect(dispatchStub).to.have.callCount(1);
+            expect(pageRouterSpy).to.be.calledOnceWith(`/gameroster/${gameId}`);
           } else {
             // Other steps should do nothing (they don't have an href on the link).
             expect(dispatchStub).to.not.have.been.called;

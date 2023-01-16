@@ -1,7 +1,4 @@
-/**
-@license
-*/
-
+import { contextProvided } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement, nothing } from 'lit';
@@ -12,7 +9,6 @@ import { connectStore } from '../middleware/connect-mixin';
 import { FormationBuilder, FormationMetadata, formatPosition, Position } from '../models/formation';
 import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '../models/game.js';
 import { LivePlayer } from '../models/live.js';
-import { navigate } from '../slices/app/app-slice.js';
 import { getGameStore } from '../slices/game-store';
 import { gameSetupCompletedCreator } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store';
@@ -25,6 +21,7 @@ import {
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-on-player-list';
 import './lineup-player-list';
+import { PageRouter, pageRouterContext } from './page-router.js';
 import { SharedStyles } from './shared-styles';
 
 function getStepName(step: SetupSteps): string {
@@ -202,6 +199,10 @@ export class LineupGameSetup extends connectStore()(LitElement) {
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getLiveStore;
 
+  @contextProvided({ context: pageRouterContext, subscribe: true })
+  @property({ attribute: false })
+  pageRouter!: PageRouter;
+
   @state()
   private game: GameDetail | undefined;
 
@@ -276,8 +277,8 @@ export class LineupGameSetup extends connectStore()(LitElement) {
           break;
 
         case SetupSteps.Roster:
-          window.history.pushState({}, '', `/gameroster/${this.game!.id}`);
-          this.dispatch(navigate(window.location));
+          // TODO: Pass page and params separately
+          this.pageRouter.gotoPage(`/gameroster/${this.game!.id}`);
           break;
 
         default:

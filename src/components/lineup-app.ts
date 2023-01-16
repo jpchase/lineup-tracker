@@ -1,3 +1,5 @@
+import { ContextProvider } from '@lit-labs/context';
+import { BaseRouteConfig, RouteConfig, Router } from '@lit-labs/router';
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
@@ -12,14 +14,15 @@ import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { User } from '../models/auth';
 import { Team, Teams } from '../models/team.js';
-import { currentTeamChanged, navigate, offlineChanged, selectCurrentTeam, updateDrawerState } from '../slices/app/app-slice.js';
+import { currentTeamChanged, offlineChanged, selectCurrentTeam, updateDrawerState, updatePage } from '../slices/app/app-slice.js';
 import { auth, signIn } from '../slices/auth/auth-slice.js';
-import { selectTeamsLoaded, team, getTeams } from '../slices/team/team-slice.js';
+import { getTeams, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store';
 import { accountIcon } from './lineup-icons';
 import './lineup-team-selector-dialog.js';
 import { TeamChangedEvent } from './lineup-team-selector-dialog.js';
 import './lineup-team-selector.js';
+import { pageRouterContext } from './page-router.js';
 import './snack-bar';
 
 // Lazy load the reducers.
@@ -267,13 +270,7 @@ export class LineupApp extends connect(store)(LitElement) {
         </mwc-top-app-bar>
         <!-- Main content -->
         <main role="main" class="main-content ${classMap(mainClasses)}" data-teams-loaded="${this.teamsLoaded}">
-          <lineup-view-home class="page" ?active="${this._page === 'viewHome'}"></lineup-view-home>
-          <lineup-view-games class="page" ?active="${this._page === 'viewGames'}"></lineup-view-games>
-          <lineup-view-game-detail class="page" ?active="${this._page === 'game'}"></lineup-view-game-detail>
-          <lineup-view-game-roster class="page" ?active="${this._page === 'gameroster'}"></lineup-view-game-roster>
-          <lineup-view-roster class="page" ?active="${this._page === 'viewRoster'}"></lineup-view-roster>
-          <lineup-view-team-create class="page" ?active="${this._page === 'addNewTeam'}"></lineup-view-team-create>
-          <lineup-view404 class="page" ?active="${this._page === 'view404'}"></lineup-view404>
+          ${this.router.outlet()}
         </main>
 
         <!--
@@ -328,6 +325,89 @@ export class LineupApp extends connect(store)(LitElement) {
     'addNewTeam': { page: 'addNewTeam', label: 'New Team' },
     'view404': { page: 'view404', label: 'Page not found' },
   };
+
+  private routes: RouteConfig[] = [
+    {
+      name: 'viewGames', path: '/viewGames',
+      render: () => html`<lineup-view-games class="page" active></lineup-view-games>`,
+      enter: async () => {
+        await import('./lineup-view-games.js');
+        return this.navigateToPage('viewGames');
+      }
+    },
+    {
+      name: 'game', path: '/game/:gameId',
+      render: ({ gameId }) => html`<lineup-view-game-detail gameId="${ifDefined(gameId)}" class="page" active></lineup-view-game-detail>`,
+      enter: async ({ gameId }) => {
+        await import('./lineup-view-game-detail.js');
+        console.log(`loading game detail page for ${gameId}`);
+        return this.navigateToPage('game');
+      },
+    },
+    {
+      name: 'gameroster', path: '/gameroster/:gameId',
+      render: ({ gameId }) => html`<lineup-view-game-roster gameId="${ifDefined(gameId)}" class="page" active></lineup-view-game-roster>`,
+      enter: async ({ gameId }) => {
+        await import('./lineup-view-game-roster.js');
+        console.log(`loading game roster page for ${gameId}`);
+        return this.navigateToPage('gameroster');
+      },
+    },
+    {
+      name: 'viewRoster', path: '/viewRoster',
+      render: () => html`<lineup-view-roster class="page" active></lineup-view-roster>`,
+      enter: async () => {
+        await import('./lineup-view-roster.js');
+        return this.navigateToPage('viewRoster');
+      }
+    },
+    {
+      name: 'addNewTeam', path: '/addNewTeam',
+      render: () => html`<lineup-view-team-create class="page" active></lineup-view-team-create>`,
+      enter: async () => {
+        await import('./lineup-view-team-create.js');
+        return this.navigateToPage('addNewTeam');
+      }
+    },
+    {
+      // TODO: Figure out typing for URLPattern
+      // @ts-expect-error
+      name: 'viewHome', pattern: new URLPattern({ pathname: '/{viewHome}?' }),
+      render: () => html`<lineup-view-home class="page" active></lineup-view-home>`,
+      enter: async () => {
+        await import('./lineup-view-home.js');
+        return this.navigateToPage('viewHome');
+      }
+    },
+  ];
+
+  private fallbackRoute: BaseRouteConfig = {
+    name: 'view404',
+    render: () => html`<lineup-view404 class="page" active></lineup-view404>`,
+    enter: async () => {
+      await import('./lineup-view404.js');
+      return this.navigateToPage('view404');
+    }
+  };
+
+  private router = new Router(this, this.routes, { fallback: this.fallbackRoute });
+
+  protected pageRouter = new ContextProvider(this, pageRouterContext, {
+    gotoPage: async (pathname) => {
+      window.history.pushState({}, '', pathname);
+      await this.router.goto(pathname);
+    }
+  });
+
+  private navigateToPage(page: string) {
+    console.log(`navigateToPage: page = ${page}, location  = ${location.href}, router params = ${JSON.stringify(this.router.params)}`);
+
+    store.dispatch(updatePage(page));
+
+    // Close the drawer - in case the *path* change came from a link in the drawer.
+    store.dispatch(updateDrawerState(false));
+    return true;
+  }
 
   @property({ type: Boolean })
   private _authInitialized = true;
@@ -400,8 +480,7 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   private addNewTeam() {
-    window.history.pushState({}, '', `/addNewTeam`);
-    store.dispatch(navigate(window.location));
+    this.pageRouter.value.gotoPage(`/addNewTeam`);
   }
 
   override stateChanged(state: RootState) {

@@ -1,5 +1,5 @@
 import '@material/mwc-fab';
-import { html, PropertyValues } from 'lit';
+import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { debug } from '../common/debug.js';
 import { connectStore } from '../middleware/connect-mixin.js';
@@ -62,9 +62,6 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
   @state()
   private _games: Games = {};
 
-  @property({ type: Boolean, reflect: true })
-  ready = false;
-
   private gamesLoaded = false;
 
   private _addButtonClicked() {
@@ -84,32 +81,28 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
   // This is called every time something is updated in the store.
   override stateChanged(state: RootState) {
     const currentTeam = selectCurrentTeam(state);
+    this.teamId = currentTeam?.id;
     if (!currentTeam || !state.game) {
-      if (this.ready) {
-        this.resetData();
-      }
-      return;
-    }
-    if (this.teamId !== currentTeam.id) {
-      this.resetData();
-      this.teamId = currentTeam.id;
-      this.dispatch(getGames(this.teamId));
       return;
     }
     this._games = state.game.games;
     this.gamesLoaded = (Object.keys(this._games).length > 0);
   }
 
-  override willUpdate(_changedProperties: PropertyValues<this>) {
-    if (!this.ready && this.gamesLoaded) {
-      this.ready = true;
+  protected override keyPropertyName = 'teamId';
+
+  protected override loadData() {
+    if (this.teamId) {
+      this.dispatch(getGames(this.teamId));
     }
   }
 
-  private resetData() {
-    this.ready = false;
+  protected override resetDataProperties() {
     this.gamesLoaded = false;
-    this.teamId = undefined;
     this._games = {};
+  }
+
+  protected override isDataReady() {
+    return this.gamesLoaded;
   }
 }

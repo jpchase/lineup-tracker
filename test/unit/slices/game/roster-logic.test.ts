@@ -7,9 +7,10 @@ import { writer } from '@app/storage/firestore-writer.js';
 import { RootState } from '@app/store';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildGameStateWithCurrentGame, buildInitialGameState } from '../../helpers/game-state-setup.js';
 import {
   buildGames, buildRoster, getMockAuthState,
-  getNewGame, getNewGameDetail,
+  getNewGameDetail,
   getNewPlayer, getNewPlayerData,
   getOtherStoredPlayer,
   getStoredGame, getStoredPlayer, STORED_GAME_ID
@@ -73,24 +74,13 @@ describe('Game slice: roster actions', () => {
       .resolves(roster);
   }
 
-  function initCurrentState(currentGame?: Game) {
-    const state = {
-      ...GAME_INITIAL_STATE
-    };
-
-    if (currentGame) {
-      state.game = {
-        ...currentGame,
-        hasDetail: true,
-        roster: {}
-      }
-    }
-    return state;
-  }
-
   describe('copyRoster', () => {
     let currentState: GameState;
-    let currentGame = getNewGame();
+    let currentGame: GameDetail;
+
+    beforeEach(() => {
+      currentGame = getNewGameDetail();
+    })
 
     it('should do nothing if game id is missing', async () => {
       const dispatchMock = sinon.stub();
@@ -104,7 +94,7 @@ describe('Game slice: roster actions', () => {
     });
 
     it('should set copying flag', () => {
-      currentState = initCurrentState();
+      currentState = buildInitialGameState();
       const gameId = 'agameid';
       const newState = gameReducer(currentState, {
         type: copyRoster.pending.type,
@@ -142,7 +132,7 @@ describe('Game slice: roster actions', () => {
     });
 
     it('should update only flags when roster already set', () => {
-      currentState = initCurrentState(currentGame);
+      currentState = buildGameStateWithCurrentGame(currentGame);
       currentState.rosterLoading = true;
       currentState.game!.roster = buildRoster([getStoredPlayer()]);
 
@@ -243,10 +233,10 @@ describe('Game slice: roster actions', () => {
     });
 
     it('should set roster and update flags', () => {
-      currentState = initCurrentState(currentGame);
+      currentState = buildGameStateWithCurrentGame(currentGame);
       const rosterPlayers = [getStoredPlayer()];
 
-      expect(currentState.game!.roster).to.deep.equal({});
+      expect(Object.keys(currentState.game!.roster), 'roster should initially be empty').to.be.empty;
 
       const newState = gameReducer(currentState, {
         type: copyRoster.fulfilled.type,
@@ -308,7 +298,7 @@ describe('Game slice: roster actions', () => {
     });
 
     it('should set failure flag and error message', () => {
-      currentState = initCurrentState();
+      currentState = buildInitialGameState();
 
       const newState = gameReducer(currentState, {
         type: copyRoster.rejected.type,

@@ -1,4 +1,4 @@
-import { PageObject, PageOptions } from './page-object.js';
+import { PageObject, PageOpenFunction, PageOptions } from './page-object.js';
 
 export class GameDetailPage extends PageObject {
 
@@ -8,6 +8,12 @@ export class GameDetailPage extends PageObject {
       scenarioName: 'viewGameDetail',
       route: `game/${options.gameId}`
     });
+  }
+
+  protected override get openFunc(): PageOpenFunction | undefined {
+    return async () => {
+      await this.page.waitForTimeout(2000);
+    }
   }
 
 }

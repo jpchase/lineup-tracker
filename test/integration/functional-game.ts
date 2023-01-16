@@ -50,9 +50,6 @@ describe('Game functional tests', function () {
     await gameRosterPage.init();
     await gameRosterPage.open({ signIn: true });
 
-    // TODO: Implement waiting for view to be loaded/rendered
-    await gameRosterPage.page.waitForTimeout(500);
-
     // Verify that the game roster is initially empty.
     const emptyPlayers = await gameRosterPage.getPlayers();
     expect(emptyPlayers, 'Game should not have any players').to.be.empty;
