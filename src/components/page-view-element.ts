@@ -80,12 +80,4 @@ export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof
   return PageViewClass as unknown as Constructor<PageViewInterface> & T;
 }
 
-export class PageViewElement extends LitElement {
-  // Only render this page if it's actually visible.
-  override shouldUpdate() {
-    return this.active;
-  }
-
-  @property({ type: Boolean })
-  active = false;
-}
+export const PageViewElement = PageViewMixin(LitElement);

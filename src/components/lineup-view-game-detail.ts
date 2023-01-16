@@ -1,5 +1,5 @@
 import '@material/mwc-button';
-import { html, LitElement } from 'lit';
+import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { connectStore } from '../middleware/connect-mixin';
@@ -9,11 +9,11 @@ import { getGame, selectGameById } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-game-live';
 import './lineup-game-setup';
-import { PageViewMixin } from './page-view-element.js';
+import { PageViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles';
 
 @customElement('lineup-view-game-detail')
-export class LineupViewGameDetail extends connectStore()(PageViewMixin(LitElement)) {
+export class LineupViewGameDetail extends connectStore()(PageViewElement) {
   private _getDetailContent(game: GameDetail) {
     if (game.status === GameStatus.Done) {
       // Completed game

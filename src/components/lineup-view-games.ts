@@ -1,5 +1,5 @@
 import '@material/mwc-fab';
-import { html, LitElement } from 'lit';
+import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { debug } from '../common/debug.js';
 import { connectStore } from '../middleware/connect-mixin.js';
@@ -10,14 +10,14 @@ import { addNewGame, getGames } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-create.js';
 import './lineup-game-list.js';
-import { PageViewMixin } from './page-view-element.js';
+import { PageViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 const debugGames = debug('view-games');
 
 // This element is connected to the Redux store.
 @customElement('lineup-view-games')
-export class LineupViewGames extends connectStore()(PageViewMixin(LitElement)) {
+export class LineupViewGames extends connectStore()(PageViewElement) {
   override render() {
     return html`
       ${SharedStyles}

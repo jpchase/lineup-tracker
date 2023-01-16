@@ -1,6 +1,6 @@
 import '@material/mwc-button';
 import '@material/mwc-circular-progress';
-import { html, LitElement, nothing } from 'lit';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { connectStore } from '../middleware/connect-mixin';
@@ -10,12 +10,12 @@ import { getGameStore } from '../slices/game-store.js';
 import { addNewGamePlayer, copyRoster, getGame, selectGameById, selectGameRosterLoading } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-roster.js';
-import { PageViewMixin } from './page-view-element.js';
+import { PageViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 // This element is connected to the Redux store.
 @customElement('lineup-view-game-roster')
-export class LineupViewGameRoster extends connectStore()(PageViewMixin(LitElement)) {
+export class LineupViewGameRoster extends connectStore()(PageViewElement) {
   // TODO: Extract common logic (duplicated from LineupViewGameDetail)
   override render() {
     let gameExists = false;
