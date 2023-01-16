@@ -3,7 +3,6 @@ import { BaseRouteConfig, RouteConfig, Router } from '@lit-labs/router';
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
-import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -423,13 +422,6 @@ export class LineupApp extends connect(store)(LitElement) {
 
   @state()
   private teamsLoaded = false;
-
-  constructor() {
-    super();
-    // To force all event listeners for gestures to be passive.
-    // See https://www.polymer-project.org/3.0/docs/devguide/settings#setting-passive-touch-gestures
-    setPassiveTouchGestures(true);
-  }
 
   override firstUpdated() {
     installOfflineWatcher((offline) => store.dispatch(offlineChanged(offline)));
