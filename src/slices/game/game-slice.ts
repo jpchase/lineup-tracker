@@ -136,8 +136,11 @@ export const gameCompletedCreator = (gameId: string): ThunkResult => (dispatch) 
 };
 
 export interface GameState {
+  //TODO: get rid of this, most remaining references are in tests
   gameId: string;
+  //TODO: get rid of this, most remaining references are in tests
   game?: GameDetail;
+  //TODO: Make this GameDetail's to avoid casting?
   games: Games;
   detailLoading: boolean;
   detailFailure: boolean;
