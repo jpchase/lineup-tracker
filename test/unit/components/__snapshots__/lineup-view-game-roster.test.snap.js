@@ -41,3 +41,12 @@ snapshots["lineup-view-game-roster tests shows player list when game roster is n
 `;
 /* end snapshot lineup-view-game-roster tests shows player list when game roster is not empty */
 
+snapshots["lineup-view-game-roster tests shows no game placeholder when not signed in"] = 
+`<section>
+  <p class="empty-list">
+    Game not found.
+  </p>
+</section>
+`;
+/* end snapshot lineup-view-game-roster tests shows no game placeholder when not signed in */
+

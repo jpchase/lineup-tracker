@@ -10,12 +10,20 @@ import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import * as testlive from '../helpers/test-live-game-data.js';
-import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
+import { buildRoster, getMockAuthState, getNewGameDetail, TEST_USER_ID } from '../helpers/test_data.js';
 
 function getGameDetail(): { game: GameDetail, live: LiveGame } {
   const live = testlive.getLiveGameWithPlayers();
   const game = getNewGameDetail(buildRoster(live.players));
   return { game, live };
+}
+
+function buildSignedInState(game: GameDetail, live: LiveGame): RootState {
+  const gameState = buildGameStateWithCurrentGame(game);
+  const liveState = buildLiveStateWithCurrentGame(live);
+  const state = buildRootState(gameState, liveState);
+  state.auth = getMockAuthState({ signedIn: true, userId: TEST_USER_ID });
+  return state;
 }
 
 describe('lineup-view-game-detail tests', () => {
@@ -31,6 +39,24 @@ describe('lineup-view-game-detail tests', () => {
   function getStore() {
     return el.store!;
   }
+
+  it('shows no game placeholder when not signed in', async () => {
+    const { game, live } = getGameDetail();
+    const state = buildRootState(buildGameStateWithCurrentGame(game), buildLiveStateWithCurrentGame(live));
+    state.auth = getMockAuthState({ signedIn: false });
+
+    await setupElement(state, game.id);
+
+    const store = getStore();
+    expect(store.getState().game, 'GameState should exist').to.be.ok;
+    expect(store.getState().game!.game, 'GameState should have game set').to.be.ok;
+
+    const placeholder = el.shadowRoot!.querySelector('section p.empty-list');
+    expect(placeholder, 'Missing empty placeholder element').to.be.ok;
+
+    await expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).to.be.accessible();
+  });
 
   it('shows no game placeholder when no current game', async () => {
     await setupElement();
@@ -49,10 +75,8 @@ describe('lineup-view-game-detail tests', () => {
   it('shows setup component for new game', async () => {
     const { game, live } = getGameDetail();
     game.status = live.status = GameStatus.New;
-    const gameState = buildGameStateWithCurrentGame(game);
-    const liveState = buildLiveStateWithCurrentGame(live);
 
-    await setupElement(buildRootState(gameState, liveState), game.id);
+    await setupElement(buildSignedInState(game, live), game.id);
     await el.updateComplete;
 
     const gameSetupElement = el.shadowRoot!.querySelector('section lineup-game-setup');
@@ -65,10 +89,8 @@ describe('lineup-view-game-detail tests', () => {
   it('shows live component for started game', async () => {
     const { game, live } = getGameDetail();
     game.status = live.status = GameStatus.Start;
-    const gameState = buildGameStateWithCurrentGame(game);
-    const liveState = buildLiveStateWithCurrentGame(live);
 
-    await setupElement(buildRootState(gameState, liveState), game.id);
+    await setupElement(buildSignedInState(game, live), game.id);
 
     const liveElement = el.shadowRoot!.querySelector('section lineup-game-live');
     expect(liveElement, 'Live element should be shown').to.be.ok;

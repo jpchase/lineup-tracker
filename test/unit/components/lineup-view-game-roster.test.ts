@@ -8,7 +8,7 @@ import { expect, fixture, html } from '@open-wc/testing';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRoster, getNewGameDetail, getStoredPlayer } from '../helpers/test_data.js';
+import { buildRoster, getMockAuthState, getNewGameDetail, getStoredPlayer, TEST_USER_ID } from '../helpers/test_data.js';
 
 function getGameWithRosterPlayers(): GameDetail {
   return getNewGameDetail(buildRoster([getStoredPlayer()]));
@@ -16,6 +16,13 @@ function getGameWithRosterPlayers(): GameDetail {
 
 function getGameWithEmptyRoster(): GameDetail {
   return getNewGameDetail();
+}
+
+function buildSignedInState(game: GameDetail): RootState {
+  const gameState = buildGameStateWithCurrentGame(game);
+  const state = buildRootState(gameState);
+  state.auth = getMockAuthState({ signedIn: true, userId: TEST_USER_ID });
+  return state;
 }
 
 describe('lineup-view-game-roster tests', () => {
@@ -31,6 +38,26 @@ describe('lineup-view-game-roster tests', () => {
   function getStore() {
     return el.store!;
   }
+
+  it('shows no game placeholder when not signed in', async () => {
+    const game = getGameWithEmptyRoster();
+    const state = buildRootState(buildGameStateWithCurrentGame(game));
+    state.auth = getMockAuthState({ signedIn: false });
+    await setupElement(state, game.id);
+
+    const store = getStore();
+    expect(store.getState().game, 'GameState should exist').to.be.ok;
+    expect(store.getState().game!.game, 'GameState should have game set').to.be.ok;
+
+    const placeholder = el.shadowRoot!.querySelector('section p.empty-list');
+    expect(placeholder, 'Missing empty placeholder element').to.be.ok;
+
+    const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
+    expect(rosterElement, 'Roster element should not be shown').to.not.be.ok;
+
+    await expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).to.be.accessible();
+  });
 
   it('shows no game placeholder when no current game', async () => {
     await setupElement();
@@ -52,9 +79,8 @@ describe('lineup-view-game-roster tests', () => {
   it('shows roster placeholder when game roster is empty', async () => {
     const game = getGameWithEmptyRoster();
     game.status = GameStatus.New;
-    const gameState = buildGameStateWithCurrentGame(game);
 
-    await setupElement(buildRootState(gameState), game.id);
+    await setupElement(buildSignedInState(game), game.id);
     await el.updateComplete;
 
     const placeholder = el.shadowRoot!.querySelector('section div.empty-list');
@@ -73,9 +99,8 @@ describe('lineup-view-game-roster tests', () => {
   it('shows player list when game roster is not empty', async () => {
     const game = getGameWithRosterPlayers();
     game.status = GameStatus.New;
-    const gameState = buildGameStateWithCurrentGame(game);
 
-    await setupElement(buildRootState(gameState), game.id);
+    await setupElement(buildSignedInState(game), game.id);
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
@@ -93,9 +118,8 @@ describe('lineup-view-game-roster tests', () => {
   it('clears data when game id changes', async () => {
     const game = getGameWithRosterPlayers();
     game.status = GameStatus.New;
-    const gameState = buildGameStateWithCurrentGame(game);
 
-    await setupElement(buildRootState(gameState), game.id);
+    await setupElement(buildSignedInState(game), game.id);
     await el.updateComplete;
 
     let rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
@@ -111,9 +135,8 @@ describe('lineup-view-game-roster tests', () => {
   it('roster adds allowed for new game', async () => {
     const game = getGameWithRosterPlayers();
     game.status = GameStatus.New;
-    const gameState = buildGameStateWithCurrentGame(game);
 
-    await setupElement(buildRootState(gameState), game.id);
+    await setupElement(buildSignedInState(game), game.id);
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
@@ -125,9 +148,8 @@ describe('lineup-view-game-roster tests', () => {
   it('roster adds not allowed for live game', async () => {
     const game = getGameWithRosterPlayers();
     game.status = GameStatus.Live;
-    const gameState = buildGameStateWithCurrentGame(game);
 
-    await setupElement(buildRootState(gameState), game.id);
+    await setupElement(buildSignedInState(game), game.id);
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
