@@ -4,6 +4,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { connectStore } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game.js';
+import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { getGameStore } from '../slices/game-store.js';
 import { getGame, selectGameById } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
@@ -64,16 +65,21 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
   @state()
   private game?: GameDetail;
 
+  @state()
+  private userSignedIn = false;
+
   private gameLoaded = false;
 
   override stateChanged(state: RootState) {
-    if (!this.gameId) {
+    this.userSignedIn = !!selectCurrentUserId(state);
+    if (!this.gameId || !this.userSignedIn) {
       return;
     }
     this.game = selectGameById(state, this.gameId);
     this.gameLoaded = !!this.game?.hasDetail;
   }
 
+  protected override authPropertyName = 'userSignedIn';
   protected override keyPropertyName = 'gameId';
 
   protected override loadData() {
