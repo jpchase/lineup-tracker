@@ -6,6 +6,7 @@ import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { connectStore } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
+import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { getGameStore } from '../slices/game-store.js';
 import { addNewGamePlayer, copyRoster, getGame, selectGameById, selectGameRosterLoading } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
@@ -90,10 +91,14 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
   @state()
   private _copyingInProgress = false;
 
+  @state()
+  private userSignedIn = false;
+
   private gameLoaded = false;
 
   override stateChanged(state: RootState) {
-    if (!this.gameId) {
+    this.userSignedIn = !!selectCurrentUserId(state);
+    if (!this.gameId || !this.userSignedIn) {
       return;
     }
     this.game = selectGameById(state, this.gameId);
@@ -102,10 +107,11 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
     this._copyingInProgress = !!selectGameRosterLoading(state);
   }
 
+  protected override authPropertyName = 'userSignedIn';
   protected override keyPropertyName = 'gameId';
 
   protected override loadData() {
-    if (this.gameId) {
+    if (this.userSignedIn && this.gameId) {
       this.dispatch(getGame(this.gameId));
     }
   }
