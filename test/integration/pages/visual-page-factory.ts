@@ -41,6 +41,11 @@ export function* getAllVisualPages(breakpoint: BreakpointConfig): Generator<Visu
   // Game pages
   // Games list page: /viewGames
   yield { name: '/viewGames', page: new GameListPage(pageOptions), openOptions: { signIn: true } };
+  yield {
+    name: '/viewGames (signed out)',
+    page: new GameListPage({ ...pageOptions, scenarioName: 'viewGames-signedout' }),
+    openOptions: { signIn: false, skipWaitForReady: true }
+  };
 
   // Game detail page: /game
   const gameOptions: PageOptions = {

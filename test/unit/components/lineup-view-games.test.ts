@@ -7,10 +7,16 @@ import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
 import { buildGameStateWithGames } from '../helpers/game-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildGames, getNewGame, getStoredGame } from '../helpers/test_data.js';
+import { buildGames, getMockAuthState, getNewGame, getStoredGame, TEST_USER_ID } from '../helpers/test_data.js';
 
 function getExistingGames(): Games {
   return buildGames([getStoredGame(), getNewGame()]);
+}
+
+function buildSignedInState(games: Games): RootState {
+  const state = buildRootState(buildGameStateWithGames(games));
+  state.auth = getMockAuthState({ signedIn: true, userId: TEST_USER_ID });
+  return state;
 }
 
 describe('lineup-view-games tests', () => {
@@ -23,22 +29,40 @@ describe('lineup-view-games tests', () => {
     el = await fixture(template);
   }
 
+  /*
   function getStore() {
     return el.store!;
   }
+  */
 
-  function getAddButton() {
+  function getAddButton(allowMissing?: boolean) {
     const button = el.shadowRoot!.querySelector('#add-button');
-    expect(button, 'Missing add game button').to.be.ok;
+    if (!allowMissing) {
+      expect(button, 'Missing add game button').to.be.ok;
+    }
     return button as Button;
   }
 
-  it('shows empty games list when team has no games', async () => {
-    await setupElement();
+  it('shows signin placeholder when not signed in', async () => {
+    const state = buildRootState();
+    state.auth = getMockAuthState({ signedIn: false });
+    await setupElement(state);
 
-    const gameState = getStore().getState().game;
-    expect(gameState).to.be.ok;
-    expect(gameState!.games, 'GameState should have games empty').to.be.empty;
+    const placeholder = el.shadowRoot!.querySelector('section p.unauthorized');
+    expect(placeholder, 'Missing unauthorized placeholder element').to.be.ok;
+
+    const listElement = el.shadowRoot!.querySelector('section lineup-game-list');
+    expect(listElement, 'Game list element should not be shown').to.not.be.ok;
+
+    const addButton = getAddButton(/*allowMissing=*/ true);
+    expect(addButton, 'Add game button should not be shown').to.not.be.ok;
+
+    await expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).to.be.accessible();
+  });
+
+  it('shows empty games list when team has no games', async () => {
+    await setupElement(buildSignedInState({}));
 
     const listElement = el.shadowRoot!.querySelector('section lineup-game-list');
     expect(listElement, 'Game list element should be shown').to.be.ok;
@@ -56,7 +80,7 @@ describe('lineup-view-games tests', () => {
   it('shows games list when the team has games', async () => {
     const games = getExistingGames();
 
-    await setupElement(buildRootState(buildGameStateWithGames(games)));
+    await setupElement(buildSignedInState(games));
 
     const listElement = el.shadowRoot!.querySelector('section lineup-game-list');
     expect(listElement, 'Game list element should be shown').to.be.ok;

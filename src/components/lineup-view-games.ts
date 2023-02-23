@@ -5,6 +5,7 @@ import { debug } from '../common/debug.js';
 import { connectStore } from '../middleware/connect-mixin.js';
 import { Games } from '../models/game.js';
 import { selectCurrentTeam } from '../slices/app/app-slice.js';
+import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { getGameStore } from '../slices/game-store.js';
 import { addNewGame, getGames } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
@@ -38,11 +39,17 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
         }
       </style>
       <section>
+      ${this.isAuthorized ? html`
         <lineup-game-list .games="${this._games}"></lineup-game-list>
         <mwc-fab id="add-button" icon="add" label="Add Game" @click="${this._addButtonClicked}"></mwc-fab>
         <lineup-game-create ?active="${this._showCreate}"
             @newgamecreated="${this._newGameCreated}"
             @newgamecancelled="${this._newGameCancelled}"></lineup-game-create>
+      ` : html`
+        <p class="unauthorized">
+          Sign in to view games.
+        </p>
+      `}
       </section>
     `;
   }
@@ -62,6 +69,9 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
   @state()
   private _games: Games = {};
 
+  @state()
+  private isAuthorized = false;
+
   private gamesLoaded = false;
 
   private _addButtonClicked() {
@@ -80,6 +90,10 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
 
   // This is called every time something is updated in the store.
   override stateChanged(state: RootState) {
+    this.isAuthorized = !!selectCurrentUserId(state);
+    if (!this.isAuthorized) {
+      return;
+    }
     const currentTeam = selectCurrentTeam(state);
     this.teamId = currentTeam?.id;
     if (!currentTeam || !state.game) {
@@ -89,6 +103,7 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
     this.gamesLoaded = (Object.keys(this._games).length > 0);
   }
 
+  protected override authPropertyName = 'isAuthorized';
   protected override keyPropertyName = 'teamId';
 
   protected override loadData() {

@@ -28,6 +28,7 @@ export interface PageOptions {
 export interface OpenOptions {
   signIn?: boolean;
   ignoreTeamOption?: boolean;
+  skipWaitForReady?: boolean;
 }
 
 export interface TeamOptions {
@@ -138,7 +139,9 @@ export class PageObject {
     if (options.signIn) {
       await this.signin();
     }
-    await this.waitForViewReady();
+    if (!options.skipWaitForReady) {
+      await this.waitForViewReady();
+    }
     if (this.openFunc) {
       await this.openFunc();
     }

@@ -33,3 +33,12 @@ snapshots["lineup-view-games tests shows empty games list when team has no games
 `;
 /* end snapshot lineup-view-games tests shows empty games list when team has no games */
 
+snapshots["lineup-view-games tests shows signin placeholder when not signed in"] = 
+`<section>
+  <p class="unauthorized">
+    Sign in to view games.
+  </p>
+</section>
+`;
+/* end snapshot lineup-view-games tests shows signin placeholder when not signed in */
+
