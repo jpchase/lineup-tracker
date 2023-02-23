@@ -39,7 +39,7 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
       </style>
       <section>
         <lineup-game-list .games="${this._games}"></lineup-game-list>
-        <mwc-fab icon="add" label="Add Game" @click="${this._addButtonClicked}"></mwc-fab>
+        <mwc-fab id="add-button" icon="add" label="Add Game" @click="${this._addButtonClicked}"></mwc-fab>
         <lineup-game-create ?active="${this._showCreate}"
             @newgamecreated="${this._newGameCreated}"
             @newgamecancelled="${this._newGameCancelled}"></lineup-game-create>
