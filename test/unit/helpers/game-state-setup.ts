@@ -1,4 +1,4 @@
-import { GameDetail } from '@app/models/game.js';
+import { GameDetail, Games } from '@app/models/game.js';
 import { GameState, GAME_INITIAL_STATE } from '@app/slices/game/game-slice.js';
 
 export function buildInitialGameState(): GameState {
@@ -22,6 +22,17 @@ export function buildGameStateWithCurrentGame(game: GameDetail, rest?: Partial<G
       state.games = {};
     }
     state.games![game.id] = game;
+  }
+  return state;
+}
+
+export function buildGameStateWithGames(games: Games, rest?: Partial<GameState>): GameState {
+  const state: GameState = {
+    ...buildInitialGameState(),
+    ...rest,
+  };
+  if (games) {
+    state.games = { ...games };
   }
   return state;
 }
