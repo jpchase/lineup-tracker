@@ -31,12 +31,13 @@ snapshots["lineup-view-game-detail tests shows live component for started game"]
 </section>
 `;
 /* end snapshot lineup-view-game-detail tests shows live component for started game */
-snapshots["lineup-view-game-detail tests shows no game placeholder when not signed in"] = 
+
+snapshots["lineup-view-game-detail tests shows signin placeholder when not signed in"] = 
 `<section>
-  <p class="empty-list">
-    Game not found.
+  <p class="unauthorized">
+    Sign in to view game.
   </p>
 </section>
 `;
-/* end snapshot lineup-view-game-detail tests shows no game placeholder when not signed in */
+/* end snapshot lineup-view-game-detail tests shows signin placeholder when not signed in */
 

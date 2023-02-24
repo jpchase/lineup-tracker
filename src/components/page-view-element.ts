@@ -17,8 +17,6 @@ export declare class PageViewInterface {
   // -- START: view-inherited members
   // These members are to be overridden by the view element.
 
-  // Name of the property that determines if the user is allowed to access the view.
-  protected authPropertyName: string;
   // Name of the property that determines which data is loaded.
   protected keyPropertyName: string;
   // Load data in response to a change in the key property.
@@ -61,7 +59,6 @@ export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof
     @property({ type: Boolean, reflect: true })
     public ready = false;
 
-    protected authPropertyName?: K;
     protected keyPropertyName?: K;
 
     // Only render this page if it's actually visible.
@@ -72,8 +69,7 @@ export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof
     override willUpdate(changedProperties: PropertyValues) {
       super.willUpdate(changedProperties);
 
-      if ((this.keyPropertyName && changedProperties.has(this.keyPropertyName)) ||
-        (this.authPropertyName && changedProperties.has(this.authPropertyName))) {
+      if (this.keyPropertyName && changedProperties.has(this.keyPropertyName)) {
         // The properties that key the view's data have changed. First, clear any
         // existing data. Second, load data for the new key properties, if possible.
         this.resetData();
@@ -101,12 +97,7 @@ export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof
     protected maybeLoadData() {
       // TODO: Find a less hacky way to do this.
       const keyValue = ((this as any)[this.keyPropertyName]) as string;// this.getKeyProperty();
-      let authValue = true;
-      if (this.authPropertyName) {
-        // TODO: Find a less hacky way to do this.
-        authValue = !!(((this as any)[this.authPropertyName]) as boolean);
-      }
-      if (keyValue && authValue) {
+      if (keyValue) {
         this.loadData();
       }
     }

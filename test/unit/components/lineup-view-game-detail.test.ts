@@ -6,8 +6,8 @@ import { getGameStoreConfigurator } from '@app/slices/game-store.js';
 import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
-import { buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
+import { buildGameStateWithCurrentGame, buildInitialGameState } from '../helpers/game-state-setup.js';
+import { buildInitialLiveState, buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getMockAuthState, getNewGameDetail, TEST_USER_ID } from '../helpers/test_data.js';
@@ -18,9 +18,9 @@ function getGameDetail(): { game: GameDetail, live: LiveGame } {
   return { game, live };
 }
 
-function buildSignedInState(game: GameDetail, live: LiveGame): RootState {
-  const gameState = buildGameStateWithCurrentGame(game);
-  const liveState = buildLiveStateWithCurrentGame(live);
+function buildSignedInState(game?: GameDetail, live?: LiveGame): RootState {
+  const gameState = game ? buildGameStateWithCurrentGame(game) : buildInitialGameState();
+  const liveState = live ? buildLiveStateWithCurrentGame(live) : buildInitialLiveState();
   const state = buildRootState(gameState, liveState);
   state.auth = getMockAuthState({ signedIn: true, userId: TEST_USER_ID });
   return state;
@@ -40,26 +40,22 @@ describe('lineup-view-game-detail tests', () => {
     return el.store!;
   }
 
-  it('shows no game placeholder when not signed in', async () => {
+  it('shows signin placeholder when not signed in', async () => {
     const { game, live } = getGameDetail();
     const state = buildRootState(buildGameStateWithCurrentGame(game), buildLiveStateWithCurrentGame(live));
     state.auth = getMockAuthState({ signedIn: false });
 
     await setupElement(state, game.id);
 
-    const store = getStore();
-    expect(store.getState().game, 'GameState should exist').to.be.ok;
-    expect(store.getState().game!.game, 'GameState should have game set').to.be.ok;
-
-    const placeholder = el.shadowRoot!.querySelector('section p.empty-list');
-    expect(placeholder, 'Missing empty placeholder element').to.be.ok;
+    const placeholder = el.shadowRoot!.querySelector('section p.unauthorized');
+    expect(placeholder, 'Missing unauthorized placeholder element').to.be.ok;
 
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();
   });
 
   it('shows no game placeholder when no current game', async () => {
-    await setupElement();
+    await setupElement(buildSignedInState());
 
     const store = getStore();
     expect(store.getState().game).to.be.ok;
