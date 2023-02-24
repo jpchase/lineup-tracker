@@ -11,15 +11,15 @@ import { addNewGame, getGames } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-create.js';
 import './lineup-game-list.js';
-import { PageViewElement } from './page-view-element.js';
+import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 const debugGames = debug('view-games');
 
 // This element is connected to the Redux store.
 @customElement('lineup-view-games')
-export class LineupViewGames extends connectStore()(PageViewElement) {
-  override render() {
+export class LineupViewGames extends connectStore()(AuthorizedViewElement) {
+  override renderView() {
     return html`
       ${SharedStyles}
       <style>
@@ -39,17 +39,11 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
         }
       </style>
       <section>
-      ${this.isAuthorized ? html`
         <lineup-game-list .games="${this._games}"></lineup-game-list>
         <mwc-fab id="add-button" icon="add" label="Add Game" @click="${this._addButtonClicked}"></mwc-fab>
         <lineup-game-create ?active="${this._showCreate}"
             @newgamecreated="${this._newGameCreated}"
             @newgamecancelled="${this._newGameCancelled}"></lineup-game-create>
-      ` : html`
-        <p class="unauthorized">
-          Sign in to view games.
-        </p>
-      `}
       </section>
     `;
   }
@@ -69,9 +63,6 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
   @state()
   private _games: Games = {};
 
-  @state()
-  private isAuthorized = false;
-
   private gamesLoaded = false;
 
   private _addButtonClicked() {
@@ -90,8 +81,8 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
 
   // This is called every time something is updated in the store.
   override stateChanged(state: RootState) {
-    this.isAuthorized = !!selectCurrentUserId(state);
-    if (!this.isAuthorized) {
+    this.authorized = !!selectCurrentUserId(state);
+    if (!this.authorized) {
       return;
     }
     const currentTeam = selectCurrentTeam(state);
@@ -103,7 +94,7 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
     this.gamesLoaded = (Object.keys(this._games).length > 0);
   }
 
-  protected override authPropertyName = 'isAuthorized';
+  // AuthorizedViewInterface overrides
   protected override keyPropertyName = 'teamId';
 
   protected override loadData() {
@@ -119,5 +110,9 @@ export class LineupViewGames extends connectStore()(PageViewElement) {
 
   protected override isDataReady() {
     return this.gamesLoaded;
+  }
+
+  protected override getAuthorizedDescription() {
+    return 'view games';
   }
 }
