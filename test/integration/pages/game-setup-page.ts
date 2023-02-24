@@ -20,7 +20,7 @@ export class GameSetupPage extends GameDetailPage {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
-      scenarioName: 'viewGameDetail',
+      scenarioName: options.scenarioName ?? 'viewGameDetail',
       route: `game/${options.gameId}`
     });
   }

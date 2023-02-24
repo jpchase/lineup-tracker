@@ -7,7 +7,7 @@ export class TeamCreatePage extends PageObject {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
-      scenarioName: 'addNewTeam',
+      scenarioName: options.scenarioName ?? 'addNewTeam',
       route: 'addNewTeam'
     });
   }

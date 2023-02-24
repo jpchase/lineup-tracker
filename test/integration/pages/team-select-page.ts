@@ -9,7 +9,7 @@ export class TeamSelectPage extends PageObject {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
-      scenarioName: 'selectTeam'
+      scenarioName: options.scenarioName ?? 'selectTeam'
     });
   }
 
