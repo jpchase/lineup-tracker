@@ -22,7 +22,6 @@ import './lineup-team-selector-dialog.js';
 import { TeamChangedEvent } from './lineup-team-selector-dialog.js';
 import './lineup-team-selector.js';
 import { pageRouterContext } from './page-router.js';
-import './snack-bar';
 
 // Lazy load the reducers.
 store.addReducers({
@@ -284,9 +283,6 @@ export class LineupApp extends connect(store)(LitElement) {
                                 @team-changed="${this.teamChanged}"
                                 @add-new-team="${this.addNewTeam}">
     </lineup-team-selector-dialog>
-
-    <snack-bar ?active="${this._snackbarOpened}">
-        You are now ${this._offline ? 'offline' : 'online'}.</snack-bar>
     `;
   }
 
@@ -307,12 +303,6 @@ export class LineupApp extends connect(store)(LitElement) {
 
   @state()
   private drawerOpen = false;
-
-  @property({ type: Boolean })
-  private _snackbarOpened = false;
-
-  @property({ type: Boolean })
-  private _offline = false;
 
   @property({ type: Object })
   private _pages: Pages = {
@@ -477,8 +467,6 @@ export class LineupApp extends connect(store)(LitElement) {
 
   override stateChanged(state: RootState) {
     this._page = state.app!.page;
-    this._offline = state.app!.offline;
-    // this._snackbarOpened = state.app!.snackbarOpened;
     this.drawerOpen = state.app!.drawerOpened;
 
     this._user = state.auth!.user;
