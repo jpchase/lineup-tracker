@@ -478,7 +478,7 @@ export class LineupApp extends connect(store)(LitElement) {
   override stateChanged(state: RootState) {
     this._page = state.app!.page;
     this._offline = state.app!.offline;
-    this._snackbarOpened = state.app!.snackbarOpened;
+    // this._snackbarOpened = state.app!.snackbarOpened;
     this.drawerOpen = state.app!.drawerOpened;
 
     this._user = state.auth!.user;

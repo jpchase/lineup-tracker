@@ -10,6 +10,7 @@ import { TeamRosterPage } from './team-roster-page.js';
 import { TeamSelectPage } from './team-select-page.js';
 import { BreakpointConfig, config } from '../server/test-server.js';
 import { integrationTestData } from '../data/integration-data-constants.js';
+import { GameRosterPage } from './game-roster-page.js';
 
 export interface VisualPageConfig {
   name: string;
@@ -54,6 +55,19 @@ export function* getAllVisualPages(breakpoint: BreakpointConfig): Generator<Visu
     team: { teamId: integrationTestData.TEAM1.ID }
   };
   yield { name: '/game', page: new GameDetailPage(gameOptions), openOptions: { signIn: true } };
+  yield {
+    name: '/game (signed out)',
+    page: new GameDetailPage({ ...gameOptions, scenarioName: 'viewGameDetail-signedout' }),
+    openOptions: { signIn: false, skipWaitForReady: true }
+  };
+
+  // Game roster page: /gameroster
+  yield { name: '/gameroster', page: new GameRosterPage(gameOptions), openOptions: { signIn: true } };
+  yield {
+    name: '/gameroster (signed out)',
+    page: new GameRosterPage({ ...gameOptions, scenarioName: 'viewGameRoster-signedout' }),
+    openOptions: { signIn: false, skipWaitForReady: true }
+  };
 
   // Team pages
   // Team roster page: /viewRoster
