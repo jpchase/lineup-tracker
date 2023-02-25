@@ -177,6 +177,11 @@ export const AuthorizedViewMixin = <T extends Constructor<PageViewInterface> & C
           section:nth-of-type(even) {
             background: var(--app-section-even-color);
           }
+
+          .unauthorized {
+            text-align: center;
+            white-space: nowrap;
+          }
         </style>
         <section>
           <p class="unauthorized">
