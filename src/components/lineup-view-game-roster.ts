@@ -6,15 +6,14 @@ import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { connectStore } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
-import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { getGameStore } from '../slices/game-store.js';
 import { addNewGamePlayer, copyRoster, getGame, selectGameById, selectGameRosterLoading } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-roster.js';
 import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
+import { SignedInAuthController } from './util/auth-controller.js';
 
-// This element is connected to the Redux store.
 @customElement('lineup-view-game-roster')
 export class LineupViewGameRoster extends connectStore()(AuthorizedViewElement) {
   // TODO: Extract common logic (duplicated from LineupViewGameDetail)
@@ -93,8 +92,12 @@ export class LineupViewGameRoster extends connectStore()(AuthorizedViewElement) 
 
   private gameLoaded = false;
 
+  constructor() {
+    super();
+    this.registerController(new SignedInAuthController(this));
+  }
+
   override stateChanged(state: RootState) {
-    this.authorized = !!selectCurrentUserId(state);
     if (!this.gameId || !this.authorized) {
       return;
     }
@@ -104,7 +107,7 @@ export class LineupViewGameRoster extends connectStore()(AuthorizedViewElement) 
     this._copyingInProgress = !!selectGameRosterLoading(state);
   }
 
-  // AuthorizedViewInterface overrides
+  // AuthorizedView overrides
   protected override keyPropertyName = 'gameId';
 
   protected override loadData() {

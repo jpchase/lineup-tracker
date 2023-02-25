@@ -1,12 +1,11 @@
 import { html, HTMLTemplateResult, LitElement, PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
+import { Constructor } from '../util/shared-types.js';
 
 // The type and interface is required to get the typing to work.
 // See https://lit.dev/docs/composition/mixins/#mixins-in-typescript.
 
-type Constructor<T = {}> = new (...args: any[]) => T;
-
-export declare class PageViewInterface {
+export declare class PageView {
   // Is the element visible.
   active: boolean;
   // Is the element finished loading any data.
@@ -36,7 +35,7 @@ export declare class PageViewInterface {
   // -- END: internal members
 }
 
-export declare class AuthorizedViewInterface extends PageViewInterface {
+export declare class AuthorizedView extends PageView {
   // Is the user authorized to access this element.
   authorized: boolean;
 
@@ -117,10 +116,10 @@ export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof
     }
   };
 
-  return PageViewClass as unknown as Constructor<PageViewInterface> & T;
+  return PageViewClass as unknown as Constructor<PageView> & T;
 }
 
-export const AuthorizedViewMixin = <T extends Constructor<PageViewInterface> & Constructor<LitElement>>(superClass: T) => {
+export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructor<LitElement>>(superClass: T) => {
   class AuthorizedViewClass extends superClass {
 
     @state()
@@ -202,7 +201,7 @@ export const AuthorizedViewMixin = <T extends Constructor<PageViewInterface> & C
     }
   };
 
-  return AuthorizedViewClass as unknown as Constructor<AuthorizedViewInterface> & T;
+  return AuthorizedViewClass as unknown as Constructor<AuthorizedView> & T;
 }
 
 export const PageViewElement = PageViewMixin(LitElement);

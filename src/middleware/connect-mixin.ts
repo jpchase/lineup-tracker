@@ -1,10 +1,5 @@
-/**
-@license
-*/
-
-import { AnyAction, Unsubscribe } from 'redux';
+import { AnyAction, ThunkAction, Unsubscribe } from '@reduxjs/toolkit';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
-import { ThunkAction } from 'redux-thunk';
 
 type Constructor<T> = new (...args: any[]) => T;
 
@@ -13,10 +8,16 @@ interface CustomElement {
   disconnectedCallback?(): void;
 }
 
-export interface ElementMixinInterface {
+export declare class ElementMixinInterface {
   store?: RootStore;
   stateChanged(state: RootState): void;
   dispatch<R>(action: AnyAction | ThunkAction<R, RootState, any, any>): AnyAction | R;
+  // TODO: Make protected
+  /*protected*/ registerController(controller: StateSubscribedController): void;
+}
+
+export interface StateSubscribedController {
+  stateChanged(state: RootState): void;
 }
 
 export const connectStore =
@@ -24,6 +25,7 @@ export const connectStore =
     <T extends Constructor<CustomElement>>(baseElement: T): T &
       Constructor<ElementMixinInterface> =>
       class extends baseElement {
+        private controllers = new Set<StateSubscribedController>();
         private _storeUnsubscribe!: Unsubscribe;
         store?: RootStore;
         storeConfigurator?: SliceStoreConfigurator;
@@ -45,9 +47,9 @@ export const connectStore =
           if (store) {
             // Connect the element to the store.
             this._storeUnsubscribe = store.subscribe(() => {
-              this.stateChanged(store.getState());
+              this.notifyStateChanged(store.getState());
             });
-            this.stateChanged(store.getState());
+            this.notifyStateChanged(store.getState());
           }
         }
 
@@ -59,6 +61,23 @@ export const connectStore =
           if (super.disconnectedCallback) {
             super.disconnectedCallback();
           }
+        }
+
+        private notifyStateChanged(state: RootState) {
+          // First, notify any controllers.
+          this.controllers.forEach(controller => {
+            controller.stateChanged(state);
+          });
+
+          // Finally, notify the element.
+          this.stateChanged(state);
+        }
+
+        /*protected*/ registerController(controller: StateSubscribedController) {
+          if (!controller) {
+            return;
+          }
+          this.controllers.add(controller);
         }
 
         dispatch<R>(action: AnyAction | ThunkAction<R, RootState, any, AnyAction>): AnyAction | R {

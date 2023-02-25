@@ -5,7 +5,6 @@ import { debug } from '../common/debug.js';
 import { connectStore } from '../middleware/connect-mixin.js';
 import { Games } from '../models/game.js';
 import { selectCurrentTeam } from '../slices/app/app-slice.js';
-import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { getGameStore } from '../slices/game-store.js';
 import { addNewGame, getGames } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
@@ -13,10 +12,10 @@ import './lineup-game-create.js';
 import './lineup-game-list.js';
 import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
+import { SignedInAuthController } from './util/auth-controller.js';
 
 const debugGames = debug('view-games');
 
-// This element is connected to the Redux store.
 @customElement('lineup-view-games')
 export class LineupViewGames extends connectStore()(AuthorizedViewElement) {
   override renderView() {
@@ -65,6 +64,11 @@ export class LineupViewGames extends connectStore()(AuthorizedViewElement) {
 
   private gamesLoaded = false;
 
+  constructor() {
+    super();
+    this.registerController(new SignedInAuthController(this));
+  }
+
   private _addButtonClicked() {
     this._showCreate = true;
   }
@@ -81,7 +85,6 @@ export class LineupViewGames extends connectStore()(AuthorizedViewElement) {
 
   // This is called every time something is updated in the store.
   override stateChanged(state: RootState) {
-    this.authorized = !!selectCurrentUserId(state);
     if (!this.authorized) {
       return;
     }
@@ -94,7 +97,7 @@ export class LineupViewGames extends connectStore()(AuthorizedViewElement) {
     this.gamesLoaded = (Object.keys(this._games).length > 0);
   }
 
-  // AuthorizedViewInterface overrides
+  // AuthorizedView overrides
   protected override keyPropertyName = 'teamId';
 
   protected override loadData() {

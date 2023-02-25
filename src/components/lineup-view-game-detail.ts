@@ -4,7 +4,6 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { connectStore } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game.js';
-import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { getGameStore } from '../slices/game-store.js';
 import { getGame, selectGameById } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
@@ -12,6 +11,7 @@ import './lineup-game-live';
 import './lineup-game-setup';
 import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles';
+import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-game-detail')
 export class LineupViewGameDetail extends connectStore()(AuthorizedViewElement) {
@@ -67,8 +67,12 @@ export class LineupViewGameDetail extends connectStore()(AuthorizedViewElement) 
 
   private gameLoaded = false;
 
+  constructor() {
+    super();
+    this.registerController(new SignedInAuthController(this));
+  }
+
   override stateChanged(state: RootState) {
-    this.authorized = !!selectCurrentUserId(state);
     if (!this.gameId || !this.authorized) {
       return;
     }
@@ -76,7 +80,7 @@ export class LineupViewGameDetail extends connectStore()(AuthorizedViewElement) 
     this.gameLoaded = !!this.game?.hasDetail;
   }
 
-  // AuthorizedViewInterface overrides
+  // AuthorizedView overrides
   protected override keyPropertyName = 'gameId';
 
   protected override loadData() {
