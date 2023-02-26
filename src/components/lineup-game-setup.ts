@@ -5,7 +5,7 @@ import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { connectStore } from '../middleware/connect-mixin';
+import { ConnectStoreMixin } from '../middleware/connect-mixin';
 import { FormationBuilder, FormationMetadata, formatPosition, Position } from '../models/formation';
 import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '../models/game.js';
 import { LivePlayer } from '../models/live.js';
@@ -54,7 +54,7 @@ function isAutoStep(step: SetupSteps): boolean {
 }
 
 @customElement('lineup-game-setup')
-export class LineupGameSetup extends connectStore()(LitElement) {
+export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   override render() {
     const tasks = this.tasks;
     const players = this.players;

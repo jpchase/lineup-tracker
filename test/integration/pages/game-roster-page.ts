@@ -6,7 +6,7 @@ export class GameRosterPage extends PageObject {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
-      scenarioName: 'game roster',
+      scenarioName: options.scenarioName ?? 'viewGameRoster',
       route: `gameroster/${options.gameId}`,
       componentName: 'lineup-view-game-roster',
     });

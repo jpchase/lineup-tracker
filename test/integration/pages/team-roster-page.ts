@@ -10,7 +10,7 @@ export class TeamRosterPage extends PageObject {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
-      scenarioName: 'viewRoster',
+      scenarioName: options.scenarioName ?? 'viewRoster',
       route: 'viewRoster',
       team: { teamId: integrationTestData.TEAM1.ID }
     });

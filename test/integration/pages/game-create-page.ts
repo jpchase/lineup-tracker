@@ -7,7 +7,7 @@ export class GameCreatePage extends PageObject {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
-      scenarioName: 'addNewGame',
+      scenarioName: options.scenarioName ?? 'addNewGame',
       route: 'viewGames'
     });
   }

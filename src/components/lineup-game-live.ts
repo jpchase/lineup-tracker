@@ -1,14 +1,10 @@
-/**
-@license
-*/
-
 import { ContextProvider } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
-import { connectStore } from '../middleware/connect-mixin.js';
+import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
 import { Formation, FormationBuilder, FormationType, formatPosition, getPositions, Position } from '../models/formation.js';
 import { LiveGame, LivePlayer, PeriodStatus } from '../models/live.js';
@@ -35,7 +31,7 @@ import { SynchronizedTriggerController } from './timer-controller.js';
 
 // This element is connected to the Redux store.
 @customElement('lineup-game-live')
-export class LineupGameLive extends connectStore()(LitElement) {
+export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   override render() {
     return html`
       ${SharedStyles}

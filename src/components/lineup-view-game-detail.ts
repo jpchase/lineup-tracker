@@ -2,19 +2,19 @@ import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { connectStore } from '../middleware/connect-mixin';
+import { ConnectStoreMixin } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game.js';
-import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { getGameStore } from '../slices/game-store.js';
 import { getGame, selectGameById } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store';
 import './lineup-game-live';
 import './lineup-game-setup';
-import { PageViewElement } from './page-view-element.js';
+import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles';
+import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-game-detail')
-export class LineupViewGameDetail extends connectStore()(PageViewElement) {
+export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElement) {
   private _getDetailContent(game: GameDetail) {
     if (game.status === GameStatus.Done) {
       // Completed game
@@ -30,7 +30,7 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
     return html`<lineup-game-live></lineup-game-live>`;
   }
 
-  override render() {
+  override renderView() {
     if (this.game) {
       updateMetadata({
         title: `Game - ${this._getName()}`,
@@ -65,21 +65,22 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
   @state()
   private game?: GameDetail;
 
-  @state()
-  private userSignedIn = false;
-
   private gameLoaded = false;
 
+  constructor() {
+    super();
+    this.registerController(new SignedInAuthController(this));
+  }
+
   override stateChanged(state: RootState) {
-    this.userSignedIn = !!selectCurrentUserId(state);
-    if (!this.gameId || !this.userSignedIn) {
+    if (!this.gameId || !this.authorized) {
       return;
     }
     this.game = selectGameById(state, this.gameId);
     this.gameLoaded = !!this.game?.hasDetail;
   }
 
-  protected override authPropertyName = 'userSignedIn';
+  // AuthorizedView overrides
   protected override keyPropertyName = 'gameId';
 
   protected override loadData() {
@@ -97,6 +98,11 @@ export class LineupViewGameDetail extends connectStore()(PageViewElement) {
     return this.gameLoaded;
   }
 
+  protected override getAuthorizedDescription() {
+    return 'view game';
+  }
+
+  // Formatting functions
   private _getName() {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
       'Sep', 'Oct', 'Nov', 'Dec'

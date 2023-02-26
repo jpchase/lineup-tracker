@@ -3,22 +3,21 @@ import '@material/mwc-circular-progress';
 import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { connectStore } from '../middleware/connect-mixin';
+import { ConnectStoreMixin } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
-import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { getGameStore } from '../slices/game-store.js';
 import { addNewGamePlayer, copyRoster, getGame, selectGameById, selectGameRosterLoading } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-roster.js';
-import { PageViewElement } from './page-view-element.js';
+import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
+import { SignedInAuthController } from './util/auth-controller.js';
 
-// This element is connected to the Redux store.
 @customElement('lineup-view-game-roster')
-export class LineupViewGameRoster extends connectStore()(PageViewElement) {
+export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElement) {
   // TODO: Extract common logic (duplicated from LineupViewGameDetail)
-  override render() {
+  override renderView() {
     let gameExists = false;
     let rosterExists = false;
     let isNewStatus = false;
@@ -91,14 +90,15 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
   @state()
   private _copyingInProgress = false;
 
-  @state()
-  private userSignedIn = false;
-
   private gameLoaded = false;
 
+  constructor() {
+    super();
+    this.registerController(new SignedInAuthController(this));
+  }
+
   override stateChanged(state: RootState) {
-    this.userSignedIn = !!selectCurrentUserId(state);
-    if (!this.gameId || !this.userSignedIn) {
+    if (!this.gameId || !this.authorized) {
       return;
     }
     this.game = selectGameById(state, this.gameId);
@@ -107,11 +107,11 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
     this._copyingInProgress = !!selectGameRosterLoading(state);
   }
 
-  protected override authPropertyName = 'userSignedIn';
+  // AuthorizedView overrides
   protected override keyPropertyName = 'gameId';
 
   protected override loadData() {
-    if (this.userSignedIn && this.gameId) {
+    if (this.gameId) {
       this.dispatch(getGame(this.gameId));
     }
   }
@@ -127,6 +127,11 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
     return this.gameLoaded && !this._copyingInProgress;
   }
 
+  protected override getAuthorizedDescription() {
+    return 'view game roster';
+  }
+
+  // Event handlers
   private _copyTeamRoster(e: Event) {
     if (e.target) { (e.target as HTMLInputElement).disabled = true; }
     this.ready = false;
@@ -137,6 +142,7 @@ export class LineupViewGameRoster extends connectStore()(PageViewElement) {
     this.dispatch(addNewGamePlayer(e.detail.player));
   }
 
+  // Formatting functions
   // TODO: Extract common function (duplicated from LineupViewGameDetail)
   private _getName() {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
