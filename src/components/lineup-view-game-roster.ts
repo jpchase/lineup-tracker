@@ -3,7 +3,7 @@ import '@material/mwc-circular-progress';
 import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { connectStore } from '../middleware/connect-mixin';
+import { ConnectStoreMixin } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
 import { getGameStore } from '../slices/game-store.js';
@@ -15,7 +15,7 @@ import { SharedStyles } from './shared-styles.js';
 import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-game-roster')
-export class LineupViewGameRoster extends connectStore()(AuthorizedViewElement) {
+export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElement) {
   // TODO: Extract common logic (duplicated from LineupViewGameDetail)
   override renderView() {
     let gameExists = false;

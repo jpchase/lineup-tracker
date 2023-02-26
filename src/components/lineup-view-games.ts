@@ -2,7 +2,7 @@ import '@material/mwc-fab';
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { debug } from '../common/debug.js';
-import { connectStore } from '../middleware/connect-mixin.js';
+import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { Games } from '../models/game.js';
 import { selectCurrentTeam } from '../slices/app/app-slice.js';
 import { getGameStore } from '../slices/game-store.js';
@@ -17,7 +17,7 @@ import { SignedInAuthController } from './util/auth-controller.js';
 const debugGames = debug('view-games');
 
 @customElement('lineup-view-games')
-export class LineupViewGames extends connectStore()(AuthorizedViewElement) {
+export class LineupViewGames extends ConnectStoreMixin(AuthorizedViewElement) {
   override renderView() {
     return html`
       ${SharedStyles}

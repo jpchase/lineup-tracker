@@ -2,7 +2,7 @@ import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { connectStore } from '../middleware/connect-mixin';
+import { ConnectStoreMixin } from '../middleware/connect-mixin';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { getGameStore } from '../slices/game-store.js';
 import { getGame, selectGameById } from '../slices/game/game-slice.js';
@@ -14,7 +14,7 @@ import { SharedStyles } from './shared-styles';
 import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-game-detail')
-export class LineupViewGameDetail extends connectStore()(AuthorizedViewElement) {
+export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElement) {
   private _getDetailContent(game: GameDetail) {
     if (game.status === GameStatus.Done) {
       // Completed game
