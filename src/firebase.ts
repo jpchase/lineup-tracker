@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from 'firebase/auth';
 import { CACHE_SIZE_UNLIMITED, connectFirestoreEmulator, enableMultiTabIndexedDbPersistence, initializeFirestore } from 'firebase/firestore';
 import { getEnv } from './app/environment.js';
-import { debug } from './common/debug';
+import { debug } from './common/debug.js';
 
 const debugFirebase = debug('firebase');
 
