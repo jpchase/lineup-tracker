@@ -2,15 +2,15 @@ import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin';
+import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { getGameStore } from '../slices/game-store.js';
 import { getGame, selectGameById } from '../slices/game/game-slice.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store';
-import './lineup-game-live';
-import './lineup-game-setup';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import './lineup-game-live.js';
+import './lineup-game-setup.js';
 import { AuthorizedViewElement } from './page-view-element.js';
-import { SharedStyles } from './shared-styles';
+import { SharedStyles } from './shared-styles.js';
 import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-game-detail')

@@ -5,24 +5,24 @@ import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin';
-import { FormationBuilder, FormationMetadata, formatPosition, Position } from '../models/formation';
+import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
+import { FormationBuilder, FormationMetadata, formatPosition, Position } from '../models/formation.js';
 import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '../models/game.js';
 import { LivePlayer } from '../models/live.js';
-import { getGameStore } from '../slices/game-store';
+import { getGameStore } from '../slices/game-store.js';
 import { gameSetupCompletedCreator } from '../slices/game/game-slice.js';
-import { getLiveStore } from '../slices/live-store';
+import { getLiveStore } from '../slices/live-store.js';
 import {
   applyStarter, cancelStarter, captainsCompleted, formationSelected, getLiveGame,
   rosterCompleted,
   selectInvalidStarters, selectLiveGameById,
   selectStarter, selectStarterPosition, startersCompletedCreator
 } from '../slices/live/live-slice.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store';
-import './lineup-on-player-list';
-import './lineup-player-list';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import './lineup-on-player-list.js';
+import './lineup-player-list.js';
 import { PageRouter, pageRouterContext } from './page-router.js';
-import { SharedStyles } from './shared-styles';
+import { SharedStyles } from './shared-styles.js';
 
 function getStepName(step: SetupSteps): string {
   switch (step) {

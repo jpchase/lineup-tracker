@@ -1,21 +1,11 @@
-/**
-@license
-*/
-
+import '@material/mwc-icon';
 import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { DateFormatter } from '../models/clock.js';
+import { Games } from '../models/game.js';
+import { peopleIcon } from './lineup-icons.js';
+import { SharedStyles } from './shared-styles.js';
 
-import { DateFormatter } from '../models/clock';
-import { Games } from '../models/game';
-
-// These are the elements needed by this element.
-import '@material/mwc-icon';
-import { peopleIcon } from './lineup-icons';
-
-// These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles';
-
-// This element is *not* connected to the Redux store.
 @customElement('lineup-game-list')
 export class LineupGameList extends LitElement {
   override render() {

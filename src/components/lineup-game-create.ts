@@ -1,22 +1,11 @@
-/**
-@license
-*/
-
-import { html, LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
-
-import { GameMetadata } from '../models/game';
-
-// These are the elements needed by this element.
 import '@material/mwc-button';
 import '@material/mwc-formfield';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { GameMetadata } from '../models/game.js';
+import { EVENT_NEWGAMECREATED } from './events.js';
+import { SharedStyles } from './shared-styles.js';
 
-import { EVENT_NEWGAMECREATED } from './events';
-
-// These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles';
-
-// This element is *not* connected to the Redux store.
 @customElement('lineup-game-create')
 export class LineupGameCreate extends LitElement {
   override render() {

@@ -22,7 +22,7 @@ module.exports = {
             presets: [
               ['@babel/preset-env', { targets: { chrome: '90' } }]
             ],
-            plugins: ['@babel/plugin-syntax-dynamic-import']
+            plugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-syntax-import-assertions']
           }
         }
       },

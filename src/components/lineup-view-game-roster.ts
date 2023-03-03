@@ -3,7 +3,7 @@ import '@material/mwc-circular-progress';
 import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin';
+import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
 import { getGameStore } from '../slices/game-store.js';

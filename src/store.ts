@@ -11,7 +11,7 @@ import {
   ThunkDispatch
 } from '@reduxjs/toolkit';
 import { listenerMiddleware } from './app/action-listeners.js';
-import dynamicMiddlewares from './middleware/dynamic-middlewares';
+import dynamicMiddlewares from './middleware/dynamic-middlewares.js';
 import { lazyReducerEnhancer, LazyStore } from './middleware/lazy-reducers.js';
 import { configureAppStore } from './slices/app/app-module-configurator.js';
 import type { AppState, APP_SLICE_NAME } from './slices/app/app-slice.js';

@@ -1,23 +1,18 @@
-/**
-@license
-*/
-
 import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { LivePlayer } from '../models/live.js';
-import { PlayerStatus } from '../models/player';
-import { EVENT_PLAYERLISTCANCEL } from './events';
-import './lineup-player-card';
+import { PlayerStatus } from '../models/player.js';
+import { EVENT_PLAYERLISTCANCEL } from './events.js';
+import './lineup-player-card.js';
 import { PlayerListElement } from './player-list-element.js';
-import { SharedStyles } from './shared-styles';
+import { SharedStyles } from './shared-styles.js';
 
 interface PlayerFilterFunc {
   (player: LivePlayer): boolean;
 }
 
-// This element is *not* connected to the Redux store.
 @customElement('lineup-player-list')
 export class LineupPlayerList extends PlayerListElement {
   override render() {
