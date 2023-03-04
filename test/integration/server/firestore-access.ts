@@ -1,16 +1,39 @@
-import { Game } from '@app/models/game.js';
+import { Game } from '../../../src/models/game.js';
+import { Player, PlayerStatus, Roster } from '../../../src/models/player.js';
 // import { gameConverter } from '../../../src/slices/game/game-storage.js'
-import { Model, ModelReader } from '@app/storage/model-converter.js';
 import { App, applicationDefault, initializeApp } from 'firebase-admin/app';
-import { DocumentData, Firestore } from 'firebase-admin/firestore';
+import { DocumentData, Firestore, FirestoreDataConverter, QueryDocumentSnapshot, QuerySnapshot, WithFieldValue } from 'firebase-admin/firestore';
 import { getEnv } from '../../../src/app/environment.js';
+import { Model, ModelCollection, ModelConverter, ModelReader } from '../../../src/storage/model-converter.js';
 
 const KEY_GAMES = 'games';
-// const KEY_ROSTER = 'roster';
+const KEY_ROSTER = 'roster';
 
 // import { buildGamePath, gameConverter } from '@app/slices/game/game-storage.js'
 function buildGamePath(gameId: string) {
   return `${KEY_GAMES}/${gameId}`;
+}
+
+function buildGameRosterPath(gameId: string) {
+  return `${buildGamePath(gameId)}/${KEY_ROSTER}`;
+}
+
+class ReaderConverter<T extends Model> implements FirestoreDataConverter<T>  {
+  private readonly converter: ModelReader<T>;
+
+  constructor(converter: ModelReader<T>) {
+    this.converter = converter;
+  }
+
+  // Unused.
+  toFirestore(_model: WithFieldValue<T>): DocumentData {
+    return {};
+  }
+
+  fromFirestore(snapshot: QueryDocumentSnapshot): T {
+    const data = snapshot.data()!;
+    return this.converter.fromDocument(snapshot.id, data);
+  }
 }
 
 const gameConverter: ModelReader<Game> =
@@ -24,6 +47,32 @@ const gameConverter: ModelReader<Game> =
       date: data.date.toDate(),
       opponent: data.opponent
     };
+  }
+};
+
+const playerConverter: ModelConverter<Player> =
+{
+  fromDocument: (id: string, data: DocumentData) => {
+    return {
+      id,
+      name: data.name,
+      uniformNumber: data.uniformNumber,
+      positions: data.positions || [],
+      status: data.status
+    };
+  },
+
+  toDocument: (player) => {
+    const data: DocumentData = {
+      ...player,
+    };
+    if (!player.status) {
+      data.status = PlayerStatus.Off;
+    }
+    if (!player.positions) {
+      data.positions = [];
+    }
+    return data;
   }
 };
 
@@ -52,13 +101,15 @@ export function createAdminApp(): App {
 }
 
 export async function readGame(firestore: Firestore, gameId: string): Promise<Game> {
-  // const firestore = getFirestore(app);
   return getDocument(firestore, buildGamePath(gameId), gameConverter);
+}
+
+export async function readGameRoster(firestore: Firestore, gameId: string): Promise<Roster> {
+  return loadCollection(firestore, buildGameRosterPath(gameId), playerConverter);
 }
 
 async function getDocument<T extends Model>(firestore: Firestore,
   documentPath: string, converter: ModelReader<T>): Promise<T> {
-
 
   const docRef = firestore.doc(documentPath);
 
@@ -73,6 +124,22 @@ async function getDocument<T extends Model>(firestore: Firestore,
   return result;
 }
 
-export async function loadCollection(_path: string) {
+async function loadCollection<T extends Model, C extends ModelCollection<T>>(
+  firestore: Firestore, collectionPath: string, converter: ModelReader<T>) {
+  const collectionRef = firestore.collection(collectionPath).withConverter(
+    new ReaderConverter(converter));
 
+  console.log(`loadCollection for [${collectionPath}]: about to query`);
+  return collectionRef.get().then((querySnapshot: QuerySnapshot<T>) => {
+    const results = {} as ModelCollection<T>;
+    console.log(`loadCollection for [${collectionPath}]: ${querySnapshot.size} result(s)`);
+
+    querySnapshot.forEach((docSnapshot: QueryDocumentSnapshot<T>) => {
+      const model = docSnapshot.data();
+      results[model.id] = model;
+    });
+    console.log(`loadCollection for [${collectionPath}]: ${JSON.stringify(results)}`);
+
+    return results as C;
+  });
 }
