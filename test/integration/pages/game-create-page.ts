@@ -1,5 +1,5 @@
 import { Game } from '@app/models/game.js';
-import { customQueryHandlerNames, ElementHandle } from 'puppeteer';
+import { ElementHandle } from 'puppeteer';
 import { PageObject, PageOpenFunction, PageOptions } from './page-object.js';
 
 export class GameCreatePage extends PageObject {
@@ -15,17 +15,33 @@ export class GameCreatePage extends PageObject {
   override get openFunc(): PageOpenFunction | undefined {
     return async () => {
       await this.page.waitForTimeout(500);
-      await this.page.evaluate(`(async () => {
-        const newGameButton = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-view-games').shadowRoot.querySelector('mwc-fab');
-        await newGameButton.click();
-      })()`);
+      const buttonHandle = await this.querySelectorInView('lineup-view-games', 'mwc-fab');
+      if (!buttonHandle) {
+        throw new Error('New game button not found');
+      }
+      await buttonHandle.click();
     };
   }
 
   async fillGameDetails(game: Game) {
-    const dateString = game.date.toISOString().substring(0, 10);
-    const timeString = game.date.toTimeString().substring(0, 5);
-    console.log('custom query handlers: ', customQueryHandlerNames());
+    // The game create fields expect the date/time in the local timezone,
+    // as emulated by Puppeteer. The timezone is set to 'America/New_York' to
+    // have a consistent value for screenshots, regardless of the machine that
+    // is running the tests.
+    // Formatting |game.date| into strings basically throws away the timezone,
+    // rather than converting to local time.
+    // Manually convert the date to local time, so that the resulting date,
+    // which is stored as UTC, matches the intended value.
+    // Need to calculate the offset between the emulated timezone, and the
+    // timezone of this machine.
+    const emulatedOffset = await this.getTimezoneOffset();
+    const thisOffset = game.date.getTimezoneOffset();
+    const localDate = new Date(game.date);
+    localDate.setUTCMinutes(localDate.getUTCMinutes() - emulatedOffset + thisOffset);
+    const dateString = `${localDate.getFullYear()}-${pad0(localDate.getMonth() + 1)}-${pad0(localDate.getDate())}`;
+    const timeString = localDate.toTimeString().substring(0, 5);
+
+    console.log(`Game date: original = ${game.date}, emulated offset = ${emulatedOffset}, this offset = ${thisOffset}, local = ${localDate}, ${dateString}, ${timeString}`);
     await this.page.evaluate(`(async (name, opponent, gameDate, gameTime) => {
       console.log('in the evaluate: ' + name);
       const gameCreate = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-view-games').shadowRoot.querySelector('lineup-game-create');
@@ -76,4 +92,21 @@ export class GameCreatePage extends PageObject {
       return undefined;
     }, game.name, game.opponent);
   }
+
+  async getCreateComponent() {
+    const createHandle = await this.querySelectorInView('lineup-view-games', 'lineup-game-create');
+    if (!createHandle) {
+      throw new Error('Create component not found');
+    }
+    return createHandle;
+  }
+}
+
+function pad0(value: number, count?: number): string {
+  count = count ?? 2;
+  let result = value.toString();
+  for (; result.length < count; --count) {
+    result = '0' + result;
+  }
+  return result;
 }

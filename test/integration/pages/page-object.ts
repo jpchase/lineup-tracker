@@ -1,7 +1,3 @@
-/**
-@license
-*/
-
 import { AxePuppeteer } from '@axe-core/puppeteer';
 import { AxeResults } from 'axe-core';
 import * as path from 'path';
@@ -61,6 +57,10 @@ export class PageObject {
     return url.pathname.slice(1);
   }
 
+  get timeZoneId(): string {
+    return 'America/Toronto';
+  }
+
   get page(): Page {
     if (!this._page) {
       throw new Error('Page not initialized. Did you call init()?');
@@ -103,7 +103,7 @@ export class PageObject {
       }
     });
 
-    await page.emulateTimezone('America/Toronto');
+    await page.emulateTimezone(this.timeZoneId);
   }
 
   async close() {
@@ -280,6 +280,12 @@ export class PageObject {
       throw new Error(`View not found: ${viewName}`);
     }
     return viewHandle.$(`pierce/${selector}`);
+  }
+
+  async getTimezoneOffset(): Promise<number> {
+    return await this.page.evaluate(() => {
+      return new Date().getTimezoneOffset();
+    });
   }
 
   async getCurrentTeam() {
