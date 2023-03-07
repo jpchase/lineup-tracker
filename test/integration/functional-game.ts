@@ -57,7 +57,7 @@ describe('Game functional tests', function () {
   });
 
   it('copy roster from team', async function () {
-    const gameId = integrationTestData.TEAM2.games.NEW;
+    const gameId = integrationTestData.TEAM2.games.NEW.ID;
     const gameRosterPage = pageObject = new GameRosterPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID },

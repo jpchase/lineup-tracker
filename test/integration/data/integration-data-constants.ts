@@ -9,10 +9,13 @@ export const integrationTestData = {
     ID: 'u05MxrB7sEWZOJ3F5kyN',
     NAME: 'A Second Team',
     OWNER_ID: 'dkRjNwwKIkB6OVQH2SRkBpmYHo8A',
-    NEW_GAME_ID: 'szFJ5VVPkJn42DV2f2Ag',
     games: {
-      NEW: 'szFJ5VVPkJn42DV2f2Ag',
-      NEW_WITH_ROSTER: 'KASxLPgbQqe38dwkH76D',
+      NEW: {
+        ID: 'szFJ5VVPkJn42DV2f2Ag',
+      },
+      NEW_WITH_ROSTER: {
+        ID: 'KASxLPgbQqe38dwkH76D',
+      },
     }
   },
 };

@@ -37,6 +37,8 @@ enum PageLoadType {
   Reload
 }
 
+export type PageConstructor<T extends PageObject> = new (options: PageOptions) => T;
+
 export class PageObject {
   private _browser?: Browser;
   private _page?: Page;
@@ -104,6 +106,20 @@ export class PageObject {
     });
 
     await page.emulateTimezone(this.timeZoneId);
+  }
+
+  // Transfers the existing puppeteer instance to a different logical page.
+  // Use when interaction with the page causes a different logical view to become
+  // active, and it's not necessary/desirable to initialize a new instance.
+  // After the swap, this page object will no longer be valid or connected to
+  // puppeteer.
+  swap<T extends PageObject>(targetPageType: PageConstructor<T>, options: PageOptions = {}): T {
+    const newPage = new targetPageType(options);
+    newPage._browser = this._browser;
+    newPage._page = this._page;
+    this._browser = undefined;
+    this._page = undefined;
+    return newPage;
   }
 
   async close() {

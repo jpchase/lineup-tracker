@@ -23,7 +23,7 @@ function buildNewDocumentData(model: Model, modelWriter?: ModelWriter<any>, opti
     ...model,
   };
   // Ensure there is no 'id' property, as that will prevent a unique id from being generated.
-  if (!options || !options.keepExistingId) {
+  if (!options?.keepExistingId) {
     delete data.id;
   }
   // Add parent ids, if necessary.
