@@ -221,6 +221,7 @@ const gameSlice = createSlice({
         return;
       }
       game.status = GameStatus.Start;
+      state.games[action.payload.gameId] = game;
     }).addCase(gameCompleted, (state, action: PayloadAction<GamePayload>) => {
       const game = state.game!;
       if (action.payload.gameId !== game.id) {
