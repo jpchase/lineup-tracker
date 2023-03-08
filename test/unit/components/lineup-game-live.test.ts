@@ -10,7 +10,7 @@ import { GameDetail, GameStatus } from '@app/models/game.js';
 import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, markPlayerOut, returnOutPlayer, selectCurrentLiveGame, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
+import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, markPlayerOut, returnOutPlayer, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
@@ -55,10 +55,10 @@ describe('lineup-game-live tests', () => {
     removeMiddleware(actionLoggerMiddleware);
   });
 
-  async function setupElement(preloadedState?: RootState) {
+  async function setupElement(preloadedState?: RootState, gameId?: string) {
     const store = setupStore(preloadedState);
 
-    const template = html`<lineup-game-live .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-live>`;
+    const template = html`<lineup-game-live .gameId="${gameId}" .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-live>`;
     el = await fixture(template);
     dispatchStub = sinon.spy(el, 'dispatch');
   }
@@ -145,7 +145,7 @@ describe('lineup-game-live tests', () => {
   it('shows no game placeholder when no current game', async () => {
     const store = getStore();
     expect(store.getState().live, 'LiveState should exist').to.be.ok;
-    expect(selectCurrentLiveGame(store.getState()), 'LiveState should have game unset').to.not.be.ok;
+    expect(store.getState().live?.gameId, 'LiveState should have game unset').to.not.be.ok;
 
     const placeholder = el.shadowRoot!.querySelector('div p.empty-list');
     expect(placeholder, 'Missing empty placeholder element').to.be.ok;
@@ -158,7 +158,7 @@ describe('lineup-game-live tests', () => {
     const gameState = buildGameStateWithCurrentGame(game);
     const liveState = buildLiveStateWithCurrentGame(live);
 
-    await setupElement(buildRootState(gameState, liveState));
+    await setupElement(buildRootState(gameState, liveState), live.id);
     await el.updateComplete;
 
     const onPlayers = getPlayerSection('on');
@@ -196,7 +196,7 @@ describe('lineup-game-live tests', () => {
       const liveState = buildLiveStateWithCurrentGame(live,
         { shift });
 
-      await setupElement(buildRootState(gameState, liveState));
+      await setupElement(buildRootState(gameState, liveState), live.id);
       await el.updateComplete;
       liveGame = selectLiveGameById(getStore().getState(), live.id)!;
       gameId = liveGame.id;
@@ -581,7 +581,7 @@ describe('lineup-game-live tests', () => {
       const liveState = buildLiveStateWithCurrentGame(live,
         { shift });
 
-      await setupElement(buildRootState(gameState, liveState));
+      await setupElement(buildRootState(gameState, liveState), live.id);
       await el.updateComplete;
     });
 
@@ -651,7 +651,7 @@ describe('lineup-game-live tests', () => {
       const liveState = buildLiveStateWithCurrentGame(live,
         { shift });
 
-      await setupElement(buildRootState(gameState, liveState));
+      await setupElement(buildRootState(gameState, liveState), live.id);
       await el.updateComplete;
       liveGame = selectLiveGameById(getStore().getState(), live.id)!;
     });
