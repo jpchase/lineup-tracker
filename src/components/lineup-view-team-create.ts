@@ -3,19 +3,18 @@ import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { addNewTeam, team } from '../slices/team/team-slice.js';
-import { RootState, store } from '../store';
-import { EVENT_NEWTEAMCREATED } from './events';
-import './lineup-team-create';
-import { pageRouterContext, PageRouter } from './page-router.js';
-import { PageViewElement } from './page-view-element';
-import { SharedStyles } from './shared-styles';
+import { RootState, store } from '../store.js';
+import { EVENT_NEWTEAMCREATED } from './events.js';
+import './lineup-team-create.js';
+import { PageRouter, pageRouterContext } from './page-router.js';
+import { PageViewElement } from './page-view-element.js';
+import { SharedStyles } from './shared-styles.js';
 
 // We are lazy loading its reducer.
 store.addReducers({
   team
 });
 
-// This element is connected to the Redux store.
 @customElement('lineup-view-team-create')
 export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
   override render() {

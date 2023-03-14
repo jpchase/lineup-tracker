@@ -1,7 +1,3 @@
-/**
-@license
-*/
-
 import { AxePuppeteer } from '@axe-core/puppeteer';
 import { AxeResults } from 'axe-core';
 import * as path from 'path';
@@ -41,6 +37,8 @@ enum PageLoadType {
   Reload
 }
 
+export type PageConstructor<T extends PageObject> = new (options: PageOptions) => T;
+
 export class PageObject {
   private _browser?: Browser;
   private _page?: Page;
@@ -59,6 +57,10 @@ export class PageObject {
   get currentRoute(): string {
     const url = new URL(this.page.url());
     return url.pathname.slice(1);
+  }
+
+  get timeZoneId(): string {
+    return 'America/Toronto';
   }
 
   get page(): Page {
@@ -81,6 +83,10 @@ export class PageObject {
 
   async init() {
     const browser = this._browser = await puppeteer.launch({ args: ['--disable-gpu', '--font-render-hinting=none'] });
+    // const browser = this._browser = await puppeteer.launch({
+    //   args: ['--disable-gpu', '--font-render-hinting=none'], headless: false,
+    //   devtools: true,
+    // });
 
     const page = this._page = await browser.newPage();
 
@@ -103,7 +109,21 @@ export class PageObject {
       }
     });
 
-    await page.emulateTimezone('America/Toronto');
+    await page.emulateTimezone(this.timeZoneId);
+  }
+
+  // Transfers the existing puppeteer instance to a different logical page.
+  // Use when interaction with the page causes a different logical view to become
+  // active, and it's not necessary/desirable to initialize a new instance.
+  // After the swap, this page object will no longer be valid or connected to
+  // puppeteer.
+  swap<T extends PageObject>(targetPageType: PageConstructor<T>, options: PageOptions = {}): T {
+    const newPage = new targetPageType(options);
+    newPage._browser = this._browser;
+    newPage._page = this._page;
+    this._browser = undefined;
+    this._page = undefined;
+    return newPage;
   }
 
   async close() {
@@ -280,6 +300,12 @@ export class PageObject {
       throw new Error(`View not found: ${viewName}`);
     }
     return viewHandle.$(`pierce/${selector}`);
+  }
+
+  async getTimezoneOffset(): Promise<number> {
+    return await this.page.evaluate(() => {
+      return new Date().getTimezoneOffset();
+    });
   }
 
   async getCurrentTeam() {

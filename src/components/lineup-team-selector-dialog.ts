@@ -1,14 +1,10 @@
-/**
-@license
-*/
-
 import '@material/mwc-button';
 import '@material/mwc-dialog';
 import { Dialog } from '@material/mwc-dialog';
 import '@material/mwc-list';
 import { List } from '@material/mwc-list';
-import { isEventMulti, SingleSelectedEvent } from '@material/mwc-list/mwc-list-foundation';
-import '@material/mwc-list/mwc-list-item';
+import { isEventMulti, SingleSelectedEvent } from '@material/mwc-list/mwc-list-foundation.js';
+import '@material/mwc-list/mwc-list-item.js';
 import { html, LitElement } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { Team, Teams } from '../models/team.js';

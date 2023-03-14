@@ -15,7 +15,7 @@ export const pendingSubsAppliedCreator = (gameId: string, selectedOnly?: boolean
   if (!game) {
     return;
   }
-  const subs = selectPendingSubs(state, selectedOnly, /* includeSwaps */true);
+  const subs = selectPendingSubs(state, game.id, selectedOnly, /* includeSwaps */true);
   if (!subs) {
     console.log('No subs!')
     return;

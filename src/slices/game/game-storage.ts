@@ -1,5 +1,5 @@
 import { DocumentData } from 'firebase/firestore';
-import { debug } from '../../common/debug';
+import { debug } from '../../common/debug.js';
 import { Game, Games } from '../../models/game.js';
 import { Player, Roster } from '../../models/player.js';
 import { CollectionFilter, reader, whereFilter } from '../../storage/firestore-reader.js';

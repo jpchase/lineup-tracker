@@ -713,7 +713,7 @@ describe('Live slice', () => {
           const dispatchMock = sinon.stub();
           const getStateMock = mockGetState(currentState);
 
-          await startGamePeriod()(dispatchMock, getStateMock, undefined);
+          await startGamePeriod(gameId)(dispatchMock, getStateMock, undefined);
 
           // The request action is dispatched, regardless.
           expect(dispatchMock).to.have.callCount(1);
@@ -744,7 +744,7 @@ describe('Live slice', () => {
           const dispatchMock = sinon.stub();
           const getStateMock = mockGetState(currentState);
 
-          await startGamePeriod()(dispatchMock, getStateMock, undefined);
+          await startGamePeriod(gameId)(dispatchMock, getStateMock, undefined);
 
           // The request action is dispatched, regardless.
           expect(dispatchMock).to.have.callCount(1);
@@ -764,7 +764,7 @@ describe('Live slice', () => {
           const dispatchMock = sinon.stub();
           const getStateMock = mockGetState(currentState);
 
-          await startGamePeriod()(dispatchMock, getStateMock, undefined);
+          await startGamePeriod(gameId)(dispatchMock, getStateMock, undefined);
 
           // The request action is dispatched, regardless.
           expect(dispatchMock).to.have.callCount(1);

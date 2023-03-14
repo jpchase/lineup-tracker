@@ -1,17 +1,12 @@
-/**
-@license
-*/
-
 import '@material/mwc-button';
 import '@material/mwc-textfield';
 import { TextField } from '@material/mwc-textfield';
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { Team } from '../models/team';
-import { EVENT_NEWTEAMCREATED } from './events';
-import { SharedStyles } from './shared-styles';
+import { Team } from '../models/team.js';
+import { EVENT_NEWTEAMCREATED } from './events.js';
+import { SharedStyles } from './shared-styles.js';
 
-// This element is *not* connected to the Redux store.
 @customElement('lineup-team-create')
 export class LineupTeamCreate extends LitElement {
   override render() {

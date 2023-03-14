@@ -1,18 +1,14 @@
-/**
-@license
-*/
-
 import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { Formation, FormationLine, Position } from '../models/formation';
+import { Formation, FormationLine, Position } from '../models/formation.js';
 import { LivePlayer } from '../models/live.js';
-import { PlayerStatus } from '../models/player';
-import './lineup-player-card';
-import { PlayerCardData } from './lineup-player-card';
+import { PlayerStatus } from '../models/player.js';
+import './lineup-player-card.js';
+import { PlayerCardData } from './lineup-player-card.js';
 import { PlayerListElement } from './player-list-element.js';
-import { SharedStyles } from './shared-styles';
+import { SharedStyles } from './shared-styles.js';
 
 interface PlayerLine extends FormationLine {
   id: string;

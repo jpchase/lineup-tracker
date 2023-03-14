@@ -16,7 +16,7 @@ import {
   gameCompleted,
   markPlayerOut,
   pendingSubsAppliedCreator,
-  proposedSubSelector, returnOutPlayer, selectCurrentLiveGame, selectInvalidSubs, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
+  proposedSubSelector, returnOutPlayer, selectLiveGameById, selectInvalidSubs, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
@@ -179,10 +179,13 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   @property({ type: Object })
   storeConfigurator?: SliceStoreConfigurator = getLiveStore;
 
-  @property({ type: Object })
+  @property({ type: String })
+  gameId?: string;
+
+  @state()
   private _game: LiveGame | undefined;
 
-  @property({ type: Array })
+  @state()
   private _players: LivePlayer[] | undefined;
 
   @state()
@@ -232,10 +235,10 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   });
 
   override stateChanged(state: RootState) {
-    if (!state.live) {
+    if (!state.live || !this.gameId) {
       return;
     }
-    this._game = selectCurrentLiveGame(state);
+    this._game = selectLiveGameById(state, this.gameId);
     if (!this._game) {
       return;
     }
@@ -325,7 +328,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   }
 
   private startClockPeriod() {
-    this.dispatch(startGamePeriod());
+    this.dispatch(startGamePeriod(this._game!.id));
   }
 
   private endClockPeriod() {

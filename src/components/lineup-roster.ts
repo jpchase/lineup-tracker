@@ -1,17 +1,12 @@
-/**
-@license
-*/
-
 import '@material/mwc-fab';
 import '@material/mwc-list';
 import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { Player, Roster } from '../models/player';
-import { EVENT_NEWPLAYERCANCELLED, EVENT_NEWPLAYERCREATED } from './events';
-import './lineup-roster-modify';
-import { SharedStyles } from './shared-styles';
+import { Player, Roster } from '../models/player.js';
+import { EVENT_NEWPLAYERCANCELLED, EVENT_NEWPLAYERCREATED } from './events.js';
+import './lineup-roster-modify.js';
+import { SharedStyles } from './shared-styles.js';
 
-// This element is *not* connected to the Redux store.
 @customElement('lineup-roster')
 export class LineupRoster extends LitElement {
   override render() {

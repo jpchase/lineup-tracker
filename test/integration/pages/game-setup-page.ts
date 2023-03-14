@@ -1,3 +1,4 @@
+import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { ElementHandle } from 'puppeteer';
 import { GameDetailPage } from './game-detail-page.js';
 import { PageOpenFunction, PageOptions } from './page-object.js';
@@ -20,8 +21,6 @@ export class GameSetupPage extends GameDetailPage {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
-      scenarioName: options.scenarioName ?? 'viewGameDetail',
-      route: `game/${options.gameId}`
     });
   }
 
@@ -71,8 +70,10 @@ export class GameSetupPage extends GameDetailPage {
     return SetupStatus.InProgress;
   }
 
-  async setFormation(formationType: string) {
-    const setupHandle = await this.getSetupComponent();
+  async setFormation(formationType: string, setupHandle?: ElementHandle<Element>) {
+    if (!setupHandle) {
+      setupHandle = await this.getSetupComponent();
+    }
 
     // Click the Formation step link, to show the formation widget.
     const taskHandle = await this.getTaskElement(SetupSteps.Formation, setupHandle);
@@ -90,13 +91,80 @@ export class GameSetupPage extends GameDetailPage {
     await this.page.waitForTimeout(100);
   }
 
-  async markStepDone(step: SetupSteps) {
-    const taskHandle = await this.getTaskElement(step);
+  async markStepDone(step: SetupSteps, setupHandle?: ElementHandle<Element>) {
+    const taskHandle = await this.getTaskElement(step, setupHandle);
     const buttonHandle = await taskHandle.$('.status mwc-button.finish');
     if (!buttonHandle) {
       throw new Error('Finish step button not found');
     }
     await buttonHandle.click();
+  }
+
+  async markAllSetupDone(setupHandle: ElementHandle<Element>) {
+    await setupHandle.$eval('pierce/#complete-button', (completeButton) => {
+      (completeButton as HTMLElement).click();
+    });
+    // Brief wait for components to render updates.
+    await this.page.waitForTimeout(50);
+  }
+
+  async completeSetup(starters: string[]) {
+    if (starters.length !== 11) {
+      throw new Error(`Starters requires 11 players: ${starters.length} provided`);
+    }
+    const setupHandle = await this.getSetupComponent();
+
+    // Complete the formation step.
+    await this.setFormation('4-3-3');
+
+    // Roster is already populated on the game, mark the step as done.
+    await this.markStepDone(SetupSteps.Roster, setupHandle);
+
+    // Captains step is currently a no-op, mark the step as done.
+    await this.markStepDone(SetupSteps.Captains, setupHandle);
+
+    // Populate the starters.
+    await setupHandle.evaluate(async (setupNode, starterIds) => {
+      const setupRoot = setupNode!.shadowRoot!;
+      const startersList = setupRoot.querySelector('lineup-on-player-list');
+      const subsList = setupRoot.querySelector('lineup-player-list');
+      if (!startersList || !subsList) {
+        throw new Error(`Lists not found`);
+      }
+      const positions = Array.from<LineupPlayerCard>(startersList.shadowRoot!.querySelectorAll('lineup-player-card'));
+      let index = 0;
+      for (const playerId of starterIds) {
+        // Select the |index|'th position in the formation.
+        positions[index].click();
+
+        // Select the |playerId| in the subs list.
+        const subs = Array.from<LineupPlayerCard>(subsList.shadowRoot!.querySelectorAll('lineup-player-card'));
+        const subCard = subs.find(card => (card.player?.id === playerId));
+        if (!subCard) {
+          throw new Error(`Starter not found in list: ${playerId}`);
+        }
+        subCard.click();
+
+        // Confirm the starter.
+        await Promise.resolve();
+        const confirmSection = setupRoot.querySelector('#confirm-starter');
+        if (!confirmSection) {
+          throw new Error(`Missing confirm starter for: ${playerId}`);
+        }
+        const applyButton = confirmSection.querySelector('mwc-button.ok');
+        if (!applyButton) {
+          throw new Error(`Missing apply button for: ${playerId}`);
+        }
+        (applyButton as HTMLElement).click();
+        index++;
+      }
+    }, starters);
+
+    // Mark the Starters step done.
+    await this.markStepDone(SetupSteps.Starters, setupHandle);
+
+    // Finalize the setup.
+    await this.markAllSetupDone(setupHandle);
   }
 
 }

@@ -1,11 +1,7 @@
-/**
-@license
-*/
-
 import '@material/mwc-button';
 import '@material/mwc-dialog';
 import '@material/mwc-list';
-import '@material/mwc-list/mwc-list-item';
+import '@material/mwc-list/mwc-list-item.js';
 import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Team } from '../models/team.js';

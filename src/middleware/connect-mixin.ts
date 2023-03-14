@@ -1,7 +1,6 @@
 import { AnyAction, ThunkAction, Unsubscribe } from '@reduxjs/toolkit';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
-
-type Constructor<T> = new (...args: any[]) => T;
+import { Constructor } from '../util/shared-types.js';
 
 interface CustomElement {
   connectedCallback?(): void;

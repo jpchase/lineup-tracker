@@ -1,22 +1,11 @@
-/**
-@license
-*/
-
-import { html, LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
-
-import { Player, PlayerStatus } from '../models/player';
-
-// These are the elements needed by this element.
 import '@material/mwc-button';
 import '@material/mwc-formfield';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Player, PlayerStatus } from '../models/player.js';
+import { EVENT_NEWPLAYERCANCELLED, EVENT_NEWPLAYERCREATED } from './events.js';
+import { SharedStyles } from './shared-styles.js';
 
-import { EVENT_NEWPLAYERCREATED, EVENT_NEWPLAYERCANCELLED } from './events';
-
-// These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles';
-
-// This element is *not* connected to the Redux store.
 @customElement('lineup-roster-modify')
 export class LineupRosterModify extends LitElement {
   override render() {

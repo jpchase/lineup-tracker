@@ -2,20 +2,20 @@ import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin';
+import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { getGameStore } from '../slices/game-store.js';
 import { getGame, selectGameById } from '../slices/game/game-slice.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store';
-import './lineup-game-live';
-import './lineup-game-setup';
+import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import './lineup-game-live.js';
+import './lineup-game-setup.js';
 import { AuthorizedViewElement } from './page-view-element.js';
-import { SharedStyles } from './shared-styles';
+import { SharedStyles } from './shared-styles.js';
 import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-game-detail')
 export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElement) {
-  private _getDetailContent(game: GameDetail) {
+  private renderDetailContent(game: GameDetail) {
     if (game.status === GameStatus.Done) {
       // Completed game
       return html`Game is done`;
@@ -27,7 +27,7 @@ export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElemen
     if (isNew) {
       return html`<lineup-game-setup></lineup-game-setup>`;
     }
-    return html`<lineup-game-live></lineup-game-live>`;
+    return html`<lineup-game-live .gameId="${game.id}"></lineup-game-live>`;
   }
 
   override renderView() {
@@ -43,7 +43,7 @@ export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElemen
       <section>
       ${this.game ? html`
         <h2 main-title>Live: ${this._getName()}</h2>
-        ${this._getDetailContent(this.game)}
+        ${this.renderDetailContent(this.game)}
       ` : html`
         <p class="empty-list">
           Game not found.

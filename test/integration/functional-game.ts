@@ -5,10 +5,18 @@ import { integrationTestData } from './data/integration-data-constants.js';
 import { GameCreatePage } from './pages/game-create-page.js';
 import { GameRosterPage } from './pages/game-roster-page.js';
 import { PageObject } from './pages/page-object.js';
+import { createAdminApp, readGame, readGameRoster } from './server/firestore-access.js';
 const { nanoid } = rtk;
+import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 describe('Game functional tests', function () {
+  let firestore: Firestore;
   let pageObject: PageObject;
+
+  before(async () => {
+    const firebaseApp = createAdminApp();
+    firestore = getFirestore(firebaseApp);
+  });
 
   afterEach(async () => {
     await pageObject?.close();
@@ -22,8 +30,10 @@ describe('Game functional tests', function () {
     await addGamePage.init();
     await addGamePage.open({ signIn: true });
 
+    // Set the game date to 1 day in the future from the current time (excluding seconds).
     const gameDate = new Date();
     gameDate.setUTCDate(gameDate.getUTCDate() + 1);
+    gameDate.setUTCSeconds(0, 0);
     const newGame = {
       name: 'New Game - ' + nanoid(),
       opponent: 'Integration Opponent',
@@ -38,14 +48,20 @@ describe('Game functional tests', function () {
     expect(gameId).to.match(/^[A-Za-z0-9]{10,}$/, 'Newly-created game id');
 
     // Verify that the new game was saved to storage.
-    // TODO: Implement check once Firebase writes are working
+    const storedGame = await readGame(firestore, gameId!);
+    expect(storedGame, 'New game should be saved to storage').to.deep.include({
+      ...newGame,
+      id: gameId,
+      teamId: integrationTestData.TEAM2.ID
+    });
   });
 
   it('copy roster from team', async function () {
+    const gameId = integrationTestData.TEAM2.games.NEW.ID;
     const gameRosterPage = pageObject = new GameRosterPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID },
-      gameId: integrationTestData.TEAM2.games.NEW
+      gameId
     });
     await gameRosterPage.init();
     await gameRosterPage.open({ signIn: true });
@@ -61,7 +77,8 @@ describe('Game functional tests', function () {
     expect(players.length, 'All players should be copied from team roster').to.equal(16);
 
     // Verify that the players are stored for the game roster.
-    // TODO: Implement check once Firebase writes are working
+    const roster = await readGameRoster(firestore, gameId);
+    expect(Object.keys(roster).length, 'Copied players should be saved to storage').to.equal(16);
   });
 
   it.skip('add player to game roster', async function () {
