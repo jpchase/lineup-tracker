@@ -644,7 +644,6 @@ describe('Game slice', () => {
         (gameState, liveState) => {
           gameState.gameId = existingGame.id;
           gameState.game = existingGame;
-          liveState.gameId = existingGame.id;
           if (!liveState.games) {
             liveState.games = {};
           }
@@ -669,7 +668,6 @@ describe('Game slice', () => {
         (gameState, liveState) => {
           gameState.gameId = existingGame.id;
           gameState.game = existingGame;
-          liveState.gameId = existingGame.id;
           if (!liveState.games) {
             liveState.games = {};
           }

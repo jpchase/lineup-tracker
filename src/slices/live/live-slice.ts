@@ -37,7 +37,6 @@ import {
 export { pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
-  gameId: string;
   games?: LiveGames;
   selectedStarterPlayer?: string;
   selectedStarterPosition?: Position;
@@ -57,7 +56,6 @@ export interface LiveState extends LiveGameState {
 }
 
 const INITIAL_STATE: LiveGameState = {
-  gameId: '',
   games: {},
   selectedStarterPlayer: undefined,
   selectedStarterPosition: undefined,
@@ -387,6 +385,5 @@ function setCurrentGame(state: LiveState, game: LiveGame) {
   if (!state.games) {
     state.games = {};
   }
-  state.gameId = game.id;
   state.games[game.id] = game;
 }
