@@ -4,7 +4,7 @@ import { Player, Roster } from '../../models/player.js';
 import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { loadTeamRoster } from '../team/team-storage.js';
 import { RosterCopiedPayload } from './game-action-types.js';
-import { gamePlayerAdded, GameState, selectCurrentGameId } from './game-slice.js';
+import { gamePlayerAdded, GameState } from './game-slice.js';
 import { persistGamePlayer } from './game-storage.js';
 
 export const copyRoster = createAsyncThunk<
@@ -75,8 +75,7 @@ export const copyRoster = createAsyncThunk<
 );
 
 export const rosterCopyPendingHandler = (state: GameState,
-  action: ReturnType<typeof copyRoster.pending>) => {
-  state.gameId = action.meta.gameId;
+  _action: ReturnType<typeof copyRoster.pending>) => {
   state.rosterFailure = false;
   state.rosterLoading = true;
 };
@@ -108,22 +107,21 @@ export const rosterCopyFailedHandler = (state: GameState,
   state.rosterLoading = false;
 };
 
-export const addNewGamePlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
+export const addNewGamePlayer = (gameId: string, newPlayer: Player): ThunkResult => (dispatch, getState) => {
   if (!newPlayer) {
     return;
   }
   const state = getState();
   // Verify that the player id is unique.
   const gameState = state.game!;
-  if (gameState.game && gameState.game.roster[newPlayer.id]) {
+  if (gameState.game?.roster[newPlayer.id]) {
     return;
   }
-  dispatch(saveGamePlayer(newPlayer));
+  dispatch(saveGamePlayer(gameId, newPlayer));
 };
 
-export const saveGamePlayer = (newPlayer: Player): ThunkPromise<void> => async (dispatch, getState) => {
+export const saveGamePlayer = (gameId: string, newPlayer: Player): ThunkPromise<void> => async (dispatch) => {
   // Save the player to Firestore, before adding to the store.
-  const gameId = selectCurrentGameId(getState())!;
   await persistGamePlayer(newPlayer, gameId, true);
   dispatch(gamePlayerAdded(newPlayer));
 };

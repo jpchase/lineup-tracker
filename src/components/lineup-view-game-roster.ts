@@ -139,7 +139,7 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
   }
 
   private newPlayerCreated(e: CustomEvent) {
-    this.dispatch(addNewGamePlayer(e.detail.player));
+    this.dispatch(addNewGamePlayer(this.gameId!, e.detail.player));
   }
 
   // Formatting functions

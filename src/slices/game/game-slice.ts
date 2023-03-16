@@ -137,8 +137,6 @@ export const gameCompletedCreator = (gameId: string): ThunkResult => (dispatch) 
 
 export interface GameState {
   //TODO: get rid of this, most remaining references are in tests
-  gameId: string;
-  //TODO: get rid of this, most remaining references are in tests
   game?: GameDetail;
   //TODO: Make this GameDetail's to avoid casting?
   games: Games;
@@ -150,7 +148,6 @@ export interface GameState {
 }
 
 export const GAME_INITIAL_STATE: GameState = {
-  gameId: '',
   game: undefined,
   games: {},
   detailLoading: false,
@@ -179,8 +176,7 @@ const gameSlice = createSlice({
     });
     // Get game actions
     builder.addCase(getGame.pending, (state: GameState,
-      action: ReturnType<typeof getGame.pending>) => {
-      state.gameId = action.meta.gameId;
+      _action: ReturnType<typeof getGame.pending>) => {
       state.detailFailure = false;
       state.detailLoading = true;
     });
@@ -189,7 +185,7 @@ const gameSlice = createSlice({
       state.detailFailure = false;
       state.detailLoading = false;
 
-      if (state.game?.id === action.payload.id) {
+      if (state.games[action.payload.id]) {
         // Game has already been retrieved.
         return;
       }
@@ -238,7 +234,6 @@ export const gameReducer = reducer;
 
 export const { addGame, gamePlayerAdded } = actions;
 
-export const selectCurrentGameId = (state: RootState) => state.game?.gameId;
 export const selectCurrentGame = (state: RootState) => state.game?.game;
 
 export const selectGameById = (state: RootState, gameId: string) => {

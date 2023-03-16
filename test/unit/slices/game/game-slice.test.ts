@@ -7,6 +7,7 @@ import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildGameStateWithCurrentGame } from '../../helpers/game-state-setup.js';
 import {
   buildGames, buildRoster, getMockAuthState, getMockTeamState, getNewGame,
   getNewGameDetail,
@@ -208,7 +209,7 @@ describe('Game slice', () => {
       expect(dispatchMock).to.not.have.been.called;
     });
 
-    it('should set game id and loading flag for pending', () => {
+    it('should set loading flag for pending', () => {
       currentState = initCurrentState();
       const gameId = 'idfornewgame';
       const newState = game(currentState, {
@@ -219,13 +220,11 @@ describe('Game slice', () => {
       });
 
       expect(newState).to.include({
-        gameId: gameId,
         detailLoading: true,
         detailFailure: false
       });
 
       expect(newState).not.to.equal(currentState);
-      expect(newState.gameId).not.to.equal(currentState.gameId);
     });
 
     it('should dispatch success action with game returned from storage', async () => {
@@ -267,7 +266,6 @@ describe('Game slice', () => {
         roster: buildRoster([getStoredPlayer()])
       };
 
-      currentState.gameId = inputGame.id;
       const newState = game(currentState,
         getGame.fulfilled(inputGame, 'unused', 'unused'));
 
@@ -324,7 +322,6 @@ describe('Game slice', () => {
         roster: {}
       };
 
-      currentState.gameId = inputGame.id;
       const newState = game(currentState,
         getGame.fulfilled(inputGame, 'unused', 'unused'));
 
@@ -353,7 +350,6 @@ describe('Game slice', () => {
         hasDetail: true
       };
       const getStateMock = mockGetState([], undefined, undefined, (gameState) => {
-        gameState.gameId = loadedGame.id;
         gameState.game = loadedGame;
       });
 
@@ -394,11 +390,9 @@ describe('Game slice', () => {
     });
 
     it('should update only loading flag when game set to current game', () => {
-      currentState = initCurrentState();
       const currentGame = buildNewGameDetailAndRoster();
-      currentState.gameId = currentGame.id;
-      currentState.game = currentGame;
-      currentState.detailLoading = true;
+      currentState = buildGameStateWithCurrentGame(currentGame,
+        { detailLoading: true });
 
       const newState = game(currentState,
         getGame.fulfilled(currentGame, 'unused', 'unused'));
@@ -642,7 +636,6 @@ describe('Game slice', () => {
       const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
         getMockTeamState([], getStoredTeam()),
         (gameState, liveState) => {
-          gameState.gameId = existingGame.id;
           gameState.game = existingGame;
           if (!liveState.games) {
             liveState.games = {};
@@ -666,7 +659,6 @@ describe('Game slice', () => {
       const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
         getMockTeamState([], getStoredTeam()),
         (gameState, liveState) => {
-          gameState.gameId = existingGame.id;
           gameState.game = existingGame;
           if (!liveState.games) {
             liveState.games = {};
@@ -720,7 +712,6 @@ describe('Game slice', () => {
       const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
         getMockTeamState([], getStoredTeam()),
         (gameState) => {
-          gameState.gameId = existingGame.id;
           gameState.game = existingGame;
         });
       const updateDocumentStub = writerStub.updateDocument.returns();
@@ -740,7 +731,6 @@ describe('Game slice', () => {
       const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
         getMockTeamState([], getStoredTeam()),
         (gameState) => {
-          gameState.gameId = existingGame.id;
           gameState.game = existingGame;
         });
 
