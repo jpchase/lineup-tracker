@@ -16,7 +16,6 @@ export function buildGameStateWithCurrentGame(game: GameDetail, rest?: Partial<G
     ...rest,
   };
   if (game) {
-    state.game = game;
     if (!state.games) {
       state.games = {};
     }

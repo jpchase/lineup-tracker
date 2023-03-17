@@ -35,10 +35,6 @@ describe('lineup-view-game-roster tests', () => {
     el = await fixture(template);
   }
 
-  function getStore() {
-    return el.store!;
-  }
-
   it('shows signin placeholder when not signed in', async () => {
     const game = getGameWithEmptyRoster();
     const state = buildRootState(buildGameStateWithCurrentGame(game));
@@ -57,10 +53,6 @@ describe('lineup-view-game-roster tests', () => {
 
   it('shows no game placeholder when no current game', async () => {
     await setupElement(buildSignedInState());
-
-    const store = getStore();
-    expect(store.getState().game).to.be.ok;
-    expect(store.getState().game!.game, 'GameState should have game unset').to.not.be.ok;
 
     const placeholder = el.shadowRoot!.querySelector('section p.empty-list');
     expect(placeholder, 'Missing empty placeholder element').to.be.ok;

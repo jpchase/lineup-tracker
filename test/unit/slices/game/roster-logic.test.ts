@@ -1,16 +1,15 @@
-import { Game, GameDetail } from '@app/models/game.js';
+import { GameDetail } from '@app/models/game.js';
 import { Player, Roster } from '@app/models/player.js';
 import { copyRoster, gamePlayerAdded, gameReducer, GameState } from '@app/slices/game/game-slice.js';
 import * as actions from '@app/slices/game/roster-logic.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
-import { RootState } from '@app/store';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildGameStateWithCurrentGame, buildInitialGameState } from '../../helpers/game-state-setup.js';
+import { mockGetState } from '../../helpers/root-state-setup.js';
 import {
-  buildGames, buildRoster, getMockAuthState,
-  getNewGameDetail,
+  buildRoster, getNewGameDetail,
   getNewPlayer, getNewPlayerData,
   getOtherStoredPlayer,
   getStoredGame, getStoredPlayer, STORED_GAME_ID
@@ -30,31 +29,6 @@ function getStoredGameDetail(): GameDetail {
 const KEY_GAMES = 'games';
 const KEY_ROSTER = 'roster';
 const KEY_TEAMS = 'teams';
-
-interface MockStateUpdateFunc {
-  (state: GameState): void;
-}
-
-function mockGetState(games?: Game[], updateFn?: MockStateUpdateFunc) {
-  return sinon.fake(() => {
-    const mockState: RootState = {
-      auth: getMockAuthState(),
-      game: {
-        game: undefined,
-        games: buildGames(games || []),
-        detailLoading: false,
-        detailFailure: false,
-        rosterLoading: false,
-        rosterFailure: false
-      },
-      team: undefined
-    };
-    if (updateFn) {
-      updateFn(mockState.game!);
-    }
-    return mockState;
-  });
-}
 
 describe('Game slice: roster actions', () => {
   let readerStub: sinon.SinonStubbedInstance<typeof reader>;
@@ -112,7 +86,7 @@ describe('Game slice: roster actions', () => {
 
     it('should do nothing when game id does not match loaded game', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([]);
+      const getStateMock = mockGetState();
 
       const gameId = 'nosuchgame';
       await actions.copyRoster(gameId)(dispatchMock, getStateMock, undefined);
@@ -129,30 +103,25 @@ describe('Game slice: roster actions', () => {
     });
 
     it('should update only flags when roster already set', () => {
-      currentState = buildGameStateWithCurrentGame(currentGame);
-      currentState.rosterLoading = true;
-      currentState.game!.roster = buildRoster([getStoredPlayer()]);
+      currentGame.roster = buildRoster([getStoredPlayer()]);
+      currentState = buildGameStateWithCurrentGame(currentGame, {
+        rosterLoading: true
+      });
 
       const newState = gameReducer(currentState, {
         type: copyRoster.fulfilled.type,
         payload: {
-          gameId: currentState.game!.id
+          gameId: currentGame.id
         }
       });
 
-      const gameDetail: GameDetail = {
-        ...currentState.game as GameDetail
-      };
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
+      const expectedState = buildGameStateWithCurrentGame({ ...currentGame }, {
         rosterLoading: false,
         rosterFailure: false
       });
 
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game).to.equal(currentState.game);
-      expect(newState.game!.roster).to.equal(currentState.game!.roster);
+      expect(newState).to.deep.include(expectedState);
+      expect(newState.games).to.equal(currentState.games);
     });
 
     it('should do nothing if game already loaded has a roster with players', async () => {
@@ -161,9 +130,7 @@ describe('Game slice: roster actions', () => {
         ...getStoredGameDetail(),
         hasDetail: true
       };
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.game = loadedGame;
-      });
+      const getStateMock = mockGetState(buildGameStateWithCurrentGame(loadedGame));
 
       await actions.copyRoster(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
@@ -190,9 +157,8 @@ describe('Game slice: roster actions', () => {
       const teamRoster = getTeamRoster();
       const rosterSize = Object.keys(teamRoster).length;
 
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.game = loadedGame;
-      });
+      const getStateMock = mockGetState(buildGameStateWithCurrentGame(loadedGame));
+
       const loadCollectionStub = mockLoadCollectionWithTeamRoster(loadedGame.teamId,
         teamRoster);
       const saveNewDocumentStub = writerStub.saveNewDocument.resolves();
@@ -231,12 +197,13 @@ describe('Game slice: roster actions', () => {
       currentState = buildGameStateWithCurrentGame(currentGame);
       const rosterPlayers = [getStoredPlayer()];
 
-      expect(Object.keys(currentState.game!.roster), 'roster should initially be empty').to.be.empty;
+      expect(Object.keys((currentState.games[currentGame.id] as GameDetail).roster),
+        'roster should initially be empty').to.be.empty;
 
       const newState = gameReducer(currentState, {
         type: copyRoster.fulfilled.type,
         payload: {
-          gameId: currentState.game!.id,
+          gameId: currentGame.id,
           gameRoster: buildRoster(rosterPlayers)
         }
       });
@@ -246,16 +213,12 @@ describe('Game slice: roster actions', () => {
         hasDetail: true,
         roster: buildRoster(rosterPlayers)
       };
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
+      const expectedState = buildGameStateWithCurrentGame(gameDetail, {
         rosterLoading: false,
         rosterFailure: false
       });
 
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game).not.to.equal(currentState.game);
-      expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
+      expect(newState).to.deep.include(expectedState);
     });
 
     it('should dispatch rejected action when storage access fails', async () => {
@@ -265,9 +228,7 @@ describe('Game slice: roster actions', () => {
         hasDetail: true,
         roster: {}
       };
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.game = loadedGame;
-      });
+      const getStateMock = mockGetState(buildGameStateWithCurrentGame(loadedGame));
 
       const gameId = loadedGame.id;
 
@@ -305,7 +266,6 @@ describe('Game slice: roster actions', () => {
         rosterFailure: true
       });
 
-      expect(newState).not.to.equal(currentState);
       expect(newState.error).not.to.equal(currentState.error);
     });
   }); // describe('copyRoster')
@@ -326,9 +286,7 @@ describe('Game slice: roster actions', () => {
 
     it('should dispatch an action to add a new player that is unique', () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.game = getStoredGameDetail();
-      });
+      const getStateMock = mockGetState(buildGameStateWithCurrentGame(getStoredGameDetail()));
 
       actions.addNewGamePlayer(STORED_GAME_ID, getNewPlayer())(dispatchMock, getStateMock, undefined);
 
@@ -339,9 +297,7 @@ describe('Game slice: roster actions', () => {
 
     it('should do nothing with a new player that is not unique', () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.game = getStoredGameDetail();
-      });
+      const getStateMock = mockGetState(buildGameStateWithCurrentGame(getStoredGameDetail()));
 
       actions.addNewGamePlayer(STORED_GAME_ID, getStoredPlayer())(dispatchMock, getStateMock, undefined);
 
@@ -360,9 +316,7 @@ describe('Game slice: roster actions', () => {
       };
 
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.game = getStoredGameDetail();
-      });
+      const getStateMock = mockGetState(buildGameStateWithCurrentGame(getStoredGameDetail()));
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
         (model) => {
           model.id = expectedId;
@@ -380,14 +334,12 @@ describe('Game slice: roster actions', () => {
 
       // Waits for promises to resolve.
       await Promise.resolve();
-      expect(dispatchMock).to.have.been.calledWith(gamePlayerAdded(expectedSavedPlayer));
+      expect(dispatchMock).to.have.been.calledWith(gamePlayerAdded(STORED_GAME_ID, expectedSavedPlayer));
     });
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState(undefined, (gameState) => {
-        gameState.game = getStoredGameDetail();
-      });
+      const getStateMock = mockGetState(buildGameStateWithCurrentGame(getStoredGameDetail()));
       writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
       let rejected = false;
@@ -406,36 +358,41 @@ describe('Game slice: roster actions', () => {
     let newPlayer: Player;
     let existingPlayer: Player;
     let currentState: GameState;
+    let currentGame: GameDetail;
+    let gameId: string;
 
     beforeEach(() => {
       newPlayer = getNewPlayer();
       existingPlayer = getStoredPlayer();
 
-      currentState = buildGameStateWithCurrentGame(getNewGameDetail());
+      currentGame = getNewGameDetail();
+      gameId = currentGame.id;
+      currentState = buildGameStateWithCurrentGame(currentGame);
     });
 
     it('should add new player to empty roster', () => {
-      const newState = gameReducer(currentState, gamePlayerAdded(newPlayer));
+      const newState = gameReducer(currentState, gamePlayerAdded(gameId, newPlayer));
 
-      expect(newState.game).to.deep.include({
-        roster: buildRoster([newPlayer]),
-      });
-
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
+      const expectedGame = {
+        ...currentGame,
+        roster: buildRoster([newPlayer])
+      };
+      const expectedState = buildGameStateWithCurrentGame(expectedGame);
+      expect(newState).to.deep.include(expectedState);
     });
 
     it('should add new player to roster with existing players', () => {
-      currentState.game!.roster = buildRoster([existingPlayer]);
+      currentGame.roster = buildRoster([existingPlayer]);
+      currentState = buildGameStateWithCurrentGame(currentGame);
 
-      const newState = gameReducer(currentState, gamePlayerAdded(newPlayer));
+      const newState = gameReducer(currentState, gamePlayerAdded(gameId, newPlayer));
 
-      expect(newState.game).to.deep.include({
-        roster: buildRoster([existingPlayer, newPlayer]),
-      });
-
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game!.roster).not.to.equal(currentState.game!.roster);
+      const expectedGame = {
+        ...currentGame,
+        roster: buildRoster([existingPlayer, newPlayer])
+      };
+      const expectedState = buildGameStateWithCurrentGame(expectedGame);
+      expect(newState).to.deep.include(expectedState);
     });
   }); // describe('gamePlayerAdded')
 }); // describe('Game slice: roster actions')

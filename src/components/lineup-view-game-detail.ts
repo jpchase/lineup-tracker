@@ -25,7 +25,7 @@ export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElemen
     const isNew = (game.status === GameStatus.New);
 
     if (isNew) {
-      return html`<lineup-game-setup></lineup-game-setup>`;
+      return html`<lineup-game-setup .gameId="${game.id}"></lineup-game-setup>`;
     }
     return html`<lineup-game-live .gameId="${game.id}"></lineup-game-live>`;
   }

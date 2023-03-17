@@ -1,10 +1,9 @@
 import { createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Game, GameDetail } from '../../models/game.js';
 import { Player, Roster } from '../../models/player.js';
 import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { loadTeamRoster } from '../team/team-storage.js';
-import { RosterCopiedPayload } from './game-action-types.js';
-import { gamePlayerAdded, GameState } from './game-slice.js';
+import { PlayerAddedPayload, RosterCopiedPayload } from './game-action-types.js';
+import { findGame, gamePlayerAdded, GameState, selectGameById } from './game-slice.js';
 import { persistGamePlayer } from './game-storage.js';
 
 export const copyRoster = createAsyncThunk<
@@ -24,17 +23,10 @@ export const copyRoster = createAsyncThunk<
     // Gets the retrieved game. The game must exist as the copy can only be triggered when viewing
     // a loaded game.
     const state = thunkAPI.getState();
-    let existingGame: Game | undefined;
-    if (state.game?.game?.id === gameId) {
-      existingGame = state.game.game!;
-    } else {
-      existingGame = state.game?.games[gameId];
-    }
-    if (!existingGame) {
+    const game = selectGameById(state, gameId);
+    if (!game) {
       throw new Error(`No existing game found for id: ${gameId}`);
     }
-
-    const game: GameDetail = existingGame as GameDetail;
 
     const rosterExists = (Object.keys(game.roster).length > 0);
     if (rosterExists) {
@@ -82,7 +74,8 @@ export const rosterCopyPendingHandler = (state: GameState,
 
 export const rosterCopiedHandler = (state: GameState, action: PayloadAction<RosterCopiedPayload>) => {
   // Set new roster, if required.
-  if (action.payload.gameRoster && (Object.keys(state.game!.roster).length === 0)) {
+  const game = findGame(state, action.payload.gameId);
+  if (action.payload.gameRoster && (Object.keys(game.roster).length === 0)) {
     const gameRoster = action.payload.gameRoster;
     const roster: Roster = {};
     Object.keys(gameRoster).forEach((key) => {
@@ -90,8 +83,6 @@ export const rosterCopiedHandler = (state: GameState, action: PayloadAction<Rost
       const player: Player = { ...teamPlayer };
       roster[player.id] = player;
     });
-    state.game!.roster = roster;
-    const game = state.games[action.payload.gameId] as GameDetail;
     game.hasDetail = true;
     game.roster = roster;
   }
@@ -111,10 +102,9 @@ export const addNewGamePlayer = (gameId: string, newPlayer: Player): ThunkResult
   if (!newPlayer) {
     return;
   }
-  const state = getState();
   // Verify that the player id is unique.
-  const gameState = state.game!;
-  if (gameState.game?.roster[newPlayer.id]) {
+  const game = selectGameById(getState(), gameId);
+  if (game?.roster[newPlayer.id]) {
     return;
   }
   dispatch(saveGamePlayer(gameId, newPlayer));
@@ -123,15 +113,19 @@ export const addNewGamePlayer = (gameId: string, newPlayer: Player): ThunkResult
 export const saveGamePlayer = (gameId: string, newPlayer: Player): ThunkPromise<void> => async (dispatch) => {
   // Save the player to Firestore, before adding to the store.
   await persistGamePlayer(newPlayer, gameId, true);
-  dispatch(gamePlayerAdded(newPlayer));
+  dispatch(gamePlayerAdded(gameId, newPlayer));
 };
 
-export const gamePlayerAddedHandler = (state: GameState, action: PayloadAction<Player>) => {
-  state.game!.roster[action.payload.id] = action.payload;
+export const gamePlayerAddedHandler = (state: GameState, action: PayloadAction<PlayerAddedPayload>) => {
+  const game = findGame(state, action.payload.gameId);
+  game.roster[action.payload.player.id] = action.payload.player;
 };
 
-export const gamePlayerAddedPrepare = (player: Player) => {
+export const gamePlayerAddedPrepare = (gameId: string, player: Player) => {
   return {
-    payload: player
+    payload: {
+      gameId,
+      player,
+    }
   };
 }
