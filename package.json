@@ -66,7 +66,7 @@
     "redux": "^4.2.1",
     "redux-persist": "^6.0.0",
     "redux-thunk": "^2.4.2",
-    "ts-loader": "^9.4.1"
+    "ts-loader": "^9.4.2"
   },
   "devDependencies": {
     "@axe-core/puppeteer": "^4.5.2",
