@@ -49,8 +49,7 @@ export const getGame = createAsyncThunk<
 >(
   'game/getGame',
   async (gameId, thunkAPI) => {
-    // Gets the retrieved game. The game must exist as the copy can only be triggered when viewing
-    // a loaded game.
+    // Gets the retrieved game, if it exists.
     const state = thunkAPI.getState();
     const existingGame = selectGameById(state, gameId);
     if (existingGame?.hasDetail) {
@@ -177,7 +176,8 @@ const gameSlice = createSlice({
       state.detailFailure = false;
       state.detailLoading = false;
 
-      if (state.games[action.payload.id]) {
+      const existingGame = state.games[action.payload.id];
+      if (existingGame?.hasDetail) {
         // Game has already been retrieved.
         return;
       }
