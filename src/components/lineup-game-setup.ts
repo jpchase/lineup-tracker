@@ -10,7 +10,7 @@ import { FormationBuilder, FormationMetadata, formatPosition, Position } from '.
 import { GameDetail, SetupStatus, SetupSteps, SetupTask } from '../models/game.js';
 import { LivePlayer } from '../models/live.js';
 import { getGameStore } from '../slices/game-store.js';
-import { gameSetupCompletedCreator } from '../slices/game/game-slice.js';
+import { gameSetupCompletedCreator, selectGameById } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store.js';
 import {
   applyStarter, cancelStarter, captainsCompleted, formationSelected, getLiveGame,
@@ -203,6 +203,9 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   @property({ attribute: false })
   pageRouter!: PageRouter;
 
+  @property({ type: String })
+  gameId?: string;
+
   @state()
   private game: GameDetail | undefined;
 
@@ -235,10 +238,10 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   }
 
   override stateChanged(state: RootState) {
-    if (!state.game || !state.live) {
+    if (!state.game || !state.live || !this.gameId) {
       return;
     }
-    this.game = state.game.game;
+    this.game = selectGameById(state, this.gameId);
     if (!this.game) {
       // TODO: Need to reset other properties, if they have values?
       return;

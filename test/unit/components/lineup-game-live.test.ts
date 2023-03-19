@@ -145,7 +145,6 @@ describe('lineup-game-live tests', () => {
   it('shows no game placeholder when no current game', async () => {
     const store = getStore();
     expect(store.getState().live, 'LiveState should exist').to.be.ok;
-    expect(store.getState().live?.gameId, 'LiveState should have game unset').to.not.be.ok;
 
     const placeholder = el.shadowRoot!.querySelector('div p.empty-list');
     expect(placeholder, 'Missing empty placeholder element').to.be.ok;

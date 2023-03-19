@@ -3,7 +3,7 @@ import { Position } from '../../models/formation.js';
 import { Game, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
 import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
-import { getGame, selectCurrentGame } from '../../slices/game/game-slice.js';
+import { getGame, selectGameById } from '../../slices/game/game-slice.js';
 import { RootState, ThunkResult } from '../../store.js';
 import {
   configurePeriodsHandler, configurePeriodsPrepare,
@@ -37,7 +37,6 @@ import {
 export { pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
-  gameId: string;
   games?: LiveGames;
   selectedStarterPlayer?: string;
   selectedStarterPosition?: Position;
@@ -57,7 +56,6 @@ export interface LiveState extends LiveGameState {
 }
 
 const INITIAL_STATE: LiveGameState = {
-  gameId: '',
   games: {},
   selectedStarterPlayer: undefined,
   selectedStarterPosition: undefined,
@@ -99,7 +97,7 @@ export const selectPendingSubs = (state: RootState, gameId: string, selectedOnly
 }
 
 export const rosterCompleted = (gameId: string): ThunkResult => (dispatch, getState) => {
-  const game = selectCurrentGame(getState());
+  const game = selectGameById(getState(), gameId);
   if (!game) {
     return;
   }
@@ -387,6 +385,5 @@ function setCurrentGame(state: LiveState, game: LiveGame) {
   if (!state.games) {
     state.games = {};
   }
-  state.gameId = game.id;
   state.games[game.id] = game;
 }

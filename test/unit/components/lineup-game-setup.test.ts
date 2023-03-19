@@ -117,7 +117,7 @@ describe('lineup-game-setup tests', () => {
     removeMiddleware(actionLoggerMiddleware);
   });
 
-  async function setupElement(preloadedState?: RootState): Promise<PageRouter> {
+  async function setupElement(preloadedState?: RootState, gameId?: string): Promise<PageRouter> {
     const store = setupStore(preloadedState);
 
     const mockRouter = {
@@ -128,7 +128,7 @@ describe('lineup-game-setup tests', () => {
     }
     const parentNode = document.createElement('div');
     mockPageRouter(parentNode, mockRouter);
-    const template = html`<lineup-game-setup .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-setup>`;
+    const template = html`<lineup-game-setup .gameId="${gameId}" .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-setup>`;
     el = await fixture(template, { parentNode });
     dispatchStub = sinon.spy(el, 'dispatch');
     return mockRouter;
@@ -239,7 +239,7 @@ describe('lineup-game-setup tests', () => {
     const gameState = buildGameStateWithCurrentGame(game);
     const liveState = buildLiveStateWithTasks(game);
 
-    await setupElement(buildRootState(gameState, liveState));
+    await setupElement(buildRootState(gameState, liveState), game.id);
     await el.updateComplete;
 
     const items = getTaskElements();
@@ -271,7 +271,7 @@ describe('lineup-game-setup tests', () => {
     const gameState = buildGameStateWithCurrentGame(game);
     const liveState = buildLiveStateWithTasks(game);
 
-    await setupElement(buildRootState(gameState, liveState));
+    await setupElement(buildRootState(gameState, liveState), game.id);
     await el.updateComplete;
 
     // Verify that test tasks cover active and non-active status.
@@ -333,7 +333,7 @@ describe('lineup-game-setup tests', () => {
           // Sets up the current step as active.
           const liveState = buildLiveStateWithTasks(newGame, stepTest.step - 1);
 
-          const mockRouter = await setupElement(buildRootState(gameState, liveState));
+          const mockRouter = await setupElement(buildRootState(gameState, liveState), gameId);
           pageRouterSpy = sinon.spy(mockRouter, 'gotoPage');
           await el.updateComplete;
         });
@@ -399,7 +399,7 @@ describe('lineup-game-setup tests', () => {
       const gameState = buildGameStateWithCurrentGame(game);
       const liveState = buildLiveStateWithTasks(game);
 
-      await setupElement(buildRootState(gameState, liveState));
+      await setupElement(buildRootState(gameState, liveState), game.id);
       await el.updateComplete;
 
       const completeButton = getCompleteSetupButton();
@@ -411,7 +411,7 @@ describe('lineup-game-setup tests', () => {
       const gameState = buildGameStateWithCurrentGame(game);
       const liveState = buildLiveStateWithTasks(game);
 
-      await setupElement(buildRootState(gameState, liveState));
+      await setupElement(buildRootState(gameState, liveState), game.id);
       await el.updateComplete;
 
       let completeButton = getCompleteSetupButton();
@@ -440,7 +440,7 @@ describe('lineup-game-setup tests', () => {
       const gameState = buildGameStateWithCurrentGame(newGame);
       const liveState = buildLiveStateWithTasks(newGame, LAST_SETUP_STEP);
 
-      await setupElement(buildRootState(gameState, liveState));
+      await setupElement(buildRootState(gameState, liveState), newGame.id);
       await el.updateComplete;
 
       const liveGame = selectLiveGameById(getStore().getState(), newGame.id)!;
@@ -470,7 +470,7 @@ describe('lineup-game-setup tests', () => {
       const gameState = buildGameStateWithCurrentGame(newGame);
       const liveState = buildLiveStateWithTasks(newGame, SetupSteps.Starters - 1);
 
-      await setupElement(buildRootState(gameState, liveState));
+      await setupElement(buildRootState(gameState, liveState), newGame.id);
       await el.updateComplete;
 
       liveGame = selectLiveGameById(getStore().getState(), newGame.id)!;

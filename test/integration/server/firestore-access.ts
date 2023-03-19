@@ -209,14 +209,14 @@ async function writeDocument<T extends Model>(
   const document: DocumentReference = (options?.keepExistingId && model.id) ?
     collectionRef.doc(model.id) : collectionRef.doc();
 
-  console.log(`writeDocument: data = ${JSON.stringify(model)}`);
+  // console.log(`writeDocument: data = ${JSON.stringify(model)}`);
   try {
     await document.set(model);
   } catch (reason: any) {
     console.log(`writeDocument: failed - ${reason}`);
   };
 
-  console.log(`writeDocument: after, document[${document.id}] = ${JSON.stringify(document)}`);
+  // console.log(`writeDocument: after, document[${document.id}] = ${JSON.stringify(document)}`);
   model.id = document.id;
 }
 

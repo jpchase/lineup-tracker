@@ -1,18 +1,21 @@
 import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
 import { LiveGameBuilder } from '@app/models/live.js';
 import { Roster } from '@app/models/player.js';
-import { addGame, addNewGame, gameCompletedCreator, gameReducer as game, gameSetupCompletedCreator, GameState, GAME_INITIAL_STATE, getGame, getGames, saveGame } from '@app/slices/game/game-slice.js';
-import { gameCompleted, gameSetupCompleted, LiveState } from '@app/slices/live/live-slice.js';
+import { AuthState } from '@app/slices/auth/auth-slice.js';
+import { addGame, addNewGame, gameCompletedCreator, gameReducer as game, gameSetupCompletedCreator, GameState, getGame, getGames, saveGame } from '@app/slices/game/game-slice.js';
+import { gameCompleted, gameSetupCompleted } from '@app/slices/live/live-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildGameStateWithCurrentGame, buildGameStateWithGames, buildInitialGameState } from '../../helpers/game-state-setup.js';
+import { buildLiveStateWithCurrentGame } from '../../helpers/live-state-setup.js';
+import { mockGetState } from '../../helpers/root-state-setup.js';
 import {
   buildGames, buildRoster, getMockAuthState, getMockTeamState, getNewGame,
   getNewGameDetail,
   getOtherStoredPlayer,
-  getPublicGame, getPublicTeam, getStoredGame, getStoredGameData, getStoredPlayer, getStoredTeam,
-  MockAuthStateOptions, OTHER_STORED_GAME_ID, TEST_USER_ID
+  getPublicGame, getPublicTeam, getStoredGame, getStoredGameData, getStoredPlayer, getStoredTeam, OTHER_STORED_GAME_ID, TEST_USER_ID
 } from '../../helpers/test_data.js';
 
 const KEY_GAMES = 'games';
@@ -49,46 +52,19 @@ function getStoredGameDetail(): GameDetail {
   };
 };
 
-interface MockStateUpdateFunc {
-  (state: GameState, live: LiveState): void;
-}
-
-function mockGetState(games: Game[], options?: MockAuthStateOptions, teamState?: any, updateFn?: MockStateUpdateFunc) {
-  return sinon.fake(() => {
-    const mockState = {
-      auth: getMockAuthState(options),
-      game: {
-        hydrated: false,
-        gameId: '',
-        game: undefined,
-        games: buildGames(games),
-        detailLoading: false,
-        detailFailure: false,
-        rosterLoading: false,
-        rosterFailure: false
-      },
-      live: {} as LiveState,
-      team: undefined
-    };
-    if (teamState) {
-      mockState.team = teamState;
-    }
-    if (updateFn) {
-      updateFn(mockState.game!, mockState.live);
-    }
-    return mockState;
-  });
-}
-
 describe('Game slice', () => {
   let readerStub: sinon.SinonStubbedInstance<typeof reader>;
   let writerStub: sinon.SinonStubbedInstance<typeof writer>;
+  let signedInAuthState: AuthState;
+  let noAuthState: AuthState;
 
   beforeEach(() => {
     sinon.restore();
 
     readerStub = sinon.stub<typeof reader>(reader);
     writerStub = sinon.stub<typeof writer>(writer);
+    signedInAuthState = getMockAuthState({ signedIn: true, userId: TEST_USER_ID });
+    noAuthState = getMockAuthState({ signedIn: false });
   });
 
   describe('getGames', () => {
@@ -108,7 +84,7 @@ describe('Game slice', () => {
       const expectedGames = buildGames([getStoredGame(), getOtherStoredGameWithoutDetail()]);
 
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID });
+      const getStateMock = mockGetState(undefined, signedInAuthState);
       const teamFilter = { field: 'teamId', operator: '==', value: storedTeamId };
       const userFilter = { field: 'owner_uid', operator: '==', value: TEST_USER_ID };
       const loadCollectionStub = readerStub.loadCollection
@@ -125,8 +101,9 @@ describe('Game slice', () => {
     });
 
     it('should set the games to the retrieved list', () => {
+      const currentState = buildInitialGameState();
       const existingGame = getStoredGame();
-      const newState = game(GAME_INITIAL_STATE, {
+      const newState = game(currentState, {
         type: getGames.fulfilled.type,
         payload: buildGames([existingGame])
       });
@@ -135,8 +112,7 @@ describe('Game slice', () => {
         games: buildGames([existingGame]),
       });
 
-      expect(newState).to.not.equal(GAME_INITIAL_STATE);
-      expect(newState.games).to.not.equal(GAME_INITIAL_STATE.games);
+      expect(newState.games).to.not.equal(currentState.games);
     });
 
     it('should dispatch an action with public games when not signed in', async () => {
@@ -144,7 +120,7 @@ describe('Game slice', () => {
       const expectedGames = buildGames([getPublicGame()]);
 
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], { signedIn: false });
+      const getStateMock = mockGetState(undefined, noAuthState);
       const teamFilter = { field: 'teamId', operator: '==', value: publicTeamId };
       const isPublicFilter = { field: 'public', operator: '==', value: true };
       readerStub.loadCollection
@@ -161,7 +137,7 @@ describe('Game slice', () => {
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID });
+      const getStateMock = mockGetState(undefined, signedInAuthState);
 
       readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
@@ -190,12 +166,6 @@ describe('Game slice', () => {
         .resolves(roster);
     }
 
-    function initCurrentState() {
-      return {
-        ...GAME_INITIAL_STATE,
-      };
-    }
-
     it('should do nothing if game id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
@@ -208,8 +178,8 @@ describe('Game slice', () => {
       expect(dispatchMock).to.not.have.been.called;
     });
 
-    it('should set game id and loading flag for pending', () => {
-      currentState = initCurrentState();
+    it('should set loading flag for pending', () => {
+      currentState = buildInitialGameState();
       const gameId = 'idfornewgame';
       const newState = game(currentState, {
         type: getGame.pending.type,
@@ -219,20 +189,18 @@ describe('Game slice', () => {
       });
 
       expect(newState).to.include({
-        gameId: gameId,
         detailLoading: true,
         detailFailure: false
       });
 
       expect(newState).not.to.equal(currentState);
-      expect(newState.gameId).not.to.equal(currentState.gameId);
     });
 
     it('should dispatch success action with game returned from storage', async () => {
       const expectedGame = getStoredGame();
       const expectedGameDetail = getStoredGameDetail();
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([]);
+      const getStateMock = mockGetState();
       const loadDocumentStub = mockLoadDocumentWithGame(expectedGame);
       const loadCollectionStub = mockLoadCollectionWithGameRoster(
         expectedGameDetail.id, expectedGameDetail.roster);
@@ -259,7 +227,7 @@ describe('Game slice', () => {
     });
 
     it('should set game to retrieved game with full detail', () => {
-      currentState = initCurrentState();
+      currentState = buildInitialGameState();
       currentState.detailLoading = true;
       const existingGame = getStoredGame(GameStatus.Start);
       const inputGame: GameDetail = {
@@ -267,7 +235,6 @@ describe('Game slice', () => {
         roster: buildRoster([getStoredPlayer()])
       };
 
-      currentState.gameId = inputGame.id;
       const newState = game(currentState,
         getGame.fulfilled(inputGame, 'unused', 'unused'));
 
@@ -276,17 +243,15 @@ describe('Game slice', () => {
         hasDetail: true,
         roster: buildRoster([getStoredPlayer()])
       };
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
-        // TODO: Ensure games state has latest game detail
-        // games: buildGames([gameDetail]),
+      const expectedState = buildGameStateWithCurrentGame(gameDetail, {
         detailLoading: false,
         detailFailure: false
       });
 
+      expect(newState).to.deep.include(expectedState);
+
       expect(newState).not.to.equal(currentState);
-      expect(newState.game).not.to.equal(currentState.game);
+      expect(newState.games).not.to.equal(currentState.games);
     });
 
     it('should dispatch success action when game roster is empty', async () => {
@@ -296,7 +261,7 @@ describe('Game slice', () => {
       }
 
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([]);
+      const getStateMock = mockGetState();
       const loadDocumentStub = mockLoadDocumentWithGame(storedGame);
       const loadCollectionStub = mockLoadCollectionWithGameRoster(
         storedGame.id, {});
@@ -316,7 +281,7 @@ describe('Game slice', () => {
     });
 
     it('should initialize detail when game roster is empty', () => {
-      currentState = initCurrentState();
+      currentState = buildInitialGameState();
       currentState.detailLoading = true;
       const currentGame = getNewGame();
       const inputGame: GameDetail = {
@@ -324,7 +289,6 @@ describe('Game slice', () => {
         roster: {}
       };
 
-      currentState.gameId = inputGame.id;
       const newState = game(currentState,
         getGame.fulfilled(inputGame, 'unused', 'unused'));
 
@@ -333,17 +297,13 @@ describe('Game slice', () => {
         hasDetail: true,
         roster: {},
       };
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
-        // TODO: Ensure games state has latest game detail
-        // games: buildGames([gameDetail]),
+      const expectedState = buildGameStateWithCurrentGame(gameDetail, {
         detailLoading: false,
         detailFailure: false
       });
 
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game).not.to.equal(currentState.game);
+      expect(newState).to.deep.include(expectedState);
+      expect(newState.games).not.to.equal(currentState.games);
     });
 
     it('should use the already loaded game from game detail in state, without retrieving from storage', async () => {
@@ -352,10 +312,8 @@ describe('Game slice', () => {
         ...getStoredGameDetail(),
         hasDetail: true
       };
-      const getStateMock = mockGetState([], undefined, undefined, (gameState) => {
-        gameState.gameId = loadedGame.id;
-        gameState.game = loadedGame;
-      });
+      const getStateMock = mockGetState(
+        buildGameStateWithGames(buildGames([loadedGame])), undefined, undefined);
 
       await getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
@@ -377,7 +335,7 @@ describe('Game slice', () => {
         ...getStoredGameDetail(),
         hasDetail: true
       };
-      const getStateMock = mockGetState([loadedGame]);
+      const getStateMock = mockGetState(buildGameStateWithGames(buildGames([loadedGame])));
 
       await getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
 
@@ -394,11 +352,9 @@ describe('Game slice', () => {
     });
 
     it('should update only loading flag when game set to current game', () => {
-      currentState = initCurrentState();
       const currentGame = buildNewGameDetailAndRoster();
-      currentState.gameId = currentGame.id;
-      currentState.game = currentGame;
-      currentState.detailLoading = true;
+      currentState = buildGameStateWithCurrentGame(currentGame,
+        { detailLoading: true });
 
       const newState = game(currentState,
         getGame.fulfilled(currentGame, 'unused', 'unused'));
@@ -406,18 +362,14 @@ describe('Game slice', () => {
       const gameDetail: GameDetail = {
         ...currentGame,
       };
-
-      expect(newState).to.deep.include({
-        game: gameDetail,
-        // TODO: Ensure games state has latest game detail
-        // games: buildGames([gameDetail]),
+      const expectedState = buildGameStateWithCurrentGame(gameDetail, {
         detailLoading: false,
         detailFailure: false
       });
 
-      expect(newState).not.to.equal(currentState);
-      expect(newState.game).to.equal(currentState.game);
-      expect(newState.game!.roster).to.equal(currentState.game!.roster);
+      expect(newState).to.deep.include(expectedState);
+      expect(newState.games).to.equal(currentState.games);
+      expect((newState.games[currentGame.id] as GameDetail).roster).to.equal(currentGame.roster);
     });
 
     it('should retrieve from storage when already loaded game is missing detail', async () => {
@@ -425,9 +377,9 @@ describe('Game slice', () => {
       const expectedGameDetail = getStoredGameDetail();
 
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([{
+      const getStateMock = mockGetState(buildGameStateWithGames(buildGames([{
         ...expectedGameDetail, hasDetail: false
-      }]);
+      }])));
       const loadDocumentStub = mockLoadDocumentWithGame(expectedGame);
       const loadCollectionStub = mockLoadCollectionWithGameRoster(
         expectedGameDetail.id, expectedGameDetail.roster);
@@ -450,7 +402,7 @@ describe('Game slice', () => {
       const gameId = 'nosuchgame';
 
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([]);
+      const getStateMock = mockGetState();
       readerStub.loadDocument
         .withArgs(`${KEY_GAMES}/${gameId}`, sinon.match.object)
         .rejects(new Error(`Document not found: ${KEY_GAMES}/${gameId}`));
@@ -475,7 +427,7 @@ describe('Game slice', () => {
 
     it('should dispatch rejected action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([]);
+      const getStateMock = mockGetState();
       const gameId = getStoredGame().id;
 
       readerStub.loadDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
@@ -499,7 +451,7 @@ describe('Game slice', () => {
     });
 
     it('should set failure flag and error message', () => {
-      currentState = initCurrentState();
+      currentState = buildInitialGameState();
       const newState = game(currentState, {
         type: getGame.rejected.type,
         error: { message: 'What a game failure!' }
@@ -530,7 +482,7 @@ describe('Game slice', () => {
 
     it('should dispatch an action to add a new game that is unique', () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([getStoredGame()]);
+      const getStateMock = mockGetState(buildGameStateWithGames(buildGames([getStoredGame()])));
 
       addNewGame(getNewGameMetadata() as Game)(dispatchMock, getStateMock, undefined);
 
@@ -541,7 +493,7 @@ describe('Game slice', () => {
 
     it('should do nothing with a new game that is not unique', () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([getNewGameSaved()]);
+      const getStateMock = mockGetState(buildGameStateWithGames(buildGames([getNewGameSaved()])));
 
       addNewGame(getNewGameMetadata() as Game)(dispatchMock, getStateMock, undefined);
 
@@ -556,30 +508,26 @@ describe('Game slice', () => {
     const newGame = getNewGame();
 
     it('should handle addGame with empty games', () => {
-      const newState = game(GAME_INITIAL_STATE, addGame(newGame));
+      const currentState = buildInitialGameState();
+      const newState = game(currentState, addGame(newGame));
 
       expect(newState).to.deep.include({
         games: buildGames([newGame]),
       });
 
-      expect(newState).to.not.equal(GAME_INITIAL_STATE);
-      expect(newState.games).to.not.equal(GAME_INITIAL_STATE.games);
+      expect(newState.games).to.not.equal(currentState.games);
     });
 
     it('should handle addGame with existing games', () => {
-      const state: GameState = {
-        ...GAME_INITIAL_STATE
-      };
-      state.games = buildGames([existingGame]);
+      const currentState = buildGameStateWithGames(buildGames([existingGame]));
 
-      const newState = game(state, addGame(newGame));
+      const newState = game(currentState, addGame(newGame));
 
       expect(newState).to.deep.include({
         games: buildGames([existingGame, newGame]),
       });
 
-      expect(newState).to.not.equal(state);
-      expect(newState.games).to.not.equal(state.games);
+      expect(newState.games).to.not.equal(currentState.games);
     });
   }); // describe('addGame')
 
@@ -588,7 +536,7 @@ describe('Game slice', () => {
       const expectedSavedGame = getNewGameSaved();
 
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID }, getMockTeamState([], getStoredTeam()));
+      const getStateMock = mockGetState(undefined, signedInAuthState, getMockTeamState([], getStoredTeam()));
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
         (model) => {
           model.id = expectedSavedGame.id;
@@ -639,17 +587,10 @@ describe('Game slice', () => {
 
     it('should save updated game to storage', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
-        getMockTeamState([], getStoredTeam()),
-        (gameState, liveState) => {
-          gameState.gameId = existingGame.id;
-          gameState.game = existingGame;
-          liveState.gameId = existingGame.id;
-          if (!liveState.games) {
-            liveState.games = {};
-          }
-          liveState.games[existingGame.id] = LiveGameBuilder.create(existingGame);
-        });
+      const gameState = buildGameStateWithCurrentGame(existingGame);
+      const liveState = buildLiveStateWithCurrentGame(LiveGameBuilder.create(existingGame));
+      const getStateMock = mockGetState(gameState, signedInAuthState,
+        getMockTeamState([], getStoredTeam()), liveState);
       const updateDocumentStub = writerStub.updateDocument.returns();
 
       gameSetupCompletedCreator(existingGame.id)(dispatchMock, getStateMock, undefined);
@@ -664,17 +605,10 @@ describe('Game slice', () => {
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
-        getMockTeamState([], getStoredTeam()),
-        (gameState, liveState) => {
-          gameState.gameId = existingGame.id;
-          gameState.game = existingGame;
-          liveState.gameId = existingGame.id;
-          if (!liveState.games) {
-            liveState.games = {};
-          }
-          liveState.games[existingGame.id] = LiveGameBuilder.create(existingGame);
-        });
+      const gameState = buildGameStateWithCurrentGame(existingGame);
+      const liveState = buildLiveStateWithCurrentGame(LiveGameBuilder.create(existingGame));
+      const getStateMock = mockGetState(gameState, signedInAuthState,
+        getMockTeamState([], getStoredTeam()), liveState);
 
       writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
@@ -689,23 +623,14 @@ describe('Game slice', () => {
     });
 
     it('should set status to Start', () => {
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: {
-          ...existingGame
-        }
-      };
+      const state = buildGameStateWithCurrentGame(existingGame);
       const expectedGame = buildNewGameDetailAndRoster();
       expectedGame.status = GameStatus.Start;
+      const expectedState = buildGameStateWithCurrentGame(expectedGame);
 
       const newState = game(state, gameSetupCompleted(existingGame.id, expectedGame));
 
-      expect(newState).to.deep.include({
-        game: expectedGame,
-      });
-
-      expect(newState).not.to.equal(state);
-      expect(newState.game).not.to.equal(state.game);
+      expect(newState).to.deep.include(expectedState);
     });
 
   }); // describe('gameSetupCompleted')
@@ -719,12 +644,9 @@ describe('Game slice', () => {
 
     it('should save updated game to storage', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
-        getMockTeamState([], getStoredTeam()),
-        (gameState) => {
-          gameState.gameId = existingGame.id;
-          gameState.game = existingGame;
-        });
+      const gameState = buildGameStateWithCurrentGame(existingGame);
+      const getStateMock = mockGetState(gameState, signedInAuthState,
+        getMockTeamState([], getStoredTeam()));
       const updateDocumentStub = writerStub.updateDocument.returns();
 
       gameCompletedCreator(existingGame.id)(dispatchMock, getStateMock, undefined);
@@ -739,12 +661,9 @@ describe('Game slice', () => {
 
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], { signedIn: true, userId: TEST_USER_ID },
-        getMockTeamState([], getStoredTeam()),
-        (gameState) => {
-          gameState.gameId = existingGame.id;
-          gameState.game = existingGame;
-        });
+      const gameState = buildGameStateWithCurrentGame(existingGame);
+      const getStateMock = mockGetState(gameState, signedInAuthState,
+        getMockTeamState([], getStoredTeam()));
 
       writerStub.updateDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
 
@@ -759,23 +678,14 @@ describe('Game slice', () => {
     });
 
     it('should set status to Done', () => {
-      const state: GameState = {
-        ...GAME_INITIAL_STATE,
-        game: {
-          ...existingGame
-        }
-      };
+      const state = buildGameStateWithCurrentGame(existingGame);
       const expectedGame = buildNewGameDetailAndRoster();
       expectedGame.status = GameStatus.Done;
+      const expectedState = buildGameStateWithCurrentGame(expectedGame);
 
       const newState = game(state, gameCompleted(existingGame.id));
 
-      expect(newState).to.deep.include({
-        game: expectedGame,
-      });
-
-      expect(newState).not.to.equal(state);
-      expect(newState.game).not.to.equal(state.game);
+      expect(newState).to.deep.include(expectedState);
     });
 
   }); // describe('gameCompleted')

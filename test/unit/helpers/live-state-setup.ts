@@ -7,7 +7,6 @@ import { buildRunningTimer, buildStoppedTimer } from './test-clock-data.js';
 import { buildPlayerTrackerMap } from './test-shift-data.js';
 
 const LIVE_INITIAL_STATE: LiveGameState = {
-  gameId: '',
   games: undefined,
   selectedStarterPlayer: undefined,
   selectedStarterPosition: undefined,
@@ -46,7 +45,6 @@ export function buildLiveStateWithCurrentGame(game: LiveGame, rest?: Partial<Liv
     ...rest,
   };
   if (game) {
-    state.gameId = game.id;
     if (!state.games) {
       state.games = {};
     }

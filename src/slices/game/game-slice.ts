@@ -49,17 +49,11 @@ export const getGame = createAsyncThunk<
 >(
   'game/getGame',
   async (gameId, thunkAPI) => {
-    // Gets the retrieved game. The game must exist as the copy can only be triggered when viewing
-    // a loaded game.
+    // Gets the retrieved game, if it exists.
     const state = thunkAPI.getState();
-    let existingGame: Game | undefined;
-    if (state.game?.game?.id === gameId) {
-      existingGame = state.game.game!;
-    } else {
-      existingGame = state.game?.games[gameId];
-    }
-    if (existingGame && existingGame.hasDetail) {
-      return existingGame as GameDetail;
+    const existingGame = selectGameById(state, gameId);
+    if (existingGame?.hasDetail) {
+      return existingGame;
     }
 
     // TODO: Use Promise.all?
@@ -136,10 +130,6 @@ export const gameCompletedCreator = (gameId: string): ThunkResult => (dispatch) 
 };
 
 export interface GameState {
-  //TODO: get rid of this, most remaining references are in tests
-  gameId: string;
-  //TODO: get rid of this, most remaining references are in tests
-  game?: GameDetail;
   //TODO: Make this GameDetail's to avoid casting?
   games: Games;
   detailLoading: boolean;
@@ -150,8 +140,6 @@ export interface GameState {
 }
 
 export const GAME_INITIAL_STATE: GameState = {
-  gameId: '',
-  game: undefined,
   games: {},
   detailLoading: false,
   detailFailure: false,
@@ -179,8 +167,7 @@ const gameSlice = createSlice({
     });
     // Get game actions
     builder.addCase(getGame.pending, (state: GameState,
-      action: ReturnType<typeof getGame.pending>) => {
-      state.gameId = action.meta.gameId;
+      _action: ReturnType<typeof getGame.pending>) => {
       state.detailFailure = false;
       state.detailLoading = true;
     });
@@ -189,7 +176,8 @@ const gameSlice = createSlice({
       state.detailFailure = false;
       state.detailLoading = false;
 
-      if (state.game?.id === action.payload.id) {
+      const existingGame = state.games[action.payload.id];
+      if (existingGame?.hasDetail) {
         // Game has already been retrieved.
         return;
       }
@@ -201,7 +189,6 @@ const gameSlice = createSlice({
         gameDetail.status = GameStatus.New;
       }
 
-      state.game = gameDetail;
       state.games[action.payload.id] = gameDetail;
     });
     builder.addCase(getGame.rejected, (state: GameState,
@@ -216,14 +203,9 @@ const gameSlice = createSlice({
     builder.addCase(copyRoster.rejected, rosterCopyFailedHandler);
     // Game setup actions
     builder.addCase(gameSetupCompleted, (state, action: PayloadAction<GamePayload>) => {
-      const game = state.game!;
-      if (action.payload.gameId !== game.id) {
-        return;
-      }
-      game.status = GameStatus.Start;
-      state.games[action.payload.gameId] = game;
+      state.games[action.payload.gameId].status = GameStatus.Start;
     }).addCase(gameCompleted, (state, action: PayloadAction<GamePayload>) => {
-      const game = state.game!;
+      const game = findGame(state, action.payload.gameId);
       if (action.payload.gameId !== game.id) {
         return;
       }
@@ -238,16 +220,25 @@ export const gameReducer = reducer;
 
 export const { addGame, gamePlayerAdded } = actions;
 
-export const selectCurrentGameId = (state: RootState) => state.game?.gameId;
-export const selectCurrentGame = (state: RootState) => state.game?.game;
-
 export const selectGameById = (state: RootState, gameId: string) => {
-  if (!gameId) {
-    return;
-  }
-  return state.game?.games[gameId] as GameDetail;
+  return maybeFindGame(state.game, gameId);
 }
 
 export const selectGameRosterLoading = (state: RootState) => {
   return state.game?.rosterLoading;
+}
+
+export function findGame(state?: GameState, gameId?: string): GameDetail {
+  const game = maybeFindGame(state, gameId);
+  if (!game) {
+    throw new Error(`Game not found: ${gameId}`);
+  }
+  return game;
+}
+
+function maybeFindGame(state?: GameState, gameId?: string) {
+  if (!state || !gameId || !(gameId in state.games)) {
+    return;
+  }
+  return state.games[gameId] as GameDetail;
 }
