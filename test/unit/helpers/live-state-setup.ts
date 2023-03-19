@@ -7,6 +7,7 @@ import { LiveGameState, LiveState } from '@app/slices/live/live-slice.js';
 import { ShiftState } from '@app/slices/live/shift-slice.js';
 import { buildRunningTimer, buildStoppedTimer } from './test-clock-data.js';
 import { buildPlayerTrackerMap } from './test-shift-data.js';
+import * as testlive from './test-live-game-data.js';
 
 const LIVE_INITIAL_STATE: LiveGameState = {
   games: undefined,
@@ -53,6 +54,14 @@ export function buildLiveStateWithCurrentGame(game: LiveGame, rest?: Partial<Liv
     state.games![game.id] = game;
   }
   return state;
+}
+
+export function buildLiveGameWithSetupTasks(players?: LivePlayer[], tasks?: SetupTask[]): LiveGame {
+  const game = testlive.getLiveGame(players);
+  if (tasks) {
+    game.setupTasks = tasks;
+  }
+  return game;
 }
 
 export function buildSetupTasks(): SetupTask[] {
