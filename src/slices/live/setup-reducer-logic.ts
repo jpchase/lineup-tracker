@@ -177,7 +177,7 @@ function completeSetupStepForAction(game: LiveGame, setupStepToComplete: SetupSt
   updateTasks(game, game.setupTasks, setupStepToComplete);
 }
 
-function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedStep?: SetupSteps) {
+export function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedStep?: SetupSteps) {
   const tasks: SetupTask[] = [];
 
   // Formation
