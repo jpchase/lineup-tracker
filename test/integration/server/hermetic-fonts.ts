@@ -1,9 +1,13 @@
 import * as fs from 'fs';
+import { Context } from 'koa';
 import * as path from 'path';
 import { HTTPRequest, ResponseForRequest } from 'puppeteer';
 
 const CONTENT_TYPE_CSS = 'text/css; charset=utf-8';
 const CONTENT_TYPE_WOFF2 = 'font/woff2';
+
+const FONT_APIS_PLACEHOLDER = '/fonts-apis/';
+const FONT_STATIC_PLACEHOLDER = '/fonts-static/';
 
 const FONT_CSS_FILES: Record<string, string> = {
     'Material Icons': 'material-icons.css',
@@ -17,10 +21,54 @@ const FONT_WOFF_FILES: Record<string, string> = {
     '/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxK.woff2': 'roboto-regular.woff2',
 }
 
-export function serveHermeticFont(request: HTTPRequest, dataDir: string): ResponseForRequest | undefined {
+interface RequestAdapter {
+    url(): string;
+}
+
+type ServeResult =
+    | void
+    | string
+    | { body: string; type?: string; headers?: Record<string, string> };
+
+export function serveHermeticFontPuppeteer(request: HTTPRequest, dataDir: string): ResponseForRequest | undefined {
+    return serveHermeticFont(request, dataDir);
+}
+
+export function serveHermeticFontDevServer(context: Context, dataDir: string): ServeResult {
+    const adapter = {
+        url() {
+            let retUrl;
+            if (context.req.url?.startsWith('/')) {
+                //                return `http://${context.req.headers.host}${context.req.url}`;
+                retUrl = `http://${context.req.headers.host}${context.req.url}`;
+            } else {
+                retUrl = context.req.url!;
+            }
+            console.log(`serve url = ${retUrl}`);
+            return retUrl;
+            // return context.req.url!;
+        }
+    }
+    const response = serveHermeticFont(adapter, dataDir);
+    if (!response) {
+        return;
+    }
+    // Convert the response to the expected type.
+    //  - The headers values are converted to strings, but typed as Record<string, unknown>
+    return {
+        body: response.body.toString(),
+        type: response.contentType,
+        headers: response.headers as unknown as Record<string, string>
+    }
+}
+
+function serveHermeticFont(request: RequestAdapter, dataDir: string): ResponseForRequest | undefined {
     const requestUrl = new URL(request.url());
-    const isFontApis = requestUrl.hostname === 'fonts.googleapis.com';
-    const isFontStatic = requestUrl.hostname === 'fonts.gstatic.com';
+    const isFontApis = (requestUrl.pathname.startsWith(FONT_APIS_PLACEHOLDER)) ||
+        (requestUrl.hostname === 'fonts.googleapis.com');
+    const hasStaticPlaceholder = requestUrl.pathname.startsWith(FONT_STATIC_PLACEHOLDER);
+    const isFontStatic = hasStaticPlaceholder || (requestUrl.hostname === 'fonts.gstatic.com');
+
     if (!isFontApis && !isFontStatic) {
         return;
     }
@@ -34,7 +82,10 @@ export function serveHermeticFont(request: HTTPRequest, dataDir: string): Respon
         }
     }
     if (isFontStatic) {
-        const woffFileName = FONT_WOFF_FILES[requestUrl.pathname];
+        // Placeholder includes a trailing slash, which needs to be included in
+        // file name, to match the production path.
+        const woffIndex = hasStaticPlaceholder ? FONT_STATIC_PLACEHOLDER.length - 1 : 0;
+        const woffFileName = FONT_WOFF_FILES[requestUrl.pathname.substring(woffIndex)];
         if (woffFileName) {
             return buildResponse(dataDir, woffFileName, CONTENT_TYPE_WOFF2);
         }

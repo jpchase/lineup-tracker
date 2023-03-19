@@ -3,7 +3,7 @@ import { AxeResults } from 'axe-core';
 import * as path from 'path';
 import puppeteer, { Browser, ConsoleMessage, ElementHandle, HTTPRequest, Page, ScreenshotOptions, Viewport } from 'puppeteer';
 import { integrationTestData } from '../data/integration-data-constants.js';
-import { serveHermeticFont } from '../server/hermetic-fonts.js';
+import { serveHermeticFontPuppeteer } from '../server/hermetic-fonts.js';
 import { config } from '../server/test-server.js';
 
 const APP_COMPONENT_NAME = 'lineup-app';
@@ -101,7 +101,7 @@ export class PageObject {
 
     page.setRequestInterception(true);
     page.on('request', async (request: HTTPRequest) => {
-      const fontResponse = serveHermeticFont(request, config.dataDir);
+      const fontResponse = serveHermeticFontPuppeteer(request, config.dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
       } else {

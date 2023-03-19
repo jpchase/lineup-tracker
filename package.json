@@ -8,7 +8,7 @@
     "env:copy_test": "npm run env:copy --envname=test",
     "env:copy_staging": "npm run env:copy --envname=staging",
     "start": "npm run start:webds",
-    "start:webds": "tsc && npm run env:copy_dev && tsc && web-dev-server",
+    "start:webds": "npm run env:copy_dev && tsc && web-dev-server",
     "build:deploy": "tsc && npm run env:copy_staging && npm run build:webpack",
     "build:test": "tsc && npm run env:copy_test && npm run build:webpack",
     "build:webpack": "tsc && rm -rf dist && webpack --config webpack.config.js",
