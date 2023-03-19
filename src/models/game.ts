@@ -1,7 +1,4 @@
-/**
-@license
-*/
-import { Roster } from './player';
+import { Roster } from './player.js';
 
 export interface GameMetadata {
   name: string;
@@ -30,24 +27,4 @@ export interface GameDetail extends Game {
 
 export interface Games {
   [index: string]: Game;
-}
-
-// TODO: Move all the live game/setup stuff to separate model file?
-export enum SetupSteps {
-  Formation,
-  Roster,
-  Captains,
-  Starters
-}
-
-export enum SetupStatus {
-  Pending,
-  Active,
-  InProgress,
-  Complete
-}
-
-export interface SetupTask {
-  step: SetupSteps;
-  status: SetupStatus;
 }

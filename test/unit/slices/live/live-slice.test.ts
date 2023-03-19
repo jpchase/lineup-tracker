@@ -1,17 +1,25 @@
-import { FormationType, Position } from '@app/models/formation';
-import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
-import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
-import { PlayerStatus } from '@app/models/player';
+import { FormationType, Position } from '@app/models/formation.js';
+import { GameDetail, GameStatus } from '@app/models/game.js';
+import {
+  getPlayer, LiveGame, LivePlayer,
+  PeriodStatus, SetupStatus, SetupSteps, SetupTask
+} from '@app/models/live.js';
+import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { getGame as getGameCreator } from '@app/slices/game/game-slice.js';
 import {
   cancelSub, cancelSwap, completeRoster, confirmSub,
-  confirmSwap, endPeriod, formationSelected, gameCompleted, gameSetupCompleted, live, LiveState, selectPlayer, startGamePeriod, startPeriod
-} from '@app/slices/live/live-slice';
+  confirmSwap, endPeriod, formationSelected,
+  gameCompleted, gameSetupCompleted, live, LiveState,
+  selectPlayer, startGamePeriod, startPeriod
+} from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildSetupTasks, buildShiftWithTrackers, getTrackerMap, INITIAL_OVERALL_STATE } from '../../helpers/live-state-setup.js';
+import {
+  buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildSetupTasks,
+  buildShiftWithTrackers, getTrackerMap, INITIAL_OVERALL_STATE
+} from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
   buildLivePlayers,

@@ -1,7 +1,10 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { FormationType, Position } from '../../models/formation.js';
-import { GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { getPlayer, LiveGame, LiveGameBuilder, LivePlayer } from '../../models/live.js';
+import { GameStatus } from '../../models/game.js';
+import {
+  getPlayer, LiveGame, LiveGameBuilder, LivePlayer,
+  SetupStatus, SetupSteps, SetupTask
+} from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import {
   FormationSelectedPayload,

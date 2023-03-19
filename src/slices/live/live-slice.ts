@@ -1,7 +1,11 @@
 import { createNextState, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
 import { Position } from '../../models/formation.js';
-import { Game, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer } from '../../models/live.js';
+import { Game, GameDetail, GameStatus } from '../../models/game.js';
+import {
+  findPlayersByStatus, gameCanStartPeriod, getPlayer,
+  LiveGame, LiveGameBuilder, LiveGames, LivePlayer,
+  SetupStatus, SetupSteps, SetupTask
+} from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { getGame, selectGameById } from '../../slices/game/game-slice.js';
 import { RootState, ThunkResult } from '../../store.js';

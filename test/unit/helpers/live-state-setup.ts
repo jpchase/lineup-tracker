@@ -1,6 +1,8 @@
 import { TimerData } from '@app/models/clock.js';
-import { SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
-import { LiveClock, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
+import {
+  LiveClock, LiveGame, LivePlayer,
+  PeriodStatus, SetupStatus, SetupSteps, SetupTask
+} from '@app/models/live.js';
 import { LiveGameState, LiveState } from '@app/slices/live/live-slice.js';
 import { ShiftState } from '@app/slices/live/shift-slice.js';
 import { buildRunningTimer, buildStoppedTimer } from './test-clock-data.js';

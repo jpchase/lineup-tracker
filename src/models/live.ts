@@ -1,15 +1,31 @@
-/**
-@license
-*/
 import { TimerData } from './clock.js';
 import { FormationMetadata, Position } from './formation.js';
-import { Game, GameDetail, GameStatus, SetupTask } from './game.js';
+import { Game, GameDetail, GameStatus } from './game.js';
 import { Player, PlayerStatus } from './player.js';
 
 export enum PeriodStatus {
   Pending = 'PENDING',
   Running = 'RUNNING',
   Done = 'DONE'
+}
+
+export enum SetupStatus {
+  Pending,
+  Active,
+  InProgress,
+  Complete
+}
+
+export enum SetupSteps {
+  Formation,
+  Roster,
+  Captains,
+  Starters
+}
+
+export interface SetupTask {
+  step: SetupSteps;
+  status: SetupStatus;
 }
 
 export interface LivePlayer extends Player {

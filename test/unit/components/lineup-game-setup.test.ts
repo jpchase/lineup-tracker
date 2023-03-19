@@ -1,19 +1,26 @@
-import { EVENT_POSITIONSELECTED } from '@app/components/events';
-import { LineupGameSetup } from '@app/components/lineup-game-setup';
+import { EVENT_POSITIONSELECTED } from '@app/components/events.js';
+import { LineupGameSetup } from '@app/components/lineup-game-setup.js';
 import '@app/components/lineup-game-setup.js';
-import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
-import { LineupPlayerCard } from '@app/components/lineup-player-card';
-import { LineupPlayerList } from '@app/components/lineup-player-list';
+import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
+import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
+import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { PageRouter } from '@app/components/page-router.js';
-import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares';
-import { FormationBuilder, FormationType, getPositions } from '@app/models/formation';
-import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
-import { LiveGame, LiveGameBuilder, LivePlayer } from '@app/models/live.js';
-import { PlayerStatus } from '@app/models/player';
-import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
+import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { FormationBuilder, FormationType, getPositions } from '@app/models/formation.js';
+import { GameDetail, GameStatus } from '@app/models/game.js';
+import {
+  LiveGame, LiveGameBuilder, LivePlayer,
+  SetupStatus, SetupSteps, SetupTask
+} from '@app/models/live.js';
+import { PlayerStatus } from '@app/models/player.js';
+import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
+import {
+  applyStarter, cancelStarter, captainsCompleted, completeRoster,
+  formationSelected, gameSetupCompleted,
+  selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted
+} from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
-import { RootState, setupStore } from '@app/store';
+import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
@@ -21,7 +28,7 @@ import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
 import { mockPageRouter } from '../helpers/mock-page-router.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
+import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data.js';
 
 const LAST_SETUP_STEP = SetupSteps.Starters;
 

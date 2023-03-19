@@ -1,13 +1,17 @@
 import { FormationBuilder, FormationType, getPositions, Position } from '@app/models/formation.js';
-import { SetupStatus, SetupSteps } from '@app/models/game.js';
-import { getPlayer, LivePlayer } from '@app/models/live.js';
+import { getPlayer, LivePlayer, SetupStatus, SetupSteps } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { startersCompletedCreator } from '@app/slices/live/live-action-creators.js';
-import { applyStarter, cancelStarter, invalidStarters, live, LiveState, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
+import {
+  applyStarter, cancelStarter, invalidStarters, live, LiveState,
+  selectStarter, selectStarterPosition, startersCompleted
+} from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildLiveStateWithCurrentGame, buildSetupTasks, getGame, selectPlayers } from '../../helpers/live-state-setup.js';
+import {
+  buildLiveStateWithCurrentGame, buildSetupTasks, getGame, selectPlayers
+} from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import { getNewPlayer } from '../../helpers/test_data.js';
 
