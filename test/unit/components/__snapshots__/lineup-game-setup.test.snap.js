@@ -18,19 +18,22 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
         class="step"
         href="#"
       >
-        Set formation
+        Set game roster
       </a>
     </div>
     <div class="status">
-      <mwc-icon>
-        more_horiz
-      </mwc-icon>
+      <mwc-button
+        class="finish"
+        icon="check"
+      >
+        Done
+      </mwc-button>
     </div>
   </div>
   <div class="flex-equal-justified step1 task">
     <div class="name">
       <a class="step">
-        Set game roster
+        Set formation
       </a>
     </div>
     <div class="status">
@@ -42,7 +45,7 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
   <div class="flex-equal-justified step2 task">
     <div class="name">
       <a class="step">
-        Set captains
+        Setup the starting lineup
       </a>
     </div>
     <div class="status">
@@ -54,7 +57,7 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
   <div class="flex-equal-justified step3 task">
     <div class="name">
       <a class="step">
-        Setup the starting lineup
+        Set captains
       </a>
     </div>
     <div class="status">

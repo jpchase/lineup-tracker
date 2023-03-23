@@ -1,4 +1,5 @@
 import { TimerData } from '@app/models/clock.js';
+import { FormationType } from '@app/models/formation.js';
 import {
   LiveClock, LiveGame, LivePlayer,
   PeriodStatus, SetupStatus, SetupSteps, SetupTask
@@ -6,8 +7,8 @@ import {
 import { LiveGameState, LiveState } from '@app/slices/live/live-slice.js';
 import { ShiftState } from '@app/slices/live/shift-slice.js';
 import { buildRunningTimer, buildStoppedTimer } from './test-clock-data.js';
-import { buildPlayerTrackerMap } from './test-shift-data.js';
 import * as testlive from './test-live-game-data.js';
+import { buildPlayerTrackerMap } from './test-shift-data.js';
 
 const LIVE_INITIAL_STATE: LiveGameState = {
   games: undefined,
@@ -56,33 +57,42 @@ export function buildLiveStateWithCurrentGame(game: LiveGame, rest?: Partial<Liv
   return state;
 }
 
-export function buildLiveGameWithSetupTasks(players?: LivePlayer[], tasks?: SetupTask[]): LiveGame {
-  const game = testlive.getLiveGame(players);
-  if (tasks) {
-    game.setupTasks = tasks;
-  }
+export function buildLiveGameWithSetupTasksAndPlayers(lastCompletedStep: SetupSteps = -1): LiveGame {
+  const game = testlive.getLiveGameWithPlayers();
+  buildSetupTasks(game, lastCompletedStep);
   return game;
 }
 
-export function buildSetupTasks(): SetupTask[] {
-  return [
-    {
-      step: SetupSteps.Formation,
-      status: SetupStatus.Active
-    },
-    {
-      step: SetupSteps.Roster,
-      status: SetupStatus.Pending
-    },
-    {
-      step: SetupSteps.Captains,
-      status: SetupStatus.Pending
-    },
-    {
-      step: SetupSteps.Starters,
-      status: SetupStatus.Pending
+export function buildLiveGameWithSetupTasks(lastCompletedStep: SetupSteps = -1): LiveGame {
+  const game = buildLiveGameWithSetupTasksAndPlayers(lastCompletedStep);
+  game.players = [];
+  return game;
+}
+
+export function buildSetupTasks(game: LiveGame, lastCompletedStep: SetupSteps) {
+  // TODO: Get the ordered list of steps generically from the enum
+  const steps = [SetupSteps.Roster, SetupSteps.Formation, SetupSteps.Starters, SetupSteps.Captains];
+
+  game.setupTasks = steps.map<SetupTask>((value, index) => {
+    let status = SetupStatus.Pending;
+    if (index <= Math.min(lastCompletedStep, steps.length - 1)) {
+      status = SetupStatus.Complete;
     }
-  ]
+    else if (index < steps.length && index === lastCompletedStep + 1) {
+      // Set the current step after the last completed to active.
+      status = SetupStatus.Active;
+    }
+    return {
+      step: value,
+      status
+    };
+  });
+
+  // If the current step is after Formation, the game formation must be
+  // initialized to a valid value.
+  if (lastCompletedStep >= SetupSteps.Formation) {
+    game.formation = { type: FormationType.F4_3_3 };
+  }
 }
 
 export function buildClock(timer?: TimerData, rest?: Partial<LiveClock>): LiveClock {

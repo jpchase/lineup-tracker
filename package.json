@@ -18,7 +18,7 @@
     "test:integration": "npm run build:test && npm run test:integration_impl",
     "test:integration_impl": "firebase emulators:exec \"mocha --config config/mocha-integration.cjs\" --project demo-integration --import test/integration/data/firebase",
     "test:integration_single": "tsc && npm run env:copy_test && npm run build:webpack && npm run test:integration_single_impl",
-    "test:integration_single_impl": "firebase emulators:exec \"mocha test/integration/functional-game.js --timeout=25000\" --project demo-integration --import test/integration/data/firebase",
+    "test:integration_single_impl": "firebase emulators:exec \"mocha test/integration/functional-live.js --timeout=60000\" --project demo-integration --import test/integration/data/firebase",
     "test:start_emulators": "firebase emulators:start --project demo-integration --import test/integration/data/firebase",
     "test:integration_single_direct": "mocha test/integration/functional-game.js --timeout=25000",
     "test:sauce": "tsc && polymer test --module-resolution=node --npm -s 'windows 10/microsoftedge@17' -s 'macos 10.13/safari@11'",

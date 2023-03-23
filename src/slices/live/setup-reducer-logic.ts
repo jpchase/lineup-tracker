@@ -180,23 +180,21 @@ function completeSetupStepForAction(game: LiveGame, setupStepToComplete: SetupSt
 export function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedStep?: SetupSteps) {
   const tasks: SetupTask[] = [];
 
-  // Formation
-  //  - Complete status is based on the formation property being set.
-  const formationComplete = !!game.formation;
-  tasks.push({
-    step: SetupSteps.Formation,
-    status: formationComplete ? SetupStatus.Complete : SetupStatus.Active
-  });
+  // Set step status based on step order, as previous steps must be completed
+  // before the next can be done.
+  // TODO: Get the ordered list of steps generically from the enum
+  const steps = [SetupSteps.Roster, SetupSteps.Formation, SetupSteps.Starters, SetupSteps.Captains];
 
-  // Other steps are manually set to complete, so can be handled generically.
-  const steps = [SetupSteps.Roster, SetupSteps.Captains, SetupSteps.Starters];
-
-  let previousStepComplete = formationComplete;
+  let previousStepComplete = true;
   steps.forEach((stepValue: SetupSteps) => {
     // Set the step complete status from the explicit parameter or old tasks, if available.
     // Otherwise, step status is later set based on whether the preceding step is complete.
     let stepComplete = false;
-    if (stepValue === completedStep) {
+    if (stepValue === SetupSteps.Formation) {
+      // Formation
+      //  - Complete status is based on the formation property being set.
+      stepComplete = !!game.formation;
+    } else if (stepValue === completedStep) {
       stepComplete = true;
     } else if (oldTasks) {
       stepComplete = (oldTasks[stepValue].status === SetupStatus.Complete);

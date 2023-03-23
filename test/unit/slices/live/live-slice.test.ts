@@ -14,18 +14,14 @@ import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
-  buildClock, buildClockWithTimer, buildLiveGameWithSetupTasks, buildLiveStateWithCurrentGame, buildSetupTasks,
-  buildShiftWithTrackers, getTrackerMap, INITIAL_OVERALL_STATE
+  buildClock, buildClockWithTimer, buildLiveGameWithSetupTasks, buildLiveGameWithSetupTasksAndPlayers, buildLiveStateWithCurrentGame, buildShiftWithTrackers, getTrackerMap, INITIAL_OVERALL_STATE
 } from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
-  buildLivePlayers,
   buildRoster,
   getFakeAction,
-  getNewGame, getStoredGame,
-  getStoredPlayer
+  getNewGame, getStoredGame
 } from '../../helpers/test_data.js';
-
 
 function buildLiveGameWithPlayers(): LiveGame {
   return testlive.getLiveGameWithPlayers();
@@ -74,18 +70,16 @@ describe('Live slice', () => {
     });
 
     it('should set live game to given game with full detail', () => {
+      const expectedGame = buildLiveGameWithSetupTasksAndPlayers();
+      expectedGame.clock = buildClock();
+      const expectedState = buildLiveStateWithCurrentGame(expectedGame);
+
       const existingGame = getStoredGame();
       const inputGame: GameDetail = {
         ...existingGame,
         hasDetail: true,
-        roster: buildRoster([getStoredPlayer()])
+        roster: buildRoster(expectedGame.players)
       };
-
-      const expectedGame = buildLiveGameWithSetupTasks(
-        buildLivePlayers([getStoredPlayer()]), buildSetupTasks()
-      );
-      expectedGame.clock = buildClock();
-      const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
       const newState = live(currentState,
         getGameCreator.fulfilled(inputGame, 'unused', 'unused'));
@@ -102,7 +96,7 @@ describe('Live slice', () => {
         roster: {}
       };
 
-      const expectedGame = buildLiveGameWithSetupTasks([], buildSetupTasks());
+      const expectedGame = buildLiveGameWithSetupTasks();
       expectedGame.id = currentGame.id;
       expectedGame.clock = buildClock();
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);

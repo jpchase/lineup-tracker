@@ -17,10 +17,10 @@ export enum SetupStatus {
 }
 
 export enum SetupSteps {
-  Formation,
   Roster,
+  Formation,
+  Starters,
   Captains,
-  Starters
 }
 
 export interface SetupTask {

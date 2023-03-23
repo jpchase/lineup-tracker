@@ -25,6 +25,12 @@ describe('Live functional tests', function () {
     expect(stepStatus, `Step ${step} status`).to.equal(SetupStatus.Complete);
   }
 
+  async function expectStarters(page: GameSetupPage, expectedPlayers: string[]) {
+    const actualPlayers = await page.getStarters();
+    const playerIds = actualPlayers.map((player) => player.id);
+    expect(playerIds, 'Actual starters').to.have.members(expectedPlayers);
+  }
+
   async function expectClockRunning(livePage: GameLivePage, running: boolean) {
     const timer = await livePage.getGameClock();
     expect(timer?.isRunning ?? false, 'Game clock running?').to.equal(running);
@@ -45,6 +51,17 @@ describe('Live functional tests', function () {
     await gameSetupPage.init();
     await gameSetupPage.open({ signIn: true });
 
+    // Roster is already populated on the game, mark the step as done.
+    console.log('mark roster done')
+    await gameSetupPage.markStepDone(SetupSteps.Roster);
+    console.log('check roster step status')
+    await expectStepComplete(gameSetupPage, SetupSteps.Roster);
+
+    console.log('reload at roster step');
+    await gameSetupPage.reload({ signIn: true });
+    console.log('after reload, check roster step status')
+    await expectStepComplete(gameSetupPage, SetupSteps.Roster);
+
     // Complete the formation step.
     console.log('Set formation');
     await gameSetupPage.setFormation('4-3-3');
@@ -56,16 +73,30 @@ describe('Live functional tests', function () {
     console.log('after reload, check formation step status')
     await expectStepComplete(gameSetupPage, SetupSteps.Formation);
 
-    // Roster is already populated on the game, mark the step as done.
-    console.log('mark roster done')
-    await gameSetupPage.markStepDone(SetupSteps.Roster);
-    console.log('check roster step status')
-    await expectStepComplete(gameSetupPage, SetupSteps.Roster);
+    // Complete the starters step.
+    const starters = integrationTestData.TEAM2.games.NEW_WITH_ROSTER.PLAYER_IDS.slice(0, 11);
 
-    console.log('reload at roster step');
+    console.log('Set starters');
+    await gameSetupPage.setStarters(starters);
+    console.log('check starters are populated');
+    await expectStarters(gameSetupPage, starters);
+
+    console.log('reload at starters step');
     await gameSetupPage.reload({ signIn: true });
-    console.log('after reload, check roster step status')
-    await expectStepComplete(gameSetupPage, SetupSteps.Roster);
+    console.log('after reload, check starters are still populated');
+    await expectStarters(gameSetupPage, starters);
+
+    console.log('reload (again) at starters step');
+    await gameSetupPage.reload({ signIn: true });
+    console.log('mark starters done')
+    await gameSetupPage.markStepDone(SetupSteps.Starters);
+    console.log('check starters step status')
+    await expectStepComplete(gameSetupPage, SetupSteps.Starters);
+
+    console.log('reload (last time) at starters step');
+    await gameSetupPage.reload({ signIn: true });
+    console.log('after reload, check starters step status')
+    await expectStepComplete(gameSetupPage, SetupSteps.Starters);
 
     // Captains step is currently a no-op, mark the step as done.
     console.log('mark captains done')

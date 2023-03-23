@@ -25,12 +25,12 @@ import { Button } from '@material/mwc-button';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
-import { buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
+import { buildLiveStateWithCurrentGame, buildSetupTasks } from '../helpers/live-state-setup.js';
 import { mockPageRouter } from '../helpers/mock-page-router.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data.js';
 
-const LAST_SETUP_STEP = SetupSteps.Starters;
+const LAST_SETUP_STEP = SetupSteps.Captains;
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
@@ -46,59 +46,34 @@ function getGameDetail(): GameDetail {
   return getNewGameDetail(buildRoster([getStoredPlayer()]));
 }
 
-function getTasks(includeTestMetadata = false): TestSetupTask[] {
-  const tasks: TestSetupTask[] = [
-    {
-      step: SetupSteps.Formation,
-      status: SetupStatus.Active,
-      expectedName: 'Set formation'
-    },
-    {
-      step: SetupSteps.Roster,
-      status: SetupStatus.Pending,
-      expectedName: 'Set game roster'
-    },
-    {
-      step: SetupSteps.Captains,
-      status: SetupStatus.Pending,
-      expectedName: 'Set captains'
-    },
-    {
-      step: SetupSteps.Starters,
-      status: SetupStatus.Pending,
-      expectedName: 'Setup the starting lineup'
-    },
-  ];
-  if (!includeTestMetadata) {
-    tasks.forEach((task) => {
-      delete task.expectedName;
-    });
-  }
-  return tasks;
+function getTestTasks(tasks: SetupTask[]): TestSetupTask[] {
+  return tasks.map<TestSetupTask>((task) => {
+    let expectedName: string;
+    switch (task.step) {
+      case SetupSteps.Formation:
+        expectedName = 'Set formation';
+        break;
+      case SetupSteps.Roster:
+        expectedName = 'Set game roster';
+        break;
+      case SetupSteps.Captains:
+        expectedName = 'Set captains';
+        break;
+      case SetupSteps.Starters:
+        expectedName = 'Setup the starting lineup';
+        break;
+    }
+    return {
+      ...task,
+      expectedName
+    }
+  });
 }
 
-function buildLiveStateWithTasks(newGame: GameDetail, lastCompletedStep?: SetupSteps) {
-  if (lastCompletedStep === undefined) {
-    lastCompletedStep = -1;
-  }
-  // Set status for all steps up to the last completed.
-  const tasks = getTasks();
-  for (let index = 0; index <= Math.min(lastCompletedStep, tasks.length - 1); index++) {
-    tasks[index].status = SetupStatus.Complete;
-  }
-  // Set the current step after the last completed to active.
-  if ((lastCompletedStep + 1) < tasks.length) {
-    tasks[lastCompletedStep + 1].status = SetupStatus.Active;
-  }
-
+function buildLiveStateWithTasks(newGame: GameDetail, lastCompletedStep: SetupSteps = -1) {
   const liveGame = LiveGameBuilder.create(newGame);
-  liveGame.setupTasks = tasks;
 
-  // If the current step is after Formation, the game formation must be
-  // initialized to a valid value.
-  if (lastCompletedStep >= SetupSteps.Formation) {
-    liveGame.formation = { type: FormationType.F4_3_3 };
-  }
+  buildSetupTasks(liveGame, lastCompletedStep);
 
   return buildLiveStateWithCurrentGame(liveGame);
 }
@@ -245,6 +220,7 @@ describe('lineup-game-setup tests', () => {
     const game = getGameDetail();
     const gameState = buildGameStateWithCurrentGame(game);
     const liveState = buildLiveStateWithTasks(game);
+    const liveGame = liveState.games![game.id];
 
     await setupElement(buildRootState(gameState, liveState), game.id);
     await el.updateComplete;
@@ -252,7 +228,7 @@ describe('lineup-game-setup tests', () => {
     const items = getTaskElements();
     expect(items.length).to.equal(4, 'Rendered task count');
 
-    const tasks = getTasks(/*includeTestMetadata=*/true);
+    const tasks = getTestTasks(liveGame.setupTasks!);
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i];
 

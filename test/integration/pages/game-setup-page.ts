@@ -1,13 +1,15 @@
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
+import { LivePlayer } from '@app/models/live.js';
 import { ElementHandle } from 'puppeteer';
 import { GameDetailPage } from './game-detail-page.js';
 import { PageOpenFunction, PageOptions } from './page-object.js';
 
+// TODO: Reuse src definitions
 export enum SetupSteps {
-  Formation,
   Roster,
+  Formation,
+  Starters,
   Captains,
-  Starters
 }
 
 export enum SetupStatus {
@@ -70,6 +72,29 @@ export class GameSetupPage extends GameDetailPage {
     return SetupStatus.InProgress;
   }
 
+  async getStarters(setupHandle?: ElementHandle<Element>) {
+    if (!setupHandle) {
+      setupHandle = await this.getSetupComponent();
+    }
+    return await setupHandle.evaluate(async (setupNode) => {
+      const starterList = setupNode!.shadowRoot!.querySelector('lineup-on-player-list');
+      if (!starterList) {
+        return [];
+      }
+      const items = starterList.shadowRoot!.querySelectorAll<LineupPlayerCard>('lineup-player-card');
+
+      const players = [];
+      for (const item of Array.from(items)) {
+        const nameElement = item.shadowRoot!.querySelector('span.playerName');
+        players.push({
+          id: item.data?.player?.id,
+          name: nameElement?.textContent
+        } as LivePlayer)
+      }
+      return players;
+    });
+  }
+
   async setFormation(formationType: string, setupHandle?: ElementHandle<Element>) {
     if (!setupHandle) {
       setupHandle = await this.getSetupComponent();
@@ -91,37 +116,13 @@ export class GameSetupPage extends GameDetailPage {
     await this.page.waitForTimeout(100);
   }
 
-  async markStepDone(step: SetupSteps, setupHandle?: ElementHandle<Element>) {
-    const taskHandle = await this.getTaskElement(step, setupHandle);
-    const buttonHandle = await taskHandle.$('.status mwc-button.finish');
-    if (!buttonHandle) {
-      throw new Error('Finish step button not found');
-    }
-    await buttonHandle.click();
-  }
-
-  async markAllSetupDone(setupHandle: ElementHandle<Element>) {
-    await setupHandle.$eval('pierce/#complete-button', (completeButton) => {
-      (completeButton as HTMLElement).click();
-    });
-    // Brief wait for components to render updates.
-    await this.page.waitForTimeout(50);
-  }
-
-  async completeSetup(starters: string[]) {
+  async setStarters(starters: string[], setupHandle?: ElementHandle<Element>) {
     if (starters.length !== 11) {
       throw new Error(`Starters requires 11 players: ${starters.length} provided`);
     }
-    const setupHandle = await this.getSetupComponent();
-
-    // Complete the formation step.
-    await this.setFormation('4-3-3');
-
-    // Roster is already populated on the game, mark the step as done.
-    await this.markStepDone(SetupSteps.Roster, setupHandle);
-
-    // Captains step is currently a no-op, mark the step as done.
-    await this.markStepDone(SetupSteps.Captains, setupHandle);
+    if (!setupHandle) {
+      setupHandle = await this.getSetupComponent();
+    }
 
     // Populate the starters.
     await setupHandle.evaluate(async (setupNode, starterIds) => {
@@ -160,8 +161,47 @@ export class GameSetupPage extends GameDetailPage {
       }
     }, starters);
 
+    // Brief wait for components to render updates.
+    await this.page.waitForTimeout(100);
+  }
+
+  async markStepDone(step: SetupSteps, setupHandle?: ElementHandle<Element>) {
+    const taskHandle = await this.getTaskElement(step, setupHandle);
+    const buttonHandle = await taskHandle.$('.status mwc-button.finish');
+    if (!buttonHandle) {
+      throw new Error('Finish step button not found');
+    }
+    await buttonHandle.click();
+  }
+
+  async markAllSetupDone(setupHandle: ElementHandle<Element>) {
+    await setupHandle.$eval('pierce/#complete-button', (completeButton) => {
+      (completeButton as HTMLElement).click();
+    });
+    // Brief wait for components to render updates.
+    await this.page.waitForTimeout(50);
+  }
+
+  async completeSetup(starters: string[]) {
+    if (starters.length !== 11) {
+      throw new Error(`Starters requires 11 players: ${starters.length} provided`);
+    }
+    const setupHandle = await this.getSetupComponent();
+
+    // Roster is already populated on the game, mark the step as done.
+    await this.markStepDone(SetupSteps.Roster, setupHandle);
+
+    // Complete the formation step.
+    await this.setFormation('4-3-3');
+
+    // Populate the starters.
+    await this.setStarters(starters, setupHandle);
+
     // Mark the Starters step done.
     await this.markStepDone(SetupSteps.Starters, setupHandle);
+
+    // Captains step is currently a no-op, mark the step as done.
+    await this.markStepDone(SetupSteps.Captains, setupHandle);
 
     // Finalize the setup.
     await this.markAllSetupDone(setupHandle);
