@@ -14,7 +14,7 @@ import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
-  buildClock, buildClockWithTimer, buildLiveGameWithSetupTasks, buildLiveGameWithSetupTasksAndPlayers, buildLiveStateWithCurrentGame, buildShiftWithTrackers, getTrackerMap, INITIAL_OVERALL_STATE
+  buildClock, buildClockWithTimer, buildLiveGameWithSetupTasks, buildLiveGameWithSetupTasksAndPlayers, buildLiveStateWithCurrentGame, buildShiftWithTrackers, getGame, getTrackerMap, INITIAL_OVERALL_STATE
 } from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
@@ -34,13 +34,6 @@ function buildSwapPlayerPlaceholder(onPlayer: LivePlayer, position: Position) {
     isSwap: true
   };
   return swap;
-}
-
-function getGame(state: LiveState, gameId: string) {
-  if (!state.games) {
-    return;
-  }
-  return state.games[gameId];
 }
 
 function mockGetState(currentState: LiveState) {
@@ -737,6 +730,8 @@ describe('Live slice', () => {
       const game = buildLiveGameWithPlayers();
       gameId = game.id;
       game.clock = buildClockWithTimer();
+      game.clock.totalPeriods = 4;
+      game.clock.periodLength = 20;
       currentState = buildLiveStateWithCurrentGame(game);
     });
 

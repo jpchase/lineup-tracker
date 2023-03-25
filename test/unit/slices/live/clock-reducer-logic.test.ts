@@ -1,10 +1,10 @@
 import { Duration } from '@app/models/clock.js';
 import { GameStatus } from '@app/models/game.js';
-import { PeriodStatus } from '@app/models/live.js';
+import { PeriodStatus, SetupSteps } from '@app/models/live.js';
 import { configurePeriods, live, LiveState, startPeriod, endPeriod, toggleClock } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame, getGame } from '../../helpers/live-state-setup.js';
+import { buildClock, buildClockWithTimer, buildLiveGameWithSetupTasksAndPlayers, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame, getGame } from '../../helpers/live-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
@@ -50,7 +50,52 @@ describe('Live slice: Clock actions', () => {
       expect(newState).not.to.equal(currentState);
     });
 
+    it('should update setup tasks to mark periods complete, in New status', () => {
+      const game = buildLiveGameWithSetupTasksAndPlayers(
+        /*lastCompletedStep=*/SetupSteps.Periods - 1);
+      currentState = buildLiveStateWithCurrentGame(game);
+
+      const expectedGame = buildLiveGameWithSetupTasksAndPlayers(
+        /*lastCompletedStep=*/SetupSteps.Periods);
+      expectedGame.clock = buildClock(undefined, {
+        totalPeriods: 3,
+        periodLength: 25
+      });
+      const expectedState = buildLiveStateWithCurrentGame(expectedGame);
+
+      const newState = live(currentState, configurePeriods(gameId, /*totalPeriods=*/3, /*periodLength=*/25));
+
+      expect(newState).to.deep.include(expectedState);
+
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should ignore setup tasks, after setup is complete', () => {
+      const game = getGame(currentState, gameId)!;
+      game.status = GameStatus.Start;
+
+      const expectedGame = {
+        ...game,
+        clock: buildClock(buildStoppedTimer(), {
+          totalPeriods: 3,
+          periodLength: 25
+        })
+      };
+      delete expectedGame.setupTasks;
+      const expectedState = buildLiveStateWithCurrentGame(expectedGame);
+
+      const newState = live(currentState, configurePeriods(gameId, /*totalPeriods=*/3, /*periodLength=*/25));
+
+      expect(newState).to.deep.include(expectedState);
+
+      expect(newState).not.to.equal(currentState);
+    });
+
     it('should do nothing if totalPeriods is invalid', () => {
+      const game = buildLiveGameWithSetupTasksAndPlayers(
+        /*lastCompletedStep=*/SetupSteps.Periods - 1);
+      currentState = buildLiveStateWithCurrentGame(game);
+
       const newState = live(currentState,
         configurePeriods(gameId, /*totalPeriods=*/0, /*periodLength=*/45));
 

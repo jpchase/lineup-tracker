@@ -2,6 +2,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { FormationType, Position } from '../../models/formation.js';
 import { GameStatus } from '../../models/game.js';
 import {
+  AllSetupSteps,
   getPlayer, LiveGame, LiveGameBuilder, LivePlayer,
   SetupStatus, SetupSteps, SetupTask
 } from '../../models/live.js';
@@ -173,7 +174,7 @@ export const setupCompletedHandler = (_state: LiveState, game: LiveGame, _action
   delete game.setupTasks;
 }
 
-function completeSetupStepForAction(game: LiveGame, setupStepToComplete: SetupSteps) {
+export function completeSetupStepForAction(game: LiveGame, setupStepToComplete: SetupSteps) {
   updateTasks(game, game.setupTasks, setupStepToComplete);
 }
 
@@ -182,8 +183,7 @@ export function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedSte
 
   // Set step status based on step order, as previous steps must be completed
   // before the next can be done.
-  // TODO: Get the ordered list of steps generically from the enum
-  const steps = [SetupSteps.Roster, SetupSteps.Formation, SetupSteps.Starters, SetupSteps.Captains];
+  const steps = AllSetupSteps;
 
   let previousStepComplete = true;
   steps.forEach((stepValue: SetupSteps) => {
