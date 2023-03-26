@@ -6,12 +6,12 @@ const debugPersist = debug('persist');
 
 export class IdbPersistStorage implements WebStorage {
   getItem(key: string) {
-    debugPersist(`getItem: ${key}`);
+    // debugPersist(`getItem: ${key}`);
     return idb.get(key);
   }
 
   setItem(key: string, item: string) {
-    debugPersist(`setItem: ${key}, ${item}`);
+    // debugPersist(`setItem: ${key}, ${item}`);
     return idb.set(key, item);
   }
 

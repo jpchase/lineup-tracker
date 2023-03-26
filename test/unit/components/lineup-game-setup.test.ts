@@ -1,29 +1,36 @@
-import { EVENT_POSITIONSELECTED } from '@app/components/events';
-import { LineupGameSetup } from '@app/components/lineup-game-setup';
+import { EVENT_POSITIONSELECTED } from '@app/components/events.js';
+import { LineupGameSetup } from '@app/components/lineup-game-setup.js';
 import '@app/components/lineup-game-setup.js';
-import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
-import { LineupPlayerCard } from '@app/components/lineup-player-card';
-import { LineupPlayerList } from '@app/components/lineup-player-list';
+import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
+import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
+import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { PageRouter } from '@app/components/page-router.js';
-import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares';
-import { FormationBuilder, FormationType, getPositions } from '@app/models/formation';
-import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
-import { LiveGame, LiveGameBuilder, LivePlayer } from '@app/models/live.js';
-import { PlayerStatus } from '@app/models/player';
-import { getLiveStoreConfigurator } from '@app/slices/live-store';
-import { applyStarter, cancelStarter, captainsCompleted, completeRoster, formationSelected, gameSetupCompleted, selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted } from '@app/slices/live/live-slice.js';
+import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { FormationBuilder, FormationType, getPositions } from '@app/models/formation.js';
+import { GameDetail, GameStatus } from '@app/models/game.js';
+import {
+  LiveGame, LiveGameBuilder, LivePlayer,
+  SetupStatus, SetupSteps, SetupTask
+} from '@app/models/live.js';
+import { PlayerStatus } from '@app/models/player.js';
+import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
+import {
+  applyStarter, cancelStarter, captainsCompleted, completeRoster,
+  formationSelected, gameSetupCompleted,
+  selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted
+} from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
-import { RootState, setupStore } from '@app/store';
+import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
-import { buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
+import { buildLiveStateWithCurrentGame, buildSetupTasks } from '../helpers/live-state-setup.js';
 import { mockPageRouter } from '../helpers/mock-page-router.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data';
+import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data.js';
 
-const LAST_SETUP_STEP = SetupSteps.Starters;
+const LAST_SETUP_STEP = SetupSteps.Captains;
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
@@ -39,59 +46,34 @@ function getGameDetail(): GameDetail {
   return getNewGameDetail(buildRoster([getStoredPlayer()]));
 }
 
-function getTasks(includeTestMetadata = false): TestSetupTask[] {
-  const tasks: TestSetupTask[] = [
-    {
-      step: SetupSteps.Formation,
-      status: SetupStatus.Active,
-      expectedName: 'Set formation'
-    },
-    {
-      step: SetupSteps.Roster,
-      status: SetupStatus.Pending,
-      expectedName: 'Set game roster'
-    },
-    {
-      step: SetupSteps.Captains,
-      status: SetupStatus.Pending,
-      expectedName: 'Set captains'
-    },
-    {
-      step: SetupSteps.Starters,
-      status: SetupStatus.Pending,
-      expectedName: 'Setup the starting lineup'
-    },
-  ];
-  if (!includeTestMetadata) {
-    tasks.forEach((task) => {
-      delete task.expectedName;
-    });
-  }
-  return tasks;
+function getTestTasks(tasks: SetupTask[]): TestSetupTask[] {
+  return tasks.map<TestSetupTask>((task) => {
+    let expectedName: string;
+    switch (task.step) {
+      case SetupSteps.Formation:
+        expectedName = 'Set formation';
+        break;
+      case SetupSteps.Roster:
+        expectedName = 'Set game roster';
+        break;
+      case SetupSteps.Captains:
+        expectedName = 'Set captains';
+        break;
+      case SetupSteps.Starters:
+        expectedName = 'Setup the starting lineup';
+        break;
+    }
+    return {
+      ...task,
+      expectedName
+    }
+  });
 }
 
-function buildLiveStateWithTasks(newGame: GameDetail, lastCompletedStep?: SetupSteps) {
-  if (lastCompletedStep === undefined) {
-    lastCompletedStep = -1;
-  }
-  // Set status for all steps up to the last completed.
-  const tasks = getTasks();
-  for (let index = 0; index <= Math.min(lastCompletedStep, tasks.length - 1); index++) {
-    tasks[index].status = SetupStatus.Complete;
-  }
-  // Set the current step after the last completed to active.
-  if ((lastCompletedStep + 1) < tasks.length) {
-    tasks[lastCompletedStep + 1].status = SetupStatus.Active;
-  }
-
+function buildLiveStateWithTasks(newGame: GameDetail, lastCompletedStep: SetupSteps = -1) {
   const liveGame = LiveGameBuilder.create(newGame);
-  liveGame.setupTasks = tasks;
 
-  // If the current step is after Formation, the game formation must be
-  // initialized to a valid value.
-  if (lastCompletedStep >= SetupSteps.Formation) {
-    liveGame.formation = { type: FormationType.F4_3_3 };
-  }
+  buildSetupTasks(liveGame, lastCompletedStep);
 
   return buildLiveStateWithCurrentGame(liveGame);
 }
@@ -238,6 +220,7 @@ describe('lineup-game-setup tests', () => {
     const game = getGameDetail();
     const gameState = buildGameStateWithCurrentGame(game);
     const liveState = buildLiveStateWithTasks(game);
+    const liveGame = liveState.games![game.id];
 
     await setupElement(buildRootState(gameState, liveState), game.id);
     await el.updateComplete;
@@ -245,7 +228,7 @@ describe('lineup-game-setup tests', () => {
     const items = getTaskElements();
     expect(items.length).to.equal(4, 'Rendered task count');
 
-    const tasks = getTasks(/*includeTestMetadata=*/true);
+    const tasks = getTestTasks(liveGame.setupTasks!);
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i];
 

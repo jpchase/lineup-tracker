@@ -1,37 +1,30 @@
-import { FormationType, Position } from '@app/models/formation';
-import { GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '@app/models/game.js';
-import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
-import { PlayerStatus } from '@app/models/player';
-import { PlayerTimeTrackerMap } from '@app/models/shift.js';
+import { Position } from '@app/models/formation.js';
+import { GameDetail, GameStatus } from '@app/models/game.js';
+import {
+  getPlayer, LiveGame, LivePlayer, PeriodStatus
+} from '@app/models/live.js';
+import { PlayerStatus } from '@app/models/player.js';
 import { getGame as getGameCreator } from '@app/slices/game/game-slice.js';
 import {
-  cancelSub, cancelSwap, completeRoster, confirmSub,
-  confirmSwap, endPeriod, formationSelected, gameCompleted, gameSetupCompleted, live, LiveState, selectPlayer, startGamePeriod, startPeriod
-} from '@app/slices/live/live-slice';
+  cancelSub, cancelSwap, confirmSub,
+  confirmSwap, endPeriod, gameCompleted, live, LiveState,
+  selectPlayer, startGamePeriod, startPeriod
+} from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveStateWithCurrentGame, buildSetupTasks, buildShiftWithTrackers, getTrackerMap, INITIAL_OVERALL_STATE } from '../../helpers/live-state-setup.js';
+import {
+  buildClock, buildClockWithTimer, buildLiveGameWithSetupTasks, buildLiveGameWithSetupTasksAndPlayers, buildLiveStateWithCurrentGame, buildShiftWithTrackers, getTrackerMap, INITIAL_OVERALL_STATE
+} from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import {
-  buildLivePlayers,
   buildRoster,
   getFakeAction,
-  getNewGame, getStoredGame,
-  getStoredPlayer
+  getNewGame, getStoredGame
 } from '../../helpers/test_data.js';
-
 
 function buildLiveGameWithPlayers(): LiveGame {
   return testlive.getLiveGameWithPlayers();
-}
-
-function buildLiveGameWithSetupTasks(players?: LivePlayer[], tasks?: SetupTask[]): LiveGame {
-  const game = testlive.getLiveGame(players);
-  if (tasks) {
-    game.setupTasks = tasks;
-  }
-  return game;
 }
 
 function buildSwapPlayerPlaceholder(onPlayer: LivePlayer, position: Position) {
@@ -77,18 +70,16 @@ describe('Live slice', () => {
     });
 
     it('should set live game to given game with full detail', () => {
+      const expectedGame = buildLiveGameWithSetupTasksAndPlayers();
+      expectedGame.clock = buildClock();
+      const expectedState = buildLiveStateWithCurrentGame(expectedGame);
+
       const existingGame = getStoredGame();
       const inputGame: GameDetail = {
         ...existingGame,
         hasDetail: true,
-        roster: buildRoster([getStoredPlayer()])
+        roster: buildRoster(expectedGame.players)
       };
-
-      const expectedGame = buildLiveGameWithSetupTasks(
-        buildLivePlayers([getStoredPlayer()]), buildSetupTasks()
-      );
-      expectedGame.clock = buildClock();
-      const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
       const newState = live(currentState,
         getGameCreator.fulfilled(inputGame, 'unused', 'unused'));
@@ -105,7 +96,7 @@ describe('Live slice', () => {
         roster: {}
       };
 
-      const expectedGame = buildLiveGameWithSetupTasks([], buildSetupTasks());
+      const expectedGame = buildLiveGameWithSetupTasks();
       expectedGame.id = currentGame.id;
       expectedGame.clock = buildClock();
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);
@@ -119,86 +110,6 @@ describe('Live slice', () => {
     });
 
   }); // describe('game/getGame')
-
-  describe('live/gameSetupCompleted', () => {
-
-    it('should set status to Start, clear setup tasks, init clock and shift trackers', () => {
-      const rosterPlayers = testlive.getLivePlayers(18);
-      const completedTasks = buildSetupTasks();
-      completedTasks.forEach(task => { task.status = SetupStatus.Complete; })
-      const currentGame = buildLiveGameWithSetupTasks(rosterPlayers, completedTasks);
-
-      const expectedGame = buildLiveGameWithSetupTasks(rosterPlayers, undefined);
-      expectedGame.status = GameStatus.Start;
-      expectedGame.clock = buildClock();
-      delete expectedGame.setupTasks;
-      const expectedMap = PlayerTimeTrackerMap.createFromGame(currentGame);
-      const expectedState = buildLiveStateWithCurrentGame(expectedGame,
-        {
-          shift: {
-            trackerMaps: { [expectedMap.id]: expectedMap.toJSON() }
-          }
-        });
-
-      const state = buildLiveStateWithCurrentGame(currentGame);
-
-      const newState = live(state, gameSetupCompleted(currentGame.id, currentGame));
-
-      expect(newState).to.deep.include(expectedState);
-    });
-  }); // describe('live/gameSetupCompleted')
-
-  describe('live/completeRoster', () => {
-
-    it('should update setup tasks and init live players from roster', () => {
-      const rosterPlayers = testlive.getLivePlayers(18);
-      const updatedTasks = buildSetupTasks();
-      updatedTasks[SetupSteps.Roster].status = SetupStatus.Complete;
-      updatedTasks[SetupSteps.Captains].status = SetupStatus.Active;
-      const expectedState = buildLiveStateWithCurrentGame(
-        buildLiveGameWithSetupTasks(rosterPlayers, updatedTasks));
-
-      const game = testlive.getLiveGame();
-      const state = buildLiveStateWithCurrentGame(game);
-      expect(getGame(state, game.id)?.players, 'players should be empty').to.deep.equal([]);
-
-      const newState = live(state, completeRoster(game.id, buildRoster(rosterPlayers)));
-
-      expect(newState).to.deep.include(expectedState);
-    });
-  }); // describe('live/completeRoster')
-
-  describe('live/formationSelected', () => {
-
-    it('should set formation type and update setup tasks to mark formation complete', () => {
-      const updatedTasks = buildSetupTasks();
-      updatedTasks[SetupSteps.Formation].status = SetupStatus.Complete;
-      updatedTasks[SetupSteps.Roster].status = SetupStatus.Active;
-      const expectedGame = buildLiveGameWithSetupTasks(undefined, updatedTasks);
-      expectedGame.formation = { type: FormationType.F4_3_3 };
-      delete expectedGame.players;
-      const expectedState = buildLiveStateWithCurrentGame(expectedGame);
-
-      const state = buildLiveStateWithCurrentGame(
-        {
-          id: expectedGame.id,
-          status: GameStatus.New
-        });
-
-      const newState = live(state, formationSelected(expectedGame.id, FormationType.F4_3_3));
-
-      expect(newState).to.deep.include(expectedState);
-    });
-
-    it('should do nothing if formation input is missing', () => {
-      const game = buildLiveGameWithPlayers();
-      const state = buildLiveStateWithCurrentGame(game);
-
-      const newState = live(state, formationSelected(game.id, undefined as any));
-
-      expect(newState).to.equal(state);
-    });
-  }); // describe('live/formationSelected')
 
   describe('live/selectPlayer', () => {
     const selectedPlayerId = 'P0';

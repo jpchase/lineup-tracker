@@ -1,7 +1,10 @@
 import { createNextState, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
 import { Position } from '../../models/formation.js';
-import { Game, GameDetail, GameStatus, SetupStatus, SetupSteps, SetupTask } from '../../models/game.js';
-import { findPlayersByStatus, gameCanStartPeriod, getPlayer, LiveGame, LiveGameBuilder, LiveGames, LivePlayer } from '../../models/live.js';
+import { Game, GameDetail, GameStatus } from '../../models/game.js';
+import {
+  findPlayersByStatus, gameCanStartPeriod, getPlayer,
+  LiveGame, LiveGameBuilder, LiveGames, LivePlayer
+} from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { getGame, selectGameById } from '../../slices/game/game-slice.js';
 import { RootState, ThunkResult } from '../../store.js';
@@ -19,7 +22,7 @@ import {
   invalidStartersHandler, invalidStartersPrepare,
   rosterCompletedHandler, rosterCompletedPrepare,
   selectStarterHandler, selectStarterPositionHandler, selectStarterPositionPrepare, selectStarterPrepare,
-  setupCompletedHandler, startersCompletedHandler
+  setupCompletedHandler, startersCompletedHandler, updateTasks
 } from './setup-reducer-logic.js';
 import { shift, ShiftState } from './shift-slice.js';
 import {
@@ -333,45 +336,6 @@ function invokeActionHandler<P extends LiveGamePayload>(state: LiveState, action
     return;
   }
   return handler(state, game, action);
-}
-
-function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedStep?: SetupSteps) {
-  const tasks: SetupTask[] = [];
-
-  // Formation
-  //  - Complete status is based on the formation property being set.
-  const formationComplete = !!game.formation;
-  tasks.push({
-    step: SetupSteps.Formation,
-    status: formationComplete ? SetupStatus.Complete : SetupStatus.Active
-  });
-
-  // Other steps are manually set to complete, so can be handled generically.
-  const steps = [SetupSteps.Roster, SetupSteps.Captains, SetupSteps.Starters];
-
-  let previousStepComplete = formationComplete;
-  steps.forEach((stepValue: SetupSteps) => {
-    // Set the step complete status from the explicit parameter or old tasks, if available.
-    // Otherwise, step status is later set based on whether the preceding step is complete.
-    let stepComplete = false;
-    if (stepValue === completedStep) {
-      stepComplete = true;
-    } else if (oldTasks) {
-      stepComplete = (oldTasks[stepValue].status === SetupStatus.Complete);
-    }
-
-    tasks.push({
-      step: stepValue,
-      status: stepComplete ? SetupStatus.Complete :
-        (previousStepComplete ?
-          SetupStatus.Active : SetupStatus.Pending)
-    });
-
-    // Finally, save the complete status for the next step.
-    previousStepComplete = stepComplete;
-  });
-
-  game.setupTasks = tasks;
 }
 
 function findGame(state: LiveState, gameId: string) {
