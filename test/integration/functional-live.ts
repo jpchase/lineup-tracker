@@ -98,6 +98,17 @@ describe('Live functional tests', function () {
     console.log('after reload, check starters step status')
     await expectStepComplete(gameSetupPage, SetupSteps.Starters);
 
+    // Complete the periods step.
+    console.log('Set periods');
+    await gameSetupPage.setPeriods(4, 20);
+    console.log('check periods step status')
+    await expectStepComplete(gameSetupPage, SetupSteps.Periods);
+
+    console.log('reload at periods step');
+    await gameSetupPage.reload({ signIn: true });
+    console.log('after reload, check periods step status')
+    await expectStepComplete(gameSetupPage, SetupSteps.Periods);
+
     // Captains step is currently a no-op, mark the step as done.
     console.log('mark captains done')
     await gameSetupPage.markStepDone(SetupSteps.Captains);

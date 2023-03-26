@@ -34,7 +34,7 @@ function getStepName(step: SetupSteps): string {
       return 'Formation';
 
     case SetupSteps.Periods:
-      return 'Periods and duration';
+      return 'Timing';
 
     case SetupSteps.Roster:
       return 'Roster';

@@ -58,7 +58,7 @@ function getTestTasks(tasks: SetupTask[]): TestSetupTask[] {
         expectedName = 'Formation';
         break;
       case SetupSteps.Periods:
-        expectedName = 'Periods and duration';
+        expectedName = 'Timing';
         break;
       case SetupSteps.Roster:
         expectedName = 'Roster';
