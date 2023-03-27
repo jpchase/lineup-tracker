@@ -16,7 +16,7 @@ module.exports = {
     // },
     upload: {
       target: 'lhci',
-      serverBaseUrl: 'https://lineup-lhci.herokuapp.com',
+      serverBaseUrl: 'http://34.130.96.54',
     },
   },
 };
