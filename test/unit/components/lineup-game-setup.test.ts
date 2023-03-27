@@ -1,6 +1,6 @@
 import { EVENT_POSITIONSELECTED } from '@app/components/events.js';
-import { LineupGameSetup } from '@app/components/lineup-game-setup.js';
 import '@app/components/lineup-game-setup.js';
+import { LineupGameSetup } from '@app/components/lineup-game-setup.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
@@ -23,7 +23,7 @@ import {
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
-import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
+import { aTimeout, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildLiveStateWithCurrentGame, buildSetupTasks } from '../helpers/live-state-setup.js';
@@ -672,7 +672,7 @@ describe('lineup-game-setup tests', () => {
       // await expect(periodsDialog).to.be.accessible();
     });
 
-    it.only('dispatches configure periods action when fields valid', async () => {
+    it('dispatches configure periods action when fields valid', async () => {
       const periodsDialog = el.shadowRoot!.querySelector('#periods-dialog');
       expect(periodsDialog, 'Missing periods dialog').to.be.ok;
 
@@ -686,12 +686,7 @@ describe('lineup-game-setup tests', () => {
       expect(saveButton, 'Missing save button').to.be.ok;
 
       saveButton.click();
-      await nextFrame();
-      await nextFrame();
-      await nextFrame();
-      await nextFrame();
-      await nextFrame();
-      await nextFrame();
+      await aTimeout(100);
 
       // Verifies that the configure periods action was dispatched.
       expect(dispatchStub).to.have.callCount(1);

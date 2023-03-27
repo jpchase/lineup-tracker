@@ -57,7 +57,7 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
   <div class="flex-equal-justified step3 task">
     <div class="name">
       <a class="step">
-        Periods and duration
+        Timing
       </a>
     </div>
     <div class="status">
