@@ -30,9 +30,9 @@ describe('lineup-view-game-detail tests', () => {
   let el: LineupViewGameDetail;
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
-    const store = setupStore(preloadedState);
+    const store = setupStore(preloadedState, /*hydrate=*/false);
 
-    const template = html`<lineup-view-game-detail gameId="${ifDefined(gameId)}" active .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-view-game-detail>`;
+    const template = html`<lineup-view-game-detail gameId="${ifDefined(gameId)}" active .store=${store} .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/false)}></lineup-view-game-detail>`;
     el = await fixture(template);
   }
 

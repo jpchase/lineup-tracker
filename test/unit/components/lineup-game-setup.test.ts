@@ -100,7 +100,7 @@ describe('lineup-game-setup tests', () => {
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string): Promise<PageRouter> {
-    const store = setupStore(preloadedState);
+    const store = setupStore(preloadedState, /*hydrate=*/false);
 
     const mockRouter = {
       gotoPage: () => {
@@ -110,7 +110,7 @@ describe('lineup-game-setup tests', () => {
     }
     const parentNode = document.createElement('div');
     mockPageRouter(parentNode, mockRouter);
-    const template = html`<lineup-game-setup .gameId="${gameId}" .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-setup>`;
+    const template = html`<lineup-game-setup .gameId="${gameId}" .store=${store} .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/false)}></lineup-game-setup>`;
     el = await fixture(template, { parentNode });
     dispatchStub = sinon.spy(el, 'dispatch');
     return mockRouter;
