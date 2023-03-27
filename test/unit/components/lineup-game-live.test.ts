@@ -56,9 +56,9 @@ describe('lineup-game-live tests', () => {
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
-    const store = setupStore(preloadedState);
+    const store = setupStore(preloadedState, /*hydrate=*/false);
 
-    const template = html`<lineup-game-live .gameId="${gameId}" .store=${store} .storeConfigurator=${getLiveStoreConfigurator(false)}></lineup-game-live>`;
+    const template = html`<lineup-game-live .gameId="${gameId}" .store=${store} .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/false)}></lineup-game-live>`;
     el = await fixture(template);
     dispatchStub = sinon.spy(el, 'dispatch');
   }

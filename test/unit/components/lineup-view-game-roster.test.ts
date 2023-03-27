@@ -29,9 +29,9 @@ describe('lineup-view-game-roster tests', () => {
   let el: LineupViewGameRoster;
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
-    const store = setupStore(preloadedState);
+    const store = setupStore(preloadedState, /*hydrate=*/false);
 
-    const template = html`<lineup-view-game-roster gameId="${ifDefined(gameId)}" active .store=${store} .storeConfigurator=${getGameStoreConfigurator(false)}></lineup-view-game-roster>`;
+    const template = html`<lineup-view-game-roster gameId="${ifDefined(gameId)}" active .store=${store} .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/false)}></lineup-view-game-roster>`;
     el = await fixture(template);
   }
 

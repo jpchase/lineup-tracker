@@ -56,7 +56,7 @@ export function combineReducersWithReset<S extends EmptyObject, A extends Action
   return rootReducer;
 }
 
-export function setupStore(preloadedState?: RootState) {
+export function setupStore(preloadedState?: RootState, hydrate: boolean = true) {
   // Initializes the Redux store with a lazyReducerEnhancer, to allow adding reducers
   // after the store is created.
   //  - Type magic is a workaround for https://github.com/reduxjs/redux-toolkit/issues/2241
@@ -72,7 +72,7 @@ export function setupStore(preloadedState?: RootState) {
   const store: RootStore = baseStore as BaseStore & LazyStore;
 
   // Initially loaded reducers.
-  configureAppStore(store);
+  configureAppStore(store, hydrate);
 
   return store;
 }
