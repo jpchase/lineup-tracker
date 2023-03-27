@@ -18,7 +18,7 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
         class="step"
         href="#"
       >
-        Set game roster
+        Roster
       </a>
     </div>
     <div class="status">
@@ -33,7 +33,7 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
   <div class="flex-equal-justified step1 task">
     <div class="name">
       <a class="step">
-        Set formation
+        Formation
       </a>
     </div>
     <div class="status">
@@ -45,7 +45,7 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
   <div class="flex-equal-justified step2 task">
     <div class="name">
       <a class="step">
-        Setup the starting lineup
+        Starting lineup
       </a>
     </div>
     <div class="status">
@@ -57,7 +57,19 @@ snapshots["lineup-game-setup tests renders all the tasks"] =
   <div class="flex-equal-justified step3 task">
     <div class="name">
       <a class="step">
-        Set captains
+        Timing
+      </a>
+    </div>
+    <div class="status">
+      <mwc-icon>
+        more_horiz
+      </mwc-icon>
+    </div>
+  </div>
+  <div class="flex-equal-justified step4 task">
+    <div class="name">
+      <a class="step">
+        Captains
       </a>
     </div>
     <div class="status">
@@ -145,4 +157,58 @@ snapshots["lineup-game-setup tests Starters shows errors when all starter positi
 </span>
 `;
 /* end snapshot lineup-game-setup tests Starters shows errors when all starter positions are empty */
+
+snapshots["lineup-game-setup tests periods shows periods sections for new game"] = 
+`<mwc-dialog
+  id="periods-dialog"
+  open=""
+>
+  <div>
+    <div class="dialog-header">
+      <span>
+        Configure periods
+      </span>
+    </div>
+    <mwc-formfield
+      alignend=""
+      id="num-periods"
+      label="Number of Periods"
+    >
+      <input
+        max="4"
+        min="1"
+        required=""
+        type="number"
+        value="2"
+      >
+    </mwc-formfield>
+    <mwc-formfield
+      alignend=""
+      id="period-length"
+      label="Period Length"
+    >
+      <input
+        max="60"
+        min="10"
+        required=""
+        type="number"
+        value="45"
+      >
+    </mwc-formfield>
+  </div>
+  <mwc-button
+    dialogaction="save"
+    slot="primaryAction"
+  >
+    Save
+  </mwc-button>
+  <mwc-button
+    dialogaction="close"
+    slot="secondaryAction"
+  >
+    Cancel
+  </mwc-button>
+</mwc-dialog>
+`;
+/* end snapshot lineup-game-setup tests periods shows periods sections for new game */
 

@@ -1,6 +1,7 @@
 import { TimerData } from '@app/models/clock.js';
 import { FormationType } from '@app/models/formation.js';
 import {
+  AllSetupSteps,
   LiveClock, LiveGame, LivePlayer,
   PeriodStatus, SetupStatus, SetupSteps, SetupTask
 } from '@app/models/live.js';
@@ -70,8 +71,7 @@ export function buildLiveGameWithSetupTasks(lastCompletedStep: SetupSteps = -1):
 }
 
 export function buildSetupTasks(game: LiveGame, lastCompletedStep: SetupSteps) {
-  // TODO: Get the ordered list of steps generically from the enum
-  const steps = [SetupSteps.Roster, SetupSteps.Formation, SetupSteps.Starters, SetupSteps.Captains];
+  const steps = AllSetupSteps;
 
   game.setupTasks = steps.map<SetupTask>((value, index) => {
     let status = SetupStatus.Pending;

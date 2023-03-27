@@ -1,14 +1,12 @@
-/**
-@license
-*/
-
 import { PayloadAction } from '@reduxjs/toolkit';
 import { Timer } from '../../models/clock.js';
 import { GameStatus } from '../../models/game.js';
-import { LiveGame, LiveGameBuilder, PeriodStatus } from '../../models/live.js';
+import { LiveGame, LiveGameBuilder, PeriodStatus, SetupSteps } from '../../models/live.js';
 import { ConfigurePeriodsPayload, LiveGamePayload, StartPeriodPayload } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
+import { completeSetupStepForAction } from './setup-reducer-logic.js';
 
+//TODO: move to setup logic file
 export const configurePeriodsHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<ConfigurePeriodsPayload>) => {
   const periods = action.payload.totalPeriods || 0;
   const length = action.payload.periodLength || 0;
@@ -22,6 +20,10 @@ export const configurePeriodsHandler = (_state: LiveState, game: LiveGame, actio
   const state = getInitializedClock(game);
   state.totalPeriods = periods;
   state.periodLength = length;
+
+  if (game.status === GameStatus.New) {
+    completeSetupStepForAction(game, SetupSteps.Periods);
+  }
 };
 
 export const configurePeriodsPrepare = (gameId: string, totalPeriods: number, periodLength: number) => {

@@ -9,6 +9,7 @@ export enum SetupSteps {
   Roster,
   Formation,
   Starters,
+  Periods,
   Captains,
 }
 
@@ -165,6 +166,38 @@ export class GameSetupPage extends GameDetailPage {
     await this.page.waitForTimeout(100);
   }
 
+  async setPeriods(totalPeriods: number, periodLength: number, setupHandle?: ElementHandle<Element>) {
+    if (!setupHandle) {
+      setupHandle = await this.getSetupComponent();
+    }
+
+    // Click the Periods step link, to show the dialog.
+    const taskHandle = await this.getTaskElement(SetupSteps.Periods, setupHandle);
+    const linkHandle = await this.getTaskLink(taskHandle);
+    linkHandle.click();
+    await this.page.waitForTimeout(100);
+
+    await setupHandle.evaluate(async (setupNode, totalPeriods, periodLength) => {
+      const setupRoot = setupNode!.shadowRoot!;
+
+      const periodsDialog = setupRoot.querySelector('#periods-dialog');
+      if (!periodsDialog) {
+        throw new Error(`Periods dialog not found`);
+      }
+      const numPeriodsField = setupRoot.querySelector(`#num-periods > input`) as HTMLInputElement;
+      numPeriodsField.value = `${totalPeriods}`;
+
+      const periodLengthField = setupRoot.querySelector(`#period-length > input`) as HTMLInputElement;
+      periodLengthField.valueAsNumber = periodLength;
+
+      const saveButton = periodsDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLButtonElement;
+      saveButton.click();
+    }, totalPeriods, periodLength);
+
+    // Brief wait for components to render updates.
+    await this.page.waitForTimeout(100);
+  }
+
   async markStepDone(step: SetupSteps, setupHandle?: ElementHandle<Element>) {
     const taskHandle = await this.getTaskElement(step, setupHandle);
     const buttonHandle = await taskHandle.$('.status mwc-button.finish');
@@ -199,6 +232,9 @@ export class GameSetupPage extends GameDetailPage {
 
     // Mark the Starters step done.
     await this.markStepDone(SetupSteps.Starters, setupHandle);
+
+    // Complete the Periods step.
+    await this.setPeriods(2, 45, setupHandle);
 
     // Captains step is currently a no-op, mark the step as done.
     await this.markStepDone(SetupSteps.Captains, setupHandle);

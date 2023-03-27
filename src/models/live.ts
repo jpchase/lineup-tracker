@@ -20,8 +20,12 @@ export enum SetupSteps {
   Roster,
   Formation,
   Starters,
+  Periods,
   Captains,
 }
+
+export const AllSetupSteps: SetupSteps[] =
+  Object.values(SetupSteps).filter((v) => !isNaN(Number(v))) as SetupSteps[];
 
 export interface SetupTask {
   step: SetupSteps;

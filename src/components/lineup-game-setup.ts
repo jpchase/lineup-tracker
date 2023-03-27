@@ -1,5 +1,6 @@
 import { contextProvided } from '@lit-labs/context';
 import '@material/mwc-button';
+import '@material/mwc-dialog';
 import '@material/mwc-icon';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -8,12 +9,12 @@ import { repeat } from 'lit/directives/repeat.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { FormationBuilder, FormationMetadata, formatPosition, Position } from '../models/formation.js';
 import { GameDetail } from '../models/game.js';
-import { LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/live.js';
+import { LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/live.js';
 import { getGameStore } from '../slices/game-store.js';
 import { gameSetupCompletedCreator, selectGameById } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store.js';
 import {
-  applyStarter, cancelStarter, captainsCompleted, formationSelected, getLiveGame,
+  applyStarter, cancelStarter, captainsCompleted, configurePeriods, formationSelected, getLiveGame,
   rosterCompleted,
   selectInvalidStarters, selectLiveGameById,
   selectStarter, selectStarterPosition, startersCompletedCreator
@@ -26,17 +27,20 @@ import { SharedStyles } from './shared-styles.js';
 
 function getStepName(step: SetupSteps): string {
   switch (step) {
+    case SetupSteps.Captains:
+      return 'Captains';
+
     case SetupSteps.Formation:
-      return 'Set formation';
+      return 'Formation';
+
+    case SetupSteps.Periods:
+      return 'Timing';
 
     case SetupSteps.Roster:
-      return 'Set game roster';
-
-    case SetupSteps.Captains:
-      return 'Set captains';
+      return 'Roster';
 
     case SetupSteps.Starters:
-      return 'Setup the starting lineup';
+      return 'Starting lineup';
 
     default:
       return '<unknown step>';
@@ -46,6 +50,7 @@ function getStepName(step: SetupSteps): string {
 function isAutoStep(step: SetupSteps): boolean {
   switch (step) {
     case SetupSteps.Formation:
+    case SetupSteps.Periods:
       return true;
 
     default:
@@ -141,6 +146,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
           <lineup-player-list mode="off" .players="${players}"
                               @playerselected="${this.playerSelected}"></lineup-player-list>
         </div>
+        ${this.renderConfigurePeriods()}
       ` : html`
         <p class="empty-list">
           Cannot setup - Game not set.
@@ -149,9 +155,34 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
       </div>`
   }
 
+  private renderConfigurePeriods() {
+    if (!this.showPeriods) {
+      return nothing;
+    }
+
+    return html`
+      <mwc-dialog id="periods-dialog" ?open="${this.showPeriods}"
+                @closed="${this.periodsDialogClosed}">
+        <div>
+          <div class="dialog-header">
+            <span>Configure periods</span>
+          </div>
+          <mwc-formfield id="num-periods" alignend label="Number of Periods">
+            <input type="number" required min="1" max="4" value="${ifDefined(this.liveGame?.clock?.totalPeriods)}">
+          </mwc-formfield>
+          <mwc-formfield id="period-length" alignend label="Period Length">
+              <input type="number" required min="10" max="60" value="${ifDefined(this.liveGame?.clock?.periodLength)}">
+          </mwc-formfield>
+        </div>
+        <mwc-button slot="primaryAction" dialogAction="save">Save</mwc-button>
+        <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
+      </mwc-dialog>
+    `;
+  }
+
   private renderConfirmStarter() {
     if (!this.proposedStarter) {
-      return '';
+      return nothing;
     }
     const starter = this.proposedStarter;
     let positionText = formatPosition(starter.currentPosition!);
@@ -207,7 +238,10 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   gameId?: string;
 
   @state()
-  private game: GameDetail | undefined;
+  private game?: GameDetail;
+
+  @state()
+  private liveGame?: LiveGame;
 
   @state()
   private tasks: SetupTask[] = [];
@@ -217,6 +251,9 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
 
   @state()
   private showFormation = false;
+
+  @state()
+  private showPeriods = false;
 
   @state()
   private formation: FormationMetadata | undefined;
@@ -251,6 +288,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
       this.dispatch(getLiveGame(this.game));
       return;
     }
+    this.liveGame = liveGame;
     this.tasks = liveGame.setupTasks || [];
 
     const anyIncomplete = this.tasks.some(task => task.status !== SetupStatus.Complete);
@@ -277,6 +315,10 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
       switch (task.step) {
         case SetupSteps.Formation:
           this.showFormation = true;
+          break;
+
+        case SetupSteps.Periods:
+          this.showPeriods = true;
           break;
 
         case SetupSteps.Roster:
@@ -340,6 +382,34 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
 
   private cancelStarter() {
     this.dispatch(cancelStarter(this.game!.id));
+  }
+
+  private periodsDialogClosed(e: CustomEvent) {
+    console.log(`periodsDialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`)
+    switch (e.detail.action) {
+      case 'save': {
+        this.savePeriods();
+        break;
+      }
+    }
+    this.showPeriods = false;
+  }
+
+  private getFormInput(fieldId: string): HTMLInputElement {
+    return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
+  }
+
+  private savePeriods() {
+    const numPeriodsField = this.getFormInput('num-periods');
+    const periodLengthField = this.getFormInput('period-length');
+    const totalPeriods = numPeriodsField.valueAsNumber;
+    const periodLength = periodLengthField.valueAsNumber;
+    console.log(`save: ${totalPeriods}, ${periodLength}`);
+
+    this.dispatch(configurePeriods(this.gameId!, totalPeriods, periodLength));
+    console.log(`save: action now dispatched`)
+
+    this.showPeriods = false;
   }
 
 }
