@@ -1,5 +1,4 @@
-import { fromRollup } from '@web/dev-server-rollup';
-import { FONT_APIS_PLACEHOLDER, serveHermeticFontDevServer } from './test/integration/server/hermetic-fonts.js';
+import { FONT_APIS_PLACEHOLDER, FONT_STATIC_PLACEHOLDER, serveHermeticFontDevServer } from './test/integration/server/hermetic-fonts.js';
 import { config } from './test/integration/server/test-server.js';
 
 const offline = !!process.argv.find(value => (value === '--offline'));
@@ -28,6 +27,10 @@ if (offline) {
         if (context.response.is('html')) {
           return { body: context.body.replace('https://fonts.googleapis.com/', FONT_APIS_PLACEHOLDER) };
         }
+        if (context.response.is('css') &&
+          context.request.path.startsWith(FONT_APIS_PLACEHOLDER)) {
+          return { body: context.body.replace('https://fonts.gstatic.com/', FONT_STATIC_PLACEHOLDER) };
+        }
       },
     },
     {
@@ -36,7 +39,7 @@ if (offline) {
         if (context.url.startsWith('/node_modules/') || context.url.startsWith('/src/')) {
           return;
         }
-        console.log(`\nURL is: ${context.url}, headers = ${JSON.stringify(context.req.headers)}`);
+        // console.log(`\nURL is: ${context.url}, headers = ${JSON.stringify(context.req.headers)}`);
         return serveHermeticFontDevServer(context, config.dataDir);
       }
     }
