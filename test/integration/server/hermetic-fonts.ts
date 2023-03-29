@@ -6,8 +6,8 @@ import { HTTPRequest, ResponseForRequest } from 'puppeteer';
 const CONTENT_TYPE_CSS = 'text/css; charset=utf-8';
 const CONTENT_TYPE_WOFF2 = 'font/woff2';
 
-const FONT_APIS_PLACEHOLDER = '/fonts-apis/';
-const FONT_STATIC_PLACEHOLDER = '/fonts-static/';
+export const FONT_APIS_PLACEHOLDER = '/fonts-apis/';
+export const FONT_STATIC_PLACEHOLDER = '/fonts-static/';
 
 const FONT_CSS_FILES: Record<string, string> = {
     'Material Icons': 'material-icons.css',
@@ -37,16 +37,10 @@ export function serveHermeticFontPuppeteer(request: HTTPRequest, dataDir: string
 export function serveHermeticFontDevServer(context: Context, dataDir: string): ServeResult {
     const adapter = {
         url() {
-            let retUrl;
             if (context.req.url?.startsWith('/')) {
-                //                return `http://${context.req.headers.host}${context.req.url}`;
-                retUrl = `http://${context.req.headers.host}${context.req.url}`;
-            } else {
-                retUrl = context.req.url!;
+                return `http://${context.req.headers.host}${context.req.url}`;
             }
-            console.log(`serve url = ${retUrl}`);
-            return retUrl;
-            // return context.req.url!;
+            return context.req.url!;
         }
     }
     const response = serveHermeticFont(adapter, dataDir);
@@ -54,9 +48,12 @@ export function serveHermeticFontDevServer(context: Context, dataDir: string): S
         return;
     }
     // Convert the response to the expected type.
+    //  - The body may be a Buffer, for binary files. Pretend the body is always a string,
+    //    rather than explicitly converting to string. The web-dev-server has logic to
+    //    correctly convert a buffer for serving.
     //  - The headers values are converted to strings, but typed as Record<string, unknown>
     return {
-        body: response.body.toString(),
+        body: response.body as string,
         type: response.contentType,
         headers: response.headers as unknown as Record<string, string>
     }
