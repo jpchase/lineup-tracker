@@ -6,8 +6,8 @@ import { HTTPRequest, ResponseForRequest } from 'puppeteer';
 const CONTENT_TYPE_CSS = 'text/css; charset=utf-8';
 const CONTENT_TYPE_WOFF2 = 'font/woff2';
 
-const FONT_APIS_PLACEHOLDER = '/fonts-apis/';
-const FONT_STATIC_PLACEHOLDER = '/fonts-static/';
+export const FONT_APIS_PLACEHOLDER = '/fonts-apis/';
+export const FONT_STATIC_PLACEHOLDER = '/fonts-static/';
 
 const FONT_CSS_FILES: Record<string, string> = {
     'Material Icons': 'material-icons.css',
