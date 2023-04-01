@@ -3,12 +3,13 @@ import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { debug } from '../common/debug.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
-import { Games } from '../models/game.js';
+import { Game, Games } from '../models/game.js';
 import { selectCurrentTeam } from '../slices/app/app-slice.js';
 import { getGameStore } from '../slices/game-store.js';
 import { addNewGame, getGames } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-create.js';
+import { GameCreatedEvent } from './lineup-game-create.js';
 import './lineup-game-list.js';
 import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
@@ -41,7 +42,7 @@ export class LineupViewGames extends ConnectStoreMixin(AuthorizedViewElement) {
         <lineup-game-list .games="${this._games}"></lineup-game-list>
         <mwc-fab id="add-button" icon="add" label="Add Game" @click="${this._addButtonClicked}"></mwc-fab>
         <lineup-game-create ?active="${this._showCreate}"
-            @newgamecreated="${this._newGameCreated}"
+            @game-created="${this.newGameCreated}"
             @newgamecancelled="${this._newGameCancelled}"></lineup-game-create>
       </section>
     `;
@@ -73,9 +74,10 @@ export class LineupViewGames extends ConnectStoreMixin(AuthorizedViewElement) {
     this._showCreate = true;
   }
 
-  private _newGameCreated(e: CustomEvent) {
+  private newGameCreated(e: GameCreatedEvent) {
     debugGames(`New game: ${JSON.stringify(e.detail.game)}`);
-    this.dispatch(addNewGame(e.detail.game));
+    // TODO: Change action to take a GameMetadata
+    this.dispatch(addNewGame(e.detail.game as Game));
     this._showCreate = false;
   }
 

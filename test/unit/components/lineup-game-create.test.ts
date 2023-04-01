@@ -1,6 +1,6 @@
-import { LineupGameCreate } from '@app/components/lineup-game-create';
+import { GameCreatedEvent, LineupGameCreate } from '@app/components/lineup-game-create';
 import '@app/components/lineup-game-create.js';
-import { expect, fixture, oneEvent } from '@open-wc/testing';
+import { expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
 
 describe('lineup-game-create tests', () => {
   let el: LineupGameCreate;
@@ -14,15 +14,37 @@ describe('lineup-game-create tests', () => {
     return field as HTMLInputElement;
   }
 
-  it('starts empty', () => {
+  it('starts empty', async () => {
     const dateField = getInputField('dateField');
 
     expect(dateField.value).to.equal('', 'Date field should be empty');
+
+    await expect(el).shadowDom.to.equalSnapshot();
   });
 
-  it('clears fields when cancelled', () => {
-    // TODO: Implement when cancel handling is implemented.
-    expect(true).to.be.true;
+  it('clears fields when cancelled', async () => {
+    const nameField = getInputField('nameField');
+    nameField.value = ' G01 '
+
+    const dateField = getInputField('dateField');
+    dateField.value = '2016-01-01';
+
+    const timeField = getInputField('timeField');
+    timeField.value = '14:30';
+
+    const opponentField = getInputField('opponentField');
+    opponentField.value = ' Some Opponent ';
+
+    const cancelButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
+    // setTimeout(() => cancelButton.click());
+    cancelButton.click();
+    await nextFrame();
+    // await oneEvent(el, GameCreatedEvent.eventName);
+
+    expect(nameField.value, 'Name field should be empty').to.equal('');
+    expect(dateField.value, 'Date field should be empty').to.equal('');
+    expect(timeField.value, 'Time field should be empty').to.equal('');
+    expect(opponentField.value, 'Opponent field should be empty').to.equal('');
   });
 
   it('creates new game when saved', async () => {
@@ -42,7 +64,7 @@ describe('lineup-game-create tests', () => {
     const saveButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
     setTimeout(() => saveButton.click());
 
-    const { detail } = await oneEvent(el, 'newgamecreated');
+    const { detail } = await oneEvent(el, GameCreatedEvent.eventName);
 
     expect(detail.game).to.deep.equal(
       {

@@ -3,7 +3,6 @@ import '@material/mwc-formfield';
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { GameMetadata } from '../models/game.js';
-import { EVENT_NEWGAMECREATED } from './events.js';
 import { SharedStyles } from './shared-styles.js';
 
 @customElement('lineup-game-create')
@@ -28,21 +27,18 @@ export class LineupGameCreate extends LitElement {
         <mwc-formfield id="opponentField" alignend label="Opponent">
             <input type="text" required minlength="2">
         </mwc-formfield>
-        <mwc-formfield id="durationField" alignend label="Game Length">
-            <input type="number" required min="20" max="90">
-        </mwc-formfield>
         <div class="buttons">
-          <mwc-button raised class="cancel" @click="${this._cancelCreateGame}">Cancel</mwc-button>
-          <mwc-button raised class="save" autofocus @click="${this._saveNewGame}">Save</mwc-button>
+          <mwc-button raised class="cancel" @click="${this.cancelNewGame}">Cancel</mwc-button>
+          <mwc-button raised class="save" autofocus @click="${this.saveNewGame}">Save</mwc-button>
         </div>
       </div>`
   }
 
-  private _getFormInput(fieldId: string): HTMLInputElement {
+  private getFormInput(fieldId: string): HTMLInputElement {
     return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
   }
 
-  private _buildDate(dateString: string, timeString: string): { valid: boolean, date: Date } {
+  private buildDate(dateString: string, timeString: string): { valid: boolean, date: Date } {
     // Parse the date and time values, to get date parts separately
     let dateParts = dateString.match(/(\d{4})\-(\d{2})\-(\d{2})/);
     if (!dateParts) {
@@ -64,24 +60,16 @@ export class LineupGameCreate extends LitElement {
       Number(timeParts[2]) // minutes
     );
 
-    console.log(`Built date is: ${date}`);
-
     return { valid: true, date: date };
   }
 
-  private _saveNewGame(e: CustomEvent) {
-    console.log(`_saveNewGame: ${JSON.stringify(e.detail)}`);
+  private saveNewGame(_e: CustomEvent) {
+    const nameField = this.getFormInput('nameField');
+    const dateField = this.getFormInput('dateField');
+    const timeField = this.getFormInput('timeField');
+    const opponentField = this.getFormInput('opponentField');
 
-    const nameField = this._getFormInput('nameField');
-    const dateField = this._getFormInput('dateField');
-    const timeField = this._getFormInput('timeField');
-    const opponentField = this._getFormInput('opponentField');
-    // const durationField = this._getFormInput('durationField');
-
-    console.log(`Date is: ${dateField.value!.trim()}`);
-    console.log(`Time is: ${timeField.value!.trim()}`);
-
-    const dateResult = this._buildDate(dateField.value!.trim(), timeField.value!.trim());
+    const dateResult = this.buildDate(dateField.value!.trim(), timeField.value!.trim());
     if (!dateResult.valid) {
       // TODO: Some error handling?
       return;
@@ -94,14 +82,50 @@ export class LineupGameCreate extends LitElement {
     };
 
     // This event will be handled by lineup-view-games.
-    this.dispatchEvent(new CustomEvent(EVENT_NEWGAMECREATED, {
-      bubbles: true, composed: true, detail: {
-        game: newGame
-      }
+    this.dispatchEvent(new GameCreatedEvent({
+      game: newGame
     }));
+
+    this.resetFields();
   }
 
-  private _cancelCreateGame(e: CustomEvent) {
-    console.log(`_cancelCreateGame: ${JSON.stringify(e.detail)}`);
+  private cancelNewGame(_e: CustomEvent) {
+    this.resetFields();
+  }
+
+  private resetFields() {
+    const fields = this.shadowRoot!.querySelectorAll<HTMLInputElement>('mwc-formfield > input');
+    for (const field of Array.from(fields)) {
+      field.value = '';
+    }
+  }
+}
+
+export interface GameCreatedDetail {
+  game: GameMetadata;
+}
+
+const CREATED_EVENT_NAME = 'game-created';
+export class GameCreatedEvent extends CustomEvent<GameCreatedDetail> {
+  static eventName = CREATED_EVENT_NAME;
+
+  constructor(detail: GameCreatedDetail) {
+    super(GameCreatedEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true
+    });
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'lineup-game-create': LineupGameCreate;
+  }
+}
+
+declare global {
+  interface HTMLElementEventMap {
+    [CREATED_EVENT_NAME]: GameCreatedEvent;
   }
 }
