@@ -40,8 +40,9 @@ describe('Game functional tests', function () {
       date: gameDate
     } as Game;
 
-    await addGamePage.fillGameDetails(newGame);
-    await addGamePage.saveNewGame();
+    const createComponent = await addGamePage.getCreateComponent();
+    await addGamePage.fillGameDetails(newGame, createComponent);
+    await addGamePage.saveNewGame(createComponent);
 
     // Verify that the new game is created and shows in the list.
     const gameId = await addGamePage.getGameId(newGame);

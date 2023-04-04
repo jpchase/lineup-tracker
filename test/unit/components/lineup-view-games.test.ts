@@ -50,7 +50,12 @@ describe('lineup-view-games tests', () => {
 
   function getCreateElement() {
     const element = el.shadowRoot!.querySelector('lineup-game-create');
+    expect(element, 'Missing create element').to.exist;
     return element as Element;
+  }
+
+  function getCreateDialog(createElement: Element) {
+    return createElement.shadowRoot!.querySelector('mwc-dialog') as Element;
   }
 
   it('shows signin placeholder when not signed in', async () => {
@@ -99,41 +104,39 @@ describe('lineup-view-games tests', () => {
     await expect(el).to.be.accessible();
   });
 
-  it('shows create widget when add clicked', async () => {
+  it('shows create dialog when add clicked', async () => {
     await setupElement(buildSignedInState({}));
 
-    const createElement = getCreateElement();
-    expect(createElement, 'Missing create widget').to.exist;
+    const createDialog = getCreateDialog(getCreateElement());
 
-    expect(createElement, 'Create element before add click').not.to.be.shown;
+    expect(createDialog, 'before add click').not.to.be.open;
 
     const addButton = getAddButton();
     setTimeout(() => addButton!.click());
     await oneEvent(addButton!, 'click');
 
-    expect(createElement, 'Create element after add click').to.be.shown;
+    expect(createDialog, 'after add click').to.be.open;
   });
 
-  // TODO: Enable test when fixed
-  it.skip('closes create widget when cancel clicked', async () => {
+  it('closes create dialog when cancel clicked', async () => {
     await setupElement(buildSignedInState({}));
 
     const createElement = getCreateElement();
-    expect(createElement, 'Missing create widget').to.exist;
+    const createDialog = getCreateDialog(createElement);
 
-    expect(createElement, 'Create element before add click').not.to.be.shown;
+    expect(createDialog, 'before add click').not.to.be.open;
 
     const addButton = getAddButton();
     setTimeout(() => addButton!.click());
     await oneEvent(addButton!, 'click');
 
-    const cancelButton = createElement.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
+    const cancelButton = createElement.shadowRoot!.querySelector('mwc-button[dialogAction="close"]') as HTMLElement;
 
     setTimeout(() => cancelButton!.click());
     await oneEvent(cancelButton!, 'click');
     await nextFrame();
 
-    expect(createElement, 'Create element after cancel').not.to.be.shown;
+    expect(createDialog, 'after cancel').not.to.be.open;
   });
 
   it.skip('creates new game when saved', () => {

@@ -2,72 +2,81 @@
 export const snapshots = {};
 
 snapshots["lineup-game-create tests starts empty"] = 
-`<div>
-  <h2>
-    New Game
-  </h2>
-  <mwc-formfield
-    alignend=""
-    id="nameField"
-    label="Name"
+`<mwc-dialog
+  heading="New Game"
+  id="create-dialog"
+  open=""
+>
+  <ul>
+    <li>
+      <mwc-formfield
+        alignend=""
+        dialoginitialfocus=""
+        id="nameField"
+        label="Name"
+      >
+        <input
+          aria-label="Name"
+          minlength="2"
+          required=""
+          type="text"
+        >
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="dateField"
+        label="Date"
+      >
+        <input
+          aria-label="Date"
+          required=""
+          type="date"
+        >
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="timeField"
+        label="Time"
+      >
+        <input
+          aria-label="Time"
+          required=""
+          type="time"
+        >
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="opponentField"
+        label="Opponent"
+      >
+        <input
+          aria-label="Opponent"
+          minlength="2"
+          required=""
+          type="text"
+        >
+      </mwc-formfield>
+    </li>
+  </ul>
+  <mwc-button
+    dialogaction="save"
+    slot="primaryAction"
   >
-    <input
-      aria-label="Name"
-      minlength="2"
-      required=""
-      type="text"
-    >
-  </mwc-formfield>
-  <mwc-formfield
-    alignend=""
-    id="dateField"
-    label="Date"
+    Save
+  </mwc-button>
+  <mwc-button
+    dialogaction="close"
+    slot="secondaryAction"
   >
-    <input
-      aria-label="Date"
-      required=""
-      type="date"
-    >
-  </mwc-formfield>
-  <mwc-formfield
-    alignend=""
-    id="timeField"
-    label="Time"
-  >
-    <input
-      aria-label="Time"
-      required=""
-      type="time"
-    >
-  </mwc-formfield>
-  <mwc-formfield
-    alignend=""
-    id="opponentField"
-    label="Opponent"
-  >
-    <input
-      aria-label="Opponent"
-      minlength="2"
-      required=""
-      type="text"
-    >
-  </mwc-formfield>
-  <div class="buttons">
-    <mwc-button
-      class="cancel"
-      raised=""
-    >
-      Cancel
-    </mwc-button>
-    <mwc-button
-      autofocus=""
-      class="save"
-      raised=""
-    >
-      Save
-    </mwc-button>
-  </div>
-</div>
+    Cancel
+  </mwc-button>
+</mwc-dialog>
 `;
 /* end snapshot lineup-game-create tests starts empty */
 

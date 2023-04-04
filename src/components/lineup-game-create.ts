@@ -1,7 +1,9 @@
 import '@material/mwc-button';
+import '@material/mwc-dialog';
+import { Dialog } from '@material/mwc-dialog';
 import '@material/mwc-formfield';
 import { html, LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, query } from 'lit/decorators.js';
 import { GameMetadata } from '../models/game.js';
 import { SharedStyles } from './shared-styles.js';
 
@@ -11,28 +13,48 @@ export class LineupGameCreate extends LitElement {
     return html`
       ${SharedStyles}
       <style>
-        :host { display: block; }
+        ul {
+          list-style-type: none;
+        }
       </style>
-      <div>
-        <h2>New Game</h2>
-        <mwc-formfield id="nameField" alignend label="Name">
-            <input type="text" required minlength="2">
-        </mwc-formfield>
-        <mwc-formfield id="dateField" alignend label="Date">
-            <input type="date" required>
-        </mwc-formfield>
-        <mwc-formfield id="timeField" alignend label="Time">
-            <input type="time" required>
-        </mwc-formfield>
-        <mwc-formfield id="opponentField" alignend label="Opponent">
-            <input type="text" required minlength="2">
-        </mwc-formfield>
-        <div class="buttons">
-          <mwc-button raised class="cancel" @click="${this.cancelNewGame}">Cancel</mwc-button>
-          <mwc-button raised class="save" autofocus @click="${this.saveNewGame}">Save</mwc-button>
-        </div>
-      </div>`
+      <mwc-dialog id="create-dialog" heading="New Game" @closed="${this.saveNewGame}">
+        <ul>
+          <li>
+            <mwc-formfield id="nameField" alignend label="Name" dialogInitialFocus>
+                <input type="text" required minlength="2">
+            </mwc-formfield>
+          </li>
+          <li>
+            <mwc-formfield id="dateField" alignend label="Date">
+                <input type="date" required>
+            </mwc-formfield>
+          </li>
+          <li>
+            <mwc-formfield id="timeField" alignend label="Time">
+                <input type="time" required>
+            </mwc-formfield>
+          </li>
+          <li>
+            <mwc-formfield id="opponentField" alignend label="Opponent">
+                <input type="text" required minlength="2">
+            </mwc-formfield>
+          </li>
+        </ul>
+        <mwc-button slot="primaryAction" dialogAction="save">Save</mwc-button>
+        <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
+      </mwc-dialog>
+    `;
   }
+
+  async show() {
+    this.resetFields();
+    this.dialog!.show();
+    this.requestUpdate();
+    await this.updateComplete;
+  }
+
+  @query('mwc-dialog')
+  protected dialog?: Dialog;
 
   private getFormInput(fieldId: string): HTMLInputElement {
     return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
@@ -63,7 +85,11 @@ export class LineupGameCreate extends LitElement {
     return { valid: true, date: date };
   }
 
-  private saveNewGame(_e: CustomEvent) {
+  private saveNewGame(e: CustomEvent) {
+    console.log(`saveNewGame: ${JSON.stringify(e.detail)}`);
+    if (e.detail.action !== 'save') {
+      return;
+    }
     const nameField = this.getFormInput('nameField');
     const dateField = this.getFormInput('dateField');
     const timeField = this.getFormInput('timeField');
@@ -86,11 +112,6 @@ export class LineupGameCreate extends LitElement {
       game: newGame
     }));
 
-    this.resetFields();
-  }
-
-  private cancelNewGame(_e: CustomEvent) {
-    this.resetFields();
   }
 
   private resetFields() {

@@ -6,6 +6,7 @@ describe('lineup-game-create tests', () => {
   let el: LineupGameCreate;
   beforeEach(async () => {
     el = await fixture('<lineup-game-create></lineup-game-create>');
+    await el.show();
   });
 
   function getInputField(fieldId: string) {
@@ -22,7 +23,7 @@ describe('lineup-game-create tests', () => {
     await expect(el).shadowDom.to.equalSnapshot();
   });
 
-  it('clears fields when cancelled', async () => {
+  it('clears fields when shown again', async () => {
     const nameField = getInputField('nameField');
     nameField.value = ' G01 '
 
@@ -35,11 +36,11 @@ describe('lineup-game-create tests', () => {
     const opponentField = getInputField('opponentField');
     opponentField.value = ' Some Opponent ';
 
-    const cancelButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
-    // setTimeout(() => cancelButton.click());
+    const cancelButton = el.shadowRoot!.querySelector('mwc-button[dialogAction="close"]') as HTMLElement;
     cancelButton.click();
     await nextFrame();
-    // await oneEvent(el, GameCreatedEvent.eventName);
+
+    await el.show();
 
     expect(nameField.value, 'Name field should be empty').to.equal('');
     expect(dateField.value, 'Date field should be empty').to.equal('');
@@ -61,7 +62,7 @@ describe('lineup-game-create tests', () => {
     const opponentField = getInputField('opponentField');
     opponentField.value = ' Some Opponent ';
 
-    const saveButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
+    const saveButton = el.shadowRoot!.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
     setTimeout(() => saveButton.click());
 
     const { detail } = await oneEvent(el, GameCreatedEvent.eventName);
