@@ -95,6 +95,10 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
           display: block;
         }
 
+        ul.fields {
+          list-style-type: none;
+        }
+
         #starter-errors {
           color: red;
         }
@@ -161,19 +165,21 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     }
 
     return html`
-      <mwc-dialog id="periods-dialog" ?open="${this.showPeriods}"
+      <mwc-dialog id="periods-dialog" heading="Configure periods"
+                ?open="${this.showPeriods}"
                 @closed="${this.periodsDialogClosed}">
-        <div>
-          <div class="dialog-header">
-            <span>Configure periods</span>
-          </div>
-          <mwc-formfield id="num-periods" alignend label="Number of Periods">
-            <input type="number" required min="1" max="4" value="${ifDefined(this.liveGame?.clock?.totalPeriods)}">
-          </mwc-formfield>
-          <mwc-formfield id="period-length" alignend label="Period Length">
-              <input type="number" required min="10" max="60" value="${ifDefined(this.liveGame?.clock?.periodLength)}">
-          </mwc-formfield>
-        </div>
+        <ul class="fields">
+          <li>
+            <mwc-formfield id="num-periods" alignend label="Number of Periods">
+              <input type="number" required min="1" max="4" value="${ifDefined(this.liveGame?.clock?.totalPeriods)}">
+            </mwc-formfield>
+          </li>
+          <li>
+            <mwc-formfield id="period-length" alignend label="Period Length">
+                <input type="number" required min="10" max="60" value="${ifDefined(this.liveGame?.clock?.periodLength)}">
+            </mwc-formfield>
+          </li>
+        </ul>
         <mwc-button slot="primaryAction" dialogAction="save">Save</mwc-button>
         <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
       </mwc-dialog>

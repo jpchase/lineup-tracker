@@ -160,42 +160,42 @@ snapshots["lineup-game-setup tests Starters shows errors when all starter positi
 
 snapshots["lineup-game-setup tests periods shows periods sections for new game"] = 
 `<mwc-dialog
+  heading="Configure periods"
   id="periods-dialog"
   open=""
 >
-  <div>
-    <div class="dialog-header">
-      <span>
-        Configure periods
-      </span>
-    </div>
-    <mwc-formfield
-      alignend=""
-      id="num-periods"
-      label="Number of Periods"
-    >
-      <input
-        max="4"
-        min="1"
-        required=""
-        type="number"
-        value="2"
+  <ul class="fields">
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="num-periods"
+        label="Number of Periods"
       >
-    </mwc-formfield>
-    <mwc-formfield
-      alignend=""
-      id="period-length"
-      label="Period Length"
-    >
-      <input
-        max="60"
-        min="10"
-        required=""
-        type="number"
-        value="45"
+        <input
+          max="4"
+          min="1"
+          required=""
+          type="number"
+          value="2"
+        >
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="period-length"
+        label="Period Length"
       >
-    </mwc-formfield>
-  </div>
+        <input
+          max="60"
+          min="10"
+          required=""
+          type="number"
+          value="45"
+        >
+      </mwc-formfield>
+    </li>
+  </ul>
   <mwc-button
     dialogaction="save"
     slot="primaryAction"
