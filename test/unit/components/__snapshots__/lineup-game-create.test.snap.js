@@ -7,7 +7,7 @@ snapshots["lineup-game-create tests starts empty"] =
   id="create-dialog"
   open=""
 >
-  <ul>
+  <ul class="fields">
     <li>
       <mwc-formfield
         alignend=""

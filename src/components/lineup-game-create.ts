@@ -13,12 +13,12 @@ export class LineupGameCreate extends LitElement {
     return html`
       ${SharedStyles}
       <style>
-        ul {
+        ul.fields {
           list-style-type: none;
         }
       </style>
       <mwc-dialog id="create-dialog" heading="New Game" @closed="${this.saveNewGame}">
-        <ul>
+        <ul class="fields">
           <li>
             <mwc-formfield id="nameField" alignend label="Name" dialogInitialFocus>
                 <input type="text" required minlength="2">
