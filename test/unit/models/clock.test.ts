@@ -198,9 +198,9 @@ describe('Duration', () => {
 
 describe('Timer', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
-  const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
-  const time2 = new Date(2016, 0, 1, 14, 0, 10).getTime();
-  const time3 = new Date(2016, 0, 1, 14, 1, 55).getTime();
+  const timeStartPlus5 = new Date(2016, 0, 1, 14, 0, 5).getTime();
+  const timeStartPlus10 = new Date(2016, 0, 1, 14, 0, 10).getTime();
+  const timeStartPlus1Minute55 = new Date(2016, 0, 1, 14, 1, 55).getTime();
 
   function mockTimeProvider(t0: number, t1?: number, t2?: number, t3?: number) {
     let provider = new CurrentTimeProvider();
@@ -267,7 +267,7 @@ describe('Timer', () => {
   });
 
   it('should be empty after reset', () => {
-    const provider = mockTimeProvider(startTime, time1);
+    const provider = mockTimeProvider(startTime, timeStartPlus5);
     let timer = new Timer(undefined, provider);
     timer.start();
     timer.stop();
@@ -283,7 +283,7 @@ describe('Timer', () => {
     });
 
     it('should have correct elapsed when running', () => {
-      const provider = mockTimeProvider(startTime, time1, time1);
+      const provider = mockTimeProvider(startTime, timeStartPlus5, timeStartPlus5);
       let timer = new Timer(undefined, provider);
       timer.start();
       expect(timer).to.have.elapsed([0, 5]);
@@ -307,7 +307,7 @@ describe('Timer', () => {
     });
 
     it('should have correct elapsed after stopped', () => {
-      const provider = mockTimeProvider(startTime, time2);
+      const provider = mockTimeProvider(startTime, timeStartPlus10);
       let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
@@ -316,8 +316,18 @@ describe('Timer', () => {
       expect(timer).to.have.elapsed([0, 10]);
     });
 
+    it('should have correct elapsed after stopped retroactively', () => {
+      const provider = mockTimeProvider(startTime, timeStartPlus10);
+      let timer = new Timer(undefined, provider);
+      timer.start();
+      timer.stop(timeStartPlus5);
+      expect(timer).to.have.elapsed([0, 5]);
+      timer.stop();
+      expect(timer).to.have.elapsed([0, 5]);
+    });
+
     it('should have correct elapsed after restarting', () => {
-      const provider = mockTimeProvider(startTime, time1, startTime, time2);
+      const provider = mockTimeProvider(startTime, timeStartPlus5, startTime, timeStartPlus10);
       let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
@@ -325,8 +335,17 @@ describe('Timer', () => {
       expect(timer).to.have.elapsed([0, 15]);
     });
 
+    it('should have correct elapsed for restart after stopped retroactively', () => {
+      const provider = mockTimeProvider(startTime, startTime, timeStartPlus10);
+      let timer = new Timer(undefined, provider);
+      timer.start();
+      timer.stop(startTime);
+      timer.start();
+      expect(timer).to.have.elapsed([0, 10]);
+    });
+
     it('should have correct elapsed after restarted and stopped', () => {
-      const provider = mockTimeProvider(startTime, time2, startTime, time2);
+      const provider = mockTimeProvider(startTime, timeStartPlus10, startTime, timeStartPlus10);
       let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
@@ -335,8 +354,18 @@ describe('Timer', () => {
       expect(timer).to.have.elapsed([0, 20]);
     });
 
+    it('should have correct elapsed after restarted and stopped retroactively', () => {
+      const provider = mockTimeProvider(startTime, timeStartPlus10, startTime, timeStartPlus10);
+      let timer = new Timer(undefined, provider);
+      timer.start();
+      timer.stop();
+      timer.start();
+      timer.stop(timeStartPlus5);
+      expect(timer).to.have.elapsed([0, 15]);
+    });
+
     it('should have correct elapsed when added seconds equal exactly 1 minute', () => {
-      const provider = mockTimeProvider(startTime, time3, startTime, time1);
+      const provider = mockTimeProvider(startTime, timeStartPlus1Minute55, startTime, timeStartPlus5);
       let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
@@ -346,7 +375,7 @@ describe('Timer', () => {
     });
 
     it('should have correct elapsed when added seconds total more than 1 minute', () => {
-      const provider = mockTimeProvider(startTime, time3, startTime, time2);
+      const provider = mockTimeProvider(startTime, timeStartPlus1Minute55, startTime, timeStartPlus10);
       let timer = new Timer(undefined, provider);
       timer.start();
       timer.stop();
@@ -397,7 +426,7 @@ describe('Timer', () => {
         startTime: startTime,
         duration: buildDuration(3, 4).toJSON(),
       }
-      const provider = mockTimeProvider(time3);
+      const provider = mockTimeProvider(timeStartPlus1Minute55);
 
       let timer = new Timer(expected, provider);
       expect(timer.startTime).to.equal(expected.startTime);
