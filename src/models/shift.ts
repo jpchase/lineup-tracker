@@ -13,24 +13,23 @@ export interface PlayerTimeTrackerData {
 }
 
 export class PlayerTimeTracker {
-  timeProvider?: CurrentTimeProvider;
-  id: string;
-  isOn: boolean;
-  alreadyOn: boolean;
-  shiftCount: number;
-  totalTime: Duration;
-  onTimer?: Timer;
-  offTimer?: Timer;
+  readonly timeProvider?: CurrentTimeProvider;
+  readonly id: string;
+  private _isOn: boolean;
+  private _alreadyOn: boolean;
+  private _shiftCount: number;
+  private totalTime: Duration;
+  private _onTimer?: Timer;
+  private _offTimer?: Timer;
 
   constructor(passedData: PlayerTimeTrackerData, timeProvider?: CurrentTimeProvider) {
-    let data = passedData || {};
+    let data = passedData ?? {};
     this.id = data.id;
-    this.isOn = data.isOn || false;
-    this.alreadyOn = data.alreadyOn || false;
-    this.shiftCount = data.shiftCount || 0;
+    this._isOn = data.isOn ?? false;
+    this._alreadyOn = data.alreadyOn ?? false;
+    this._shiftCount = data.shiftCount ?? 0;
     this.totalTime = new Duration(data.totalTime);
     this.timeProvider = timeProvider;
-    this.resetShiftTimes();
     if (data.onTimer) {
       this.onTimer = new Timer(data.onTimer, timeProvider);
     }
@@ -39,6 +38,43 @@ export class PlayerTimeTracker {
     }
   }
 
+  // Data properties are private writeable only.
+  get isOn(): boolean {
+    return this._isOn;
+  }
+  protected set isOn(value: boolean) {
+    this._isOn = value;
+  }
+
+  get alreadyOn(): boolean {
+    return this._alreadyOn;
+  }
+  protected set alreadyOn(value: boolean) {
+    this._alreadyOn = value;
+  }
+
+  get shiftCount(): number {
+    return this._shiftCount;
+  }
+  protected set shiftCount(value: number) {
+    this._shiftCount = value;
+  }
+
+  get onTimer(): Timer | undefined {
+    return this._onTimer;
+  }
+  protected set onTimer(value: Timer | undefined) {
+    this._onTimer = value;
+  }
+
+  get offTimer(): Timer | undefined {
+    return this._offTimer;
+  }
+  protected set offTimer(value: Timer | undefined) {
+    this._offTimer = value;
+  }
+
+  // Synthetic properties.
   get currentTimer() {
     return (this.isOn) ? this.onTimer : this.offTimer;
   }
@@ -105,7 +141,40 @@ export class PlayerTimeTracker {
     this.currentTimer?.stop();
   }
 
-  addShiftToTotal() {
+  substituteIn(clockRunning: boolean) {
+    this.substituteInternal(/*goingOn=*/true, clockRunning);
+  }
+
+  substituteOut(clockRunning: boolean) {
+    this.substituteInternal(/*goingOn=*/false, clockRunning);
+  }
+
+  private substituteInternal(goingOn: boolean, clockRunning: boolean) {
+    if (goingOn === this.isOn) {
+      throw new Error(`Invalid status to sub ${goingOn ? 'in' : 'out'}: ${this.toDebugString()}`);
+    }
+
+    // End the current on/off shift.
+    this.stopShift();
+
+    if (goingOn) {
+      this.isOn = true;
+    } else {
+      // Capture the on time for this shift.
+      this.addShiftToTotal();
+      this.isOn = false;
+      this.alreadyOn = false;
+    }
+
+    // If previously on/off, there could be a timer with accumulated values.
+    this.resetShift();
+
+    if (clockRunning) {
+      this.startShift();
+    }
+  }
+
+  private addShiftToTotal() {
     if (!this.isOn) {
       return;
     }
@@ -227,19 +296,6 @@ export class PlayerTimeTrackerMap {
     this.timeProvider.unfreeze();
   }
 
-  totalShiftTimers() {
-    if (!this.trackers?.length) {
-      throw new Error('Map is empty');
-    }
-
-    this.timeProvider.freeze();
-    this.trackers.forEach(tracker => {
-      tracker.addShiftToTotal();
-      tracker.resetShiftTimes();
-    });
-    this.timeProvider.unfreeze();
-  }
-
   substitutePlayer(playerInId: string, playerOutId: string) {
     this.substitutePlayers([{ in: playerInId, out: playerOutId }]);
   }
@@ -278,21 +334,8 @@ export class PlayerTimeTrackerMap {
     subTrackers.forEach(pair => {
       const [playerInTracker, playerOutTracker] = pair;
 
-      playerInTracker.stopShift();
-      playerOutTracker.stopShift();
-      playerInTracker.isOn = true;
-
-      playerOutTracker.addShiftToTotal();
-      playerOutTracker.isOn = false;
-      playerOutTracker.alreadyOn = false;
-
-      playerInTracker.resetShift();
-      playerOutTracker.resetShift();
-
-      if (this.clockRunning) {
-        playerInTracker.startShift();
-        playerOutTracker.startShift();
-      }
+      playerInTracker.substituteIn(this.clockRunning);
+      playerOutTracker.substituteOut(this.clockRunning);
     });
 
     if (unfreeze) {

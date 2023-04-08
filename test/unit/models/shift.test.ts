@@ -63,13 +63,11 @@ describe('PlayerTimeTracker', () => {
     expect(tracker).to.have.shiftTime([0, 5]);
     expect(tracker).to.have.totalTime([0, 5]);
 
-    tracker.addShiftToTotal();
-
     tracker.resetShiftTimes();
 
     expect(tracker).to.have.shiftCount(1);
     expect(tracker).to.have.shiftTime([0, 0]);
-    expect(tracker).to.have.totalTime([0, 5]);
+    expect(tracker).to.have.totalTime([0, 0]);
   });
 });
 
@@ -198,9 +196,6 @@ describe('PlayerTimeTrackerMap', () => {
       expect(() => {
         map.stopShiftTimers();
       }, 'stopShiftTimers').to.throw('Map is empty');
-      expect(() => {
-        map.totalShiftTimers();
-      }, 'totalShiftTimers').to.throw('Map is empty');
       expect(() => {
         map.substitutePlayer(playerOffId, playerOnId);
       }, 'substituePlayer').to.throw('Map is empty');
@@ -549,14 +544,6 @@ describe('PlayerTimeTrackerMap', () => {
       expect(onTracker).to.have.totalTime([0, 20]);
       expect(offTracker).to.have.totalTime([0, 0]);
       provider.unfreeze();
-
-      map.totalShiftTimers();
-
-      provider.freeze();
-      expect(onTracker).to.have.totalTime([0, 20]);
-      expect(offTracker).to.have.totalTime([0, 0]);
-      provider.unfreeze();
-
     });
 
     it('should have correct shift counts after multiple start/stop', () => {
