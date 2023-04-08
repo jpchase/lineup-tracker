@@ -45,7 +45,7 @@ export class LineupGameShifts extends LitElement {
           <tr data-row-id="${row.id}">
             <td class="playerName mdl-data-table__cell--non-numeric">${row.name}</td>
             <td class="shiftCount">${row.tracker.shiftCount}</td>
-            <td class="totalTime mdl-data-table__cell--non-numeric">${Duration.format(row.tracker.getTotalTime())}</td>
+            <td class="totalTime mdl-data-table__cell--non-numeric">${Duration.format(row.tracker.totalOnTime)}</td>
           </tr>
         `)}
         </tbody>

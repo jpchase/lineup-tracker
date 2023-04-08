@@ -79,6 +79,17 @@ export class PlayerTimeTracker {
     return (this.isOn) ? this.onTimer : this.offTimer;
   }
 
+  get shiftTime() {
+    return this.currentTimer?.getElapsed() || Duration.zero();
+  }
+
+  get totalOnTime() {
+    if (this.isOn && this.onTimer) {
+      return Duration.add(this.totalTime, this.onTimer.getElapsed());
+    }
+    return this.totalTime;
+  }
+
   toJSON() {
     const dataToSerialize: PlayerTimeTrackerData = {
       id: this.id,
@@ -106,17 +117,6 @@ export class PlayerTimeTracker {
       id: this.id,
       isOn: this.isOn
     });
-  }
-
-  getShiftTime() {
-    return this.currentTimer?.getElapsed() || Duration.zero();
-  }
-
-  getTotalTime() {
-    if (this.isOn && this.onTimer) {
-      return Duration.add(this.totalTime, this.onTimer.getElapsed());
-    }
-    return this.totalTime;
   }
 
   resetShift() {
@@ -160,8 +160,8 @@ export class PlayerTimeTracker {
     if (goingOn) {
       this.isOn = true;
     } else {
-      // Capture the on time for this shift.
-      this.addShiftToTotal();
+      // Update total time before flipping on flag.
+      this.totalTime = Duration.add(this.totalTime, this.shiftTime);
       this.isOn = false;
       this.alreadyOn = false;
     }
@@ -172,13 +172,6 @@ export class PlayerTimeTracker {
     if (clockRunning) {
       this.startShift();
     }
-  }
-
-  private addShiftToTotal() {
-    if (!this.isOn) {
-      return;
-    }
-    this.totalTime = Duration.add(this.totalTime, this.getShiftTime());
   }
 }
 

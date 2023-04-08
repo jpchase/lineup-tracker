@@ -69,7 +69,7 @@ describe('lineup-game-shifts tests', () => {
 
       const totalTimeElement = row.cells[2];
       expect(totalTimeElement, 'Missing total time element').to.exist;
-      expect(totalTimeElement!.textContent).to.equal(Duration.format(tracker.getTotalTime()), 'Total time');
+      expect(totalTimeElement!.textContent).to.equal(Duration.format(tracker.totalOnTime), 'Total time');
     }
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();

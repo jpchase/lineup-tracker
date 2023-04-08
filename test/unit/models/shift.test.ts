@@ -26,9 +26,9 @@ declare global {
 
 function addTimingMatchers() {
   addDurationAssertion<PlayerTimeTracker>('shiftTime', 'tracker shiftTime',
-    (tracker) => (tracker ? tracker.getShiftTime() : null));
+    (tracker) => (tracker ? tracker.shiftTime : null));
   addDurationAssertion<PlayerTimeTracker>('totalTime', 'tracker totalTime',
-    (tracker) => (tracker ? tracker.getTotalTime() : null));
+    (tracker) => (tracker ? tracker.totalOnTime : null));
 
   Assertion.addMethod('shiftCount', function (this, expected: number) {
     const tracker = this._obj as PlayerTimeTracker;
@@ -84,9 +84,13 @@ describe('PlayerTimeTrackerMap', () => {
   ] as LivePlayer[];
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
   const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
+  const timeStartPlus5 = new Date(2016, 0, 1, 14, 0, 5).getTime();
   const time2 = new Date(2016, 0, 1, 14, 0, 10).getTime();
+  const timeStartPlus10 = new Date(2016, 0, 1, 14, 0, 10).getTime();
   const time3 = new Date(2016, 0, 1, 14, 0, 20).getTime();
+  // const timeStartPlus20 = new Date(2016, 0, 1, 14, 0, 20).getTime();
   const time4 = new Date(2016, 0, 1, 14, 0, 35).getTime();
+  // const timeStartPlus35 = new Date(2016, 0, 1, 14, 0, 35).getTime();
 
   let map: PlayerTimeTrackerMap;
 
@@ -575,7 +579,10 @@ describe('PlayerTimeTrackerMap', () => {
     });
 
     it('should have shift times restarted after sub', () => {
-      const provider = initMapWithTime(startTime, time1, time2);
+      // t0: shift timers are started
+      // t1: players are subbed
+      // t2: assert shift time
+      const provider = initMapWithTime(startTime, timeStartPlus5, timeStartPlus10);
 
       let onTracker = map.get(playerOnId);
       let offTracker = map.get(playerOffId);
@@ -589,7 +596,10 @@ describe('PlayerTimeTrackerMap', () => {
     });
 
     it('should have total times restarted after sub', () => {
-      const provider = initMapWithTime(startTime, time1, time2);
+      // t0: shift timers are started
+      // t1: players are subbed
+      // t2: assert total on time
+      const provider = initMapWithTime(startTime, timeStartPlus5, timeStartPlus10);
 
       let onTracker = map.get(playerOnId);
       let offTracker = map.get(playerOffId);
