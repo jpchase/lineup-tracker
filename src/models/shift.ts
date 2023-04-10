@@ -137,8 +137,8 @@ export class PlayerTimeTracker {
     }
   }
 
-  stopShift() {
-    this.currentTimer?.stop();
+  stopShift(retroactiveStopTime?: number) {
+    this.currentTimer?.stop(retroactiveStopTime);
   }
 
   substituteIn(clockRunning: boolean) {
@@ -276,7 +276,7 @@ export class PlayerTimeTrackerMap {
     this.timeProvider.unfreeze();
   }
 
-  stopShiftTimers() {
+  stopShiftTimers(retroactiveStopTime?: number) {
     if (!this.trackers?.length) {
       throw new Error('Map is empty');
     }
@@ -284,7 +284,7 @@ export class PlayerTimeTrackerMap {
     this.clockRunning = false;
     this.timeProvider.freeze();
     this.trackers.forEach(tracker => {
-      tracker.stopShift();
+      tracker.stopShift(retroactiveStopTime);
     });
     this.timeProvider.unfreeze();
   }
