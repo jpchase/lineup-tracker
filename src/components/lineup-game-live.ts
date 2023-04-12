@@ -259,6 +259,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       this.clockData = clock.timer;
       this.clockPeriodData = {
         currentPeriod: clock.currentPeriod,
+        periodLength: clock.periodLength,
         periodStatus: clock.periodStatus
       };
       this.gamePeriodsComplete = clock.periodStatus == PeriodStatus.Done;

@@ -1,8 +1,5 @@
-/**
-@license
-*/
-
 import '@material/mwc-button';
+import '@material/mwc-icon';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
 import { html, LitElement } from 'lit';
@@ -18,24 +15,55 @@ export interface ClockToggleDetail {
 
 export interface ClockPeriodData {
   currentPeriod: number;
+  periodLength: number;
   periodStatus: PeriodStatus;
 }
 
-// This element is *not* connected to the Redux store.
 @customElement('lineup-game-clock')
 export class LineupGameClock extends LitElement {
   override render() {
-    const periodPending = this.periodData?.periodStatus === PeriodStatus.Pending;
-    const periodRunning = this.periodData?.periodStatus === PeriodStatus.Running;
     const periodText = `Period: ${this.periodData?.currentPeriod || 1}`;
+    let periodPending = false;
+    let periodRunning = false;
+    let periodOverdue = false;
+    switch (this.periodData?.periodStatus) {
+      case PeriodStatus.Pending:
+        periodPending = true;
+        break;
+
+      case PeriodStatus.Overdue:
+        periodOverdue = true;
+        periodRunning = true;
+        break;
+
+      case PeriodStatus.Running:
+        periodRunning = true;
+        break;
+
+      default:
+        break;
+    }
+
+    // TODO: temporary
+    if (periodRunning) {
+      const elapsed = this.timer.timer?.getElapsed().getMinutes() ?? 0;
+      const length = this.periodData?.periodLength ?? 90;
+      if (elapsed > length) {
+        periodOverdue = true;
+      }
+    }
 
     return html`
       ${SharedStyles}
       <style>
         :host { display: inline-block; }
+        #period-overdue {
+          color: red;
+        }
       </style>
       <span>
         <span id="game-period">${periodText}</span>
+        <mwc-icon id="period-overdue" ?hidden="${!periodOverdue}">running_with_errors</mwc-icon>
         <span id="period-timer">${this.timer.text}</span>
         <mwc-icon-button-toggle id="toggle-button" ?on="${this.timer.timer?.isRunning}"
           onIcon="pause_circle_outline" offIcon="play_circle_outline" label="Start/pause the clock"

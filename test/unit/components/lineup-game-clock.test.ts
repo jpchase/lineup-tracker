@@ -37,6 +37,12 @@ describe('lineup-game-clock tests', () => {
     return element as HTMLElement;
   }
 
+  function getOverdueElement() {
+    const element = el.shadowRoot!.querySelector('#period-overdue');
+    expect(element, 'Missing overdue element').to.be.ok;
+    return element as HTMLElement;
+  }
+
   function getToggleButton() {
     return getClockToggleButton(el);
   }
@@ -58,6 +64,7 @@ describe('lineup-game-clock tests', () => {
       };
       el.periodData = {
         currentPeriod: 0,
+        periodLength: 10,
         periodStatus: PeriodStatus.Pending
       }
       await el.updateComplete;
@@ -83,6 +90,7 @@ describe('lineup-game-clock tests', () => {
       };
       el.periodData = {
         currentPeriod: 1,
+        periodLength: 10,
         periodStatus: PeriodStatus.Pending
       }
       await el.updateComplete;
@@ -109,6 +117,7 @@ describe('lineup-game-clock tests', () => {
       };
       el.periodData = {
         currentPeriod: 1,
+        periodLength: 10,
         periodStatus: PeriodStatus.Running
       }
       await el.updateComplete;
@@ -126,6 +135,39 @@ describe('lineup-game-clock tests', () => {
       await expect(el).to.be.accessible();
     });
 
+    it('Late warning, End and toggle buttons shown when period is overdue', async () => {
+      // Timer is not started, so that the displayed time is fixed at 22:15.
+      // If running, would need to mock the time to get a stable value. For
+      // some reason, mocking the time causes the accessibility assertion to
+      // hang, leading to a test timeout.
+      el.timerData = {
+        isRunning: false,
+        startTime: startTime,
+        duration: Duration.create(1335).toJSON()
+      };
+      el.periodData = {
+        currentPeriod: 1,
+        periodLength: 20,
+        periodStatus: PeriodStatus.Overdue
+      }
+      await el.updateComplete;
+
+      const startButton = getStartPeriodButton();
+      expect(startButton.hidden, 'startButton.hidden').to.be.true;
+
+      const endButton = getEndPeriodButton();
+      expect(endButton.hidden, 'endButton.hidden').to.be.false;
+
+      const toggleButton = getToggleButton();
+      expect(toggleButton.hidden, 'toggleButton.hidden').to.be.false;
+
+      const overdueElement = getOverdueElement();
+      expect(overdueElement.hidden, 'period-overdue.hidden').to.be.false;
+
+      await expect(el).shadowDom.to.equalSnapshot();
+      await expect(el).to.be.accessible();
+    });
+
     it('all buttons hidden when game is done', async () => {
       el.timerData = {
         isRunning: false,
@@ -134,6 +176,7 @@ describe('lineup-game-clock tests', () => {
       };
       el.periodData = {
         currentPeriod: 2,
+        periodLength: 10,
         periodStatus: PeriodStatus.Done
       }
       await el.updateComplete;
@@ -251,6 +294,7 @@ describe('lineup-game-clock tests', () => {
       };
       el.periodData = {
         currentPeriod: 0,
+        periodLength: 10,
         periodStatus: PeriodStatus.Pending
       }
       await el.updateComplete;
@@ -275,6 +319,7 @@ describe('lineup-game-clock tests', () => {
       };
       el.periodData = {
         currentPeriod: 1,
+        periodLength: 10,
         periodStatus: PeriodStatus.Running
       }
       await el.updateComplete;
@@ -296,6 +341,7 @@ describe('lineup-game-clock tests', () => {
       };
       el.periodData = {
         currentPeriod: 1,
+        periodLength: 10,
         periodStatus: PeriodStatus.Running
       }
       await el.updateComplete;

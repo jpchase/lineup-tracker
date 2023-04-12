@@ -6,6 +6,7 @@ import { Player, PlayerStatus } from './player.js';
 export enum PeriodStatus {
   Pending = 'PENDING',
   Running = 'RUNNING',
+  Overdue = 'OVERDUE',
   Done = 'DONE'
 }
 
