@@ -10,7 +10,7 @@ import { GameDetail, GameStatus } from '@app/models/game.js';
 import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, markPlayerOut, returnOutPlayer, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
+import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, markPeriodOverdue, markPlayerOut, returnOutPlayer, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html } from '@open-wc/testing';
@@ -19,7 +19,7 @@ import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButto
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildClock, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame } from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRunningTimer } from '../helpers/test-clock-data.js';
+import { buildRunningTimer /*, buildStoppedTimer*/ } from '../helpers/test-clock-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
 
@@ -637,6 +637,64 @@ describe('lineup-game-live tests', () => {
     });
 
   }); // describe('Clock')
+
+  describe('Overdue periods', () => {
+    const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    let fakeClock: sinon.SinonFakeTimers;
+    let gameId: string;
+
+    beforeEach(async () => {
+      fakeClock = sinon.useFakeTimers({
+        now: startTime,
+        toFake: ['setInterval', 'clearInterval'],
+        shouldAdvanceTime: false
+      });
+
+      const { game, live } = getGameDetail();
+
+      live.clock = buildClock();
+      const shift = buildShiftWithTrackersFromGame(live);
+      gameId = live.id;
+
+      // Setup the live game, with the period running.
+      const gameState = buildGameStateWithCurrentGame(game);
+      const liveState = buildLiveStateWithCurrentGame(live,
+        { shift });
+
+      await setupElement(buildRootState(gameState, liveState), live.id);
+      await el.updateComplete;
+    });
+
+    afterEach(async () => {
+      if (fakeClock) {
+        fakeClock.restore();
+      }
+    });
+
+    it('checks for overdue when period is running', async () => {
+      // Initially, no action has been dispatched.
+      expect(dispatchStub).to.have.callCount(0);
+
+      // Get the period running.
+      getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/true));
+      await el.updateComplete;
+
+      // Advance the clock more than 10 seconds, which is the interval for the
+      // synchronized timer trigger.
+      const elapsedSeconds = 11;
+      fakeClock.tick(elapsedSeconds * 1000);
+      fakeClock.next();
+      // await aTimeout(10500);
+
+      // The action should now have been dispatched.
+      // TODO: Figure out why the action is dispatched twice. Time should be froken?
+      expect(dispatchStub).to.have.callCount(2);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(markPeriodOverdue(gameId));
+    });
+
+  }); // describe('Overdue periods');
 
   describe('Complete Game', () => {
     let liveGame: LiveGame;

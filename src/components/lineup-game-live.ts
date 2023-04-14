@@ -7,16 +7,16 @@ import { map } from 'lit/directives/map.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
 import { Formation, FormationBuilder, FormationType, formatPosition, getPositions, Position } from '../models/formation.js';
+import { GameStatus } from '../models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
 import {
   cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
-  gameCompleted,
-  markPlayerOut,
+  gameCompleted, markPeriodOverdue, markPlayerOut,
   pendingSubsAppliedCreator,
-  proposedSubSelector, returnOutPlayer, selectLiveGameById, selectInvalidSubs, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
+  proposedSubSelector, returnOutPlayer, selectInvalidSubs, selectLiveGameById, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
@@ -225,6 +225,12 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
 
   public requestTimerUpdate() {
     this.timerNotifier.notifyTimers();
+
+    // While the period is running, check if overdue.
+    if (this._game?.status !== GameStatus.Live) {
+      return;
+    }
+    this.dispatch(markPeriodOverdue(this._game.id));
   }
 
   // Protected as a workaround for "not read" TS error.

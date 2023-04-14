@@ -103,6 +103,12 @@ export const toggleHandler = (_state: LiveState, game: LiveGame, _action: Payloa
   state.timer = timer.toJSON();
 }
 
+export const markPeriodOverdueHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+  if (!game.clock) {
+    return;
+  }
+}
+
 function getInitializedClock(game: LiveGame) {
   if (!game.clock) {
     game.clock = LiveGameBuilder.createClock();

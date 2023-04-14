@@ -1,8 +1,7 @@
 import { CurrentTimeProvider, Duration, ManualTimeProvider, Timer } from '@app/models/clock';
 import { Assertion } from '@esm-bundle/chai';
 import { expect } from '@open-wc/testing';
-import sinon from 'sinon';
-import { addDurationAssertion, buildDuration } from '../helpers/test-clock-data.js';
+import { addDurationAssertion, buildDuration, manualTimeProvider, mockTimeProvider } from '../helpers/test-clock-data.js';
 
 declare global {
   export namespace Chai {
@@ -68,8 +67,7 @@ describe('CurrentTimeProvider', () => {
   it('should return the frozen time', () => {
     const time1 = new Date(2016, 0, 1, 14, 0, 0).getTime();
     const time2 = new Date(2016, 0, 1, 14, 1, 0).getTime();
-
-    sinon.stub(provider, 'getTimeInternal').onFirstCall().returns(time1).onSecondCall().returns(time2);
+    provider = mockTimeProvider(time1, time2);
 
     provider.freeze();
 
@@ -201,29 +199,6 @@ describe('Timer', () => {
   const timeStartPlus5 = new Date(2016, 0, 1, 14, 0, 5).getTime();
   const timeStartPlus10 = new Date(2016, 0, 1, 14, 0, 10).getTime();
   const timeStartPlus1Minute55 = new Date(2016, 0, 1, 14, 1, 55).getTime();
-
-  function mockTimeProvider(t0: number, t1?: number, t2?: number, t3?: number) {
-    let provider = new CurrentTimeProvider();
-    const stub = sinon.stub(provider, 'getTimeInternal').returns(t0);
-    if (t1) {
-      stub.onCall(1).returns(t1);
-    }
-    if (t2) {
-      stub.onCall(2).returns(t2);
-    }
-    if (t3) {
-      stub.onCall(3).returns(t3);
-    }
-    return provider;
-  }
-
-  function manualTimeProvider(currentTime: number) {
-    let provider = new ManualTimeProvider();
-    if (currentTime) {
-      provider.setCurrentTime(currentTime);
-    }
-    return provider;
-  }
 
   Assertion.addMethod('initialized', function (this) {
     const timer = this._obj;
