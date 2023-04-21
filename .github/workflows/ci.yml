@@ -92,7 +92,7 @@ jobs:
         echo "chrome-1=$(which chrome)"
         echo "chrome-2=$(which google-chrome)"
         echo "chrome-3=$(which google-chrome-stable)"
-        echo "CHROME_PATH=$(which chrome)" >> $GITHUB_ENV
+        echo "CHROME_PATH=$(which google-chrome-stable)" >> $GITHUB_ENV
         lhci autorun --config=./config/lighthouserc.js
       env:
         LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
