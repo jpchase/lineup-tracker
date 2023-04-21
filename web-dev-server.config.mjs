@@ -48,6 +48,7 @@ if (offline) {
 
 export default {
   port: 8080,
+  watch: true,
   nodeResolve: true,
   appIndex: 'src/local.index.html',
   middleware: [

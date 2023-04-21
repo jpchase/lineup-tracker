@@ -16,6 +16,8 @@
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "experimentalDecorators": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./build/tscache",
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
