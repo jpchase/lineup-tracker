@@ -89,10 +89,10 @@ jobs:
     - name: run Lighthouse CI
       run: |
         npm install -g @lhci/cli@0.12.x
+        echo "attempt #5"
         echo "chrome-1=$(which chrome)"
         echo "chrome-2=$(which google-chrome)"
         echo "chrome-3=$(which google-chrome-stable)"
-        echo "CHROME_PATH=$(which google-chrome-stable)" >> $GITHUB_ENV
         lhci autorun --config=./config/lighthouserc.js --chromePath=$(which google-chrome-stable)
       env:
         LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
