@@ -6,6 +6,9 @@ import { ConfigurePeriodsPayload, LiveGamePayload, StartPeriodPayload } from './
 import { LiveState } from './live-slice.js';
 import { completeSetupStepForAction } from './setup-reducer-logic.js';
 
+// Allow 5 minutes after period end before it becomes overdue.
+const PERIOD_OVERDUE_BUFFER_MINUTES = 5;
+
 //TODO: move to setup logic file
 export const configurePeriodsHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<ConfigurePeriodsPayload>) => {
   const periods = action.payload.totalPeriods || 0;
@@ -104,9 +107,20 @@ export const toggleHandler = (_state: LiveState, game: LiveGame, _action: Payloa
 }
 
 export const markPeriodOverdueHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
-  if (!game.clock) {
+  if (game.status !== GameStatus.Live || (game.clock?.periodStatus !== PeriodStatus.Running)) {
     return;
   }
+  const state = getInitializedClock(game);
+  const timer = new Timer(state.timer);
+
+  // Compute the max time for the period, and compare to elapsed.
+  const maxLength = game.clock.periodLength + PERIOD_OVERDUE_BUFFER_MINUTES;
+  if (timer.getElapsed().getTotalSeconds() < (maxLength * 60)) {
+    return;
+  }
+
+  game.clock.periodStatus = PeriodStatus.Overdue;
+  state.timer = timer.toJSON();
 }
 
 function getInitializedClock(game: LiveGame) {

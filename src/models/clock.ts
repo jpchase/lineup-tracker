@@ -76,6 +76,10 @@ export class Duration {
     return Math.round(this._elapsed % 60);
   }
 
+  getTotalSeconds(): number {
+    return this._elapsed;
+  }
+
   static create(elapsedSeconds: number): Duration {
     return new Duration({ value: elapsedSeconds });
   }

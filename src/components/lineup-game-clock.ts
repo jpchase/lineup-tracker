@@ -44,15 +44,6 @@ export class LineupGameClock extends LitElement {
         break;
     }
 
-    // TODO: temporary
-    if (periodRunning) {
-      const elapsed = this.timer.timer?.getElapsed().getMinutes() ?? 0;
-      const length = this.periodData?.periodLength ?? 90;
-      if (elapsed > length) {
-        periodOverdue = true;
-      }
-    }
-
     return html`
       ${SharedStyles}
       <style>
