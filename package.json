@@ -95,7 +95,7 @@
     "concurrently": "^8.0.1",
     "copy-webpack-plugin": "^11.0.0",
     "deepmerge": "^4.2.2",
-    "eslint": "^8.30.0",
+    "eslint": "^8.39.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-lit": "^1.8.0",
     "firebase-admin": "^11.5.0",
