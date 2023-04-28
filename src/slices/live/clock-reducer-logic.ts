@@ -2,7 +2,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { Timer } from '../../models/clock.js';
 import { GameStatus } from '../../models/game.js';
 import { LiveGame, LiveGameBuilder, PeriodStatus, SetupSteps } from '../../models/live.js';
-import { ConfigurePeriodsPayload, LiveGamePayload, StartPeriodPayload } from './live-action-types.js';
+import { ConfigurePeriodsPayload, EndPeriodPayload, LiveGamePayload, StartPeriodPayload } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
 import { completeSetupStepForAction } from './setup-reducer-logic.js';
 
@@ -70,16 +70,20 @@ export const startPeriodPrepare = (gameId: string, gameAllowsStart: boolean) => 
   };
 }
 
-export const endPeriodHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const endPeriodHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<EndPeriodPayload>) => {
   if (game.status !== GameStatus.Live) {
     return;
   }
-  if (game.clock && (game.clock.periodStatus !== PeriodStatus.Running)) {
+  if (game.clock?.periodStatus !== PeriodStatus.Running &&
+    game.clock?.periodStatus !== PeriodStatus.Overdue) {
     return;
   }
+  const retroactiveStopTime = (game.clock.periodStatus === PeriodStatus.Overdue)
+    ? action.payload.retroactiveStopTime : undefined;
+
   const state = getInitializedClock(game);
   const timer = new Timer(state.timer);
-  timer.stop();
+  timer.stop(retroactiveStopTime);
   state.timer = timer.toJSON();
   if (state.currentPeriod === state.totalPeriods) {
     // Ending the last period of the game.
@@ -89,6 +93,15 @@ export const endPeriodHandler = (_state: LiveState, game: LiveGame, _action: Pay
     game.status = GameStatus.Break;
     state.periodStatus = PeriodStatus.Pending;
   }
+}
+
+export const endPeriodPrepare = (gameId: string, retroactiveStopTime?: number) => {
+  return {
+    payload: {
+      gameId,
+      retroactiveStopTime
+    }
+  };
 }
 
 export const toggleHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {

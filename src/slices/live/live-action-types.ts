@@ -40,6 +40,10 @@ export interface StartPeriodPayload extends LiveGamePayload {
   gameAllowsStart: boolean;
 }
 
+export interface EndPeriodPayload extends LiveGamePayload {
+  retroactiveStopTime?: number;
+}
+
 // Substitution action payloads
 export interface SelectPlayerPayload extends LiveGamePayload {
   playerId: string;

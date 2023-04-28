@@ -10,7 +10,7 @@ import { getGame, selectGameById } from '../../slices/game/game-slice.js';
 import { RootState, ThunkResult } from '../../store.js';
 import {
   configurePeriodsHandler, configurePeriodsPrepare,
-  endPeriodHandler,
+  endPeriodHandler, endPeriodPrepare,
   markPeriodOverdueHandler,
   startPeriodHandler, startPeriodPrepare,
   toggleHandler
@@ -38,7 +38,7 @@ import {
   returnOutPlayerHandler,
   selectPlayerHandler, selectPlayerPrepare
 } from './substitution-reducer-logic.js';
-export { pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
+export { endPeriodCreator, pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
   games?: LiveGames;
@@ -279,7 +279,7 @@ const liveSlice = createSlice({
 
     endPeriod: {
       reducer: buildActionHandler(endPeriodHandler),
-      prepare: prepareLiveGamePayload
+      prepare: endPeriodPrepare
     },
 
     toggleClock: {

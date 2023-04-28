@@ -1,13 +1,26 @@
-/**
-@license
-*/
-
+import { Duration } from '../../models/clock.js';
 import { FormationBuilder, getPositions } from '../../models/formation.js';
-import { getPlayer, LiveGame, LivePlayer } from '../../models/live.js';
+import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { ThunkResult } from '../../store.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
-import { applyPendingSubs, invalidPendingSubs, invalidStarters, selectLiveGameById, selectPendingSubs, startersCompleted } from './live-slice.js';
+import { applyPendingSubs, endPeriod, invalidPendingSubs, invalidStarters, selectLiveGameById, selectPendingSubs, startersCompleted } from './live-slice.js';
+
+export const endPeriodCreator = (gameId: string, extraMinutes?: number): ThunkResult => (dispatch, getState) => {
+  const state = getState();
+  const game = selectLiveGameById(state, gameId);
+  if (!game) {
+    return;
+  }
+  let retroactiveStopTime;
+  if (extraMinutes && game.clock?.periodStatus === PeriodStatus.Overdue &&
+    game.clock.timer?.isRunning) {
+    const actualLength = game.clock.periodLength + extraMinutes;
+    retroactiveStopTime = Duration.addToDate(
+      game.clock.timer!.startTime!, Duration.create(actualLength * 60));
+  }
+  dispatch(endPeriod(game.id, retroactiveStopTime));
+};
 
 export const pendingSubsAppliedCreator = (gameId: string, selectedOnly?: boolean): ThunkResult => (dispatch, getState) => {
   const state = getState();

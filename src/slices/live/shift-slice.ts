@@ -48,7 +48,7 @@ const shiftSlice = createSlice({
         // TODO: Error or message to distinguish failure cases?
         return;
       }
-      trackerMap.stopShiftTimers();
+      trackerMap.stopShiftTimers(action.payload.retroactiveStopTime);
       setTrackerMap(state, trackerMap);
     }).addCase(applyPendingSubs, (state, action) => {
       if (!action.payload.subs?.length) {

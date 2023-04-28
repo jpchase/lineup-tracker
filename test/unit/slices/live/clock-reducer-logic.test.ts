@@ -1,10 +1,11 @@
 import { Duration } from '@app/models/clock.js';
 import { GameStatus } from '@app/models/game.js';
 import { PeriodStatus, SetupSteps } from '@app/models/live.js';
-import { configurePeriods, live, LiveState, startPeriod, endPeriod, toggleClock, markPeriodOverdue } from '@app/slices/live/live-slice.js';
+import { configurePeriods, endPeriodCreator, endPeriod, live, LiveState, markPeriodOverdue, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildClock, buildClockWithTimer, buildLiveGameWithSetupTasksAndPlayers, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame, getGame } from '../../helpers/live-state-setup.js';
+import { mockGetState } from '../../helpers/root-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
@@ -14,6 +15,7 @@ describe('Live slice: Clock actions', () => {
   const timeStartPlus10 = new Date(2016, 0, 1, 14, 0, 10).getTime();
   const timeStartPlus1Minute55 = new Date(2016, 0, 1, 14, 1, 55).getTime();
   const timeStartPlus15Minutes = new Date(2016, 0, 1, 14, 15, 0).getTime();
+  const timeStartPlus20Minutes = new Date(2016, 0, 1, 14, 20, 0).getTime();
   let fakeClock: sinon.SinonFakeTimers;
 
   afterEach(async () => {
@@ -288,6 +290,27 @@ describe('Live slice: Clock actions', () => {
       expect(newState).not.to.equal(currentState);
     });
 
+    it('should reset the period status when overdue', () => {
+      mockTimeProvider(timeStartPlus10);
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
+        /* timer= */undefined,
+        {
+          currentPeriod: 1,
+          periodStatus: PeriodStatus.Overdue,
+        });
+
+      const newState = live(currentState, endPeriod(gameId));
+
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Pending
+      });
+
+      expect(newState).not.to.equal(currentState);
+    });
+
     it('should reset the period status when timer is not running', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
@@ -374,6 +397,94 @@ describe('Live slice: Clock actions', () => {
       expect(newState).to.equal(currentState);
     });
 
+    describe('action creator', () => {
+
+      it('should dispatch action for running period with clock running', async () => {
+        mockTimeProvider(timeStartPlus10);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(
+          buildRunningTimer(startTime),
+          {
+            currentPeriod: 1,
+            periodStatus: PeriodStatus.Running,
+          });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        await endPeriodCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          endPeriod(gameId));
+      });
+
+      it('should dispatch action for running period with clock stopped', async () => {
+        mockTimeProvider(timeStartPlus10);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(
+          buildStoppedTimer(startTime),
+          {
+            currentPeriod: 1,
+            periodStatus: PeriodStatus.Running,
+          });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        endPeriodCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          endPeriod(gameId));
+      });
+
+      it('should dispatch action for overdue period with extra minutes when clock running', async () => {
+        mockTimeProvider(timeStartPlus20Minutes);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(
+          buildRunningTimer(startTime),
+          {
+            currentPeriod: 1,
+            periodStatus: PeriodStatus.Overdue,
+            periodLength: 12,
+          });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        endPeriodCreator(gameId, /*extraMinutes=*/3)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          endPeriod(gameId, timeStartPlus15Minutes));
+      });
+
+      it('should dispatch action for overdue period without extra minutes when clock stopped', async () => {
+        mockTimeProvider(timeStartPlus20Minutes);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(
+          buildStoppedTimer(17 * 60), // 17 minutes
+          {
+            currentPeriod: 1,
+            periodStatus: PeriodStatus.Overdue,
+            periodLength: 12,
+          });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        endPeriodCreator(gameId, /*extraMinutes=*/3)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          endPeriod(gameId));
+      });
+    });  // describe('action creator')
   }); // describe('live/endPeriod')
 
   describe('live/markPeriodOverdue', () => {
