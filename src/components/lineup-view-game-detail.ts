@@ -7,6 +7,7 @@ import { GameDetail, GameStatus } from '../models/game.js';
 import { getGameStore } from '../slices/game-store.js';
 import { getGame, selectGameById } from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import './lineup-game-complete.js';
 import './lineup-game-live.js';
 import './lineup-game-setup.js';
 import { AuthorizedViewElement } from './page-view-element.js';
@@ -18,7 +19,7 @@ export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElemen
   private renderDetailContent(game: GameDetail) {
     if (game.status === GameStatus.Done) {
       // Completed game
-      return html`Game is done`;
+      return html`<lineup-game-complete .gameId="${game.id}"></lineup-game-complete>`;
     }
 
     // const inProgress = (game.status === GameStatus.Live || game.status === GameStatus.Break);

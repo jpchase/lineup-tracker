@@ -41,3 +41,14 @@ snapshots["lineup-view-game-detail tests shows signin placeholder when not signe
 `;
 /* end snapshot lineup-view-game-detail tests shows signin placeholder when not signed in */
 
+snapshots["lineup-view-game-detail tests shows complete component for done game"] = 
+`<section>
+  <h2 main-title="">
+    Live: Opponent for new Feb 10
+  </h2>
+  <lineup-game-complete>
+  </lineup-game-complete>
+</section>
+`;
+/* end snapshot lineup-view-game-detail tests shows complete component for done game */
+

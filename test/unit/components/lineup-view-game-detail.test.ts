@@ -86,4 +86,17 @@ describe('lineup-view-game-detail tests', () => {
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();
   });
+
+  it('shows complete component for done game', async () => {
+    const { game, live } = getGameDetail();
+    game.status = live.status = GameStatus.Done;
+
+    await setupElement(buildSignedInState(game, live), game.id);
+
+    const completeElement = el.shadowRoot!.querySelector('section lineup-game-complete');
+    expect(completeElement, 'Complete element should be shown').to.be.ok;
+
+    await expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).to.be.accessible();
+  });
 });
