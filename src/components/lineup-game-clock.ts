@@ -1,9 +1,14 @@
 import '@material/mwc-button';
+import '@material/mwc-dialog';
+import { Dialog } from '@material/mwc-dialog';
+import { MDCDialogCloseEventDetail } from '@material/mwc-dialog/mwc-dialog-base.js';
 import '@material/mwc-icon';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
+import '@material/mwc-radio';
+import { Radio } from '@material/mwc-radio';
 import { html, LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { Timer, TimerData } from '../models/clock.js';
 import { PeriodStatus } from '../models/live.js';
 import { SharedStyles } from './shared-styles.js';
@@ -11,6 +16,10 @@ import { TimerController } from './timer-controller.js';
 
 export interface ClockToggleDetail {
   isStarted: boolean;
+}
+
+export interface ClockEndPeriodDetail {
+  extraMinutes?: number;
 }
 
 export interface ClockPeriodData {
@@ -25,17 +34,13 @@ export class LineupGameClock extends LitElement {
     const periodText = `Period: ${this.periodData?.currentPeriod || 1}`;
     let periodPending = false;
     let periodRunning = false;
-    let periodOverdue = false;
+    const periodOverdue = this.isPeriodOverdue();
     switch (this.periodData?.periodStatus) {
       case PeriodStatus.Pending:
         periodPending = true;
         break;
 
       case PeriodStatus.Overdue:
-        periodOverdue = true;
-        periodRunning = true;
-        break;
-
       case PeriodStatus.Running:
         periodRunning = true;
         break;
@@ -51,6 +56,9 @@ export class LineupGameClock extends LitElement {
         #period-overdue {
           color: red;
         }
+        ul.fields {
+          list-style-type: none;
+        }
       </style>
       <span>
         <span id="game-period">${periodText}</span>
@@ -64,7 +72,31 @@ export class LineupGameClock extends LitElement {
           @click="${this.endPeriod}" ?hidden="${!periodRunning}"></mwc-icon-button>
         <mwc-button id="start-button" icon="not_started"
           @click="${this.startPeriod}" ?hidden="${!periodPending}">Start</mwc-button>
-      </span>`
+      </span>
+      <mwc-dialog id="end-overdue-dialog" heading="End Overdue Period" @closed="${this.endOverduePeriod}">
+        <ul class="fields">
+          <li>
+            <mwc-formfield label="End at current time">
+              <mwc-radio id="overdue-current-radio" name="overdueOptions" value="current" checked></mwc-radio>
+            </mwc-formfield>
+          </li>
+          <li>
+            <mwc-formfield label="Retroactive">
+              <mwc-radio id="overdue-retro-radio" name="overdueOptions" value="retro"
+                         @change="${this.overdueRetroChanged}"></mwc-radio>
+            </mwc-formfield>
+          </li>
+          <li>
+            <mwc-formfield id="overdue-minutes-field" alignend label="Extra Minutes">
+                <input type="number" min="1" max="15"
+                       ?required=${this.endOverdueRetroactive}
+                       ?disabled=${!this.endOverdueRetroactive}>
+            </mwc-formfield>
+          </li>
+        </ul>
+        <mwc-button slot="primaryAction" dialogAction="save">End</mwc-button>
+        <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
+      </mwc-dialog>`
   }
 
   private timer = new TimerController(this);
@@ -86,6 +118,13 @@ export class LineupGameClock extends LitElement {
   @property({ type: Object })
   public periodData?: ClockPeriodData;
 
+  @state()
+  private endOverdueRetroactive = false;
+
+  private isPeriodOverdue() {
+    return this.periodData?.periodStatus === PeriodStatus.Overdue;
+  }
+
   private toggleClock(e: CustomEvent) {
     this.dispatchEvent(new ClockToggleEvent({ isStarted: e.detail.isOn }));
   }
@@ -94,8 +133,32 @@ export class LineupGameClock extends LitElement {
     this.dispatchEvent(new ClockStartPeriodEvent());
   }
 
-  private endPeriod() {
-    this.dispatchEvent(new ClockEndPeriodEvent());
+  private async endPeriod() {
+    if (this.isPeriodOverdue()) {
+      const dialog = this.shadowRoot!.querySelector<Dialog>('#end-overdue-dialog');
+      dialog!.show();
+      this.requestUpdate();
+      // await this.updateComplete;
+      return;
+    }
+    this.dispatchEvent(new ClockEndPeriodEvent({}));
+  }
+
+  private overdueRetroChanged() {
+    const retroRadio = this.shadowRoot!.querySelector('#overdue-retro-radio') as Radio;
+    this.endOverdueRetroactive = retroRadio.checked;
+  }
+
+  private endOverduePeriod(e: CustomEvent<MDCDialogCloseEventDetail>) {
+    if (e.detail.action !== 'save') {
+      return;
+    }
+    let extraMinutes: number | undefined;
+    if (this.endOverdueRetroactive) {
+      const minutesField = this.shadowRoot!.querySelector('#overdue-minutes-field > input') as HTMLInputElement;
+      extraMinutes = minutesField.valueAsNumber;
+    }
+    this.dispatchEvent(new ClockEndPeriodEvent({ extraMinutes }));
   }
 }
 
@@ -119,12 +182,12 @@ export class ClockStartPeriodEvent extends CustomEvent<{}> {
 }
 
 const END_PERIOD_EVENT_NAME = 'clock-end-period';
-export class ClockEndPeriodEvent extends CustomEvent<{}> {
+export class ClockEndPeriodEvent extends CustomEvent<ClockEndPeriodDetail> {
   static eventName = END_PERIOD_EVENT_NAME;
 
-  constructor() {
+  constructor(detail: ClockEndPeriodDetail) {
     super(ClockEndPeriodEvent.eventName, {
-      detail: {},
+      detail,
       bubbles: true,
       composed: true
     });

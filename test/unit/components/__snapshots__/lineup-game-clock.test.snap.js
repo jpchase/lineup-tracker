@@ -272,3 +272,93 @@ snapshots["lineup-game-clock tests button states Late warning, End and toggle bu
 `;
 /* end snapshot lineup-game-clock tests button states Late warning, End and toggle buttons shown when period is overdue */
 
+snapshots["lineup-game-clock tests end period shows dialog instead of firing end event when period overdue"] = 
+`<span>
+  <span id="game-period">
+    Period: 1
+  </span>
+  <mwc-icon id="period-overdue">
+    running_with_errors
+  </mwc-icon>
+  <span id="period-timer">
+    11:00
+  </span>
+  <mwc-icon-button-toggle
+    id="toggle-button"
+    label="Start/pause the clock"
+    officon="play_circle_outline"
+    onicon="pause_circle_outline"
+  >
+  </mwc-icon-button-toggle>
+  <mwc-icon-button
+    icon="stop"
+    id="end-button"
+    label="End period"
+  >
+  </mwc-icon-button>
+  <mwc-button
+    hidden=""
+    icon="not_started"
+    id="start-button"
+  >
+    Start
+  </mwc-button>
+</span>
+<mwc-dialog
+  heading="End Overdue Period"
+  id="end-overdue-dialog"
+  open=""
+>
+  <ul class="fields">
+    <li>
+      <mwc-formfield label="End at current time">
+        <mwc-radio
+          checked=""
+          id="overdue-current-radio"
+          name="overdueOptions"
+          value="current"
+        >
+        </mwc-radio>
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield label="Retroactive">
+        <mwc-radio
+          id="overdue-retro-radio"
+          name="overdueOptions"
+          value="retro"
+        >
+        </mwc-radio>
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="overdue-minutes-field"
+        label="Extra Minutes"
+      >
+        <input
+          disabled=""
+          max="15"
+          min="1"
+          type="number"
+        >
+      </mwc-formfield>
+    </li>
+  </ul>
+  <mwc-button
+    dialogaction="save"
+    slot="primaryAction"
+  >
+    End
+  </mwc-button>
+  <mwc-button
+    dialogaction="close"
+    slot="secondaryAction"
+  >
+    Cancel
+  </mwc-button>
+</mwc-dialog>
+`;
+/* end snapshot lineup-game-clock tests end period shows dialog instead of firing end event when period overdue */
+
