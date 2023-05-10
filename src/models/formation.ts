@@ -1,9 +1,6 @@
-/**
-@license
-*/
-
 export enum FormationType {
   F4_3_3 = '4-3-3',
+  F4_2_3_1 = '4-2-3-1',
   F3_1_4_2 = '3-1-4-2',
 }
 
@@ -58,6 +55,47 @@ export class FormationBuilder {
         midfield2: {
           id: 'MID2',
           positions: [{ id: 'HM', type: 'HM' }]
+        },
+        defense: {
+          id: 'DEF',
+          positions: [
+            { id: 'LFB', type: 'FB' },
+            { id: 'LCB', type: 'CB' },
+            { id: 'RCB', type: 'CB' },
+            { id: 'RFB', type: 'FB' },
+          ]
+        },
+        gk: {
+          id: 'GK',
+          positions: [{ id: 'GK', type: 'GK' }]
+        },
+      };
+    }
+    if (type === FormationType.F4_2_3_1) {
+      return {
+        type: FormationType.F4_2_3_1,
+        forward1: {
+          id: 'FWD1',
+          positions: [{ id: 'S', type: 'S' }]
+        },
+        forward2: {
+          id: 'FWD2',
+          positions: []
+        },
+        midfield1: {
+          id: 'MID1',
+          positions: [
+            { id: 'LW', type: 'W' },
+            { id: 'AM', type: 'AM' },
+            { id: 'RW', type: 'W' },
+          ]
+        },
+        midfield2: {
+          id: 'MID2',
+          positions: [
+            { id: 'HM1', type: 'HM' },
+            { id: 'HM2', type: 'HM' },
+          ]
         },
         defense: {
           id: 'DEF',
