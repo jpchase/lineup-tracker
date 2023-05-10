@@ -44,7 +44,7 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       chunksSortMode: 'none',
-      template: 'src/index.html'
+      template: 'index.html'
     }) /*,
     new WorkboxWebpackPlugin.GenerateSW({
       include: ['index.html', 'manifest.json', /\.js$/],
