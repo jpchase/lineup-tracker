@@ -144,7 +144,7 @@ export const cancelSwapHandler = (state: LiveState, game: LiveGame, _action: Pay
   clearProposedSwap(state);
 }
 
-export const pendingSubsAppliedHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<PendingSubsAppliedPayload>) => {
+export const pendingSubsAppliedHandler = (state: LiveState, game: LiveGame, action: PayloadAction<PendingSubsAppliedPayload>) => {
   action.payload.subs.forEach(sub => {
     const player = getPlayer(game, sub.id);
     if (!player || player.isSwap || player.status !== PlayerStatus.Next) {
@@ -182,6 +182,7 @@ export const pendingSubsAppliedHandler = (_state: LiveState, game: LiveGame, act
 
     removePlayer(game, swapPlayer.id);
   });
+  state.invalidSubs = undefined;
 }
 
 export const pendingSubsAppliedPrepare = (gameId: string, subs: LivePlayer[], selectedOnly?: boolean) => {
