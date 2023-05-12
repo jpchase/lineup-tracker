@@ -26,9 +26,9 @@ declare global {
 
 function addTimingMatchers() {
   addDurationAssertion<PlayerTimeTracker>('shiftTime', 'tracker shiftTime',
-    (tracker) => (tracker ? tracker.getShiftTime() : null));
+    (tracker) => (tracker ? tracker.shiftTime : null));
   addDurationAssertion<PlayerTimeTracker>('totalTime', 'tracker totalTime',
-    (tracker) => (tracker ? tracker.getTotalTime() : null));
+    (tracker) => (tracker ? tracker.totalOnTime : null));
 
   Assertion.addMethod('shiftCount', function (this, expected: number) {
     const tracker = this._obj as PlayerTimeTracker;
@@ -63,13 +63,11 @@ describe('PlayerTimeTracker', () => {
     expect(tracker).to.have.shiftTime([0, 5]);
     expect(tracker).to.have.totalTime([0, 5]);
 
-    tracker.addShiftToTotal();
-
     tracker.resetShiftTimes();
 
     expect(tracker).to.have.shiftCount(1);
     expect(tracker).to.have.shiftTime([0, 0]);
-    expect(tracker).to.have.totalTime([0, 5]);
+    expect(tracker).to.have.totalTime([0, 0]);
   });
 });
 
@@ -86,9 +84,14 @@ describe('PlayerTimeTrackerMap', () => {
   ] as LivePlayer[];
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
   const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
+  const timeStartPlus5 = new Date(2016, 0, 1, 14, 0, 5).getTime();
   const time2 = new Date(2016, 0, 1, 14, 0, 10).getTime();
+  const timeStartPlus10 = new Date(2016, 0, 1, 14, 0, 10).getTime();
   const time3 = new Date(2016, 0, 1, 14, 0, 20).getTime();
+  const timeStartPlus20 = new Date(2016, 0, 1, 14, 0, 20).getTime();
   const time4 = new Date(2016, 0, 1, 14, 0, 35).getTime();
+  const timeStartPlus35 = new Date(2016, 0, 1, 14, 0, 35).getTime();
+  const timeStartPlus1Minute55 = new Date(2016, 0, 1, 14, 1, 55).getTime();
 
   let map: PlayerTimeTrackerMap;
 
@@ -198,9 +201,6 @@ describe('PlayerTimeTrackerMap', () => {
       expect(() => {
         map.stopShiftTimers();
       }, 'stopShiftTimers').to.throw('Map is empty');
-      expect(() => {
-        map.totalShiftTimers();
-      }, 'totalShiftTimers').to.throw('Map is empty');
       expect(() => {
         map.substitutePlayer(playerOffId, playerOnId);
       }, 'substituePlayer').to.throw('Map is empty');
@@ -482,6 +482,22 @@ describe('PlayerTimeTrackerMap', () => {
       expect(offTracker).to.have.shiftTime([0, 5]);
     });
 
+    it('should have correct shift time after stopped retroactively', () => {
+      // t0: shift timers are started
+      // t1: assert shift time
+      const provider = initMapWithTime(startTime, timeStartPlus10);
+
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
+
+      map.startShiftTimers();
+      map.stopShiftTimers(timeStartPlus5);
+
+      provider.freeze();
+      expect(onTracker).to.have.shiftTime([0, 5]);
+      expect(offTracker).to.have.shiftTime([0, 5]);
+    });
+
     it('should have correct total time after stop', () => {
       const provider = initMapWithTime(startTime, time1, time2);
 
@@ -490,6 +506,22 @@ describe('PlayerTimeTrackerMap', () => {
 
       map.startShiftTimers();
       map.stopShiftTimers();
+
+      provider.freeze();
+      expect(onTracker).to.have.totalTime([0, 5]);
+      expect(offTracker).to.have.totalTime([0, 0]);
+    });
+
+    it('should have correct total time after stopped retroactively', () => {
+      // t0: shift timers are started
+      // t1: assert shift time
+      const provider = initMapWithTime(startTime, timeStartPlus10);
+
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
+
+      map.startShiftTimers();
+      map.stopShiftTimers(timeStartPlus5);
 
       provider.freeze();
       expect(onTracker).to.have.totalTime([0, 5]);
@@ -549,14 +581,47 @@ describe('PlayerTimeTrackerMap', () => {
       expect(onTracker).to.have.totalTime([0, 20]);
       expect(offTracker).to.have.totalTime([0, 0]);
       provider.unfreeze();
+    });
 
-      map.totalShiftTimers();
+    it('should have correct total time after multiple start/stopped retroactively', () => {
+      const provider = initMapWithManualTime();
+
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
+
+      provider.setCurrentTime(startTime);
+      map.startShiftTimers();
+
+      provider.setCurrentTime(timeStartPlus10);
+      map.stopShiftTimers(timeStartPlus5);
+
+      provider.freeze();
+      expect(onTracker).to.have.totalTime([0, 5]);
+      expect(offTracker).to.have.totalTime([0, 0]);
+      provider.unfreeze();
+
+      // Start/stop with no time elapsed
+      // - Time is still start + 10
+      map.startShiftTimers();
+      map.stopShiftTimers();
+
+      // Total time should be unchanged
+      provider.freeze();
+      expect(onTracker).to.have.totalTime([0, 5]);
+      expect(offTracker).to.have.totalTime([0, 0]);
+      provider.unfreeze();
+
+      // Advance time
+      provider.setCurrentTime(timeStartPlus20);
+      map.startShiftTimers();
+
+      provider.setCurrentTime(timeStartPlus1Minute55);
+      map.stopShiftTimers(timeStartPlus35);
 
       provider.freeze();
       expect(onTracker).to.have.totalTime([0, 20]);
       expect(offTracker).to.have.totalTime([0, 0]);
       provider.unfreeze();
-
     });
 
     it('should have correct shift counts after multiple start/stop', () => {
@@ -587,8 +652,48 @@ describe('PlayerTimeTrackerMap', () => {
       expect(offTracker).to.have.shiftCount(0);
     });
 
+    it('should have correct shift counts after multiple start/stopped retroactively', () => {
+      const provider = initMapWithManualTime();
+
+      let onTracker = map.get(playerOnId);
+      let offTracker = map.get(playerOffId);
+
+      provider.setCurrentTime(startTime);
+      map.startShiftTimers();
+
+      provider.setCurrentTime(timeStartPlus10);
+      map.stopShiftTimers(timeStartPlus5);
+
+      expect(onTracker).to.have.shiftCount(1);
+      expect(onTracker).to.be.alreadyOn();
+      expect(offTracker).to.have.shiftCount(0);
+
+      // Start/stop with no time elapsed
+      // - Time is still start + 10
+      map.startShiftTimers();
+      map.stopShiftTimers();
+
+      expect(onTracker).to.have.shiftCount(1);
+      expect(onTracker).to.be.alreadyOn();
+      expect(offTracker).to.have.shiftCount(0);
+
+      // Advance time
+      provider.setCurrentTime(timeStartPlus20);
+      map.startShiftTimers();
+
+      provider.setCurrentTime(timeStartPlus1Minute55);
+      map.stopShiftTimers(timeStartPlus35);
+
+      expect(onTracker).to.have.shiftCount(1);
+      expect(onTracker).to.be.alreadyOn();
+      expect(offTracker).to.have.shiftCount(0);
+    });
+
     it('should have shift times restarted after sub', () => {
-      const provider = initMapWithTime(startTime, time1, time2);
+      // t0: shift timers are started
+      // t1: players are subbed
+      // t2: assert shift time
+      const provider = initMapWithTime(startTime, timeStartPlus5, timeStartPlus10);
 
       let onTracker = map.get(playerOnId);
       let offTracker = map.get(playerOffId);
@@ -602,7 +707,10 @@ describe('PlayerTimeTrackerMap', () => {
     });
 
     it('should have total times restarted after sub', () => {
-      const provider = initMapWithTime(startTime, time1, time2);
+      // t0: shift timers are started
+      // t1: players are subbed
+      // t2: assert total on time
+      const provider = initMapWithTime(startTime, timeStartPlus5, timeStartPlus10);
 
       let onTracker = map.get(playerOnId);
       let offTracker = map.get(playerOffId);

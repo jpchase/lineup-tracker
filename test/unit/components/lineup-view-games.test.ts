@@ -4,10 +4,11 @@ import { Games } from '@app/models/game.js';
 import { getGameStoreConfigurator } from '@app/slices/game-store.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
-import { expect, fixture, html } from '@open-wc/testing';
+import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import { buildGameStateWithGames } from '../helpers/game-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import { buildGames, getMockAuthState, getNewGame, getStoredGame, TEST_USER_ID } from '../helpers/test_data.js';
+import { addElementAssertions } from '../helpers/element-assertions.js';
 
 function getExistingGames(): Games {
   return buildGames([getStoredGame(), getNewGame()]);
@@ -21,6 +22,10 @@ function buildSignedInState(games: Games): RootState {
 
 describe('lineup-view-games tests', () => {
   let el: LineupViewGames;
+
+  before(async () => {
+    addElementAssertions();
+  });
 
   async function setupElement(preloadedState?: RootState) {
     const store = setupStore(preloadedState, /*hydrate=*/false);
@@ -41,6 +46,16 @@ describe('lineup-view-games tests', () => {
       expect(button, 'Missing add game button').to.be.ok;
     }
     return button as Button;
+  }
+
+  function getCreateElement() {
+    const element = el.shadowRoot!.querySelector('lineup-game-create');
+    expect(element, 'Missing create element').to.exist;
+    return element as Element;
+  }
+
+  function getCreateDialog(createElement: Element) {
+    return createElement.shadowRoot!.querySelector('mwc-dialog') as Element;
   }
 
   it('shows signin placeholder when not signed in', async () => {
@@ -87,5 +102,44 @@ describe('lineup-view-games tests', () => {
 
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();
+  });
+
+  it('shows create dialog when add clicked', async () => {
+    await setupElement(buildSignedInState({}));
+
+    const createDialog = getCreateDialog(getCreateElement());
+
+    expect(createDialog, 'before add click').not.to.be.open;
+
+    const addButton = getAddButton();
+    setTimeout(() => addButton!.click());
+    await oneEvent(addButton!, 'click');
+
+    expect(createDialog, 'after add click').to.be.open;
+  });
+
+  it('closes create dialog when cancel clicked', async () => {
+    await setupElement(buildSignedInState({}));
+
+    const createElement = getCreateElement();
+    const createDialog = getCreateDialog(createElement);
+
+    expect(createDialog, 'before add click').not.to.be.open;
+
+    const addButton = getAddButton();
+    setTimeout(() => addButton!.click());
+    await oneEvent(addButton!, 'click');
+
+    const cancelButton = createElement.shadowRoot!.querySelector('mwc-button[dialogAction="close"]') as HTMLElement;
+
+    setTimeout(() => cancelButton!.click());
+    await oneEvent(cancelButton!, 'click');
+    await nextFrame();
+
+    expect(createDialog, 'after cancel').not.to.be.open;
+  });
+
+  it.skip('creates new game when saved', () => {
+    expect.fail();
   });
 });

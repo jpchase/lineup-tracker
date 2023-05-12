@@ -5,6 +5,7 @@ import { PageObject, PageOpenFunction, PageOptions } from './page-object.js';
 export class GameCreatePage extends PageObject {
 
   constructor(options: PageOptions = {}) {
+    // TODO: Add component to wait on that?
     super({
       ...options,
       scenarioName: options.scenarioName ?? 'addNewGame',
@@ -20,10 +21,13 @@ export class GameCreatePage extends PageObject {
         throw new Error('New game button not found');
       }
       await buttonHandle.click();
+      // Brief wait for dialog to render.
+      await this.page.waitForTimeout(100);
     };
   }
 
-  async fillGameDetails(game: Game) {
+  // TODO: Use same approach as setPeriods
+  async fillGameDetails(game: Game, createHandle?: ElementHandle<Element>) {
     // The game create fields expect the date/time in the local timezone,
     // as emulated by Puppeteer. The timezone is set to 'America/New_York' to
     // have a consistent value for screenshots, regardless of the machine that
@@ -42,43 +46,65 @@ export class GameCreatePage extends PageObject {
     const timeString = localDate.toTimeString().substring(0, 5);
 
     console.log(`Game date: original = ${game.date}, emulated offset = ${emulatedOffset}, this offset = ${thisOffset}, local = ${localDate}, ${dateString}, ${timeString}`);
-    await this.page.evaluate(`(async (name, opponent, gameDate, gameTime) => {
-      console.log('in the evaluate: ' + name);
-      const gameCreate = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-view-games').shadowRoot.querySelector('lineup-game-create');
-      const nameField = gameCreate.shadowRoot.querySelector('#nameField > input');
+    if (!createHandle) {
+      createHandle = await this.getCreateComponent();
+    }
+
+    await createHandle.evaluate(async (createNode, name, opponent, gameDate, gameTime) => {
+      const createRoot = createNode!.shadowRoot!;
+
+      const createDialog = createRoot.querySelector('#create-dialog');
+      if (!createDialog) {
+        throw new Error(`Create game dialog not found`);
+      }
+
+      const nameField = createRoot.querySelector(`#nameField > input`) as HTMLInputElement;
       nameField.value = name;
-      const opponentField = gameCreate.shadowRoot.querySelector('#opponentField > input');
+
+      const opponentField = createRoot.querySelector(`#opponentField > input`) as HTMLInputElement;
       opponentField.value = opponent;
-      const dateField = gameCreate.shadowRoot.querySelector('#dateField > input');
+
+      const dateField = createRoot.querySelector(`#dateField > input`) as HTMLInputElement;
       dateField.value = gameDate;
-      const timeField = gameCreate.shadowRoot.querySelector('#timeField > input');
+
+      const timeField = createRoot.querySelector(`#timeField > input`) as HTMLInputElement;
       timeField.value = gameTime;
-      console.log('done the evaluate: [' + nameField.value + ']');
-    })('${game.name}', '${game.opponent}', '${dateString}', '${timeString}')`);
+    }, game.name, game.opponent, dateString, timeString);
   }
 
-  async saveNewGame() {
-    const buttonHandle = await this.page.evaluateHandle(`(async () => {
-      console.log('get game create')
-      const gameCreate = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-view-games').shadowRoot.querySelector('lineup-game-create');
-      console.log('get save button')
-      const saveButton = gameCreate.shadowRoot.querySelector('mwc-button.save');
-      console.log('save button =', saveButton)
-      saveButton.scrollIntoView();
-      return saveButton;
-    })()`) as ElementHandle;
-    await buttonHandle.click();
+  async saveNewGame(createHandle?: ElementHandle<Element>) {
+    if (!createHandle) {
+      createHandle = await this.getCreateComponent();
+    }
+
+    await createHandle.evaluate(async (createNode) => {
+      const createRoot = createNode!.shadowRoot!;
+
+      const createDialog = createRoot.querySelector('#create-dialog');
+      if (!createDialog) {
+        throw new Error(`Create game dialog not found`);
+      }
+
+      const saveButton = createDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLButtonElement;
+      //saveButton.scrollIntoView();
+      saveButton.click();
+    });
+
     this.log(`game create button clicked`);
+    // TODO: Use wait for view ready, once the page is waiting for game to be created.
+    // Could do similar to the "roster copying" on the game roster page?
     await this.page.waitForTimeout(3500);
-    this.log(`wait for team create finished`);
+    this.log(`wait for game create finished`);
   }
 
   async getGameId(game: Game) {
-    return await this.page.evaluate((gameName: string, _opponent: string) => {
-      const app = document.querySelector('lineup-app');
-      const view = app!.shadowRoot!.querySelector('lineup-view-games');
-      const list = view!.shadowRoot!.querySelector('lineup-game-list');
-      const names = list!.shadowRoot!.querySelectorAll('.list .game .name');
+    const listHandle = await this.querySelectorInView('lineup-view-games', 'lineup-game-list');
+    if (!listHandle) {
+      throw new Error('List component not found');
+    }
+
+    return await listHandle.evaluate(async (listNode, gameName: string, _opponent: string) => {
+      const names = listNode.shadowRoot!.querySelectorAll('.list .game .name');
 
       for (const nameElement of Array.from(names)) {
         if (nameElement.textContent?.trim() != gameName) {

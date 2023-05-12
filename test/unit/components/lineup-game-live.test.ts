@@ -1,4 +1,4 @@
-import { LineupGameClock } from '@app/components/lineup-game-clock.js';
+import { ClockEndPeriodEvent, LineupGameClock } from '@app/components/lineup-game-clock.js';
 import '@app/components/lineup-game-live.js';
 import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
@@ -7,19 +7,27 @@ import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { FormationType } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
-import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
+import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, markPlayerOut, returnOutPlayer, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
+import {
+  cancelSub, cancelSwap, confirmSub, confirmSwap,
+  endPeriod, endPeriodCreator, gameCompleted, markPeriodOverdue,
+  markPlayerOut, returnOutPlayer,
+  selectLiveGameById, selectPlayer, startPeriod, toggleClock
+} from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
-import { expect, fixture, html } from '@open-wc/testing';
+import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
-import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton } from '../helpers/clock-element-retrievers.js';
+import {
+  getClockEndOverdueExtraMinutes, getClockEndOverdueRetroactiveOption, getClockEndOverdueSaveButton,
+  getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton
+} from '../helpers/clock-element-retrievers.js';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildClock, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame } from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRunningTimer } from '../helpers/test-clock-data.js';
+import { buildRunningTimer /*, buildStoppedTimer*/ } from '../helpers/test-clock-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
 
@@ -618,6 +626,42 @@ describe('lineup-game-live tests', () => {
         endPeriod(gameId));
     });
 
+    it('dispatches end period action with extra minutes when event fired by clock component', async () => {
+      // Get the clock component into a state that allows the period to end.
+      const store = getStore();
+      store.dispatch(startPeriod(gameId,/*gameAllowsStart =*/true));
+      store.dispatch(markPeriodOverdue(gameId,/*ignoreTimeForTesting =*/true));
+      await el.updateComplete;
+
+      // Trigger the overdue dialog by clicking the end period button.
+      const clockElement = getClockElement();
+      const endButton = getClockEndPeriodButton(clockElement);
+
+      setTimeout(() => endButton!.click());
+      await oneEvent(endButton!, 'click');
+      await el.updateComplete;
+
+      // Fill the extra minutes and save in the overdue dialog.
+      const useRetroactive = getClockEndOverdueRetroactiveOption(clockElement);
+      const extraMinutesField = getClockEndOverdueExtraMinutes(clockElement);
+
+      setTimeout(() => useRetroactive.click());
+      await oneEvent(useRetroactive, 'click');
+      await el.updateComplete;
+      extraMinutesField.value = "3";
+
+      const saveButton = getClockEndOverdueSaveButton(clockElement);
+      setTimeout(() => saveButton.click());
+      await oneEvent(el, ClockEndPeriodEvent.eventName);
+
+      // Verifies that the end period action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        endPeriodCreator(gameId, 3));
+    });
+
     it('dispatches toggle clock action when fired by clock component', async () => {
       // Get the clock component into a state that allows the toggle.
       getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/true));
@@ -637,6 +681,64 @@ describe('lineup-game-live tests', () => {
     });
 
   }); // describe('Clock')
+
+  describe('Overdue periods', () => {
+    const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    const period10Minutes = 10;
+    const overdueBuffer = 5;
+    let fakeClock: sinon.SinonFakeTimers;
+    let gameId: string;
+
+    beforeEach(async () => {
+      fakeClock = sinon.useFakeTimers({
+        now: startTime,
+        shouldAdvanceTime: false
+      });
+
+      const { game, live } = getGameDetail();
+
+      live.clock = buildClock();
+      live.clock.periodLength = period10Minutes;
+      const shift = buildShiftWithTrackersFromGame(live);
+      gameId = live.id;
+
+      // Setup the live game, with the period running.
+      const gameState = buildGameStateWithCurrentGame(game);
+      const liveState = buildLiveStateWithCurrentGame(live,
+        { shift });
+
+      await setupElement(buildRootState(gameState, liveState), live.id);
+      await el.updateComplete;
+    });
+
+    afterEach(async () => {
+      if (fakeClock) {
+        fakeClock.restore();
+      }
+    });
+
+    it('marked overdue when running past length', async () => {
+      // Initially, no action has been dispatched.
+      expect(dispatchStub).to.have.callCount(0);
+
+      // Get the period running.
+      getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/true));
+      await el.updateComplete;
+
+      // Advance the clock beyond the period length + overdue buffer.
+      const elapsedSeconds = (period10Minutes + overdueBuffer + 1) * 60;
+      fakeClock.tick(elapsedSeconds * 1000);
+      fakeClock.next();
+
+      // The action should now have been dispatched.
+      //  - First action is the startPeriod
+      expect(dispatchStub).to.be.called;
+
+      expect(actions).to.have.lengthOf.at.least(2);
+      expect(actions).to.deep.include(markPeriodOverdue(gameId));
+    });
+
+  }); // describe('Overdue periods');
 
   describe('Complete Game', () => {
     let liveGame: LiveGame;

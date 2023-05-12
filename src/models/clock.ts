@@ -76,6 +76,10 @@ export class Duration {
     return Math.round(this._elapsed % 60);
   }
 
+  getTotalSeconds(): number {
+    return this._elapsed;
+  }
+
   static create(elapsedSeconds: number): Duration {
     return new Duration({ value: elapsedSeconds });
   }
@@ -165,14 +169,14 @@ export class Timer {
     this.startTime = this.getCurrentTime();
   }
 
-  stop() {
+  stop(retroactiveStopTime?: number) {
     if (!this.isRunning) {
       // Already stopped
       return;
     }
     this.isRunning = false;
     // Calculate elapsed since last start and add to stored duration
-    this.duration = this.addElapsed();
+    this.duration = this.addElapsed(retroactiveStopTime);
     this.startTime = undefined;
   }
 
@@ -188,8 +192,8 @@ export class Timer {
     return this.provider.getCurrentTime();
   }
 
-  private addElapsed(): Duration {
-    let stopTime = this.getCurrentTime();
+  private addElapsed(retroactiveStopTime?: number): Duration {
+    let stopTime = retroactiveStopTime ?? this.getCurrentTime();
     let elapsed = Duration.calculateElapsed(this.startTime!, stopTime);
 
     // Added elapsed to accumulated duration

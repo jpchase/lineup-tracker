@@ -62,14 +62,17 @@ export function addDurationAssertion<ActualType>(name: string,
   actualDesc: string,
   getDuration: (actual: ActualType) => Duration | null) {
   Assertion.addMethod(name, function (this, expected: number[]) {
-    const actual = this._obj as ActualType;
-    const elapsed = getDuration(actual);
+    const elapsed = getDuration(this._obj as ActualType);
+    let actual = null;
+    if (elapsed) {
+      actual = [elapsed.getMinutes(), elapsed.getSeconds()];
+    }
     this.assert(
       elapsed && isElapsedEqual(elapsed, expected),
       `expected ${actualDesc} #{act} to be #{exp}`,
       `expected ${actualDesc} #{act} to not be #{exp}`,
       expected,
-      elapsed,
+      actual,
       /*showDiff=*/false
     );
   });

@@ -7,20 +7,20 @@ import { map } from 'lit/directives/map.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
 import { Formation, FormationBuilder, FormationType, formatPosition, getPositions, Position } from '../models/formation.js';
+import { GameStatus } from '../models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
 import {
-  cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
-  gameCompleted,
-  markPlayerOut,
+  cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriodCreator,
+  gameCompleted, markPeriodOverdueCreator, markPlayerOut,
   pendingSubsAppliedCreator,
-  proposedSubSelector, returnOutPlayer, selectLiveGameById, selectInvalidSubs, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
+  proposedSubSelector, returnOutPlayer, selectInvalidSubs, selectLiveGameById, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
-import { ClockPeriodData } from './lineup-game-clock.js';
+import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-shifts.js';
 import './lineup-on-player-list.js';
 import './lineup-player-list.js';
@@ -225,6 +225,11 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
 
   public requestTimerUpdate() {
     this.timerNotifier.notifyTimers();
+
+    // While the period is running, check if overdue.
+    if (this._game?.status === GameStatus.Live) {
+      this.dispatch(markPeriodOverdueCreator(this._game.id));
+    }
   }
 
   // Protected as a workaround for "not read" TS error.
@@ -259,6 +264,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       this.clockData = clock.timer;
       this.clockPeriodData = {
         currentPeriod: clock.currentPeriod,
+        periodLength: clock.periodLength,
         periodStatus: clock.periodStatus
       };
       this.gamePeriodsComplete = clock.periodStatus == PeriodStatus.Done;
@@ -331,8 +337,8 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     this.dispatch(startGamePeriod(this._game!.id));
   }
 
-  private endClockPeriod() {
-    this.dispatch(endPeriod(this._game!.id));
+  private endClockPeriod(e: ClockEndPeriodEvent) {
+    this.dispatch(endPeriodCreator(this._game!.id, e.detail.extraMinutes));
   }
 
   private completeGame() {

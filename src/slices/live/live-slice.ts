@@ -10,7 +10,8 @@ import { getGame, selectGameById } from '../../slices/game/game-slice.js';
 import { RootState, ThunkResult } from '../../store.js';
 import {
   configurePeriodsHandler, configurePeriodsPrepare,
-  endPeriodHandler,
+  endPeriodHandler, endPeriodPrepare,
+  markPeriodOverdueHandler, markPeriodOverduePrepare,
   startPeriodHandler, startPeriodPrepare,
   toggleHandler
 } from './clock-reducer-logic.js';
@@ -37,7 +38,7 @@ import {
   returnOutPlayerHandler,
   selectPlayerHandler, selectPlayerPrepare
 } from './substitution-reducer-logic.js';
-export { pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
+export { endPeriodCreator, markPeriodOverdueCreator, pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
   games?: LiveGames;
@@ -278,12 +279,17 @@ const liveSlice = createSlice({
 
     endPeriod: {
       reducer: buildActionHandler(endPeriodHandler),
-      prepare: prepareLiveGamePayload
+      prepare: endPeriodPrepare
     },
 
     toggleClock: {
       reducer: buildActionHandler(toggleHandler),
       prepare: prepareLiveGamePayload
+    },
+
+    markPeriodOverdue: {
+      reducer: buildActionHandler(markPeriodOverdueHandler),
+      prepare: markPeriodOverduePrepare
     },
   },
   extraReducers: (builder) => {
@@ -312,7 +318,7 @@ export const {
   // Starter-related actions
   selectStarter, selectStarterPosition, applyStarter, cancelStarter, invalidStarters,
   // Clock-related actions
-  configurePeriods, startPeriod, endPeriod, toggleClock,
+  configurePeriods, startPeriod, endPeriod, toggleClock, markPeriodOverdue,
   // Sub-related actions
   selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs,
   invalidPendingSubs, discardPendingSubs, markPlayerOut, returnOutPlayer,

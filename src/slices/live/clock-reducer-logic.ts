@@ -2,9 +2,12 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { Timer } from '../../models/clock.js';
 import { GameStatus } from '../../models/game.js';
 import { LiveGame, LiveGameBuilder, PeriodStatus, SetupSteps } from '../../models/live.js';
-import { ConfigurePeriodsPayload, LiveGamePayload, StartPeriodPayload } from './live-action-types.js';
+import { ConfigurePeriodsPayload, EndPeriodPayload, LiveGamePayload, OverduePeriodPayload, StartPeriodPayload } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
 import { completeSetupStepForAction } from './setup-reducer-logic.js';
+
+// Allow 5 minutes after period end before it becomes overdue.
+const PERIOD_OVERDUE_BUFFER_MINUTES = 5;
 
 //TODO: move to setup logic file
 export const configurePeriodsHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<ConfigurePeriodsPayload>) => {
@@ -67,16 +70,20 @@ export const startPeriodPrepare = (gameId: string, gameAllowsStart: boolean) => 
   };
 }
 
-export const endPeriodHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const endPeriodHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<EndPeriodPayload>) => {
   if (game.status !== GameStatus.Live) {
     return;
   }
-  if (game.clock && (game.clock.periodStatus !== PeriodStatus.Running)) {
+  if (game.clock?.periodStatus !== PeriodStatus.Running &&
+    game.clock?.periodStatus !== PeriodStatus.Overdue) {
     return;
   }
+  const retroactiveStopTime = (game.clock.periodStatus === PeriodStatus.Overdue)
+    ? action.payload.retroactiveStopTime : undefined;
+
   const state = getInitializedClock(game);
   const timer = new Timer(state.timer);
-  timer.stop();
+  timer.stop(retroactiveStopTime);
   state.timer = timer.toJSON();
   if (state.currentPeriod === state.totalPeriods) {
     // Ending the last period of the game.
@@ -86,6 +93,15 @@ export const endPeriodHandler = (_state: LiveState, game: LiveGame, _action: Pay
     game.status = GameStatus.Break;
     state.periodStatus = PeriodStatus.Pending;
   }
+}
+
+export const endPeriodPrepare = (gameId: string, retroactiveStopTime?: number) => {
+  return {
+    payload: {
+      gameId,
+      retroactiveStopTime
+    }
+  };
 }
 
 export const toggleHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
@@ -101,6 +117,43 @@ export const toggleHandler = (_state: LiveState, game: LiveGame, _action: Payloa
     timer.start();
   }
   state.timer = timer.toJSON();
+}
+
+export const markPeriodOverdueHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<OverduePeriodPayload>) => {
+  if (!isPeriodOverdue(game, action.payload.ignoreTimeForTesting)) {
+    return;
+  }
+  const clock = getInitializedClock(game);
+
+  // TODO: The change doesn't seem to stick when looking at the UI
+  clock.periodStatus = PeriodStatus.Overdue;
+}
+
+export const markPeriodOverduePrepare = (gameId: string, ignoreTimeForTesting?: boolean) => {
+  return {
+    payload: {
+      gameId,
+      ignoreTimeForTesting
+    }
+  };
+}
+
+export const isPeriodOverdue = (game?: LiveGame, ignoreTimeForTesting?: boolean): boolean => {
+  if (game?.status !== GameStatus.Live || (game.clock?.periodStatus !== PeriodStatus.Running)) {
+    return false;
+  }
+
+  // TODO: Only respect this flag in debug/dev builds
+  if (!!ignoreTimeForTesting) {
+    return true;
+  }
+  // Compute the max time for the period, and compare to elapsed.
+  const timer = new Timer(game.clock.timer);
+  const maxLength = game.clock.periodLength + PERIOD_OVERDUE_BUFFER_MINUTES;
+  if (timer.getElapsed().getTotalSeconds() >= (maxLength * 60)) {
+    return true;
+  }
+  return false;
 }
 
 function getInitializedClock(game: LiveGame) {

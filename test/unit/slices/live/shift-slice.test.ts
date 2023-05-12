@@ -14,7 +14,9 @@ import { buildPlayerTracker } from '../../helpers/test-shift-data.js';
 
 describe('Shift slice', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
-  const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
+  const timeStartPlus5 = new Date(2016, 0, 1, 14, 0, 5).getTime();
+  const timeStartPlus10Minutes = new Date(2016, 0, 1, 14, 10, 0).getTime();
+  const timeStartPlus15Minutes = new Date(2016, 0, 1, 14, 15, 0).getTime();
   let fakeClock: sinon.SinonFakeTimers;
 
   afterEach(async () => {
@@ -140,7 +142,7 @@ describe('Shift slice', () => {
 
       // Now, mock the underlying time, to be used when stopping
       // the shifts by the reducer.
-      mockCurrentTime(time1);
+      mockCurrentTime(timeStartPlus5);
 
       const newState = shift(currentState, endPeriod(gameId));
 
@@ -163,6 +165,75 @@ describe('Shift slice', () => {
       expect(newTrackerMap).not.to.equal(currentTrackerMapData);
 
       expect(newState).not.to.equal(currentState);
+    });
+
+    it('should stop the clock retroactively when running', () => {
+      // Set the start time for starting shifts.
+      const timeProvider = mockTimeProvider(startTime);
+      let currentTrackerMapData = getTrackerMap(currentState, gameId);
+      const trackerMap = PlayerTimeTrackerMap.create(currentTrackerMapData!, timeProvider);
+      trackerMap.startShiftTimers();
+      currentTrackerMapData = trackerMap.toJSON();
+      currentState.trackerMaps![gameId] = currentTrackerMapData;
+
+      // Now, mock the underlying time, to be used when stopping
+      // the shifts by the reducer.
+      mockCurrentTime(timeStartPlus15Minutes);
+
+      const newState = shift(currentState, endPeriod(gameId, timeStartPlus10Minutes));
+
+      // Only need to check the first player tracker.
+      const expectedTracker = buildPlayerTracker(rosterPlayers[0]);
+      expectedTracker.alreadyOn = true;
+      expectedTracker.onTimer = {
+        isRunning: false,
+        startTime: undefined,
+        duration: Duration.create(10 * 60).toJSON()
+      }
+
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      const firstTracker = newTrackerMap?.trackers?.find(
+        (tracker) => (tracker.id === expectedTracker.id));
+      expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
+      expect(firstTracker).to.deep.include(expectedTracker);
+
+      expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
+      expect(newTrackerMap).not.to.equal(currentTrackerMapData);
+
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should ignore the retroactive time when already stopped', () => {
+      // Set the times for starting shifts.
+      const timeProvider = mockTimeProvider(startTime, timeStartPlus15Minutes);
+      let currentTrackerMapData = getTrackerMap(currentState, gameId);
+      const trackerMap = PlayerTimeTrackerMap.create(currentTrackerMapData!, timeProvider);
+      trackerMap.startShiftTimers();
+      trackerMap.stopShiftTimers();
+      currentTrackerMapData = trackerMap.toJSON();
+      currentState.trackerMaps![gameId] = currentTrackerMapData;
+
+      const newState = shift(currentState, endPeriod(gameId, timeStartPlus10Minutes));
+
+      // The previous stop time should be kept, and the retroactive time
+      // from the action ignored.
+      // Only need to check the first player tracker.
+      const expectedTracker = buildPlayerTracker(rosterPlayers[0]);
+      expectedTracker.alreadyOn = true;
+      expectedTracker.onTimer = {
+        isRunning: false,
+        startTime: undefined,
+        duration: Duration.create(15 * 60).toJSON()
+      }
+
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      const firstTracker = newTrackerMap?.trackers?.find(
+        (tracker) => (tracker.id === expectedTracker.id));
+      expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
+      expect(firstTracker).to.deep.include(expectedTracker);
+
+      expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
+      expect(newTrackerMap).to.equal(currentTrackerMapData);
     });
 
     it('should do nothing if game does not allow period to be ended', () => {
@@ -224,7 +295,7 @@ describe('Shift slice', () => {
 
       // Now, mock the underlying time, to be used when changing
       // the shifts by the reducer.
-      mockCurrentTime(time1);
+      mockCurrentTime(timeStartPlus5);
 
       const newState = shift(currentState, applyPendingSubs(gameId, subs));
 
@@ -237,7 +308,7 @@ describe('Shift slice', () => {
           shiftCount: 1,
           onTimer: {
             isRunning: true,
-            startTime: time1,
+            startTime: timeStartPlus5,
             duration: Duration.zero().toJSON()
           }
         });
@@ -251,7 +322,7 @@ describe('Shift slice', () => {
           shiftCount: 1,
           offTimer: {
             isRunning: true,
-            startTime: time1,
+            startTime: timeStartPlus5,
             duration: Duration.zero().toJSON()
           }
         });
@@ -282,7 +353,7 @@ describe('Shift slice', () => {
 
       // Now, mock the underlying time, to be used when changing
       // the shifts by the reducer.
-      mockCurrentTime(time1);
+      mockCurrentTime(timeStartPlus5);
 
       const newState = shift(currentState, applyPendingSubs(gameId, subs));
 
@@ -295,7 +366,7 @@ describe('Shift slice', () => {
           shiftCount: 1,
           onTimer: {
             isRunning: true,
-            startTime: time1,
+            startTime: timeStartPlus5,
             duration: Duration.zero().toJSON()
           }
         });
@@ -309,7 +380,7 @@ describe('Shift slice', () => {
           shiftCount: 1,
           offTimer: {
             isRunning: true,
-            startTime: time1,
+            startTime: timeStartPlus5,
             duration: Duration.zero().toJSON()
           }
         });

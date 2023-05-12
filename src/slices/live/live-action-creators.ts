@@ -1,13 +1,35 @@
-/**
-@license
-*/
-
+import { Duration } from '../../models/clock.js';
 import { FormationBuilder, getPositions } from '../../models/formation.js';
-import { getPlayer, LiveGame, LivePlayer } from '../../models/live.js';
+import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { ThunkResult } from '../../store.js';
+import { isPeriodOverdue } from './clock-reducer-logic.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
-import { applyPendingSubs, invalidPendingSubs, invalidStarters, selectLiveGameById, selectPendingSubs, startersCompleted } from './live-slice.js';
+import { applyPendingSubs, endPeriod, invalidPendingSubs, invalidStarters, markPeriodOverdue, selectLiveGameById, selectPendingSubs, startersCompleted } from './live-slice.js';
+
+export const markPeriodOverdueCreator = (gameId: string): ThunkResult => (dispatch, getState) => {
+  const game = selectLiveGameById(getState(), gameId);
+  if (!isPeriodOverdue(game)) {
+    return;
+  }
+  dispatch(markPeriodOverdue(gameId));
+}
+
+export const endPeriodCreator = (gameId: string, extraMinutes?: number): ThunkResult => (dispatch, getState) => {
+  const state = getState();
+  const game = selectLiveGameById(state, gameId);
+  if (!game) {
+    return;
+  }
+  let retroactiveStopTime;
+  if (extraMinutes && game.clock?.periodStatus === PeriodStatus.Overdue &&
+    game.clock.timer?.isRunning) {
+    const actualLength = game.clock.periodLength + extraMinutes;
+    retroactiveStopTime = Duration.addToDate(
+      game.clock.timer!.startTime!, Duration.create(actualLength * 60));
+  }
+  dispatch(endPeriod(game.id, retroactiveStopTime));
+};
 
 export const pendingSubsAppliedCreator = (gameId: string, selectedOnly?: boolean): ThunkResult => (dispatch, getState) => {
   const state = getState();
