@@ -302,7 +302,7 @@ describe('lineup-player-card tests', () => {
       currentPositionVisible: true,
       positionsVisible: false,
       subForId: 'OnPlayerToBeReplaced',
-      subForExpected: 'Player To Be Replaced',
+      subForExpected: '-> Player To Be Replaced',
       subForVisible: true,
       shiftVisible: true
     },

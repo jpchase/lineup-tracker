@@ -1,12 +1,9 @@
-/**
-@license
-*/
-
 import { ContextConsumer, contextProvided } from '@lit-labs/context';
-import { html, LitElement, PropertyValues } from 'lit';
+import '@material/mwc-icon';
+import { LitElement, PropertyValues, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { formatPosition, Position } from '../models/formation.js';
+import { Position, formatPosition } from '../models/formation.js';
 import { LivePlayer } from '../models/live.js';
 import { PlayerTimeTracker } from '../models/shift.js';
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events.js';
@@ -49,8 +46,14 @@ export class LineupPlayerCard extends LitElement {
     if (player?.replaces) {
       const replacedPlayer = this.playerResolver?.getPlayer(player.replaces);
       if (replacedPlayer) {
-        subFor = replacedPlayer.name;
+        subFor = '-> ' + replacedPlayer.name;
       }
+    }
+
+    let currentIcon = '';
+    // TODO: constants or enum for mode?
+    if (this.mode === 'next') {
+      currentIcon = player?.isSwap ? 'move_up' : 'swap_horiz';
     }
 
     const classes = { [this.mode.toLowerCase()]: true, 'swap': !!player?.isSwap };
@@ -58,12 +61,18 @@ export class LineupPlayerCard extends LitElement {
       ${SharedStyles}
       <style>
 
-        .player {
+        .player.on,
+        .player.off,
+        .player.out {
           border: 1px;
           border-style: dashed;
           display: inline-block;
-          height: 45px;
+          min-height: 45px;
           width: 100px;
+        }
+
+        .player.next {
+          /* display: inline-block; */
         }
 
         .player[selected] {
@@ -71,10 +80,21 @@ export class LineupPlayerCard extends LitElement {
           border-style: solid;
         }
 
+        /* Hide the icon, by default, as it's only used in one mode */
+        #icon
+        {
+          display: none;
+        }
+        .player.next #icon
+        {
+          display: inline;
+        }
+
         /* Hide fields based on mode */
         .player.on .playerPositions,
         .player.on .subFor,
         .player.next .playerPositions,
+        .player.next .uniformNumber,
         .player.next.swap .subFor,
         .player.off .currentPosition,
         .player.off .subFor,
@@ -85,15 +105,20 @@ export class LineupPlayerCard extends LitElement {
           display: none;
         }
 
+        .themed {
+          color: var(--mdc-theme-on-primary);
+          background-color: var(--mdc-theme-primary);
+        }
       </style>
 
       <span ?selected="${this.selected}" class="player ${classMap(classes)}">
+        <mwc-icon id="icon" class="themed">${currentIcon}</mwc-icon>
         <span class="playerName">${player ? player.name : ''}</span>
         <span class="uniformNumber">${player ? player.uniformNumber : ''}</span>
         <span class="currentPosition">${currentPosition}</span>
         <span class="playerPositions">${positions.join(', ')}</span>
-        <span class="subFor">${subFor}</span>
         <span class="shiftTime">${this.timer.text}</span>
+        <span class="subFor">${subFor}</span>
       </span>
     `;
   }
@@ -167,7 +192,7 @@ export class LineupPlayerCard extends LitElement {
     this.addEventListener('click', this.toggleSelected);
   }
 
-  toggleSelected() {
+  private toggleSelected() {
     const newSelected = !this.selected;
 
     // Fires a position selected event, when |data| provided. Otherwise, fires a

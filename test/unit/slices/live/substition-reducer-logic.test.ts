@@ -470,6 +470,37 @@ describe('Live slice: Substitution actions', () => {
           expect(player.selected, `Now off [${player.id}], the selected property should be false`).to.not.be.ok;
         }
       });
+
+      it('should clear any invalid subs, when not selected only', () => {
+        const subs = buildSubs(sub1, sub2);
+        setupSubState(subs);
+        currentState.invalidSubs = [sub3.nextId];
+
+        const newState: LiveState = live(currentState, applyPendingSubs(
+          gameId, getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
+        ));
+
+        expect(newState.invalidSubs, 'Invalid subs should be cleared').not.to.be.ok;
+      });
+
+      it('should clear any invalid subs, when selected only', () => {
+        const selectedSubs = [sub1];
+        const subs = buildSubs(...selectedSubs, sub2);
+        setupSubState(subs);
+        currentState.invalidSubs = [sub3.nextId];
+
+        const currentGame = getGame(currentState, gameId)!;
+        const nowPlayingIds = getNextIds(selectedSubs);
+
+        selectPlayers(currentGame, nowPlayingIds, true);
+
+        const newState = live(currentState, applyPendingSubs(
+          gameId,
+          getPlayersByIds(currentGame, nowPlayingIds),
+          /* selectedOnly */ true));
+
+        expect(newState.invalidSubs, 'Invalid subs should be cleared').not.to.be.ok;
+      });
     }); // describe('live/applyPendingSubs')
 
     describe('live/invalidPendingSubs', () => {
@@ -806,5 +837,4 @@ describe('Live slice: Substitution actions', () => {
 
     }); // describe('live/discardPendingSubs')
   }); // describe('Pending Subs')
-
 });
