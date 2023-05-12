@@ -38,7 +38,7 @@ import {
   returnOutPlayerHandler,
   selectPlayerHandler, selectPlayerPrepare
 } from './substitution-reducer-logic.js';
-export { endPeriodCreator, pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
+export { endPeriodCreator, markPeriodOverdueCreator, pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
   games?: LiveGames;

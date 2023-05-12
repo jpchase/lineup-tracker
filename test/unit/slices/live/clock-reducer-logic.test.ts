@@ -1,7 +1,14 @@
 import { Duration } from '@app/models/clock.js';
 import { GameStatus } from '@app/models/game.js';
 import { PeriodStatus, SetupSteps } from '@app/models/live.js';
-import { configurePeriods, endPeriodCreator, endPeriod, live, LiveState, markPeriodOverdue, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
+import {
+  LiveState,
+  configurePeriods,
+  endPeriod, endPeriodCreator,
+  live,
+  markPeriodOverdue, markPeriodOverdueCreator,
+  startPeriod, toggleClock
+} from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildClock, buildClockWithTimer, buildLiveGameWithSetupTasksAndPlayers, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame, getGame } from '../../helpers/live-state-setup.js';
@@ -632,6 +639,104 @@ describe('Live slice: Clock actions', () => {
       expect(newState).to.equal(currentState);
     });
 
+    describe('action creator', () => {
+      it('should dispatch action if running past period length', async () => {
+        mockTimeProvider(timeStartPlus15Minutes);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(
+          buildRunningTimer(startTime),
+          {
+            currentPeriod: 1,
+            periodStatus: PeriodStatus.Running,
+            periodLength: 10,
+          });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        await markPeriodOverdueCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          markPeriodOverdue(gameId));
+      });
+
+      it('should not dispatch action if running before the period length', async () => {
+        mockTimeProvider(timeStartPlus1Minute55);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(
+          buildRunningTimer(startTime),
+          {
+            currentPeriod: 1,
+            periodStatus: PeriodStatus.Running,
+            periodLength: 10,
+          });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        await markPeriodOverdueCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(0);
+      });
+
+      it('should not dispatch action if period is already overdue', async () => {
+        mockTimeProvider(timeStartPlus15Minutes);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(
+          buildRunningTimer(startTime),
+          {
+            currentPeriod: 1,
+            periodStatus: PeriodStatus.Overdue,
+            periodLength: 10,
+          });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        await markPeriodOverdueCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(0);
+      });
+
+      it('should not dispatch action if period is not started', async () => {
+        mockTimeProvider(startTime);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(
+          /* timer= */undefined,
+          {
+            currentPeriod: 1,
+            periodStatus: PeriodStatus.Pending,
+          });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        await markPeriodOverdueCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(0);
+      });
+
+      it('should not dispatch action if period is done', async () => {
+        mockTimeProvider(startTime);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(
+          /* timer= */undefined,
+          {
+            currentPeriod: 3,
+            periodStatus: PeriodStatus.Done,
+            totalPeriods: 3
+          });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        await markPeriodOverdueCreator(gameId)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(0);
+      });
+
+    }); // describe('action creator')
   }); // describe('live/markPeriodOverdue')
 
   describe('live/toggle', () => {

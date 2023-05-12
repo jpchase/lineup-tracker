@@ -120,20 +120,27 @@ export const toggleHandler = (_state: LiveState, game: LiveGame, _action: Payloa
 }
 
 export const markPeriodOverdueHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
-  if (game.status !== GameStatus.Live || (game.clock?.periodStatus !== PeriodStatus.Running)) {
+  if (!isPeriodOverdue(game)) {
     return;
   }
-  const state = getInitializedClock(game);
-  const timer = new Timer(state.timer);
+  const clock = getInitializedClock(game);
+
+  // TODO: The change doesn't seem to stick when looking at the UI
+  clock.periodStatus = PeriodStatus.Overdue;
+}
+
+export const isPeriodOverdue = (game?: LiveGame): boolean => {
+  if (game?.status !== GameStatus.Live || (game.clock?.periodStatus !== PeriodStatus.Running)) {
+    return false;
+  }
 
   // Compute the max time for the period, and compare to elapsed.
+  const timer = new Timer(game.clock.timer);
   const maxLength = game.clock.periodLength + PERIOD_OVERDUE_BUFFER_MINUTES;
-  if (timer.getElapsed().getTotalSeconds() < (maxLength * 60)) {
-    return;
+  if (timer.getElapsed().getTotalSeconds() >= (maxLength * 60)) {
+    return true;
   }
-
-  game.clock.periodStatus = PeriodStatus.Overdue;
-  state.timer = timer.toJSON();
+  return false;
 }
 
 function getInitializedClock(game: LiveGame) {

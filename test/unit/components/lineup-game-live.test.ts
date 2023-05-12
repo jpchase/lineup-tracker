@@ -640,19 +640,21 @@ describe('lineup-game-live tests', () => {
 
   describe('Overdue periods', () => {
     const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    const period10Minutes = 10;
+    const overdueBuffer = 5;
     let fakeClock: sinon.SinonFakeTimers;
     let gameId: string;
 
     beforeEach(async () => {
       fakeClock = sinon.useFakeTimers({
         now: startTime,
-        toFake: ['setInterval', 'clearInterval'],
         shouldAdvanceTime: false
       });
 
       const { game, live } = getGameDetail();
 
       live.clock = buildClock();
+      live.clock.periodLength = period10Minutes;
       const shift = buildShiftWithTrackersFromGame(live);
       gameId = live.id;
 
@@ -671,7 +673,7 @@ describe('lineup-game-live tests', () => {
       }
     });
 
-    it('checks for overdue when period is running', async () => {
+    it('marked overdue when running past length', async () => {
       // Initially, no action has been dispatched.
       expect(dispatchStub).to.have.callCount(0);
 
@@ -679,19 +681,17 @@ describe('lineup-game-live tests', () => {
       getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/true));
       await el.updateComplete;
 
-      // Advance the clock more than 10 seconds, which is the interval for the
-      // synchronized timer trigger.
-      const elapsedSeconds = 11;
+      // Advance the clock beyond the period length + overdue buffer.
+      const elapsedSeconds = (period10Minutes + overdueBuffer + 1) * 60;
       fakeClock.tick(elapsedSeconds * 1000);
       fakeClock.next();
-      // await aTimeout(10500);
 
       // The action should now have been dispatched.
-      // TODO: Figure out why the action is dispatched twice. Time should be froken?
-      expect(dispatchStub).to.have.callCount(2);
+      //  - First action is the startPeriod
+      expect(dispatchStub).to.be.called;
 
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(markPeriodOverdue(gameId));
+      expect(actions).to.have.lengthOf.at.least(2);
+      expect(actions).to.deep.include(markPeriodOverdue(gameId));
     });
 
   }); // describe('Overdue periods');

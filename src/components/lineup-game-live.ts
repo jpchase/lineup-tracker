@@ -14,7 +14,7 @@ import { PlayerTimeTrackerMapData } from '../models/shift.js';
 import { getLiveStore } from '../slices/live-store.js';
 import {
   cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
-  gameCompleted, markPeriodOverdue, markPlayerOut,
+  gameCompleted, markPeriodOverdueCreator, markPlayerOut,
   pendingSubsAppliedCreator,
   proposedSubSelector, returnOutPlayer, selectInvalidSubs, selectLiveGameById, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
@@ -227,10 +227,9 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     this.timerNotifier.notifyTimers();
 
     // While the period is running, check if overdue.
-    if (this._game?.status !== GameStatus.Live) {
-      return;
+    if (this._game?.status === GameStatus.Live) {
+      this.dispatch(markPeriodOverdueCreator(this._game.id));
     }
-    this.dispatch(markPeriodOverdue(this._game.id));
   }
 
   // Protected as a workaround for "not read" TS error.
