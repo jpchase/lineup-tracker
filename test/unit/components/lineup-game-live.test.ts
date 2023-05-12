@@ -1,4 +1,4 @@
-import { LineupGameClock } from '@app/components/lineup-game-clock.js';
+import { ClockEndPeriodEvent, LineupGameClock } from '@app/components/lineup-game-clock.js';
 import '@app/components/lineup-game-live.js';
 import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
@@ -7,15 +7,23 @@ import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { FormationType } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
-import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
+import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import { cancelSub, cancelSwap, confirmSub, confirmSwap, endPeriod, gameCompleted, markPeriodOverdue, markPlayerOut, returnOutPlayer, selectLiveGameById, selectPlayer, startPeriod, toggleClock } from '@app/slices/live/live-slice.js';
+import {
+  cancelSub, cancelSwap, confirmSub, confirmSwap,
+  endPeriod, endPeriodCreator, gameCompleted, markPeriodOverdue,
+  markPlayerOut, returnOutPlayer,
+  selectLiveGameById, selectPlayer, startPeriod, toggleClock
+} from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
-import { expect, fixture, html } from '@open-wc/testing';
+import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
-import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton } from '../helpers/clock-element-retrievers.js';
+import {
+  getClockEndOverdueExtraMinutes, getClockEndOverdueRetroactiveOption, getClockEndOverdueSaveButton,
+  getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton
+} from '../helpers/clock-element-retrievers.js';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildClock, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame } from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
@@ -616,6 +624,42 @@ describe('lineup-game-live tests', () => {
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
         endPeriod(gameId));
+    });
+
+    it('dispatches end period action with extra minutes when event fired by clock component', async () => {
+      // Get the clock component into a state that allows the period to end.
+      const store = getStore();
+      store.dispatch(startPeriod(gameId,/*gameAllowsStart =*/true));
+      store.dispatch(markPeriodOverdue(gameId,/*ignoreTimeForTesting =*/true));
+      await el.updateComplete;
+
+      // Trigger the overdue dialog by clicking the end period button.
+      const clockElement = getClockElement();
+      const endButton = getClockEndPeriodButton(clockElement);
+
+      setTimeout(() => endButton!.click());
+      await oneEvent(endButton!, 'click');
+      await el.updateComplete;
+
+      // Fill the extra minutes and save in the overdue dialog.
+      const useRetroactive = getClockEndOverdueRetroactiveOption(clockElement);
+      const extraMinutesField = getClockEndOverdueExtraMinutes(clockElement);
+
+      setTimeout(() => useRetroactive.click());
+      await oneEvent(useRetroactive, 'click');
+      await el.updateComplete;
+      extraMinutesField.value = "3";
+
+      const saveButton = getClockEndOverdueSaveButton(clockElement);
+      setTimeout(() => saveButton.click());
+      await oneEvent(el, ClockEndPeriodEvent.eventName);
+
+      // Verifies that the end period action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        endPeriodCreator(gameId, 3));
     });
 
     it('dispatches toggle clock action when fired by clock component', async () => {

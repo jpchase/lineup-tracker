@@ -6,7 +6,11 @@ import { Dialog } from '@material/mwc-dialog';
 import { aTimeout, expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { ClockEndPeriodDetail } from '../../../src/components/lineup-game-clock.js';
-import { getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton } from '../helpers/clock-element-retrievers.js';
+import {
+  getClockEndOverdueDialog, getClockEndOverdueExtraMinutes,
+  getClockEndOverdueRetroactiveOption, getClockEndOverdueSaveButton,
+  getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton
+} from '../helpers/clock-element-retrievers.js';
 import { addElementAssertions } from '../helpers/element-assertions.js';
 import { Radio } from '@material/mwc-radio';
 
@@ -56,9 +60,7 @@ describe('lineup-game-clock tests', () => {
   }
 
   function getEndOverdueDialog() {
-    const element = el.shadowRoot!.querySelector('#end-overdue-dialog');
-    expect(element, 'Missing overdue dialog').to.be.ok;
-    return element as Dialog;
+    return getClockEndOverdueDialog(el);
   }
 
   function getToggleButton() {
@@ -461,12 +463,10 @@ describe('lineup-game-clock tests', () => {
 
       it('fires end event with extra minutes for overdue period when dialog saved for retroactive time', async () => {
         // The retroactive/extra minutes fields are not initially set/available.
-        const useRetroactive = el.shadowRoot!.querySelector('#overdue-retro-radio') as Radio;
-        expect(useRetroactive, 'Missing current overdue option').to.be.ok;
+        const useRetroactive = getClockEndOverdueRetroactiveOption(el);
         expect(useRetroactive.checked, 'Retroactive option should not be checked initially').to.be.false;
 
-        const extraMinutesField = el.shadowRoot!.querySelector('#overdue-minutes-field > input') as HTMLInputElement;
-        expect(extraMinutesField, 'Missing overdue minutes field').to.be.ok;
+        const extraMinutesField = getClockEndOverdueExtraMinutes(el);
         expect(extraMinutesField.disabled, 'Extra minutes field should be disabled initially').to.be.true;
 
         // Set the retroactive option.
@@ -480,7 +480,7 @@ describe('lineup-game-clock tests', () => {
 
         extraMinutesField.value = "3";
 
-        const saveButton = overdueDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
+        const saveButton = getClockEndOverdueSaveButton(el);
         setTimeout(() => saveButton.click());
 
         const { detail } = await oneEvent(el, ClockEndPeriodEvent.eventName);

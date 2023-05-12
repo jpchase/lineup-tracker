@@ -13,14 +13,14 @@ import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
 import {
-  cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriod,
+  cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriodCreator,
   gameCompleted, markPeriodOverdueCreator, markPlayerOut,
   pendingSubsAppliedCreator,
   proposedSubSelector, returnOutPlayer, selectInvalidSubs, selectLiveGameById, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
-import { ClockPeriodData } from './lineup-game-clock.js';
+import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-shifts.js';
 import './lineup-on-player-list.js';
 import './lineup-player-list.js';
@@ -337,8 +337,8 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     this.dispatch(startGamePeriod(this._game!.id));
   }
 
-  private endClockPeriod() {
-    this.dispatch(endPeriod(this._game!.id));
+  private endClockPeriod(e: ClockEndPeriodEvent) {
+    this.dispatch(endPeriodCreator(this._game!.id, e.detail.extraMinutes));
   }
 
   private completeGame() {

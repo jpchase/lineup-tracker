@@ -11,7 +11,7 @@ import { RootState, ThunkResult } from '../../store.js';
 import {
   configurePeriodsHandler, configurePeriodsPrepare,
   endPeriodHandler, endPeriodPrepare,
-  markPeriodOverdueHandler,
+  markPeriodOverdueHandler, markPeriodOverduePrepare,
   startPeriodHandler, startPeriodPrepare,
   toggleHandler
 } from './clock-reducer-logic.js';
@@ -289,7 +289,7 @@ const liveSlice = createSlice({
 
     markPeriodOverdue: {
       reducer: buildActionHandler(markPeriodOverdueHandler),
-      prepare: prepareLiveGamePayload
+      prepare: markPeriodOverduePrepare
     },
   },
   extraReducers: (builder) => {

@@ -44,6 +44,10 @@ export interface EndPeriodPayload extends LiveGamePayload {
   retroactiveStopTime?: number;
 }
 
+export interface OverduePeriodPayload extends LiveGamePayload {
+  ignoreTimeForTesting?: boolean;
+}
+
 // Substitution action payloads
 export interface SelectPlayerPayload extends LiveGamePayload {
   playerId: string;

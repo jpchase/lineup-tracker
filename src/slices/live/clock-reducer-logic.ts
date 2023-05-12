@@ -2,7 +2,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { Timer } from '../../models/clock.js';
 import { GameStatus } from '../../models/game.js';
 import { LiveGame, LiveGameBuilder, PeriodStatus, SetupSteps } from '../../models/live.js';
-import { ConfigurePeriodsPayload, EndPeriodPayload, LiveGamePayload, StartPeriodPayload } from './live-action-types.js';
+import { ConfigurePeriodsPayload, EndPeriodPayload, LiveGamePayload, OverduePeriodPayload, StartPeriodPayload } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
 import { completeSetupStepForAction } from './setup-reducer-logic.js';
 
@@ -119,8 +119,8 @@ export const toggleHandler = (_state: LiveState, game: LiveGame, _action: Payloa
   state.timer = timer.toJSON();
 }
 
-export const markPeriodOverdueHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
-  if (!isPeriodOverdue(game)) {
+export const markPeriodOverdueHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<OverduePeriodPayload>) => {
+  if (!isPeriodOverdue(game, action.payload.ignoreTimeForTesting)) {
     return;
   }
   const clock = getInitializedClock(game);
@@ -129,11 +129,24 @@ export const markPeriodOverdueHandler = (_state: LiveState, game: LiveGame, _act
   clock.periodStatus = PeriodStatus.Overdue;
 }
 
-export const isPeriodOverdue = (game?: LiveGame): boolean => {
+export const markPeriodOverduePrepare = (gameId: string, ignoreTimeForTesting?: boolean) => {
+  return {
+    payload: {
+      gameId,
+      ignoreTimeForTesting
+    }
+  };
+}
+
+export const isPeriodOverdue = (game?: LiveGame, ignoreTimeForTesting?: boolean): boolean => {
   if (game?.status !== GameStatus.Live || (game.clock?.periodStatus !== PeriodStatus.Running)) {
     return false;
   }
 
+  // TODO: Only respect this flag in debug/dev builds
+  if (!!ignoreTimeForTesting) {
+    return true;
+  }
   // Compute the max time for the period, and compare to elapsed.
   const timer = new Timer(game.clock.timer);
   const maxLength = game.clock.periodLength + PERIOD_OVERDUE_BUFFER_MINUTES;
