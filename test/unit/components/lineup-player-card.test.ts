@@ -89,6 +89,15 @@ describe('lineup-player-card tests', () => {
     return playerElement as HTMLDivElement;
   }
 
+  function getShiftTimeText(shiftElement: HTMLElement): string {
+    const textNodes = Array.from(shiftElement.childNodes) // has childNodes inside, including text ones
+      .filter(child => child.nodeType === 3) // get only text nodes
+      .filter(child => child.textContent?.trim()) // eliminate empty text
+      .map(textNode => textNode.textContent);
+    expect(textNodes, 'shiftTime should only have one text node').to.have.length(1);
+    return textNodes[0]!;
+  }
+
   function verifyPlayerElements(inputPlayer: LivePlayer) {
     const playerElement = getPlayerElement();
 
@@ -376,13 +385,13 @@ describe('lineup-player-card tests', () => {
           player?.positions.join(', '), 'playerPositions element');
       }
 
-      const shiftElement = playerElement.querySelector('.shiftTime');
+      const shiftElement = playerElement.querySelector('.shiftTime') as HTMLElement;
       expectVisibility(shiftElement,
-        modeTest.shiftVisible ? 'inline' : 'none',
+        modeTest.shiftVisible ? 'block' : 'none',
         'shiftTime element');
       if (modeTest.shiftVisible) {
         // Shift time is 1:05 (65 seconds).
-        expect(shiftElement?.textContent).to.equal(
+        expect(getShiftTimeText(shiftElement)).to.equal(
           Duration.format(Duration.create(65)), 'shiftTime element');
       }
 
@@ -434,8 +443,8 @@ describe('lineup-player-card tests', () => {
         await el.updateComplete;
 
         const playerElement = verifyPlayerElements(player);
-        const shiftElement = playerElement.querySelector('.shiftTime');
-        expect(shiftElement?.textContent).to.equal(
+        const shiftElement = playerElement.querySelector('.shiftTime') as HTMLElement;
+        expect(getShiftTimeText(shiftElement)).to.equal(
           Duration.format(Duration.create(elapsedSeconds)), 'shiftTime element');
       });
     }

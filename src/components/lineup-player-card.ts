@@ -68,6 +68,7 @@ export class LineupPlayerCard extends LitElement {
           border-style: dashed;
           display: inline-block;
           min-height: 45px;
+          text-align: center;
           width: 100px;
         }
 
@@ -88,6 +89,17 @@ export class LineupPlayerCard extends LitElement {
         .player.next #icon
         {
           display: inline;
+        }
+
+        .shiftTime {
+          display: block;
+          font-style: italic;
+          /* TODO: Load the outlined font */
+          /* --mdc-icon-font: 'Material Icons Outlined'; */
+        }
+
+        .shiftTime mwc-icon {
+          color: var(--mdc-theme-primary);
         }
 
         /* Hide fields based on mode */
@@ -117,7 +129,7 @@ export class LineupPlayerCard extends LitElement {
         <span class="uniformNumber">${player ? player.uniformNumber : ''}</span>
         <span class="currentPosition">${currentPosition}</span>
         <span class="playerPositions">${positions.join(', ')}</span>
-        <span class="shiftTime">${this.timer.text}</span>
+        <span class="shiftTime"><mwc-icon>timer</mwc-icon>${this.timer.text}</span>
         <span class="subFor">${subFor}</span>
       </span>
     `;

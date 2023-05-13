@@ -18,6 +18,9 @@ snapshots["lineup-player-card tests renders data properties without player"] =
   <span class="playerPositions">
   </span>
   <span class="shiftTime">
+    <mwc-icon>
+      timer
+    </mwc-icon>
   </span>
   <span class="subFor">
   </span>
@@ -45,6 +48,9 @@ snapshots["lineup-player-card tests mode [ON]: renders player properties"] =
     CB, FB, HM
   </span>
   <span class="shiftTime">
+    <mwc-icon>
+      timer
+    </mwc-icon>
     01:05
   </span>
   <span class="subFor">
@@ -73,6 +79,9 @@ snapshots["lineup-player-card tests mode [ON]: renders data.player properties"] 
     CB, FB, HM
   </span>
   <span class="shiftTime">
+    <mwc-icon>
+      timer
+    </mwc-icon>
     01:05
   </span>
   <span class="subFor">
@@ -100,6 +109,9 @@ snapshots["lineup-player-card tests mode [OFF]: renders player properties"] =
     CB, FB, HM
   </span>
   <span class="shiftTime">
+    <mwc-icon>
+      timer
+    </mwc-icon>
     01:05
   </span>
   <span class="subFor">
@@ -128,6 +140,9 @@ snapshots["lineup-player-card tests mode [OFF]: renders data.player properties"]
     CB, FB, HM
   </span>
   <span class="shiftTime">
+    <mwc-icon>
+      timer
+    </mwc-icon>
     01:05
   </span>
   <span class="subFor">
@@ -155,6 +170,9 @@ snapshots["lineup-player-card tests mode [OUT]: renders player properties"] =
     CB, FB, HM
   </span>
   <span class="shiftTime">
+    <mwc-icon>
+      timer
+    </mwc-icon>
     01:05
   </span>
   <span class="subFor">
@@ -183,6 +201,9 @@ snapshots["lineup-player-card tests mode [OUT]: renders data.player properties"]
     CB, FB, HM
   </span>
   <span class="shiftTime">
+    <mwc-icon>
+      timer
+    </mwc-icon>
     01:05
   </span>
   <span class="subFor">
@@ -211,6 +232,9 @@ snapshots["lineup-player-card tests mode [NEXT]: renders player properties"] =
     CB, FB, HM
   </span>
   <span class="shiftTime">
+    <mwc-icon>
+      timer
+    </mwc-icon>
     01:05
   </span>
   <span class="subFor">
@@ -240,6 +264,9 @@ snapshots["lineup-player-card tests mode [NEXT]: renders data.player properties"
     CB, FB, HM
   </span>
   <span class="shiftTime">
+    <mwc-icon>
+      timer
+    </mwc-icon>
     01:05
   </span>
   <span class="subFor">
