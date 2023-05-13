@@ -36,6 +36,10 @@ export class LineupOnPlayerList extends PlayerListElement {
         .line {
           border: 1px;
           border-style: solid;
+          column-gap: 2em;
+          display: flex;
+          justify-content: center;
+          padding: 0.5em;
         }
 
         .line lineup-player-card {
