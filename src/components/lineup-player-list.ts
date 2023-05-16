@@ -3,6 +3,7 @@
 import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { LivePlayer } from '../models/live.js';
 import { PlayerStatus } from '../models/player.js';
@@ -20,6 +21,7 @@ export class LineupPlayerList extends PlayerListElement {
   override render() {
     const filteredPlayers = this._getFilteredPlayers();
 
+    const classes = { [this.mode.toLowerCase()]: true };
     return html` ${SharedStyles}
       <style>
         :host {
@@ -29,7 +31,7 @@ export class LineupPlayerList extends PlayerListElement {
       <div>
         ${filteredPlayers.length > 0
           ? html`
-              <div class="list">
+              <div class="list ${classMap(classes)}">
                 ${repeat(
                   filteredPlayers,
                   (player: LivePlayer) => player.id,

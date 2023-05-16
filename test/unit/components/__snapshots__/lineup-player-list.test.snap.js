@@ -12,7 +12,7 @@ snapshots["lineup-player-list tests shows no players placeholder for empty list"
 
 snapshots["lineup-player-list tests mode [off]: includes players without status set"] = 
 `<div>
-  <div class="list">
+  <div class="list off">
     <lineup-player-card>
     </lineup-player-card>
     <lineup-player-card>
