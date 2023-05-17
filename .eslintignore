@@ -1,11 +1,11 @@
 build/
 coverage/
 node_modules/
-test/integration/screenshots-current/
-src/**/*.js
-test/**/*.js
-!src/index.js
 dist/
+reports/
 .tmp
-app.yaml
-*.sublime-workspace
+# Temporary exclusions, to get linting working without errors
+index.html
+local.index.html
+src/lineup-*.html
+test/

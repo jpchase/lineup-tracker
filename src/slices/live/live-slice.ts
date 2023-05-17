@@ -6,8 +6,8 @@ import {
   LiveGame, LiveGameBuilder, LiveGames, LivePlayer
 } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
-import { getGame, selectGameById } from '../../slices/game/game-slice.js';
 import { RootState, ThunkResult } from '../../store.js';
+import { getGame, selectGameById } from '../game/game-slice.js';
 import {
   configurePeriodsHandler, configurePeriodsPrepare,
   endPeriodHandler, endPeriodPrepare,

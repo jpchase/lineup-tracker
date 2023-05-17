@@ -62,7 +62,7 @@ export class LineupGameCreate extends LitElement {
 
   private buildDate(dateString: string, timeString: string): { valid: boolean, date: Date } {
     // Parse the date and time values, to get date parts separately
-    let dateParts = dateString.match(/(\d{4})\-(\d{2})\-(\d{2})/);
+    let dateParts = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
     if (!dateParts) {
       return { valid: false, date: new Date() };
     }

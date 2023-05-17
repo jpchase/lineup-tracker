@@ -267,7 +267,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         periodLength: clock.periodLength,
         periodStatus: clock.periodStatus
       };
-      this.gamePeriodsComplete = clock.periodStatus == PeriodStatus.Done;
+      this.gamePeriodsComplete = clock.periodStatus === PeriodStatus.Done;
     } else {
       this.clockData = {};
       this.clockPeriodData = {} as ClockPeriodData;
@@ -291,7 +291,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
 
   private confirmSubClicked() {
     const select = this.getPositionSelect();
-    let newPosition: Position | undefined = undefined;
+    let newPosition: Position | undefined;
     if (select.value) {
       const allPositions = getPositions(this.formation!);
       newPosition = allPositions.find(p => (p.id === select.value));

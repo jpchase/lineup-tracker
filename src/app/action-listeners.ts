@@ -1,9 +1,9 @@
 import { createListenerMiddleware, TypedStartListening, Unsubscribe } from '@reduxjs/toolkit';
-import { getEnv } from '../app/environment.js';
 import { debug } from '../common/debug.js';
 import { currentTeamChanged } from '../slices/app/app-slice.js';
 import { userSignedIn } from '../slices/auth/auth-slice.js';
 import type { AppDispatch, RootState } from '../store.js';
+import { getEnv } from './environment.js';
 
 const debugListeners = debug('listeners');
 const env = getEnv();
@@ -21,6 +21,7 @@ export function setupAuthListeners(
     startListening({
       actionCreator: userSignedIn,
       effect: async (_action, listenerApi) => {
+        // eslint-disable-next-line no-restricted-globals
         const urlParams = new URLSearchParams(location.search);
         const team = urlParams.get('team');
         debugListeners(`Signed in, set team = ${team}`);
@@ -46,15 +47,15 @@ function initializeTeam(teamParam: string | null) {
       // Only supported in testing environments, for convenience.
       break;
     default:
-      return;
+      return undefined;
   }
   if (!teamParam) {
-    return;
+    return undefined;
   }
   const teamParts = teamParam.split('|');
   if (teamParts.length < 2) {
     debugListeners(`Invalid 'team' parameter: ${teamParam}`);
-    return;
+    return undefined;
   }
   const teamName = decodeURIComponent(teamParts[1]);
   return currentTeamChanged(teamParts[0], teamName);

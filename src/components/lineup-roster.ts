@@ -61,7 +61,7 @@ export class LineupRoster extends LitElement {
             <mwc-list-item id="${player.id}" graphic="avatar" twoline hasMeta>
               <span class="name">${player.name}</span>
               <span slot="secondary" class="positions">${player.positions.join(', ')}</span>
-              <span slot="graphic" class="avatar">&#35${player.uniformNumber}</span>
+              <span slot="graphic" class="avatar">&#35;${player.uniformNumber}</span>
               <span slot="meta" class="actions">${isGame ? `actions here` : `NN games`}</span>
             </mwc-list-item>
             <li divider role="separator"></li>
