@@ -17,7 +17,7 @@
     "build:webpack": "tsc && rm -rf dist && webpack --config webpack.config.js",
     "serve:test": "firebase emulators:start --import test/integration/data/firebase/",
     "serve:webpack": "web-dev-server --port 3000 --root-dir dist --app-index dist/index.html",
-    "test": "npm run test:unit_full && npm run test:integration",
+    "test": "npm run lint && npm run test:unit_full && npm run test:integration",
     "test:integration": "npm run build:test && npm run test:integration_impl",
     "test:integration_impl": "firebase emulators:exec \"mocha --config config/mocha-integration.cjs\" --project demo-integration --import test/integration/data/firebase",
     "test:integration_single": "tsc && npm run env:copy_test && npm run build:webpack && npm run test:integration_single_impl",
