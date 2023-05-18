@@ -52,7 +52,6 @@
     // Temporarily disable rules, to allow lint to complete successfully.
     "arrow-body-style": "off",
     "class-methods-use-this": "off",
-    "consistent-return": "off",
     "default-case": "off",
     "eqeqeq": "off",
     "import/newline-after-import": "off",

@@ -1,6 +1,8 @@
+/** @format */
+
 import { ContextConsumer, contextProvided } from '@lit-labs/context';
 import '@material/mwc-icon';
-import { LitElement, PropertyValues, html } from 'lit';
+import { LitElement, PropertyValues, html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { Position, formatPosition } from '../models/formation.js';
@@ -23,7 +25,7 @@ export interface PlayerCardData {
 export class LineupPlayerCard extends LitElement {
   override render() {
     if (!this.data && !this.player) {
-      return;
+      return nothing;
     }
     let displayPosition: Position | undefined;
     let player: LivePlayer | undefined;
@@ -56,11 +58,10 @@ export class LineupPlayerCard extends LitElement {
       currentIcon = player?.isSwap ? 'move_up' : 'swap_horiz';
     }
 
-    const classes = { [this.mode.toLowerCase()]: true, 'swap': !!player?.isSwap };
+    const classes = { [this.mode.toLowerCase()]: true, swap: !!player?.isSwap };
     return html`
       ${SharedStyles}
       <style>
-
         .player.on,
         .player.off,
         .player.out {
@@ -82,12 +83,10 @@ export class LineupPlayerCard extends LitElement {
         }
 
         /* Hide the icon, by default, as it's only used in one mode */
-        #icon
-        {
+        #icon {
           display: none;
         }
-        .player.next #icon
-        {
+        .player.next #icon {
           display: inline;
         }
 
@@ -140,7 +139,8 @@ export class LineupPlayerCard extends LitElement {
   protected timerNotifier = new ContextConsumer(
     this,
     synchronizedTimerContext,
-    (notifier/*, dispose*/) => { // TODO: implement dispose to unregister from notifications
+    (notifier /*, dispose*/) => {
+      // TODO: implement dispose to unregister from notifications
       notifier.registerTimer(this.timer);
     },
     true // we want updates when the notifier changes
@@ -211,15 +211,21 @@ export class LineupPlayerCard extends LitElement {
     // player selected event.
     const player = this._getPlayer();
     if (this.data) {
-      this.dispatchEvent(new CustomEvent(EVENT_POSITIONSELECTED, {
-        bubbles: true, composed: true,
-        detail: { position: this.data.position, player: player, selected: newSelected },
-      }));
+      this.dispatchEvent(
+        new CustomEvent(EVENT_POSITIONSELECTED, {
+          bubbles: true,
+          composed: true,
+          detail: { position: this.data.position, player: player, selected: newSelected },
+        })
+      );
     } else {
-      this.dispatchEvent(new CustomEvent(EVENT_PLAYERSELECTED, {
-        bubbles: true, composed: true,
-        detail: { player: player, selected: newSelected },
-      }));
+      this.dispatchEvent(
+        new CustomEvent(EVENT_PLAYERSELECTED, {
+          bubbles: true,
+          composed: true,
+          detail: { player: player, selected: newSelected },
+        })
+      );
     }
   }
 }
