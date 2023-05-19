@@ -1,20 +1,22 @@
+/** @format */
+
 import { expect } from 'chai';
 import { integrationTestData } from './data/integration-data-constants.js';
 import { PageObject } from './pages/page-object.js';
 import { TeamCreatePage } from './pages/team-create-page.js';
 // import { TeamRosterPage } from './pages/team-roster-page';
 
-describe('Team functional tests', function () {
+describe('Team functional tests', () => {
   let pageObject: PageObject;
 
   afterEach(async () => {
     await pageObject?.close();
   });
 
-  it('creates new team', async function () {
-    const addTeamPage = pageObject = new TeamCreatePage({
+  it('creates new team', async () => {
+    const addTeamPage = (pageObject = new TeamCreatePage({
       userId: integrationTestData.TEAM2.OWNER_ID,
-    });
+    }));
     await addTeamPage.init();
     await addTeamPage.open({ signIn: true });
 
@@ -32,12 +34,12 @@ describe('Team functional tests', function () {
     // expect(pageObject.currentRoute).to.equal(HomePage.defaultRoute, 'Should navigate to home page');
   });
 
-  it.skip('change current team', async function () {
+  it.skip('change current team', async () => {
     // TODO: Implement test for changing between existing teams,
     // including asserting that list of teams is retrieved correctly.
   });
 
-  it.skip('add player to team roster', async function () {
+  it.skip('add player to team roster', async () => {
     // TODO: Implement test for adding a new player,
     // including asserting that player is persisted to storage correctly.
   });

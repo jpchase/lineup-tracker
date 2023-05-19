@@ -11,7 +11,7 @@ import { PageObject } from './pages/page-object.js';
 import { createAdminApp, readGame, readGameRoster } from './server/firestore-access.js';
 const { nanoid } = rtk;
 
-describe('Game functional tests', function () {
+describe('Game functional tests', () => {
   let firestore: Firestore;
   let pageObject: PageObject;
 
@@ -24,7 +24,7 @@ describe('Game functional tests', function () {
     await pageObject?.close();
   });
 
-  it('create new game', async function () {
+  it('create new game', async () => {
     const addGamePage = (pageObject = new GameCreatePage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID },
@@ -59,7 +59,7 @@ describe('Game functional tests', function () {
     });
   });
 
-  it('copy roster from team', async function () {
+  it('copy roster from team', async () => {
     const gameId = integrationTestData.TEAM2.games.NEW.ID;
     const gameRosterPage = (pageObject = new GameRosterPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
@@ -84,7 +84,7 @@ describe('Game functional tests', function () {
     expect(Object.keys(roster).length, 'Copied players should be saved to storage').to.equal(16);
   });
 
-  it.skip('add player to game roster', async function () {
+  it.skip('add player to game roster', async () => {
     // TODO: Implement test for adding a new player to game roster,
     // including asserting that player is persisted to storage correctly.
   });

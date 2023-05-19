@@ -12,7 +12,7 @@ describe('App functional tests', () => {
     await pageObject?.close();
   });
 
-  it('current team is persisted after refresh', async function () {
+  it('current team is persisted after refresh', async () => {
     const teamName = 'Persisted current team';
     const homePage = (pageObject = new HomePage({
       userId: integrationTestData.TEAM2.OWNER_ID,
@@ -32,7 +32,7 @@ describe('App functional tests', () => {
     expect(currentTeam?.name, 'Current team should be restored').to.equal(teamName);
   });
 
-  it.skip('clears current team on sign out', async function () {
+  it.skip('clears current team on sign out', async () => {
     // TODO: Implement test for signing out and clearing data.
   });
 });

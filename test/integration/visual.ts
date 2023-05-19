@@ -17,10 +17,10 @@ function getCurrentFile(view: string) {
   return path.join(config.currentDir, `${view}.png`);
 }
 
-describe('👀 page screenshots are correct', function () {
+describe('👀 page screenshots are correct', () => {
   let pageObject: PageObject;
 
-  before(async function () {
+  before(async () => {
     // Create the test directories if needed.
     createScreenshotDirectories('current');
   });
@@ -30,9 +30,9 @@ describe('👀 page screenshots are correct', function () {
   });
 
   for (const breakpoint of config.breakpoints) {
-    describe(`${breakpoint.name} screen`, function () {
+    describe(`${breakpoint.name} screen`, () => {
       for (const pageConfig of getAllVisualPages(breakpoint)) {
-        it(pageConfig.name, async function () {
+        it(pageConfig.name, async () => {
           pageObject = pageConfig.page;
           await takeAndCompareScreenshot(pageObject, breakpoint.name, pageConfig.openOptions);
 

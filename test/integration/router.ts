@@ -4,18 +4,18 @@ import { expect } from 'chai';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { config } from './server/test-server.js';
 
-describe('routing tests', function () {
+describe('routing tests', () => {
   let browser: Browser;
   let page: Page;
 
-  beforeEach(async function () {
+  beforeEach(async () => {
     browser = await puppeteer.launch();
     page = await browser.newPage();
   });
 
   afterEach(() => browser.close());
 
-  it('the page selector switches pages', async function () {
+  it('the page selector switches pages', async () => {
     await page.goto(`${config.appUrl}`);
     await page.waitForSelector('lineup-app', { visible: true });
 
@@ -24,7 +24,7 @@ describe('routing tests', function () {
     await testNavigation(page, 'viewHome', 'Overview');
   });
 
-  it('the page selector switches pages in a different way', async function () {
+  it('the page selector switches pages in a different way', async () => {
     await page.goto(`${config.appUrl}`);
     await page.waitForSelector('lineup-app', { visible: true });
 

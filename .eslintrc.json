@@ -4,19 +4,9 @@
   "plugins": ["@typescript-eslint"],
   "root": true,
   "rules": {
-    "comma-dangle": ["error", "only-multiline"],
+    "arrow-body-style": "off",
     "func-names": ["off", "as-needed"], // Temporarily disable
-    "max-len": 0,
-    "object-curly-spacing": ["error", "always"],
     "one-var": 0,
-    "space-before-function-paren": [
-      "error",
-      {
-        "anonymous": "always",
-        "named": "never",
-        "asyncArrow": "always"
-      }
-    ],
     "spaced-comment": [
       "off", // Temporarily disable
       "always",
@@ -26,7 +16,6 @@
     "no-alert": 0,
     "no-bitwise": 0,
     "camelcase": 1,
-    "curly": 1,
     "no-eq-null": 1,
     "guard-for-in": 1,
     "no-empty": 1,
@@ -53,7 +42,6 @@
       }
     ],
     // Temporarily disable rules, to allow lint to complete successfully.
-    "arrow-body-style": "off",
     "class-methods-use-this": "off",
     "default-case": "off",
     "eqeqeq": "off",
@@ -78,7 +66,6 @@
     "no-useless-constructor": "off",
     "no-useless-return": "off",
     "object-shorthand": "off",
-    "prefer-arrow-callback": "off",
     "prefer-const": "off",
     "prefer-template": "off"
   },
