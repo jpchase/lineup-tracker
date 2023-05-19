@@ -14,7 +14,6 @@
     "require-jsdoc": ["error", { "require": { "FunctionDeclaration": false } }],
     "no-alert": 0,
     "no-bitwise": 0,
-    "camelcase": 1,
     "no-eq-null": 1,
     "guard-for-in": 1,
     "no-empty": 1,
