@@ -32,6 +32,7 @@
     "max-classes-per-file": "off",
     "no-continue": "off",
     "no-multi-assign": ["off", { "ignoreNonDeclaration": true }], // Temporarily disable
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "prefer-destructuring": "off",
     // Typescript overrides of built-in rules.
     "no-unused-vars": "off",
@@ -55,7 +56,6 @@
     "no-lonely-if": "off",
     "no-nested-ternary": "off",
     "no-param-reassign": "off",
-    "no-plusplus": "off",
     "no-restricted-globals": "off",
     "no-shadow": "off",
     "no-undef": "off",

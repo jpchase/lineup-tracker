@@ -31,7 +31,7 @@ function getPositions(formationType: FormationType) {
     line.positions.forEach((position) => {
       let count = positions[position.id];
       if (count) {
-        count++;
+        count += 1;
       } else {
         count = 1;
       }
@@ -199,7 +199,7 @@ describe('lineup-on-player-list tests', () => {
       const position = playerCard.data!.position.id;
       let count = actualPositions[position];
       if (count) {
-        count++;
+        count += 1;
       } else {
         count = 1;
       }
@@ -246,7 +246,7 @@ describe('lineup-on-player-list tests', () => {
       const position = playerCard.data!.position.id;
       let count = actualPositions[position];
       if (count) {
-        count++;
+        count += 1;
       } else {
         count = 1;
       }

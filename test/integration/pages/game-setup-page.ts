@@ -171,7 +171,7 @@ export class GameSetupPage extends GameDetailPage {
           throw new Error(`Missing apply button for: ${playerId}`);
         }
         (applyButton as HTMLElement).click();
-        index++;
+        index += 1;
       }
     }, starters);
 

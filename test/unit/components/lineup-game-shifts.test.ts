@@ -1,3 +1,5 @@
+/** @format */
+
 import '@app/components/lineup-game-shifts.js';
 import { LineupGameShifts } from '@app/components/lineup-game-shifts.js';
 import { SynchronizedTimerNotifier } from '@app/components/synchronized-timer.js';
@@ -55,7 +57,7 @@ describe('lineup-game-shifts tests', () => {
       expect(tracker).to.exist;
 
       const row = (items[index] as HTMLTableRowElement)!;
-      index++;
+      index += 1;
 
       expect(row.dataset.rowId).to.equal(player.id, 'Row id should match player id');
 
@@ -69,7 +71,10 @@ describe('lineup-game-shifts tests', () => {
 
       const totalTimeElement = row.cells[2];
       expect(totalTimeElement, 'Missing total time element').to.exist;
-      expect(totalTimeElement!.textContent).to.equal(Duration.format(tracker.totalOnTime), 'Total time');
+      expect(totalTimeElement!.textContent).to.equal(
+        Duration.format(tracker.totalOnTime),
+        'Total time'
+      );
     }
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();
@@ -110,7 +115,9 @@ describe('lineup-game-shifts tests', () => {
       const totalTimeElement = row.cells[2];
       expect(totalTimeElement, 'Missing total time element').to.exist;
       expect(totalTimeElement!.textContent).to.equal(
-        Duration.format(expectedTotalTime), `Total time for ${tracker.id}`);
+        Duration.format(expectedTotalTime),
+        `Total time for ${tracker.id}`
+      );
     }
   });
 

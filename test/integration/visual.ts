@@ -82,7 +82,8 @@ function compareScreenshots(view: string) {
     let filesRead = 0;
     function doneReading() {
       // Wait until both files are read.
-      if (++filesRead < 2) return;
+      filesRead += 1;
+      if (filesRead < 2) return;
 
       // The files should be the same size.
       expect(img1.width, 'image widths are the same').equal(img2.width);

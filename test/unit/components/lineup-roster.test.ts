@@ -87,7 +87,7 @@ describe('lineup-roster tests', () => {
         .sort((a, b) => a.name.localeCompare(b.name));
       for (const player of sortedPlayers) {
         const rosterItem = (items[index] as ListItem)!;
-        index++;
+        index += 1;
 
         const avatar = rosterItem.querySelector('.avatar');
         expect(avatar, 'Missing avatar').to.exist;

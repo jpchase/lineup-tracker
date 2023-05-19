@@ -72,7 +72,7 @@ describe('lineup-game-list tests', () => {
         assert.isOk(dateElement, 'Missing gameDate element');
         assert.equal(dateElement!.textContent, dateFormatter.format(game.date));
 
-        index++;
+        index += 1;
       }
     });
   }

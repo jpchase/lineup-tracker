@@ -244,7 +244,7 @@ export class PageObject {
         const teamsLoadedValue = mainDataset.teamsLoaded;
         this.log(`[Attempt ${attempts + 1}] teams loaded value: ${teamsLoadedValue}`);
         if (teamsLoadedValue === 'true') {
-          attempts++;
+          attempts += 1;
           loaded = true;
           break;
         }
