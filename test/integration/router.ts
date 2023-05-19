@@ -1,3 +1,5 @@
+/** @format */
+
 import { expect } from 'chai';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { config } from './server/test-server.js';
@@ -49,7 +51,7 @@ async function testNavigation(page: Page, href: string, linkText: string) {
   expect(await myText).equal(linkText);
 
   // Does the click take you to the right page?
-  const [] = await Promise.all([
+  await Promise.all([
     page.waitForNavigation(), // The promise resolves after navigation has finished
     page.evaluate(doShadowRootClick, myApp, selector),
   ]);
@@ -75,9 +77,13 @@ async function testNavigationInADifferentWay(page: Page, href: string, linkText:
   const text = await page.evaluate((el) => el?.textContent, linkHandle);
   expect(text).equal(linkText);
 
-  const [] = await Promise.all([
+  await Promise.all([
     page.waitForNavigation(), // The promise resolves after navigation has finished
-    page.evaluate((el) => { if (el?.nodeType === Node.ELEMENT_NODE) { (el as HTMLElement).click(); } }, linkHandle), // Clicking the link will indirectly cause a navigation
+    page.evaluate((el) => {
+      if (el?.nodeType === Node.ELEMENT_NODE) {
+        (el as HTMLElement).click();
+      }
+    }, linkHandle), // Clicking the link will indirectly cause a navigation
   ]);
   const newUrl = await page.evaluate('window.location.href');
   expect(newUrl).equal(`${config.appUrl}/${href}`);

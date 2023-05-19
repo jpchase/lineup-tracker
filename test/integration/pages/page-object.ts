@@ -1,7 +1,17 @@
+/** @format */
+
 import { AxePuppeteer } from '@axe-core/puppeteer';
 import { AxeResults } from 'axe-core';
 import * as path from 'path';
-import puppeteer, { Browser, ConsoleMessage, ElementHandle, HTTPRequest, Page, ScreenshotOptions, Viewport } from 'puppeteer';
+import puppeteer, {
+  Browser,
+  ConsoleMessage,
+  ElementHandle,
+  HTTPRequest,
+  Page,
+  ScreenshotOptions,
+  Viewport,
+} from 'puppeteer';
 import { integrationTestData } from '../data/integration-data-constants.js';
 import { serveHermeticFontPuppeteer } from '../server/hermetic-fonts.js';
 import { config } from '../server/test-server.js';
@@ -18,7 +28,7 @@ export interface PageOptions {
   userId?: string;
   team?: TeamOptions;
   gameId?: string;
-  viewPort?: Viewport
+  viewPort?: Viewport;
 }
 
 export interface OpenOptions {
@@ -34,7 +44,7 @@ export interface TeamOptions {
 
 enum PageLoadType {
   Navigation,
-  Reload
+  Reload,
 }
 
 export type PageConstructor<T extends PageObject> = new (options: PageOptions) => T;
@@ -82,13 +92,15 @@ export class PageObject {
   }
 
   async init() {
-    const browser = this._browser = await puppeteer.launch({ args: ['--disable-gpu', '--font-render-hinting=none'] });
+    const browser = (this._browser = await puppeteer.launch({
+      args: ['--disable-gpu', '--font-render-hinting=none'],
+    }));
     // const browser = this._browser = await puppeteer.launch({
     //   args: ['--disable-gpu', '--font-render-hinting=none'], headless: false,
     //   devtools: true,
     // });
 
-    const page = this._page = await browser.newPage();
+    const page = (this._page = await browser.newPage());
 
     page.on('console', (msg: ConsoleMessage) => logWithTime(msg.text(), 'PAGE LOG'));
 
@@ -96,7 +108,11 @@ export class PageObject {
 
     page.on('requestfailed', (request: HTTPRequest) => {
       const response = request.response();
-      logWithTime(`PAGE REQUEST FAIL: ${response?.status()} ${request.failure()!.errorText} [${request.url()}] ${JSON.stringify(response?.timing())}`);
+      logWithTime(
+        `PAGE REQUEST FAIL: ${response?.status()} ${
+          request.failure()!.errorText
+        } [${request.url()}] ${JSON.stringify(response?.timing())}`
+      );
     });
 
     page.setRequestInterception(true);
@@ -118,6 +134,7 @@ export class PageObject {
   // After the swap, this page object will no longer be valid or connected to
   // puppeteer.
   swap<T extends PageObject>(targetPageType: PageConstructor<T>, options: PageOptions = {}): T {
+    // eslint-disable-next-line new-cap -- The `targetPageType` is a parameter, not a known type.
     const newPage = new targetPageType(options);
     newPage._browser = this._browser;
     newPage._page = this._page;
@@ -174,8 +191,7 @@ export class PageObject {
 
   async waitForAppInitialization() {
     this.log(`waitForAppInitialization: start`);
-    await this.page.waitForSelector('body[data-app-initialized]',
-      { timeout: 10000 });
+    await this.page.waitForSelector('body[data-app-initialized]', { timeout: 10000 });
   }
 
   async waitForViewReady() {
@@ -186,8 +202,7 @@ export class PageObject {
     this.log(`waitForViewReady: get main element`);
     const main = await this.getMainElement();
     this.log(`waitForViewReady: start for ${this.componentName}`);
-    await main.waitForSelector(`pierce/${this.componentName}[ready]`,
-      { timeout: 6000 });
+    await main.waitForSelector(`pierce/${this.componentName}[ready]`, { timeout: 6000 });
   }
 
   private async getMainElement() {
@@ -203,9 +218,11 @@ export class PageObject {
   }
 
   private async getMainElementDataset() {
-    return await this.page.evaluate(async () => {
+    return this.page.evaluate(async () => {
       const app = document.querySelector('lineup-app');
-      const mainElement = app?.shadowRoot?.querySelector('mwc-drawer > div[slot=appContent] > main');
+      const mainElement = app?.shadowRoot?.querySelector(
+        'mwc-drawer > div[slot=appContent] > main'
+      );
       if (mainElement) {
         const teamsLoaded = (mainElement as HTMLElement).dataset.teamsLoaded;
         console.log(`main data attributes: ${teamsLoaded}`);
@@ -221,6 +238,7 @@ export class PageObject {
     let attempts = 0;
     const maxAttempts = 15;
     for (; attempts < maxAttempts; attempts++) {
+      // eslint-disable-next-line no-await-in-loop -- This loop is for async retries.
       const mainDataset = await this.getMainElementDataset();
       if (mainDataset) {
         const teamsLoadedValue = mainDataset.teamsLoaded;
@@ -233,6 +251,7 @@ export class PageObject {
       }
       if (attempts < maxAttempts - 1) {
         console.timeLog('wait for teams-loaded');
+        // eslint-disable-next-line no-await-in-loop -- This loop is for async retries.
         await this.page.waitForTimeout(200);
       }
     }
@@ -284,11 +303,11 @@ export class PageObject {
   }
 
   async signin() {
-    const buttonHandle = await this.page.evaluateHandle(`(async () => {
+    const buttonHandle = (await this.page.evaluateHandle(`(async () => {
       console.log('get signin button');
       const signinButton = document.querySelector('lineup-app').shadowRoot.querySelector('button.signin-btn');
       return signinButton;
-    })()`) as ElementHandle;
+    })()`)) as ElementHandle;
     await buttonHandle.click();
     // TODO: Is this wait needed to let promises resolve, or does the sign in actually need the time.
     await this.page.waitForTimeout(100);
@@ -303,7 +322,7 @@ export class PageObject {
   }
 
   async getTimezoneOffset(): Promise<number> {
-    return await this.page.evaluate(() => {
+    return this.page.evaluate(() => {
       return new Date().getTimezoneOffset();
     });
   }
@@ -322,7 +341,7 @@ export class PageObject {
       }
     });
     */
-    return await this.page.evaluate(`(async () => {
+    return (await this.page.evaluate(`(async () => {
   // @ts-ignore
   const teamSelector = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-team-selector').shadowRoot.querySelector('#team-switcher-button');
   if (!teamSelector) { return; }
@@ -332,25 +351,35 @@ export class PageObject {
     id: '', // teamSelector.contentElement.selected, /* selectedItem.id,*/
     name: teamSelector.innerText
   }
-})()`) as { id: string, name: string };
+})()`)) as { id: string; name: string };
   }
 
   async screenshot(directory?: string): Promise<string> {
     const viewName = this.scenarioName || this._route || 'unknown';
     const params: ScreenshotOptions = {
-      path: path.join(directory || '', `${viewName}.png`)
+      path: path.join(directory || '', `${viewName}.png`),
     };
     return this.page.screenshot(params).then(() => viewName);
   }
 
-  async checkAccessibility(): Promise<{ results: AxeResults, violationCount: number, violationMessage: string }> {
-    const axe = new AxePuppeteer(this.page)
-      .disableRules(['aria-allowed-role', 'aria-dialog-name', 'color-contrast', 'list', 'landmark-one-main', 'page-has-heading-one']);
+  async checkAccessibility(): Promise<{
+    results: AxeResults;
+    violationCount: number;
+    violationMessage: string;
+  }> {
+    const axe = new AxePuppeteer(this.page).disableRules([
+      'aria-allowed-role',
+      'aria-dialog-name',
+      'color-contrast',
+      'list',
+      'landmark-one-main',
+      'page-has-heading-one',
+    ]);
     return axe.analyze().then((results) => {
       return {
         results,
         violationCount: results.violations.length,
-        violationMessage: processAxeResults(results)
+        violationMessage: processAxeResults(results),
       };
     });
   }
@@ -407,11 +436,11 @@ function processAxeResults(results: AxeResults) {
   if (violations.length) {
     messages.push('Accessibility Violations');
     messages.push('---');
-    violations.forEach(violation => {
+    violations.forEach((violation) => {
       messages.push(`Rule: ${violation.id}`);
       messages.push(`Impact: ${violation.impact}`);
       messages.push(`${violation.help} (${violation.helpUrl})`);
-      violation.nodes.forEach(node => {
+      violation.nodes.forEach((node) => {
         messages.push('');
         if (node.target) {
           messages.push(`Issue target: ${node.target}`);
@@ -435,8 +464,11 @@ export function logWithTime(message: string, prefix?: string) {
 
 export function currentTimeForLog(): string {
   const options: any = {
-    hour: 'numeric', minute: 'numeric', second: 'numeric',
-    fractionalSecondDigits: 3, hour12: false,
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    fractionalSecondDigits: 3,
+    hour12: false,
   };
   return new Intl.DateTimeFormat('default', options).format(Date.now());
 }

@@ -1,3 +1,5 @@
+/** @format */
+
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
 import '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card';
@@ -19,12 +21,14 @@ function getPositions(formationType: FormationType) {
   const positions: PositionCounter = {};
 
   [
-    formation.forward1, formation.forward2,
-    formation.midfield1, formation.midfield2,
+    formation.forward1,
+    formation.forward2,
+    formation.midfield1,
+    formation.midfield2,
     formation.defense,
-    formation.gk
-  ].forEach(line => {
-    line.positions.forEach(position => {
+    formation.gk,
+  ].forEach((line) => {
+    line.positions.forEach((position) => {
       let count = positions[position.id];
       if (count) {
         count++;
@@ -37,7 +41,11 @@ function getPositions(formationType: FormationType) {
   return positions;
 }
 
-function getPlayers(numPlayers: number, status?: PlayerStatus, otherStatus?: PlayerStatus): LivePlayer[] {
+function getPlayers(
+  numPlayers: number,
+  status?: PlayerStatus,
+  otherStatus?: PlayerStatus
+): LivePlayer[] {
   const size = numPlayers || 6;
   const players: LivePlayer[] = [];
   for (let i = 0; i < size; i++) {
@@ -111,7 +119,7 @@ function getPlayers(numPlayers: number, status?: PlayerStatus, otherStatus?: Pla
       uniformNumber: i + (i % 3) * 10,
       currentPosition: currentPosition,
       positions: pos,
-      status: status || PlayerStatus.On
+      status: status || PlayerStatus.On,
     });
 
     if (otherStatus) {
@@ -121,7 +129,7 @@ function getPlayers(numPlayers: number, status?: PlayerStatus, otherStatus?: Pla
         uniformNumber: i + (i % 4) * 10,
         currentPosition: currentPosition,
         positions: pos,
-        status: otherStatus
+        status: otherStatus,
       });
     }
   }
@@ -137,7 +145,7 @@ describe('lineup-on-player-list tests', () => {
   function verifyPlayerCards(players: LivePlayer[]) {
     const items = el.shadowRoot!.querySelectorAll('div div.list div lineup-player-card');
 
-    players.forEach(player => {
+    players.forEach((player) => {
       let found = false;
       for (let element of Array.from(items)) {
         const playerCard = element as LineupPlayerCard;
@@ -154,12 +162,12 @@ describe('lineup-on-player-list tests', () => {
           found = true;
           break;
         }
-      };
+      }
 
       if (player.status === PlayerStatus.On) {
-        assert.isTrue(found, `Card containing list player, id = ${player.id}`)
+        assert.isTrue(found, `Card containing list player, id = ${player.id}`);
       } else {
-        assert.isFalse(found, `Card should not be found containing list player, id = ${player.id}`)
+        assert.isFalse(found, `Card should not be found containing list player, id = ${player.id}`);
       }
     });
   }
@@ -186,7 +194,7 @@ describe('lineup-on-player-list tests', () => {
 
     const expectedPositions = getPositions(FormationType.F4_3_3);
     const actualPositions: PositionCounter = {};
-    items.forEach(element => {
+    items.forEach((element) => {
       const playerCard = element as LineupPlayerCard;
       const position = playerCard.data!.position.id;
       let count = actualPositions[position];
@@ -211,15 +219,14 @@ describe('lineup-on-player-list tests', () => {
     assert.equal(items.length, 11, 'Rendered position count');
 
     let selectedCards: LineupPlayerCard[] = [];
-    items.forEach(element => {
+    items.forEach((element) => {
       const playerCard = element as LineupPlayerCard;
       if (playerCard.selected) {
         selectedCards.push(playerCard);
       }
     });
     expect(selectedCards).to.have.lengthOf(1);
-    expect(selectedCards[0].data!.position).to.deep.equal(
-      { id: 'HM', type: 'HM', selected: true });
+    expect(selectedCards[0].data!.position).to.deep.equal({ id: 'HM', type: 'HM', selected: true });
   });
 
   it('renders full formation when input list has no matching players', async () => {
@@ -232,7 +239,7 @@ describe('lineup-on-player-list tests', () => {
 
     const expectedPositions = getPositions(FormationType.F4_3_3);
     const actualPositions: PositionCounter = {};
-    items.forEach(element => {
+    items.forEach((element) => {
       const playerCard = element as LineupPlayerCard;
       assert.isOk(playerCard.data!.position, 'Position is set');
       assert.isNotOk(playerCard.data!.player, 'Player should not be set');
@@ -260,6 +267,7 @@ describe('lineup-on-player-list tests', () => {
 
   for (const numPlayers of [1, 6]) {
     const testName = numPlayers === 1 ? 'single player' : `multiple players`;
+    // eslint-disable-next-line no-loop-func
     it(`puts players in matching position with ${testName}`, async () => {
       const players = getPlayers(numPlayers);
       el.formation = getFormation(FormationType.F4_3_3);
@@ -269,6 +277,7 @@ describe('lineup-on-player-list tests', () => {
       verifyPlayerCards(players);
     });
 
+    // eslint-disable-next-line no-loop-func
     it(`puts players in matching position with ${testName} mixed with other status`, async () => {
       // Generates a list with two players at each position, the first off, the second on.
       // Ensures that if status is not filtered correctly, the non-matching 'OFF' player is

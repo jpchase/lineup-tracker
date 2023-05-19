@@ -1,27 +1,39 @@
+/** @format */
+
 import { Position } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
-import {
-  getPlayer, LiveGame, LivePlayer, PeriodStatus
-} from '@app/models/live.js';
+import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getGame as getGameCreator } from '@app/slices/game/game-slice.js';
 import {
-  cancelSub, cancelSwap, confirmSub,
-  confirmSwap, endPeriod, gameCompleted, live, LiveState,
-  selectPlayer, startGamePeriod, startPeriod
+  cancelSub,
+  cancelSwap,
+  confirmSub,
+  confirmSwap,
+  endPeriod,
+  gameCompleted,
+  live,
+  LiveState,
+  selectPlayer,
+  startGamePeriod,
+  startPeriod,
 } from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
-  buildClock, buildClockWithTimer, buildLiveGameWithSetupTasks, buildLiveGameWithSetupTasksAndPlayers, buildLiveStateWithCurrentGame, buildShiftWithTrackers, getGame, getTrackerMap, INITIAL_OVERALL_STATE
+  buildClock,
+  buildClockWithTimer,
+  buildLiveGameWithSetupTasks,
+  buildLiveGameWithSetupTasksAndPlayers,
+  buildLiveStateWithCurrentGame,
+  buildShiftWithTrackers,
+  getGame,
+  getTrackerMap,
+  INITIAL_OVERALL_STATE,
 } from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
-import {
-  buildRoster,
-  getFakeAction,
-  getNewGame, getStoredGame
-} from '../../helpers/test_data.js';
+import { buildRoster, getFakeAction, getNewGame, getStoredGame } from '../../helpers/test_data.js';
 
 function buildLiveGameWithPlayers(): LiveGame {
   return testlive.getLiveGameWithPlayers();
@@ -31,7 +43,7 @@ function buildSwapPlayerPlaceholder(onPlayer: LivePlayer, position: Position) {
   const swap: LivePlayer = {
     ...onPlayer,
     nextPosition: { ...position },
-    isSwap: true
+    isSwap: true,
   };
   return swap;
 }
@@ -39,18 +51,15 @@ function buildSwapPlayerPlaceholder(onPlayer: LivePlayer, position: Position) {
 function mockGetState(currentState: LiveState) {
   return sinon.fake(() => {
     const mockState: RootState = {
-      live: currentState
+      live: currentState,
     };
     return mockState;
   });
 }
 
 describe('Live slice', () => {
-
   it('should return the initial state', () => {
-    expect(
-      live(INITIAL_OVERALL_STATE, getFakeAction())
-    ).to.equal(INITIAL_OVERALL_STATE);
+    expect(live(INITIAL_OVERALL_STATE, getFakeAction())).to.equal(INITIAL_OVERALL_STATE);
   });
 
   describe('game/getGame', () => {
@@ -71,11 +80,10 @@ describe('Live slice', () => {
       const inputGame: GameDetail = {
         ...existingGame,
         hasDetail: true,
-        roster: buildRoster(expectedGame.players)
+        roster: buildRoster(expectedGame.players),
       };
 
-      const newState = live(currentState,
-        getGameCreator.fulfilled(inputGame, 'unused', 'unused'));
+      const newState = live(currentState, getGameCreator.fulfilled(inputGame, 'unused', 'unused'));
 
       expect(newState).to.deep.include(expectedState);
 
@@ -86,7 +94,7 @@ describe('Live slice', () => {
       const currentGame = getNewGame();
       const inputGame: GameDetail = {
         ...currentGame,
-        roster: {}
+        roster: {},
       };
 
       const expectedGame = buildLiveGameWithSetupTasks();
@@ -94,14 +102,12 @@ describe('Live slice', () => {
       expectedGame.clock = buildClock();
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
-      const newState = live(currentState,
-        getGameCreator.fulfilled(inputGame, 'unused', 'unused'));
+      const newState = live(currentState, getGameCreator.fulfilled(inputGame, 'unused', 'unused'));
 
       expect(newState).to.deep.include(expectedState);
 
       expect(getGame(newState, inputGame.id)).not.to.equal(getGame(currentState, inputGame.id));
     });
-
   }); // describe('game/getGame')
 
   describe('live/selectPlayer', () => {
@@ -119,16 +125,20 @@ describe('Live slice', () => {
     });
 
     function setPlayerStatus(game: LiveGame, playerId: string, status: PlayerStatus) {
-      const player = game.players!.find(p => (p.id === playerId));
+      const player = game.players!.find((p) => p.id === playerId);
       if (player) {
         player.status = status;
       }
     }
 
-    function buildLiveGameForSelected(status: PlayerStatus, selected: boolean, playerId?: string): LiveGame {
+    function buildLiveGameForSelected(
+      status: PlayerStatus,
+      selected: boolean,
+      playerId?: string
+    ): LiveGame {
       const game = buildLiveGameWithPlayers();
       const lookupId = playerId || selectedPlayerId;
-      const player = game.players!.find(p => (p.id === lookupId));
+      const player = game.players!.find((p) => p.id === lookupId);
       if (player) {
         player.status = status;
         player.selected = selected;
@@ -151,11 +161,14 @@ describe('Live slice', () => {
     const flagOnlyStatuses = [PlayerStatus.Next, PlayerStatus.Out];
 
     it('All statuses are covered by selected tests', () => {
-      expect(trackedStatuses.length + flagOnlyStatuses.length, 'Selected tests for every status').to.equal(Object.values(PlayerStatus).length);
+      expect(
+        trackedStatuses.length + flagOnlyStatuses.length,
+        'Selected tests for every status'
+      ).to.equal(Object.values(PlayerStatus).length);
     });
 
     for (const status of trackedStatuses) {
-
+      // eslint-disable-next-line no-loop-func
       describe(`Status: ${status}`, () => {
         beforeEach(async () => {
           setPlayerStatus(getGame(currentState, gameId)!, selectedPlayer.id, status);
@@ -165,19 +178,20 @@ describe('Live slice', () => {
           const newState = live(currentState, selectPlayer(gameId, selectedPlayer.id, true));
 
           const expectedState = buildLiveStateWithCurrentGame(
-            buildLiveGameForSelected(status, true));
+            buildLiveGameForSelected(status, true)
+          );
           setTrackedPlayer(expectedState, status);
 
           expect(newState).to.deep.include(expectedState);
         });
 
         it(`should clear selectedPlayer when de-selected`, () => {
-          const state = buildLiveStateWithCurrentGame(
-            buildLiveGameForSelected(status, true));
+          const state = buildLiveStateWithCurrentGame(buildLiveGameForSelected(status, true));
           setTrackedPlayer(state, status);
 
           const expectedState = buildLiveStateWithCurrentGame(
-            buildLiveGameForSelected(status, false));
+            buildLiveGameForSelected(status, false)
+          );
 
           const newState = live(state, selectPlayer(gameId, selectedPlayer.id, false));
 
@@ -189,7 +203,7 @@ describe('Live slice', () => {
     } // for (const status of trackedStatuses)
 
     for (const status of flagOnlyStatuses) {
-
+      // eslint-disable-next-line no-loop-func
       describe(`Status: ${status}`, () => {
         beforeEach(async () => {
           setPlayerStatus(getGame(currentState, gameId)!, selectedPlayer.id, status);
@@ -247,7 +261,7 @@ describe('Live slice', () => {
           ...offPlayer,
           selected: true,
           currentPosition: onPlayer.currentPosition,
-          replaces: onPlayerId
+          replaces: onPlayerId,
         });
       });
 
@@ -262,7 +276,7 @@ describe('Live slice', () => {
           ...offPlayer,
           selected: true,
           currentPosition: onPlayer.currentPosition,
-          replaces: onPlayerId
+          replaces: onPlayerId,
         });
       });
     }); // describe('Propose sub')
@@ -282,7 +296,6 @@ describe('Live slice', () => {
       });
 
       it('should propose swap when ON player selected after other ON player already selected', () => {
-
         // Sets an already selected ON player.
         currentState.selectedOnPlayer = onPlayerId;
         onPlayer.selected = true;
@@ -292,12 +305,10 @@ describe('Live slice', () => {
         expect(newState.proposedSwap).to.deep.include({
           ...onPlayer,
           nextPosition: positionPlayer.currentPosition,
-          isSwap: true
+          isSwap: true,
         });
       });
-
     }); // describe('Propose swap')
-
   }); // describe('live/selectPlayer')
 
   describe('Proposed Subs', () => {
@@ -324,21 +335,17 @@ describe('Live slice', () => {
       const sub: LivePlayer = {
         ...offPlayer,
         currentPosition: { ...onPlayer.currentPosition! },
-        replaces: onPlayer.id
-      }
+        replaces: onPlayer.id,
+      };
 
-
-      currentState = buildLiveStateWithCurrentGame(
-        game,
-        {
-          selectedOffPlayer: offPlayerId,
-          selectedOnPlayer: onPlayerId,
-          proposedSub: sub
-        });
+      currentState = buildLiveStateWithCurrentGame(game, {
+        selectedOffPlayer: offPlayerId,
+        selectedOnPlayer: onPlayerId,
+        proposedSub: sub,
+      });
     });
 
     describe('live/confirmSub', () => {
-
       it('should set off player to Next with currentPosition', () => {
         const newState: LiveState = live(currentState, confirmSub(gameId));
         const newGame = getGame(newState, gameId)!;
@@ -347,31 +354,33 @@ describe('Live slice', () => {
         const newPlayers = newGame.players!;
         expect(newPlayers).not.to.equal(getGame(currentState, gameId)?.players);
 
-        const newPlayer = newPlayers.find(player => (player.id === offPlayerId));
+        const newPlayer = newPlayers.find((player) => player.id === offPlayerId);
         expect(newPlayer).to.not.be.undefined;
         expect(newPlayer).to.deep.include({
           status: PlayerStatus.Next,
           currentPosition: { ...onPlayer.currentPosition },
-          replaces: onPlayerId
+          replaces: onPlayerId,
         });
         expect(newPlayer!.selected, 'Off player should no longer be selected').to.not.be.ok;
       });
 
       it('should set off player to Next with overridden position', () => {
-        const newState: LiveState = live(currentState,
-          confirmSub(gameId, otherPositionPlayer.currentPosition!));
+        const newState: LiveState = live(
+          currentState,
+          confirmSub(gameId, otherPositionPlayer.currentPosition!)
+        );
         const newGame = getGame(newState, gameId)!;
 
         expect(newGame.players).to.not.be.undefined;
         const newPlayers = newGame.players!;
         expect(newPlayers).not.to.equal(getGame(currentState, gameId)?.players);
 
-        const newPlayer = newPlayers.find(player => (player.id === offPlayerId));
+        const newPlayer = newPlayers.find((player) => player.id === offPlayerId);
         expect(newPlayer).to.not.be.undefined;
         expect(newPlayer).to.deep.include({
           status: PlayerStatus.Next,
           currentPosition: { ...otherPositionPlayer.currentPosition },
-          replaces: onPlayerId
+          replaces: onPlayerId,
         });
         expect(newPlayer!.selected, 'Off player should no longer be selected').to.not.be.ok;
       });
@@ -382,7 +391,7 @@ describe('Live slice', () => {
 
         expect(newGame.players).to.not.be.undefined;
 
-        const newPlayer = newGame.players?.find(player => (player.id === onPlayerId));
+        const newPlayer = newGame.players?.find((player) => player.id === onPlayerId);
         expect(newPlayer).to.not.be.undefined;
         expect(newPlayer!.selected, 'On player should no longer be selected').to.not.be.ok;
 
@@ -392,26 +401,24 @@ describe('Live slice', () => {
       });
 
       it('should do nothing if proposed sub is missing', () => {
-        currentState = buildLiveStateWithCurrentGame(
-          buildLiveGameWithPlayers());
+        currentState = buildLiveStateWithCurrentGame(buildLiveGameWithPlayers());
         const newState = live(currentState, confirmSub(gameId));
 
         expect(newState).to.equal(currentState);
       });
-
     }); // describe('live/confirmSub')
 
     describe('live/cancelSub', () => {
-
       it('should clear selected players and proposed sub', () => {
         const newState = live(currentState, cancelSub(gameId));
         const newGame = getGame(newState, gameId)!;
 
-        const cancelledOffPlayer = newGame?.players?.find(player => (player.id === offPlayerId));
+        const cancelledOffPlayer = newGame?.players?.find((player) => player.id === offPlayerId);
         expect(cancelledOffPlayer).to.not.be.undefined;
-        expect(cancelledOffPlayer!.selected, 'Off player should no longer be selected').to.not.be.ok;
+        expect(cancelledOffPlayer!.selected, 'Off player should no longer be selected').to.not.be
+          .ok;
 
-        const cancelledOnPlayer = newGame?.players?.find(player => (player.id === onPlayerId));
+        const cancelledOnPlayer = newGame?.players?.find((player) => player.id === onPlayerId);
         expect(cancelledOnPlayer).to.not.be.undefined;
         expect(cancelledOnPlayer!.selected, 'On player should no longer be selected').to.not.be.ok;
 
@@ -421,14 +428,12 @@ describe('Live slice', () => {
       });
 
       it('should do nothing if proposed sub is missing', () => {
-        currentState = buildLiveStateWithCurrentGame(
-          buildLiveGameWithPlayers());
+        currentState = buildLiveStateWithCurrentGame(buildLiveGameWithPlayers());
 
         const newState = live(currentState, cancelSub(gameId));
 
         expect(newState).to.equal(currentState);
       });
-
     }); // describe('live/cancelSub')
   }); // describe('Proposed Subs')
 
@@ -453,17 +458,14 @@ describe('Live slice', () => {
 
       const swap = buildSwapPlayerPlaceholder(onPlayer, positionPlayer.currentPosition!);
 
-      currentState = buildLiveStateWithCurrentGame(
-        game,
-        {
-          selectedOnPlayer: onPlayerId,
-          selectedOnPlayer2: positionPlayerId,
-          proposedSwap: swap
-        });
+      currentState = buildLiveStateWithCurrentGame(game, {
+        selectedOnPlayer: onPlayerId,
+        selectedOnPlayer2: positionPlayerId,
+        proposedSwap: swap,
+      });
     });
 
     describe('live/confirmSwap', () => {
-
       it('should clone on player to Next as a swap', () => {
         const newState: LiveState = live(currentState, confirmSwap(gameId));
         const newGame = getGame(newState, gameId)!;
@@ -483,11 +485,12 @@ describe('Live slice', () => {
           currentPosition: { ...onPlayer.currentPosition },
           nextPosition: { ...positionPlayer.currentPosition },
           isSwap: true,
-          selected: false
+          selected: false,
         });
 
         const newPositionPlayer = getPlayer(newGame, positionPlayerId);
-        expect(newPositionPlayer!.selected, 'Position player should no longer be selected').to.not.be.ok;
+        expect(newPositionPlayer!.selected, 'Position player should no longer be selected').to.not
+          .be.ok;
       });
 
       it('should clear selected players and proposed swap', () => {
@@ -496,7 +499,7 @@ describe('Live slice', () => {
 
         expect(newGame.players).to.not.be.undefined;
 
-        const newPlayer = newGame.players?.find(player => (player.id === onPlayerId));
+        const newPlayer = newGame.players?.find((player) => player.id === onPlayerId);
         expect(newPlayer).to.not.be.undefined;
         expect(newPlayer!.selected, 'On player should no longer be selected').to.not.be.ok;
 
@@ -506,29 +509,29 @@ describe('Live slice', () => {
       });
 
       it('should do nothing if proposed swap is missing', () => {
-        currentState = buildLiveStateWithCurrentGame(
-          buildLiveGameWithPlayers());
+        currentState = buildLiveStateWithCurrentGame(buildLiveGameWithPlayers());
 
         const newState = live(currentState, confirmSwap(gameId));
 
         expect(newState).to.equal(currentState);
       });
-
     }); // describe('live/confirmSwap')
 
     describe('live/cancelSwap', () => {
-
       it('should clear selected players and proposed swap', () => {
         const newState = live(currentState, cancelSwap(gameId));
         const newGame = getGame(newState, gameId)!;
 
-        const cancelledOnPlayer = newGame?.players?.find(player => (player.id === onPlayerId));
+        const cancelledOnPlayer = newGame?.players?.find((player) => player.id === onPlayerId);
         expect(cancelledOnPlayer).to.not.be.undefined;
         expect(cancelledOnPlayer!.selected, 'On player should no longer be selected').to.not.be.ok;
 
-        const cancelledPositionPlayer = newGame?.players?.find(player => (player.id === positionPlayerId));
+        const cancelledPositionPlayer = newGame?.players?.find(
+          (player) => player.id === positionPlayerId
+        );
         expect(cancelledPositionPlayer).to.not.be.undefined;
-        expect(cancelledPositionPlayer!.selected, 'Position player should no longer be selected').to.not.be.ok;
+        expect(cancelledPositionPlayer!.selected, 'Position player should no longer be selected').to
+          .not.be.ok;
 
         expect(newState.selectedOnPlayer, 'selectedOnPlayer').to.be.undefined;
         expect(newState.selectedOnPlayer2, 'selectedOnPlayer2').to.be.undefined;
@@ -536,14 +539,12 @@ describe('Live slice', () => {
       });
 
       it('should do nothing if proposed swap is missing', () => {
-        currentState = buildLiveStateWithCurrentGame(
-          buildLiveGameWithPlayers());
+        currentState = buildLiveStateWithCurrentGame(buildLiveGameWithPlayers());
 
         const newState = live(currentState, cancelSwap(gameId));
 
         expect(newState).to.equal(currentState);
       });
-
     }); // describe('live/cancelSwap')
   }); // describe('Proposed Swaps')
 
@@ -558,11 +559,9 @@ describe('Live slice', () => {
       const game = buildLiveGameWithPlayers();
       game.clock = buildClockWithTimer();
       gameId = game.id;
-      currentState = buildLiveStateWithCurrentGame(
-        game,
-        {
-          shift: buildShiftWithTrackers(gameId)
-        });
+      currentState = buildLiveStateWithCurrentGame(game, {
+        shift: buildShiftWithTrackers(gameId),
+      });
     });
 
     afterEach(async () => {
@@ -577,13 +576,15 @@ describe('Live slice', () => {
     const otherStatuses = [GameStatus.New, GameStatus.Done];
 
     it('All statuses are covered by start/end period tests', () => {
-      expect(startAllowedStatuses.length + endAllowedStatuses.length + otherStatuses.length,
-        'Start/end period tests for every status').to.equal(Object.values(GameStatus).length);
+      expect(
+        startAllowedStatuses.length + endAllowedStatuses.length + otherStatuses.length,
+        'Start/end period tests for every status'
+      ).to.equal(Object.values(GameStatus).length);
     });
 
     describe('live/startPeriod', () => {
       for (const status of startAllowedStatuses) {
-
+        // eslint-disable-next-line no-loop-func
         it(`should dispatch action allow start = true when game is in ${status} status`, async () => {
           getGame(currentState, gameId)!.status = status;
 
@@ -596,14 +597,19 @@ describe('Live slice', () => {
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /* gameAllowsStart= */ true));
+            startPeriod(gameId, /* gameAllowsStart= */ true)
+          );
         });
 
+        // eslint-disable-next-line no-loop-func
         it(`should change game status from ${status} to Live`, () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
 
-          const newState = live(currentState, startPeriod(currentGame.id, /*gameAllowsStart=*/true));
+          const newState = live(
+            currentState,
+            startPeriod(currentGame.id, /*gameAllowsStart=*/ true)
+          );
 
           const newGame = getGame(newState, gameId)!;
           expect(newGame.status).to.equal(GameStatus.Live);
@@ -612,6 +618,7 @@ describe('Live slice', () => {
           expect(newTrackerMap?.clockRunning).to.be.true;
         });
 
+        // eslint-disable-next-line no-loop-func
         it(`should dispatch action allow start = false when already at last period in ${status} status`, async () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
@@ -627,14 +634,15 @@ describe('Live slice', () => {
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /* gameAllowsStart= */ false));
+            startPeriod(gameId, /* gameAllowsStart= */ false)
+          );
         });
       }
 
       const startInvalidStatuses = endAllowedStatuses.concat(otherStatuses);
 
       for (const status of startInvalidStatuses) {
-
+        // eslint-disable-next-line no-loop-func
         it(`should dispatch action allow start = false when game is in ${status} status`, async () => {
           getGame(currentState, gameId)!.status = status;
 
@@ -647,23 +655,27 @@ describe('Live slice', () => {
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /* gameAllowsStart= */ false));
+            startPeriod(gameId, /* gameAllowsStart= */ false)
+          );
         });
 
+        // eslint-disable-next-line no-loop-func
         it(`should do nothing when game is in ${status} status`, () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
 
-          const newState = live(currentState, startPeriod(currentGame.id, /*gameAllowsStart=*/false));
+          const newState = live(
+            currentState,
+            startPeriod(currentGame.id, /*gameAllowsStart=*/ false)
+          );
 
           expect(getGame(newState, gameId)?.status).to.equal(status);
           expect(newState).to.equal(currentState);
         });
       }
-    });  // describe('live/startPeriod')
+    }); // describe('live/startPeriod')
 
     describe('live/endPeriod', () => {
-
       it(`should change game status to Break for first period (first half)`, () => {
         const currentGame = getGame(currentState, gameId)!;
         currentGame.status = GameStatus.Live;
@@ -707,7 +719,7 @@ describe('Live slice', () => {
       const endInvalidStatuses = startAllowedStatuses.concat(otherStatuses);
 
       for (const status of endInvalidStatuses) {
-
+        // eslint-disable-next-line no-loop-func
         it(`should do nothing if game is in ${status} status`, () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
@@ -718,8 +730,7 @@ describe('Live slice', () => {
           expect(newState).to.equal(currentState);
         });
       }
-    });  // describe('live/endPeriod')
-
+    }); // describe('live/endPeriod')
   }); // describe('Clock')
 
   describe('live/gameCompleted', () => {
@@ -743,8 +754,10 @@ describe('Live slice', () => {
     const otherStatuses = [GameStatus.New, GameStatus.Start, GameStatus.Break, GameStatus.Live];
 
     it('All statuses are covered by gameCompleted tests', () => {
-      expect(completeAllowedStatuses.length + otherStatuses.length,
-        'Game completed tests for every status').to.equal(Object.values(GameStatus).length);
+      expect(
+        completeAllowedStatuses.length + otherStatuses.length,
+        'Game completed tests for every status'
+      ).to.equal(Object.values(GameStatus).length);
     });
 
     it('should capture final data from Done status', () => {
@@ -758,9 +771,8 @@ describe('Live slice', () => {
       expect(newGame.dataCaptured, 'liveGame.dataCaptured').to.be.true;
     });
 
-
     for (const status of otherStatuses) {
-
+      // eslint-disable-next-line no-loop-func
       it(`should do nothing when game is in ${status} status`, () => {
         const currentGame = getGame(currentState, gameId)!;
         currentGame.status = status;
@@ -771,7 +783,5 @@ describe('Live slice', () => {
         expect(newState).to.equal(currentState);
       });
     }
-
   }); // describe('live/gameCompleted')
-
 });

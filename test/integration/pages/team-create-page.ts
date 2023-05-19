@@ -1,5 +1,7 @@
-import { PageObject, PageOptions } from './page-object.js';
+/** @format */
+
 import { ElementHandle } from 'puppeteer';
+import { PageObject, PageOptions } from './page-object.js';
 
 export class TeamCreatePage extends PageObject {
   private _getTeamCreateFuncExposed = false;
@@ -8,7 +10,7 @@ export class TeamCreatePage extends PageObject {
     super({
       ...options,
       scenarioName: options.scenarioName ?? 'addNewTeam',
-      route: 'addNewTeam'
+      route: 'addNewTeam',
     });
   }
 
@@ -57,13 +59,13 @@ export class TeamCreatePage extends PageObject {
         saveButton.click();
         await Promise.resolve();
       })()`); */
-    const buttonHandle = await this.page.evaluateHandle(`(async () => {
+    const buttonHandle = (await this.page.evaluateHandle(`(async () => {
       console.log('get team create')
       const teamCreate = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-view-team-create').shadowRoot.querySelector('lineup-team-create');
       console.log('get save button')
       const saveButton = teamCreate.shadowRoot.querySelector('mwc-button.save');
       return saveButton;
-    })()`) as ElementHandle;
+    })()`)) as ElementHandle;
     await buttonHandle.click();
     this.log(`team create button clicked`);
     // It appears to take ~2.5s for Firebase emulators to complete the write to storage.
@@ -88,10 +90,11 @@ export class TeamCreatePage extends PageObject {
     console.log('Time to expose');
     this._getTeamCreateFuncExposed = true;
     await this.page.exposeFunction('getTeamCreateComponent', () => {
-      console.log('in exposed func')
-      return document.querySelector('lineup-app')!.
-        shadowRoot!.querySelector('lineup-view-team-create')?.
-        shadowRoot!.querySelector('lineup-team-create');
+      console.log('in exposed func');
+      return document
+        .querySelector('lineup-app')!
+        .shadowRoot!.querySelector('lineup-view-team-create')
+        ?.shadowRoot!.querySelector('lineup-team-create');
     });
   }
 

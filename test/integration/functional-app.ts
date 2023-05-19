@@ -1,9 +1,11 @@
+/** @format */
+
 import { expect } from 'chai';
 import { integrationTestData } from './data/integration-data-constants.js';
 import { HomePage } from './pages/home-page.js';
 import { PageObject } from './pages/page-object.js';
 
-describe('App functional tests', function () {
+describe('App functional tests', () => {
   let pageObject: PageObject;
 
   afterEach(async () => {
@@ -12,10 +14,10 @@ describe('App functional tests', function () {
 
   it('current team is persisted after refresh', async function () {
     const teamName = 'Persisted current team';
-    const homePage = pageObject = new HomePage({
+    const homePage = (pageObject = new HomePage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID, teamName },
-    });
+    }));
     await homePage.init();
     await homePage.open({ signIn: true });
 

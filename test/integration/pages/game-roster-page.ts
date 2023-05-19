@@ -1,8 +1,9 @@
+/** @format */
+
 import { Player } from '@app/models/player.js';
 import { PageObject, PageOptions } from './page-object.js';
 
 export class GameRosterPage extends PageObject {
-
   constructor(options: PageOptions = {}) {
     super({
       ...options,
@@ -13,7 +14,7 @@ export class GameRosterPage extends PageObject {
   }
 
   async getPlayers() {
-    return await this.page.evaluate(async () => {
+    return this.page.evaluate(async () => {
       const app = document.querySelector('lineup-app');
       const view = app!.shadowRoot!.querySelector('lineup-view-game-roster');
       const roster = view!.shadowRoot!.querySelector('lineup-roster');
@@ -27,8 +28,8 @@ export class GameRosterPage extends PageObject {
         const nameElement = item.querySelector('span.name');
         players.push({
           id: item.id,
-          name: nameElement?.textContent
-        } as Player)
+          name: nameElement?.textContent,
+        } as Player);
       }
       return players;
     });

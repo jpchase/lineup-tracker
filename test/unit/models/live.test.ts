@@ -1,14 +1,19 @@
+/** @format */
+
 import { Game, GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame, LiveGameBuilder } from '@app/models/live.js';
 import { expect } from '@open-wc/testing';
 import { buildClock } from '../helpers/live-state-setup.js';
 import {
-  buildLivePlayers, buildRoster,
-  getNewGame, getNewGameDetail, getNewPlayer, getStoredPlayer
-} from '../helpers/test_data';
+  buildLivePlayers,
+  buildRoster,
+  getNewGame,
+  getNewGameDetail,
+  getNewPlayer,
+  getStoredPlayer,
+} from '../helpers/test_data.js';
 
 describe('LiveGameBuilder', () => {
-
   it('create should throw for missing/undefined', () => {
     expect(() => {
       LiveGameBuilder.create(undefined as unknown as Game);
@@ -27,7 +32,7 @@ describe('LiveGameBuilder', () => {
     const expected: LiveGame = {
       id: game.id,
       status: GameStatus.New,
-      clock: buildClock()
+      clock: buildClock(),
     };
 
     const newLiveGame = LiveGameBuilder.create(game);
@@ -42,7 +47,7 @@ describe('LiveGameBuilder', () => {
       id: game.id,
       status: GameStatus.New,
       clock: buildClock(),
-      players: []
+      players: [],
     };
 
     const newLiveGame = LiveGameBuilder.create(game);
@@ -57,7 +62,7 @@ describe('LiveGameBuilder', () => {
       id: game.id,
       status: GameStatus.Start,
       clock: buildClock(),
-      players: buildLivePlayers([getNewPlayer(), getStoredPlayer()])
+      players: buildLivePlayers([getNewPlayer(), getStoredPlayer()]),
     };
 
     const newLiveGame = LiveGameBuilder.create(game);
@@ -70,12 +75,11 @@ describe('LiveGameBuilder', () => {
     const expected: LiveGame = {
       id: game.id,
       status: GameStatus.New,
-      clock: buildClock()
+      clock: buildClock(),
     };
 
     const newLiveGame = LiveGameBuilder.create(game);
 
     expect(newLiveGame).to.deep.equal(expected);
   });
-
 });

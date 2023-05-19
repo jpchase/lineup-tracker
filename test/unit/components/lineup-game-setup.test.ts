@@ -1,3 +1,5 @@
+/** @format */
+
 import { EVENT_POSITIONSELECTED } from '@app/components/events.js';
 import '@app/components/lineup-game-setup.js';
 import { LineupGameSetup } from '@app/components/lineup-game-setup.js';
@@ -9,16 +11,27 @@ import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlew
 import { FormationBuilder, FormationType, getPositions } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import {
-  LiveGame, LiveGameBuilder, LivePlayer,
-  SetupStatus, SetupSteps, SetupTask
+  LiveGame,
+  LiveGameBuilder,
+  LivePlayer,
+  SetupStatus,
+  SetupSteps,
+  SetupTask,
 } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
 import {
-  applyStarter, cancelStarter, captainsCompleted, completeRoster,
+  applyStarter,
+  cancelStarter,
+  captainsCompleted,
+  completeRoster,
   configurePeriods,
-  formationSelected, gameSetupCompleted,
-  selectLiveGameById, selectStarter, selectStarterPosition, startersCompleted
+  formationSelected,
+  gameSetupCompleted,
+  selectLiveGameById,
+  selectStarter,
+  selectStarterPosition,
+  startersCompleted,
 } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';
@@ -29,7 +42,12 @@ import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildLiveStateWithCurrentGame, buildSetupTasks } from '../helpers/live-state-setup.js';
 import { mockPageRouter } from '../helpers/mock-page-router.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRoster, getNewGameDetail, getStoredPlayer, STORED_GAME_ID } from '../helpers/test_data.js';
+import {
+  buildRoster,
+  getNewGameDetail,
+  getStoredPlayer,
+  STORED_GAME_ID,
+} from '../helpers/test_data.js';
 
 const LAST_SETUP_STEP = SetupSteps.Captains;
 
@@ -37,7 +55,7 @@ let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
   actions.push(action);
   return next(action);
-}
+};
 
 interface TestSetupTask extends SetupTask {
   expectedName?: string;
@@ -69,8 +87,8 @@ function getTestTasks(tasks: SetupTask[]): TestSetupTask[] {
     }
     return {
       ...task,
-      expectedName
-    }
+      expectedName,
+    };
   });
 }
 
@@ -83,7 +101,7 @@ function buildLiveStateWithTasks(newGame: GameDetail, lastCompletedStep: SetupSt
 }
 
 function findPlayer(game: LiveGame, status: PlayerStatus) {
-  return game.players!.find(player => (player.status === status));
+  return game.players!.find((player) => player.status === status);
 }
 
 describe('lineup-game-setup tests', () => {
@@ -102,17 +120,21 @@ describe('lineup-game-setup tests', () => {
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string): Promise<PageRouter> {
-    const store = setupStore(preloadedState, /*hydrate=*/false);
+    const store = setupStore(preloadedState, /*hydrate=*/ false);
 
     const mockRouter = {
       gotoPage: () => {
         // No-op, meant to be spied.
         return Promise.resolve();
-      }
-    }
+      },
+    };
     const parentNode = document.createElement('div');
     mockPageRouter(parentNode, mockRouter);
-    const template = html`<lineup-game-setup .gameId="${gameId}" .store=${store} .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/false)}></lineup-game-setup>`;
+    const template = html`<lineup-game-setup
+      .gameId="${gameId}"
+      .store=${store}
+      .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/ false)}
+    ></lineup-game-setup>`;
     el = await fixture(template, { parentNode });
     dispatchStub = sinon.spy(el, 'dispatch');
     return mockRouter;
@@ -193,12 +215,14 @@ describe('lineup-game-setup tests', () => {
   function getTaskElement(index: number, step?: SetupSteps): HTMLDivElement {
     const items = getTaskElements();
 
-    expect(items.length).to.be.greaterThanOrEqual(index + 1, `Items doesn't contain index ${index}`);
+    expect(items.length).to.be.greaterThanOrEqual(
+      index + 1,
+      `Items doesn't contain index ${index}`
+    );
 
     const taskElement = items[index];
 
     if (step) {
-
     }
 
     return taskElement as HTMLDivElement;
@@ -316,6 +340,7 @@ describe('lineup-game-setup tests', () => {
 
     for (const stepTest of stepTests) {
       const stepName = SetupSteps[stepTest.step];
+      // eslint-disable-next-line no-loop-func
       describe(stepName, () => {
         let pageRouterSpy: sinon.SinonSpy;
         let gameId: string;
@@ -359,8 +384,8 @@ describe('lineup-game-setup tests', () => {
             await el.updateComplete;
             const formationSection = el.shadowRoot!.querySelector('.formation');
             expect(formationSection, 'Missing formation selector widget').to.be.ok;
-            expect(formationSection!.hasAttribute('active'), 'Should have active attribute').to.be.true;
-
+            expect(formationSection!.hasAttribute('active'), 'Should have active attribute').to.be
+              .true;
           } else if (stepTest.step === SetupSteps.Periods) {
             // Verifies that the periods dialog is now showing.
             await el.updateComplete;
@@ -392,7 +417,6 @@ describe('lineup-game-setup tests', () => {
             expect(dispatchStub).to.have.callCount(1);
           });
         }
-
       }); // describe(stepName)
     } // for each stepTest
   }); // describe('Setup steps')
@@ -431,7 +455,8 @@ describe('lineup-game-setup tests', () => {
       await el.updateComplete;
 
       completeButton = getCompleteSetupButton();
-      expect(completeButton.disabled, 'Complete setup should be enabled, disabled attribute').to.be.false;
+      expect(completeButton.disabled, 'Complete setup should be enabled, disabled attribute').to.be
+        .false;
     });
 
     it('dispatches game setup completed action when complete button clicked', async () => {
@@ -524,7 +549,8 @@ describe('lineup-game-setup tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        selectStarterPosition(gameId, playerElement.data!.position));
+        selectStarterPosition(gameId, playerElement.data!.position)
+      );
     });
 
     it('position card is selected after selection is processed', async () => {
@@ -547,7 +573,7 @@ describe('lineup-game-setup tests', () => {
       const player = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectStarter(gameId, player.id, /*selected =*/true));
+      store.dispatch(selectStarter(gameId, player.id, /*selected =*/ true));
       store.dispatch(selectStarterPosition(gameId, { id: 'AM1', type: 'AM' }));
       await el.updateComplete;
 
@@ -563,7 +589,7 @@ describe('lineup-game-setup tests', () => {
       const player = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectStarter(gameId, player.id, /*selected =*/true));
+      store.dispatch(selectStarter(gameId, player.id, /*selected =*/ true));
       store.dispatch(selectStarterPosition(gameId, { id: 'LW', type: 'W' }));
       await el.updateComplete;
 
@@ -592,7 +618,7 @@ describe('lineup-game-setup tests', () => {
       const player = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectStarter(gameId, player.id, /*selected =*/true));
+      store.dispatch(selectStarter(gameId, player.id, /*selected =*/ true));
       store.dispatch(selectStarterPosition(gameId, { id: 'RW', type: 'W' }));
       await el.updateComplete;
 
@@ -629,13 +655,18 @@ describe('lineup-game-setup tests', () => {
       expect(errorText, 'Missing starter error text').to.be.ok;
 
       const expectedInvalidPositions = getPositions(
-        FormationBuilder.create(liveGame.formation!.type))
-        .map(position => position.id).sort().join(', ');
-      expect(errorText!.textContent, 'Starter error text should contain invalid positions').to.contain(expectedInvalidPositions);
+        FormationBuilder.create(liveGame.formation!.type)
+      )
+        .map((position) => position.id)
+        .sort()
+        .join(', ');
+      expect(
+        errorText!.textContent,
+        'Starter error text should contain invalid positions'
+      ).to.contain(expectedInvalidPositions);
 
       await expect(errorElement).dom.to.equalSnapshot();
     });
-
   }); // describe('Starters')
 
   describe('periods', () => {
@@ -719,7 +750,6 @@ describe('lineup-game-setup tests', () => {
 
       await expect(errorElement).dom.to.equalSnapshot();
     });
-
   }); // describe('periods')
 
   it('a11y', async () => {

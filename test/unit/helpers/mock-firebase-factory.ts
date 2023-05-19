@@ -1,8 +1,17 @@
+/** @format */
+
 import MockFirebase from 'mock-cloud-firestore';
 import {
-  getPublicGameData, getPublicTeamData, getStoredGameData, getStoredPlayerData, getStoredTeamData,
-  OTHER_STORED_GAME_ID, PUBLIC_GAME_ID, STORED_GAME_ID, TEST_USER_ID
-} from './test_data';
+  getPublicGameData,
+  getPublicTeamData,
+  getStoredGameData,
+  getStoredPlayerData,
+  getStoredTeamData,
+  OTHER_STORED_GAME_ID,
+  PUBLIC_GAME_ID,
+  STORED_GAME_ID,
+  TEST_USER_ID,
+} from './test_data.js';
 
 function getMockFirebaseData(): any {
   return {
@@ -17,11 +26,11 @@ function getMockFirebaseData(): any {
               roster: {
                 __doc__: {
                   sp1: {
-                    ...getStoredPlayerData()
-                  }
-                }
-              }
-            }
+                    ...getStoredPlayerData(),
+                  },
+                },
+              },
+            },
           },
           [OTHER_STORED_GAME_ID]: {
             ...getStoredGameData(),
@@ -36,7 +45,7 @@ function getMockFirebaseData(): any {
             ...getPublicGameData(),
             public: true,
           },
-        }
+        },
       },
       teams: {
         __doc__: {
@@ -48,11 +57,11 @@ function getMockFirebaseData(): any {
               roster: {
                 __doc__: {
                   sp1: {
-                    ...getStoredPlayerData()
-                  }
-                }
-              }
-            }
+                    ...getStoredPlayerData(),
+                  },
+                },
+              },
+            },
           },
           pt1: {
             ...getPublicTeamData(),
@@ -65,15 +74,15 @@ function getMockFirebaseData(): any {
                     name: 'Public player 1',
                     uniformNumber: 5,
                     positions: ['CB'],
-                    status: 'OFF'
-                  }
-                }
-              }
-            }
+                    status: 'OFF',
+                  },
+                },
+              },
+            },
           },
-        }
-      }
-    }
+        },
+      },
+    },
   };
 }
 

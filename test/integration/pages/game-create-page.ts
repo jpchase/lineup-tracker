@@ -1,15 +1,16 @@
+/** @format */
+
 import { Game } from '@app/models/game.js';
 import { ElementHandle } from 'puppeteer';
 import { PageObject, PageOpenFunction, PageOptions } from './page-object.js';
 
 export class GameCreatePage extends PageObject {
-
   constructor(options: PageOptions = {}) {
     // TODO: Add component to wait on that?
     super({
       ...options,
       scenarioName: options.scenarioName ?? 'addNewGame',
-      route: 'viewGames'
+      route: 'viewGames',
     });
   }
 
@@ -42,34 +43,46 @@ export class GameCreatePage extends PageObject {
     const thisOffset = game.date.getTimezoneOffset();
     const localDate = new Date(game.date);
     localDate.setUTCMinutes(localDate.getUTCMinutes() - emulatedOffset + thisOffset);
-    const dateString = `${localDate.getFullYear()}-${pad0(localDate.getMonth() + 1)}-${pad0(localDate.getDate())}`;
+    const dateString = `${localDate.getFullYear()}-${pad0(localDate.getMonth() + 1)}-${pad0(
+      localDate.getDate()
+    )}`;
     const timeString = localDate.toTimeString().substring(0, 5);
 
-    console.log(`Game date: original = ${game.date}, emulated offset = ${emulatedOffset}, this offset = ${thisOffset}, local = ${localDate}, ${dateString}, ${timeString}`);
+    console.log(
+      `Game date: original = ${game.date}, emulated offset = ${emulatedOffset}, this offset = ${thisOffset}, local = ${localDate}, ${dateString}, ${timeString}`
+    );
     if (!createHandle) {
       createHandle = await this.getCreateComponent();
     }
 
-    await createHandle.evaluate(async (createNode, name, opponent, gameDate, gameTime) => {
-      const createRoot = createNode!.shadowRoot!;
+    await createHandle.evaluate(
+      async (createNode, name, opponent, gameDate, gameTime) => {
+        const createRoot = createNode!.shadowRoot!;
 
-      const createDialog = createRoot.querySelector('#create-dialog');
-      if (!createDialog) {
-        throw new Error(`Create game dialog not found`);
-      }
+        const createDialog = createRoot.querySelector('#create-dialog');
+        if (!createDialog) {
+          throw new Error(`Create game dialog not found`);
+        }
 
-      const nameField = createRoot.querySelector(`#nameField > input`) as HTMLInputElement;
-      nameField.value = name;
+        const nameField = createRoot.querySelector(`#nameField > input`) as HTMLInputElement;
+        nameField.value = name;
 
-      const opponentField = createRoot.querySelector(`#opponentField > input`) as HTMLInputElement;
-      opponentField.value = opponent;
+        const opponentField = createRoot.querySelector(
+          `#opponentField > input`
+        ) as HTMLInputElement;
+        opponentField.value = opponent;
 
-      const dateField = createRoot.querySelector(`#dateField > input`) as HTMLInputElement;
-      dateField.value = gameDate;
+        const dateField = createRoot.querySelector(`#dateField > input`) as HTMLInputElement;
+        dateField.value = gameDate;
 
-      const timeField = createRoot.querySelector(`#timeField > input`) as HTMLInputElement;
-      timeField.value = gameTime;
-    }, game.name, game.opponent, dateString, timeString);
+        const timeField = createRoot.querySelector(`#timeField > input`) as HTMLInputElement;
+        timeField.value = gameTime;
+      },
+      game.name,
+      game.opponent,
+      dateString,
+      timeString
+    );
   }
 
   async saveNewGame(createHandle?: ElementHandle<Element>) {
@@ -85,7 +98,9 @@ export class GameCreatePage extends PageObject {
         throw new Error(`Create game dialog not found`);
       }
 
-      const saveButton = createDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLButtonElement;
+      const saveButton = createDialog.querySelector(
+        'mwc-button[dialogAction="save"]'
+      ) as HTMLButtonElement;
       //saveButton.scrollIntoView();
       saveButton.click();
     });
@@ -103,20 +118,24 @@ export class GameCreatePage extends PageObject {
       throw new Error('List component not found');
     }
 
-    return await listHandle.evaluate(async (listNode, gameName: string, _opponent: string) => {
-      const names = listNode.shadowRoot!.querySelectorAll('.list .game .name');
+    return listHandle.evaluate(
+      async (listNode, gameName: string, _opponent: string) => {
+        const names = listNode.shadowRoot!.querySelectorAll('.list .game .name');
 
-      for (const nameElement of Array.from(names)) {
-        if (nameElement.textContent?.trim() != gameName) {
-          continue;
+        for (const nameElement of Array.from(names)) {
+          if (nameElement.textContent?.trim() != gameName) {
+            continue;
+          }
+          const listItem = nameElement.parentElement!;
+          const link = listItem.querySelector('a[title="View game"]') as HTMLLinkElement;
+          const parts = link.href.split('/');
+          return parts[parts.length - 1];
         }
-        const listItem = nameElement.parentElement!;
-        const link = listItem.querySelector('a[title="View game"]') as HTMLLinkElement;
-        const parts = link.href.split('/');
-        return parts[parts.length - 1];
-      }
-      return undefined;
-    }, game.name, game.opponent);
+        return undefined;
+      },
+      game.name,
+      game.opponent
+    );
   }
 
   async getCreateComponent() {

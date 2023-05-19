@@ -5,6 +5,7 @@
   "root": true,
   "rules": {
     "comma-dangle": ["error", "only-multiline"],
+    "func-names": ["off", "as-needed"], // Temporarily disable
     "max-len": 0,
     "object-curly-spacing": ["error", "always"],
     "one-var": 0,
@@ -41,7 +42,9 @@
     "lines-between-class-members": "off",
     "max-classes-per-file": "off",
     "no-continue": "off",
+    "no-multi-assign": ["off", { "ignoreNonDeclaration": true }], // Temporarily disable
     "prefer-destructuring": "off",
+    // Typescript overrides of built-in rules.
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
@@ -75,24 +78,31 @@
     "no-useless-constructor": "off",
     "no-useless-return": "off",
     "object-shorthand": "off",
+    "prefer-arrow-callback": "off",
     "prefer-const": "off",
     "prefer-template": "off"
   },
   "overrides": [
     {
-      "files": ["src/components/*.ts"],
+      "files": ["src/components/*.ts", "test/unit/components/*.test.ts"],
       "rules": {
         "import/no-duplicates": "off"
       }
+    },
+    {
+      "files": ["test/integration/visual.ts"],
+      "rules": {
+        "no-loop-func": "off"
+      }
+    },
+    {
+      // TODO: Refactor test loops/generation to avoid these lint rules
+      "files": ["test/unit/components/lineup-player-card.test.ts"],
+      "rules": {
+        "no-inner-declarations": "off",
+        "no-loop-func": "off"
+      }
     }
-  ]
-  // "globals": {},
-  // "parserOptions": {
-  //   "ecmaVersion": 2017
-  // },
-  // "env": {
-  //   "browser": true,
-  //   "es2017": true,
-  //   "node": true
-  // }
+  ],
+  "reportUnusedDisableDirectives": true
 }
