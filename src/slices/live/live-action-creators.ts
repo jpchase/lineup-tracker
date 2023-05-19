@@ -1,3 +1,5 @@
+/** @format */
+
 import { Duration } from '../../models/clock.js';
 import { FormationBuilder, getPositions } from '../../models/formation.js';
 import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '../../models/live.js';
@@ -5,64 +7,86 @@ import { PlayerStatus } from '../../models/player.js';
 import { ThunkResult } from '../../store.js';
 import { isPeriodOverdue } from './clock-reducer-logic.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
-import { applyPendingSubs, endPeriod, invalidPendingSubs, invalidStarters, markPeriodOverdue, selectLiveGameById, selectPendingSubs, startersCompleted } from './live-slice.js';
+import {
+  applyPendingSubs,
+  endPeriod,
+  invalidPendingSubs,
+  invalidStarters,
+  markPeriodOverdue,
+  selectLiveGameById,
+  selectPendingSubs,
+  startersCompleted,
+} from './live-slice.js';
 
-export const markPeriodOverdueCreator = (gameId: string): ThunkResult => (dispatch, getState) => {
-  const game = selectLiveGameById(getState(), gameId);
-  if (!isPeriodOverdue(game)) {
-    return;
-  }
-  dispatch(markPeriodOverdue(gameId));
-}
+export const markPeriodOverdueCreator =
+  (gameId: string): ThunkResult =>
+  (dispatch, getState) => {
+    const game = selectLiveGameById(getState(), gameId);
+    if (!isPeriodOverdue(game)) {
+      return;
+    }
+    dispatch(markPeriodOverdue(gameId));
+  };
 
-export const endPeriodCreator = (gameId: string, extraMinutes?: number): ThunkResult => (dispatch, getState) => {
-  const state = getState();
-  const game = selectLiveGameById(state, gameId);
-  if (!game) {
-    return;
-  }
-  let retroactiveStopTime;
-  if (extraMinutes && game.clock?.periodStatus === PeriodStatus.Overdue &&
-    game.clock.timer?.isRunning) {
-    const actualLength = game.clock.periodLength + extraMinutes;
-    retroactiveStopTime = Duration.addToDate(
-      game.clock.timer!.startTime!, Duration.create(actualLength * 60));
-  }
-  dispatch(endPeriod(game.id, retroactiveStopTime));
-};
+export const endPeriodCreator =
+  (gameId: string, extraMinutes?: number): ThunkResult =>
+  (dispatch, getState) => {
+    const state = getState();
+    const game = selectLiveGameById(state, gameId);
+    if (!game) {
+      return;
+    }
+    let retroactiveStopTime;
+    if (
+      extraMinutes &&
+      game.clock?.periodStatus === PeriodStatus.Overdue &&
+      game.clock.timer?.isRunning
+    ) {
+      const actualLength = game.clock.periodLength + extraMinutes;
+      retroactiveStopTime = Duration.addToDate(
+        game.clock.timer!.startTime!,
+        Duration.create(actualLength * 60)
+      );
+    }
+    dispatch(endPeriod(game.id, retroactiveStopTime));
+  };
 
-export const pendingSubsAppliedCreator = (gameId: string, selectedOnly?: boolean): ThunkResult => (dispatch, getState) => {
-  const state = getState();
-  const game = selectLiveGameById(state, gameId);
-  if (!game) {
-    return;
-  }
-  const subs = selectPendingSubs(state, game.id, selectedOnly, /* includeSwaps */true);
-  if (!subs) {
-    console.log('No subs!')
-    return;
-  }
-  const invalidSubs = validatePendingSubs(game, subs);
-  if (invalidSubs.size) {
-    dispatch(invalidPendingSubs(game.id, Array.from(invalidSubs.keys()).sort()));
-    return;
-  }
-  dispatch(applyPendingSubs(game.id, subs, selectedOnly));
-};
+export const pendingSubsAppliedCreator =
+  (gameId: string, selectedOnly?: boolean): ThunkResult =>
+  (dispatch, getState) => {
+    const state = getState();
+    const game = selectLiveGameById(state, gameId);
+    if (!game) {
+      return;
+    }
+    const subs = selectPendingSubs(state, game.id, selectedOnly, /* includeSwaps */ true);
+    if (!subs) {
+      console.log('No subs!');
+      return;
+    }
+    const invalidSubs = validatePendingSubs(game, subs);
+    if (invalidSubs.size) {
+      dispatch(invalidPendingSubs(game.id, Array.from(invalidSubs.keys()).sort()));
+      return;
+    }
+    dispatch(applyPendingSubs(game.id, subs, selectedOnly));
+  };
 
-export const startersCompletedCreator = (gameId: string): ThunkResult => (dispatch, getState) => {
-  const state = getState();
-  const game = selectLiveGameById(state, gameId);
-  if (!game) {
-    return;
-  }
-  const invalidPositions = validateStarters(game);
-  if (invalidPositions.size) {
-    dispatch(invalidStarters(game.id, Array.from(invalidPositions.keys()).sort()));
-    return;
-  }
-  dispatch(startersCompleted(game.id));
-};
+export const startersCompletedCreator =
+  (gameId: string): ThunkResult =>
+  (dispatch, getState) => {
+    const state = getState();
+    const game = selectLiveGameById(state, gameId);
+    if (!game) {
+      return;
+    }
+    const invalidPositions = validateStarters(game);
+    if (invalidPositions.size) {
+      dispatch(invalidStarters(game.id, Array.from(invalidPositions.keys()).sort()));
+      return;
+    }
+    dispatch(startersCompleted(game.id));
+  };
 
 function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
   const seenNextIds = new Map<string, string>();
@@ -75,10 +99,13 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
     if (sub.isSwap) {
       if (!sub.nextPosition) {
         invalidSubs.set(sub.id, 'missing next position for swap');
-        continue
+        continue;
       }
       if (!filledPositions.has(sub.nextPosition!.id)) {
-        invalidSubs.set(sub.id, `swap into position that doesn't exist in formation: ${sub.nextPosition!.id}`);
+        invalidSubs.set(
+          sub.id,
+          `swap into position that doesn't exist in formation: ${sub.nextPosition!.id}`
+        );
         continue;
       }
 
@@ -94,7 +121,7 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
       continue;
     }
     const existingReplacedId = seenReplacedIds.get(sub.replaces);
-    if (existingReplacedId && existingReplacedId != sub.id) {
+    if (existingReplacedId && existingReplacedId !== sub.id) {
       invalidSubs.set(sub.id, `two subs for player: ${sub.replaces}`);
       continue;
     }
@@ -140,7 +167,10 @@ function validateFilledPositions(game: LiveGame, filledPositions: FilledPosition
     const position = filled[0];
     const ids = filled[1];
     if (ids.length !== 1) {
-      invalidPositions.set(position, `Position [${position}] should have 1 id, instead has ${ids.length}`);
+      invalidPositions.set(
+        position,
+        `Position [${position}] should have 1 id, instead has ${ids.length}`
+      );
     }
   }
 

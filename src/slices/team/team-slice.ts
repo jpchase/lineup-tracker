@@ -1,3 +1,5 @@
+/** @format */
+
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { debug } from '../../common/debug.js';
 import { Player, Roster } from '../../models/player.js';
@@ -22,54 +24,55 @@ export const getTeams = createAsyncThunk<
   {
     // Optional fields for defining thunkApi field types
     // dispatch: AppDispatch
-    state: RootState
+    state: RootState;
   }
->(
-  'team/getTeams',
-  async (_unused, thunkAPI) => {
-    // Show the user's teams, when signed in. Otherwise, only show public data.
-    // TODO: Extract into helper function somewhere?
-    const currentUserId = selectCurrentUserId(thunkAPI.getState());
-    let teamFilter: CollectionFilter;
-    if (currentUserId) {
-      debugTeam(`Get teams for owner = ${currentUserId}`);
-      teamFilter = whereFilter(FIELD_OWNER, '==', currentUserId);
-    } else {
-      debugTeam(`Get public teams`);
-      teamFilter = whereFilter(FIELD_PUBLIC, '==', true);
-    }
-
-    debugTeam(`Get docs for teams`);
-
-    const teams = await loadTeams(teamFilter);
-    return { teams };
+>('team/getTeams', async (_unused, thunkAPI) => {
+  // Show the user's teams, when signed in. Otherwise, only show public data.
+  // TODO: Extract into helper function somewhere?
+  const currentUserId = selectCurrentUserId(thunkAPI.getState());
+  let teamFilter: CollectionFilter;
+  if (currentUserId) {
+    debugTeam(`Get teams for owner = ${currentUserId}`);
+    teamFilter = whereFilter(FIELD_OWNER, '==', currentUserId);
+  } else {
+    debugTeam(`Get public teams`);
+    teamFilter = whereFilter(FIELD_PUBLIC, '==', true);
   }
-);
 
-export const addNewTeam = (newTeam: Team): ThunkPromise<void> => async (dispatch, getState) => {
-  if (!newTeam) {
-    return;
-  }
-  const state = getState();
-  // Verify that the team name is unique.
-  const teamState = state.team!;
-  if (teamState.teams) {
-    const hasMatch = Object.keys(teamState.teams).some((key) => {
-      const team = teamState.teams[key];
-      return (team.name.localeCompare(newTeam.name, undefined, { sensitivity: 'base' }) == 0);
-    });
-    if (hasMatch) {
+  debugTeam(`Get docs for teams`);
+
+  const teams = await loadTeams(teamFilter);
+  return { teams };
+});
+
+export const addNewTeam =
+  (newTeam: Team): ThunkPromise<void> =>
+  async (dispatch, getState) => {
+    if (!newTeam) {
       return;
     }
-  }
-  await dispatch(saveTeam(newTeam));
-};
+    const state = getState();
+    // Verify that the team name is unique.
+    const teamState = state.team!;
+    if (teamState.teams) {
+      const hasMatch = Object.keys(teamState.teams).some((key) => {
+        const team = teamState.teams[key];
+        return team.name.localeCompare(newTeam.name, undefined, { sensitivity: 'base' }) === 0;
+      });
+      if (hasMatch) {
+        return;
+      }
+    }
+    await dispatch(saveTeam(newTeam));
+  };
 
-export const saveTeam = (newTeam: Team): ThunkPromise<void> => async (dispatch, getState) => {
-  // Save the team to Firestore, before adding to the store.
-  await persistTeam(newTeam, getState());
-  dispatch(addTeam(newTeam));
-};
+export const saveTeam =
+  (newTeam: Team): ThunkPromise<void> =>
+  async (dispatch, getState) => {
+    // Save the team to Firestore, before adding to the store.
+    await persistTeam(newTeam, getState());
+    dispatch(addTeam(newTeam));
+  };
 
 export const getRoster = createAsyncThunk(
   'team/getRoster',
@@ -86,25 +89,29 @@ export const getRoster = createAsyncThunk(
   }
 );
 
-export const addNewPlayer = (newPlayer: Player): ThunkResult => (dispatch, getState) => {
-  if (!newPlayer) {
-    return;
-  }
-  const state = getState();
-  // Verify that the player id is unique.
-  const teamState = state.team!;
-  if (teamState.roster && teamState.roster[newPlayer.id]) {
-    return;
-  }
-  dispatch(savePlayer(newPlayer));
-};
+export const addNewPlayer =
+  (newPlayer: Player): ThunkResult =>
+  (dispatch, getState) => {
+    if (!newPlayer) {
+      return;
+    }
+    const state = getState();
+    // Verify that the player id is unique.
+    const teamState = state.team!;
+    if (teamState.roster && teamState.roster[newPlayer.id]) {
+      return;
+    }
+    dispatch(savePlayer(newPlayer));
+  };
 
-export const savePlayer = (newPlayer: Player): ThunkPromise<void> => async (dispatch, getState) => {
-  // Save the player to Firestore, before adding to the store.
-  const teamId = selectCurrentTeam(getState())?.id!;
-  await savePlayerToTeamRoster(newPlayer, teamId);
-  dispatch(addPlayer(newPlayer));
-};
+export const savePlayer =
+  (newPlayer: Player): ThunkPromise<void> =>
+  async (dispatch, getState) => {
+    // Save the player to Firestore, before adding to the store.
+    const teamId = selectCurrentTeam(getState())?.id!;
+    await savePlayerToTeamRoster(newPlayer, teamId);
+    dispatch(addPlayer(newPlayer));
+  };
 
 export interface TeamState {
   teams: Teams;
@@ -119,7 +126,7 @@ export const TEAM_INITIAL_STATE: TeamState = {
   teamsLoaded: false,
   teamsLoading: false,
   roster: {},
-  error: ''
+  error: '',
 };
 
 const teamSlice = createSlice({

@@ -123,7 +123,7 @@ export class GameCreatePage extends PageObject {
         const names = listNode.shadowRoot!.querySelectorAll('.list .game .name');
 
         for (const nameElement of Array.from(names)) {
-          if (nameElement.textContent?.trim() != gameName) {
+          if (nameElement.textContent?.trim() !== gameName) {
             continue;
           }
           const listItem = nameElement.parentElement!;
