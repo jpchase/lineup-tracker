@@ -217,8 +217,8 @@ describe('Timer', () => {
       timer.duration &&
       timer.duration._elapsed === 0;
 
-    let expected = '',
-      actual = '';
+    let expected = '';
+    let actual = '';
     if (!pass && timer) {
       expected = JSON.stringify(new Timer().toJSON());
       actual = JSON.stringify(timer.toJSON());

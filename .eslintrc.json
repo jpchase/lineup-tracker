@@ -6,7 +6,6 @@
   "rules": {
     "arrow-body-style": "off",
     "func-names": ["off", "as-needed"], // Temporarily disable
-    "one-var": 0,
     "spaced-comment": [
       "off", // Temporarily disable
       "always",
