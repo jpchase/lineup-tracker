@@ -14,9 +14,10 @@ describe('Team functional tests', () => {
   });
 
   it('creates new team', async () => {
-    const addTeamPage = (pageObject = new TeamCreatePage({
+    const addTeamPage = new TeamCreatePage({
       userId: integrationTestData.TEAM2.OWNER_ID,
-    }));
+    });
+    pageObject = addTeamPage;
     await addTeamPage.init();
     await addTeamPage.open({ signIn: true });
 

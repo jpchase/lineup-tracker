@@ -25,10 +25,11 @@ describe('Game functional tests', () => {
   });
 
   it('create new game', async () => {
-    const addGamePage = (pageObject = new GameCreatePage({
+    const addGamePage = new GameCreatePage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID },
-    }));
+    });
+    pageObject = addGamePage;
     await addGamePage.init();
     await addGamePage.open({ signIn: true });
 
@@ -61,11 +62,12 @@ describe('Game functional tests', () => {
 
   it('copy roster from team', async () => {
     const gameId = integrationTestData.TEAM2.games.NEW.ID;
-    const gameRosterPage = (pageObject = new GameRosterPage({
+    const gameRosterPage = new GameRosterPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID },
       gameId,
-    }));
+    });
+    pageObject = gameRosterPage;
     await gameRosterPage.init();
     await gameRosterPage.open({ signIn: true });
 

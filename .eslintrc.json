@@ -30,7 +30,7 @@
     "lines-between-class-members": "off",
     "max-classes-per-file": "off",
     "no-continue": "off",
-    "no-multi-assign": ["off", { "ignoreNonDeclaration": true }], // Temporarily disable
+    "no-multi-assign": ["error", { "ignoreNonDeclaration": true }],
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "prefer-destructuring": "off",
     // Typescript overrides of built-in rules.

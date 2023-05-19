@@ -14,10 +14,11 @@ describe('App functional tests', () => {
 
   it('current team is persisted after refresh', async () => {
     const teamName = 'Persisted current team';
-    const homePage = (pageObject = new HomePage({
+    const homePage = new HomePage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID, teamName },
-    }));
+    });
+    pageObject = homePage;
     await homePage.init();
     await homePage.open({ signIn: true });
 

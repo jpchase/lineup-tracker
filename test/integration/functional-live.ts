@@ -45,11 +45,12 @@ describe('Live functional tests', () => {
   }
 
   it('setup existing game, which is persisted after refresh', async () => {
-    const gameSetupPage = (pageObject = new GameSetupPage({
+    const gameSetupPage = new GameSetupPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID },
       gameId: integrationTestData.TEAM2.games.NEW_WITH_ROSTER.ID,
-    }));
+    });
+    pageObject = gameSetupPage;
     await gameSetupPage.init();
     await gameSetupPage.open({ signIn: true });
 
@@ -137,11 +138,12 @@ describe('Live functional tests', () => {
 
     // Open the page *after* creating the game.
     // As the game is in "new" status, it starts on the setup view.
-    const gameSetupPage = (pageObject = new GameSetupPage({
+    const gameSetupPage = new GameSetupPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID },
       gameId: newGame.id,
-    }));
+    });
+    pageObject = gameSetupPage;
     await gameSetupPage.init();
     await gameSetupPage.open({ signIn: true });
 
@@ -149,11 +151,12 @@ describe('Live functional tests', () => {
     await gameSetupPage.completeSetup(onPlayers);
 
     // With setup completed, the page should now be on the live view.
-    const livePage = (pageObject = gameSetupPage.swap(GameLivePage, {
+    const livePage = gameSetupPage.swap(GameLivePage, {
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID },
       gameId: newGame.id,
-    }));
+    });
+    pageObject = livePage;
 
     // Start the game running.
     await expectClockRunning(livePage, /*running=*/ false);
