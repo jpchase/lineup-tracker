@@ -1,3 +1,5 @@
+/** @format */
+
 import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -18,29 +20,35 @@ export class LineupPlayerList extends PlayerListElement {
   override render() {
     const filteredPlayers = this._getFilteredPlayers();
 
-    return html`
-      ${SharedStyles}
+    return html` ${SharedStyles}
       <style>
-        :host { display: block; }
+        :host {
+          display: block;
+        }
       </style>
       <div>
-      ${filteredPlayers.length > 0 ? html`
-        <div class="list">
-        ${repeat(filteredPlayers, (player: LivePlayer) => player.id, (player: LivePlayer) => html`
-          <lineup-player-card .mode="${this.mode}" .player="${player}" .timeTracker="${this.getTracker(player)}">
-          </lineup-player-card>
-          ${this.showCancel
-        ? html`<mwc-button icon="cancel" @click="${this._doCancel}">Save</mwc-button>`
-        : ''
-      }
-        `)}
-        </div>
-      ` : html`
-        <p class="empty-list">
-          No players.
-        </p>
-      `}
-      </div>`
+        ${filteredPlayers.length > 0
+          ? html`
+              <div class="list">
+                ${repeat(
+                  filteredPlayers,
+                  (player: LivePlayer) => player.id,
+                  (player: LivePlayer) => html`
+                    <lineup-player-card
+                      .mode="${this.mode}"
+                      .player="${player}"
+                      .timeTracker="${this.getTracker(player)}"
+                    >
+                    </lineup-player-card>
+                    ${this.showCancel
+                      ? html`<mwc-button icon="cancel" @click="${this._doCancel}">Save</mwc-button>`
+                      : ''}
+                  `
+                )}
+              </div>
+            `
+          : html` <p class="empty-list">No players.</p> `}
+      </div>`;
   }
 
   @property({ type: String })
@@ -58,11 +66,11 @@ export class LineupPlayerList extends PlayerListElement {
       case PlayerStatus.Next:
       case PlayerStatus.Out:
         return (player) => {
-          return (player.status === status);
+          return player.status === status;
         };
       case PlayerStatus.Off:
         return (player) => {
-          return (!player.status || player.status === status);
+          return !player.status || player.status === status;
         };
       default:
         return () => {
@@ -83,9 +91,12 @@ export class LineupPlayerList extends PlayerListElement {
   _doCancel(e: CustomEvent) {
     console.log('_doCancel', e);
     // console.log('_doCancel - model.player', e.model.player);
-    this.dispatchEvent(new CustomEvent(EVENT_PLAYERLISTCANCEL, {
-      bubbles: true, composed: true,
-      detail: {} // {player: e.model.player},
-    }));
+    this.dispatchEvent(
+      new CustomEvent(EVENT_PLAYERLISTCANCEL, {
+        bubbles: true,
+        composed: true,
+        detail: {}, // {player: e.model.player},
+      })
+    );
   }
 }
