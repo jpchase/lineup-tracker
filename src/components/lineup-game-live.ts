@@ -4,7 +4,7 @@ import { ContextProvider } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement, nothing } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
@@ -47,6 +47,7 @@ import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-shifts.js';
 import './lineup-on-player-list.js';
 import './lineup-player-list.js';
+import { LineupPlayerList } from './lineup-player-list.js';
 import { playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 import { synchronizedTimerContext, SynchronizedTimerNotifier } from './synchronized-timer.js';
@@ -256,6 +257,9 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   @state()
   private trackerData?: PlayerTimeTrackerMapData;
 
+  @query('lineup-player-list[mode="next"]')
+  private nextPlayerList!: LineupPlayerList;
+
   // Update player timers every 10 seconds.
   private timerTrigger = new SynchronizedTriggerController(this, 10000);
   private timerNotifier = new SynchronizedTimerNotifier();
@@ -351,13 +355,13 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   }
 
   private _applySubs() {
-    // TODO: Pass selectedOnly param, based on if any next cards are selected
-    this.dispatch(pendingSubsAppliedCreator(this._game!.id));
+    const selectedOnly = this.nextPlayerList.hasSelected();
+    this.dispatch(pendingSubsAppliedCreator(this._game!.id, selectedOnly));
   }
 
   private _discardSubs() {
-    // TODO: Pass selectedOnly param, based on if any next cards are selected
-    this.dispatch(discardPendingSubs(this._game!.id));
+    const selectedOnly = this.nextPlayerList.hasSelected();
+    this.dispatch(discardPendingSubs(this._game!.id, selectedOnly));
   }
 
   private markUnavailable() {

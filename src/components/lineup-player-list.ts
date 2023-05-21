@@ -60,6 +60,16 @@ export class LineupPlayerList extends PlayerListElement {
   @property({ type: Boolean })
   showCancel = false;
 
+  hasSelected() {
+    const cardList = this.shadowRoot!.querySelectorAll('lineup-player-card');
+    for (let index = 0; index < cardList.length; index++) {
+      if (cardList[index].selected) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   _getPlayerFilter(mode: string): PlayerFilterFunc {
     let status = mode.toUpperCase();
     switch (status) {
@@ -98,5 +108,11 @@ export class LineupPlayerList extends PlayerListElement {
         detail: {}, // {player: e.model.player},
       })
     );
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'lineup-player-list': LineupPlayerList;
   }
 }

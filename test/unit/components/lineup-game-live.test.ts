@@ -33,15 +33,17 @@ import {
   buildShiftWithTrackersFromGame,
 } from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRunningTimer /*, buildStoppedTimer*/ } from '../helpers/test-clock-data.js';
+import { buildRunningTimer } from '../helpers/test-clock-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
 
 const {
+  applyPendingSubs,
   cancelSub,
   cancelSwap,
   confirmSub,
   confirmSwap,
+  discardPendingSubs,
   endPeriod,
   gameCompleted,
   markPeriodOverdue,
@@ -161,6 +163,13 @@ describe('lineup-game-live tests', () => {
     return element as LineupOnPlayerList;
   }
 
+  function getNextList(): LineupPlayerList {
+    const element = el.shadowRoot!.querySelector('lineup-player-list[mode="next"]');
+    expect(element, 'Missing next player list').to.be.ok;
+
+    return element as LineupPlayerList;
+  }
+
   function getSubsList(): LineupPlayerList {
     const element = el.shadowRoot!.querySelector('lineup-player-list[mode="off"]');
     expect(element, 'Missing subs player list').to.be.ok;
@@ -209,6 +218,10 @@ describe('lineup-game-live tests', () => {
   });
 
   describe('Subs', () => {
+    const ON_PLAYER_ID = 'P0';
+    const ON_PLAYER2_ID = 'P1';
+    const OFF_PLAYER_ID = 'P13';
+    const OFF_PLAYER2_ID = 'P14';
     let liveGame: LiveGame;
     let gameId: string;
 
@@ -221,6 +234,8 @@ describe('lineup-game-live tests', () => {
         currentPeriod: 1,
         periodStatus: PeriodStatus.Running,
       });
+      // This will set the first 11 players to On status, the next 6 to Off status,
+      // and the last player to Out status.
       const shift = buildShiftWithTrackersFromGame(live);
 
       // Setup the live game, with the period in progress.
@@ -233,9 +248,37 @@ describe('lineup-game-live tests', () => {
       gameId = liveGame.id;
     });
 
+    // Sets up a sub that is ready to be confirmed.
+    // Returns the confirm button, ready to be clicked.
+    async function prepareTentativeSub(onPlayerId: string, offPlayerId: string) {
+      const onPlayer = getPlayer(liveGame, onPlayerId)!;
+      const offPlayer = getPlayer(liveGame, offPlayerId)!;
+
+      const store = getStore();
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/ true));
+      await el.updateComplete;
+
+      const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
+      expect(confirmSection, 'Missing confirm sub div').to.be.ok;
+
+      const confirmButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      expect(confirmButton, 'Missing confirm button').to.be.ok;
+
+      return confirmButton;
+    }
+
+    // Sets up a confirmed sub that is ready to be applied.
+    async function preparePendingSub(onPlayerId: string, offPlayerId: string) {
+      await prepareTentativeSub(onPlayerId, offPlayerId);
+
+      getStore().dispatch(confirmSub(gameId));
+      await el.updateComplete;
+    }
+
     async function preparePendingSwap() {
-      const onPlayer = getPlayer(liveGame, 'P0')!;
-      const onPlayer2 = getPlayer(liveGame, 'P1')!;
+      const onPlayer = getPlayer(liveGame, ON_PLAYER_ID)!;
+      const onPlayer2 = getPlayer(liveGame, ON_PLAYER2_ID)!;
 
       const store = getStore();
       store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
@@ -245,12 +288,12 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
       expect(confirmSection, 'Missing confirm swap element').to.be.ok;
 
-      const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
-      expect(applyButton, 'Missing apply button').to.be.ok;
+      const confirmButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      expect(confirmButton, 'Missing confirm button').to.be.ok;
 
-      applyButton.click();
+      confirmButton.click();
 
-      // Verifies that the apply swap action was dispatched.
+      // Verifies that the confirm swap action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
@@ -374,7 +417,7 @@ describe('lineup-game-live tests', () => {
 
       applyButton.click();
 
-      // Verifies that the apply sub action was dispatched.
+      // Verifies that the confirm sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
@@ -406,7 +449,7 @@ describe('lineup-game-live tests', () => {
 
       applyButton.click();
 
-      // Verifies that the apply sub action was dispatched.
+      // Verifies that the confirm sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
@@ -539,6 +582,116 @@ describe('lineup-game-live tests', () => {
       ).to.contain(expectedInvalidPositions);
 
       await expect(errorElement).dom.to.equalSnapshot();
+    });
+
+    it('dispatches apply pending action for all subs when none are selected', async () => {
+      await preparePendingSub(ON_PLAYER_ID, OFF_PLAYER_ID);
+      await preparePendingSub(ON_PLAYER2_ID, OFF_PLAYER2_ID);
+
+      const nextList = getNextList();
+      expect(nextList.hasSelected(), 'Next list should not have any players selected').to.be.false;
+
+      // Apply the pending subs.
+      const applyButton = el.shadowRoot!.querySelector('#sub-apply-btn') as Button;
+      expect(applyButton, 'Missing apply button').to.be.ok;
+
+      applyButton.click();
+      await el.updateComplete;
+
+      // Verifies that the apply sub action was dispatched.
+      const expectedSub1 = { ...getPlayer(liveGame, OFF_PLAYER_ID)!, selected: false };
+      testlive.setupSub(expectedSub1, getPlayer(liveGame, ON_PLAYER_ID)!);
+      const expectedSub2 = { ...getPlayer(liveGame, OFF_PLAYER2_ID)!, selected: false };
+      testlive.setupSub(expectedSub2, getPlayer(liveGame, ON_PLAYER2_ID)!);
+
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        applyPendingSubs(gameId, [expectedSub1, expectedSub2], /* selectedOnly */ false)
+      );
+    });
+
+    it('dispatches apply pending action with only selected subs', async () => {
+      await preparePendingSub(ON_PLAYER_ID, OFF_PLAYER_ID);
+      await preparePendingSub(ON_PLAYER2_ID, OFF_PLAYER2_ID);
+
+      const nextList = getNextList();
+      expect(nextList.hasSelected(), 'Next list should not have any players selected').to.be.false;
+
+      // Select one of the pending subs.
+      getStore().dispatch(selectPlayer(gameId, OFF_PLAYER_ID, /*selected =*/ true));
+      await el.updateComplete;
+      expect(nextList.hasSelected(), 'Next list should now have one player selected').to.be.true;
+
+      // Apply the pending subs.
+      const applyButton = el.shadowRoot!.querySelector('#sub-apply-btn') as Button;
+      expect(applyButton, 'Missing apply button').to.be.ok;
+
+      applyButton.click();
+      await el.updateComplete;
+
+      // Verifies that the apply sub action was dispatched.
+      const selectedSub1 = { ...getPlayer(liveGame, OFF_PLAYER_ID)!, selected: true };
+      testlive.setupSub(selectedSub1, getPlayer(liveGame, ON_PLAYER_ID)!);
+
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        applyPendingSubs(gameId, [selectedSub1], /* selectedOnly */ true)
+      );
+    });
+
+    it('dispatches discard action for all subs when none are selected', async () => {
+      await preparePendingSub(ON_PLAYER_ID, OFF_PLAYER_ID);
+      await preparePendingSub(ON_PLAYER2_ID, OFF_PLAYER2_ID);
+
+      const nextList = getNextList();
+      expect(nextList.hasSelected(), 'Next list should not have any players selected').to.be.false;
+
+      // Discard the pending subs.
+      const discardButton = el.shadowRoot!.querySelector('#sub-discard-btn') as Button;
+      expect(discardButton, 'Missing discard button').to.be.ok;
+
+      discardButton.click();
+      await el.updateComplete;
+
+      // Verifies that the discard sub action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        discardPendingSubs(gameId, /* selectedOnly */ false)
+      );
+    });
+
+    it('dispatches discard action with selected only', async () => {
+      await preparePendingSub(ON_PLAYER_ID, OFF_PLAYER_ID);
+      await preparePendingSub(ON_PLAYER2_ID, OFF_PLAYER2_ID);
+
+      const nextList = getNextList();
+      expect(nextList.hasSelected(), 'Next list should not have any players selected').to.be.false;
+
+      // Select one of the pending subs.
+      getStore().dispatch(selectPlayer(gameId, OFF_PLAYER_ID, /*selected =*/ true));
+      await el.updateComplete;
+      expect(nextList.hasSelected(), 'Next list should now have one player selected').to.be.true;
+
+      // Discard the pending subs.
+      const discardButton = el.shadowRoot!.querySelector('#sub-discard-btn') as Button;
+      expect(discardButton, 'Missing discard button').to.be.ok;
+
+      discardButton.click();
+      await el.updateComplete;
+
+      // Verifies that the discard sub action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        discardPendingSubs(gameId, /* selectedOnly */ true)
+      );
     });
 
     it('dispatches mark player out action', async () => {
@@ -785,7 +938,7 @@ describe('lineup-game-live tests', () => {
 
     function advanceToAfterLastPeriod() {
       // Game has two periods (halves), and begins in "Start" status, before
-      // the first half is started
+      // the first half is started.
       const store = getStore();
       store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/ true));
       store.dispatch(endPeriod(liveGame.id));
