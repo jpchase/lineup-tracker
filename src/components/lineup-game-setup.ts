@@ -1,3 +1,5 @@
+/** @format */
+
 import { contextProvided } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-dialog';
@@ -7,17 +9,30 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
-import { FormationBuilder, FormationMetadata, formatPosition, Position } from '../models/formation.js';
+import {
+  FormationBuilder,
+  FormationMetadata,
+  formatPosition,
+  Position,
+} from '../models/formation.js';
 import { GameDetail } from '../models/game.js';
 import { LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/live.js';
 import { getGameStore } from '../slices/game-store.js';
 import { gameSetupCompletedCreator, selectGameById } from '../slices/game/game-slice.js';
 import { getLiveStore } from '../slices/live-store.js';
 import {
-  applyStarter, cancelStarter, captainsCompleted, configurePeriods, formationSelected, getLiveGame,
+  applyStarter,
+  cancelStarter,
+  captainsCompleted,
+  configurePeriods,
+  formationSelected,
+  getLiveGame,
   rosterCompleted,
-  selectInvalidStarters, selectLiveGameById,
-  selectStarter, selectStarterPosition, startersCompletedCreator
+  selectInvalidStarters,
+  selectLiveGameById,
+  selectStarter,
+  selectStarterPosition,
+  startersCompletedCreator,
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-on-player-list.js';
@@ -71,10 +86,11 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
       formation = FormationBuilder.create(this.formation.type);
     }
 
-    return html`
-      ${SharedStyles}
+    return html` ${SharedStyles}
       <style>
-        :host { display: block; }
+        :host {
+          display: block;
+        }
 
         a.step:not([href]) {
           color: currentColor;
@@ -82,7 +98,9 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
           text-decoration: none;
         }
 
-        a.step:link, a.step:hover, a.step:visited {
+        a.step:link,
+        a.step:hover,
+        a.step:visited {
           /* Enabled link styles */
           color: currentColor;
         }
@@ -108,56 +126,67 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
         }
       </style>
       <div>
-      ${this.game ? html`
-        ${repeat(tasks, (task: SetupTask) => task.step, (task: SetupTask) => html`
-          <div class="task flex-equal-justified step${task.step}">
-            <div class="name">
-              <a class="step" href="${ifDefined(this.getStepHref(task))}"
-                 @click="${(e: Event) => this.performStep(e, task)}">${getStepName(task.step)}</a>
-            </div>
-            <div class="status">
-            ${this.renderTaskStatus(task)}
-            </div>
-          </div>
-        `)}
-        <div class="flex-equal-justified">
-          <mwc-button id="complete-button"
-                      icon="done_all"
-                      ?disabled="${!this.tasksComplete}"
-                      @click="${this.completeGameSetup}">Complete Setup</mwc-button>
-          ${this.renderStarterErrors()}
-        </div>
-        <div class="formation" ?active="${this.showFormation}">
-          <select
-            @change="${this.onFormationChange}"
-            value="">
-            <option value="">Not set</option>
-            <option value="4-3-3">4-3-3</option>
-            <option value="4-2-3-1">4-2-3-1</option>
-            <option value="3-1-4-2">3-1-4-2</option>
-          </select>
-        </div>
-        <div id="live-on">
-          <h3 class="h5">Starters</h3>
-          <lineup-on-player-list .formation="${formation}" .players="${players}"
-                                 .selectedPosition="${this.selectedStarterPosition}"
-                                 @positionselected="${this.positionSelected}"></lineup-on-player-list>
-        </div>
-        <div id="confirm-starter">
-        ${this.renderConfirmStarter()}
-        </div>
-        <div id="live-off">
-          <h3 class="h5">Subs</h3>
-          <lineup-player-list mode="off" .players="${players}"
-                              @playerselected="${this.playerSelected}"></lineup-player-list>
-        </div>
-        ${this.renderConfigurePeriods()}
-      ` : html`
-        <p class="empty-list">
-          Cannot setup - Game not set.
-        </p>
-      `}
-      </div>`
+        ${this.game
+          ? html`
+              ${repeat(
+                tasks,
+                (task: SetupTask) => task.step,
+                (task: SetupTask) => html`
+                  <div class="task flex-equal-justified step${task.step}">
+                    <div class="name">
+                      <a
+                        class="step"
+                        href="${ifDefined(this.getStepHref(task))}"
+                        @click="${(e: Event) => this.performStep(e, task)}"
+                        >${getStepName(task.step)}</a
+                      >
+                    </div>
+                    <div class="status">${this.renderTaskStatus(task)}</div>
+                  </div>
+                `
+              )}
+              <div class="flex-equal-justified">
+                <mwc-button
+                  id="complete-button"
+                  icon="done_all"
+                  ?disabled="${!this.tasksComplete}"
+                  @click="${this.completeGameSetup}"
+                  >Complete Setup</mwc-button
+                >
+                ${this.renderStarterErrors()}
+              </div>
+              <div class="formation" ?active="${this.showFormation}">
+                <select @change="${this.onFormationChange}" value="">
+                  <option value="">Not set</option>
+                  <option value="4-3-3">4-3-3</option>
+                  <option value="4-2-3-1">4-2-3-1</option>
+                  <option value="3-1-4-2">3-1-4-2</option>
+                </select>
+              </div>
+              <div id="live-on">
+                <h3 class="h5">Starters</h3>
+                <lineup-on-player-list
+                  .formation="${formation}"
+                  .players="${players}"
+                  .selectedPosition="${this.selectedStarterPosition}"
+                  @positionselected="${this.positionSelected}"
+                >
+                </lineup-on-player-list>
+              </div>
+              <div id="confirm-starter">${this.renderConfirmStarter()}</div>
+              <div id="live-off">
+                <h3 class="h5">Subs</h3>
+                <lineup-player-list
+                  mode="off"
+                  .players="${players}"
+                  @playerselected="${this.playerSelected}"
+                >
+                </lineup-player-list>
+              </div>
+              ${this.renderConfigurePeriods()}
+            `
+          : html` <p class="empty-list">Cannot setup - Game not set.</p> `}
+      </div>`;
   }
 
   private renderConfigurePeriods() {
@@ -166,18 +195,33 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     }
 
     return html`
-      <mwc-dialog id="periods-dialog" heading="Configure periods"
-                ?open="${this.showPeriods}"
-                @closed="${this.periodsDialogClosed}">
+      <mwc-dialog
+        id="periods-dialog"
+        heading="Configure periods"
+        ?open="${this.showPeriods}"
+        @closed="${this.periodsDialogClosed}"
+      >
         <ul class="fields">
           <li>
             <mwc-formfield id="num-periods" alignend label="Number of Periods">
-              <input type="number" required min="1" max="4" value="${ifDefined(this.liveGame?.clock?.totalPeriods)}">
+              <input
+                type="number"
+                required
+                min="1"
+                max="4"
+                value="${ifDefined(this.liveGame?.clock?.totalPeriods)}"
+              />
             </mwc-formfield>
           </li>
           <li>
             <mwc-formfield id="period-length" alignend label="Period Length">
-                <input type="number" required min="10" max="60" value="${ifDefined(this.liveGame?.clock?.periodLength)}">
+              <input
+                type="number"
+                required
+                min="10"
+                max="60"
+                value="${ifDefined(this.liveGame?.clock?.periodLength)}"
+              />
             </mwc-formfield>
           </li>
         </ul>
@@ -228,7 +272,12 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     if (task.status === SetupStatus.Pending || isAutoStep(task.step)) {
       return html`<mwc-icon>more_horiz</mwc-icon>`;
     }
-    return html`<mwc-button class="finish" icon="check" @click="${(e: Event) => this.finishStep(e, task.step)}">Done</mwc-button>`;
+    return html`<mwc-button
+      class="finish"
+      icon="check"
+      @click="${(e: Event) => this.finishStep(e, task.step)}"
+      >Done</mwc-button
+    >`;
   }
 
   @property({ type: Object })
@@ -298,7 +347,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     this.liveGame = liveGame;
     this.tasks = liveGame.setupTasks || [];
 
-    const anyIncomplete = this.tasks.some(task => task.status !== SetupStatus.Complete);
+    const anyIncomplete = this.tasks.some((task) => task.status !== SetupStatus.Complete);
     this.tasksComplete = !anyIncomplete;
 
     this.formation = liveGame.formation;
@@ -392,7 +441,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   }
 
   private periodsDialogClosed(e: CustomEvent) {
-    console.log(`periodsDialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`)
+    console.log(`periodsDialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
     switch (e.detail.action) {
       case 'save': {
         this.savePeriods();
@@ -414,9 +463,8 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     console.log(`save: ${totalPeriods}, ${periodLength}`);
 
     this.dispatch(configurePeriods(this.gameId!, totalPeriods, periodLength));
-    console.log(`save: action now dispatched`)
+    console.log(`save: action now dispatched`);
 
     this.showPeriods = false;
   }
-
 }

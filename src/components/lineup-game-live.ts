@@ -1,3 +1,5 @@
+/** @format */
+
 import { ContextProvider } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon';
@@ -6,17 +8,38 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
-import { Formation, FormationBuilder, FormationType, formatPosition, getPositions, Position } from '../models/formation.js';
+import {
+  Formation,
+  FormationBuilder,
+  FormationType,
+  formatPosition,
+  getPositions,
+  Position,
+} from '../models/formation.js';
 import { GameStatus } from '../models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
 import {
-  cancelSub, cancelSwap, confirmSub, confirmSwap, discardPendingSubs, endPeriodCreator,
-  gameCompleted, markPeriodOverdueCreator, markPlayerOut,
+  cancelSub,
+  cancelSwap,
+  confirmSub,
+  confirmSwap,
+  discardPendingSubs,
+  endPeriodCreator,
+  gameCompleted,
+  markPeriodOverdueCreator,
+  markPlayerOut,
   pendingSubsAppliedCreator,
-  proposedSubSelector, returnOutPlayer, selectInvalidSubs, selectLiveGameById, selectPlayer, selectProposedSwap, startGamePeriod, toggleClock
+  proposedSubSelector,
+  returnOutPlayer,
+  selectInvalidSubs,
+  selectLiveGameById,
+  selectPlayer,
+  selectProposedSwap,
+  startGamePeriod,
+  toggleClock,
 } from '../slices/live/live-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
@@ -33,44 +56,55 @@ import { SynchronizedTriggerController } from './timer-controller.js';
 @customElement('lineup-game-live')
 export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   override render() {
-    return html`
-      ${SharedStyles}
+    return html` ${SharedStyles}
       <style>
-        :host { display: block; }
+        :host {
+          display: block;
+        }
 
         #sub-errors {
           color: red;
         }
       </style>
       <div>
-      ${this._game ? html`
-        ${this.renderGame(this.formation!, this._players!, this.trackerData!)}
-      ` : html`
-        <p class="empty-list">
-          Live game not set.
-        </p>
-      `}
-      </div>`
+        ${this._game
+          ? html` ${this.renderGame(this.formation!, this._players!, this.trackerData!)} `
+          : html` <p class="empty-list">Live game not set.</p> `}
+      </div>`;
   }
 
-  private renderGame(formation: Formation, players: LivePlayer[], trackerData: PlayerTimeTrackerMapData) {
-    return html`
-      <div toolbar>
-        <lineup-game-clock id="gameTimer" .timerData="${this.clockData}"
-                           .periodData="${this.clockPeriodData}"
-                           @clock-start-period="${this.startClockPeriod}"
-                           @clock-end-period="${this.endClockPeriod}"
-                           @clock-toggled="${this.toggleClock}"></lineup-game-clock>
-        <mwc-button id="complete-button"
-                    icon="done_all"
-                    ?disabled="${!this.gamePeriodsComplete}"
-                    @click="${this.completeGame}">Finish Game</mwc-button>
+  private renderGame(
+    formation: Formation,
+    players: LivePlayer[],
+    trackerData: PlayerTimeTrackerMapData
+  ) {
+    return html` <div toolbar>
+        <lineup-game-clock
+          id="gameTimer"
+          .timerData="${this.clockData}"
+          .periodData="${this.clockPeriodData}"
+          @clock-start-period="${this.startClockPeriod}"
+          @clock-end-period="${this.endClockPeriod}"
+          @clock-toggled="${this.toggleClock}"
+        >
+        </lineup-game-clock>
+        <mwc-button
+          id="complete-button"
+          icon="done_all"
+          ?disabled="${!this.gamePeriodsComplete}"
+          @click="${this.completeGame}"
+          >Finish Game</mwc-button
+        >
       </div>
       <div id="live-on">
         <h5>Playing</h5>
-        <lineup-on-player-list .formation="${formation}" .players="${players}"
-                               .trackerData="${this.trackerData}"
-                               @positionselected="${this._playerSelected}"></lineup-on-player-list>
+        <lineup-on-player-list
+          .formation="${formation}"
+          .players="${players}"
+          .trackerData="${this.trackerData}"
+          @positionselected="${this._playerSelected}"
+        >
+        </lineup-on-player-list>
       </div>
       <div id="live-next">
         <h5>Next On</h5>
@@ -79,36 +113,41 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
           <mwc-button id="sub-discard-btn" @click="${this._discardSubs}">Discard</mwc-button>
           ${this.getSubErrors()}
         </div>
-        <lineup-player-list mode="next" .players="${players}" .trackerData="${trackerData}" >
+        <lineup-player-list mode="next" .players="${players}" .trackerData="${trackerData}">
         </lineup-player-list>
       </div>
-      <div id="confirm-sub">
-      ${this.getConfirmSub()}
-      </div>
-      <div id="confirm-swap">
-      ${this.getConfirmSwap()}
-      </div>
+      <div id="confirm-sub">${this.getConfirmSub()}</div>
+      <div id="confirm-swap">${this.getConfirmSwap()}</div>
       <div id="live-off">
         <h5>Subs</h5>
         <div>
           <mwc-button id="out-mark-btn" @click="${this.markUnavailable}">Out</mwc-button>
         </div>
-        <lineup-player-list mode="off" .players="${players}"
-                            .trackerData="${this.trackerData}"
-                            @playerselected="${this._playerSelected}"></lineup-player-list>
+        <lineup-player-list
+          mode="off"
+          .players="${players}"
+          .trackerData="${this.trackerData}"
+          @playerselected="${this._playerSelected}"
+        >
+        </lineup-player-list>
       </div>
       <div id="live-out">
         <h5>Unavailable</h5>
         <div>
           <mwc-button id="out-return-btn" @click="${this.markAvailable}">Return</mwc-button>
         </div>
-        <lineup-player-list mode="out" .players="${players}"
-                            @playerselected="${this._playerSelected}"></lineup-player-list>
+        <lineup-player-list
+          mode="out"
+          .players="${players}"
+          @playerselected="${this._playerSelected}"
+        >
+        </lineup-player-list>
       </div>
       <div id="live-totals">
         <h5>Playing Time</h5>
-        <lineup-game-shifts .trackerData="${trackerData}" .players="${players}"></lineup-game-shifts>
-      </div>`
+        <lineup-game-shifts .trackerData="${trackerData}" .players="${players}">
+        </lineup-game-shifts>
+      </div>`;
   }
 
   private getConfirmSub() {
@@ -129,10 +168,12 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         <span class="override-position">
           <span>Position:</span>
           <select id="new-position-select" value="">
-              <option value="">[Keep existing]</option>
-              ${map(allPositions, (position) =>
-      html`<option value="${position.id}">
-              ${formatPosition(position)}</option>`)}
+            <option value="">[Keep existing]</option>
+            ${map(
+              allPositions,
+              (position) =>
+                html`<option value="${position.id}">${formatPosition(position)}</option>`
+            )}
           </select>
         </span>
 
@@ -219,9 +260,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   private timerTrigger = new SynchronizedTriggerController(this, 10000);
   private timerNotifier = new SynchronizedTimerNotifier();
 
-  protected timerContext = new ContextProvider(this,
-    synchronizedTimerContext,
-    this.timerNotifier);
+  protected timerContext = new ContextProvider(this, synchronizedTimerContext, this.timerNotifier);
 
   public requestTimerUpdate() {
     this.timerNotifier.notifyTimers();
@@ -236,7 +275,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   protected playerResolver = new ContextProvider(this, playerResolverContext, {
     getPlayer: (playerId) => {
       return this._findPlayer(playerId);
-    }
+    },
   });
 
   override stateChanged(state: RootState) {
@@ -265,7 +304,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       this.clockPeriodData = {
         currentPeriod: clock.currentPeriod,
         periodLength: clock.periodLength,
-        periodStatus: clock.periodStatus
+        periodStatus: clock.periodStatus,
       };
       this.gamePeriodsComplete = clock.periodStatus === PeriodStatus.Done;
     } else {
@@ -294,7 +333,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     let newPosition: Position | undefined;
     if (select.value) {
       const allPositions = getPositions(this.formation!);
-      newPosition = allPositions.find(p => (p.id === select.value));
+      newPosition = allPositions.find((p) => p.id === select.value);
     }
     this.dispatch(confirmSub(this._game!.id, newPosition));
   }
@@ -346,7 +385,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   }
 
   private _findPlayer(playerId: string) {
-    return this._players!.find(player => (player.id === playerId));
+    return this._players!.find((player) => player.id === playerId);
   }
 }
 

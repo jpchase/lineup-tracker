@@ -1,3 +1,5 @@
+/** @format */
+
 import { ClockEndPeriodEvent, LineupGameClock } from '@app/components/lineup-game-clock.js';
 import '@app/components/lineup-game-live.js';
 import { LineupGameLive } from '@app/components/lineup-game-live.js';
@@ -11,21 +13,39 @@ import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.
 import { PlayerStatus } from '@app/models/player.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
 import {
-  cancelSub, cancelSwap, confirmSub, confirmSwap,
-  endPeriod, endPeriodCreator, gameCompleted, markPeriodOverdue,
-  markPlayerOut, returnOutPlayer,
-  selectLiveGameById, selectPlayer, startPeriod, toggleClock
+  cancelSub,
+  cancelSwap,
+  confirmSub,
+  confirmSwap,
+  endPeriod,
+  endPeriodCreator,
+  gameCompleted,
+  markPeriodOverdue,
+  markPlayerOut,
+  returnOutPlayer,
+  selectLiveGameById,
+  selectPlayer,
+  startPeriod,
+  toggleClock,
 } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
-  getClockEndOverdueExtraMinutes, getClockEndOverdueRetroactiveOption, getClockEndOverdueSaveButton,
-  getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton
+  getClockEndOverdueExtraMinutes,
+  getClockEndOverdueRetroactiveOption,
+  getClockEndOverdueSaveButton,
+  getClockEndPeriodButton,
+  getClockStartPeriodButton,
+  getClockToggleButton,
 } from '../helpers/clock-element-retrievers.js';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
-import { buildClock, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame } from '../helpers/live-state-setup.js';
+import {
+  buildClock,
+  buildLiveStateWithCurrentGame,
+  buildShiftWithTrackersFromGame,
+} from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import { buildRunningTimer /*, buildStoppedTimer*/ } from '../helpers/test-clock-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
@@ -35,9 +55,9 @@ let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
   actions.push(action);
   return next(action);
-}
+};
 
-function getGameDetail(): { game: GameDetail, live: LiveGame } {
+function getGameDetail(): { game: GameDetail; live: LiveGame } {
   const live = testlive.getLiveGameWithPlayers();
   const game = getNewGameDetail(buildRoster(live.players));
   game.status = live.status = GameStatus.Start;
@@ -45,7 +65,7 @@ function getGameDetail(): { game: GameDetail, live: LiveGame } {
 }
 
 function findPlayer(game: LiveGame, status: PlayerStatus) {
-  return game.players!.find(player => (player.status === status));
+  return game.players!.find((player) => player.status === status);
 }
 
 describe('lineup-game-live tests', () => {
@@ -64,9 +84,13 @@ describe('lineup-game-live tests', () => {
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
-    const store = setupStore(preloadedState, /*hydrate=*/false);
+    const store = setupStore(preloadedState, /*hydrate=*/ false);
 
-    const template = html`<lineup-game-live .gameId="${gameId}" .store=${store} .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/false)}></lineup-game-live>`;
+    const template = html`<lineup-game-live
+      .gameId="${gameId}"
+      .store=${store}
+      .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/ false)}
+    ></lineup-game-live>`;
     el = await fixture(template);
     dispatchStub = sinon.spy(el, 'dispatch');
   }
@@ -194,14 +218,13 @@ describe('lineup-game-live tests', () => {
       live.status = GameStatus.Live;
       live.clock = buildClock(buildRunningTimer(), {
         currentPeriod: 1,
-        periodStatus: PeriodStatus.Running
+        periodStatus: PeriodStatus.Running,
       });
       const shift = buildShiftWithTrackersFromGame(live);
 
       // Setup the live game, with the period in progress.
       const gameState = buildGameStateWithCurrentGame(game);
-      const liveState = buildLiveStateWithCurrentGame(live,
-        { shift });
+      const liveState = buildLiveStateWithCurrentGame(live, { shift });
 
       await setupElement(buildRootState(gameState, liveState), live.id);
       await el.updateComplete;
@@ -214,8 +237,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/ true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
@@ -249,7 +272,8 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        selectPlayer(gameId, player.id, /*selected =*/true));
+        selectPlayer(gameId, player.id, /*selected =*/ true)
+      );
     });
 
     it('dispatches select player action when on player in formation selected', async () => {
@@ -268,7 +292,8 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        selectPlayer(gameId, player.id, /*selected =*/true));
+        selectPlayer(gameId, player.id, /*selected =*/ true)
+      );
     });
 
     it('dispatches select player action when out player selected', async () => {
@@ -287,7 +312,8 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        selectPlayer(gameId, player.id, /*selected =*/true));
+        selectPlayer(gameId, player.id, /*selected =*/ true)
+      );
     });
 
     it('on player card is selected after selection is processed', async () => {
@@ -315,8 +341,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -335,8 +361,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -360,8 +386,8 @@ describe('lineup-game-live tests', () => {
       const otherPositionPlayer = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -370,7 +396,9 @@ describe('lineup-game-live tests', () => {
       const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
       expect(applyButton, 'Missing apply button').to.be.ok;
 
-      const positionSelect = confirmSection?.querySelector('#new-position-select') as HTMLSelectElement;
+      const positionSelect = confirmSection?.querySelector(
+        '#new-position-select'
+      ) as HTMLSelectElement;
       expect(positionSelect, 'Missing position select').to.be.ok;
 
       positionSelect.value = otherPositionPlayer.currentPosition!.id;
@@ -382,7 +410,8 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        confirmSub(gameId, otherPositionPlayer.currentPosition));
+        confirmSub(gameId, otherPositionPlayer.currentPosition)
+      );
     });
 
     it('dispatches cancel sub action when cancelled', async () => {
@@ -395,8 +424,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer = foundPlayer!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, offPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
@@ -419,8 +448,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/ true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
@@ -434,8 +463,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/ true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
@@ -458,8 +487,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/ true));
       await el.updateComplete;
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
@@ -484,8 +513,8 @@ describe('lineup-game-live tests', () => {
       const onPlayer2 = getPlayer(liveGame, 'P1')!;
 
       const store = getStore();
-      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/true));
-      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/true));
+      store.dispatch(selectPlayer(gameId, onPlayer.id, /*selected =*/ true));
+      store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/ true));
       await el.updateComplete;
 
       const applyButton = el.shadowRoot!.querySelector('#sub-apply-btn') as Button;
@@ -500,10 +529,13 @@ describe('lineup-game-live tests', () => {
       const errorText = errorElement!.querySelector('.error');
       expect(errorText, 'Missing sub error text').to.be.ok;
 
-      const expectedInvalidPositions = [
-        onPlayer.currentPosition?.id,
-        onPlayer2.currentPosition?.id].sort().join(', ');
-      expect(errorText!.textContent, 'Sub error text should contain invalid swap positions').to.contain(expectedInvalidPositions);
+      const expectedInvalidPositions = [onPlayer.currentPosition?.id, onPlayer2.currentPosition?.id]
+        .sort()
+        .join(', ');
+      expect(
+        errorText!.textContent,
+        'Sub error text should contain invalid swap positions'
+      ).to.contain(expectedInvalidPositions);
 
       await expect(errorElement).dom.to.equalSnapshot();
     });
@@ -571,7 +603,6 @@ describe('lineup-game-live tests', () => {
       const subElement = getPlayerElement(subsList, outPlayer);
       expect(subElement, 'Missing player card in Off section').to.be.ok;
     });
-
   }); // describe('Subs')
 
   describe('Clock', () => {
@@ -585,8 +616,7 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, in Start status.
       const gameState = buildGameStateWithCurrentGame(game);
-      const liveState = buildLiveStateWithCurrentGame(live,
-        { shift });
+      const liveState = buildLiveStateWithCurrentGame(live, { shift });
 
       await setupElement(buildRootState(gameState, liveState), live.id);
       await el.updateComplete;
@@ -604,12 +634,13 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        startPeriod(gameId,/*gameAllowsStart  =*/true));
+        startPeriod(gameId, /*gameAllowsStart  =*/ true)
+      );
     });
 
     it('dispatches end period action when event fired by clock component', async () => {
       // Get the clock component into a state that allows the period to end.
-      getStore().dispatch(startPeriod(gameId,/*gameAllowsStart =*/true));
+      getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/ true));
       await el.updateComplete;
 
       // Trigger the event by clicking the end period button.
@@ -622,15 +653,14 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
-        endPeriod(gameId));
+      expect(actions[actions.length - 1]).to.deep.include(endPeriod(gameId));
     });
 
     it('dispatches end period action with extra minutes when event fired by clock component', async () => {
       // Get the clock component into a state that allows the period to end.
       const store = getStore();
-      store.dispatch(startPeriod(gameId,/*gameAllowsStart =*/true));
-      store.dispatch(markPeriodOverdue(gameId,/*ignoreTimeForTesting =*/true));
+      store.dispatch(startPeriod(gameId, /*gameAllowsStart =*/ true));
+      store.dispatch(markPeriodOverdue(gameId, /*ignoreTimeForTesting =*/ true));
       await el.updateComplete;
 
       // Trigger the overdue dialog by clicking the end period button.
@@ -648,7 +678,7 @@ describe('lineup-game-live tests', () => {
       setTimeout(() => useRetroactive.click());
       await oneEvent(useRetroactive, 'click');
       await el.updateComplete;
-      extraMinutesField.value = "3";
+      extraMinutesField.value = '3';
 
       const saveButton = getClockEndOverdueSaveButton(clockElement);
       setTimeout(() => saveButton.click());
@@ -658,13 +688,12 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
-        endPeriodCreator(gameId, 3));
+      expect(actions[actions.length - 1]).to.deep.include(endPeriodCreator(gameId, 3));
     });
 
     it('dispatches toggle clock action when fired by clock component', async () => {
       // Get the clock component into a state that allows the toggle.
-      getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/true));
+      getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/ true));
       await el.updateComplete;
 
       // Trigger the event by clicking the toggle button.
@@ -679,7 +708,6 @@ describe('lineup-game-live tests', () => {
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(toggleClock(gameId));
     });
-
   }); // describe('Clock')
 
   describe('Overdue periods', () => {
@@ -692,7 +720,7 @@ describe('lineup-game-live tests', () => {
     beforeEach(async () => {
       fakeClock = sinon.useFakeTimers({
         now: startTime,
-        shouldAdvanceTime: false
+        shouldAdvanceTime: false,
       });
 
       const { game, live } = getGameDetail();
@@ -704,8 +732,7 @@ describe('lineup-game-live tests', () => {
 
       // Setup the live game, with the period running.
       const gameState = buildGameStateWithCurrentGame(game);
-      const liveState = buildLiveStateWithCurrentGame(live,
-        { shift });
+      const liveState = buildLiveStateWithCurrentGame(live, { shift });
 
       await setupElement(buildRootState(gameState, liveState), live.id);
       await el.updateComplete;
@@ -722,7 +749,7 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(0);
 
       // Get the period running.
-      getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/true));
+      getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/ true));
       await el.updateComplete;
 
       // Advance the clock beyond the period length + overdue buffer.
@@ -737,7 +764,6 @@ describe('lineup-game-live tests', () => {
       expect(actions).to.have.lengthOf.at.least(2);
       expect(actions).to.deep.include(markPeriodOverdue(gameId));
     });
-
   }); // describe('Overdue periods');
 
   describe('Complete Game', () => {
@@ -749,8 +775,7 @@ describe('lineup-game-live tests', () => {
       const shift = buildShiftWithTrackersFromGame(live);
 
       const gameState = buildGameStateWithCurrentGame(game);
-      const liveState = buildLiveStateWithCurrentGame(live,
-        { shift });
+      const liveState = buildLiveStateWithCurrentGame(live, { shift });
 
       await setupElement(buildRootState(gameState, liveState), live.id);
       await el.updateComplete;
@@ -761,9 +786,9 @@ describe('lineup-game-live tests', () => {
       // Game has two periods (halves), and begins in "Start" status, before
       // the first half is started
       const store = getStore();
-      store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/true));
+      store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/ true));
       store.dispatch(endPeriod(liveGame.id));
-      store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/true));
+      store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/ true));
       store.dispatch(endPeriod(liveGame.id));
     }
 
@@ -793,7 +818,6 @@ describe('lineup-game-live tests', () => {
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(gameCompleted(liveGame.id));
     });
-
   }); // describe('Complete Game')
 
   it('a11y', async () => {
