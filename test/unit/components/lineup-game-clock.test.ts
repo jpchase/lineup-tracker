@@ -1,18 +1,30 @@
+/** @format */
+
 import '@app/components/lineup-game-clock.js';
-import { ClockEndPeriodEvent, ClockStartPeriodEvent, ClockToggleDetail, ClockToggleEvent, LineupGameClock } from '@app/components/lineup-game-clock.js';
+import {
+  ClockEndPeriodEvent,
+  ClockStartPeriodEvent,
+  ClockToggleDetail,
+  ClockToggleEvent,
+  LineupGameClock,
+} from '@app/components/lineup-game-clock.js';
 import { Duration } from '@app/models/clock.js';
 import { PeriodStatus } from '@app/models/live.js';
 import { Dialog } from '@material/mwc-dialog';
+import { Radio } from '@material/mwc-radio';
 import { aTimeout, expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { ClockEndPeriodDetail } from '../../../src/components/lineup-game-clock.js';
 import {
-  getClockEndOverdueDialog, getClockEndOverdueExtraMinutes,
-  getClockEndOverdueRetroactiveOption, getClockEndOverdueSaveButton,
-  getClockEndPeriodButton, getClockStartPeriodButton, getClockToggleButton
+  getClockEndOverdueDialog,
+  getClockEndOverdueExtraMinutes,
+  getClockEndOverdueRetroactiveOption,
+  getClockEndOverdueSaveButton,
+  getClockEndPeriodButton,
+  getClockStartPeriodButton,
+  getClockToggleButton,
 } from '../helpers/clock-element-retrievers.js';
 import { addElementAssertions } from '../helpers/element-assertions.js';
-import { Radio } from '@material/mwc-radio';
 
 const CORE_CONTENT = {
   ignoreTags: ['mwc-dialog'],
@@ -80,13 +92,13 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: false,
         startTime: startTime,
-        duration: Duration.zero().toJSON()
+        duration: Duration.zero().toJSON(),
       };
       el.periodData = {
         currentPeriod: 0,
         periodLength: 10,
-        periodStatus: PeriodStatus.Pending
-      }
+        periodStatus: PeriodStatus.Pending,
+      };
       await el.updateComplete;
 
       const startButton = getStartPeriodButton();
@@ -106,13 +118,13 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: false,
         startTime: startTime,
-        duration: Duration.zero().toJSON()
+        duration: Duration.zero().toJSON(),
       };
       el.periodData = {
         currentPeriod: 1,
         periodLength: 10,
-        periodStatus: PeriodStatus.Pending
-      }
+        periodStatus: PeriodStatus.Pending,
+      };
       await el.updateComplete;
 
       const startButton = getStartPeriodButton();
@@ -133,13 +145,13 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: false,
         startTime: startTime,
-        duration: Duration.create(130).toJSON()
+        duration: Duration.create(130).toJSON(),
       };
       el.periodData = {
         currentPeriod: 1,
         periodLength: 10,
-        periodStatus: PeriodStatus.Running
-      }
+        periodStatus: PeriodStatus.Running,
+      };
       await el.updateComplete;
 
       const startButton = getStartPeriodButton();
@@ -163,13 +175,13 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: false,
         startTime: startTime,
-        duration: Duration.create(1335).toJSON()
+        duration: Duration.create(1335).toJSON(),
       };
       el.periodData = {
         currentPeriod: 1,
         periodLength: 20,
-        periodStatus: PeriodStatus.Overdue
-      }
+        periodStatus: PeriodStatus.Overdue,
+      };
       await el.updateComplete;
 
       const startButton = getStartPeriodButton();
@@ -192,13 +204,13 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: false,
         startTime: startTime,
-        duration: Duration.create(600).toJSON()
+        duration: Duration.create(600).toJSON(),
       };
       el.periodData = {
         currentPeriod: 2,
         periodLength: 10,
-        periodStatus: PeriodStatus.Done
-      }
+        periodStatus: PeriodStatus.Done,
+      };
       await el.updateComplete;
 
       const startButton = getStartPeriodButton();
@@ -213,7 +225,6 @@ describe('lineup-game-clock tests', () => {
       await expect(el).shadowDom.to.equalSnapshot(CORE_CONTENT);
       await expect(el).to.be.accessible();
     });
-
   }); // describe('button states')
 
   describe('toggle', () => {
@@ -242,7 +253,7 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: true,
         startTime: startTime,
-        duration: Duration.zero().toJSON()
+        duration: Duration.zero().toJSON(),
       };
       await el.updateComplete;
 
@@ -265,7 +276,7 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: true,
         startTime: startTime,
-        duration: Duration.zero().toJSON()
+        duration: Duration.zero().toJSON(),
       };
       await el.updateComplete;
 
@@ -284,7 +295,7 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: true,
         startTime: startTime,
-        duration: Duration.zero().toJSON()
+        duration: Duration.zero().toJSON(),
       };
       await el.updateComplete;
 
@@ -295,7 +306,7 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: false,
         startTime: startTime,
-        duration: Duration.create(30).toJSON()
+        duration: Duration.create(30).toJSON(),
       };
       await el.updateComplete;
 
@@ -303,20 +314,20 @@ describe('lineup-game-clock tests', () => {
       expect(timerElement.innerText, 'Stopped timer text').to.equal('00:30');
       await expect(el).shadowDom.to.equalSnapshot(CORE_CONTENT);
     });
-  });  // describe('toggle')
+  }); // describe('toggle')
 
   describe('start period', () => {
     it('fires start event when pressed', async () => {
       el.timerData = {
         isRunning: false,
         startTime: startTime,
-        duration: Duration.zero().toJSON()
+        duration: Duration.zero().toJSON(),
       };
       el.periodData = {
         currentPeriod: 0,
         periodLength: 10,
-        periodStatus: PeriodStatus.Pending
-      }
+        periodStatus: PeriodStatus.Pending,
+      };
       await el.updateComplete;
 
       const startButton = getStartPeriodButton();
@@ -327,7 +338,6 @@ describe('lineup-game-clock tests', () => {
       const periodElement = getPeriodElement();
       expect(periodElement.innerText, 'Game period text').to.equal('Period: 1');
     });
-
   }); // describe('start period')
 
   describe('end period', () => {
@@ -335,13 +345,13 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: true,
         startTime: startTime,
-        duration: Duration.zero().toJSON()
+        duration: Duration.zero().toJSON(),
       };
       el.periodData = {
         currentPeriod: 1,
         periodLength: 10,
-        periodStatus: PeriodStatus.Running
-      }
+        periodStatus: PeriodStatus.Running,
+      };
       await el.updateComplete;
 
       const endButton = getEndPeriodButton();
@@ -357,13 +367,13 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: false,
         startTime: startTime,
-        duration: Duration.zero().toJSON()
+        duration: Duration.zero().toJSON(),
       };
       el.periodData = {
         currentPeriod: 1,
         periodLength: 10,
-        periodStatus: PeriodStatus.Running
-      }
+        periodStatus: PeriodStatus.Running,
+      };
       await el.updateComplete;
 
       const endButton = getEndPeriodButton();
@@ -376,13 +386,13 @@ describe('lineup-game-clock tests', () => {
       el.timerData = {
         isRunning: false,
         startTime: startTime,
-        duration: Duration.create(11 * 60).toJSON()
+        duration: Duration.create(11 * 60).toJSON(),
       };
       el.periodData = {
         currentPeriod: 1,
         periodLength: 10,
-        periodStatus: PeriodStatus.Overdue
-      }
+        periodStatus: PeriodStatus.Overdue,
+      };
       await el.updateComplete;
 
       const endButton = getEndPeriodButton();
@@ -404,13 +414,13 @@ describe('lineup-game-clock tests', () => {
         el.timerData = {
           isRunning: true,
           startTime: startTime,
-          duration: Duration.zero().toJSON()
+          duration: Duration.zero().toJSON(),
         };
         el.periodData = {
           currentPeriod: 1,
           periodLength: 10,
-          periodStatus: PeriodStatus.Overdue
-        }
+          periodStatus: PeriodStatus.Overdue,
+        };
         await el.updateComplete;
 
         const endButton = getEndPeriodButton();
@@ -438,7 +448,9 @@ describe('lineup-game-clock tests', () => {
         };
         el.addEventListener(ClockEndPeriodEvent.eventName, handler);
 
-        const cancelButton = overdueDialog.querySelector('mwc-button[dialogAction="close"]') as HTMLElement;
+        const cancelButton = overdueDialog.querySelector(
+          'mwc-button[dialogAction="close"]'
+        ) as HTMLElement;
         setTimeout(() => cancelButton!.click());
         await oneEvent(cancelButton!, 'click');
         await nextFrame();
@@ -454,20 +466,25 @@ describe('lineup-game-clock tests', () => {
         expect(useCurrent, 'Missing current overdue option').to.be.ok;
         expect(useCurrent.checked, 'Current option should be checked by default').to.be.true;
 
-        const saveButton = overdueDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
+        const saveButton = overdueDialog.querySelector(
+          'mwc-button[dialogAction="save"]'
+        ) as HTMLElement;
         setTimeout(() => saveButton.click());
 
         const { detail } = await oneEvent(el, ClockEndPeriodEvent.eventName);
-        expect((detail as ClockEndPeriodDetail).extraMinutes, 'Extra minutes should not be set').to.not.be.ok;
+        expect((detail as ClockEndPeriodDetail).extraMinutes, 'Extra minutes should not be set').to
+          .not.be.ok;
       });
 
       it('fires end event with extra minutes for overdue period when dialog saved for retroactive time', async () => {
         // The retroactive/extra minutes fields are not initially set/available.
         const useRetroactive = getClockEndOverdueRetroactiveOption(el);
-        expect(useRetroactive.checked, 'Retroactive option should not be checked initially').to.be.false;
+        expect(useRetroactive.checked, 'Retroactive option should not be checked initially').to.be
+          .false;
 
         const extraMinutesField = getClockEndOverdueExtraMinutes(el);
-        expect(extraMinutesField.disabled, 'Extra minutes field should be disabled initially').to.be.true;
+        expect(extraMinutesField.disabled, 'Extra minutes field should be disabled initially').to.be
+          .true;
 
         // Set the retroactive option.
         setTimeout(() => useRetroactive.click());
@@ -478,13 +495,16 @@ describe('lineup-game-clock tests', () => {
         expect(extraMinutesField.disabled, 'Extra minutes field should now be enabled').to.be.false;
         // await expect(overdueDialog).to.be.accessible();
 
-        extraMinutesField.value = "3";
+        extraMinutesField.value = '3';
 
         const saveButton = getClockEndOverdueSaveButton(el);
         setTimeout(() => saveButton.click());
 
         const { detail } = await oneEvent(el, ClockEndPeriodEvent.eventName);
-        expect((detail as ClockEndPeriodDetail).extraMinutes, 'Event extra minutes should be set to input value').to.equal(3);
+        expect(
+          (detail as ClockEndPeriodDetail).extraMinutes,
+          'Event extra minutes should be set to input value'
+        ).to.equal(3);
       });
     }); // describe('overdue')
   }); // describe('end period')

@@ -1,9 +1,16 @@
+/** @format */
+
 import { TimerData } from '@app/models/clock.js';
 import { FormationType } from '@app/models/formation.js';
 import {
   AllSetupSteps,
-  LiveClock, LiveGame, LivePlayer,
-  PeriodStatus, SetupStatus, SetupSteps, SetupTask
+  LiveClock,
+  LiveGame,
+  LivePlayer,
+  PeriodStatus,
+  SetupStatus,
+  SetupSteps,
+  SetupTask,
 } from '@app/models/live.js';
 import { LiveGameState, LiveState } from '@app/slices/live/live-slice.js';
 import { ShiftState } from '@app/slices/live/shift-slice.js';
@@ -26,7 +33,7 @@ const CLOCK_INITIAL_STATE: LiveClock = {
   currentPeriod: 0,
   periodStatus: PeriodStatus.Pending,
   totalPeriods: 2,
-  periodLength: 45
+  periodLength: 45,
 };
 
 export const SHIFT_INITIAL_STATE: ShiftState = {
@@ -39,12 +46,15 @@ export function buildInitialLiveState(): LiveState {
   return {
     ...LIVE_INITIAL_STATE,
     shift: {
-      ...SHIFT_INITIAL_STATE
-    }
+      ...SHIFT_INITIAL_STATE,
+    },
   };
 }
 
-export function buildLiveStateWithCurrentGame(game: LiveGame, rest?: Partial<LiveState>): LiveState {
+export function buildLiveStateWithCurrentGame(
+  game: LiveGame,
+  rest?: Partial<LiveState>
+): LiveState {
   const state: LiveState = {
     ...buildInitialLiveState(),
     ...rest,
@@ -58,7 +68,9 @@ export function buildLiveStateWithCurrentGame(game: LiveGame, rest?: Partial<Liv
   return state;
 }
 
-export function buildLiveGameWithSetupTasksAndPlayers(lastCompletedStep: SetupSteps = -1): LiveGame {
+export function buildLiveGameWithSetupTasksAndPlayers(
+  lastCompletedStep: SetupSteps = -1
+): LiveGame {
   const game = testlive.getLiveGameWithPlayers();
   buildSetupTasks(game, lastCompletedStep);
   return game;
@@ -77,14 +89,13 @@ export function buildSetupTasks(game: LiveGame, lastCompletedStep: SetupSteps) {
     let status = SetupStatus.Pending;
     if (index <= Math.min(lastCompletedStep, steps.length - 1)) {
       status = SetupStatus.Complete;
-    }
-    else if (index < steps.length && index === lastCompletedStep + 1) {
+    } else if (index < steps.length && index === lastCompletedStep + 1) {
       // Set the current step after the last completed to active.
       status = SetupStatus.Active;
     }
     return {
       step: value,
-      status
+      status,
     };
   });
 
@@ -100,40 +111,45 @@ export function buildClock(timer?: TimerData, rest?: Partial<LiveClock>): LiveCl
     ...CLOCK_INITIAL_STATE,
     ...rest,
     timer,
-  }
+  };
 }
 
 export function buildClockWithTimer(isRunning?: boolean): LiveClock {
   return buildClock(isRunning ? buildRunningTimer() : buildStoppedTimer());
 }
 
-export function buildShiftWithTrackersFromGame(game: LiveGame,
-  keepExistingStatus?: boolean): ShiftState {
+export function buildShiftWithTrackersFromGame(
+  game: LiveGame,
+  keepExistingStatus?: boolean
+): ShiftState {
   return buildShiftWithTrackers(game.id, game.players, keepExistingStatus);
 }
 
-export function buildShiftWithTrackers(gameId: string, existingPlayers?: LivePlayer[],
-  keepExistingStatus?: boolean): ShiftState {
+export function buildShiftWithTrackers(
+  gameId: string,
+  existingPlayers?: LivePlayer[],
+  keepExistingStatus?: boolean
+): ShiftState {
   if (existingPlayers) {
-    existingPlayers = existingPlayers.filter(player => !player.isSwap);
+    existingPlayers = existingPlayers.filter((player) => !player.isSwap);
   }
   const trackerMap = buildPlayerTrackerMap(gameId, existingPlayers, keepExistingStatus);
   return {
     ...SHIFT_INITIAL_STATE,
-    trackerMaps: { [trackerMap.id]: trackerMap.toJSON() }
+    trackerMaps: { [trackerMap.id]: trackerMap.toJSON() },
   };
 }
 
 export function getTrackerMap(state: ShiftState, gameId: string) {
   if (!state.trackerMaps) {
-    return;
+    return undefined;
   }
   return state.trackerMaps[gameId];
 }
 
 export function getGame(state: LiveState, gameId: string) {
   if (!state.games) {
-    return;
+    return undefined;
   }
   return state.games[gameId];
 }

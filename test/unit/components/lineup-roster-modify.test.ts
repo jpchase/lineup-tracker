@@ -1,8 +1,10 @@
+/** @format */
+
 import { EVENT_NEWPLAYERCREATED } from '@app/components/events';
 import { LineupRosterModify } from '@app/components/lineup-roster-modify';
 import '@app/components/lineup-roster-modify.js';
 import { PlayerStatus } from '@app/models/player';
-import { assert, expect, fixture } from '@open-wc/testing';
+import { aTimeout, assert, expect, fixture } from '@open-wc/testing';
 
 describe('lineup-roster-modify tests', () => {
   let el: LineupRosterModify;
@@ -14,10 +16,6 @@ describe('lineup-roster-modify tests', () => {
     const field = el.shadowRoot!.querySelector(`#${fieldId} > input`);
     assert.isOk(field, `Missing field: ${fieldId}`);
     return field as HTMLInputElement;
-  }
-
-  function sleep(milliseconds: number) {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
 
   it('starts empty', () => {
@@ -33,10 +31,10 @@ describe('lineup-roster-modify tests', () => {
 
   it('creates new player when saved', async () => {
     // TODO: Figure out better way to wait for component to be rendered
-    await sleep(50);
+    await aTimeout(50);
 
     const nameField = getInputField('nameField');
-    nameField.value = ' Player 1 '
+    nameField.value = ' Player 1 ';
 
     const uniformField = getInputField('uniformNumberField');
     uniformField.value = '2';
@@ -55,18 +53,17 @@ describe('lineup-roster-modify tests', () => {
     const saveButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
     saveButton.click();
     // TODO: Figure out better way than manual sleep
-    await sleep(50);
+    await aTimeout(50);
 
     assert.isTrue(eventFired, `Event ${EVENT_NEWPLAYERCREATED} should be fired`);
 
-    assert.deepEqual(newPlayer,
-      {
-        id: '',
-        name: 'Player 1',
-        uniformNumber: 2,
-        positions: [],
-        status: PlayerStatus.Off
-      });
+    assert.deepEqual(newPlayer, {
+      id: '',
+      name: 'Player 1',
+      uniformNumber: 2,
+      positions: [],
+      status: PlayerStatus.Off,
+    });
   });
 
   it('a11y', async () => {

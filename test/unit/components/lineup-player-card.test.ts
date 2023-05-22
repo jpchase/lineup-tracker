@@ -1,3 +1,5 @@
+/** @format */
+
 import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '@app/components/events';
 import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-card';
 import '@app/components/lineup-player-card.js';
@@ -21,22 +23,21 @@ describe('lineup-player-card tests', () => {
 
   beforeEach(async () => {
     // Wire up a node that will handle context requests for a PlayerResolver.
-    const parentNode = buildPlayerResolverParentNode(
-      {
-        getPlayer: (playerId) => {
-          let player: LivePlayer | undefined;
-          if (playerId === 'OnPlayerToBeReplaced') {
-            player = {
-              id: playerId,
-              name: 'Player To Be Replaced',
-              uniformNumber: 94,
-              positions: ['OM'],
-              status: PlayerStatus.On
-            }
-          }
-          return player;
+    const parentNode = buildPlayerResolverParentNode({
+      getPlayer: (playerId) => {
+        let player: LivePlayer | undefined;
+        if (playerId === 'OnPlayerToBeReplaced') {
+          player = {
+            id: playerId,
+            name: 'Player To Be Replaced',
+            uniformNumber: 94,
+            positions: ['OM'],
+            status: PlayerStatus.On,
+          };
         }
-      });
+        return player;
+      },
+    });
 
     // Handle context requests for a time notifier.
     timerNotifier = new SynchronizedTimerNotifier();
@@ -57,14 +58,14 @@ describe('lineup-player-card tests', () => {
       name: 'Amanda',
       uniformNumber: 2,
       positions: ['CB', 'FB', 'HM'],
-      status: PlayerStatus.Off
+      status: PlayerStatus.Off,
     };
   }
 
   function getCardData(player?: LivePlayer) {
     const data: PlayerCardData = {
       id: 'test',
-      position: { id: 'HM', type: 'HM' }
+      position: { id: 'HM', type: 'HM' },
     };
     if (player) {
       data.player = player;
@@ -91,9 +92,9 @@ describe('lineup-player-card tests', () => {
 
   function getShiftTimeText(shiftElement: HTMLElement): string {
     const textNodes = Array.from(shiftElement.childNodes) // has childNodes inside, including text ones
-      .filter(child => child.nodeType === 3) // get only text nodes
-      .filter(child => child.textContent?.trim()) // eliminate empty text
-      .map(textNode => textNode.textContent);
+      .filter((child) => child.nodeType === 3) // get only text nodes
+      .filter((child) => child.textContent?.trim()) // eliminate empty text
+      .map((textNode) => textNode.textContent);
     expect(textNodes, 'shiftTime should only have one text node').to.have.length(1);
     return textNodes[0]!;
   }
@@ -303,7 +304,7 @@ describe('lineup-player-card tests', () => {
       currentPositionVisible: true,
       positionsVisible: false,
       subForVisible: false,
-      shiftVisible: true
+      shiftVisible: true,
     },
     {
       playerStatus: PlayerStatus.Next,
@@ -313,21 +314,21 @@ describe('lineup-player-card tests', () => {
       subForId: 'OnPlayerToBeReplaced',
       subForExpected: '-> Player To Be Replaced',
       subForVisible: true,
-      shiftVisible: true
+      shiftVisible: true,
     },
     {
       playerStatus: PlayerStatus.Off,
       currentPositionVisible: false,
       positionsVisible: true,
       subForVisible: false,
-      shiftVisible: true
+      shiftVisible: true,
     },
     {
       playerStatus: PlayerStatus.Out,
       currentPositionVisible: false,
       positionsVisible: false,
       subForVisible: false,
-      shiftVisible: false
+      shiftVisible: false,
     },
   ];
 
@@ -358,41 +359,46 @@ describe('lineup-player-card tests', () => {
       const playerElement = verifyPlayerElements(player);
 
       const currentPositionElement = playerElement.querySelector('.currentPosition');
-      expectVisibility(currentPositionElement,
+      expectVisibility(
+        currentPositionElement,
         modeTest.currentPositionVisible ? 'inline' : 'none',
-        'currentPosition element');
+        'currentPosition element'
+      );
       if (modeTest.currentPositionVisible) {
         expect(player.currentPosition, 'player.currentPosition').to.be.ok;
         expect(currentPositionElement?.textContent).to.equal(
-          formatPosition(player.currentPosition!), 'currentPosition element');
+          formatPosition(player.currentPosition!),
+          'currentPosition element'
+        );
       }
 
       const subForElement = playerElement.querySelector('.subFor');
-      expectVisibility(subForElement,
-        modeTest.subForVisible ? 'inline' : 'none',
-        'subFor element');
+      expectVisibility(subForElement, modeTest.subForVisible ? 'inline' : 'none', 'subFor element');
       if (modeTest.subForVisible) {
-        expect(subForElement?.textContent).to.equal(
-          modeTest.subForExpected, 'subFor element');
+        expect(subForElement?.textContent).to.equal(modeTest.subForExpected, 'subFor element');
       }
 
       const positionsElement = playerElement.querySelector('.playerPositions');
-      expectVisibility(positionsElement,
+      expectVisibility(
+        positionsElement,
         modeTest.positionsVisible ? 'inline' : 'none',
-        'playerPositions element');
+        'playerPositions element'
+      );
       if (modeTest.positionsVisible) {
         expect(positionsElement?.textContent).to.equal(
-          player?.positions.join(', '), 'playerPositions element');
+          player?.positions.join(', '),
+          'playerPositions element'
+        );
       }
 
       const shiftElement = playerElement.querySelector('.shiftTime') as HTMLElement;
-      expectVisibility(shiftElement,
-        modeTest.shiftVisible ? 'block' : 'none',
-        'shiftTime element');
+      expectVisibility(shiftElement, modeTest.shiftVisible ? 'block' : 'none', 'shiftTime element');
       if (modeTest.shiftVisible) {
         // Shift time is 1:05 (65 seconds).
         expect(getShiftTimeText(shiftElement)).to.equal(
-          Duration.format(Duration.create(65)), 'shiftTime element');
+          Duration.format(Duration.create(65)),
+          'shiftTime element'
+        );
       }
 
       await expect(el).shadowDom.to.equalSnapshot();
@@ -445,7 +451,9 @@ describe('lineup-player-card tests', () => {
         const playerElement = verifyPlayerElements(player);
         const shiftElement = playerElement.querySelector('.shiftTime') as HTMLElement;
         expect(getShiftTimeText(shiftElement)).to.equal(
-          Duration.format(Duration.create(elapsedSeconds)), 'shiftTime element');
+          Duration.format(Duration.create(elapsedSeconds)),
+          'shiftTime element'
+        );
       });
     }
 
@@ -459,8 +467,10 @@ describe('lineup-player-card tests', () => {
         el.timeTracker = timeTracker;
         await el.updateComplete;
 
-        expect(player.currentPosition).to.not.deep.equal(player.nextPosition,
-          'Swap should have different current and next positions');
+        expect(player.currentPosition).to.not.deep.equal(
+          player.nextPosition,
+          'Swap should have different current and next positions'
+        );
 
         const playerElement = verifyPlayerElements(player);
 
@@ -468,13 +478,13 @@ describe('lineup-player-card tests', () => {
         expectVisibility(currentPositionElement, 'inline', 'currentPosition element');
         expect(player.currentPosition, 'player.currentPosition').to.be.ok;
         expect(currentPositionElement?.textContent).to.equal(
-          formatPosition(player.nextPosition!), 'currentPosition element');
+          formatPosition(player.nextPosition!),
+          'currentPosition element'
+        );
 
         const subForElement = playerElement.querySelector('.subFor');
         expectVisibility(subForElement, 'none', 'subFor element');
       });
-
     }
-
   } // mode tests
 }); // describe('lineup-player-card tests'

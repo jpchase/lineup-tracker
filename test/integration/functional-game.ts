@@ -1,15 +1,17 @@
+/** @format */
+
 import { Game } from '@app/models/game.js';
 import rtk from '@reduxjs/toolkit';
 import { expect } from 'chai';
+import { Firestore, getFirestore } from 'firebase-admin/firestore';
 import { integrationTestData } from './data/integration-data-constants.js';
 import { GameCreatePage } from './pages/game-create-page.js';
 import { GameRosterPage } from './pages/game-roster-page.js';
 import { PageObject } from './pages/page-object.js';
 import { createAdminApp, readGame, readGameRoster } from './server/firestore-access.js';
 const { nanoid } = rtk;
-import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
-describe('Game functional tests', function () {
+describe('Game functional tests', () => {
   let firestore: Firestore;
   let pageObject: PageObject;
 
@@ -22,11 +24,12 @@ describe('Game functional tests', function () {
     await pageObject?.close();
   });
 
-  it('create new game', async function () {
-    const addGamePage = pageObject = new GameCreatePage({
+  it('create new game', async () => {
+    const addGamePage = new GameCreatePage({
       userId: integrationTestData.TEAM2.OWNER_ID,
-      team: { teamId: integrationTestData.TEAM2.ID }
+      team: { teamId: integrationTestData.TEAM2.ID },
     });
+    pageObject = addGamePage;
     await addGamePage.init();
     await addGamePage.open({ signIn: true });
 
@@ -37,7 +40,7 @@ describe('Game functional tests', function () {
     const newGame = {
       name: 'New Game - ' + nanoid(),
       opponent: 'Integration Opponent',
-      date: gameDate
+      date: gameDate,
     } as Game;
 
     const createComponent = await addGamePage.getCreateComponent();
@@ -53,17 +56,18 @@ describe('Game functional tests', function () {
     expect(storedGame, 'New game should be saved to storage').to.deep.include({
       ...newGame,
       id: gameId,
-      teamId: integrationTestData.TEAM2.ID
+      teamId: integrationTestData.TEAM2.ID,
     });
   });
 
-  it('copy roster from team', async function () {
+  it('copy roster from team', async () => {
     const gameId = integrationTestData.TEAM2.games.NEW.ID;
-    const gameRosterPage = pageObject = new GameRosterPage({
+    const gameRosterPage = new GameRosterPage({
       userId: integrationTestData.TEAM2.OWNER_ID,
       team: { teamId: integrationTestData.TEAM2.ID },
-      gameId
+      gameId,
     });
+    pageObject = gameRosterPage;
     await gameRosterPage.init();
     await gameRosterPage.open({ signIn: true });
 
@@ -82,9 +86,8 @@ describe('Game functional tests', function () {
     expect(Object.keys(roster).length, 'Copied players should be saved to storage').to.equal(16);
   });
 
-  it.skip('add player to game roster', async function () {
+  it.skip('add player to game roster', async () => {
     // TODO: Implement test for adding a new player to game roster,
     // including asserting that player is persisted to storage correctly.
   });
-
 });

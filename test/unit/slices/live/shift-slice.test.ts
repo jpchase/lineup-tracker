@@ -1,16 +1,25 @@
+/** @format */
+
 import { Duration } from '@app/models/clock.js';
 import { GameStatus } from '@app/models/game.js';
 import { getPlayer, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
-import { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } from '@app/slices/live/live-slice.js';
+import { actions } from '@app/slices/live/live-slice.js';
 import { shift, ShiftState } from '@app/slices/live/shift-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildShiftWithTrackers, buildShiftWithTrackersFromGame, getTrackerMap, SHIFT_INITIAL_STATE } from '../../helpers/live-state-setup.js';
+import {
+  buildShiftWithTrackers,
+  buildShiftWithTrackersFromGame,
+  getTrackerMap,
+  SHIFT_INITIAL_STATE,
+} from '../../helpers/live-state-setup.js';
 import { mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import { buildPlayerTracker } from '../../helpers/test-shift-data.js';
+
+const { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } = actions;
 
 describe('Shift slice', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
@@ -46,11 +55,10 @@ describe('Shift slice', () => {
 
       expect(currentState.trackerMaps, 'trackerMap should be empty').to.not.be.ok;
 
-      const newState = shift(currentState,
-        gameSetupCompleted(game.id, game));
+      const newState = shift(currentState, gameSetupCompleted(game.id, game));
 
       expect(newState).to.deep.include({
-        trackerMaps: { [expectedMap.id]: expectedMap.toJSON() }
+        trackerMaps: { [expectedMap.id]: expectedMap.toJSON() },
       });
       expect(newState).not.to.equal(currentState);
     });
@@ -60,9 +68,7 @@ describe('Shift slice', () => {
       const newState = shift(currentState, gameSetupCompleted(game.id, game));
 
       expect(newState).to.equal(currentState);
-
     });
-
   }); // describe('live/gameSetupCompleted')
 
   describe('clock/startPeriod', () => {
@@ -81,7 +87,7 @@ describe('Shift slice', () => {
     it('should set the clock running and capture the start time', () => {
       mockCurrentTime(startTime);
 
-      const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
+      const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/ true));
 
       // Only need to check the first player tracker.
       const expectedTracker = buildPlayerTracker(rosterPlayers[0]);
@@ -89,12 +95,13 @@ describe('Shift slice', () => {
       expectedTracker.onTimer = {
         isRunning: true,
         startTime: startTime,
-        duration: Duration.zero().toJSON()
-      }
+        duration: Duration.zero().toJSON(),
+      };
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const firstTracker = newTrackerMap?.trackers?.find(
-        (tracker) => (tracker.id === expectedTracker.id));
+        (tracker) => tracker.id === expectedTracker.id
+      );
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
 
@@ -107,7 +114,7 @@ describe('Shift slice', () => {
     it('should do nothing if game does not allow period to be started', () => {
       mockCurrentTime(startTime);
 
-      const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/false));
+      const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/ false));
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
@@ -115,7 +122,6 @@ describe('Shift slice', () => {
 
       expect(newState).to.equal(currentState);
     });
-
   }); // describe('clock/startPeriod')
 
   describe('clock/endPeriod', () => {
@@ -152,12 +158,13 @@ describe('Shift slice', () => {
       expectedTracker.onTimer = {
         isRunning: false,
         startTime: undefined,
-        duration: Duration.create(5).toJSON()
-      }
+        duration: Duration.create(5).toJSON(),
+      };
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const firstTracker = newTrackerMap?.trackers?.find(
-        (tracker) => (tracker.id === expectedTracker.id));
+        (tracker) => tracker.id === expectedTracker.id
+      );
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
 
@@ -188,12 +195,13 @@ describe('Shift slice', () => {
       expectedTracker.onTimer = {
         isRunning: false,
         startTime: undefined,
-        duration: Duration.create(10 * 60).toJSON()
-      }
+        duration: Duration.create(10 * 60).toJSON(),
+      };
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const firstTracker = newTrackerMap?.trackers?.find(
-        (tracker) => (tracker.id === expectedTracker.id));
+        (tracker) => tracker.id === expectedTracker.id
+      );
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
 
@@ -223,12 +231,13 @@ describe('Shift slice', () => {
       expectedTracker.onTimer = {
         isRunning: false,
         startTime: undefined,
-        duration: Duration.create(15 * 60).toJSON()
-      }
+        duration: Duration.create(15 * 60).toJSON(),
+      };
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const firstTracker = newTrackerMap?.trackers?.find(
-        (tracker) => (tracker.id === expectedTracker.id));
+        (tracker) => tracker.id === expectedTracker.id
+      );
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
 
@@ -247,7 +256,6 @@ describe('Shift slice', () => {
 
       expect(newState).to.equal(currentState);
     });
-
   }); // describe('clock/endPeriod')
 
   describe('live/applyPendingSubs', () => {
@@ -264,9 +272,9 @@ describe('Shift slice', () => {
       subs = [];
       for (let i = 0; i < nextPlayerIds.length; i++) {
         const nextId = nextPlayerIds[i];
-        const nextPlayer = players.find(p => (p.id === nextId))!;
+        const nextPlayer = players.find((p) => p.id === nextId)!;
         const onId = onPlayerIds[i];
-        const onPlayer = players.find(p => (p.id === onId))!;
+        const onPlayer = players.find((p) => p.id === onId)!;
 
         onPlayer.status = PlayerStatus.On;
 
@@ -281,7 +289,7 @@ describe('Shift slice', () => {
 
     function getTrackersByIds(state: ShiftState, gameId: string, ids: string[]) {
       const trackerMap = getTrackerMap(state, gameId);
-      return trackerMap?.trackers?.filter((player) => (ids.includes(player.id))) || [];
+      return trackerMap?.trackers?.filter((player) => ids.includes(player.id)) || [];
     }
 
     it('should sub all next players, when not selectedOnly', () => {
@@ -302,29 +310,29 @@ describe('Shift slice', () => {
       // Check that the next players are now on, with timer running
       const newOnTrackers = getTrackersByIds(newState, gameId, nextPlayerIds);
       expect(newOnTrackers).to.have.length(nextPlayerIds.length, 'Number of subs');
-      newOnTrackers.forEach(tracker => {
+      newOnTrackers.forEach((tracker) => {
         expect(tracker).to.deep.include({
           isOn: true,
           shiftCount: 1,
           onTimer: {
             isRunning: true,
             startTime: timeStartPlus5,
-            duration: Duration.zero().toJSON()
-          }
+            duration: Duration.zero().toJSON(),
+          },
         });
       });
 
       const newOffTrackers = getTrackersByIds(newState, gameId, onPlayerIds);
       expect(newOffTrackers).to.have.length(nextPlayerIds.length, 'Number of replaced');
-      newOffTrackers.forEach(tracker => {
+      newOffTrackers.forEach((tracker) => {
         expect(tracker).to.deep.include({
           isOn: false,
           shiftCount: 1,
           offTimer: {
             isRunning: true,
             startTime: timeStartPlus5,
-            duration: Duration.zero().toJSON()
-          }
+            duration: Duration.zero().toJSON(),
+          },
         });
       });
 
@@ -360,36 +368,34 @@ describe('Shift slice', () => {
       // Check that the next players are now on, with timer running
       const newOnTrackers = getTrackersByIds(newState, gameId, nextPlayerIds);
       expect(newOnTrackers).to.have.length(nextPlayerIds.length, 'Number of subs');
-      newOnTrackers.forEach(tracker => {
+      newOnTrackers.forEach((tracker) => {
         expect(tracker).to.deep.include({
           isOn: true,
           shiftCount: 1,
           onTimer: {
             isRunning: true,
             startTime: timeStartPlus5,
-            duration: Duration.zero().toJSON()
-          }
+            duration: Duration.zero().toJSON(),
+          },
         });
       });
 
       const newOffTrackers = getTrackersByIds(newState, gameId, onPlayerIds);
       expect(newOffTrackers).to.have.length(nextPlayerIds.length, 'Number of replaced');
-      newOffTrackers.forEach(tracker => {
+      newOffTrackers.forEach((tracker) => {
         expect(tracker).to.deep.include({
           isOn: false,
           shiftCount: 1,
           offTimer: {
             isRunning: true,
             startTime: timeStartPlus5,
-            duration: Duration.zero().toJSON()
-          }
+            duration: Duration.zero().toJSON(),
+          },
         });
       });
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       expect(newTrackerMap).not.to.equal(currentTrackerMapData);
     });
-
   }); // describe('live/applyPendingSubs')
-
 }); // describe('Shift slice')

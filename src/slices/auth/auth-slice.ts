@@ -1,5 +1,12 @@
+/** @format */
+
 import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { GoogleAuthProvider, signInWithCredential, User as FirebaseUser, UserCredential } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  signInWithCredential,
+  User as FirebaseUser,
+  UserCredential,
+} from 'firebase/auth';
 import { getEnv } from '../../app/environment.js';
 import { debug } from '../../common/debug.js';
 import { auth as authApi, firebaseRefs } from '../../firebase.js';
@@ -13,7 +20,7 @@ export interface AuthState {
 
 const INITIAL_STATE: AuthState = {
   user: undefined,
-  error: ''
+  error: '',
 };
 
 const env = getEnv();
@@ -67,10 +74,12 @@ export const signIn = (): ThunkResult => () => {
     .then((result: UserCredential) => {
       debugAuth(`Sign in succeeded: ${result.user ? result.user.uid : null}`);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error(`Error trying to sign in: ${error}`);
     })
-    .finally(() => { console.log('got to the finally clause') });
+    .finally(() => {
+      console.log('got to the finally clause');
+    });
 };
 
 const authSlice = createSlice({
@@ -95,21 +104,18 @@ export const auth = reducer;
 
 export const selectCurrentUser = (state: RootState) => state.auth?.user;
 
-export const selectCurrentUserId = createSelector(
-  selectCurrentUser,
-  (user) => {
-    if (!user) {
-      return;
-    }
-    return user.id;
+export const selectCurrentUserId = createSelector(selectCurrentUser, (user) => {
+  if (!user) {
+    return undefined;
   }
-);
+  return user.id;
+});
 
 function getUserFromFirebaseUser(firebaseUser: FirebaseUser): User {
   return {
     id: firebaseUser.uid,
     name: firebaseUser.displayName!,
     email: firebaseUser.email || '',
-    imageUrl: firebaseUser.photoURL || ''
+    imageUrl: firebaseUser.photoURL || '',
   };
 }

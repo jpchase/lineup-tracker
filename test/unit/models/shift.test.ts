@@ -1,10 +1,21 @@
+/** @format */
+
 import { CurrentTimeProvider, ManualTimeProvider } from '@app/models/clock.js';
 import { LiveGame, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { PlayerTimeTracker, PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '@app/models/shift.js';
+import {
+  PlayerTimeTracker,
+  PlayerTimeTrackerMap,
+  PlayerTimeTrackerMapData,
+} from '@app/models/shift.js';
 import { Assertion } from '@esm-bundle/chai';
 import { expect } from '@open-wc/testing';
-import { addDurationAssertion, buildDuration, manualTimeProvider, mockTimeProvider } from '../helpers/test-clock-data.js';
+import {
+  addDurationAssertion,
+  buildDuration,
+  manualTimeProvider,
+  mockTimeProvider,
+} from '../helpers/test-clock-data.js';
 
 declare global {
   export namespace Chai {
@@ -25,10 +36,12 @@ declare global {
 }
 
 function addTimingMatchers() {
-  addDurationAssertion<PlayerTimeTracker>('shiftTime', 'tracker shiftTime',
-    (tracker) => (tracker ? tracker.shiftTime : null));
-  addDurationAssertion<PlayerTimeTracker>('totalTime', 'tracker totalTime',
-    (tracker) => (tracker ? tracker.totalOnTime : null));
+  addDurationAssertion<PlayerTimeTracker>('shiftTime', 'tracker shiftTime', (tracker) =>
+    tracker ? tracker.shiftTime : null
+  );
+  addDurationAssertion<PlayerTimeTracker>('totalTime', 'tracker totalTime', (tracker) =>
+    tracker ? tracker.totalOnTime : null
+  );
 
   Assertion.addMethod('shiftCount', function (this, expected: number) {
     const tracker = this._obj as PlayerTimeTracker;
@@ -38,7 +51,7 @@ function addTimingMatchers() {
       'expected tracker shiftCount #{act} to not be #{exp}',
       expected,
       tracker?.shiftCount,
-      /*showDiff=*/false
+      /*showDiff=*/ false
     );
   });
 }
@@ -50,11 +63,15 @@ describe('PlayerTimeTracker', () => {
 
   it('should have correct total time after shift reset', () => {
     let expected = {
-      id: '1', isOn: true, alreadyOn: true, shiftCount: 1,
+      id: '1',
+      isOn: true,
+      alreadyOn: true,
+      shiftCount: 1,
       totalTime: buildDuration(0, 0).toJSON(),
       onTimer: {
-        isRunning: false, duration: buildDuration(0, 5).toJSON()
-      }
+        isRunning: false,
+        duration: buildDuration(0, 5).toJSON(),
+      },
     };
 
     tracker = new PlayerTimeTracker(expected);
@@ -80,7 +97,7 @@ describe('PlayerTimeTrackerMap', () => {
     { name: playerOnId, status: PlayerStatus.On },
     { name: playerOffId, status: PlayerStatus.Off },
     { name: playerAltOnId, status: PlayerStatus.On },
-    { name: playerAltOffId, status: PlayerStatus.Off }
+    { name: playerAltOffId, status: PlayerStatus.Off },
   ] as LivePlayer[];
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
   const time1 = new Date(2016, 0, 1, 14, 0, 5).getTime();
@@ -99,9 +116,11 @@ describe('PlayerTimeTrackerMap', () => {
 
   Assertion.addMethod('initialized', function (this) {
     const map = this._obj as PlayerTimeTrackerMap;
-    const pass = map && map.id.length && !map.clockRunning && (!map.trackers || !map.trackers.length);
+    const pass =
+      map && map.id.length && !map.clockRunning && (!map.trackers || !map.trackers.length);
 
-    let expected = '', actual = '';
+    let expected = '';
+    let actual = '';
     if (!pass && map) {
       expected = JSON.stringify(PlayerTimeTrackerMap.create({ id: map.id }).toJSON());
       actual = JSON.stringify(map.toJSON());
@@ -118,7 +137,7 @@ describe('PlayerTimeTrackerMap', () => {
 
   Assertion.addMethod('size', function (this, expected: number) {
     const map = this._obj as PlayerTimeTrackerMap;
-    const pass = (map?.trackers?.length === expected);
+    const pass = map?.trackers?.length === expected;
 
     let actual = '';
     if (!pass && map) {
@@ -167,10 +186,7 @@ describe('PlayerTimeTrackerMap', () => {
   Assertion.addMethod('running', function (this, expected: string) {
     const tracker = this._obj as PlayerTimeTracker;
     this.assert(
-      tracker &&
-      (tracker.isOn ?
-        tracker.onTimer?.isRunning :
-        tracker.offTimer?.isRunning),
+      tracker && (tracker.isOn ? tracker.onTimer?.isRunning : tracker.offTimer?.isRunning),
       'expected #{this} to be running',
       'expected #{this} to not be running',
       expected
@@ -178,11 +194,10 @@ describe('PlayerTimeTrackerMap', () => {
   });
 
   describe('uninitialized', () => {
-
     it('should throw when no players to initialize', () => {
       const game = {
         id: 'gameid',
-        players: [] as LivePlayer[]
+        players: [] as LivePlayer[],
       } as LiveGame;
 
       expect(() => {
@@ -205,11 +220,9 @@ describe('PlayerTimeTrackerMap', () => {
         map.substitutePlayer(playerOffId, playerOnId);
       }, 'substituePlayer').to.throw('Map is empty');
     });
-
   });
 
   describe('initialized', () => {
-
     beforeEach(() => {
       const game = { id: 'gameid', players } as LiveGame;
       map = PlayerTimeTrackerMap.createFromGame(game);
@@ -256,7 +269,6 @@ describe('PlayerTimeTrackerMap', () => {
       expect(offTracker).to.have.shiftCount(0);
 
       expect(altTracker).to.have.shiftCount(0);
-
     });
 
     it('should have shift timers stopped after stop', () => {
@@ -274,14 +286,15 @@ describe('PlayerTimeTrackerMap', () => {
     });
 
     describe('substitutions', () => {
-
       it('should throw if players are invalid', () => {
         expect(() => {
           map.substitutePlayer(playerOffId + 'X', playerOnId + 'X');
         }).to.throw('Invalid status to substitute, playerIn = undefined, playerOut = undefined');
         expect(() => {
           map.substitutePlayer(playerOnId, playerOnId);
-        }).to.throw('Invalid status to substitute, playerIn = {"id":"1","isOn":true}, playerOut = {"id":"1","isOn":true}');
+        }).to.throw(
+          'Invalid status to substitute, playerIn = {"id":"1","isOn":true}, playerOut = {"id":"1","isOn":true}'
+        );
       });
 
       it('should have shift timers changed after sub', () => {
@@ -311,7 +324,7 @@ describe('PlayerTimeTrackerMap', () => {
         map.startShiftTimers();
         map.substitutePlayers([
           { in: playerOffId, out: playerOnId },
-          { in: playerAltOffId, out: playerAltOnId }
+          { in: playerAltOffId, out: playerAltOnId },
         ]);
 
         expect(onTracker).to.be.off(playerOnId);
@@ -326,12 +339,9 @@ describe('PlayerTimeTrackerMap', () => {
         expect(altOffTracker).to.be.on(playerAltOffId);
         expect(altOffTracker).to.be.running();
 
-        expect(altOnTracker?.onTimer?.startTime).to.equal(
-          onTracker?.onTimer?.startTime);
-        expect(offTracker?.offTimer?.startTime).to.equal(
-          onTracker?.onTimer?.startTime);
-        expect(altOffTracker?.offTimer?.startTime).to.equal(
-          onTracker?.onTimer?.startTime);
+        expect(altOnTracker?.onTimer?.startTime).to.equal(onTracker?.onTimer?.startTime);
+        expect(offTracker?.offTimer?.startTime).to.equal(onTracker?.onTimer?.startTime);
+        expect(altOffTracker?.offTimer?.startTime).to.equal(onTracker?.onTimer?.startTime);
       });
 
       it('should have shift counts changed after sub', () => {
@@ -376,11 +386,9 @@ describe('PlayerTimeTrackerMap', () => {
         expect(offTracker).not.to.be.running();
       });
     }); // describe('substitutions')
-
   }); // describe('initialized')
 
   describe('Shift timing', () => {
-
     function initMapWithProvider(provider: CurrentTimeProvider | undefined) {
       const game = { id: 'gameid', players } as LiveGame;
       map = PlayerTimeTrackerMap.createFromGame(game, provider);
@@ -922,11 +930,9 @@ describe('PlayerTimeTrackerMap', () => {
       expect(onTracker).to.have.totalTime([0, 30]);
       expect(offTracker).to.have.totalTime([0, 40]);
     });
-
   }); // describe('Shift timing')
 
   describe('Existing data', () => {
-
     it('should not have the time provider serialized', () => {
       let data = {
         id: 'someid',
@@ -934,13 +940,13 @@ describe('PlayerTimeTrackerMap', () => {
           { id: playerOnId, isOn: true },
           { id: playerOffId, isOn: false },
         ],
-      }
+      };
       map = PlayerTimeTrackerMap.create(data);
 
       expect(map).to.have.size(2);
       expect(map.clockRunning).to.be.false;
       expect(map.timeProvider).to.be.ok;
-      map.trackers.forEach(tracker => {
+      map.trackers.forEach((tracker) => {
         expect(tracker.timeProvider).to.be.ok;
       });
 
@@ -976,7 +982,7 @@ describe('PlayerTimeTrackerMap', () => {
       expect(mapData).to.deep.equal({
         id: 'nodataid',
         clockRunning: false,
-        trackers: []
+        trackers: [],
       });
     });
 
@@ -1008,7 +1014,7 @@ describe('PlayerTimeTrackerMap', () => {
           { id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 1 },
           { id: playerOffId, isOn: false },
         ],
-      }
+      };
       map = PlayerTimeTrackerMap.create(expected);
 
       expect(map).to.have.size(2);
@@ -1033,21 +1039,29 @@ describe('PlayerTimeTrackerMap', () => {
         clockRunning: false,
         trackers: [
           {
-            id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 1,
+            id: playerOnId,
+            isOn: true,
+            alreadyOn: true,
+            shiftCount: 1,
             totalTime: buildDuration(0, 0).toJSON(),
             onTimer: {
-              isRunning: false, duration: buildDuration(0, 5).toJSON()
-            }
+              isRunning: false,
+              duration: buildDuration(0, 5).toJSON(),
+            },
           },
           {
-            id: playerOffId, isOn: false, alreadyOn: false, shiftCount: 0,
+            id: playerOffId,
+            isOn: false,
+            alreadyOn: false,
+            shiftCount: 0,
             totalTime: buildDuration(0, 0).toJSON(),
             offTimer: {
-              isRunning: false, duration: buildDuration(0, 5).toJSON()
-            }
+              isRunning: false,
+              duration: buildDuration(0, 5).toJSON(),
+            },
           },
         ],
-      }
+      };
       map = PlayerTimeTrackerMap.create(expected);
 
       expect(map).to.have.size(2);
@@ -1076,21 +1090,31 @@ describe('PlayerTimeTrackerMap', () => {
         clockRunning: false,
         trackers: [
           {
-            id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 1,
+            id: playerOnId,
+            isOn: true,
+            alreadyOn: true,
+            shiftCount: 1,
             totalTime: buildDuration(0, 0).toJSON(),
             onTimer: {
-              isRunning: false, startTime: undefined, duration: buildDuration(0, 5).toJSON()
-            }
+              isRunning: false,
+              startTime: undefined,
+              duration: buildDuration(0, 5).toJSON(),
+            },
           },
           {
-            id: playerOffId, isOn: false, alreadyOn: false, shiftCount: 0,
+            id: playerOffId,
+            isOn: false,
+            alreadyOn: false,
+            shiftCount: 0,
             totalTime: buildDuration(0, 0).toJSON(),
             offTimer: {
-              isRunning: false, startTime: undefined, duration: buildDuration(0, 5).toJSON()
-            }
+              isRunning: false,
+              startTime: undefined,
+              duration: buildDuration(0, 5).toJSON(),
+            },
           },
         ],
-      }
+      };
       map = PlayerTimeTrackerMap.create(expected);
 
       const mapData = map.toJSON();
@@ -1103,21 +1127,31 @@ describe('PlayerTimeTrackerMap', () => {
         clockRunning: true,
         trackers: [
           {
-            id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 2,
+            id: playerOnId,
+            isOn: true,
+            alreadyOn: true,
+            shiftCount: 2,
             totalTime: buildDuration(0, 5).toJSON(),
             onTimer: {
-              isRunning: true, startTime: startTime, duration: buildDuration(0, 5).toJSON()
-            }
+              isRunning: true,
+              startTime: startTime,
+              duration: buildDuration(0, 5).toJSON(),
+            },
           },
           {
-            id: playerOffId, isOn: false, alreadyOn: false, shiftCount: 1,
+            id: playerOffId,
+            isOn: false,
+            alreadyOn: false,
+            shiftCount: 1,
             totalTime: buildDuration(0, 5).toJSON(),
             offTimer: {
-              isRunning: true, startTime: startTime, duration: buildDuration(0, 5).toJSON()
-            }
+              isRunning: true,
+              startTime: startTime,
+              duration: buildDuration(0, 5).toJSON(),
+            },
           },
         ],
-      }
+      };
       // Current time is 5 seconds after the start time in saved data
       const provider = manualTimeProvider(time1);
 
@@ -1149,21 +1183,31 @@ describe('PlayerTimeTrackerMap', () => {
         clockRunning: true,
         trackers: [
           {
-            id: playerOnId, isOn: true, alreadyOn: true, shiftCount: 2,
+            id: playerOnId,
+            isOn: true,
+            alreadyOn: true,
+            shiftCount: 2,
             totalTime: buildDuration(0, 5).toJSON(),
             onTimer: {
-              isRunning: true, startTime: startTime, duration: buildDuration(0, 5).toJSON()
-            }
+              isRunning: true,
+              startTime: startTime,
+              duration: buildDuration(0, 5).toJSON(),
+            },
           },
           {
-            id: playerOffId, isOn: false, alreadyOn: false, shiftCount: 1,
+            id: playerOffId,
+            isOn: false,
+            alreadyOn: false,
+            shiftCount: 1,
             totalTime: buildDuration(0, 5).toJSON(),
             offTimer: {
-              isRunning: true, startTime: startTime, duration: buildDuration(0, 5).toJSON()
-            }
+              isRunning: true,
+              startTime: startTime,
+              duration: buildDuration(0, 5).toJSON(),
+            },
           },
         ],
-      }
+      };
       // Current time is 5 seconds after the start time in saved data
       const provider = manualTimeProvider(time1);
 
@@ -1172,7 +1216,5 @@ describe('PlayerTimeTrackerMap', () => {
       const mapData = map.toJSON();
       expect(mapData).to.deep.equal(expected);
     });
-
   }); // describe('Existing data')
-
 });

@@ -1,3 +1,5 @@
+/** @format */
+
 import { CurrentTimeProvider, Duration, ManualTimeProvider, TimerData } from '@app/models/clock';
 import { Assertion } from '@esm-bundle/chai';
 import sinon from 'sinon';
@@ -6,7 +8,7 @@ export function buildRunningTimer(startTime?: number, elapsedSeconds?: number): 
   return {
     isRunning: true,
     startTime: startTime || new Date(2016, 0, 1, 14, 0, 0).getTime(),
-    duration: (elapsedSeconds ? Duration.create(elapsedSeconds) : Duration.zero()).toJSON()
+    duration: (elapsedSeconds ? Duration.create(elapsedSeconds) : Duration.zero()).toJSON(),
   };
 }
 
@@ -14,7 +16,7 @@ export function buildStoppedTimer(elapsedSeconds?: number): TimerData {
   return {
     isRunning: false,
     startTime: undefined,
-    duration: (elapsedSeconds ? Duration.create(elapsedSeconds) : Duration.zero()).toJSON()
+    duration: (elapsedSeconds ? Duration.create(elapsedSeconds) : Duration.zero()).toJSON(),
   };
 }
 
@@ -42,25 +44,29 @@ export function manualTimeProvider(currentTime: number) {
 }
 
 export function buildDuration(minutes: number, seconds: number): Duration {
-  const total = (minutes * 60) + seconds;
+  const total = minutes * 60 + seconds;
   return Duration.create(total);
 }
 
 export function isElapsedEqual(actual: Duration, expected: number[]) {
-  if (!actual || !expected)
+  if (!actual || !expected) {
     return false;
+  }
 
-  if (!expected.length || expected.length !== 2)
+  if (!expected.length || expected.length !== 2) {
     return false;
+  }
 
   const expectedDuration = buildDuration(expected[0], expected[1]);
 
   return expectedDuration._elapsed === actual._elapsed;
 }
 
-export function addDurationAssertion<ActualType>(name: string,
+export function addDurationAssertion<ActualType>(
+  name: string,
   actualDesc: string,
-  getDuration: (actual: ActualType) => Duration | null) {
+  getDuration: (actual: ActualType) => Duration | null
+) {
   Assertion.addMethod(name, function (this, expected: number[]) {
     const elapsed = getDuration(this._obj as ActualType);
     let actual = null;
@@ -73,7 +79,7 @@ export function addDurationAssertion<ActualType>(name: string,
       `expected ${actualDesc} #{act} to not be #{exp}`,
       expected,
       actual,
-      /*showDiff=*/false
+      /*showDiff=*/ false
     );
   });
 }

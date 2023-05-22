@@ -1,3 +1,5 @@
+/** @format */
+
 import {
   Action,
   AnyAction,
@@ -8,7 +10,7 @@ import {
   ReducersMapObject,
   Store,
   ThunkAction,
-  ThunkDispatch
+  ThunkDispatch,
 } from '@reduxjs/toolkit';
 import { listenerMiddleware } from './app/action-listeners.js';
 import dynamicMiddlewares from './middleware/dynamic-middlewares.js';
@@ -17,7 +19,7 @@ import { configureAppStore } from './slices/app/app-module-configurator.js';
 import type { AppState, APP_SLICE_NAME } from './slices/app/app-slice.js';
 import type { AuthState } from './slices/auth/auth-slice.js';
 import type { GameState } from './slices/game/game-slice.js';
-import type { LiveState } from './slices/live/live-slice.js';
+import type { LiveState } from './slices/live/index.js';
 import type { TeamState } from './slices/team/team-slice.js';
 
 // Overall state extends static states and partials lazy states.
@@ -30,11 +32,12 @@ export interface RootState {
 }
 
 const RESET_STATE = 'RESET_STATE';
-export interface RootActionReset extends Action<typeof RESET_STATE> { };
+export interface RootActionReset extends Action<typeof RESET_STATE> {}
 
-export type RootStore = Store<RootState> & LazyStore & {
-  dispatch: ThunkDispatch<RootState, undefined, AnyAction>;
-};
+export type RootStore = Store<RootState> &
+  LazyStore & {
+    dispatch: ThunkDispatch<RootState, undefined, AnyAction>;
+  };
 
 export interface SliceStoreConfigurator {
   (storeInstance?: RootStore, ...rest: any[]): RootStore;
@@ -48,11 +51,11 @@ export function combineReducersWithReset<S extends EmptyObject, A extends Action
 ): Reducer<S, A> {
   const combinedReducer = combineReducers(reducers);
   const rootReducer: Reducer<S, A> = (state, action) => {
-    if (action.type == RESET_STATE) {
+    if (action.type === RESET_STATE) {
       state = undefined;
     }
     return combinedReducer(state, action);
-  }
+  };
   return rootReducer;
 }
 
@@ -61,11 +64,11 @@ export function setupStore(preloadedState?: RootState, hydrate: boolean = true) 
   // after the store is created.
   //  - Type magic is a workaround for https://github.com/reduxjs/redux-toolkit/issues/2241
   const baseStore = configureStore({
-    reducer: (state => state) as Reducer<RootState>,
+    reducer: ((state) => state) as Reducer<RootState>,
     preloadedState,
     enhancers: [lazyReducerEnhancer(combineReducersWithReset)],
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(listenerMiddleware.middleware, dynamicMiddlewares)
+      getDefaultMiddleware().concat(listenerMiddleware.middleware, dynamicMiddlewares),
   });
   type BaseStore = typeof baseStore;
 

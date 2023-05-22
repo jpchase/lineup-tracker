@@ -1,11 +1,26 @@
+/** @format */
+
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Game, GameDetail, Games, GameStatus } from '../../models/game.js';
 import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { GamePayload } from './game-action-types.js';
-import { loadGame, loadGameRoster, loadGames, persistNewGame, updateExistingGame } from './game-storage.js';
-import { copyRoster, gamePlayerAddedHandler, gamePlayerAddedPrepare, rosterCopiedHandler, rosterCopyFailedHandler, rosterCopyPendingHandler } from './roster-logic.js';
+import {
+  loadGame,
+  loadGameRoster,
+  loadGames,
+  persistNewGame,
+  updateExistingGame,
+} from './game-storage.js';
+import {
+  copyRoster,
+  gamePlayerAddedHandler,
+  gamePlayerAddedPrepare,
+  rosterCopiedHandler,
+  rosterCopyFailedHandler,
+  rosterCopyPendingHandler,
+} from './roster-logic.js';
 export { addNewGamePlayer, copyRoster } from './roster-logic.js';
 
 export const getGames = createAsyncThunk<
@@ -16,7 +31,7 @@ export const getGames = createAsyncThunk<
   {
     // Optional fields for defining thunkApi field types
     // dispatch: AppDispatch
-    state: RootState
+    state: RootState;
   }
 >(
   'game/getGames',
@@ -42,9 +57,9 @@ export const getGame = createAsyncThunk<
   string,
   {
     // Optional fields for defining thunkApi field types
-    state: RootState,
+    state: RootState;
     // The game id is added to the meta for the pending action.
-    pendingMeta: { gameId: string }
+    pendingMeta: { gameId: string };
   }
 >(
   'game/getGame',
@@ -62,7 +77,7 @@ export const getGame = createAsyncThunk<
 
     const gameDetail: GameDetail = {
       ...game,
-      roster: gameRoster
+      roster: gameRoster,
     };
     return gameDetail;
   },
@@ -75,59 +90,67 @@ export const getGame = createAsyncThunk<
     },
     getPendingMeta: (base) => {
       return { gameId: base.arg };
-    }
+    },
   }
 );
 
-export const addNewGame = (newGame: Game): ThunkResult => (dispatch, getState) => {
-  if (!newGame) {
-    return;
-  }
-  const state = getState();
-  // Verify that the game name is unique.
-  const gameState = state.game!;
-  if (gameState.games) {
-    const hasMatch = Object.keys(gameState.games).some((key) => {
-      const game = gameState.games[key];
-      return (game.name.localeCompare(newGame.name, undefined, { sensitivity: 'base' }) == 0);
-    });
-    if (hasMatch) {
+export const addNewGame =
+  (newGame: Game): ThunkResult =>
+  (dispatch, getState) => {
+    if (!newGame) {
       return;
     }
-  }
-  dispatch(saveGame(newGame));
-};
+    const state = getState();
+    // Verify that the game name is unique.
+    const gameState = state.game!;
+    if (gameState.games) {
+      const hasMatch = Object.keys(gameState.games).some((key) => {
+        const game = gameState.games[key];
+        return game.name.localeCompare(newGame.name, undefined, { sensitivity: 'base' }) === 0;
+      });
+      if (hasMatch) {
+        return;
+      }
+    }
+    dispatch(saveGame(newGame));
+  };
 
 // Saves the new game in local storage, before adding to the store
-export const saveGame = (newGame: Game): ThunkPromise<void> => async (dispatch, getState) => {
-  if (!newGame.status) {
-    newGame.status = GameStatus.New;
-  }
-  await persistNewGame(newGame, getState());
-  dispatch(addGame(newGame));
-};
+export const saveGame =
+  (newGame: Game): ThunkPromise<void> =>
+  async (dispatch, getState) => {
+    if (!newGame.status) {
+      newGame.status = GameStatus.New;
+    }
+    await persistNewGame(newGame, getState());
+    dispatch(addGame(newGame));
+  };
 
-export const gameSetupCompletedCreator = (gameId: string): ThunkResult => (dispatch, getState) => {
-  // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
-  //       so don't have to duplicate logic.
-  const game = selectLiveGameById(getState(), gameId);
-  if (!game) {
-    return;
-  }
-  updateExistingGame(gameId, {
-    status: GameStatus.Start
-  });
-  dispatch(gameSetupCompleted(gameId, game));
-};
+export const gameSetupCompletedCreator =
+  (gameId: string): ThunkResult =>
+  (dispatch, getState) => {
+    // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
+    //       so don't have to duplicate logic.
+    const game = selectLiveGameById(getState(), gameId);
+    if (!game) {
+      return;
+    }
+    updateExistingGame(gameId, {
+      status: GameStatus.Start,
+    });
+    dispatch(gameSetupCompleted(gameId, game));
+  };
 
-export const gameCompletedCreator = (gameId: string): ThunkResult => (dispatch) => {
-  // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
-  //       so don't have to duplicate logic.
-  updateExistingGame(gameId, {
-    status: GameStatus.Done
-  });
-  dispatch(gameCompleted(gameId));
-};
+export const gameCompletedCreator =
+  (gameId: string): ThunkResult =>
+  (dispatch) => {
+    // TODO: Figure out how save game to Firestore, *after* status is updated by reducer,
+    //       so don't have to duplicate logic.
+    updateExistingGame(gameId, {
+      status: GameStatus.Done,
+    });
+    dispatch(gameCompleted(gameId));
+  };
 
 export interface GameState {
   //TODO: Make this GameDetail's to avoid casting?
@@ -145,7 +168,7 @@ export const GAME_INITIAL_STATE: GameState = {
   detailFailure: false,
   rosterLoading: false,
   rosterFailure: false,
-  error: ''
+  error: '',
 };
 
 const gameSlice = createSlice({
@@ -158,7 +181,7 @@ const gameSlice = createSlice({
     },
     gamePlayerAdded: {
       reducer: gamePlayerAddedHandler,
-      prepare: gamePlayerAddedPrepare
+      prepare: gamePlayerAddedPrepare,
     },
   },
   extraReducers: (builder) => {
@@ -166,13 +189,14 @@ const gameSlice = createSlice({
       state.games = action.payload;
     });
     // Get game actions
-    builder.addCase(getGame.pending, (state: GameState,
-      _action: ReturnType<typeof getGame.pending>) => {
-      state.detailFailure = false;
-      state.detailLoading = true;
-    });
-    builder.addCase(getGame.fulfilled, (state: GameState,
-      action: PayloadAction<GameDetail>) => {
+    builder.addCase(
+      getGame.pending,
+      (state: GameState, _action: ReturnType<typeof getGame.pending>) => {
+        state.detailFailure = false;
+        state.detailLoading = true;
+      }
+    );
+    builder.addCase(getGame.fulfilled, (state: GameState, action: PayloadAction<GameDetail>) => {
       state.detailFailure = false;
       state.detailLoading = false;
 
@@ -182,7 +206,7 @@ const gameSlice = createSlice({
         return;
       }
       const gameDetail: GameDetail = {
-        ...action.payload
+        ...action.payload,
       };
       gameDetail.hasDetail = true;
       if (!gameDetail.status) {
@@ -191,26 +215,30 @@ const gameSlice = createSlice({
 
       state.games[action.payload.id] = gameDetail;
     });
-    builder.addCase(getGame.rejected, (state: GameState,
-      action: ReturnType<typeof copyRoster.rejected>) => {
-      state.error = action.error.message || action.error.name;
-      state.detailFailure = true;
-      state.detailLoading = false;
-    });
+    builder.addCase(
+      getGame.rejected,
+      (state: GameState, action: ReturnType<typeof copyRoster.rejected>) => {
+        state.error = action.error.message || action.error.name;
+        state.detailFailure = true;
+        state.detailLoading = false;
+      }
+    );
     // Copy roster actions
     builder.addCase(copyRoster.pending, rosterCopyPendingHandler);
     builder.addCase(copyRoster.fulfilled, rosterCopiedHandler);
     builder.addCase(copyRoster.rejected, rosterCopyFailedHandler);
     // Game setup actions
-    builder.addCase(gameSetupCompleted, (state, action: PayloadAction<GamePayload>) => {
-      state.games[action.payload.gameId].status = GameStatus.Start;
-    }).addCase(gameCompleted, (state, action: PayloadAction<GamePayload>) => {
-      const game = findGame(state, action.payload.gameId);
-      if (action.payload.gameId !== game.id) {
-        return;
-      }
-      game.status = GameStatus.Done;
-    });
+    builder
+      .addCase(gameSetupCompleted, (state, action: PayloadAction<GamePayload>) => {
+        state.games[action.payload.gameId].status = GameStatus.Start;
+      })
+      .addCase(gameCompleted, (state, action: PayloadAction<GamePayload>) => {
+        const game = findGame(state, action.payload.gameId);
+        if (action.payload.gameId !== game.id) {
+          return;
+        }
+        game.status = GameStatus.Done;
+      });
   },
 });
 
@@ -222,11 +250,11 @@ export const { addGame, gamePlayerAdded } = actions;
 
 export const selectGameById = (state: RootState, gameId: string) => {
   return maybeFindGame(state.game, gameId);
-}
+};
 
 export const selectGameRosterLoading = (state: RootState) => {
   return state.game?.rosterLoading;
-}
+};
 
 export function findGame(state?: GameState, gameId?: string): GameDetail {
   const game = maybeFindGame(state, gameId);
@@ -238,7 +266,7 @@ export function findGame(state?: GameState, gameId?: string): GameDetail {
 
 function maybeFindGame(state?: GameState, gameId?: string) {
   if (!state || !gameId || !(gameId in state.games)) {
-    return;
+    return undefined;
   }
   return state.games[gameId] as GameDetail;
 }

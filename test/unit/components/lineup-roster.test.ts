@@ -1,3 +1,5 @@
+/** @format */
+
 import { LineupRoster } from '@app/components/lineup-roster';
 import '@app/components/lineup-roster.js';
 import { PlayerStatus, Roster } from '@app/models/player';
@@ -29,7 +31,7 @@ function getRoster(numPlayers: number): Roster {
       name: `Player [${size - i} for sorting] ${i}`,
       uniformNumber: i + (i % 3) * 10,
       positions: pos,
-      status: PlayerStatus.Off
+      status: PlayerStatus.Off,
     };
   }
   return roster;
@@ -70,6 +72,7 @@ describe('lineup-roster tests', () => {
 
   for (const numPlayers of [1, 6]) {
     const testName = numPlayers === 1 ? 'single player' : 'multiple players';
+    // eslint-disable-next-line no-loop-func
     it(`renders list with ${testName}`, async () => {
       const roster = getRoster(numPlayers);
       el.roster = roster;
@@ -79,11 +82,12 @@ describe('lineup-roster tests', () => {
       expect(items.length).to.equal(numPlayers, 'Rendered player count');
 
       let index = 0;
-      const sortedPlayers = Object.keys(roster).map(key => roster[key]).
-        sort((a, b) => a.name.localeCompare(b.name));
+      const sortedPlayers = Object.keys(roster)
+        .map((key) => roster[key])
+        .sort((a, b) => a.name.localeCompare(b.name));
       for (const player of sortedPlayers) {
         const rosterItem = (items[index] as ListItem)!;
-        index++;
+        index += 1;
 
         const avatar = rosterItem.querySelector('.avatar');
         expect(avatar, 'Missing avatar').to.exist;
@@ -95,7 +99,10 @@ describe('lineup-roster tests', () => {
 
         const positionsElement = rosterItem.querySelector('.positions');
         expect(positionsElement, 'Missing positions element').to.exist;
-        expect(positionsElement!.textContent).to.equal(player.positions.join(', '), 'Player positions');
+        expect(positionsElement!.textContent).to.equal(
+          player.positions.join(', '),
+          'Player positions'
+        );
       }
       await expect(el).shadowDom.to.equalSnapshot();
       await expect(el).to.be.accessible({

@@ -1,3 +1,5 @@
+/** @format */
+
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { LivePlayer } from '@app/models/live.js';
 import { ElementHandle } from 'puppeteer';
@@ -17,7 +19,7 @@ export enum SetupStatus {
   Pending,
   Active,
   InProgress,
-  Complete
+  Complete,
 }
 
 export class GameSetupPage extends GameDetailPage {
@@ -35,7 +37,10 @@ export class GameSetupPage extends GameDetailPage {
   }
 
   private async getSetupComponent() {
-    const setupHandle = await this.querySelectorInView('lineup-view-game-detail', 'lineup-game-setup');
+    const setupHandle = await this.querySelectorInView(
+      'lineup-view-game-detail',
+      'lineup-game-setup'
+    );
     if (!setupHandle) {
       throw new Error('Setup component not found');
     }
@@ -62,7 +67,7 @@ export class GameSetupPage extends GameDetailPage {
   }
 
   async getTaskElementStatus(taskHandle: ElementHandle<Element>) {
-    const statusText = await taskHandle.$eval('div.status', element => {
+    const statusText = await taskHandle.$eval('div.status', (element) => {
       return element.textContent;
     });
     console.log(`Task status is ${statusText}`);
@@ -77,20 +82,21 @@ export class GameSetupPage extends GameDetailPage {
     if (!setupHandle) {
       setupHandle = await this.getSetupComponent();
     }
-    return await setupHandle.evaluate(async (setupNode) => {
+    return setupHandle.evaluate(async (setupNode) => {
       const starterList = setupNode!.shadowRoot!.querySelector('lineup-on-player-list');
       if (!starterList) {
         return [];
       }
-      const items = starterList.shadowRoot!.querySelectorAll<LineupPlayerCard>('lineup-player-card');
+      const items =
+        starterList.shadowRoot!.querySelectorAll<LineupPlayerCard>('lineup-player-card');
 
       const players = [];
       for (const item of Array.from(items)) {
         const nameElement = item.shadowRoot!.querySelector('span.playerName');
         players.push({
           id: item.data?.player?.id,
-          name: nameElement?.textContent
-        } as LivePlayer)
+          name: nameElement?.textContent,
+        } as LivePlayer);
       }
       return players;
     });
@@ -133,21 +139,28 @@ export class GameSetupPage extends GameDetailPage {
       if (!startersList || !subsList) {
         throw new Error(`Lists not found`);
       }
-      const positions = Array.from<LineupPlayerCard>(startersList.shadowRoot!.querySelectorAll('lineup-player-card'));
+      const positions = Array.from<LineupPlayerCard>(
+        startersList.shadowRoot!.querySelectorAll('lineup-player-card')
+      );
       let index = 0;
       for (const playerId of starterIds) {
         // Select the |index|'th position in the formation.
         positions[index].click();
 
         // Select the |playerId| in the subs list.
-        const subs = Array.from<LineupPlayerCard>(subsList.shadowRoot!.querySelectorAll('lineup-player-card'));
-        const subCard = subs.find(card => (card.player?.id === playerId));
+        const subs = Array.from<LineupPlayerCard>(
+          subsList.shadowRoot!.querySelectorAll('lineup-player-card')
+        );
+        const subCard = subs.find((card) => card.player?.id === playerId);
         if (!subCard) {
           throw new Error(`Starter not found in list: ${playerId}`);
         }
         subCard.click();
 
         // Confirm the starter.
+        /* eslint-disable-next-line no-await-in-loop --
+         * The await allows the UI to update, and loop iterations must be sequential.
+         */
         await Promise.resolve();
         const confirmSection = setupRoot.querySelector('#confirm-starter');
         if (!confirmSection) {
@@ -158,7 +171,7 @@ export class GameSetupPage extends GameDetailPage {
           throw new Error(`Missing apply button for: ${playerId}`);
         }
         (applyButton as HTMLElement).click();
-        index++;
+        index += 1;
       }
     }, starters);
 
@@ -166,7 +179,11 @@ export class GameSetupPage extends GameDetailPage {
     await this.page.waitForTimeout(100);
   }
 
-  async setPeriods(totalPeriods: number, periodLength: number, setupHandle?: ElementHandle<Element>) {
+  async setPeriods(
+    totalPeriods: number,
+    periodLength: number,
+    setupHandle?: ElementHandle<Element>
+  ) {
     if (!setupHandle) {
       setupHandle = await this.getSetupComponent();
     }
@@ -177,22 +194,30 @@ export class GameSetupPage extends GameDetailPage {
     linkHandle.click();
     await this.page.waitForTimeout(100);
 
-    await setupHandle.evaluate(async (setupNode, totalPeriods, periodLength) => {
-      const setupRoot = setupNode!.shadowRoot!;
+    await setupHandle.evaluate(
+      async (setupNode, totalPeriods, periodLength) => {
+        const setupRoot = setupNode!.shadowRoot!;
 
-      const periodsDialog = setupRoot.querySelector('#periods-dialog');
-      if (!periodsDialog) {
-        throw new Error(`Periods dialog not found`);
-      }
-      const numPeriodsField = setupRoot.querySelector(`#num-periods > input`) as HTMLInputElement;
-      numPeriodsField.value = `${totalPeriods}`;
+        const periodsDialog = setupRoot.querySelector('#periods-dialog');
+        if (!periodsDialog) {
+          throw new Error(`Periods dialog not found`);
+        }
+        const numPeriodsField = setupRoot.querySelector(`#num-periods > input`) as HTMLInputElement;
+        numPeriodsField.value = `${totalPeriods}`;
 
-      const periodLengthField = setupRoot.querySelector(`#period-length > input`) as HTMLInputElement;
-      periodLengthField.valueAsNumber = periodLength;
+        const periodLengthField = setupRoot.querySelector(
+          `#period-length > input`
+        ) as HTMLInputElement;
+        periodLengthField.valueAsNumber = periodLength;
 
-      const saveButton = periodsDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLButtonElement;
-      saveButton.click();
-    }, totalPeriods, periodLength);
+        const saveButton = periodsDialog.querySelector(
+          'mwc-button[dialogAction="save"]'
+        ) as HTMLButtonElement;
+        saveButton.click();
+      },
+      totalPeriods,
+      periodLength
+    );
 
     // Brief wait for components to render updates.
     await this.page.waitForTimeout(100);
@@ -242,5 +267,4 @@ export class GameSetupPage extends GameDetailPage {
     // Finalize the setup.
     await this.markAllSetupDone(setupHandle);
   }
-
 }

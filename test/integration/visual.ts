@@ -1,3 +1,5 @@
+/** @format */
+
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -15,10 +17,10 @@ function getCurrentFile(view: string) {
   return path.join(config.currentDir, `${view}.png`);
 }
 
-describe('👀 page screenshots are correct', function () {
+describe('👀 page screenshots are correct', () => {
   let pageObject: PageObject;
 
-  before(async function () {
+  before(async () => {
     // Create the test directories if needed.
     createScreenshotDirectories('current');
   });
@@ -28,16 +30,16 @@ describe('👀 page screenshots are correct', function () {
   });
 
   for (const breakpoint of config.breakpoints) {
-
-    describe(`${breakpoint.name} screen`, function () {
-
+    describe(`${breakpoint.name} screen`, () => {
       for (const pageConfig of getAllVisualPages(breakpoint)) {
-        it(pageConfig.name, async function () {
+        it(pageConfig.name, async () => {
           pageObject = pageConfig.page;
           await takeAndCompareScreenshot(pageObject, breakpoint.name, pageConfig.openOptions);
 
           const result = await pageObject.checkAccessibility();
-          console.log(`${breakpoint.name}-${pageConfig.name}: ${result.violationCount} accessibility violations`);
+          console.log(
+            `${breakpoint.name}-${pageConfig.name}: ${result.violationCount} accessibility violations`
+          );
           expect(result.violationCount, result.violationMessage).to.equal(0);
         });
       }
@@ -45,7 +47,11 @@ describe('👀 page screenshots are correct', function () {
   }
 });
 
-async function takeAndCompareScreenshot(page: PageObject, filePrefix: string, openOptions?: OpenOptions) {
+async function takeAndCompareScreenshot(
+  page: PageObject,
+  filePrefix: string,
+  openOptions?: OpenOptions
+) {
   logWithTime(`tACS (${page.scenarioName}) - init`);
   await page.init();
   logWithTime(`tACS (${page.scenarioName}) - open`);
@@ -76,7 +82,8 @@ function compareScreenshots(view: string) {
     let filesRead = 0;
     function doneReading() {
       // Wait until both files are read.
-      if (++filesRead < 2) return;
+      filesRead += 1;
+      if (filesRead < 2) return;
 
       // The files should be the same size.
       expect(img1.width, 'image widths are the same').equal(img2.width);
@@ -85,9 +92,10 @@ function compareScreenshots(view: string) {
       // Do the visual diff.
       const diff = new PNG({ width: img1.width, height: img1.height });
 
-      const numDiffPixels = pixelmatch(img1.data, img2.data, diff.data,
-        img1.width, img1.height, { threshold: 0.2 });
-      const percentDiff = numDiffPixels / (img1.width * img1.height) * 100;
+      const numDiffPixels = pixelmatch(img1.data, img2.data, diff.data, img1.width, img1.height, {
+        threshold: 0.2,
+      });
+      const percentDiff = (numDiffPixels / (img1.width * img1.height)) * 100;
 
       const stats = fs.statSync(currentFile);
       const fileSizeInBytes = stats.size;

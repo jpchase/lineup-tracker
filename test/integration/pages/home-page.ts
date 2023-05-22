@@ -1,6 +1,4 @@
-/**
-@license
-*/
+/** @format */
 
 import { PageObject, PageOpenFunction, PageOptions } from './page-object.js';
 
@@ -15,10 +13,8 @@ export class HomePage extends PageObject {
   constructor(options: HomePageOptions = {}) {
     super({
       ...options,
-      route: options.route ??
-        (options.emptyRoute ? '' : HomePage.defaultRoute),
-      scenarioName: options.scenarioName ??
-        (options.openDrawer ? 'navigation-drawer' : '')
+      route: options.route ?? (options.emptyRoute ? '' : HomePage.defaultRoute),
+      scenarioName: options.scenarioName ?? (options.openDrawer ? 'navigation-drawer' : ''),
     });
     this.showDrawerOnOpen = !!options.openDrawer;
   }
@@ -29,7 +25,7 @@ export class HomePage extends PageObject {
 
   override get openFunc(): PageOpenFunction | undefined {
     if (!this.showDrawerOnOpen) {
-      return;
+      return undefined;
     }
     return async () => {
       await this.page.waitForTimeout(500);

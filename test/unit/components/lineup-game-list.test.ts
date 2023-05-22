@@ -1,3 +1,5 @@
+/** @format */
+
 import { LineupGameList } from '@app/components/lineup-game-list';
 import '@app/components/lineup-game-list.js';
 import { Games, GameStatus } from '@app/models/game';
@@ -17,7 +19,7 @@ function getGames(numGames: number): Games {
       name: `Game ${i}`,
       opponent: `Other team ${i}`,
       // Months start at zero, days start at 1, hours are either 0, before noon, after noon.
-      date: new Date(2016, (i % 3), i + 1, (i === 0) ? 0 : (i % 2 === 0) ? 11 - i: 12 + i)
+      date: new Date(2016, i % 3, i + 1, i === 0 ? 0 : i % 2 === 0 ? 11 - i : 12 + i),
     };
   }
   return games;
@@ -41,6 +43,7 @@ describe('lineup-game-list tests', () => {
 
   for (const numGames of [1, 6]) {
     const testName = numGames === 1 ? 'single game' : `multiple games`;
+    // eslint-disable-next-line no-loop-func
     it(`renders list with ${testName}`, async () => {
       const games = getGames(numGames);
       el.games = games;
@@ -69,7 +72,7 @@ describe('lineup-game-list tests', () => {
         assert.isOk(dateElement, 'Missing gameDate element');
         assert.equal(dateElement!.textContent, dateFormatter.format(game.date));
 
-        index++;
+        index += 1;
       }
     });
   }

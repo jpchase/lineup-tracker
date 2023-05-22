@@ -1,3 +1,5 @@
+/** @format */
+
 import { LineupTeamCreate } from '@app/components/lineup-team-create';
 import '@app/components/lineup-team-create.js';
 import { expect, fixture, oneEvent } from '@open-wc/testing';
@@ -29,11 +31,10 @@ describe('lineup-team-create tests', () => {
 
     const { detail } = await oneEvent(el, 'new-team-created');
 
-    expect(detail.team).to.deep.equal(
-      {
-        id: '',
-        name: 'Club team 01'
-      });
+    expect(detail.team).to.deep.equal({
+      id: '',
+      name: 'Club team 01',
+    });
   });
 
   // TODO: Enable test when cancel handling is implemented.
@@ -45,7 +46,7 @@ describe('lineup-team-create tests', () => {
     const cancelButton = el.shadowRoot!.querySelector('mwc-button.cancel') as HTMLElement;
     setTimeout(() => cancelButton.click());
 
-    const { } = await oneEvent(el, 'new-team-created');
+    await oneEvent(el, 'new-team-created');
   });
 
   it('a11y', async () => {

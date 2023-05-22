@@ -1,3 +1,5 @@
+/** @format */
+
 import { TimerData } from './clock.js';
 import { FormationMetadata, Position } from './formation.js';
 import { Game, GameDetail, GameStatus } from './game.js';
@@ -7,14 +9,14 @@ export enum PeriodStatus {
   Pending = 'PENDING',
   Running = 'RUNNING',
   Overdue = 'OVERDUE',
-  Done = 'DONE'
+  Done = 'DONE',
 }
 
 export enum SetupStatus {
   Pending,
   Active,
   InProgress,
-  Complete
+  Complete,
 }
 
 export enum SetupSteps {
@@ -25,8 +27,9 @@ export enum SetupSteps {
   Captains,
 }
 
-export const AllSetupSteps: SetupSteps[] =
-  Object.values(SetupSteps).filter((v) => !isNaN(Number(v))) as SetupSteps[];
+export const AllSetupSteps: SetupSteps[] = Object.values(SetupSteps).filter(
+  (v) => !isNaN(Number(v))
+) as SetupSteps[];
 
 export interface SetupTask {
   step: SetupSteps;
@@ -96,15 +99,19 @@ export class LiveGameBuilder {
       currentPeriod: 0,
       periodStatus: PeriodStatus.Pending,
       totalPeriods: 2,
-      periodLength: 45
+      periodLength: 45,
     };
   }
 }
 
-export function findPlayersByStatus(game: LiveGame, status: PlayerStatus,
-  selectedOnly?: boolean, includeSwaps?: boolean) {
+export function findPlayersByStatus(
+  game: LiveGame,
+  status: PlayerStatus,
+  selectedOnly?: boolean,
+  includeSwaps?: boolean
+) {
   let matches: LivePlayer[] = [];
-  game.players!.forEach(player => {
+  game.players!.forEach((player) => {
     if (player.status !== status) {
       return;
     }
@@ -122,16 +129,16 @@ export function findPlayersByStatus(game: LiveGame, status: PlayerStatus,
 
 export function getPlayer(game: LiveGame, playerId: string) {
   if (!game || !game.players) {
-    return;
+    return undefined;
   }
-  return game.players.find(p => (p.id === playerId));
+  return game.players.find((p) => p.id === playerId);
 }
 
 export function removePlayer(game: LiveGame, playerId: string) {
   if (!game?.players) {
     return false;
   }
-  const index = game.players.findIndex(p => (p.id === playerId));
+  const index = game.players.findIndex((p) => p.id === playerId);
   if (index < 0) {
     return false;
   }
@@ -139,7 +146,11 @@ export function removePlayer(game: LiveGame, playerId: string) {
   return true;
 }
 
-export function gameCanStartPeriod(game: LiveGame, previousPeriod: number, totalPeriods: number): boolean {
+export function gameCanStartPeriod(
+  game: LiveGame,
+  previousPeriod: number,
+  totalPeriods: number
+): boolean {
   if (!(game.status === GameStatus.Start || game.status === GameStatus.Break)) {
     return false;
   }

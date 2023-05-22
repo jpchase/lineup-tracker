@@ -1,44 +1,68 @@
+/** @format */
+
 import { createNextState, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
 import { Position } from '../../models/formation.js';
 import { Game, GameDetail, GameStatus } from '../../models/game.js';
 import {
-  findPlayersByStatus, gameCanStartPeriod, getPlayer,
-  LiveGame, LiveGameBuilder, LiveGames, LivePlayer
+  findPlayersByStatus,
+  gameCanStartPeriod,
+  getPlayer,
+  LiveGame,
+  LiveGameBuilder,
+  LiveGames,
+  LivePlayer,
 } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
-import { getGame, selectGameById } from '../../slices/game/game-slice.js';
 import { RootState, ThunkResult } from '../../store.js';
+import { getGame, selectGameById } from '../game/game-slice.js';
 import {
-  configurePeriodsHandler, configurePeriodsPrepare,
-  endPeriodHandler, endPeriodPrepare,
-  markPeriodOverdueHandler, markPeriodOverduePrepare,
-  startPeriodHandler, startPeriodPrepare,
-  toggleHandler
+  configurePeriodsHandler,
+  configurePeriodsPrepare,
+  endPeriodHandler,
+  endPeriodPrepare,
+  markPeriodOverdueHandler,
+  markPeriodOverduePrepare,
+  startPeriodHandler,
+  startPeriodPrepare,
+  toggleHandler,
 } from './clock-reducer-logic.js';
 import { LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
 import {
-  applyStarterHandler, cancelStarterHandler,
+  applyStarterHandler,
+  cancelStarterHandler,
   captainsCompletedHandler,
-  formationSelectedHandler, formationSelectedPrepare,
-  invalidStartersHandler, invalidStartersPrepare,
-  rosterCompletedHandler, rosterCompletedPrepare,
-  selectStarterHandler, selectStarterPositionHandler, selectStarterPositionPrepare, selectStarterPrepare,
-  setupCompletedHandler, startersCompletedHandler, updateTasks
+  formationSelectedHandler,
+  formationSelectedPrepare,
+  invalidStartersHandler,
+  invalidStartersPrepare,
+  rosterCompletedHandler,
+  rosterCompletedPrepare,
+  selectStarterHandler,
+  selectStarterPositionHandler,
+  selectStarterPositionPrepare,
+  selectStarterPrepare,
+  setupCompletedHandler,
+  startersCompletedHandler,
+  updateTasks,
 } from './setup-reducer-logic.js';
 import { shift, ShiftState } from './shift-slice.js';
 import {
   cancelSubHandler,
   cancelSwapHandler,
-  confirmSubHandler, confirmSubPrepare,
+  confirmSubHandler,
+  confirmSubPrepare,
   confirmSwapHandler,
-  discardPendingSubsHandler, discardPendingSubsPrepare,
-  invalidPendingSubsHandler, invalidPendingSubsPrepare,
+  discardPendingSubsHandler,
+  discardPendingSubsPrepare,
+  invalidPendingSubsHandler,
+  invalidPendingSubsPrepare,
   markPlayerOutHandler,
-  pendingSubsAppliedHandler, pendingSubsAppliedPrepare,
+  pendingSubsAppliedHandler,
+  pendingSubsAppliedPrepare,
   returnOutPlayerHandler,
-  selectPlayerHandler, selectPlayerPrepare
+  selectPlayerHandler,
+  selectPlayerPrepare,
 } from './substitution-reducer-logic.js';
-export { endPeriodCreator, markPeriodOverdueCreator, pendingSubsAppliedCreator, startersCompletedCreator } from './live-action-creators.js';
 
 export interface LiveGameState {
   games?: LiveGames;
@@ -67,70 +91,85 @@ const INITIAL_STATE: LiveGameState = {
   selectedOffPlayer: undefined,
   selectedOnPlayer: undefined,
   proposedSub: undefined,
-  invalidSubs: undefined
+  invalidSubs: undefined,
 };
 
 export const selectLiveGameById = (state: RootState, gameId: string) => {
   if (!state.live || !gameId) {
-    return;
+    return undefined;
   }
   return findGame(state.live, gameId);
-}
+};
 
-export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
+export const selectProposedSub = (state: RootState) => state.live && state.live!.proposedSub;
 export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
 export const selectInvalidSubs = (state: RootState) => state.live?.invalidSubs;
 export const selectInvalidStarters = (state: RootState) => state.live?.invalidStarters;
 export const selectCurrentShift = (state: RootState) => state.live?.shift;
-export const selectPendingSubs = (state: RootState, gameId: string, selectedOnly?: boolean, includeSwaps?: boolean) => {
+export const selectPendingSubs = (
+  state: RootState,
+  gameId: string,
+  selectedOnly?: boolean,
+  includeSwaps?: boolean
+) => {
   const game = selectLiveGameById(state, gameId);
   if (!game) {
-    return;
+    return undefined;
   }
   const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next, selectedOnly, includeSwaps);
-  if (nextPlayers.some(player => {
+  const hasInvalid = nextPlayers.some((player) => {
     if (includeSwaps && player.isSwap) {
       return false;
     }
     const replacedPlayer = getPlayer(game, player.replaces!);
-    return (replacedPlayer?.status !== PlayerStatus.On);
-  })) {
-    return;
+    return replacedPlayer?.status !== PlayerStatus.On;
+  });
+  if (hasInvalid) {
+    return undefined;
   }
   return nextPlayers;
-}
-
-export const rosterCompleted = (gameId: string): ThunkResult => (dispatch, getState) => {
-  const game = selectGameById(getState(), gameId);
-  if (!game) {
-    return;
-  }
-  dispatch(actions.completeRoster(gameId, game.roster));
 };
 
-export const startGamePeriod = (gameId: string): ThunkResult => (dispatch, getState) => {
-  const state = getState();
-  const game = selectLiveGameById(state, gameId);
-  if (!game || !game.clock) {
-    return;
-  }
-  dispatch(startPeriod(game.id, gameCanStartPeriod(game, game.clock.currentPeriod, game.clock.totalPeriods)));
-};
+export const rosterCompleted =
+  (gameId: string): ThunkResult =>
+  (dispatch, getState) => {
+    const game = selectGameById(getState(), gameId);
+    if (!game) {
+      return;
+    }
+    dispatch(actions.completeRoster(gameId, game.roster));
+  };
 
-export const live: Reducer<LiveState> = function (state, action) {
+export const startGamePeriod =
+  (gameId: string): ThunkResult =>
+  (dispatch, getState) => {
+    const state = getState();
+    const game = selectLiveGameById(state, gameId);
+    if (!game || !game.clock) {
+      return;
+    }
+    dispatch(
+      actions.startPeriod(
+        game.id,
+        gameCanStartPeriod(game, game.clock.currentPeriod, game.clock.totalPeriods)
+      )
+    );
+  };
+
+export const live: Reducer<LiveState> = function reduce(state, action) {
   // Use immer so that a new object is returned only when something actually changes.
   // This is important to avoid triggering unnecessary rendering cycles.
   // - The |state| might be undefined on app initialization. Immer will *not*
   //   create a draft for undefined, which causes an error for Object.assign().
   //   As a workaround, pass the |INITIAL_STATE|, even though it seems redundant with
   //   the inner reducers.
-  return createNextState(state || INITIAL_STATE as LiveState, (draft) => {
+  return createNextState(state || (INITIAL_STATE as LiveState), (draft) => {
     Object.assign(draft, liveSlice.reducer(draft, action));
     draft!.shift = shift(draft?.shift, action);
   }) as LiveState;
-}
+};
 
-const liveSlice = createSlice({
+export const liveSlice = createSlice({
   name: 'live',
   initialState: INITIAL_STATE,
   reducers: {
@@ -144,27 +183,27 @@ const liveSlice = createSlice({
 
     completeRoster: {
       reducer: buildActionHandler(rosterCompletedHandler),
-      prepare: rosterCompletedPrepare
+      prepare: rosterCompletedPrepare,
     },
 
     formationSelected: {
       reducer: buildActionHandler(formationSelectedHandler),
-      prepare: formationSelectedPrepare
+      prepare: formationSelectedPrepare,
     },
 
     startersCompleted: {
       reducer: buildActionHandler(startersCompletedHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     invalidStarters: {
       reducer: buildActionHandler(invalidStartersHandler),
-      prepare: invalidStartersPrepare
+      prepare: invalidStartersPrepare,
     },
 
     captainsCompleted: {
       reducer: buildActionHandler(captainsCompletedHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     gameSetupCompleted: {
@@ -174,80 +213,80 @@ const liveSlice = createSlice({
         return {
           payload: {
             gameId,
-            liveGame: game
-          }
+            liveGame: game,
+          },
         };
-      }
+      },
     },
 
     selectStarter: {
       reducer: buildActionHandler(selectStarterHandler),
-      prepare: selectStarterPrepare
+      prepare: selectStarterPrepare,
     },
 
     selectStarterPosition: {
       reducer: buildActionHandler(selectStarterPositionHandler),
-      prepare: selectStarterPositionPrepare
+      prepare: selectStarterPositionPrepare,
     },
 
     applyStarter: {
       reducer: buildActionHandler(applyStarterHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     cancelStarter: {
       reducer: buildActionHandler(cancelStarterHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     selectPlayer: {
       reducer: buildActionHandler(selectPlayerHandler),
-      prepare: selectPlayerPrepare
+      prepare: selectPlayerPrepare,
     },
 
     confirmSub: {
       reducer: buildActionHandler(confirmSubHandler),
-      prepare: confirmSubPrepare
+      prepare: confirmSubPrepare,
     },
 
     cancelSub: {
       reducer: buildActionHandler(cancelSubHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     confirmSwap: {
       reducer: buildActionHandler(confirmSwapHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     cancelSwap: {
       reducer: buildActionHandler(cancelSwapHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     applyPendingSubs: {
       reducer: buildActionHandler(pendingSubsAppliedHandler),
-      prepare: pendingSubsAppliedPrepare
+      prepare: pendingSubsAppliedPrepare,
     },
 
     invalidPendingSubs: {
       reducer: buildActionHandler(invalidPendingSubsHandler),
-      prepare: invalidPendingSubsPrepare
+      prepare: invalidPendingSubsPrepare,
     },
 
     discardPendingSubs: {
       reducer: buildActionHandler(discardPendingSubsHandler),
-      prepare: discardPendingSubsPrepare
+      prepare: discardPendingSubsPrepare,
     },
 
     markPlayerOut: {
       reducer: buildActionHandler(markPlayerOutHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     returnOutPlayer: {
       reducer: buildActionHandler(returnOutPlayerHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     gameCompleted: {
@@ -263,90 +302,90 @@ const liveSlice = createSlice({
         game.dataCaptured = true;
       },
 
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     // Clock-related actions
     configurePeriods: {
       reducer: buildActionHandler(configurePeriodsHandler),
-      prepare: configurePeriodsPrepare
+      prepare: configurePeriodsPrepare,
     },
 
     startPeriod: {
       reducer: buildActionHandler(startPeriodHandler),
-      prepare: startPeriodPrepare
+      prepare: startPeriodPrepare,
     },
 
     endPeriod: {
       reducer: buildActionHandler(endPeriodHandler),
-      prepare: endPeriodPrepare
+      prepare: endPeriodPrepare,
     },
 
     toggleClock: {
       reducer: buildActionHandler(toggleHandler),
-      prepare: prepareLiveGamePayload
+      prepare: prepareLiveGamePayload,
     },
 
     markPeriodOverdue: {
       reducer: buildActionHandler(markPeriodOverdueHandler),
-      prepare: markPeriodOverduePrepare
+      prepare: markPeriodOverduePrepare,
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(getGame.fulfilled, (state: LiveGameState,
-      action: PayloadAction<GameDetail>) => {
-      if (findGame(state, action.payload.id)) {
-        // Game has already been initialized.
-        return;
-      }
+    builder.addCase(
+      getGame.fulfilled,
+      (state: LiveGameState, action: PayloadAction<GameDetail>) => {
+        if (findGame(state, action.payload.id)) {
+          // Game has already been initialized.
+          return;
+        }
 
-      const game: LiveGame = LiveGameBuilder.create(action.payload);
-      if (action.payload.status === GameStatus.New) {
-        updateTasks(game);
-      }
+        const game: LiveGame = LiveGameBuilder.create(action.payload);
+        if (action.payload.status === GameStatus.New) {
+          updateTasks(game);
+        }
 
-      setCurrentGame(state, game);
-    });
-  }
+        setCurrentGame(state, game);
+      }
+    );
+  },
 });
 
-const { actions } = liveSlice;
-export const {
-  // TODO: Remove this export of completeRoster when no longer needed in reducers/game.ts
-  completeRoster,
-  formationSelected, getLiveGame, startersCompleted, captainsCompleted, gameSetupCompleted,
-  // Starter-related actions
-  selectStarter, selectStarterPosition, applyStarter, cancelStarter, invalidStarters,
-  // Clock-related actions
-  configurePeriods, startPeriod, endPeriod, toggleClock, markPeriodOverdue,
-  // Sub-related actions
-  selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs,
-  invalidPendingSubs, discardPendingSubs, markPlayerOut, returnOutPlayer,
-  // Game status actions
-  gameCompleted
-} = actions;
+export const { actions } = liveSlice;
 
-type ActionHandler<P extends LiveGamePayload> =
-  (state: LiveState, game: LiveGame, action: PayloadAction<P>) => void;
+// TODO: Figure out better solution
+//   - These are used only by game-slice.ts and shift-slice.ts to avoid an error at runtime:
+//     "ReferenceError: Cannot access 'actions' before initialization"
+export const { applyPendingSubs, endPeriod, gameCompleted, gameSetupCompleted, startPeriod } =
+  actions;
+
+type ActionHandler<P extends LiveGamePayload> = (
+  state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<P>
+) => void;
 
 function buildActionHandler<P extends LiveGamePayload>(handler: ActionHandler<P>) {
   return (state: LiveState, action: PayloadAction<P>) => {
     return invokeActionHandler(state, action, handler);
-  }
+  };
 }
 
-function invokeActionHandler<P extends LiveGamePayload>(state: LiveState, action: PayloadAction<P>,
-  handler: ActionHandler<P>) {
+function invokeActionHandler<P extends LiveGamePayload>(
+  state: LiveState,
+  action: PayloadAction<P>,
+  handler: ActionHandler<P>
+) {
   const game = findGame(state, action.payload.gameId);
   if (!game) {
-    return;
+    return undefined;
   }
   return handler(state, game, action);
 }
 
 function findGame(state: LiveState, gameId: string) {
   if (!state.games || !(gameId in state.games)) {
-    return;
+    return undefined;
   }
   return state.games[gameId];
 }

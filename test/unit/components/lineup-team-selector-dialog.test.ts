@@ -1,5 +1,11 @@
+/** @format */
+
 import '@app/components/lineup-team-selector-dialog.js';
-import { AddNewTeamEvent, LineupTeamSelectorDialog, TeamChangedEvent } from '@app/components/lineup-team-selector-dialog.js';
+import {
+  AddNewTeamEvent,
+  LineupTeamSelectorDialog,
+  TeamChangedEvent,
+} from '@app/components/lineup-team-selector-dialog.js';
 import { Team } from '@app/models/team.js';
 import { Button } from '@material/mwc-button';
 import { ListItem } from '@material/mwc-list/mwc-list-item';
@@ -18,7 +24,7 @@ const TEAMS: Team[] = [
   {
     id: 't3',
     name: 'Another team (3)',
-  }
+  },
 ];
 
 describe('lineup-team-selector-dialog tests', () => {
@@ -34,7 +40,6 @@ describe('lineup-team-selector-dialog tests', () => {
     el.teamId = teamId;
     return teamArray;
   }
-
 
   function getTeamItems() {
     const items = el.shadowRoot!.querySelectorAll('mwc-dialog mwc-list mwc-list-item');
@@ -85,7 +90,7 @@ describe('lineup-team-selector-dialog tests', () => {
     const sortedTeams = teamArray.sort((a, b) => a.name.localeCompare(b.name));
     for (const team of sortedTeams) {
       const teamElement = items[index];
-      index++;
+      index += 1;
 
       expect(teamElement.getAttribute('id')).to.equal(team.id, 'Team id');
       expect(teamElement.querySelector('span')?.textContent).to.equal(team.name, 'Team name');
@@ -121,15 +126,19 @@ describe('lineup-team-selector-dialog tests', () => {
     const teamElement = getTeamItem(selectedTeamId);
     expect(teamElement, `Item should exist for id ${selectedTeamId}`).to.exist;
 
-    expect(teamElement.hasAttribute('selected'),
-      `List item for ${selectedTeamId} should not be selected yet`).to.be.false;
+    expect(
+      teamElement.hasAttribute('selected'),
+      `List item for ${selectedTeamId} should not be selected yet`
+    ).to.be.false;
 
     setTimeout(() => teamElement.click());
     await oneEvent(teamElement, 'click');
     await nextFrame();
 
-    expect(teamElement.hasAttribute('selected'),
-      `List item for ${selectedTeamId} should be selected`).to.be.true;
+    expect(
+      teamElement.hasAttribute('selected'),
+      `List item for ${selectedTeamId} should be selected`
+    ).to.be.true;
     await expect(teamElement).to.equalSnapshot();
   });
 
@@ -147,11 +156,10 @@ describe('lineup-team-selector-dialog tests', () => {
 
     const { detail } = await oneEvent(el, TeamChangedEvent.eventName);
 
-    expect(detail).to.deep.equal(
-      {
-        teamId: selectedTeamId,
-        teamName: teams.find(team => team.id === selectedTeamId)!.name
-      });
+    expect(detail).to.deep.equal({
+      teamId: selectedTeamId,
+      teamName: teams.find((team) => team.id === selectedTeamId)!.name,
+    });
   });
 
   it('fires event to add new team, with existing team selected', async () => {
@@ -191,16 +199,20 @@ describe('lineup-team-selector-dialog tests', () => {
     await el.show();
 
     const teamElement = await selectTeamItem(selectedTeamId);
-    expect(teamElement.hasAttribute('selected'),
-      `List item for ${selectedTeamId} should be selected`).to.be.true;
+    expect(
+      teamElement.hasAttribute('selected'),
+      `List item for ${selectedTeamId} should be selected`
+    ).to.be.true;
 
     const selectButton = getSelectButton();
     setTimeout(() => selectButton.click());
     await oneEvent(el, TeamChangedEvent.eventName);
 
     await el.show();
-    expect(teamElement.hasAttribute('selected'),
-      `List item for ${selectedTeamId} should no longer be selected`).to.be.false;
+    expect(
+      teamElement.hasAttribute('selected'),
+      `List item for ${selectedTeamId} should no longer be selected`
+    ).to.be.false;
   });
 
   // TODO: Fix various accessibility warnings
@@ -210,5 +222,4 @@ describe('lineup-team-selector-dialog tests', () => {
 
     await expect(el).to.be.accessible();
   });
-
 }); // describe('lineup-team-selector-dialog tests')

@@ -1,3 +1,5 @@
+/** @format */
+
 import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { LineupPlayerList } from '@app/components/lineup-player-list';
 import '@app/components/lineup-player-list.js';
@@ -5,7 +7,11 @@ import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { assert, expect, fixture } from '@open-wc/testing';
 
-function getPlayers(numPlayers: number, status: PlayerStatus, otherStatus?: PlayerStatus): LivePlayer[] {
+function getPlayers(
+  numPlayers: number,
+  status: PlayerStatus,
+  otherStatus?: PlayerStatus
+): LivePlayer[] {
   const size = numPlayers || 6;
   const players: LivePlayer[] = [];
   for (let i = 0; i < size; i++) {
@@ -30,7 +36,7 @@ function getPlayers(numPlayers: number, status: PlayerStatus, otherStatus?: Play
       name: `Player ${i}`,
       uniformNumber: i + (i % 3) * 10,
       positions: pos,
-      status: status
+      status: status,
     });
 
     if (otherStatus) {
@@ -39,7 +45,7 @@ function getPlayers(numPlayers: number, status: PlayerStatus, otherStatus?: Play
         name: `Player ${i}-${otherStatus}`,
         uniformNumber: i + (i % 4) * 10,
         positions: pos,
-        status: otherStatus
+        status: otherStatus,
       });
     }
   }
@@ -52,7 +58,7 @@ function getPlayersWithSomeMissingStatus(numPlayers: number, status: PlayerStatu
     id: 'P<no status>',
     name: `Player with no status`,
     uniformNumber: 99,
-    positions: ['GK']
+    positions: ['GK'],
   } as LivePlayer);
   return players;
 }
@@ -157,6 +163,7 @@ describe('lineup-player-list tests', () => {
   for (const modeTest of modeTests) {
     const testPrefix = `mode [${modeTest.listMode}]`;
 
+    // eslint-disable-next-line no-loop-func
     it(`${testPrefix}: shows no players placeholder when input list has no matching players`, async () => {
       const players = getPlayers(2, modeTest.nonMatchingStatus);
 
@@ -171,6 +178,7 @@ describe('lineup-player-list tests', () => {
     for (const numPlayers of [1, 6]) {
       const playersDesc = numPlayers === 1 ? 'single player' : `multiple players`;
 
+      // eslint-disable-next-line no-loop-func
       it(`${testPrefix}: renders list with ${playersDesc} all matching mode`, async () => {
         const players = getPlayers(numPlayers, modeTest.playerStatus);
 
@@ -181,6 +189,7 @@ describe('lineup-player-list tests', () => {
         verifyPlayerCards(numPlayers);
       });
 
+      // eslint-disable-next-line no-loop-func
       it(`${testPrefix}: renders list with ${playersDesc} mixed with other status`, async () => {
         const players = getPlayers(numPlayers, modeTest.playerStatus, modeTest.nonMatchingStatus);
 
@@ -190,7 +199,6 @@ describe('lineup-player-list tests', () => {
 
         verifyPlayerCards(numPlayers);
       });
-
     } // number of players
   } // list modes
 

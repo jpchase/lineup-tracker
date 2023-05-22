@@ -1,34 +1,105 @@
 {
-  "extends": ["eslint:recommended", "google", "plugin:lit/recommended"],
+  "extends": ["@open-wc", "prettier"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "root": true,
   "rules": {
-    "comma-dangle": [2, "only-multiline"],
-    "max-len": 0,
-    "object-curly-spacing": ["error", "always"],
-    "one-var": 0,
-    "space-before-function-paren": ["error", {
-      "anonymous": "always",
-      "named": "never",
-      "asyncArrow": "always"
-    }],
-    "spaced-comment": [2, "always", { "markers": ["!"], "exceptions": ["*"] }],
+    "arrow-body-style": "off",
+    "func-names": ["off", "as-needed"], // Temporarily disable
+    "spaced-comment": [
+      "off", // Temporarily disable
+      "always",
+      { "markers": ["!"], "exceptions": ["*"] }
+    ],
     "require-jsdoc": ["error", { "require": { "FunctionDeclaration": false } }],
-    "no-console": 0,
     "no-alert": 0,
     "no-bitwise": 0,
-    "camelcase": 1,
-    "curly": 1,
     "no-eq-null": 1,
     "guard-for-in": 1,
-    "no-empty": 1
+    "no-empty": 1,
+    "import/named": "off",
+    "import/no-unresolved": "off",
+    "import/extensions": [
+      "error",
+      "always",
+      {
+        "ignorePackages": true
+      }
+    ],
+    "lines-between-class-members": "off",
+    "max-classes-per-file": "off",
+    "no-continue": "off",
+    "no-multi-assign": ["error", { "ignoreNonDeclaration": true }],
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+    "prefer-destructuring": "off",
+    // Typescript overrides of built-in rules.
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    // Temporarily disable rules, to allow lint to complete successfully.
+    "class-methods-use-this": "off",
+    "default-case": "off",
+    "import/newline-after-import": "off",
+    "import/no-extraneous-dependencies": "off",
+    "lit/no-value-attribute": "off",
+    "lit-a11y/alt-text": "off",
+    "lit-a11y/no-autofocus": "off",
+    "no-console": "off",
+    "no-extra-boolean-cast": "off",
+    "no-lonely-if": "off",
+    "no-nested-ternary": "off",
+    "no-param-reassign": "off",
+    "no-restricted-globals": "off",
+    "no-shadow": "off",
+    "no-undef": "off",
+    "no-undef-init": "off",
+    "no-unneeded-ternary": "off",
+    "no-unsafe-optional-chaining": "off",
+    "no-use-before-define": "off",
+    "no-useless-constructor": "off",
+    "no-useless-return": "off",
+    "object-shorthand": "off",
+    "prefer-const": "off",
+    "prefer-template": "off"
   },
-  "globals": {
-  },
-  "parserOptions": {
-    "ecmaVersion": 2017
-  },
-  "env":{
-    "browser": true,
-    "es2017": true,
-    "node": true
-  }
+  "overrides": [
+    {
+      // Only allow imports from the index of each slice, not internal files.
+      "files": ["src/+(app|components|models|storage)/**/*.ts", "src/*.ts"],
+      "rules": {
+        "import/no-internal-modules": [
+          "error",
+          {
+            "forbid": ["**/slices/live/!(index.js)"]
+          }
+        ]
+      }
+    },
+    {
+      // Components often need to import other components twice, once for the side-effect.
+      "files": ["src/components/*.ts", "test/unit/components/*.test.ts"],
+      "rules": {
+        "import/no-duplicates": "off"
+      }
+    },
+    {
+      "files": ["test/integration/visual.ts"],
+      "rules": {
+        "no-loop-func": "off"
+      }
+    },
+    {
+      // TODO: Refactor test loops/generation to avoid these lint rules
+      "files": ["test/unit/components/lineup-player-card.test.ts"],
+      "rules": {
+        "no-inner-declarations": "off",
+        "no-loop-func": "off"
+      }
+    }
+  ],
+  "reportUnusedDisableDirectives": true
 }

@@ -28,9 +28,6 @@
     "plugins": [
       {
         "name": "typescript-lit-html-plugin"
-      },
-      {
-        "name": "typescript-tslint-plugin",
       }
     ]
   },

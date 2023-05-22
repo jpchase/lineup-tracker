@@ -1,11 +1,27 @@
+/** @format */
+
+import { App, applicationDefault, initializeApp } from 'firebase-admin/app';
+import {
+  DocumentData,
+  DocumentReference,
+  Firestore,
+  FirestoreDataConverter,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  WithFieldValue,
+} from 'firebase-admin/firestore';
+import { getEnv } from '../../../src/app/environment.js';
 import { Game, GameDetail } from '../../../src/models/game.js';
 import { Player, PlayerStatus, Roster } from '../../../src/models/player.js';
 // import { gameConverter } from '../../../src/slices/game/game-storage.js'
-import { App, applicationDefault, initializeApp } from 'firebase-admin/app';
-import { DocumentData, DocumentReference, Firestore, FirestoreDataConverter, QueryDocumentSnapshot, QuerySnapshot, WithFieldValue } from 'firebase-admin/firestore';
-import { getEnv } from '../../../src/app/environment.js';
-import { Model, ModelCollection, ModelConverter, ModelReader, ModelWriter } from '../../../src/storage/model-converter.js';
 import { NewDocOptions } from '../../../src/storage/firestore-writer.js';
+import {
+  Model,
+  ModelCollection,
+  ModelConverter,
+  ModelReader,
+  ModelWriter,
+} from '../../../src/storage/model-converter.js';
 
 const KEY_GAMES = 'games';
 const KEY_ROSTER = 'roster';
@@ -19,7 +35,7 @@ function buildGameRosterPath(gameId: string) {
   return `${buildGamePath(gameId)}/${KEY_ROSTER}`;
 }
 
-class ReaderConverter<T extends Model> implements FirestoreDataConverter<T>  {
+class ReaderConverter<T extends Model> implements FirestoreDataConverter<T> {
   private readonly converter: ModelReader<T>;
 
   constructor(converter: ModelReader<T>) {
@@ -37,7 +53,7 @@ class ReaderConverter<T extends Model> implements FirestoreDataConverter<T>  {
   }
 }
 
-class WriterConverter<T extends Model> implements FirestoreDataConverter<T>  {
+class WriterConverter<T extends Model> implements FirestoreDataConverter<T> {
   private readonly options: NewDocOptions | undefined;
   private readonly modelWriter: ModelWriter<T> | undefined;
 
@@ -47,9 +63,11 @@ class WriterConverter<T extends Model> implements FirestoreDataConverter<T>  {
   }
 
   toFirestore(model: WithFieldValue<T>): DocumentData {
-    const data: DocumentData = this.modelWriter ? this.modelWriter.toDocument(model) : {
-      ...model,
-    };
+    const data: DocumentData = this.modelWriter
+      ? this.modelWriter.toDocument(model)
+      : {
+          ...model,
+        };
     // Ensure there is no 'id' property, as that will prevent a unique id from being generated.
     if (!this.options?.keepExistingId) {
       delete data.id;
@@ -70,8 +88,7 @@ class WriterConverter<T extends Model> implements FirestoreDataConverter<T>  {
   }
 }
 
-const gameConverter: ModelReader<Game> =
-{
+const gameConverter: ModelReader<Game> = {
   fromDocument: (id: string, data: DocumentData): Game => {
     return {
       id: id,
@@ -79,20 +96,19 @@ const gameConverter: ModelReader<Game> =
       status: data.status,
       name: data.name,
       date: data.date.toDate(),
-      opponent: data.opponent
+      opponent: data.opponent,
     };
-  }
+  },
 };
 
-const playerConverter: ModelConverter<Player> =
-{
+const playerConverter: ModelConverter<Player> = {
   fromDocument: (id: string, data: DocumentData) => {
     return {
       id,
       name: data.name,
       uniformNumber: data.uniformNumber,
       positions: data.positions || [],
-      status: data.status
+      status: data.status,
     };
   },
 
@@ -107,7 +123,7 @@ const playerConverter: ModelConverter<Player> =
       data.positions = [];
     }
     return data;
-  }
+  },
 };
 
 export function getFirestoreUrl(projectId: string, databaseName?: string) {
@@ -127,11 +143,11 @@ export function createAdminApp(): App {
 
   process.env.FIRESTORE_EMULATOR_HOST = `${emulators.firestore.hostname}:${emulators.firestore.port}`;
   process.env.FIREBASE_AUTH_EMULATOR_HOST = `${emulators.auth.hostname}:${emulators.auth.port}/`;
-  const app = initializeApp({
+  adminApp = initializeApp({
     projectId: env.firebase.options.projectId, // 'demo-integration',
-    credential: applicationDefault()
+    credential: applicationDefault(),
   });
-  return adminApp = app;
+  return adminApp;
 }
 
 export async function readGame(firestore: Firestore, gameId: string): Promise<Game> {
@@ -142,16 +158,22 @@ export async function readGameRoster(firestore: Firestore, gameId: string): Prom
   return loadCollection(firestore, buildGameRosterPath(gameId), playerConverter);
 }
 
-export async function copyGame(firestore: Firestore, gameId: string, userId: string): Promise<GameDetail> {
+export async function copyGame(
+  firestore: Firestore,
+  gameId: string,
+  userId: string
+): Promise<GameDetail> {
   const existingGame = await readGame(firestore, gameId);
   const existingRoster = await readGameRoster(firestore, gameId);
 
   const copiedGame = {
     ...existingGame,
-    name: 'Copied Game'
+    name: 'Copied Game',
   } as GameDetail;
-  await writeDocument(firestore, copiedGame, KEY_GAMES, undefined,
-    { addUserId: true, currentUserId: userId });
+  await writeDocument(firestore, copiedGame, KEY_GAMES, undefined, {
+    addUserId: true,
+    currentUserId: userId,
+  });
 
   if (copiedGame.id === existingGame.id) {
     throw new Error('Copied game not saved successfully');
@@ -160,26 +182,30 @@ export async function copyGame(firestore: Firestore, gameId: string, userId: str
   const roster: Roster = {};
   const rosterPath = buildGameRosterPath(copiedGame.id);
   const options: NewDocOptions = { keepExistingId: true };
-  await Promise.all(Object.keys(existingRoster).map((key) => {
-    // Copies the player to a new player object.
-    const gamePlayer: Player = {
-      ...existingRoster[key]
-    };
-    // Saves player to game roster storage, but keep the same id.
-    return writeDocument(firestore, gamePlayer, rosterPath, playerConverter, options).then(() => {
-      roster[gamePlayer.id] = gamePlayer;
-      return;
+  await Promise.all(
+    Object.keys(existingRoster).map((key) => {
+      // Copies the player to a new player object.
+      const gamePlayer: Player = {
+        ...existingRoster[key],
+      };
+      // Saves player to game roster storage, but keep the same id.
+      return writeDocument(firestore, gamePlayer, rosterPath, playerConverter, options).then(() => {
+        roster[gamePlayer.id] = gamePlayer;
+        return;
+      });
     })
-  }));
+  );
 
   copiedGame.hasDetail = true;
   copiedGame.roster = roster;
   return copiedGame;
 }
 
-async function getDocument<T extends Model>(firestore: Firestore,
-  documentPath: string, converter: ModelReader<T>): Promise<T> {
-
+async function getDocument<T extends Model>(
+  firestore: Firestore,
+  documentPath: string,
+  converter: ModelReader<T>
+): Promise<T> {
   const docRef = firestore.doc(documentPath);
 
   console.log(`getDocument for [${documentPath}]}`);
@@ -198,32 +224,36 @@ async function writeDocument<T extends Model>(
   model: T,
   collectionPathOrReference: string,
   modelWriter?: ModelWriter<T>,
-  options?: NewDocOptions) {
-
-
-  const collectionRef = firestore.collection(collectionPathOrReference).withConverter(
-    new WriterConverter(modelWriter, options));
+  options?: NewDocOptions
+) {
+  const collectionRef = firestore
+    .collection(collectionPathOrReference)
+    .withConverter(new WriterConverter(modelWriter, options));
 
   // Unless requested to use model id, omit the doc path, which will cause a new unique id to be
   // generated.
-  const document: DocumentReference = (options?.keepExistingId && model.id) ?
-    collectionRef.doc(model.id) : collectionRef.doc();
+  const document: DocumentReference =
+    options?.keepExistingId && model.id ? collectionRef.doc(model.id) : collectionRef.doc();
 
   // console.log(`writeDocument: data = ${JSON.stringify(model)}`);
   try {
     await document.set(model);
   } catch (reason: any) {
     console.log(`writeDocument: failed - ${reason}`);
-  };
+  }
 
   // console.log(`writeDocument: after, document[${document.id}] = ${JSON.stringify(document)}`);
   model.id = document.id;
 }
 
 async function loadCollection<T extends Model, C extends ModelCollection<T>>(
-  firestore: Firestore, collectionPath: string, converter: ModelReader<T>) {
-  const collectionRef = firestore.collection(collectionPath).withConverter(
-    new ReaderConverter(converter));
+  firestore: Firestore,
+  collectionPath: string,
+  converter: ModelReader<T>
+) {
+  const collectionRef = firestore
+    .collection(collectionPath)
+    .withConverter(new ReaderConverter(converter));
 
   console.log(`loadCollection for [${collectionPath}]: about to query`);
   return collectionRef.get().then((querySnapshot: QuerySnapshot<T>) => {

@@ -1,20 +1,25 @@
+/** @format */
+
 import { Duration } from '@app/models/clock.js';
 import { GameStatus } from '@app/models/game.js';
 import { PeriodStatus, SetupSteps } from '@app/models/live.js';
-import {
-  LiveState,
-  configurePeriods,
-  endPeriod, endPeriodCreator,
-  live,
-  markPeriodOverdue, markPeriodOverdueCreator,
-  startPeriod, toggleClock
-} from '@app/slices/live/live-slice.js';
+import { endPeriodCreator, markPeriodOverdueCreator } from '@app/slices/live/index.js';
+import { LiveState, actions, live } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { buildClock, buildClockWithTimer, buildLiveGameWithSetupTasksAndPlayers, buildLiveStateWithCurrentGame, buildShiftWithTrackersFromGame, getGame } from '../../helpers/live-state-setup.js';
+import {
+  buildClock,
+  buildClockWithTimer,
+  buildLiveGameWithSetupTasksAndPlayers,
+  buildLiveStateWithCurrentGame,
+  buildShiftWithTrackersFromGame,
+  getGame,
+} from '../../helpers/live-state-setup.js';
 import { mockGetState } from '../../helpers/root-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
+
+const { configurePeriods, endPeriod, markPeriodOverdue, startPeriod, toggleClock } = actions;
 
 describe('Live slice: Clock actions', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
@@ -48,13 +53,15 @@ describe('Live slice: Clock actions', () => {
     });
 
     it('should set the period total/length', () => {
-      const newState = live(currentState,
-        configurePeriods(gameId, /*totalPeriods=*/1, /*periodLength=*/20));
+      const newState = live(
+        currentState,
+        configurePeriods(gameId, /*totalPeriods=*/ 1, /*periodLength=*/ 20)
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         totalPeriods: 1,
-        periodLength: 20
+        periodLength: 20,
       });
 
       expect(newState).not.to.equal(currentState);
@@ -62,18 +69,23 @@ describe('Live slice: Clock actions', () => {
 
     it('should update setup tasks to mark periods complete, in New status', () => {
       const game = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/SetupSteps.Periods - 1);
+        /*lastCompletedStep=*/ SetupSteps.Periods - 1
+      );
       currentState = buildLiveStateWithCurrentGame(game);
 
       const expectedGame = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/SetupSteps.Periods);
+        /*lastCompletedStep=*/ SetupSteps.Periods
+      );
       expectedGame.clock = buildClock(undefined, {
         totalPeriods: 3,
-        periodLength: 25
+        periodLength: 25,
       });
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
-      const newState = live(currentState, configurePeriods(gameId, /*totalPeriods=*/3, /*periodLength=*/25));
+      const newState = live(
+        currentState,
+        configurePeriods(gameId, /*totalPeriods=*/ 3, /*periodLength=*/ 25)
+      );
 
       expect(newState).to.deep.include(expectedState);
 
@@ -88,13 +100,16 @@ describe('Live slice: Clock actions', () => {
         ...game,
         clock: buildClock(buildStoppedTimer(), {
           totalPeriods: 3,
-          periodLength: 25
-        })
+          periodLength: 25,
+        }),
       };
       delete expectedGame.setupTasks;
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
-      const newState = live(currentState, configurePeriods(gameId, /*totalPeriods=*/3, /*periodLength=*/25));
+      const newState = live(
+        currentState,
+        configurePeriods(gameId, /*totalPeriods=*/ 3, /*periodLength=*/ 25)
+      );
 
       expect(newState).to.deep.include(expectedState);
 
@@ -103,18 +118,23 @@ describe('Live slice: Clock actions', () => {
 
     it('should do nothing if totalPeriods is invalid', () => {
       const game = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/SetupSteps.Periods - 1);
+        /*lastCompletedStep=*/ SetupSteps.Periods - 1
+      );
       currentState = buildLiveStateWithCurrentGame(game);
 
-      const newState = live(currentState,
-        configurePeriods(gameId, /*totalPeriods=*/0, /*periodLength=*/45));
+      const newState = live(
+        currentState,
+        configurePeriods(gameId, /*totalPeriods=*/ 0, /*periodLength=*/ 45)
+      );
 
       expect(newState).to.equal(currentState);
     });
 
     it('should do nothing if periodLength is invalid', () => {
-      const newState = live(currentState,
-        configurePeriods(gameId, /*totalPeriods=*/2, /*periodLength=*/5));
+      const newState = live(
+        currentState,
+        configurePeriods(gameId, /*totalPeriods=*/ 2, /*periodLength=*/ 5)
+      );
 
       expect(newState).to.equal(currentState);
     });
@@ -123,8 +143,10 @@ describe('Live slice: Clock actions', () => {
       const currentGame = getGame(currentState, gameId)!;
       currentGame.clock!.periodStatus = PeriodStatus.Running;
 
-      const newState = live(currentState,
-        configurePeriods(gameId, /*totalPeriods=*/2, /*periodLength=*/35));
+      const newState = live(
+        currentState,
+        configurePeriods(gameId, /*totalPeriods=*/ 2, /*periodLength=*/ 35)
+      );
 
       expect(newState).to.equal(currentState);
     });
@@ -133,8 +155,10 @@ describe('Live slice: Clock actions', () => {
       const currentGame = getGame(currentState, gameId)!;
       currentGame.clock!.currentPeriod = 1;
 
-      const newState = live(currentState,
-        configurePeriods(gameId, /*totalPeriods=*/2, /*periodLength=*/35));
+      const newState = live(
+        currentState,
+        configurePeriods(gameId, /*totalPeriods=*/ 2, /*periodLength=*/ 35)
+      );
 
       expect(newState).to.equal(currentState);
     });
@@ -146,26 +170,24 @@ describe('Live slice: Clock actions', () => {
 
     beforeEach(() => {
       const game = testlive.getLiveGameWithPlayers();
-      currentState = buildLiveStateWithCurrentGame(
-        game,
-        {
-          shift: buildShiftWithTrackersFromGame(game)
-        });
+      currentState = buildLiveStateWithCurrentGame(game, {
+        shift: buildShiftWithTrackersFromGame(game),
+      });
       gameId = game.id;
     });
 
     it('should set the clock running and capture the start time', () => {
       mockTimeProvider(startTime);
 
-      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/ true));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         timer: {
           isRunning: true,
           startTime: startTime,
-          duration: Duration.zero().toJSON()
-        }
+          duration: Duration.zero().toJSON(),
+        },
       });
 
       expect(newState).not.to.equal(currentState);
@@ -174,12 +196,12 @@ describe('Live slice: Clock actions', () => {
     it('should start the first period when currentPeriod not set', () => {
       mockTimeProvider(startTime);
 
-      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/ true));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
-        periodStatus: PeriodStatus.Running
+        periodStatus: PeriodStatus.Running,
       });
 
       expect(newState).not.to.equal(currentState);
@@ -188,18 +210,16 @@ describe('Live slice: Clock actions', () => {
     it('should start the next period when currentPeriod already set', () => {
       mockTimeProvider(startTime);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        /* timer= */undefined,
-        {
-          currentPeriod: 1,
-        });
+      currentGame.clock = buildClock(/* timer= */ undefined, {
+        currentPeriod: 1,
+      });
 
-      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/ true));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 2,
-        periodStatus: PeriodStatus.Running
+        periodStatus: PeriodStatus.Running,
       });
 
       expect(newState).not.to.equal(currentState);
@@ -208,19 +228,17 @@ describe('Live slice: Clock actions', () => {
     it.skip('should do nothing if already at last period', () => {
       mockTimeProvider(startTime);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        /* timer= */undefined,
-        {
-          currentPeriod: 2,
-          totalPeriods: 2,
-        });
+      currentGame.clock = buildClock(/* timer= */ undefined, {
+        currentPeriod: 2,
+        totalPeriods: 2,
+      });
 
-      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/true));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/ true));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 2,
-        periodStatus: PeriodStatus.Pending
+        periodStatus: PeriodStatus.Pending,
       });
 
       // TODO: Move the "at last period" check into the creator that sets |gameAllowsStart|
@@ -231,14 +249,13 @@ describe('Live slice: Clock actions', () => {
     it('should do nothing if game does not allow period to be started', () => {
       mockTimeProvider(startTime);
 
-      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/false));
+      const newState = live(currentState, startPeriod(gameId, /*gameAllowsStart=*/ false));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.not.be.ok;
 
       expect(newState).to.equal(currentState);
     });
-
   }); // describe('live/startPeriod')
 
   describe('live/endPeriod', () => {
@@ -255,12 +272,10 @@ describe('Live slice: Clock actions', () => {
     it('should stop the clock and save the duration', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        buildRunningTimer(startTime),
-        {
-          currentPeriod: 1,
-          periodStatus: PeriodStatus.Running,
-        });
+      currentGame.clock = buildClock(buildRunningTimer(startTime), {
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Running,
+      });
 
       const newState = live(currentState, endPeriod(gameId));
 
@@ -269,8 +284,8 @@ describe('Live slice: Clock actions', () => {
         timer: {
           isRunning: false,
           startTime: undefined,
-          duration: Duration.create(10).toJSON()
-        }
+          duration: Duration.create(10).toJSON(),
+        },
       });
 
       expect(newState).not.to.equal(currentState);
@@ -279,19 +294,17 @@ describe('Live slice: Clock actions', () => {
     it('should reset the period status', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        /* timer= */undefined,
-        {
-          currentPeriod: 1,
-          periodStatus: PeriodStatus.Running,
-        });
+      currentGame.clock = buildClock(/* timer= */ undefined, {
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Running,
+      });
 
       const newState = live(currentState, endPeriod(gameId));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
-        periodStatus: PeriodStatus.Pending
+        periodStatus: PeriodStatus.Pending,
       });
 
       expect(newState).not.to.equal(currentState);
@@ -300,19 +313,17 @@ describe('Live slice: Clock actions', () => {
     it('should reset the period status when overdue', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        /* timer= */undefined,
-        {
-          currentPeriod: 1,
-          periodStatus: PeriodStatus.Overdue,
-        });
+      currentGame.clock = buildClock(/* timer= */ undefined, {
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Overdue,
+      });
 
       const newState = live(currentState, endPeriod(gameId));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
-        periodStatus: PeriodStatus.Pending
+        periodStatus: PeriodStatus.Pending,
       });
 
       expect(newState).not.to.equal(currentState);
@@ -321,12 +332,10 @@ describe('Live slice: Clock actions', () => {
     it('should reset the period status when timer is not running', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        buildStoppedTimer(),
-        {
-          currentPeriod: 1,
-          periodStatus: PeriodStatus.Running,
-        });
+      currentGame.clock = buildClock(buildStoppedTimer(), {
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Running,
+      });
 
       const newState = live(currentState, endPeriod(gameId));
 
@@ -342,20 +351,18 @@ describe('Live slice: Clock actions', () => {
     it('should set the period status to done when on the last period', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        /* timer= */undefined,
-        {
-          currentPeriod: 3,
-          periodStatus: PeriodStatus.Running,
-          totalPeriods: 3
-        });
+      currentGame.clock = buildClock(/* timer= */ undefined, {
+        currentPeriod: 3,
+        periodStatus: PeriodStatus.Running,
+        totalPeriods: 3,
+      });
 
       const newState = live(currentState, endPeriod(gameId));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 3,
-        periodStatus: PeriodStatus.Done
+        periodStatus: PeriodStatus.Done,
       });
 
       expect(newState).not.to.equal(currentState);
@@ -364,19 +371,17 @@ describe('Live slice: Clock actions', () => {
     it('should do nothing if period is not started', () => {
       mockTimeProvider(startTime);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        /* timer= */undefined,
-        {
-          currentPeriod: 1,
-          periodStatus: PeriodStatus.Pending,
-        });
+      currentGame.clock = buildClock(/* timer= */ undefined, {
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Pending,
+      });
 
       const newState = live(currentState, endPeriod(gameId));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
-        periodStatus: PeriodStatus.Pending
+        periodStatus: PeriodStatus.Pending,
       });
 
       expect(newState).to.equal(currentState);
@@ -385,36 +390,31 @@ describe('Live slice: Clock actions', () => {
     it('should do nothing if periods are done', () => {
       mockTimeProvider(startTime);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        /* timer= */undefined,
-        {
-          currentPeriod: 3,
-          periodStatus: PeriodStatus.Done,
-          totalPeriods: 3
-        });
+      currentGame.clock = buildClock(/* timer= */ undefined, {
+        currentPeriod: 3,
+        periodStatus: PeriodStatus.Done,
+        totalPeriods: 3,
+      });
 
       const newState = live(currentState, endPeriod(gameId));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 3,
-        periodStatus: PeriodStatus.Done
+        periodStatus: PeriodStatus.Done,
       });
 
       expect(newState).to.equal(currentState);
     });
 
     describe('action creator', () => {
-
       it('should dispatch action for running period with clock running', async () => {
         mockTimeProvider(timeStartPlus10);
         const currentGame = getGame(currentState, gameId)!;
-        currentGame.clock = buildClock(
-          buildRunningTimer(startTime),
-          {
-            currentPeriod: 1,
-            periodStatus: PeriodStatus.Running,
-          });
+        currentGame.clock = buildClock(buildRunningTimer(startTime), {
+          currentPeriod: 1,
+          periodStatus: PeriodStatus.Running,
+        });
 
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
@@ -423,19 +423,16 @@ describe('Live slice: Clock actions', () => {
 
         expect(dispatchMock).to.have.callCount(1);
 
-        expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId));
+        expect(dispatchMock.lastCall).to.have.been.calledWith(endPeriod(gameId));
       });
 
       it('should dispatch action for running period with clock stopped', async () => {
         mockTimeProvider(timeStartPlus10);
         const currentGame = getGame(currentState, gameId)!;
-        currentGame.clock = buildClock(
-          buildStoppedTimer(startTime),
-          {
-            currentPeriod: 1,
-            periodStatus: PeriodStatus.Running,
-          });
+        currentGame.clock = buildClock(buildStoppedTimer(startTime), {
+          currentPeriod: 1,
+          periodStatus: PeriodStatus.Running,
+        });
 
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
@@ -444,30 +441,28 @@ describe('Live slice: Clock actions', () => {
 
         expect(dispatchMock).to.have.callCount(1);
 
-        expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId));
+        expect(dispatchMock.lastCall).to.have.been.calledWith(endPeriod(gameId));
       });
 
       it('should dispatch action for overdue period with extra minutes when clock running', async () => {
         mockTimeProvider(timeStartPlus20Minutes);
         const currentGame = getGame(currentState, gameId)!;
-        currentGame.clock = buildClock(
-          buildRunningTimer(startTime),
-          {
-            currentPeriod: 1,
-            periodStatus: PeriodStatus.Overdue,
-            periodLength: 12,
-          });
+        currentGame.clock = buildClock(buildRunningTimer(startTime), {
+          currentPeriod: 1,
+          periodStatus: PeriodStatus.Overdue,
+          periodLength: 12,
+        });
 
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
 
-        endPeriodCreator(gameId, /*extraMinutes=*/3)(dispatchMock, getStateMock, undefined);
+        endPeriodCreator(gameId, /*extraMinutes=*/ 3)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId, timeStartPlus15Minutes));
+          endPeriod(gameId, timeStartPlus15Minutes)
+        );
       });
 
       it('should dispatch action for overdue period without extra minutes when clock stopped', async () => {
@@ -479,19 +474,19 @@ describe('Live slice: Clock actions', () => {
             currentPeriod: 1,
             periodStatus: PeriodStatus.Overdue,
             periodLength: 12,
-          });
+          }
+        );
 
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
 
-        endPeriodCreator(gameId, /*extraMinutes=*/3)(dispatchMock, getStateMock, undefined);
+        endPeriodCreator(gameId, /*extraMinutes=*/ 3)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
 
-        expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId));
+        expect(dispatchMock.lastCall).to.have.been.calledWith(endPeriod(gameId));
       });
-    });  // describe('action creator')
+    }); // describe('action creator')
   }); // describe('live/endPeriod')
 
   describe('live/markPeriodOverdue', () => {
@@ -508,13 +503,11 @@ describe('Live slice: Clock actions', () => {
     it('should set the period status to overdue and keep timer running', () => {
       mockTimeProvider(timeStartPlus15Minutes);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        buildRunningTimer(startTime),
-        {
-          currentPeriod: 1,
-          periodStatus: PeriodStatus.Running,
-          periodLength: 10,
-        });
+      currentGame.clock = buildClock(buildRunningTimer(startTime), {
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Running,
+        periodLength: 10,
+      });
 
       const newState = live(currentState, markPeriodOverdue(gameId));
 
@@ -522,7 +515,7 @@ describe('Live slice: Clock actions', () => {
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
         periodStatus: PeriodStatus.Overdue,
-        timer: buildRunningTimer(startTime)
+        timer: buildRunningTimer(startTime),
       });
 
       expect(newState).not.to.equal(currentState);
@@ -537,7 +530,8 @@ describe('Live slice: Clock actions', () => {
           currentPeriod: 1,
           periodStatus: PeriodStatus.Running,
           periodLength: 10,
-        });
+        }
+      );
 
       const newState = live(currentState, markPeriodOverdue(gameId));
 
@@ -553,13 +547,11 @@ describe('Live slice: Clock actions', () => {
     it('should do nothing if timer running before the period length', () => {
       mockTimeProvider(timeStartPlus1Minute55);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        buildRunningTimer(startTime),
-        {
-          currentPeriod: 1,
-          periodStatus: PeriodStatus.Running,
-          periodLength: 10,
-        });
+      currentGame.clock = buildClock(buildRunningTimer(startTime), {
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Running,
+        periodLength: 10,
+      });
 
       const newState = live(currentState, markPeriodOverdue(gameId));
 
@@ -567,7 +559,7 @@ describe('Live slice: Clock actions', () => {
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
         periodStatus: PeriodStatus.Running,
-        timer: buildRunningTimer(startTime)
+        timer: buildRunningTimer(startTime),
       });
 
       expect(newState).to.equal(currentState);
@@ -582,7 +574,8 @@ describe('Live slice: Clock actions', () => {
           currentPeriod: 1,
           periodStatus: PeriodStatus.Running,
           periodLength: 10,
-        });
+        }
+      );
 
       const newState = live(currentState, markPeriodOverdue(gameId));
 
@@ -599,19 +592,17 @@ describe('Live slice: Clock actions', () => {
     it('should do nothing if period is not started', () => {
       mockTimeProvider(startTime);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        /* timer= */undefined,
-        {
-          currentPeriod: 1,
-          periodStatus: PeriodStatus.Pending,
-        });
+      currentGame.clock = buildClock(/* timer= */ undefined, {
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Pending,
+      });
 
       const newState = live(currentState, markPeriodOverdue(gameId));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 1,
-        periodStatus: PeriodStatus.Pending
+        periodStatus: PeriodStatus.Pending,
       });
 
       expect(newState).to.equal(currentState);
@@ -620,20 +611,18 @@ describe('Live slice: Clock actions', () => {
     it('should do nothing if period is done', () => {
       mockTimeProvider(startTime);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        /* timer= */undefined,
-        {
-          currentPeriod: 3,
-          periodStatus: PeriodStatus.Done,
-          totalPeriods: 3
-        });
+      currentGame.clock = buildClock(/* timer= */ undefined, {
+        currentPeriod: 3,
+        periodStatus: PeriodStatus.Done,
+        totalPeriods: 3,
+      });
 
       const newState = live(currentState, markPeriodOverdue(gameId));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
         currentPeriod: 3,
-        periodStatus: PeriodStatus.Done
+        periodStatus: PeriodStatus.Done,
       });
 
       expect(newState).to.equal(currentState);
@@ -643,13 +632,11 @@ describe('Live slice: Clock actions', () => {
       it('should dispatch action if running past period length', async () => {
         mockTimeProvider(timeStartPlus15Minutes);
         const currentGame = getGame(currentState, gameId)!;
-        currentGame.clock = buildClock(
-          buildRunningTimer(startTime),
-          {
-            currentPeriod: 1,
-            periodStatus: PeriodStatus.Running,
-            periodLength: 10,
-          });
+        currentGame.clock = buildClock(buildRunningTimer(startTime), {
+          currentPeriod: 1,
+          periodStatus: PeriodStatus.Running,
+          periodLength: 10,
+        });
 
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
@@ -657,20 +644,17 @@ describe('Live slice: Clock actions', () => {
         await markPeriodOverdueCreator(gameId)(dispatchMock, getStateMock, undefined);
 
         expect(dispatchMock).to.have.callCount(1);
-        expect(dispatchMock.lastCall).to.have.been.calledWith(
-          markPeriodOverdue(gameId));
+        expect(dispatchMock.lastCall).to.have.been.calledWith(markPeriodOverdue(gameId));
       });
 
       it('should not dispatch action if running before the period length', async () => {
         mockTimeProvider(timeStartPlus1Minute55);
         const currentGame = getGame(currentState, gameId)!;
-        currentGame.clock = buildClock(
-          buildRunningTimer(startTime),
-          {
-            currentPeriod: 1,
-            periodStatus: PeriodStatus.Running,
-            periodLength: 10,
-          });
+        currentGame.clock = buildClock(buildRunningTimer(startTime), {
+          currentPeriod: 1,
+          periodStatus: PeriodStatus.Running,
+          periodLength: 10,
+        });
 
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
@@ -683,13 +667,11 @@ describe('Live slice: Clock actions', () => {
       it('should not dispatch action if period is already overdue', async () => {
         mockTimeProvider(timeStartPlus15Minutes);
         const currentGame = getGame(currentState, gameId)!;
-        currentGame.clock = buildClock(
-          buildRunningTimer(startTime),
-          {
-            currentPeriod: 1,
-            periodStatus: PeriodStatus.Overdue,
-            periodLength: 10,
-          });
+        currentGame.clock = buildClock(buildRunningTimer(startTime), {
+          currentPeriod: 1,
+          periodStatus: PeriodStatus.Overdue,
+          periodLength: 10,
+        });
 
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
@@ -702,12 +684,10 @@ describe('Live slice: Clock actions', () => {
       it('should not dispatch action if period is not started', async () => {
         mockTimeProvider(startTime);
         const currentGame = getGame(currentState, gameId)!;
-        currentGame.clock = buildClock(
-          /* timer= */undefined,
-          {
-            currentPeriod: 1,
-            periodStatus: PeriodStatus.Pending,
-          });
+        currentGame.clock = buildClock(/* timer= */ undefined, {
+          currentPeriod: 1,
+          periodStatus: PeriodStatus.Pending,
+        });
 
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
@@ -720,13 +700,11 @@ describe('Live slice: Clock actions', () => {
       it('should not dispatch action if period is done', async () => {
         mockTimeProvider(startTime);
         const currentGame = getGame(currentState, gameId)!;
-        currentGame.clock = buildClock(
-          /* timer= */undefined,
-          {
-            currentPeriod: 3,
-            periodStatus: PeriodStatus.Done,
-            totalPeriods: 3
-          });
+        currentGame.clock = buildClock(/* timer= */ undefined, {
+          currentPeriod: 3,
+          periodStatus: PeriodStatus.Done,
+          totalPeriods: 3,
+        });
 
         const dispatchMock = sinon.stub();
         const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
@@ -735,7 +713,6 @@ describe('Live slice: Clock actions', () => {
 
         expect(dispatchMock).to.have.callCount(0);
       });
-
     }); // describe('action creator')
   }); // describe('live/markPeriodOverdue')
 
@@ -752,7 +729,7 @@ describe('Live slice: Clock actions', () => {
     it('should start when no timer data exists', () => {
       mockTimeProvider(timeStartPlus1Minute55);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(/* timer= */undefined);
+      currentGame.clock = buildClock(/* timer= */ undefined);
 
       const newState = live(currentState, toggleClock(gameId));
 
@@ -761,8 +738,8 @@ describe('Live slice: Clock actions', () => {
         timer: {
           isRunning: true,
           startTime: timeStartPlus1Minute55,
-          duration: Duration.zero().toJSON()
-        }
+          duration: Duration.zero().toJSON(),
+        },
       });
 
       expect(newState).not.to.equal(currentState);
@@ -771,8 +748,7 @@ describe('Live slice: Clock actions', () => {
     it('should start when timer is set to not running', () => {
       mockTimeProvider(startTime);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        buildStoppedTimer());
+      currentGame.clock = buildClock(buildStoppedTimer());
 
       const newState = live(currentState, toggleClock(gameId));
 
@@ -781,8 +757,8 @@ describe('Live slice: Clock actions', () => {
         timer: {
           isRunning: true,
           startTime: startTime,
-          duration: Duration.zero().toJSON()
-        }
+          duration: Duration.zero().toJSON(),
+        },
       });
 
       expect(newState).not.to.equal(currentState);
@@ -791,8 +767,7 @@ describe('Live slice: Clock actions', () => {
     it('should stop when timer is already running', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        buildRunningTimer(timeStartPlus5));
+      currentGame.clock = buildClock(buildRunningTimer(timeStartPlus5));
 
       const newState = live(currentState, toggleClock(gameId));
 
@@ -801,8 +776,8 @@ describe('Live slice: Clock actions', () => {
         timer: {
           isRunning: false,
           startTime: undefined,
-          duration: Duration.create(5).toJSON()
-        }
+          duration: Duration.create(5).toJSON(),
+        },
       });
 
       expect(newState).not.to.equal(currentState);
@@ -811,8 +786,7 @@ describe('Live slice: Clock actions', () => {
     it('should stop when running and add to existing duration', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        buildRunningTimer(startTime, 20));
+      currentGame.clock = buildClock(buildRunningTimer(startTime, 20));
 
       const newState = live(currentState, toggleClock(gameId));
 
@@ -821,8 +795,8 @@ describe('Live slice: Clock actions', () => {
         timer: {
           isRunning: false,
           startTime: undefined,
-          duration: Duration.create(30).toJSON()
-        }
+          duration: Duration.create(30).toJSON(),
+        },
       });
 
       expect(newState).not.to.equal(currentState);
@@ -831,12 +805,10 @@ describe('Live slice: Clock actions', () => {
     it('should not change the period when timer is set to not running', () => {
       mockTimeProvider(startTime);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        buildStoppedTimer(),
-        {
-          currentPeriod: 1,
-          periodStatus: PeriodStatus.Running,
-        });
+      currentGame.clock = buildClock(buildStoppedTimer(), {
+        currentPeriod: 1,
+        periodStatus: PeriodStatus.Running,
+      });
 
       const newState = live(currentState, toggleClock(gameId));
 
@@ -855,12 +827,10 @@ describe('Live slice: Clock actions', () => {
     it('should not change the period when timer is already running', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
-      currentGame.clock = buildClock(
-        buildRunningTimer(timeStartPlus5),
-        {
-          currentPeriod: 2,
-          periodStatus: PeriodStatus.Running,
-        });
+      currentGame.clock = buildClock(buildRunningTimer(timeStartPlus5), {
+        currentPeriod: 2,
+        periodStatus: PeriodStatus.Running,
+      });
 
       const newState = live(currentState, toggleClock(gameId));
 
@@ -875,6 +845,5 @@ describe('Live slice: Clock actions', () => {
       // matter for this test.
       expect(newGame?.clock?.timer).not.to.equal(currentGame.clock?.timer);
     });
-
   }); // describe('live/toggle')
 });
