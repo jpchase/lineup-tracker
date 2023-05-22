@@ -15,7 +15,7 @@ import {
   getGames,
   saveGame,
 } from '@app/slices/game/game-slice.js';
-import { gameCompleted, gameSetupCompleted } from '@app/slices/live/live-slice.js';
+import { actions as liveActions } from '@app/slices/live/live-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
@@ -46,6 +46,8 @@ import {
 } from '../../helpers/test_data.js';
 
 const KEY_GAMES = 'games';
+
+const { gameCompleted, gameSetupCompleted } = liveActions;
 
 function getOtherStoredGameWithoutDetail(): Game {
   return { id: OTHER_STORED_GAME_ID, ...getStoredGameData() };

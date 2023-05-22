@@ -20,19 +20,8 @@ import {
 } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import {
-  applyStarter,
-  cancelStarter,
-  captainsCompleted,
-  completeRoster,
-  configurePeriods,
-  formationSelected,
-  gameSetupCompleted,
-  selectLiveGameById,
-  selectStarter,
-  selectStarterPosition,
-  startersCompleted,
-} from '@app/slices/live/live-slice.js';
+import { selectLiveGameById } from '@app/slices/live/live-slice.js';
+import { actions as liveActions } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
@@ -50,6 +39,19 @@ import {
 } from '../helpers/test_data.js';
 
 const LAST_SETUP_STEP = SetupSteps.Captains;
+
+const {
+  applyStarter,
+  cancelStarter,
+  captainsCompleted,
+  completeRoster,
+  configurePeriods,
+  formationSelected,
+  gameSetupCompleted,
+  selectStarter,
+  selectStarterPosition,
+  startersCompleted,
+} = liveActions;
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
@@ -208,7 +210,6 @@ describe('lineup-game-setup tests', () => {
   function getTaskElements() {
     const items = el.shadowRoot!.querySelectorAll('div div.task');
     expect(items, 'Missing items for tasks').to.be.ok;
-
     return items;
   }
 
@@ -223,6 +224,7 @@ describe('lineup-game-setup tests', () => {
     const taskElement = items[index];
 
     if (step) {
+      // TODO: Validate the task element is actually for the given |step|
     }
 
     return taskElement as HTMLDivElement;

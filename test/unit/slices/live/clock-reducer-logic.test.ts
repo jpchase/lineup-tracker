@@ -3,17 +3,8 @@
 import { Duration } from '@app/models/clock.js';
 import { GameStatus } from '@app/models/game.js';
 import { PeriodStatus, SetupSteps } from '@app/models/live.js';
-import {
-  LiveState,
-  configurePeriods,
-  endPeriod,
-  endPeriodCreator,
-  live,
-  markPeriodOverdue,
-  markPeriodOverdueCreator,
-  startPeriod,
-  toggleClock,
-} from '@app/slices/live/index.js';
+import { endPeriodCreator, markPeriodOverdueCreator } from '@app/slices/live/index.js';
+import { LiveState, actions, live } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
@@ -27,6 +18,8 @@ import {
 import { mockGetState } from '../../helpers/root-state-setup.js';
 import { buildRunningTimer, buildStoppedTimer } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
+
+const { configurePeriods, endPeriod, markPeriodOverdue, startPeriod, toggleClock } = actions;
 
 describe('Live slice: Clock actions', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();

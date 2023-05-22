@@ -5,12 +5,7 @@ import { GameStatus } from '@app/models/game.js';
 import { getPlayer, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
-import {
-  applyPendingSubs,
-  endPeriod,
-  gameSetupCompleted,
-  startPeriod,
-} from '@app/slices/live/live-slice.js';
+import { actions } from '@app/slices/live/live-slice.js';
 import { shift, ShiftState } from '@app/slices/live/shift-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
@@ -23,6 +18,8 @@ import {
 import { mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import { buildPlayerTracker } from '../../helpers/test-shift-data.js';
+
+const { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } = actions;
 
 describe('Shift slice', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();

@@ -4,13 +4,7 @@ import { FormationType, Position } from '@app/models/formation.js';
 import { LiveGame, LivePlayer, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { pendingSubsAppliedCreator } from '@app/slices/live/index.js';
-import {
-  LiveState,
-  applyPendingSubs,
-  discardPendingSubs,
-  invalidPendingSubs,
-  live,
-} from '@app/slices/live/live-slice.js';
+import { LiveState, actions, live } from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
@@ -21,6 +15,8 @@ import {
   selectPlayers,
 } from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
+
+const { applyPendingSubs, discardPendingSubs, invalidPendingSubs } = actions;
 
 function mockGetState(currentState: LiveState) {
   return sinon.fake(() => {

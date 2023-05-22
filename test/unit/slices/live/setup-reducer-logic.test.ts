@@ -6,19 +6,7 @@ import { getPlayer, LivePlayer, SetupSteps } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { startersCompletedCreator } from '@app/slices/live/live-action-creators.js';
-import {
-  applyStarter,
-  cancelStarter,
-  completeRoster,
-  formationSelected,
-  gameSetupCompleted,
-  invalidStarters,
-  live,
-  LiveState,
-  selectStarter,
-  selectStarterPosition,
-  startersCompleted,
-} from '@app/slices/live/live-slice.js';
+import { actions, live, LiveState } from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
@@ -32,6 +20,18 @@ import {
 } from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import { buildRoster, getNewPlayer } from '../../helpers/test_data.js';
+
+const {
+  applyStarter,
+  cancelStarter,
+  completeRoster,
+  formationSelected,
+  gameSetupCompleted,
+  invalidStarters,
+  selectStarter,
+  selectStarterPosition,
+  startersCompleted,
+} = actions;
 
 function mockGetState(currentState: LiveState) {
   return sinon.fake(() => {

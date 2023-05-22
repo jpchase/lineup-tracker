@@ -7,16 +7,16 @@ import { PlayerStatus } from '../../models/player.js';
 import { ThunkResult } from '../../store.js';
 import { isPeriodOverdue } from './clock-reducer-logic.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
-import {
+import { actions, selectLiveGameById, selectPendingSubs } from './live-slice.js';
+
+const {
   applyPendingSubs,
   endPeriod,
   invalidPendingSubs,
   invalidStarters,
   markPeriodOverdue,
-  selectLiveGameById,
-  selectPendingSubs,
   startersCompleted,
-} from './live-slice.js';
+} = actions;
 
 export const markPeriodOverdueCreator =
   (gameId: string): ThunkResult =>

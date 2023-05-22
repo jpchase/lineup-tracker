@@ -149,7 +149,7 @@ export const startGamePeriod =
       return;
     }
     dispatch(
-      startPeriod(
+      actions.startPeriod(
         game.id,
         gameCanStartPeriod(game, game.clock.currentPeriod, game.clock.totalPeriods)
       )
@@ -351,22 +351,13 @@ export const liveSlice = createSlice({
   },
 });
 
-const { actions } = liveSlice;
-// prettier-ignore
-export const {
-  // TODO: Remove this export of completeRoster when no longer needed in reducers/game.ts
-  completeRoster,
-  formationSelected, getLiveGame, startersCompleted, captainsCompleted, gameSetupCompleted,
-  // Starter-related actions
-  selectStarter, selectStarterPosition, applyStarter, cancelStarter, invalidStarters,
-  // Clock-related actions
-  configurePeriods, startPeriod, endPeriod, toggleClock, markPeriodOverdue,
-  // Sub-related actions
-  selectPlayer, cancelSub, confirmSub, cancelSwap, confirmSwap, applyPendingSubs,
-  invalidPendingSubs, discardPendingSubs, markPlayerOut, returnOutPlayer,
-  // Game status actions
-  gameCompleted,
-} = actions;
+export const { actions } = liveSlice;
+
+// TODO: Figure out better solution
+//   - These are used only by game-slice.ts and shift-slice.ts to avoid an error at runtime:
+//     "ReferenceError: Cannot access 'actions' before initialization"
+export const { applyPendingSubs, endPeriod, gameCompleted, gameSetupCompleted, startPeriod } =
+  actions;
 
 type ActionHandler<P extends LiveGamePayload> = (
   state: LiveState,

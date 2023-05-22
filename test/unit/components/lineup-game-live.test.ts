@@ -12,22 +12,8 @@ import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import {
-  cancelSub,
-  cancelSwap,
-  confirmSub,
-  confirmSwap,
-  endPeriod,
-  endPeriodCreator,
-  gameCompleted,
-  markPeriodOverdue,
-  markPlayerOut,
-  returnOutPlayer,
-  selectLiveGameById,
-  selectPlayer,
-  startPeriod,
-  toggleClock,
-} from '@app/slices/live/index.js';
+import { endPeriodCreator, selectLiveGameById } from '@app/slices/live/index.js';
+import { actions as liveActions } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
@@ -50,6 +36,21 @@ import { buildRootState } from '../helpers/root-state-setup.js';
 import { buildRunningTimer /*, buildStoppedTimer*/ } from '../helpers/test-clock-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
+
+const {
+  cancelSub,
+  cancelSwap,
+  confirmSub,
+  confirmSwap,
+  endPeriod,
+  gameCompleted,
+  markPeriodOverdue,
+  markPlayerOut,
+  returnOutPlayer,
+  selectPlayer,
+  startPeriod,
+  toggleClock,
+} = liveActions;
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {

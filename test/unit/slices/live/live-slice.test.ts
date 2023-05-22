@@ -2,26 +2,15 @@
 
 import { Position } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
-import { getPlayer, LiveGame, LivePlayer, PeriodStatus } from '@app/models/live.js';
+import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getGame as getGameCreator } from '@app/slices/game/game-slice.js';
-import {
-  cancelSub,
-  cancelSwap,
-  confirmSub,
-  confirmSwap,
-  endPeriod,
-  gameCompleted,
-  live,
-  LiveState,
-  selectPlayer,
-  startGamePeriod,
-  startPeriod,
-} from '@app/slices/live/live-slice.js';
+import { LiveState, actions, live, startGamePeriod } from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
+  INITIAL_OVERALL_STATE,
   buildClock,
   buildClockWithTimer,
   buildLiveGameWithSetupTasks,
@@ -30,10 +19,20 @@ import {
   buildShiftWithTrackers,
   getGame,
   getTrackerMap,
-  INITIAL_OVERALL_STATE,
 } from '../../helpers/live-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import { buildRoster, getFakeAction, getNewGame, getStoredGame } from '../../helpers/test_data.js';
+
+const {
+  cancelSub,
+  cancelSwap,
+  confirmSub,
+  confirmSwap,
+  endPeriod,
+  gameCompleted,
+  selectPlayer,
+  startPeriod,
+} = actions;
 
 function buildLiveGameWithPlayers(): LiveGame {
   return testlive.getLiveGameWithPlayers();
