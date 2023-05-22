@@ -63,12 +63,6 @@ import {
   selectPlayerHandler,
   selectPlayerPrepare,
 } from './substitution-reducer-logic.js';
-export {
-  endPeriodCreator,
-  markPeriodOverdueCreator,
-  pendingSubsAppliedCreator,
-  startersCompletedCreator,
-} from './live-action-creators.js';
 
 export interface LiveGameState {
   games?: LiveGames;
@@ -107,7 +101,7 @@ export const selectLiveGameById = (state: RootState, gameId: string) => {
   return findGame(state.live, gameId);
 };
 
-export const proposedSubSelector = (state: RootState) => state.live && state.live!.proposedSub;
+export const selectProposedSub = (state: RootState) => state.live && state.live!.proposedSub;
 export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
 export const selectInvalidSubs = (state: RootState) => state.live?.invalidSubs;
 export const selectInvalidStarters = (state: RootState) => state.live?.invalidStarters;
@@ -175,7 +169,7 @@ export const live: Reducer<LiveState> = function reduce(state, action) {
   }) as LiveState;
 };
 
-const liveSlice = createSlice({
+export const liveSlice = createSlice({
   name: 'live',
   initialState: INITIAL_STATE,
   reducers: {

@@ -19,7 +19,7 @@ import { configureAppStore } from './slices/app/app-module-configurator.js';
 import type { AppState, APP_SLICE_NAME } from './slices/app/app-slice.js';
 import type { AuthState } from './slices/auth/auth-slice.js';
 import type { GameState } from './slices/game/game-slice.js';
-import type { LiveState } from './slices/live/live-slice.js';
+import type { LiveState } from './slices/live/index.js';
 import type { TeamState } from './slices/team/team-slice.js';
 
 // Overall state extends static states and partials lazy states.

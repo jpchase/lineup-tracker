@@ -32,15 +32,15 @@ import {
   markPeriodOverdueCreator,
   markPlayerOut,
   pendingSubsAppliedCreator,
-  proposedSubSelector,
   returnOutPlayer,
   selectInvalidSubs,
   selectLiveGameById,
   selectPlayer,
+  selectProposedSub,
   selectProposedSwap,
   startGamePeriod,
   toggleClock,
-} from '../slices/live/live-slice.js';
+} from '../slices/live/index.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
@@ -312,7 +312,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       this.clockPeriodData = {} as ClockPeriodData;
       this.gamePeriodsComplete = false;
     }
-    this.proposedSub = proposedSubSelector(state);
+    this.proposedSub = selectProposedSub(state);
     this.proposedSwap = selectProposedSwap(state);
     this.invalidSubs = selectInvalidSubs(state);
     const trackerMaps = state.live.shift?.trackerMaps;

@@ -68,6 +68,19 @@
   },
   "overrides": [
     {
+      // Only allow imports from the index of each slice, not internal files.
+      "files": ["src/+(app|components|models|storage)/**/*.ts", "src/*.ts"],
+      "rules": {
+        "import/no-internal-modules": [
+          "error",
+          {
+            "forbid": ["**/slices/live/!(index.js)"]
+          }
+        ]
+      }
+    },
+    {
+      // Components often need to import other components twice, once for the side-effect.
       "files": ["src/components/*.ts", "test/unit/components/*.test.ts"],
       "rules": {
         "import/no-duplicates": "off"

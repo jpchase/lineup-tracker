@@ -27,7 +27,7 @@ import {
   selectPlayer,
   startPeriod,
   toggleClock,
-} from '@app/slices/live/live-slice.js';
+} from '@app/slices/live/index.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';

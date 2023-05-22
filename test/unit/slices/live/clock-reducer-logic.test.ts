@@ -13,7 +13,7 @@ import {
   markPeriodOverdueCreator,
   startPeriod,
   toggleClock,
-} from '@app/slices/live/live-slice.js';
+} from '@app/slices/live/index.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {

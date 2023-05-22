@@ -2,7 +2,7 @@
 
 import { AuthState } from '@app/slices/auth/auth-slice.js';
 import { GameState } from '@app/slices/game/game-slice.js';
-import { LiveState } from '@app/slices/live/live-slice.js';
+import { LiveState } from '@app/slices/live/index.js';
 import { RootState } from '@app/store.js';
 import sinon from 'sinon';
 import { buildInitialGameState } from './game-state-setup.js';

@@ -33,7 +33,7 @@ import {
   selectStarter,
   selectStarterPosition,
   startersCompletedCreator,
-} from '../slices/live/live-slice.js';
+} from '../slices/live/index.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-on-player-list.js';
 import './lineup-player-list.js';

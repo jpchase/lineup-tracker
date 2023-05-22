@@ -1,15 +1,15 @@
 /** @format */
 
 import { FormationType, Position } from '@app/models/formation.js';
-import { getPlayer, LiveGame, LivePlayer } from '@app/models/live.js';
+import { LiveGame, LivePlayer, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
+import { pendingSubsAppliedCreator } from '@app/slices/live/index.js';
 import {
+  LiveState,
   applyPendingSubs,
   discardPendingSubs,
   invalidPendingSubs,
   live,
-  LiveState,
-  pendingSubsAppliedCreator,
 } from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';

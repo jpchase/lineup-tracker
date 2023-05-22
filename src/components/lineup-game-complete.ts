@@ -7,7 +7,7 @@ import { LiveGame, LivePlayer } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 // The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live-store.js';
-import { selectLiveGameById } from '../slices/live/live-slice.js';
+import { selectLiveGameById } from '../slices/live/index.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-shifts.js';
 import { SharedStyles } from './shared-styles.js';
