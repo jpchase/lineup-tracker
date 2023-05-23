@@ -1,7 +1,7 @@
 /** @format */
 
 import { FormationType, Position } from '@app/models/formation.js';
-import { LiveGame, LivePlayer, getPlayer } from '@app/models/live.js';
+import { LiveGame, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { pendingSubsAppliedCreator } from '@app/slices/live/index.js';
 import { LiveState, actions, live } from '@app/slices/live/live-slice.js';
@@ -95,14 +95,7 @@ describe('Live slice: Substitution actions', () => {
           const onPlayer = getPlayer(game, sub.nextId)!;
           const positionPlayer = getPlayer(game, sub.replacedId!)!;
 
-          const nextId = sub.swapNextId!;
-          const nextPlayer: LivePlayer = {
-            ...onPlayer,
-            id: nextId,
-            status: PlayerStatus.Next,
-            nextPosition: { ...positionPlayer.currentPosition! },
-            isSwap: true,
-          };
+          const nextPlayer = testlive.setupSwap(onPlayer, positionPlayer, sub.swapNextId!);
           game.players?.push(nextPlayer);
           continue;
         }
@@ -111,10 +104,7 @@ describe('Live slice: Substitution actions', () => {
         const nextPlayer = getPlayer(game, sub.nextId)!;
         const onPlayer = getPlayer(game, sub.replacedId!)!;
 
-        nextPlayer.status = PlayerStatus.Next;
-        nextPlayer.replaces = onPlayer.id;
-        let position = sub.positionOverride || onPlayer.currentPosition!;
-        nextPlayer.currentPosition = { ...position };
+        testlive.setupSub(nextPlayer, onPlayer, sub.positionOverride);
       }
 
       currentState = buildLiveStateWithCurrentGame(game, {

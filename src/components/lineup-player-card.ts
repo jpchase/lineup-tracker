@@ -229,3 +229,9 @@ export class LineupPlayerCard extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'lineup-player-card': LineupPlayerCard;
+  }
+}
