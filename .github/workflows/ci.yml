@@ -80,10 +80,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3.5.2
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 18.15
-        cache: 'npm'
 
     - name: npm install, build
       run: |
@@ -93,9 +89,7 @@ jobs:
     - name: run Lighthouse CI
       run: |
         npm install -g @lhci/cli@0.12.x
-        echo "attempt #7"
-        echo "chrome-1=$(which google-chrome)"
-        echo "chrome-3=$(which google-chrome-stable)"
+        echo "chrome path=$(which google-chrome-stable)"
         lhci autorun --config=./config/lighthouserc.js
       env:
         LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
