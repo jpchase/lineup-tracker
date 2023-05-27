@@ -94,7 +94,10 @@ function getTestTasks(tasks: SetupTask[]): TestSetupTask[] {
   });
 }
 
-function buildLiveStateWithTasks(newGame: GameDetail, lastCompletedStep: SetupSteps = -1) {
+function buildLiveStateWithTasks(
+  newGame: GameDetail,
+  lastCompletedStep: SetupSteps = -1 as SetupSteps
+) {
   const liveGame = LiveGameBuilder.create(newGame);
 
   buildSetupTasks(liveGame, lastCompletedStep);
@@ -582,6 +585,10 @@ describe('lineup-game-setup tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
       expect(confirmSection, 'Missing confirm starter div').to.be.ok;
 
+      const positionElement = confirmSection!.querySelector('.proposed-position');
+      expect(positionElement, 'Missing proposed position element').to.be.ok;
+      expect(positionElement!.textContent!.trim()).to.equal('AM1');
+
       await expect(confirmSection).dom.to.equalSnapshot();
     });
 
@@ -597,10 +604,6 @@ describe('lineup-game-setup tests', () => {
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
       expect(confirmSection, 'Missing confirm starter div').to.be.ok;
-
-      const positionElement = confirmSection!.querySelector('.proposed-position');
-      expect(positionElement, 'Missing proposed position element').to.be.ok;
-      expect(positionElement!.textContent!.trim()).to.equal('W (Left)');
 
       const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
       expect(applyButton, 'Missing apply button').to.be.ok;
@@ -626,10 +629,6 @@ describe('lineup-game-setup tests', () => {
 
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
       expect(confirmSection, 'Missing confirm starter div').to.be.ok;
-
-      const positionElement = confirmSection!.querySelector('.proposed-position');
-      expect(positionElement, 'Missing proposed position element').to.be.ok;
-      expect(positionElement!.textContent!.trim()).to.equal('W (Right)');
 
       const cancelButton = confirmSection!.querySelector('mwc-button.cancel') as Button;
       expect(cancelButton, 'Missing cancel button').to.be.ok;

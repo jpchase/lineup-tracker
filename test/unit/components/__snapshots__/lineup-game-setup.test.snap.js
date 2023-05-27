@@ -133,7 +133,7 @@ snapshots["lineup-game-setup tests Starters shows confirm starter UI when propos
       Stored player 1 #5
     </span>
     <span class="proposed-position">
-      AM (1)
+      AM1
     </span>
     <mwc-button class="cancel">
       Cancel

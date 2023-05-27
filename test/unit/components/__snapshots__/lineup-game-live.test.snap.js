@@ -94,7 +94,7 @@ snapshots["lineup-game-live tests Subs shows confirm sub UI when proposed sub ex
       Player 11 #31
     </span>
     <span class="proposed-position">
-      CB (Left)
+      LCB
     </span>
     <span class="replaced">
       Player 0
@@ -114,31 +114,31 @@ snapshots["lineup-game-live tests Subs shows confirm sub UI when proposed sub ex
           S
         </option>
         <option value="LW">
-          W (Left)
+          LW
         </option>
         <option value="RW">
-          W (Right)
+          RW
         </option>
         <option value="AM1">
-          AM (1)
+          AM1
         </option>
         <option value="AM2">
-          AM (2)
+          AM2
         </option>
         <option value="HM">
           HM
         </option>
         <option value="LFB">
-          FB (Left)
+          LFB
         </option>
         <option value="LCB">
-          CB (Left)
+          LCB
         </option>
         <option value="RCB">
-          CB (Right)
+          RCB
         </option>
         <option value="RFB">
-          FB (Right)
+          RFB
         </option>
         <option value="GK">
           GK

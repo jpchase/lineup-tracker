@@ -6,6 +6,17 @@ export enum FormationType {
   F3_1_4_2 = '3-1-4-2',
 }
 
+export enum PositionType {
+  Striker = 'S',
+  Winger = 'W',
+  OutsideMid = 'AM',
+  AttackingMid = 'AM',
+  DefensiveMid = 'HM',
+  Fullback = 'FB',
+  Centerback = 'CB',
+  Goalkeeper = 'GK',
+}
+
 export interface FormationLine {
   id: string;
   positions: Position[];
@@ -163,15 +174,16 @@ export function formatPosition(position: Position): string {
   let positionText = position.type;
 
   if (position.id !== position.type) {
+    let prefix = '';
     let addition = '';
     if (position.id[0] === 'L') {
-      addition = 'Left';
+      prefix = 'L';
     } else if (position.id[0] === 'R') {
-      addition = 'Right';
+      prefix = 'R';
     } else if (position.id.length > position.type.length) {
       addition = position.id.substring(position.type.length);
     }
-    positionText += ` (${addition})`;
+    positionText = prefix + positionText + addition;
   }
   return positionText;
 }
