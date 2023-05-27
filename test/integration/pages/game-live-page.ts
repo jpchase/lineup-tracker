@@ -5,7 +5,7 @@ import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { TimerData } from '@app/models/clock.js';
 import { LivePlayer } from '@app/models/live.js';
 import { ElementHandle } from 'puppeteer';
-import { copyGame, createAdminApp, getFirestore } from '../server/firestore-access.js';
+import { Firestore, copyGame, createAdminApp, getFirestore } from '../server/firestore-access.js';
 import { GameDetailPage } from './game-detail-page.js';
 import { GameSetupPage } from './game-setup-page.js';
 import { PageOpenFunction, PageOptions } from './page-object.js';
@@ -25,16 +25,18 @@ export class GameLivePage extends GameDetailPage {
     };
   }
 
-  static async createLivePage(options: PageOptions) {
+  static async createLivePage(options: PageOptions, firestore?: Firestore) {
     // Create a new game, with roster, by copying the existing game.
-    const firestore = getFirestore(createAdminApp());
+    if (!firestore) {
+      firestore = getFirestore(createAdminApp());
+    }
     const newGame = await copyGame(firestore, options.gameId!, options.userId!);
 
     // Sort the players by name, so there is a stable order across tests.
     const sortedPlayers = Object.values(newGame.roster).sort((a, b) =>
       a.name.localeCompare(b.name)
     );
-    const onPlayers = sortedPlayers.slice(0, 11).map((player) => player.id);
+    const starters = sortedPlayers.slice(0, 11).map((player) => player.id);
 
     // Open the page *after* creating the game.
     // As the game is in "new" status, it starts on the setup view.
@@ -47,7 +49,7 @@ export class GameLivePage extends GameDetailPage {
       await gameSetupPage.open({ signIn: true });
 
       // Complete all the setup to get the game into Start status.
-      await gameSetupPage.completeSetup(onPlayers);
+      await gameSetupPage.completeSetup(starters);
 
       // With setup completed, the page should now be on the live view.
       const livePage = gameSetupPage.swap(GameLivePage, {
@@ -55,7 +57,7 @@ export class GameLivePage extends GameDetailPage {
         gameId: newGame.id,
       });
 
-      return livePage;
+      return { livePage, newGame, starters };
     } finally {
       gameSetupPage.close();
     }

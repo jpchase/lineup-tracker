@@ -94,10 +94,14 @@ export function* getAllVisualPages(
   };
   // TODO: Apply the height change to all pages
   liveOptions.viewPort!.height = 800;
+  const livePageBuilder = async (options: PageOptions) => {
+    const { livePage } = await GameLivePage.createLivePage(options);
+    return livePage;
+  };
   yield {
     name: 'live game start',
     page: {
-      create: GameLivePage.createLivePage,
+      create: livePageBuilder,
       options: { ...liveOptions, scenarioName: 'liveGameStart' },
     },
     openOptions: { signIn: true },
