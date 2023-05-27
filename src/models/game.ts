@@ -1,3 +1,5 @@
+/** @format */
+
 import { Roster } from './player.js';
 
 export interface GameMetadata {
@@ -11,7 +13,7 @@ export enum GameStatus {
   Start = 'START',
   Live = 'LIVE',
   Break = 'BREAK',
-  Done = 'DONE'
+  Done = 'DONE',
 }
 
 export interface Game extends GameMetadata {
