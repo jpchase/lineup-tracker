@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
-import { logWithTime, OpenOptions, PageObject } from './pages/page-object.js';
+import { logWithTime, PageObject } from './pages/page-object.js';
 import { createScreenshotDirectories, getAllVisualPages } from './pages/visual-page-factory.js';
 import { config } from './server/test-server.js';
 
@@ -33,11 +33,21 @@ describe('👀 page screenshots are correct', () => {
     describe(`${breakpoint.name} screen`, () => {
       for (const pageConfig of getAllVisualPages(breakpoint)) {
         it(pageConfig.name, async () => {
-          pageObject = pageConfig.page;
-          await takeAndCompareScreenshot(pageObject, breakpoint.name, pageConfig.openOptions);
+          if (pageConfig.page instanceof PageObject) {
+            pageObject = pageConfig.page;
+            logWithTime(`load page (${pageConfig.name}) - init`);
+            await pageObject.init();
+            logWithTime(`load page (${pageConfig.name}) - open`);
+            await pageObject.open(pageConfig.openOptions);
+          } else {
+            const builder = pageConfig.page;
+            logWithTime(`load page (${pageConfig.name}) - builder`);
+            pageObject = await builder.create(builder.options);
+          }
+          await takeAndCompareScreenshot(pageObject, breakpoint.name);
 
           const result = await pageObject.checkAccessibility();
-          console.log(
+          logWithTime(
             `${breakpoint.name}-${pageConfig.name}: ${result.violationCount} accessibility violations`
           );
           expect(result.violationCount, result.violationMessage).to.equal(0);
@@ -47,15 +57,7 @@ describe('👀 page screenshots are correct', () => {
   }
 });
 
-async function takeAndCompareScreenshot(
-  page: PageObject,
-  filePrefix: string,
-  openOptions?: OpenOptions
-) {
-  logWithTime(`tACS (${page.scenarioName}) - init`);
-  await page.init();
-  logWithTime(`tACS (${page.scenarioName}) - open`);
-  await page.open(openOptions);
+async function takeAndCompareScreenshot(page: PageObject, filePrefix: string) {
   logWithTime(`tACS (${page.scenarioName}) - screenshot`);
   const viewName = await page.screenshot(path.join(config.currentDir, filePrefix));
   // TODO: Pass filePrefix as an explicit parameter.

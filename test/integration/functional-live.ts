@@ -1,12 +1,11 @@
 /** @format */
 
 import { expect } from 'chai';
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
 import { integrationTestData } from './data/integration-data-constants.js';
 import { GameLivePage } from './pages/game-live-page.js';
 import { GameSetupPage, SetupStatus, SetupSteps } from './pages/game-setup-page.js';
 import { PageObject } from './pages/page-object.js';
-import { copyGame, createAdminApp } from './server/firestore-access.js';
+import { Firestore, copyGame, createAdminApp, getFirestore } from './server/firestore-access.js';
 
 describe('Live functional tests', () => {
   let firestore: Firestore;

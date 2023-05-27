@@ -1,32 +1,41 @@
+/** @format */
+
 import * as fs from 'fs';
 import * as path from 'path';
+import { integrationTestData } from '../data/integration-data-constants.js';
+import { BreakpointConfig, config } from '../server/test-server.js';
 import { ErrorPage } from './error-page.js';
 import { GameDetailPage } from './game-detail-page.js';
 import { GameListPage } from './game-list-page.js';
+import { GameLivePage } from './game-live-page.js';
+import { GameRosterPage } from './game-roster-page.js';
 import { HomePage, HomePageOptions } from './home-page.js';
 import { OpenOptions, PageObject, PageOptions } from './page-object.js';
 import { TeamCreatePage } from './team-create-page.js';
 import { TeamRosterPage } from './team-roster-page.js';
 import { TeamSelectPage } from './team-select-page.js';
-import { BreakpointConfig, config } from '../server/test-server.js';
-import { integrationTestData } from '../data/integration-data-constants.js';
-import { GameRosterPage } from './game-roster-page.js';
+
+export interface VisualPageBuilder {
+  create: (options: PageOptions) => Promise<PageObject>;
+  options: PageOptions;
+}
 
 export interface VisualPageConfig {
   name: string;
-  page: PageObject;
+  page: PageObject | VisualPageBuilder;
   openOptions?: OpenOptions;
 }
 
-export function* getAllVisualPages(breakpoint: BreakpointConfig): Generator<VisualPageConfig, void> {
-
+export function* getAllVisualPages(
+  breakpoint: BreakpointConfig
+): Generator<VisualPageConfig, void> {
   const pageOptions: PageOptions = { viewPort: breakpoint.viewPort };
 
   // Index (i.e. no route provided)
   const indexOptions: HomePageOptions = {
     ...pageOptions,
     scenarioName: 'index',
-    emptyRoute: true
+    emptyRoute: true,
   };
   yield { name: '/index.html', page: new HomePage(indexOptions) };
 
@@ -45,39 +54,76 @@ export function* getAllVisualPages(breakpoint: BreakpointConfig): Generator<Visu
   yield {
     name: '/viewGames (signed out)',
     page: new GameListPage({ ...pageOptions, scenarioName: 'viewGames-signedout' }),
-    openOptions: { signIn: false, skipWaitForReady: true }
+    openOptions: { signIn: false, skipWaitForReady: true },
   };
 
   // Game detail page: /game
   const gameOptions: PageOptions = {
     ...pageOptions,
     gameId: integrationTestData.TEAM1.NEW_GAME_ID,
-    team: { teamId: integrationTestData.TEAM1.ID }
+    team: { teamId: integrationTestData.TEAM1.ID },
   };
   yield { name: '/game', page: new GameDetailPage(gameOptions), openOptions: { signIn: true } };
   yield {
     name: '/game (signed out)',
     page: new GameDetailPage({ ...gameOptions, scenarioName: 'viewGameDetail-signedout' }),
-    openOptions: { signIn: false, skipWaitForReady: true }
+    openOptions: { signIn: false, skipWaitForReady: true },
   };
 
   // Game roster page: /gameroster
-  yield { name: '/gameroster', page: new GameRosterPage(gameOptions), openOptions: { signIn: true } };
+  yield {
+    name: '/gameroster',
+    page: new GameRosterPage(gameOptions),
+    openOptions: { signIn: true },
+  };
   yield {
     name: '/gameroster (signed out)',
     page: new GameRosterPage({ ...gameOptions, scenarioName: 'viewGameRoster-signedout' }),
-    openOptions: { signIn: false, skipWaitForReady: true }
+    openOptions: { signIn: false, skipWaitForReady: true },
+  };
+
+  // Live game pages
+  const liveOptions: PageOptions = {
+    // TODO: Setting viewport directly to have new instance, change to just setting options
+    //       when height change applied to all pages
+    //  ...pageOptions,
+    viewPort: { ...pageOptions.viewPort! },
+    gameId: integrationTestData.TEAM2.games.NEW_WITH_ROSTER.ID,
+    userId: integrationTestData.TEAM2.OWNER_ID,
+    team: { teamId: integrationTestData.TEAM2.ID },
+  };
+  // TODO: Apply the height change to all pages
+  liveOptions.viewPort!.height = 800;
+  yield {
+    name: 'live game start',
+    page: {
+      create: GameLivePage.createLivePage,
+      options: { ...liveOptions, scenarioName: 'liveGameStart' },
+    },
+    openOptions: { signIn: true },
   };
 
   // Team pages
   // Team roster page: /viewRoster
-  yield { name: '/viewRoster', page: new TeamRosterPage(pageOptions), openOptions: { signIn: true } };
+  yield {
+    name: '/viewRoster',
+    page: new TeamRosterPage(pageOptions),
+    openOptions: { signIn: true },
+  };
 
   // Add new team: triggered by UI interaction (not a route)
-  yield { name: 'add new team', page: new TeamCreatePage(pageOptions), openOptions: { signIn: true } };
+  yield {
+    name: 'add new team',
+    page: new TeamCreatePage(pageOptions),
+    openOptions: { signIn: true },
+  };
 
   // Select team: triggered by UI interaction (not a route)
-  yield { name: 'select team', page: new TeamSelectPage(pageOptions), openOptions: { signIn: true } };
+  yield {
+    name: 'select team',
+    page: new TeamSelectPage(pageOptions),
+    openOptions: { signIn: true },
+  };
 
   // Error pages
   // 404 page: for unrecognized routes/paths

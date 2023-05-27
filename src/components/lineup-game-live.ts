@@ -98,7 +98,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         >
       </div>
       <div id="live-on">
-        <h5>Playing</h5>
+        <h3>Playing</h3>
         <lineup-on-player-list
           .formation="${formation}"
           .players="${players}"
@@ -108,7 +108,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         </lineup-on-player-list>
       </div>
       <div id="live-next">
-        <h5>Next On</h5>
+        <h3>Next On</h3>
         <div>
           <mwc-button id="sub-apply-btn" @click="${this._applySubs}">Sub</mwc-button>
           <mwc-button id="sub-discard-btn" @click="${this._discardSubs}">Discard</mwc-button>
@@ -120,7 +120,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       <div id="confirm-sub">${this.getConfirmSub()}</div>
       <div id="confirm-swap">${this.getConfirmSwap()}</div>
       <div id="live-off">
-        <h5>Subs</h5>
+        <h3>Subs</h3>
         <div>
           <mwc-button id="out-mark-btn" @click="${this.markUnavailable}">Out</mwc-button>
         </div>
@@ -133,7 +133,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         </lineup-player-list>
       </div>
       <div id="live-out">
-        <h5>Unavailable</h5>
+        <h3>Unavailable</h3>
         <div>
           <mwc-button id="out-return-btn" @click="${this.markAvailable}">Return</mwc-button>
         </div>
@@ -145,7 +145,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         </lineup-player-list>
       </div>
       <div id="live-totals">
-        <h5>Playing Time</h5>
+        <h3>Playing Time</h3>
         <lineup-game-shifts .trackerData="${trackerData}" .players="${players}">
         </lineup-game-shifts>
       </div>`;
@@ -162,7 +162,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
 
     return html`
       <div>
-        <h5>Confirm sub?</h5>
+        <h3>Confirm sub?</h3>
         <span class="proposed-player">${sub.name} #${sub.uniformNumber}</span>
         <span class="proposed-position">${positionText}</span>
         <span class="replaced">${replaced.name}</span>
@@ -193,7 +193,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
 
     return html`
       <div>
-        <h5>Confirm swap?</h5>
+        <h3>Confirm swap?</h3>
         <span class="proposed-player">${swap.name} #${swap.uniformNumber}</span>
         <span class="proposed-position">${positionText}</span>
         <mwc-button class="cancel" @click="${this.cancelSwapClicked}">Cancel</mwc-button>

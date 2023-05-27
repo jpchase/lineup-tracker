@@ -1,7 +1,7 @@
 /** @format */
 
 import * as path from 'path';
-import { OpenOptions, PageObject } from '../pages/page-object.js';
+import { PageObject, logWithTime } from '../pages/page-object.js';
 import { createScreenshotDirectories, getAllVisualPages } from '../pages/visual-page-factory.js';
 import { config } from '../server/test-server.js';
 
@@ -15,16 +15,26 @@ describe('🎁 regenerate screenshots', () => {
     describe(`${breakpoint.name} viewport`, () => {
       for (const pageConfig of getAllVisualPages(breakpoint)) {
         it(pageConfig.name, async () => {
-          return generateScreenshot(pageConfig.page, breakpoint.name, pageConfig.openOptions);
+          let page: PageObject;
+          if (pageConfig.page instanceof PageObject) {
+            page = pageConfig.page;
+            logWithTime(`load page (${pageConfig.name}) - init`);
+            await page.init();
+            logWithTime(`load page (${pageConfig.name}) - open`);
+            await page.open(pageConfig.openOptions);
+          } else {
+            const builder = pageConfig.page;
+            logWithTime(`load page (${pageConfig.name}) - builder`);
+            page = await builder.create(builder.options);
+          }
+          return generateScreenshot(page, breakpoint.name);
         });
       }
     }); // describe(`${breakpoint.name} viewport`
   }
 });
 
-async function generateScreenshot(page: PageObject, filePrefix: string, openOptions?: OpenOptions) {
-  await page.init();
-  await page.open(openOptions);
+async function generateScreenshot(page: PageObject, filePrefix: string) {
   await page.screenshot(path.join(config.baselineDir, filePrefix));
   await page.close();
 }
