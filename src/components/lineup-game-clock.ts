@@ -1,3 +1,5 @@
+/** @format */
+
 import '@material/mwc-button';
 import '@material/mwc-dialog';
 import { Dialog } from '@material/mwc-dialog';
@@ -28,6 +30,45 @@ export interface ClockPeriodData {
   periodStatus: PeriodStatus;
 }
 
+const START_PERIOD_EVENT_NAME = 'clock-start-period';
+export class ClockStartPeriodEvent extends CustomEvent<{}> {
+  static eventName = START_PERIOD_EVENT_NAME;
+
+  constructor() {
+    super(ClockStartPeriodEvent.eventName, {
+      detail: {},
+      bubbles: true,
+      composed: true,
+    });
+  }
+}
+
+const END_PERIOD_EVENT_NAME = 'clock-end-period';
+export class ClockEndPeriodEvent extends CustomEvent<ClockEndPeriodDetail> {
+  static eventName = END_PERIOD_EVENT_NAME;
+
+  constructor(detail: ClockEndPeriodDetail) {
+    super(ClockEndPeriodEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true,
+    });
+  }
+}
+
+const TOGGLE_EVENT_NAME = 'clock-toggled';
+export class ClockToggleEvent extends CustomEvent<ClockToggleDetail> {
+  static eventName = TOGGLE_EVENT_NAME;
+
+  constructor(detail: ClockToggleDetail) {
+    super(ClockToggleEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true,
+    });
+  }
+}
+
 @customElement('lineup-game-clock')
 export class LineupGameClock extends LitElement {
   override render() {
@@ -49,10 +90,11 @@ export class LineupGameClock extends LitElement {
         break;
     }
 
-    return html`
-      ${SharedStyles}
+    return html` ${SharedStyles}
       <style>
-        :host { display: inline-block; }
+        :host {
+          display: inline-block;
+        }
         #period-overdue {
           color: red;
         }
@@ -64,39 +106,70 @@ export class LineupGameClock extends LitElement {
         <span id="game-period">${periodText}</span>
         <mwc-icon id="period-overdue" ?hidden="${!periodOverdue}">running_with_errors</mwc-icon>
         <span id="period-timer">${this.timer.text}</span>
-        <mwc-icon-button-toggle id="toggle-button" ?on="${this.timer.timer?.isRunning}"
-          onIcon="pause_circle_outline" offIcon="play_circle_outline" label="Start/pause the clock"
+        <mwc-icon-button-toggle
+          id="toggle-button"
+          ?on="${this.timer.timer?.isRunning}"
+          onIcon="pause_circle_outline"
+          offIcon="play_circle_outline"
+          label="Start/pause the clock"
           ?hidden="${!periodRunning}"
-          @icon-button-toggle-change="${this.toggleClock}"></mwc-icon-button-toggle>
-        <mwc-icon-button id="end-button" icon="stop" label="End period"
-          @click="${this.endPeriod}" ?hidden="${!periodRunning}"></mwc-icon-button>
-        <mwc-button id="start-button" icon="not_started"
-          @click="${this.startPeriod}" ?hidden="${!periodPending}">Start</mwc-button>
+          @icon-button-toggle-change="${this.toggleClock}"
+        >
+        </mwc-icon-button-toggle>
+        <mwc-icon-button
+          id="end-button"
+          icon="stop"
+          label="End period"
+          @click="${this.endPeriod}"
+          ?hidden="${!periodRunning}"
+        >
+        </mwc-icon-button>
+        <mwc-button
+          id="start-button"
+          icon="not_started"
+          @click="${this.startPeriod}"
+          ?hidden="${!periodPending}"
+          >Start</mwc-button
+        >
       </span>
-      <mwc-dialog id="end-overdue-dialog" heading="End Overdue Period" @closed="${this.endOverduePeriod}">
+      <mwc-dialog
+        id="end-overdue-dialog"
+        heading="End Overdue Period"
+        @closed="${this.endOverduePeriod}"
+      >
         <ul class="fields">
           <li>
             <mwc-formfield label="End at current time">
-              <mwc-radio id="overdue-current-radio" name="overdueOptions" value="current" checked></mwc-radio>
+              <mwc-radio id="overdue-current-radio" name="overdueOptions" value="current" checked>
+              </mwc-radio>
             </mwc-formfield>
           </li>
           <li>
             <mwc-formfield label="Retroactive">
-              <mwc-radio id="overdue-retro-radio" name="overdueOptions" value="retro"
-                         @change="${this.overdueRetroChanged}"></mwc-radio>
+              <mwc-radio
+                id="overdue-retro-radio"
+                name="overdueOptions"
+                value="retro"
+                @change="${this.overdueRetroChanged}"
+              >
+              </mwc-radio>
             </mwc-formfield>
           </li>
           <li>
             <mwc-formfield id="overdue-minutes-field" alignend label="Extra Minutes">
-                <input type="number" min="1" max="15"
-                       ?required=${this.endOverdueRetroactive}
-                       ?disabled=${!this.endOverdueRetroactive}>
+              <input
+                type="number"
+                min="1"
+                max="15"
+                ?required=${this.endOverdueRetroactive}
+                ?disabled=${!this.endOverdueRetroactive}
+              />
             </mwc-formfield>
           </li>
         </ul>
         <mwc-button slot="primaryAction" dialogAction="save">End</mwc-button>
         <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
-      </mwc-dialog>`
+      </mwc-dialog>`;
   }
 
   private timer = new TimerController(this);
@@ -155,7 +228,9 @@ export class LineupGameClock extends LitElement {
     }
     let extraMinutes: number | undefined;
     if (this.endOverdueRetroactive) {
-      const minutesField = this.shadowRoot!.querySelector('#overdue-minutes-field > input') as HTMLInputElement;
+      const minutesField = this.shadowRoot!.querySelector(
+        '#overdue-minutes-field > input'
+      ) as HTMLInputElement;
       extraMinutes = minutesField.valueAsNumber;
     }
     this.dispatchEvent(new ClockEndPeriodEvent({ extraMinutes }));
@@ -165,45 +240,6 @@ export class LineupGameClock extends LitElement {
 declare global {
   interface HTMLElementTagNameMap {
     'lineup-game-clock': LineupGameClock;
-  }
-}
-
-const START_PERIOD_EVENT_NAME = 'clock-start-period';
-export class ClockStartPeriodEvent extends CustomEvent<{}> {
-  static eventName = START_PERIOD_EVENT_NAME;
-
-  constructor() {
-    super(ClockStartPeriodEvent.eventName, {
-      detail: {},
-      bubbles: true,
-      composed: true
-    });
-  }
-}
-
-const END_PERIOD_EVENT_NAME = 'clock-end-period';
-export class ClockEndPeriodEvent extends CustomEvent<ClockEndPeriodDetail> {
-  static eventName = END_PERIOD_EVENT_NAME;
-
-  constructor(detail: ClockEndPeriodDetail) {
-    super(ClockEndPeriodEvent.eventName, {
-      detail,
-      bubbles: true,
-      composed: true
-    });
-  }
-}
-
-const TOGGLE_EVENT_NAME = 'clock-toggled';
-export class ClockToggleEvent extends CustomEvent<ClockToggleDetail> {
-  static eventName = TOGGLE_EVENT_NAME;
-
-  constructor(detail: ClockToggleDetail) {
-    super(ClockToggleEvent.eventName, {
-      detail,
-      bubbles: true,
-      composed: true
-    });
   }
 }
 

@@ -3,7 +3,7 @@
 import { LineupGameList } from '@app/components/lineup-game-list';
 import '@app/components/lineup-game-list.js';
 import { Games, GameStatus } from '@app/models/game';
-import { assert, expect, fixture } from '@open-wc/testing';
+import { assert, expect, fixture, html } from '@open-wc/testing';
 import { DateFormatter } from '@app/models/clock';
 
 function getGames(numGames: number): Games {
@@ -28,7 +28,7 @@ function getGames(numGames: number): Games {
 describe('lineup-game-list tests', () => {
   let el: LineupGameList;
   beforeEach(async () => {
-    el = await fixture('<lineup-game-list></lineup-game-list>');
+    el = await fixture(html`<lineup-game-list></lineup-game-list>`);
   });
 
   it('starts empty', () => {

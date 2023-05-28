@@ -1,65 +1,97 @@
+/** @format */
+
 import '@material/mwc-button';
 import '@material/mwc-formfield';
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { Player, PlayerStatus } from '../models/player.js';
-import { EVENT_NEWPLAYERCANCELLED, EVENT_NEWPLAYERCREATED } from './events.js';
 import { SharedStyles } from './shared-styles.js';
+
+export interface NewPlayerCreatedDetail {
+  player: Player;
+}
+
+const NEW_PLAYER_CREATED_EVENT_NAME = 'new-player-created';
+export class NewPlayerCreatedEvent extends CustomEvent<NewPlayerCreatedDetail> {
+  static eventName = NEW_PLAYER_CREATED_EVENT_NAME;
+
+  constructor(detail: NewPlayerCreatedDetail) {
+    super(NewPlayerCreatedEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true,
+    });
+  }
+}
+
+const NEW_PLAYER_CANCELLED_EVENT_NAME = 'new-player-cancelled';
+export class NewPlayerCancelledEvent extends CustomEvent<{}> {
+  static eventName = NEW_PLAYER_CANCELLED_EVENT_NAME;
+
+  constructor() {
+    super(NewPlayerCreatedEvent.eventName, {
+      detail: {},
+      bubbles: true,
+      composed: true,
+    });
+  }
+}
 
 @customElement('lineup-roster-modify')
 export class LineupRosterModify extends LitElement {
   override render() {
-    return html`
-      ${SharedStyles}
+    return html` ${SharedStyles}
       <style>
-        :host { display: block; }
+        :host {
+          display: block;
+        }
       </style>
       <div>
         <h2>New Player</h2>
         <mwc-formfield id="nameField" alignend label="Name">
-            <input type="text" required minlength="2">
+          <input type="text" required minlength="2" />
         </mwc-formfield>
         <mwc-formfield id="uniformNumberField" alignend label="Uniform Number">
-            <input type="number" required min="1" max="99">
+          <input type="number" required min="1" max="99" />
         </mwc-formfield>
         <div class="buttons">
-          <mwc-button raised class="cancel" @click="${this._cancelModify}">Cancel</mwc-button>
-          <mwc-button raised class="save" autofocus @click="${this._savePlayer}">Save</mwc-button>
+          <mwc-button raised class="cancel" @click="${this.cancelModify}">Cancel</mwc-button>
+          <mwc-button raised class="save" autofocus @click="${this.savePlayer}">Save</mwc-button>
         </div>
-      </div>`
+      </div>`;
   }
 
-  private _getFormInput(fieldId: string): HTMLInputElement {
+  private getFormInput(fieldId: string): HTMLInputElement {
     return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
   }
 
-  private _savePlayer(e: CustomEvent) {
+  private savePlayer(e: CustomEvent) {
     console.log(`_savePlayer: ${JSON.stringify(e.detail)}`);
 
-    const nameField = this._getFormInput('nameField');
-    const uniformNumberField = this._getFormInput('uniformNumberField');
+    const nameField = this.getFormInput('nameField');
+    const uniformNumberField = this.getFormInput('uniformNumberField');
 
     const newPlayer: Player = {
       id: '',
       name: nameField.value!.trim(),
       uniformNumber: Number(uniformNumberField.value!.trim()),
       positions: [], // TODO: Positions
-      status: PlayerStatus.Off
+      status: PlayerStatus.Off,
     };
 
     // This event will be handled by lineup-roster.
-    this.dispatchEvent(new CustomEvent(EVENT_NEWPLAYERCREATED, {
-      bubbles: true, composed: true, detail: {
-        player: newPlayer
-      }
-    }));
+    this.dispatchEvent(new NewPlayerCreatedEvent({ player: newPlayer }));
   }
 
-  private _cancelModify(e: CustomEvent) {
-    console.log(`_cancelModify: ${JSON.stringify(e.detail)}`);
+  private cancelModify() {
     // This event will be handled by lineup-roster.
-    this.dispatchEvent(new CustomEvent(EVENT_NEWPLAYERCANCELLED, {
-      bubbles: true, composed: true
-    }));
+    this.dispatchEvent(new NewPlayerCancelledEvent());
+  }
+}
+
+declare global {
+  interface HTMLElementEventMap {
+    [NEW_PLAYER_CREATED_EVENT_NAME]: NewPlayerCreatedEvent;
+    [NEW_PLAYER_CANCELLED_EVENT_NAME]: NewPlayerCancelledEvent;
   }
 }

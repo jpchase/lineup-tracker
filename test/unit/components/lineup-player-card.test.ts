@@ -13,7 +13,7 @@ import { formatPosition } from '@app/models/formation.js';
 import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
 import { PlayerTimeTracker } from '@app/models/shift.js';
-import { assert, expect, fixture, oneEvent } from '@open-wc/testing';
+import { assert, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
 import { mockTimerContext } from '../helpers/mock-timer-context.js';
@@ -47,7 +47,7 @@ describe('lineup-player-card tests', () => {
     timerNotifier = new SynchronizedTimerNotifier();
     mockTimerContext(parentNode, timerNotifier);
 
-    el = await fixture('<lineup-player-card></lineup-player-card>', { parentNode });
+    el = await fixture(html`<lineup-player-card></lineup-player-card>`, { parentNode });
   });
 
   afterEach(async () => {

@@ -1,10 +1,10 @@
 /** @format */
 
 import '@app/components/lineup-team-selector.js';
-import { LineupTeamSelector } from '@app/components/lineup-team-selector.js';
+import { LineupTeamSelector, SelectTeamEvent } from '@app/components/lineup-team-selector.js';
 import { Team } from '@app/models/team.js';
 import { Button } from '@material/mwc-button';
-import { expect, fixture, oneEvent } from '@open-wc/testing';
+import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import { buildTeams } from '../helpers/test_data.js';
 
 const TEAMID1 = 't1';
@@ -26,7 +26,7 @@ const TEAMS: Team[] = [
 describe('lineup-team-selector tests', () => {
   let el: LineupTeamSelector;
   beforeEach(async () => {
-    el = await fixture('<lineup-team-selector></lineup-team-selector>');
+    el = await fixture(html`<lineup-team-selector></lineup-team-selector>`);
   });
 
   function getTeams() {
@@ -81,7 +81,7 @@ describe('lineup-team-selector tests', () => {
     const teamButton = getTeamButton();
     setTimeout(() => teamButton.click());
 
-    const { detail } = await oneEvent(el, 'select-team');
+    const { detail } = await oneEvent(el, SelectTeamEvent.eventName);
 
     expect(detail, 'Select team event has no detail').not.to.exist;
   });
@@ -93,7 +93,7 @@ describe('lineup-team-selector tests', () => {
     const teamButton = getTeamButton();
     setTimeout(() => teamButton.click());
 
-    const { detail } = await oneEvent(el, 'select-team');
+    const { detail } = await oneEvent(el, SelectTeamEvent.eventName);
 
     expect(detail, 'Select team event has no detail').not.to.exist;
   });

@@ -12,7 +12,7 @@ import { Duration } from '@app/models/clock.js';
 import { PeriodStatus } from '@app/models/live.js';
 import { Dialog } from '@material/mwc-dialog';
 import { Radio } from '@material/mwc-radio';
-import { aTimeout, expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
+import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { ClockEndPeriodDetail } from '../../../src/components/lineup-game-clock.js';
 import {
@@ -40,7 +40,7 @@ describe('lineup-game-clock tests', () => {
   });
 
   beforeEach(async () => {
-    el = await fixture('<lineup-game-clock></lineup-game-clock>');
+    el = await fixture(html`<lineup-game-clock></lineup-game-clock>`);
   });
 
   afterEach(async () => {

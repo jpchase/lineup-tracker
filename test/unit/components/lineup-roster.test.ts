@@ -4,7 +4,7 @@ import { LineupRoster } from '@app/components/lineup-roster';
 import '@app/components/lineup-roster.js';
 import { PlayerStatus, Roster } from '@app/models/player';
 import { ListItem } from '@material/mwc-list/mwc-list-item';
-import { expect, fixture, oneEvent } from '@open-wc/testing';
+import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 
 function getRoster(numPlayers: number): Roster {
   const size = numPlayers || 6;
@@ -40,7 +40,7 @@ function getRoster(numPlayers: number): Roster {
 describe('lineup-roster tests', () => {
   let el: LineupRoster;
   beforeEach(async () => {
-    el = await fixture('<lineup-roster></lineup-roster>');
+    el = await fixture(html`<lineup-roster></lineup-roster>`);
   });
 
   function getPlayerItems() {

@@ -4,7 +4,7 @@ import '@app/components/lineup-game-shifts.js';
 import { LineupGameShifts } from '@app/components/lineup-game-shifts.js';
 import { SynchronizedTimerNotifier } from '@app/components/synchronized-timer.js';
 import { Duration } from '@app/models/clock.js';
-import { expect, fixture } from '@open-wc/testing';
+import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
 import { mockTimerContext } from '../helpers/mock-timer-context.js';
 import * as testlive from '../helpers/test-live-game-data.js';
@@ -20,7 +20,7 @@ describe('lineup-game-shifts tests', () => {
     timerNotifier = new SynchronizedTimerNotifier();
     const parentNode = document.createElement('div');
     mockTimerContext(parentNode, timerNotifier);
-    el = await fixture('<lineup-game-shifts></lineup-game-shifts>', { parentNode });
+    el = await fixture(html`<lineup-game-shifts></lineup-game-shifts>`, { parentNode });
   });
 
   afterEach(async () => {

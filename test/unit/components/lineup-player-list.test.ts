@@ -5,7 +5,7 @@ import { LineupPlayerList } from '@app/components/lineup-player-list';
 import '@app/components/lineup-player-list.js';
 import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
-import { assert, expect, fixture } from '@open-wc/testing';
+import { assert, expect, fixture, html } from '@open-wc/testing';
 
 function getPlayers(
   numPlayers: number,
@@ -66,7 +66,7 @@ function getPlayersWithSomeMissingStatus(numPlayers: number, status: PlayerStatu
 describe('lineup-player-list tests', () => {
   let el: LineupPlayerList;
   beforeEach(async () => {
-    el = await fixture('<lineup-player-list></lineup-player-list>');
+    el = await fixture(html`<lineup-player-list></lineup-player-list>`);
   });
 
   function verifyEmptyList() {
