@@ -1,10 +1,9 @@
 /** @format */
 
-import { EVENT_POSITIONSELECTED } from '@app/components/events.js';
 import '@app/components/lineup-game-setup.js';
 import { LineupGameSetup } from '@app/components/lineup-game-setup.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
-import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
+import { LineupPlayerCard, PositionSelectedEvent } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { PageRouter } from '@app/components/page-router.js';
 import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
@@ -20,8 +19,7 @@ import {
 } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
-import { selectLiveGameById } from '@app/slices/live/live-slice.js';
-import { actions as liveActions } from '@app/slices/live/live-slice.js';
+import { actions as liveActions, selectLiveGameById } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
@@ -32,10 +30,10 @@ import { buildLiveStateWithCurrentGame, buildSetupTasks } from '../helpers/live-
 import { mockPageRouter } from '../helpers/mock-page-router.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import {
+  STORED_GAME_ID,
   buildRoster,
   getNewGameDetail,
   getStoredPlayer,
-  STORED_GAME_ID,
 } from '../helpers/test_data.js';
 
 const LAST_SETUP_STEP = SetupSteps.Captains;
@@ -565,7 +563,10 @@ describe('lineup-game-setup tests', () => {
       // Simulates selection of the position.
       setTimeout(() => playerElement.click());
 
-      const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+      const { detail } = (await oneEvent(
+        el,
+        PositionSelectedEvent.eventName
+      )) as PositionSelectedEvent;
       await el.updateComplete;
 
       expect(startersList.selectedPosition, 'selectedPosition').to.equal(detail.position);

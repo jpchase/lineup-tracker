@@ -17,6 +17,12 @@ export enum PositionType {
   Goalkeeper = 'GK',
 }
 
+export interface Position {
+  id: string;
+  type: string;
+  selected?: boolean;
+}
+
 export interface FormationLine {
   id: string;
   positions: Position[];
@@ -34,12 +40,6 @@ export interface Formation extends FormationMetadata {
   midfield2: FormationLine;
   defense: FormationLine;
   gk: FormationLine;
-}
-
-export interface Position {
-  id: string;
-  type: string;
-  selected?: boolean;
 }
 
 export class FormationBuilder {

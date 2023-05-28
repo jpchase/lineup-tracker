@@ -46,6 +46,7 @@ import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-shifts.js';
 import './lineup-on-player-list.js';
+import { PlayerSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';
 import { LineupPlayerList } from './lineup-player-list.js';
 import { playerResolverContext } from './player-resolver.js';
@@ -103,7 +104,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
           .formation="${formation}"
           .players="${players}"
           .trackerData="${this.trackerData}"
-          @positionselected="${this._playerSelected}"
+          @position-selected="${this.playerSelected}"
         >
         </lineup-on-player-list>
       </div>
@@ -128,7 +129,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
           mode="off"
           .players="${players}"
           .trackerData="${this.trackerData}"
-          @playerselected="${this._playerSelected}"
+          @player-selected="${this.playerSelected}"
         >
         </lineup-player-list>
       </div>
@@ -140,7 +141,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         <lineup-player-list
           mode="out"
           .players="${players}"
-          @playerselected="${this._playerSelected}"
+          @player-selected="${this.playerSelected}"
         >
         </lineup-player-list>
       </div>
@@ -324,8 +325,8 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     this.timerTrigger.isRunning = !!this.trackerData?.clockRunning;
   }
 
-  private _playerSelected(e: CustomEvent) {
-    this.dispatch(selectPlayer(this._game!.id, e.detail.player.id, e.detail.selected));
+  private playerSelected(e: PlayerSelectedEvent) {
+    this.dispatch(selectPlayer(this._game!.id, e.detail.player!.id, e.detail.selected));
   }
 
   private getPositionSelect() {

@@ -1,7 +1,11 @@
 /** @format */
 
-import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from '@app/components/events';
-import { LineupPlayerCard, PlayerCardData } from '@app/components/lineup-player-card';
+import {
+  LineupPlayerCard,
+  PlayerCardData,
+  PlayerSelectedEvent,
+  PositionSelectedEvent,
+} from '@app/components/lineup-player-card';
 import '@app/components/lineup-player-card.js';
 import { SynchronizedTimerNotifier } from '@app/components/synchronized-timer.js';
 import { Duration } from '@app/models/clock.js';
@@ -210,7 +214,7 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = await oneEvent(el, EVENT_PLAYERSELECTED);
+    const { detail } = (await oneEvent(el, PlayerSelectedEvent.eventName)) as PlayerSelectedEvent;
 
     assert.deepEqual(detail.player, player);
     assert.isTrue(detail.selected, 'Card should now be selected');
@@ -225,7 +229,7 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = await oneEvent(el, EVENT_PLAYERSELECTED);
+    const { detail } = (await oneEvent(el, PlayerSelectedEvent.eventName)) as PlayerSelectedEvent;
 
     assert.deepEqual(detail.player, player);
     assert.isFalse(detail.selected, 'Card should no longer be selected');
@@ -239,7 +243,10 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+    const { detail } = (await oneEvent(
+      el,
+      PositionSelectedEvent.eventName
+    )) as PositionSelectedEvent;
 
     assert.equal(detail.player, undefined, 'Event should not provide a player');
     assert.equal(detail.position, data.position, 'Event should provide position');
@@ -255,7 +262,10 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+    const { detail } = (await oneEvent(
+      el,
+      PositionSelectedEvent.eventName
+    )) as PositionSelectedEvent;
 
     assert.equal(detail.player, undefined, 'Event should not provide a player');
     assert.equal(detail.position, data.position, 'Event should provide position');
@@ -272,7 +282,10 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+    const { detail } = (await oneEvent(
+      el,
+      PositionSelectedEvent.eventName
+    )) as PositionSelectedEvent;
 
     assert.equal(detail.player, data.player, 'Event should provide player');
     assert.equal(detail.position, data.position, 'Event should provide position');
@@ -290,7 +303,10 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = await oneEvent(el, EVENT_POSITIONSELECTED);
+    const { detail } = (await oneEvent(
+      el,
+      PositionSelectedEvent.eventName
+    )) as PositionSelectedEvent;
 
     assert.equal(detail.player, data.player, 'Event should provide player');
     assert.equal(detail.position, data.position, 'Event should provide position');

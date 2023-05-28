@@ -8,7 +8,6 @@ import { classMap } from 'lit/directives/class-map.js';
 import { Position, formatPosition } from '../models/formation.js';
 import { LivePlayer } from '../models/live.js';
 import { PlayerTimeTracker } from '../models/shift.js';
-import { EVENT_PLAYERSELECTED, EVENT_POSITIONSELECTED } from './events.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 import { synchronizedTimerContext } from './synchronized-timer.js';
@@ -20,7 +19,41 @@ export interface PlayerCardData {
   player?: LivePlayer;
 }
 
-// This element is *not* connected to the Redux store.
+export interface PlayerSelectedDetail {
+  selected: boolean;
+  player?: LivePlayer;
+}
+
+export interface PositionSelectedDetail extends PlayerSelectedDetail {
+  position: Position;
+}
+
+const POSITION_SELECTED_EVENT_NAME = 'position-selected';
+export class PositionSelectedEvent extends CustomEvent<PositionSelectedDetail> {
+  static eventName = POSITION_SELECTED_EVENT_NAME;
+
+  constructor(detail: PositionSelectedDetail) {
+    super(PositionSelectedEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true,
+    });
+  }
+}
+
+const PLAYER_SELECTED_EVENT_NAME = 'player-selected';
+export class PlayerSelectedEvent extends CustomEvent<PlayerSelectedDetail> {
+  static eventName = PLAYER_SELECTED_EVENT_NAME;
+
+  constructor(detail: PlayerSelectedDetail) {
+    super(PlayerSelectedEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true,
+    });
+  }
+}
+
 @customElement('lineup-player-card')
 export class LineupPlayerCard extends LitElement {
   override render() {
@@ -212,20 +245,10 @@ export class LineupPlayerCard extends LitElement {
     const player = this._getPlayer();
     if (this.data) {
       this.dispatchEvent(
-        new CustomEvent(EVENT_POSITIONSELECTED, {
-          bubbles: true,
-          composed: true,
-          detail: { position: this.data.position, player: player, selected: newSelected },
-        })
+        new PositionSelectedEvent({ position: this.data.position, player, selected: newSelected })
       );
     } else {
-      this.dispatchEvent(
-        new CustomEvent(EVENT_PLAYERSELECTED, {
-          bubbles: true,
-          composed: true,
-          detail: { player: player, selected: newSelected },
-        })
-      );
+      this.dispatchEvent(new PlayerSelectedEvent({ player, selected: newSelected }));
     }
   }
 }
@@ -233,5 +256,12 @@ export class LineupPlayerCard extends LitElement {
 declare global {
   interface HTMLElementTagNameMap {
     'lineup-player-card': LineupPlayerCard;
+  }
+}
+
+declare global {
+  interface HTMLElementEventMap {
+    [PLAYER_SELECTED_EVENT_NAME]: PlayerSelectedEvent;
+    [POSITION_SELECTED_EVENT_NAME]: PositionSelectedEvent;
   }
 }
