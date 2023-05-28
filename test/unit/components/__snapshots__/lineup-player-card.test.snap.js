@@ -18,9 +18,6 @@ snapshots["lineup-player-card tests renders data properties without player"] =
   <span class="playerPositions">
   </span>
   <span class="shiftTime">
-    <mwc-icon>
-      timer
-    </mwc-icon>
   </span>
   <span class="subFor">
   </span>

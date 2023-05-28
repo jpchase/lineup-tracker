@@ -123,6 +123,10 @@ export class LineupPlayerCard extends LitElement {
           display: inline;
         }
 
+        .player.on .currentPosition {
+          display: block;
+        }
+
         .shiftTime {
           display: block;
           font-style: italic;
@@ -161,10 +165,17 @@ export class LineupPlayerCard extends LitElement {
         <span class="uniformNumber">${player ? player.uniformNumber : ''}</span>
         <span class="currentPosition">${currentPosition}</span>
         <span class="playerPositions">${positions.join(', ')}</span>
-        <span class="shiftTime"><mwc-icon>timer</mwc-icon>${this.timer.text}</span>
+        <span class="shiftTime">${this.renderShiftTime()}</span>
         <span class="subFor">${subFor}</span>
       </span>
     `;
+  }
+
+  private renderShiftTime() {
+    if (!this.timer.text) {
+      return nothing;
+    }
+    return html`<mwc-icon>timer</mwc-icon>${this.timer.text}`;
   }
 
   private timer = new SynchronizedTimerController(this);
