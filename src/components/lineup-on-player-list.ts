@@ -36,12 +36,21 @@ export class LineupOnPlayerList extends PlayerListElement {
       <style>
         :host {
           display: block;
+          /* Ignore the 24px padding applied to all sections */
+          margin: 0 -24px;
+        }
+
+        .container {
+          container-type: inline-size;
+          width: 100%;
+          max-width: 750px;
+          margin: 0 auto;
         }
 
         .line {
           border: 1px;
           border-style: solid;
-          column-gap: 2em;
+          column-gap: 0.5em;
           display: flex;
           justify-content: center;
           padding: 0.5em;
@@ -50,11 +59,17 @@ export class LineupOnPlayerList extends PlayerListElement {
         .line lineup-player-card {
           display: inline;
         }
+
+        @container (min-width: 500px) {
+          .line {
+            column-gap: 1em;
+          }
+        }
       </style>
       <div>
         ${lines.length > 0
           ? html`
-              <div class="list">
+              <div class="list container">
                 ${repeat(
                   lines,
                   (line: PlayerLine) => line.id,

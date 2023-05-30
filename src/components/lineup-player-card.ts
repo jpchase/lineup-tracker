@@ -103,7 +103,21 @@ export class LineupPlayerCard extends LitElement {
           display: inline-block;
           min-height: 45px;
           text-align: center;
+        }
+
+        .player.on {
+          width: 75px;
+        }
+
+        .player.off,
+        .player.out {
           width: 100px;
+        }
+
+        @container (min-width: 450px) {
+          .player.on {
+            width: 100px;
+          }
         }
 
         .player.next {
