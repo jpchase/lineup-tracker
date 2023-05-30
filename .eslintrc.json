@@ -89,6 +89,17 @@
       "rules": {
         "lit/no-value-attribute": "off"
       }
+    },
+    {
+      "files": [
+        "src/models/*.ts",
+        "test/unit/models/*.ts",
+        "src/slices/live/events-slice.ts",
+        "test/unit/slices/live/events-slice.test.ts"
+      ],
+      "rules": {
+        "no-use-before-define": ["error", { "functions": false, "allowNamedExports": true }]
+      }
     }
   ],
   "reportUnusedDisableDirectives": true

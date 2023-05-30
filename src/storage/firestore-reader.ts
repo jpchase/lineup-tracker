@@ -19,7 +19,8 @@ import {
 } from 'firebase/firestore';
 import { debug } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
-import { Model, ModelCollection, ModelReader } from './model-converter.js';
+import { Model, ModelCollection } from '../models/model.js';
+import { ModelReader } from './model-converter.js';
 
 const debugFirestore = debug('firestore');
 

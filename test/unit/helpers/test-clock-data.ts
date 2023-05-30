@@ -20,6 +20,10 @@ export function buildStoppedTimer(elapsedSeconds?: number): TimerData {
   };
 }
 
+export function mockCurrentTime(t0: number) {
+  return sinon.useFakeTimers({ now: t0 });
+}
+
 export function mockTimeProvider(t0: number, t1?: number, t2?: number, t3?: number) {
   const provider = new CurrentTimeProvider();
   const stub = sinon.stub(provider, 'getTimeInternal').returns(t0);

@@ -1,6 +1,7 @@
 /** @format */
 
 import { TimerData } from './clock.js';
+import { EventBase } from './events.js';
 import { FormationMetadata, Position } from './formation.js';
 import { Game, GameDetail, GameStatus } from './game.js';
 import { Player, PlayerStatus } from './player.js';
@@ -64,6 +65,14 @@ export interface LiveGame {
 
 export interface LiveGames {
   [index: string]: LiveGame;
+}
+
+export enum GameEventType {
+  Setup = 'SETUP',
+}
+
+export interface GameEvent extends EventBase<GameEventType> {
+  player?: LivePlayer;
 }
 
 export class LiveGameBuilder {

@@ -1,15 +1,7 @@
 /** @format */
 
 import { DocumentData, WithFieldValue } from 'firebase/firestore';
-
-export interface Model {
-  id: string;
-  teamId?: string;
-}
-
-export interface ModelCollection<T extends Model> {
-  [index: string]: T;
-}
+import { Model } from '../models/model.js';
 
 export type ModelConverter<T extends Model> = ModelReader<T> & ModelWriter<T>;
 
