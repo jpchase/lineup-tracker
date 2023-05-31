@@ -9,7 +9,7 @@ import {
 import { Team } from '@app/models/team.js';
 import { Button } from '@material/mwc-button';
 import { ListItem } from '@material/mwc-list/mwc-list-item';
-import { expect, fixture, nextFrame, oneEvent } from '@open-wc/testing';
+import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import { buildTeams } from '../helpers/test_data.js';
 
 const TEAMS: Team[] = [
@@ -31,7 +31,7 @@ describe('lineup-team-selector-dialog tests', () => {
   let el: LineupTeamSelectorDialog;
 
   beforeEach(async () => {
-    el = await fixture('<lineup-team-selector-dialog></lineup-team-selector-dialog>');
+    el = await fixture(html`<lineup-team-selector-dialog></lineup-team-selector-dialog>`);
   });
 
   function populateDialog(teamId: string, teamData?: Team[]): Team[] {

@@ -6,7 +6,7 @@ import { LineupPlayerCard } from '@app/components/lineup-player-card';
 import { FormationBuilder, FormationType } from '@app/models/formation';
 import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player';
-import { assert, expect, fixture } from '@open-wc/testing';
+import { assert, expect, fixture, html } from '@open-wc/testing';
 
 interface PositionCounter {
   [index: string]: number;
@@ -139,7 +139,7 @@ function getPlayers(
 describe('lineup-on-player-list tests', () => {
   let el: LineupOnPlayerList;
   beforeEach(async () => {
-    el = await fixture('<lineup-on-player-list></lineup-on-player-list>');
+    el = await fixture(html`<lineup-on-player-list></lineup-on-player-list>`);
   });
 
   function verifyPlayerCards(players: LivePlayer[]) {

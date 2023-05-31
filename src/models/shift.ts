@@ -1,3 +1,5 @@
+/** @format */
+
 import { CurrentTimeProvider, Duration, DurationData, Timer, TimerData } from './clock.js';
 import { LiveGame, LivePlayer } from './live.js';
 import { PlayerStatus } from './player.js';
@@ -76,7 +78,7 @@ export class PlayerTimeTracker {
 
   // Synthetic properties.
   get currentTimer() {
-    return (this.isOn) ? this.onTimer : this.offTimer;
+    return this.isOn ? this.onTimer : this.offTimer;
   }
 
   get shiftTime() {
@@ -115,7 +117,7 @@ export class PlayerTimeTracker {
   toDebugString() {
     return JSON.stringify({
       id: this.id,
-      isOn: this.isOn
+      isOn: this.isOn,
     });
   }
 
@@ -142,11 +144,11 @@ export class PlayerTimeTracker {
   }
 
   substituteIn(clockRunning: boolean) {
-    this.substituteInternal(/*goingOn=*/true, clockRunning);
+    this.substituteInternal(/*goingOn=*/ true, clockRunning);
   }
 
   substituteOut(clockRunning: boolean) {
-    this.substituteInternal(/*goingOn=*/false, clockRunning);
+    this.substituteInternal(/*goingOn=*/ false, clockRunning);
   }
 
   private substituteInternal(goingOn: boolean, clockRunning: boolean) {
@@ -197,7 +199,10 @@ export class PlayerTimeTrackerMap {
     }
   }
 
-  static create(data: PlayerTimeTrackerMapData, timeProvider?: CurrentTimeProvider): PlayerTimeTrackerMap {
+  static create(
+    data: PlayerTimeTrackerMapData,
+    timeProvider?: CurrentTimeProvider
+  ): PlayerTimeTrackerMap {
     if (!data.id) {
       throw new Error('id must be provided');
     }
@@ -229,14 +234,14 @@ export class PlayerTimeTrackerMap {
     }
 
     this.trackers = [];
-    players.forEach(player => {
+    players.forEach((player) => {
       // Use different data format, depending if recreating or initializing
       // from scratch with actual player objects.
       let data: PlayerTimeTrackerData;
       if ('status' in player) {
         data = {
           id: player.id || player.name,
-          isOn: (player.status === PlayerStatus.On)
+          isOn: player.status === PlayerStatus.On,
         };
       } else {
         data = player;
@@ -256,7 +261,7 @@ export class PlayerTimeTrackerMap {
     if (!this.trackers) {
       return undefined;
     }
-    return this.trackers.find(tracker => tracker.id === id);
+    return this.trackers.find((tracker) => tracker.id === id);
   }
 
   [Symbol.iterator]() {
@@ -270,7 +275,7 @@ export class PlayerTimeTrackerMap {
 
     this.clockRunning = true;
     this.timeProvider.freeze();
-    this.trackers.forEach(tracker => {
+    this.trackers.forEach((tracker) => {
       tracker.startShift();
     });
     this.timeProvider.unfreeze();
@@ -283,7 +288,7 @@ export class PlayerTimeTrackerMap {
 
     this.clockRunning = false;
     this.timeProvider.freeze();
-    this.trackers.forEach(tracker => {
+    this.trackers.forEach((tracker) => {
       tracker.stopShift(retroactiveStopTime);
     });
     this.timeProvider.unfreeze();
@@ -293,7 +298,7 @@ export class PlayerTimeTrackerMap {
     this.substitutePlayers([{ in: playerInId, out: playerOutId }]);
   }
 
-  substitutePlayers(subs: { in: string, out: string }[]) {
+  substitutePlayers(subs: { in: string; out: string }[]) {
     if (!subs?.length) {
       throw new Error('No subs provided');
     }
@@ -303,16 +308,17 @@ export class PlayerTimeTrackerMap {
 
     let subTrackers: [PlayerTimeTracker, PlayerTimeTracker][] = [];
 
-    subs.forEach(pair => {
+    subs.forEach((pair) => {
       let playerInTracker = this.get(pair.in);
       let playerOutTracker = this.get(pair.out);
 
-      if (!playerInTracker || !playerOutTracker ||
-        playerInTracker.isOn || !playerOutTracker.isOn) {
-        throw new Error('Invalid status to substitute, playerIn = ' +
-          playerInTracker?.toDebugString() +
-          ', playerOut = ' +
-          playerOutTracker?.toDebugString());
+      if (!playerInTracker || !playerOutTracker || playerInTracker.isOn || !playerOutTracker.isOn) {
+        throw new Error(
+          'Invalid status to substitute, playerIn = ' +
+            playerInTracker?.toDebugString() +
+            ', playerOut = ' +
+            playerOutTracker?.toDebugString()
+        );
       }
 
       subTrackers.push([playerInTracker, playerOutTracker]);
@@ -324,7 +330,7 @@ export class PlayerTimeTrackerMap {
       unfreeze = true;
     }
 
-    subTrackers.forEach(pair => {
+    subTrackers.forEach((pair) => {
       const [playerInTracker, playerOutTracker] = pair;
 
       playerInTracker.substituteIn(this.clockRunning);

@@ -1,10 +1,13 @@
+/** @format */
+
 import { Assertion } from '@esm-bundle/chai';
 import { Dialog } from '@material/mwc-dialog';
 
 function isElementShown(element: Element) {
   const style = getComputedStyle(element, null);
-  console.log(`isElementShown: ${style.display}, ${style.visibility}`);
-  return style.display !== 'none' && style.visibility !== 'hidden' && style.visibility !== 'collapsed';
+  return (
+    style.display !== 'none' && style.visibility !== 'hidden' && style.visibility !== 'collapsed'
+  );
 }
 
 declare global {

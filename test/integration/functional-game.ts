@@ -3,12 +3,17 @@
 import { Game } from '@app/models/game.js';
 import rtk from '@reduxjs/toolkit';
 import { expect } from 'chai';
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
 import { integrationTestData } from './data/integration-data-constants.js';
 import { GameCreatePage } from './pages/game-create-page.js';
 import { GameRosterPage } from './pages/game-roster-page.js';
 import { PageObject } from './pages/page-object.js';
-import { createAdminApp, readGame, readGameRoster } from './server/firestore-access.js';
+import {
+  Firestore,
+  createAdminApp,
+  getFirestore,
+  readGame,
+  readGameRoster,
+} from './server/firestore-access.js';
 const { nanoid } = rtk;
 
 describe('Game functional tests', () => {

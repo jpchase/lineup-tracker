@@ -1,10 +1,8 @@
-/**
-@license
-*/
+/** @format */
 
 export interface User {
-    id: string;
-    name: string;
-    email?: string;
-    imageUrl?: string;
+  id: string;
+  name: string;
+  email?: string;
+  imageUrl?: string;
 }

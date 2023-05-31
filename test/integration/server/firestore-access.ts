@@ -22,6 +22,7 @@ import {
   ModelReader,
   ModelWriter,
 } from '../../../src/storage/model-converter.js';
+export { Firestore, getFirestore } from 'firebase-admin/firestore';
 
 const KEY_GAMES = 'games';
 const KEY_ROSTER = 'roster';

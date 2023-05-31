@@ -18,9 +18,6 @@ snapshots["lineup-player-card tests renders data properties without player"] =
   <span class="playerPositions">
   </span>
   <span class="shiftTime">
-    <mwc-icon>
-      timer
-    </mwc-icon>
   </span>
   <span class="subFor">
   </span>
@@ -42,7 +39,7 @@ snapshots["lineup-player-card tests mode [ON]: renders player properties"] =
     2
   </span>
   <span class="currentPosition">
-    CB (Right)
+    RCB
   </span>
   <span class="playerPositions">
     CB, FB, HM
@@ -73,7 +70,7 @@ snapshots["lineup-player-card tests mode [ON]: renders data.player properties"] 
     2
   </span>
   <span class="currentPosition">
-    CB (Right)
+    RCB
   </span>
   <span class="playerPositions">
     CB, FB, HM
@@ -226,7 +223,7 @@ snapshots["lineup-player-card tests mode [NEXT]: renders player properties"] =
     2
   </span>
   <span class="currentPosition">
-    HM (1)
+    HM1
   </span>
   <span class="playerPositions">
     CB, FB, HM
@@ -258,7 +255,7 @@ snapshots["lineup-player-card tests mode [NEXT]: renders data.player properties"
     2
   </span>
   <span class="currentPosition">
-    HM (1)
+    HM1
   </span>
   <span class="playerPositions">
     CB, FB, HM

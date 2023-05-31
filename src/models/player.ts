@@ -1,12 +1,10 @@
-/**
-@license
-*/
+/** @format */
 
 export enum PlayerStatus {
   Next = 'NEXT',
   Off = 'OFF',
   On = 'ON',
-  Out = 'OUT'
+  Out = 'OUT',
 }
 
 export interface Player {
@@ -18,5 +16,5 @@ export interface Player {
 }
 
 export interface Roster {
-  [index:string]: Player;
+  [index: string]: Player;
 }

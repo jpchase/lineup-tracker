@@ -1,12 +1,11 @@
 /** @format */
 
 import { expect } from 'chai';
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
 import { integrationTestData } from './data/integration-data-constants.js';
 import { GameLivePage } from './pages/game-live-page.js';
 import { GameSetupPage, SetupStatus, SetupSteps } from './pages/game-setup-page.js';
 import { PageObject } from './pages/page-object.js';
-import { copyGame, createAdminApp } from './server/firestore-access.js';
+import { Firestore, createAdminApp, getFirestore } from './server/firestore-access.js';
 
 describe('Live functional tests', () => {
   let firestore: Firestore;
@@ -125,38 +124,22 @@ describe('Live functional tests', () => {
   });
 
   it('game in-progress is restored after refresh', async () => {
-    // Create a new game, with roster, by copying the existing game.
-    const newGame = await copyGame(
-      firestore,
-      integrationTestData.TEAM2.games.NEW_WITH_ROSTER.ID,
-      integrationTestData.TEAM2.OWNER_ID
+    // Create page in live view, with game ready to be started.
+    const { livePage, newGame, starters } = await GameLivePage.createLivePage(
+      {
+        userId: integrationTestData.TEAM2.OWNER_ID,
+        team: { teamId: integrationTestData.TEAM2.ID },
+        gameId: integrationTestData.TEAM2.games.NEW_WITH_ROSTER.ID,
+      },
+      firestore
     );
-    const players = newGame.roster;
-
-    const onPlayers = Object.keys(players).slice(0, 11);
-    const offPlayers = Object.keys(players).slice(11);
-
-    // Open the page *after* creating the game.
-    // As the game is in "new" status, it starts on the setup view.
-    const gameSetupPage = new GameSetupPage({
-      userId: integrationTestData.TEAM2.OWNER_ID,
-      team: { teamId: integrationTestData.TEAM2.ID },
-      gameId: newGame.id,
-    });
-    pageObject = gameSetupPage;
-    await gameSetupPage.init();
-    await gameSetupPage.open({ signIn: true });
-
-    // Complete all the setup to get the game into Start status.
-    await gameSetupPage.completeSetup(onPlayers);
-
-    // With setup completed, the page should now be on the live view.
-    const livePage = gameSetupPage.swap(GameLivePage, {
-      userId: integrationTestData.TEAM2.OWNER_ID,
-      team: { teamId: integrationTestData.TEAM2.ID },
-      gameId: newGame.id,
-    });
     pageObject = livePage;
+
+    // Until game is started running, all players still have Off status.
+    const onPlayers = starters;
+    const offPlayers = Object.keys(newGame.roster).filter(
+      (playerId) => !starters.includes(playerId)
+    );
 
     // Start the game running.
     await expectClockRunning(livePage, /*running=*/ false);

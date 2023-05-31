@@ -1,3 +1,5 @@
+/** @format */
+
 import '@material/mwc-button';
 import '@material/mwc-list';
 import '@material/mwc-list/mwc-list-item.js';
@@ -5,6 +7,18 @@ import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Team } from '../models/team.js';
 import { SharedStyles } from './shared-styles.js';
+
+const SELECT_TEAM_EVENT_NAME = 'select-team';
+export class SelectTeamEvent extends CustomEvent<{}> {
+  static eventName = SELECT_TEAM_EVENT_NAME;
+
+  constructor() {
+    super(SelectTeamEvent.eventName, {
+      bubbles: true,
+      composed: true,
+    });
+  }
+}
 
 @customElement('lineup-team-selector')
 export class LineupTeamSelector extends LitElement {
@@ -21,8 +35,14 @@ export class LineupTeamSelector extends LitElement {
           --mdc-typography-button-text-transform: none;
         }
       </style>
-      <mwc-button id="team-switcher-button" icon="arrow_drop_down" trailingicon
-          aria-label="${this.getTeamLabel()}" @click="${this.switcherClicked}">${teamName}</mwc-button>
+      <mwc-button
+        id="team-switcher-button"
+        icon="arrow_drop_down"
+        trailingicon
+        aria-label="${this.getTeamLabel()}"
+        @click="${this.switcherClicked}"
+        >${teamName}</mwc-button
+      >
     `;
   }
 
@@ -41,21 +61,9 @@ export class LineupTeamSelector extends LitElement {
   }
 }
 
-const SELECT_TEAM_EVENT_NAME = 'select-team';
-export class SelectTeamEvent extends CustomEvent<{}> {
-  static eventName = SELECT_TEAM_EVENT_NAME;
-
-  constructor() {
-    super(SelectTeamEvent.eventName, {
-      bubbles: true,
-      composed: true
-    });
-  }
-}
-
 declare global {
   interface HTMLElementTagNameMap {
-    "lineup-team-selector": LineupTeamSelector;
+    'lineup-team-selector': LineupTeamSelector;
   }
 }
 

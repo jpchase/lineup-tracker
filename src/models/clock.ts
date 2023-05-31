@@ -1,3 +1,5 @@
+/** @format */
+
 function pad0(value: number, count: number): string {
   let result = value.toString();
   for (; result.length < count; --count) {
@@ -98,8 +100,7 @@ export class Duration {
 
   static addToDate(date: number, duration: Duration): number {
     let result = new Date(date);
-    result.setMinutes(result.getMinutes(),
-      result.getSeconds() + duration._elapsed);
+    result.setMinutes(result.getMinutes(), result.getSeconds() + duration._elapsed);
     return result.getTime();
   }
 
@@ -236,7 +237,12 @@ export class DateFormatter {
 
   constructor() {
     const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric', month: 'short', day: 'numeric', weekday: 'short', hour: 'numeric', minute: '2-digit'
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
     };
     this.formatter = new Intl.DateTimeFormat('default', options);
   }

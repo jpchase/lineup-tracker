@@ -3,10 +3,10 @@
 import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { LivePlayer } from '../models/live.js';
 import { PlayerStatus } from '../models/player.js';
-import { EVENT_PLAYERLISTCANCEL } from './events.js';
 import './lineup-player-card.js';
 import { PlayerListElement } from './player-list-element.js';
 import { SharedStyles } from './shared-styles.js';
@@ -20,6 +20,7 @@ export class LineupPlayerList extends PlayerListElement {
   override render() {
     const filteredPlayers = this._getFilteredPlayers();
 
+    const classes = { [this.mode.toLowerCase()]: true };
     return html` ${SharedStyles}
       <style>
         :host {
@@ -29,7 +30,7 @@ export class LineupPlayerList extends PlayerListElement {
       <div>
         ${filteredPlayers.length > 0
           ? html`
-              <div class="list">
+              <div class="list ${classMap(classes)}">
                 ${repeat(
                   filteredPlayers,
                   (player: LivePlayer) => player.id,
@@ -100,14 +101,6 @@ export class LineupPlayerList extends PlayerListElement {
 
   _doCancel(e: CustomEvent) {
     console.log('_doCancel', e);
-    // console.log('_doCancel - model.player', e.model.player);
-    this.dispatchEvent(
-      new CustomEvent(EVENT_PLAYERLISTCANCEL, {
-        bubbles: true,
-        composed: true,
-        detail: {}, // {player: e.model.player},
-      })
-    );
   }
 }
 

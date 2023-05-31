@@ -1,6 +1,4 @@
-/**
-@license
-*/
+/** @format */
 
 export interface TeamData {
   name: string;

@@ -1,3 +1,5 @@
+/** @format */
+
 import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -23,7 +25,7 @@ export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElemen
     }
 
     // const inProgress = (game.status === GameStatus.Live || game.status === GameStatus.Break);
-    const isNew = (game.status === GameStatus.New);
+    const isNew = game.status === GameStatus.New;
 
     if (isNew) {
       return html`<lineup-game-setup .gameId="${game.id}"></lineup-game-setup>`;
@@ -35,21 +37,19 @@ export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElemen
     if (this.game) {
       updateMetadata({
         title: `Game - ${this._getName()}`,
-        description: `Game details for: ${this._getName()}`
+        description: `Game details for: ${this._getName()}`,
       });
     }
 
     return html`
       ${SharedStyles}
       <section>
-      ${this.game ? html`
-        <h2 main-title>Live: ${this._getName()}</h2>
-        ${this.renderDetailContent(this.game)}
-      ` : html`
-        <p class="empty-list">
-          Game not found.
-        </p>
-      `}
+        ${this.game
+          ? html`
+              <h2 main-title>Live: ${this._getName()}</h2>
+              ${this.renderDetailContent(this.game)}
+            `
+          : html` <p class="empty-list">Game not found.</p> `}
       </section>
     `;
   }
@@ -105,11 +105,21 @@ export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElemen
 
   // Formatting functions
   private _getName() {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
-      'Sep', 'Oct', 'Nov', 'Dec'
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     const game = this.game!;
-    return game.opponent + ' ' + monthNames[game.date.getMonth()] + ' ' +
-      game.date.getDate();
+    return game.opponent + ' ' + monthNames[game.date.getMonth()] + ' ' + game.date.getDate();
   }
 }

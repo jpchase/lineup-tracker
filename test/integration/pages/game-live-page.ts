@@ -5,7 +5,9 @@ import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { TimerData } from '@app/models/clock.js';
 import { LivePlayer } from '@app/models/live.js';
 import { ElementHandle } from 'puppeteer';
+import { Firestore, copyGame, createAdminApp, getFirestore } from '../server/firestore-access.js';
 import { GameDetailPage } from './game-detail-page.js';
+import { GameSetupPage } from './game-setup-page.js';
 import { PageOpenFunction, PageOptions } from './page-object.js';
 
 export class GameLivePage extends GameDetailPage {
@@ -21,6 +23,44 @@ export class GameLivePage extends GameDetailPage {
     return async () => {
       await this.page.waitForTimeout(2000);
     };
+  }
+
+  static async createLivePage(options: PageOptions, firestore?: Firestore) {
+    // Create a new game, with roster, by copying the existing game.
+    if (!firestore) {
+      firestore = getFirestore(createAdminApp());
+    }
+    const newGame = await copyGame(firestore, options.gameId!, options.userId!);
+
+    // Sort the players by name, so there is a stable order across tests.
+    const sortedPlayers = Object.values(newGame.roster).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+    const starters = sortedPlayers.slice(0, 11).map((player) => player.id);
+
+    // Open the page *after* creating the game.
+    // As the game is in "new" status, it starts on the setup view.
+    const gameSetupPage = new GameSetupPage({
+      ...options,
+      gameId: newGame.id,
+    });
+    try {
+      await gameSetupPage.init();
+      await gameSetupPage.open({ signIn: true });
+
+      // Complete all the setup to get the game into Start status.
+      await gameSetupPage.completeSetup(starters);
+
+      // With setup completed, the page should now be on the live view.
+      const livePage = gameSetupPage.swap(GameLivePage, {
+        ...options,
+        gameId: newGame.id,
+      });
+
+      return { livePage, newGame, starters };
+    } finally {
+      gameSetupPage.close();
+    }
   }
 
   async startGamePeriod() {

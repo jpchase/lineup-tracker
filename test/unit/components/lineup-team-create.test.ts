@@ -1,13 +1,13 @@
 /** @format */
 
-import { LineupTeamCreate } from '@app/components/lineup-team-create';
+import { LineupTeamCreate, NewTeamCreatedEvent } from '@app/components/lineup-team-create';
 import '@app/components/lineup-team-create.js';
-import { expect, fixture, oneEvent } from '@open-wc/testing';
+import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 
 describe('lineup-team-create tests', () => {
   let el: LineupTeamCreate;
   beforeEach(async () => {
-    el = await fixture('<lineup-team-create></lineup-team-create>');
+    el = await fixture(html`<lineup-team-create></lineup-team-create>`);
   });
 
   function getInputField(fieldId: string) {
@@ -29,7 +29,7 @@ describe('lineup-team-create tests', () => {
     const saveButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
     setTimeout(() => saveButton.click());
 
-    const { detail } = await oneEvent(el, 'new-team-created');
+    const { detail } = (await oneEvent(el, NewTeamCreatedEvent.eventName)) as NewTeamCreatedEvent;
 
     expect(detail.team).to.deep.equal({
       id: '',
@@ -46,7 +46,7 @@ describe('lineup-team-create tests', () => {
     const cancelButton = el.shadowRoot!.querySelector('mwc-button.cancel') as HTMLElement;
     setTimeout(() => cancelButton.click());
 
-    await oneEvent(el, 'new-team-created');
+    await oneEvent(el, NewTeamCreatedEvent.eventName);
   });
 
   it('a11y', async () => {

@@ -39,6 +39,7 @@ import './lineup-on-player-list.js';
 import './lineup-player-list.js';
 import { PageRouter, pageRouterContext } from './page-router.js';
 import { SharedStyles } from './shared-styles.js';
+import { PlayerSelectedEvent, PositionSelectedEvent } from './lineup-player-card.js';
 
 function getStepName(step: SetupSteps): string {
   switch (step) {
@@ -169,7 +170,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
                   .formation="${formation}"
                   .players="${players}"
                   .selectedPosition="${this.selectedStarterPosition}"
-                  @positionselected="${this.positionSelected}"
+                  @position-selected="${this.positionSelected}"
                 >
                 </lineup-on-player-list>
               </div>
@@ -179,7 +180,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
                 <lineup-player-list
                   mode="off"
                   .players="${players}"
-                  @playerselected="${this.playerSelected}"
+                  @player-selected="${this.playerSelected}"
                 >
                 </lineup-player-list>
               </div>
@@ -424,11 +425,11 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     this.showFormation = false;
   }
 
-  private playerSelected(e: CustomEvent) {
-    this.dispatch(selectStarter(this.game!.id, e.detail.player.id, e.detail.selected));
+  private playerSelected(e: PlayerSelectedEvent) {
+    this.dispatch(selectStarter(this.game!.id, e.detail.player!.id, e.detail.selected));
   }
 
-  private positionSelected(e: CustomEvent) {
+  private positionSelected(e: PositionSelectedEvent) {
     this.dispatch(selectStarterPosition(this.game!.id, e.detail.position));
   }
 
