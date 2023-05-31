@@ -396,8 +396,6 @@ export class LineupApp extends connect(store)(LitElement) {
     },
     {
       name: 'viewHome',
-      // TODO: Figure out typing for URLPattern
-      // @ts-expect-error
       pattern: new URLPattern({ pathname: '/{viewHome}?' }),
       render: () => html`<lineup-view-home class="page" active></lineup-view-home>`,
       enter: async () => {
