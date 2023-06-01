@@ -1,3 +1,5 @@
+/** @format */
+
 // import debug_package from 'debug';
 
 const isNode = !!(typeof process !== 'undefined' && process.version);

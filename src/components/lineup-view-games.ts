@@ -1,3 +1,5 @@
+/** @format */
+
 import '@material/mwc-fab';
 import { html } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
@@ -33,8 +35,7 @@ export class LineupViewGames extends ConnectStoreMixin(AuthorizedViewElement) {
       <section>
         <lineup-game-list .games="${this._games}"></lineup-game-list>
         <mwc-fab id="add-button" icon="add" label="Add Game" @click="${this.addNewGame}"></mwc-fab>
-        <lineup-game-create
-            @game-created="${this.newGameCreated}"></lineup-game-create>
+        <lineup-game-create @game-created="${this.newGameCreated}"></lineup-game-create>
       </section>
     `;
   }
@@ -82,7 +83,7 @@ export class LineupViewGames extends ConnectStoreMixin(AuthorizedViewElement) {
       return;
     }
     this._games = state.game.games;
-    this.gamesLoaded = (Object.keys(this._games).length > 0);
+    this.gamesLoaded = Object.keys(this._games).length > 0;
   }
 
   // AuthorizedView overrides

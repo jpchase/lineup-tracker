@@ -1,3 +1,5 @@
+/** @format */
+
 import { WebStorage } from 'redux-persist';
 import { debug } from '../common/debug.js';
 import { idb } from '../storage/idb-wrapper.js';
@@ -17,6 +19,6 @@ export class IdbPersistStorage implements WebStorage {
 
   removeItem(key: string) {
     debugPersist(`removeItem: ${key}`);
-    return idb.del(key)
+    return idb.del(key);
   }
 }

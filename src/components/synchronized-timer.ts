@@ -1,3 +1,5 @@
+/** @format */
+
 import { createContext } from '@lit-labs/context';
 
 export interface SynchronizedTimer {
@@ -15,10 +17,11 @@ export class SynchronizedTimerNotifier {
   }
   // TODO: Do we need unregisterTimer/deleteTimer
   notifyTimers() {
-    this.timers.forEach(timer => {
+    this.timers.forEach((timer) => {
       timer.timerUpdateRequested();
-    })
+    });
   }
 }
 
-export const synchronizedTimerContext = createContext<SynchronizedTimerNotifier>('synchronized-timer');
+export const synchronizedTimerContext =
+  createContext<SynchronizedTimerNotifier>('synchronized-timer');

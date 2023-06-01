@@ -1,5 +1,7 @@
+/** @format */
+
 import { FirebaseOptions } from 'firebase/app';
-import envConfig from '../env-config.json' assert { type: "json" };
+import envConfig from '../env-config.json' assert { type: 'json' };
 
 export interface Host {
   protocol?: string;
@@ -17,7 +19,7 @@ export interface FirebaseConfig {
   // Should be set to true, except in environments for automated tests.
   enablePersistence: boolean;
   useEmulators?: boolean;
-  emulators?: FirebaseEmulators
+  emulators?: FirebaseEmulators;
 }
 
 export interface EnvironmentConfig {

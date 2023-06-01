@@ -1,3 +1,5 @@
+/** @format */
+
 import { Game, GameDetail, Games, GameStatus } from '@app/models/game.js';
 import { LivePlayer } from '@app/models/live.js';
 import { Player, PlayerStatus, Roster } from '@app/models/player.js';
@@ -17,7 +19,7 @@ export function getMockAuthState(options?: MockAuthStateOptions) {
   if (options && options.signedIn) {
     mockAuth.user = {
       id: options.userId,
-      name: 'Some user'
+      name: 'Some user',
     };
   }
   return mockAuth;
@@ -31,51 +33,56 @@ export function getMockTeamState(teams: Team[], currentTeam?: Team, players?: Pl
     teamId: currentTeam ? currentTeam.id : '',
     teamName: currentTeam ? currentTeam.name : '',
     teams: teamData,
-    roster: rosterData
+    roster: rosterData,
   };
 }
 
 export const TEST_USER_ID = 'U1234';
 
 export function getPublicTeamData() {
-  return { name: 'Public team 1' }
-};
+  return { name: 'Public team 1' };
+}
 
 export function getPublicTeam(): Team {
-  return { id: 'pt1', ...getPublicTeamData() }
-};
+  return { id: 'pt1', ...getPublicTeamData() };
+}
 
 export function getStoredTeamData() {
-  return { name: 'Stored team 1' }
-};
+  return { name: 'Stored team 1' };
+}
 
 export function getStoredTeam(): Team {
-  return { id: 'st1', ...getStoredTeamData() }
-};
+  return { id: 'st1', ...getStoredTeamData() };
+}
 
 export function getNewPlayerData() {
-  return { name: 'New player 1', uniformNumber: 1, positions: ['FB'], status: PlayerStatus.Off }
-};
+  return { name: 'New player 1', uniformNumber: 1, positions: ['FB'], status: PlayerStatus.Off };
+}
 
 export function getNewPlayer(): Player {
-  return { id: 'np1', ...getNewPlayerData() }
-};
+  return { id: 'np1', ...getNewPlayerData() };
+}
 
 export function getStoredPlayerData() {
-  return { name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: PlayerStatus.Off }
-};
+  return { name: 'Stored player 1', uniformNumber: 5, positions: ['CB'], status: PlayerStatus.Off };
+}
 
 export function getStoredPlayer(): Player {
-  return { id: 'sp1', ...getStoredPlayerData() }
-};
+  return { id: 'sp1', ...getStoredPlayerData() };
+}
 
 export function getOtherStoredPlayerData() {
-  return { name: '2nd Stored player', uniformNumber: 5, positions: ['CB'], status: PlayerStatus.Off }
-};
+  return {
+    name: '2nd Stored player',
+    uniformNumber: 5,
+    positions: ['CB'],
+    status: PlayerStatus.Off,
+  };
+}
 
 export function getOtherStoredPlayer(): Player {
-  return { id: 'sp2', ...getOtherStoredPlayerData() }
-};
+  return { id: 'sp2', ...getOtherStoredPlayerData() };
+}
 
 export function getNewGame(): Game {
   return {
@@ -84,7 +91,7 @@ export function getNewGame(): Game {
     name: 'New Game',
     teamId: 'T1',
     date: new Date(2016, 1, 10),
-    opponent: 'Opponent for new'
+    opponent: 'Opponent for new',
   };
 }
 
@@ -92,7 +99,7 @@ export function getNewGameDetail(roster?: Roster): GameDetail {
   return {
     ...getNewGame(),
     hasDetail: true,
-    roster: roster || {}
+    roster: roster || {},
   };
 }
 
@@ -106,14 +113,14 @@ export function getStoredGameData(status?: GameStatus): any {
     status: status ? status : GameStatus.New,
     name: 'Stored G',
     date: new Date(2016, 1, 10),
-    opponent: 'Stored Game Opponent'
+    opponent: 'Stored Game Opponent',
   };
-};
+}
 
 export function getStoredGame(status?: GameStatus): Game {
   return {
     id: STORED_GAME_ID,
-    ...getStoredGameData(status)
+    ...getStoredGameData(status),
   };
 }
 
@@ -123,13 +130,13 @@ export function getPublicGameData(): any {
     status: GameStatus.Done,
     name: 'Public G',
     date: new Date(2016, 1, 10),
-    opponent: 'Public Opponent'
+    opponent: 'Public Opponent',
   };
-};
+}
 
 export function getPublicGame(): Game {
   return { id: PUBLIC_GAME_ID, ...getPublicGameData() };
-};
+}
 
 export function buildGames(games: Game[]): Games {
   return games.reduce((obj, game) => {

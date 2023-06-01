@@ -1,3 +1,5 @@
+/** @format */
+
 import { GameDetail, Games } from '@app/models/game.js';
 import { GameState, GAME_INITIAL_STATE } from '@app/slices/game/game-slice.js';
 
@@ -6,11 +8,14 @@ export function buildInitialGameState(): GameState {
     ...GAME_INITIAL_STATE,
     // Set to a new object, otherwise multiple tests will share the instance
     // on the constant.
-    games: {}
+    games: {},
   };
 }
 
-export function buildGameStateWithCurrentGame(game: GameDetail, rest?: Partial<GameState>): GameState {
+export function buildGameStateWithCurrentGame(
+  game: GameDetail,
+  rest?: Partial<GameState>
+): GameState {
   const state: GameState = {
     ...buildInitialGameState(),
     ...rest,

@@ -1,3 +1,5 @@
+/** @format */
+
 import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { PageViewElement } from './page-view-element.js';

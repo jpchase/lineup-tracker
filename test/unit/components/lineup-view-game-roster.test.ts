@@ -1,3 +1,5 @@
+/** @format */
+
 import { LineupRoster } from '@app/components/lineup-roster.js';
 import '@app/components/lineup-view-game-roster.js';
 import { LineupViewGameRoster } from '@app/components/lineup-view-game-roster.js';
@@ -6,9 +8,18 @@ import { getGameStoreConfigurator } from '@app/slices/game-store.js';
 import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { buildGameStateWithCurrentGame, buildInitialGameState } from '../helpers/game-state-setup.js';
+import {
+  buildGameStateWithCurrentGame,
+  buildInitialGameState,
+} from '../helpers/game-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRoster, getMockAuthState, getNewGameDetail, getStoredPlayer, TEST_USER_ID } from '../helpers/test_data.js';
+import {
+  buildRoster,
+  getMockAuthState,
+  getNewGameDetail,
+  getStoredPlayer,
+  TEST_USER_ID,
+} from '../helpers/test_data.js';
 
 function getGameWithRosterPlayers(): GameDetail {
   return getNewGameDetail(buildRoster([getStoredPlayer()]));
@@ -29,9 +40,15 @@ describe('lineup-view-game-roster tests', () => {
   let el: LineupViewGameRoster;
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
-    const store = setupStore(preloadedState, /*hydrate=*/false);
+    const store = setupStore(preloadedState, /*hydrate=*/ false);
 
-    const template = html`<lineup-view-game-roster gameId="${ifDefined(gameId)}" active .store=${store} .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/false)}></lineup-view-game-roster>`;
+    const template = html`<lineup-view-game-roster
+      gameId="${ifDefined(gameId)}"
+      active
+      .store=${store}
+      .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/ false)}
+    >
+    </lineup-view-game-roster>`;
     el = await fixture(template);
   }
 

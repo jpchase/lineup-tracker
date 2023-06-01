@@ -1,3 +1,5 @@
+/** @format */
+
 import '@material/mwc-button';
 import '@material/mwc-dialog';
 import { Dialog } from '@material/mwc-dialog';
@@ -21,22 +23,22 @@ export class LineupGameCreate extends LitElement {
         <ul class="fields">
           <li>
             <mwc-formfield id="nameField" alignend label="Name" dialogInitialFocus>
-                <input type="text" required minlength="2">
+              <input type="text" required minlength="2" />
             </mwc-formfield>
           </li>
           <li>
             <mwc-formfield id="dateField" alignend label="Date">
-                <input type="date" required>
+              <input type="date" required />
             </mwc-formfield>
           </li>
           <li>
             <mwc-formfield id="timeField" alignend label="Time">
-                <input type="time" required>
+              <input type="time" required />
             </mwc-formfield>
           </li>
           <li>
             <mwc-formfield id="opponentField" alignend label="Opponent">
-                <input type="text" required minlength="2">
+              <input type="text" required minlength="2" />
             </mwc-formfield>
           </li>
         </ul>
@@ -60,7 +62,7 @@ export class LineupGameCreate extends LitElement {
     return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
   }
 
-  private buildDate(dateString: string, timeString: string): { valid: boolean, date: Date } {
+  private buildDate(dateString: string, timeString: string): { valid: boolean; date: Date } {
     // Parse the date and time values, to get date parts separately
     let dateParts = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
     if (!dateParts) {
@@ -108,10 +110,11 @@ export class LineupGameCreate extends LitElement {
     };
 
     // This event will be handled by lineup-view-games.
-    this.dispatchEvent(new GameCreatedEvent({
-      game: newGame
-    }));
-
+    this.dispatchEvent(
+      new GameCreatedEvent({
+        game: newGame,
+      })
+    );
   }
 
   private resetFields() {
@@ -134,7 +137,7 @@ export class GameCreatedEvent extends CustomEvent<GameCreatedDetail> {
     super(GameCreatedEvent.eventName, {
       detail,
       bubbles: true,
-      composed: true
+      composed: true,
     });
   }
 }

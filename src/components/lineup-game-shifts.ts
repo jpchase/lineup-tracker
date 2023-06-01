@@ -1,6 +1,7 @@
 /**
-@license
-*/
+ * @format
+ * @license
+ */
 
 import { ContextConsumer } from '@lit-labs/context';
 import '@material/mwc-button';
@@ -11,14 +12,18 @@ import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { Duration } from '../models/clock.js';
 import { LivePlayer } from '../models/live.js';
-import { PlayerTimeTracker, PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../models/shift.js';
+import {
+  PlayerTimeTracker,
+  PlayerTimeTrackerMap,
+  PlayerTimeTrackerMapData,
+} from '../models/shift.js';
 import { SharedStyles } from './shared-styles.js';
 import { synchronizedTimerContext } from './synchronized-timer.js';
 
 interface ShiftRow {
   id: string;
   name: string;
-  tracker: PlayerTimeTracker
+  tracker: PlayerTimeTracker;
 }
 
 // This element is *not* connected to the Redux store.
@@ -27,10 +32,11 @@ export class LineupGameShifts extends LitElement {
   override render() {
     const rows = this.getShiftRows();
 
-    return html`
-      ${SharedStyles}
+    return html` ${SharedStyles}
       <style>
-        :host { display: inline-block; }
+        :host {
+          display: inline-block;
+        }
       </style>
       <table class="mdl-data-table mdl-js-data-table is-upgraded">
         <thead>
@@ -41,15 +47,21 @@ export class LineupGameShifts extends LitElement {
           </tr>
         </thead>
         <tbody id="live-playing-time">
-        ${repeat(rows, (row: ShiftRow) => row.id, (row: ShiftRow /*, index: number*/) => html`
-          <tr data-row-id="${row.id}">
-            <td class="playerName mdl-data-table__cell--non-numeric">${row.name}</td>
-            <td class="shiftCount">${row.tracker.shiftCount}</td>
-            <td class="totalTime mdl-data-table__cell--non-numeric">${Duration.format(row.tracker.totalOnTime)}</td>
-          </tr>
-        `)}
+          ${repeat(
+            rows,
+            (row: ShiftRow) => row.id,
+            (row: ShiftRow /*, index: number*/) => html`
+              <tr data-row-id="${row.id}">
+                <td class="playerName mdl-data-table__cell--non-numeric">${row.name}</td>
+                <td class="shiftCount">${row.tracker.shiftCount}</td>
+                <td class="totalTime mdl-data-table__cell--non-numeric">
+                  ${Duration.format(row.tracker.totalOnTime)}
+                </td>
+              </tr>
+            `
+          )}
         </tbody>
-      </table>`
+      </table>`;
   }
 
   private trackerMap?: PlayerTimeTrackerMap;
@@ -57,7 +69,8 @@ export class LineupGameShifts extends LitElement {
   protected timerNotifier = new ContextConsumer(
     this,
     synchronizedTimerContext,
-    (notifier/*, dispose*/) => { // TODO: implement dispose to unregister from notifications
+    (notifier /*, dispose*/) => {
+      // TODO: implement dispose to unregister from notifications
       notifier.registerTimer(this);
     },
     true // we want updates when the notifier changes
@@ -85,8 +98,7 @@ export class LineupGameShifts extends LitElement {
       return;
     }
 
-    this.trackerMap = this.trackerData ?
-      PlayerTimeTrackerMap.create(this.trackerData) : undefined;
+    this.trackerMap = this.trackerData ? PlayerTimeTrackerMap.create(this.trackerData) : undefined;
   }
 
   private getShiftRows(): ShiftRow[] {
@@ -96,13 +108,15 @@ export class LineupGameShifts extends LitElement {
 
     const trackerMap = this.trackerMap!;
 
-    return trackerMap.trackers?.map(tracker => {
-      return {
-        id: tracker.id,
-        name: this.getPlayer(this.players, tracker.id)?.name!,
-        tracker: tracker
-      };
-    }).sort((a, b) => a.name.localeCompare(b.name));
+    return trackerMap.trackers
+      ?.map((tracker) => {
+        return {
+          id: tracker.id,
+          name: this.getPlayer(this.players, tracker.id)?.name!,
+          tracker: tracker,
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   public timerUpdateRequested() {
@@ -110,7 +124,7 @@ export class LineupGameShifts extends LitElement {
   }
 
   private getPlayer(players: LivePlayer[], playerId: string) {
-    return players.find(p => (p.id === playerId))
+    return players.find((p) => p.id === playerId);
   }
 }
 

@@ -1,8 +1,21 @@
+/** @format */
+
 import {
-  collection, doc, DocumentData, Firestore, FirestoreDataConverter, getDoc, getDocs,
+  collection,
+  doc,
+  DocumentData,
+  Firestore,
+  FirestoreDataConverter,
+  getDoc,
+  getDocs,
   Query,
-  query, QueryDocumentSnapshot, QuerySnapshot, SnapshotOptions,
-  where, WhereFilterOp, WithFieldValue
+  query,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  SnapshotOptions,
+  where,
+  WhereFilterOp,
+  WithFieldValue,
 } from 'firebase/firestore';
 import { debug } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
@@ -16,11 +29,15 @@ export interface CollectionFilter {
   value: unknown;
 }
 
-export function whereFilter(field: string, operator: WhereFilterOp, value: unknown): CollectionFilter {
+export function whereFilter(
+  field: string,
+  operator: WhereFilterOp,
+  value: unknown
+): CollectionFilter {
   return { field, operator, value };
 }
 
-class ReaderConverter<T extends Model> implements FirestoreDataConverter<T>  {
+class ReaderConverter<T extends Model> implements FirestoreDataConverter<T> {
   private readonly converter: ModelReader<T>;
 
   constructor(converter: ModelReader<T>) {
@@ -39,11 +56,15 @@ class ReaderConverter<T extends Model> implements FirestoreDataConverter<T>  {
 }
 
 function loadCollection<T extends Model, C extends ModelCollection<T>>(
-  collectionPath: string, converter: ModelReader<T>, ...filters: CollectionFilter[]): Promise<C> {
+  collectionPath: string,
+  converter: ModelReader<T>,
+  ...filters: CollectionFilter[]
+): Promise<C> {
   // TODO: Add try/catch for firestore/collection/get calls?
   const firestore: Firestore = firebaseRefs.firestore;
   const collectionRef = collection(firestore, collectionPath).withConverter(
-    new ReaderConverter(converter));
+    new ReaderConverter(converter)
+  );
 
   let queryRef: Query<T> = collectionRef;
   if (filters) {
@@ -70,7 +91,9 @@ function loadCollection<T extends Model, C extends ModelCollection<T>>(
 }
 
 async function loadDocument<T extends Model>(
-  documentPath: string, converter: ModelReader<T>): Promise<T> {
+  documentPath: string,
+  converter: ModelReader<T>
+): Promise<T> {
   const firestore: Firestore = firebaseRefs.firestore;
   const documentRef = doc(firestore, documentPath);
 
@@ -88,5 +111,5 @@ async function loadDocument<T extends Model>(
 // Trivial wrapper, mainly to allow for mocking in tests.
 export const reader = {
   loadCollection,
-  loadDocument
+  loadDocument,
 };

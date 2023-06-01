@@ -1,3 +1,5 @@
+/** @format */
+
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
@@ -11,7 +13,7 @@ import { SharedStyles } from './shared-styles.js';
 
 // We are lazy loading its reducer.
 store.addReducers({
-  team
+  team,
 });
 
 @customElement('lineup-view-roster')
@@ -58,5 +60,4 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
   private newPlayerCreated(e: CustomEvent) {
     store.dispatch(addNewPlayer(e.detail.player));
   }
-
 }

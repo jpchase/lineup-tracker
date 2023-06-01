@@ -1,3 +1,5 @@
+/** @format */
+
 import { setupAuthListeners, startAppListening } from './app/action-listeners.js';
 import { debug } from './common/debug.js';
 import { getUser } from './slices/auth/auth-slice.js';

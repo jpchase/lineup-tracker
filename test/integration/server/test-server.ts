@@ -1,3 +1,5 @@
+/** @format */
+
 import * as os from 'os';
 import * as path from 'path';
 import { Viewport } from 'puppeteer';
@@ -32,5 +34,5 @@ export const config: IntegrationConfig = {
   breakpoints: [
     { name: 'wide', viewPort: { width: 800, height: 600 } },
     { name: 'narrow', viewPort: { width: 375, height: 667 } },
-  ]
-}
+  ],
+};

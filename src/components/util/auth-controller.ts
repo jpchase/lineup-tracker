@@ -1,3 +1,5 @@
+/** @format */
+
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { StateSubscribedController } from '../../middleware/connect-mixin.js';
 import { selectCurrentUserId } from '../../slices/auth/auth-slice.js';
@@ -13,11 +15,9 @@ export class AuthController implements ReactiveController, StateSubscribedContro
     (this.host = host).addController(this);
   }
 
-  hostConnected() {
-  }
+  hostConnected() {}
 
-  hostDisconnected() {
-  }
+  hostDisconnected() {}
 
   stateChanged(state: RootState) {
     this.host.authorized = this.checkAuthorized(state);
@@ -26,11 +26,9 @@ export class AuthController implements ReactiveController, StateSubscribedContro
   protected checkAuthorized(_state: RootState): boolean {
     return true;
   }
-
 }
 
 export class SignedInAuthController extends AuthController {
-
   constructor(host: AuthorizedViewHost) {
     super(host);
   }

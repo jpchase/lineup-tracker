@@ -1,7 +1,13 @@
+/** @format */
+
 import { LitElement, PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { LivePlayer } from '../models/live.js';
-import { PlayerTimeTracker, PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../models/shift.js';
+import {
+  PlayerTimeTracker,
+  PlayerTimeTrackerMap,
+  PlayerTimeTrackerMapData,
+} from '../models/shift.js';
 import { Constructor } from '../util/shared-types.js';
 
 // The type and interface is required to get the typing to work.
@@ -15,7 +21,6 @@ export declare class PlayerListInterface {
 
 export const PlayerListMixin = <T extends Constructor<LitElement>>(superClass: T) => {
   class PlayerListClass extends superClass {
-
     protected trackerMap?: PlayerTimeTrackerMap;
 
     // @property({ type: Array })
@@ -35,21 +40,22 @@ export const PlayerListMixin = <T extends Constructor<LitElement>>(superClass: T
         return;
       }
 
-      this.trackerMap = this.trackerData ?
-        PlayerTimeTrackerMap.create(this.trackerData) : undefined;
+      this.trackerMap = this.trackerData
+        ? PlayerTimeTrackerMap.create(this.trackerData)
+        : undefined;
       this.trackerMapReset();
     }
 
     // Notify that the trackerMap was created, so subclasses can
     // reset any timers, etc.
-    protected trackerMapReset() { }
+    protected trackerMapReset() {}
 
     protected getTracker(player: LivePlayer): PlayerTimeTracker | undefined {
       return this.trackerMap?.get(player?.id);
     }
-  };
+  }
 
   return PlayerListClass as unknown as Constructor<PlayerListInterface> & T;
-}
+};
 
 export const PlayerListElement = PlayerListMixin(LitElement);

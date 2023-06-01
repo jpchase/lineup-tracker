@@ -1,6 +1,17 @@
+/** @format */
+
 import {
-  collection, doc, DocumentData, DocumentReference, Firestore, FirestoreDataConverter,
-  QueryDocumentSnapshot, setDoc, SnapshotOptions, updateDoc, WithFieldValue
+  collection,
+  doc,
+  DocumentData,
+  DocumentReference,
+  Firestore,
+  FirestoreDataConverter,
+  QueryDocumentSnapshot,
+  setDoc,
+  SnapshotOptions,
+  updateDoc,
+  WithFieldValue,
 } from 'firebase/firestore';
 import { debug, debugError } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
@@ -18,10 +29,16 @@ export interface NewDocOptions {
   keepExistingId?: boolean;
 }
 
-function buildNewDocumentData(model: Model, modelWriter?: ModelWriter<any>, options?: NewDocOptions): DocumentData {
-  const data: DocumentData = modelWriter ? modelWriter.toDocument(model) : {
-    ...model,
-  };
+function buildNewDocumentData(
+  model: Model,
+  modelWriter?: ModelWriter<any>,
+  options?: NewDocOptions
+): DocumentData {
+  const data: DocumentData = modelWriter
+    ? modelWriter.toDocument(model)
+    : {
+        ...model,
+      };
   // Ensure there is no 'id' property, as that will prevent a unique id from being generated.
   if (!options?.keepExistingId) {
     delete data.id;
@@ -36,7 +53,7 @@ function buildNewDocumentData(model: Model, modelWriter?: ModelWriter<any>, opti
   return data;
 }
 
-class WriterConverter<T extends Model> implements FirestoreDataConverter<T>  {
+class WriterConverter<T extends Model> implements FirestoreDataConverter<T> {
   private readonly options: NewDocOptions | undefined;
   private readonly modelWriter: ModelWriter<T> | undefined;
 
@@ -59,7 +76,9 @@ async function saveNewDocument<T extends Model>(
   model: T,
   collectionPathOrReference: string,
   modelWriter?: ModelWriter<T>,
-  state?: RootState, options?: NewDocOptions) {
+  state?: RootState,
+  options?: NewDocOptions
+) {
   // Set parent ids, if necessary.
   if (options && state) {
     if (options.addTeamId) {
@@ -80,30 +99,28 @@ async function saveNewDocument<T extends Model>(
 
   const firestore: Firestore = firebaseRefs.firestore;
   const collectionRef = collection(firestore, collectionPathOrReference).withConverter(
-    new WriterConverter(modelWriter, options));
+    new WriterConverter(modelWriter, options)
+  );
 
   // Unless requested to use model id, omit the doc path, which will cause a new unique id to be
   // generated.
   // NOTE: Firestore requires the parameter to be omitted entirely, it will throw for any value
   // that is not a non-empty string.
-  const document: DocumentReference = (options?.keepExistingId && model.id) ?
-    doc(collectionRef, model.id) : doc(collectionRef);
+  const document: DocumentReference =
+    options?.keepExistingId && model.id ? doc(collectionRef, model.id) : doc(collectionRef);
 
   debugFirestore(`saveNewDocument: data = ${JSON.stringify(model)}`);
   try {
     await setDoc(document, model);
   } catch (reason: any) {
     debugError(`saveNewDocument: failed - ${reason}`);
-  };
+  }
 
   debugFirestore(`saveNewDocument: after, document[${document.id}] = ${JSON.stringify(document)}`);
   model.id = document.id;
 }
 
-function updateDocument<T extends Model>(
-  modelUpdate: Partial<T>,
-  documentPath: string) {
-
+function updateDocument<T extends Model>(modelUpdate: Partial<T>, documentPath: string) {
   const firestore: Firestore = firebaseRefs.firestore;
   const documentRef: DocumentReference = doc(firestore, documentPath);
 
@@ -114,5 +131,5 @@ function updateDocument<T extends Model>(
 // Trivial wrapper, mainly to allow for mocking in tests.
 export const writer = {
   saveNewDocument,
-  updateDocument
+  updateDocument,
 };

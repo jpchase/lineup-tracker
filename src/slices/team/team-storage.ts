@@ -1,3 +1,5 @@
+/** @format */
+
 import { DocumentData } from 'firebase/firestore';
 import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
@@ -10,11 +12,10 @@ import { playerConverter } from '../player/player-storage.js';
 const KEY_ROSTER = 'roster';
 const KEY_TEAMS = 'teams';
 
-const teamConverter: ModelReader<Team> =
-{
+const teamConverter: ModelReader<Team> = {
   fromDocument: (id: string, data: DocumentData) => {
     return { id, name: data.name };
-  }
+  },
 };
 
 function buildTeamRosterPath(teamId: string) {

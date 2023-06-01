@@ -1,10 +1,17 @@
+/** @format */
+
 import { PayloadAction } from '@reduxjs/toolkit';
 import { FormationType, Position } from '../../models/formation.js';
 import { GameStatus } from '../../models/game.js';
 import {
   AllSetupSteps,
-  getPlayer, LiveGame, LiveGameBuilder, LivePlayer,
-  SetupStatus, SetupSteps, SetupTask
+  getPlayer,
+  LiveGame,
+  LiveGameBuilder,
+  LivePlayer,
+  SetupStatus,
+  SetupSteps,
+  SetupTask,
 } from '../../models/live.js';
 import { PlayerStatus, Roster } from '../../models/player.js';
 import {
@@ -12,11 +19,17 @@ import {
   GameSetupCompletedPayload,
   LiveGamePayload,
   RosterCompletedPayload,
-  SelectStarterPayload, SelectStarterPositionPayload, StartersInvalidPayload
+  SelectStarterPayload,
+  SelectStarterPositionPayload,
+  StartersInvalidPayload,
 } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
 
-export const rosterCompletedHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<RosterCompletedPayload>) => {
+export const rosterCompletedHandler = (
+  _state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<RosterCompletedPayload>
+) => {
   // Setup live players from roster
   const roster = action.payload.roster;
   const players: LivePlayer[] = Object.keys(roster).map((playerId) => {
@@ -27,36 +40,44 @@ export const rosterCompletedHandler = (_state: LiveState, game: LiveGame, action
   game.players = players;
 
   completeSetupStepForAction(game, SetupSteps.Roster);
-}
+};
 
 export const rosterCompletedPrepare = (gameId: string, roster: Roster) => {
   return {
     payload: {
       gameId,
       roster,
-    }
+    },
   };
-}
+};
 
-export const formationSelectedHandler = (_state: LiveState, game: LiveGame, action: PayloadAction<FormationSelectedPayload>) => {
+export const formationSelectedHandler = (
+  _state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<FormationSelectedPayload>
+) => {
   if (!action.payload.formationType) {
     return;
   }
   game.formation = { type: action.payload.formationType };
 
   completeSetupStepForAction(game, SetupSteps.Formation);
-}
+};
 
 export const formationSelectedPrepare = (gameId: string, formationType: FormationType) => {
   return {
     payload: {
       gameId,
-      formationType
-    }
+      formationType,
+    },
   };
-}
+};
 
-export const selectStarterHandler = (state: LiveState, game: LiveGame, action: PayloadAction<SelectStarterPayload>) => {
+export const selectStarterHandler = (
+  state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<SelectStarterPayload>
+) => {
   const playerId = action.payload.playerId;
   const selectedPlayer = getPlayer(game, playerId);
   if (selectedPlayer) {
@@ -73,41 +94,49 @@ export const selectStarterHandler = (state: LiveState, game: LiveGame, action: P
   state.selectedStarterPlayer = playerId;
 
   prepareStarterIfPossible(state, game);
-}
+};
 
 export const selectStarterPrepare = (gameId: string, playerId: string, selected: boolean) => {
   return {
     payload: {
       gameId,
       playerId,
-      selected: !!selected
-    }
+      selected: !!selected,
+    },
   };
-}
+};
 
-export const selectStarterPositionHandler = (state: LiveState, game: LiveGame, action: PayloadAction<SelectStarterPositionPayload>) => {
+export const selectStarterPositionHandler = (
+  state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<SelectStarterPositionPayload>
+) => {
   state.selectedStarterPosition = action.payload.position;
 
   prepareStarterIfPossible(state, game);
-}
+};
 
 export const selectStarterPositionPrepare = (gameId: string, position: Position) => {
   return {
     payload: {
       gameId,
-      position
-    }
+      position,
+    },
   };
-}
+};
 
-export const applyStarterHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const applyStarterHandler = (
+  state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<LiveGamePayload>
+) => {
   if (!state.proposedStarter) {
     return;
   }
   const starter = state.proposedStarter;
   const positionId = starter.currentPosition!.id;
 
-  game.players!.forEach(player => {
+  game.players!.forEach((player) => {
     if (player.id === starter.id) {
       player.selected = false;
       player.status = PlayerStatus.On;
@@ -124,9 +153,13 @@ export const applyStarterHandler = (state: LiveState, game: LiveGame, _action: P
   });
 
   clearProposedStarter(state);
-}
+};
 
-export const cancelStarterHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const cancelStarterHandler = (
+  state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<LiveGamePayload>
+) => {
   if (!state.proposedStarter) {
     return;
   }
@@ -135,14 +168,22 @@ export const cancelStarterHandler = (state: LiveState, game: LiveGame, _action: 
     selectedPlayer.selected = false;
   }
   clearProposedStarter(state);
-}
+};
 
-export const startersCompletedHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const startersCompletedHandler = (
+  state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<LiveGamePayload>
+) => {
   completeSetupStepForAction(game, SetupSteps.Starters);
   state.invalidStarters = undefined;
-}
+};
 
-export const invalidStartersHandler = (state: LiveState, _game: LiveGame, action: PayloadAction<StartersInvalidPayload>) => {
+export const invalidStartersHandler = (
+  state: LiveState,
+  _game: LiveGame,
+  action: PayloadAction<StartersInvalidPayload>
+) => {
   if (!action.payload.invalidStarters?.length) {
     state.invalidStarters = undefined;
     return;
@@ -155,15 +196,23 @@ export const invalidStartersPrepare = (gameId: string, invalidStarters: string[]
     payload: {
       gameId,
       invalidStarters,
-    }
+    },
   };
-}
+};
 
-export const captainsCompletedHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const captainsCompletedHandler = (
+  _state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<LiveGamePayload>
+) => {
   completeSetupStepForAction(game, SetupSteps.Captains);
-}
+};
 
-export const setupCompletedHandler = (_state: LiveState, game: LiveGame, _action: PayloadAction<GameSetupCompletedPayload>) => {
+export const setupCompletedHandler = (
+  _state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<GameSetupCompletedPayload>
+) => {
   if (game.status !== GameStatus.New) {
     return;
   }
@@ -172,7 +221,7 @@ export const setupCompletedHandler = (_state: LiveState, game: LiveGame, _action
     game.clock = LiveGameBuilder.createClock();
   }
   delete game.setupTasks;
-}
+};
 
 export function completeSetupStepForAction(game: LiveGame, setupStepToComplete: SetupSteps) {
   updateTasks(game, game.setupTasks, setupStepToComplete);
@@ -197,14 +246,16 @@ export function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedSte
     } else if (stepValue === completedStep) {
       stepComplete = true;
     } else if (oldTasks) {
-      stepComplete = (oldTasks[stepValue].status === SetupStatus.Complete);
+      stepComplete = oldTasks[stepValue].status === SetupStatus.Complete;
     }
 
     tasks.push({
       step: stepValue,
-      status: stepComplete ? SetupStatus.Complete :
-        (previousStepComplete ?
-          SetupStatus.Active : SetupStatus.Pending)
+      status: stepComplete
+        ? SetupStatus.Complete
+        : previousStepComplete
+        ? SetupStatus.Active
+        : SetupStatus.Pending,
     });
 
     // Finally, save the complete status for the next step.
@@ -227,9 +278,9 @@ function prepareStarterIfPossible(state: LiveState, game: LiveGame) {
   state.proposedStarter = {
     ...player,
     currentPosition: {
-      ...state.selectedStarterPosition
-    }
-  }
+      ...state.selectedStarterPosition,
+    },
+  };
 }
 
 function clearProposedStarter(state: LiveState) {

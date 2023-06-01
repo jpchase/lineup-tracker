@@ -1,3 +1,5 @@
+/** @format */
+
 import { DocumentData } from 'firebase/firestore';
 import { debug } from '../../common/debug.js';
 import { Game, Games } from '../../models/game.js';
@@ -16,8 +18,7 @@ const KEY_ROSTER = 'roster';
 
 const debugStorage = debug('game-storage');
 
-const gameConverter: ModelReader<Game> =
-{
+const gameConverter: ModelReader<Game> = {
   fromDocument: (id: string, data: DocumentData): Game => {
     return {
       id: id,
@@ -25,9 +26,9 @@ const gameConverter: ModelReader<Game> =
       status: data.status,
       name: data.name,
       date: data.date.toDate(),
-      opponent: data.opponent
+      opponent: data.opponent,
     };
-  }
+  },
 };
 
 function buildGamePath(gameId: string) {
@@ -47,12 +48,19 @@ export function loadGames(teamId: string, currentUserId?: string): Promise<Games
     debugStorage(`Get public games`);
     gameFilter = whereFilter(FIELD_PUBLIC, '==', true);
   }
-  return reader.loadCollection<Game, Games>(KEY_GAMES, gameConverter, gameFilter,
-    whereFilter(FIELD_TEAMID, '==', teamId));
+  return reader.loadCollection<Game, Games>(
+    KEY_GAMES,
+    gameConverter,
+    gameFilter,
+    whereFilter(FIELD_TEAMID, '==', teamId)
+  );
 }
 
 export async function persistNewGame(newGame: Game, state: RootState) {
-  return writer.saveNewDocument(newGame, KEY_GAMES, undefined, state, { addTeamId: true, addUserId: true });
+  return writer.saveNewDocument(newGame, KEY_GAMES, undefined, state, {
+    addTeamId: true,
+    addUserId: true,
+  });
 }
 
 export function updateExistingGame(gameId: string, game: Partial<Game>) {
@@ -69,6 +77,11 @@ export function loadGameRoster(gameId: string): Promise<Roster> {
 
 export async function persistGamePlayer(newPlayer: Player, gameId: string, isNew: boolean) {
   const options: NewDocOptions = isNew ? {} : { keepExistingId: true };
-  return writer.saveNewDocument(newPlayer, buildGameRosterPath(gameId), playerConverter,
-    undefined, options);
+  return writer.saveNewDocument(
+    newPlayer,
+    buildGameRosterPath(gameId),
+    playerConverter,
+    undefined,
+    options
+  );
 }
