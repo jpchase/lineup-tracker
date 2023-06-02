@@ -50,7 +50,6 @@
     "lit-a11y/no-autofocus": "off",
     "no-console": "off",
     "no-param-reassign": "off",
-    "no-restricted-globals": "off",
     "no-shadow": "off",
     "no-undef": "off",
     "no-undef-init": "off",

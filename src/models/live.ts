@@ -28,7 +28,7 @@ export enum SetupSteps {
 }
 
 export const AllSetupSteps: SetupSteps[] = Object.values(SetupSteps).filter(
-  (v) => !isNaN(Number(v))
+  (v) => !Number.isNaN(Number(v))
 ) as SetupSteps[];
 
 export interface SetupTask {

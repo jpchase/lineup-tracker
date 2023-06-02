@@ -425,10 +425,11 @@ export class LineupApp extends connect(store)(LitElement) {
 
   private navigateToPage(page: string) {
     // eslint-disable-next-line no-restricted-globals
+    const currentLocation = location.href;
     console.log(
-      `navigateToPage: page = ${page}, location  = ${
-        location.href
-      }, router params = ${JSON.stringify(this.router.params)}`
+      `navigateToPage: page = ${page}, location = ${currentLocation}, router params = ${JSON.stringify(
+        this.router.params
+      )}`
     );
 
     store.dispatch(updatePage(page));
