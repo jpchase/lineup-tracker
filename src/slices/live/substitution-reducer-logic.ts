@@ -56,11 +56,9 @@ export const selectPlayerHandler = (
     if (!madeSub) {
       prepareSwapIfPossible(state, game);
     }
-  } else {
+  } else if (getCurrentSelected(state, status) === playerId) {
     // De-selection.
-    if (getCurrentSelected(state, status) === playerId) {
-      setCurrentSelected(state, status, undefined);
-    }
+    setCurrentSelected(state, status, undefined);
   }
 };
 

@@ -249,13 +249,15 @@ export function updateTasks(game: LiveGame, oldTasks?: SetupTask[], completedSte
       stepComplete = oldTasks[stepValue].status === SetupStatus.Complete;
     }
 
+    let newStatus = SetupStatus.Pending;
+    if (stepComplete) {
+      newStatus = SetupStatus.Complete;
+    } else if (previousStepComplete) {
+      newStatus = SetupStatus.Active;
+    }
     tasks.push({
       step: stepValue,
-      status: stepComplete
-        ? SetupStatus.Complete
-        : previousStepComplete
-        ? SetupStatus.Active
-        : SetupStatus.Pending,
+      status: newStatus,
     });
 
     // Finally, save the complete status for the next step.

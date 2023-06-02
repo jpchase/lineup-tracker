@@ -38,8 +38,13 @@ export function buildPlayerTrackerMap(
     players.forEach((player, index) => {
       // Set the first 11 players to be On, the last player to be Out, and the
       // remaining players to be Off.
-      player.status =
-        index < 11 ? PlayerStatus.On : index === 17 ? PlayerStatus.Out : PlayerStatus.Off;
+      let status = PlayerStatus.Off;
+      if (index < 11) {
+        status = PlayerStatus.On;
+      } else if (index === 17) {
+        status = PlayerStatus.Out;
+      }
+      player.status = status;
     });
   }
   const game = { id: gameId || 'thegameid', players } as LiveGame;
