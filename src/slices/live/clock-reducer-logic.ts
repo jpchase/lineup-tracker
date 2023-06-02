@@ -186,7 +186,7 @@ export const isPeriodOverdue = (game?: LiveGame, ignoreTimeForTesting?: boolean)
   }
 
   // TODO: Only respect this flag in debug/dev builds
-  if (!!ignoreTimeForTesting) {
+  if (ignoreTimeForTesting) {
     return true;
   }
   // Compute the max time for the period, and compare to elapsed.

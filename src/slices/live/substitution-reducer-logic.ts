@@ -138,7 +138,7 @@ export const confirmSwapHandler = (
   const swapIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
   for (const playerId of swapIds) {
     const selectedPlayer = getPlayer(game, playerId);
-    if (!!selectedPlayer?.selected) {
+    if (selectedPlayer?.selected) {
       selectedPlayer.selected = false;
     }
   }
@@ -165,7 +165,7 @@ export const cancelSwapHandler = (
   const cancelIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
   for (const playerId of cancelIds) {
     const selectedPlayer = getPlayer(game, playerId);
-    if (!!selectedPlayer?.selected) {
+    if (selectedPlayer?.selected) {
       selectedPlayer.selected = false;
     }
   }
