@@ -16,7 +16,7 @@ export function buildLiveGames(games: LiveGame[]): LiveGames {
 export function getLiveGame(players?: Player[], status?: GameStatus): LiveGame {
   return {
     id: STORED_GAME_ID,
-    status: status ? status : GameStatus.New,
+    status: status ?? GameStatus.New,
     players: buildLivePlayers(players),
   };
 }

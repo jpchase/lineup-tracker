@@ -135,7 +135,6 @@ export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructo
       if (changedProperties.has('authorized')) {
         this.resetData();
         this.maybeLoadData();
-        return;
       }
     }
 

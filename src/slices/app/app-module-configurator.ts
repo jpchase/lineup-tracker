@@ -11,7 +11,7 @@ const debugStore = debug('app-module');
 let initialized = false;
 
 export function configureAppStore(storeInstance: RootStore, hydrate: boolean): RootStore {
-  debugStore(`configureAppStore called: storeInstance is set ${storeInstance ? true : false}`);
+  debugStore(`configureAppStore called: storeInstance is set ${!!storeInstance}`);
   if (!storeInstance) {
     throw new Error(`configureAppStore: storeInstance must be provided`);
   }

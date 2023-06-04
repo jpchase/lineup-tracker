@@ -50,7 +50,6 @@ export const copyRoster = createAsyncThunk<
         // from team roster across games.
         return persistGamePlayer(gamePlayer, gameId, false).then(() => {
           roster[gamePlayer.id] = gamePlayer;
-          return;
         });
       })
     );

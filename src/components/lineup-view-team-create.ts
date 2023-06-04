@@ -5,7 +5,7 @@ import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { addNewTeam, team } from '../slices/team/team-slice.js';
-import { RootState, store } from '../store.js';
+import { store } from '../store.js';
 import './lineup-team-create.js';
 import { NewTeamCreatedEvent } from './lineup-team-create.js';
 import { PageRouter, pageRouterContext } from './page-router.js';
@@ -32,12 +32,6 @@ export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
   @contextProvided({ context: pageRouterContext, subscribe: true })
   @property({ attribute: false })
   pageRouter!: PageRouter;
-
-  override stateChanged(state: RootState) {
-    if (!state.team) {
-      return;
-    }
-  }
 
   private newTeamCreated(e: NewTeamCreatedEvent) {
     store.dispatch(addNewTeam(e.detail.team));

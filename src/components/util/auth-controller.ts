@@ -29,10 +29,6 @@ export class AuthController implements ReactiveController, StateSubscribedContro
 }
 
 export class SignedInAuthController extends AuthController {
-  constructor(host: AuthorizedViewHost) {
-    super(host);
-  }
-
   protected override checkAuthorized(state: RootState): boolean {
     return !!selectCurrentUserId(state);
   }

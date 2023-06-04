@@ -234,7 +234,7 @@ describe('PlayerTimeTrackerMap', () => {
     });
 
     it('should not get trackers for non-existent ids', () => {
-      let tracker = map.get(playerOnId + 'X');
+      let tracker = map.get(`${playerOnId}X`);
 
       expect(tracker, 'tracker should be undefined').to.not.be.ok;
     });
@@ -288,7 +288,7 @@ describe('PlayerTimeTrackerMap', () => {
     describe('substitutions', () => {
       it('should throw if players are invalid', () => {
         expect(() => {
-          map.substitutePlayer(playerOffId + 'X', playerOnId + 'X');
+          map.substitutePlayer(`${playerOffId}X`, `${playerOnId}X`);
         }).to.throw('Invalid status to substitute, playerIn = undefined, playerOut = undefined');
         expect(() => {
           map.substitutePlayer(playerOnId, playerOnId);

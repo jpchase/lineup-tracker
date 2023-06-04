@@ -12,7 +12,7 @@ const REDUCER_KEY = 'live';
 let initialized = false;
 
 export function getLiveStore(storeInstance?: RootStore, hydrate: boolean = true): RootStore {
-  debugStore(`getLiveStore called: storeInstance is set ${storeInstance ? true : false}`);
+  debugStore(`getLiveStore called: storeInstance is set ${!!storeInstance}`);
   const store = storeInstance || globalStore;
   if (!initialized || !store.hasReducer(REDUCER_KEY)) {
     debugStore(

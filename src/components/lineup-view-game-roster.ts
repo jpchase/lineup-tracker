@@ -178,6 +178,6 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
       'Dec',
     ];
     const game = this.game!;
-    return game.opponent + ' ' + monthNames[game.date.getMonth()] + ' ' + game.date.getDate();
+    return `${game.opponent} ${monthNames[game.date.getMonth()]} ${game.date.getDate()}`;
   }
 }

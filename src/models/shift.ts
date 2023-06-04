@@ -314,10 +314,7 @@ export class PlayerTimeTrackerMap {
 
       if (!playerInTracker || !playerOutTracker || playerInTracker.isOn || !playerOutTracker.isOn) {
         throw new Error(
-          'Invalid status to substitute, playerIn = ' +
-            playerInTracker?.toDebugString() +
-            ', playerOut = ' +
-            playerOutTracker?.toDebugString()
+          `Invalid status to substitute, playerIn = ${playerInTracker?.toDebugString()}, playerOut = ${playerOutTracker?.toDebugString()}`
         );
       }
 

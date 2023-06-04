@@ -110,7 +110,7 @@ export const PUBLIC_GAME_ID = 'pg1';
 export function getStoredGameData(status?: GameStatus): any {
   return {
     teamId: getStoredTeam().id,
-    status: status ? status : GameStatus.New,
+    status: status ?? GameStatus.New,
     name: 'Stored G',
     date: new Date(2016, 1, 10),
     opponent: 'Stored Game Opponent',

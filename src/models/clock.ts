@@ -1,11 +1,7 @@
 /** @format */
 
 function pad0(value: number, count: number): string {
-  let result = value.toString();
-  for (; result.length < count; --count) {
-    result = '0' + result;
-  }
-  return result;
+  return value.toString().padStart(count, '0');
 }
 
 export class CurrentTimeProvider {
@@ -91,7 +87,7 @@ export class Duration {
   }
 
   static format(duration: Duration): string {
-    return pad0(duration.getMinutes(), 2) + ':' + pad0(duration.getSeconds(), 2);
+    return `${pad0(duration.getMinutes(), 2)}:${pad0(duration.getSeconds(), 2)}`;
   }
 
   static add(duration1: Duration, duration2: Duration): Duration {

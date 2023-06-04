@@ -192,7 +192,6 @@ export async function copyGame(
       // Saves player to game roster storage, but keep the same id.
       return writeDocument(firestore, gamePlayer, rosterPath, playerConverter, options).then(() => {
         roster[gamePlayer.id] = gamePlayer;
-        return;
       });
     })
   );

@@ -162,7 +162,7 @@ describe('Duration', () => {
     ];
 
     function formatDuration(duration: Duration) {
-      return '[' + duration.getMinutes() + ',' + duration.getSeconds() + ']';
+      return `[${duration.getMinutes()},${duration.getSeconds()}]`;
     }
 
     it('should return zero for both inputs zero', () => {
@@ -174,23 +174,20 @@ describe('Duration', () => {
     });
 
     function addTest(left: Duration, right: Duration, expectedSum: Duration) {
-      it('should return correct sum for zero + ' + formatDuration(left), () => {
+      it(`should return correct sum for zero + ${formatDuration(left)}`, () => {
         const actualSum = Duration.add(Duration.zero(), left);
         expect(actualSum).to.deep.equal(left);
       });
 
-      it('should return correct sum for ' + formatDuration(left) + ' + zero', () => {
+      it(`should return correct sum for ${formatDuration(left)} + zero`, () => {
         const actualSum = Duration.add(left, Duration.zero());
         expect(actualSum).to.deep.equal(left);
       });
 
-      it(
-        'should return correct sum for ' + formatDuration(left) + ' + ' + formatDuration(right),
-        () => {
-          const actualSum = Duration.add(left, right);
-          expect(actualSum).to.deep.equal(expectedSum);
-        }
-      );
+      it(`should return correct sum for ${formatDuration(left)} + ${formatDuration(right)}`, () => {
+        const actualSum = Duration.add(left, right);
+        expect(actualSum).to.deep.equal(expectedSum);
+      });
     }
 
     testValues.forEach((test) => {

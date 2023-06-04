@@ -48,10 +48,6 @@ export class TimerController implements ReactiveController {
 }
 
 export class SynchronizedTimerController extends TimerController {
-  constructor(host: ReactiveControllerHost) {
-    super(host);
-  }
-
   override refresh() {
     if (!this.timer || !this.timer.isRunning) {
       return;

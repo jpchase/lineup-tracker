@@ -148,10 +148,5 @@ export class GameCreatePage extends PageObject {
 }
 
 function pad0(value: number, count?: number): string {
-  count = count ?? 2;
-  let result = value.toString();
-  for (; result.length < count; --count) {
-    result = '0' + result;
-  }
-  return result;
+  return value.toString().padStart(count ?? 2, '0');
 }
