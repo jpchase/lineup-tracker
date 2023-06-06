@@ -25,7 +25,7 @@ export class PlayerTimeTracker {
   private _offTimer?: Timer;
 
   constructor(passedData: PlayerTimeTrackerData, timeProvider?: CurrentTimeProvider) {
-    let data = passedData ?? {};
+    const data = passedData ?? {};
     this.id = data.id;
     this._isOn = data.isOn ?? false;
     this._alreadyOn = data.alreadyOn ?? false;
@@ -246,8 +246,7 @@ export class PlayerTimeTrackerMap {
       } else {
         data = player;
       }
-      let tracker = new PlayerTimeTracker(data, this.timeProvider);
-      this.trackers.push(tracker);
+      this.trackers.push(new PlayerTimeTracker(data, this.timeProvider));
     });
     return this;
   }
@@ -306,11 +305,11 @@ export class PlayerTimeTrackerMap {
       throw new Error('Map is empty');
     }
 
-    let subTrackers: [PlayerTimeTracker, PlayerTimeTracker][] = [];
+    const subTrackers: [PlayerTimeTracker, PlayerTimeTracker][] = [];
 
     subs.forEach((pair) => {
-      let playerInTracker = this.get(pair.in);
-      let playerOutTracker = this.get(pair.out);
+      const playerInTracker = this.get(pair.in);
+      const playerOutTracker = this.get(pair.out);
 
       if (!playerInTracker || !playerOutTracker || playerInTracker.isOn || !playerOutTracker.isOn) {
         throw new Error(

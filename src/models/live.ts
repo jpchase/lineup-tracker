@@ -110,7 +110,7 @@ export function findPlayersByStatus(
   selectedOnly?: boolean,
   includeSwaps?: boolean
 ) {
-  let matches: LivePlayer[] = [];
+  const matches: LivePlayer[] = [];
   game.players!.forEach((player) => {
     if (player.status !== status) {
       return;

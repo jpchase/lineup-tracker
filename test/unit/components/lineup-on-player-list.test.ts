@@ -147,7 +147,7 @@ describe('lineup-on-player-list tests', () => {
 
     players.forEach((player) => {
       let found = false;
-      for (let element of Array.from(items)) {
+      for (const element of Array.from(items)) {
         const playerCard = element as LineupPlayerCard;
         if (playerCard.data!.position.id !== player.currentPosition!.id) {
           continue;
@@ -218,7 +218,7 @@ describe('lineup-on-player-list tests', () => {
     const items = el.shadowRoot!.querySelectorAll('div div.list div lineup-player-card');
     assert.equal(items.length, 11, 'Rendered position count');
 
-    let selectedCards: LineupPlayerCard[] = [];
+    const selectedCards: LineupPlayerCard[] = [];
     items.forEach((element) => {
       const playerCard = element as LineupPlayerCard;
       if (playerCard.selected) {

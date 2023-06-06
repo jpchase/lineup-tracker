@@ -237,7 +237,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
       return nothing;
     }
     const starter = this.proposedStarter;
-    let positionText = formatPosition(starter.currentPosition!);
+    const positionText = formatPosition(starter.currentPosition!);
 
     return html`
       <div>
@@ -254,7 +254,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     if (!this.invalidStarters?.length) {
       return nothing;
     }
-    let errorText = this.invalidStarters.join(', ');
+    const errorText = this.invalidStarters.join(', ');
     return html`
       <span id="starter-errors">
         <mwc-icon>report</mwc-icon>

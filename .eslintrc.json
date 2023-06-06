@@ -53,8 +53,7 @@
     "no-shadow": "off",
     "no-undef": "off",
     "no-use-before-define": ["off", { "functions": false, "allowNamedExports": true }],
-    "object-shorthand": "off",
-    "prefer-const": "off"
+    "object-shorthand": "off"
   },
   "overrides": [
     {

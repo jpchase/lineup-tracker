@@ -72,7 +72,7 @@ export class LineupPlayerList extends PlayerListElement {
   }
 
   _getPlayerFilter(mode: string): PlayerFilterFunc {
-    let status = mode.toUpperCase();
+    const status = mode.toUpperCase();
     switch (status) {
       case PlayerStatus.Next:
       case PlayerStatus.Out:

@@ -157,7 +157,7 @@ describe('lineup-game-setup tests', () => {
     const items = list.shadowRoot!.querySelectorAll('lineup-player-card');
 
     let playerElement: LineupPlayerCard | undefined;
-    for (let element of Array.from(items)) {
+    for (const element of Array.from(items)) {
       const playerCard = element as LineupPlayerCard;
 
       if (playerCard.player && playerCard.player.id === player.id) {
@@ -174,7 +174,7 @@ describe('lineup-game-setup tests', () => {
     const items = list.shadowRoot!.querySelectorAll('lineup-player-card');
 
     let playerElement: LineupPlayerCard | undefined;
-    for (let element of Array.from(items)) {
+    for (const element of Array.from(items)) {
       const playerCard = element as LineupPlayerCard;
 
       if (playerCard.data && playerCard.data.position && playerCard.data.position.id === position) {

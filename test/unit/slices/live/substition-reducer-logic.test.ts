@@ -131,9 +131,9 @@ describe('Live slice: Substitution actions', () => {
     }
 
     function getIdsByStatus(game: LiveGame) {
-      let nextIds = [];
-      let offIds = [];
-      let onIds = [];
+      const nextIds = [];
+      const offIds = [];
+      const onIds = [];
       for (const newPlayer of game.players!) {
         switch (newPlayer.status) {
           case PlayerStatus.Next:

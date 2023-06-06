@@ -52,8 +52,8 @@ export class Duration {
   _elapsed: number;
 
   constructor(passedData?: DurationData) {
-    let data: DurationData = passedData || {};
-    this._elapsed = data.value || 0;
+    const data: DurationData = passedData ?? {};
+    this._elapsed = data.value ?? 0;
   }
 
   toJSON() {
@@ -95,14 +95,14 @@ export class Duration {
   }
 
   static addToDate(date: number, duration: Duration): number {
-    let result = new Date(date);
+    const result = new Date(date);
     result.setMinutes(result.getMinutes(), result.getSeconds() + duration._elapsed);
     return result.getTime();
   }
 
   static calculateElapsed(startTime: number, endTime: number): Duration {
     // Compute diff in seconds (convert from ms)
-    let timeDiff = (endTime - startTime) / 1000;
+    const timeDiff = (endTime - startTime) / 1000;
     return Duration.create(timeDiff);
   }
 }
@@ -136,9 +136,9 @@ export class Timer {
   duration: Duration;
 
   constructor(passedData?: TimerData, timeProvider?: CurrentTimeProvider) {
-    let data: TimerData = passedData || {};
-    this.provider = timeProvider || new CurrentTimeProvider();
-    this.isRunning = data.isRunning || false;
+    const data: TimerData = passedData ?? {};
+    this.provider = timeProvider ?? new CurrentTimeProvider();
+    this.isRunning = data.isRunning ?? false;
     this.startTime = data.startTime;
     this.duration = new Duration(data.duration);
   }
@@ -190,8 +190,8 @@ export class Timer {
   }
 
   private addElapsed(retroactiveStopTime?: number): Duration {
-    let stopTime = retroactiveStopTime ?? this.getCurrentTime();
-    let elapsed = Duration.calculateElapsed(this.startTime!, stopTime);
+    const stopTime = retroactiveStopTime ?? this.getCurrentTime();
+    const elapsed = Duration.calculateElapsed(this.startTime!, stopTime);
 
     // Added elapsed to accumulated duration
     return Duration.add(this.duration, elapsed);

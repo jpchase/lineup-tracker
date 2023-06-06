@@ -106,7 +106,7 @@ function buildResponse(
   bodyFileName: string,
   contentType: string
 ): ResponseForRequest {
-  let bodyData = fs.readFileSync(path.join(dataDir, bodyFileName));
+  const bodyData = fs.readFileSync(path.join(dataDir, bodyFileName));
   if (!bodyData) {
     throw new Error(`Problem reading file: ${bodyFileName}`);
   }

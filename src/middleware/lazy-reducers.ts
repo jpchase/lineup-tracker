@@ -22,7 +22,7 @@ export const lazyReducerEnhancer = (combineReducers: CombineReducers) => {
       const combinePreservingInitialState = (reducers: ReducersMap) => {
         if (preloadedState) {
           const reducerNames = Object.keys(reducers);
-          let placeholders: ReducersMap = {};
+          const placeholders: ReducersMap = {};
           Object.keys(preloadedState).forEach((item) => {
             if (reducerNames.includes(item)) {
               return;

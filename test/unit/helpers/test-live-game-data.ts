@@ -66,7 +66,7 @@ export function setupSub(
 ) {
   nextPlayer.status = PlayerStatus.Next;
   nextPlayer.replaces = onPlayer.id;
-  let position = positionOverride ?? onPlayer.currentPosition!;
+  const position = positionOverride ?? onPlayer.currentPosition!;
   nextPlayer.currentPosition = { ...position };
 }
 

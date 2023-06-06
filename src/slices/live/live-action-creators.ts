@@ -227,6 +227,7 @@ export class FilledPositionMap {
 
   addPlayer(positionId: string, playerId: string) {
     playerId = extractIdFromSwapPlayerId(playerId);
+    // eslint-disable-next-line prefer-const
     let { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, playerId);
 
     if (playerIdIndex < 0) {
@@ -241,7 +242,7 @@ export class FilledPositionMap {
   }
 
   private getIdsInPosition(positionId: string, playerId: string) {
-    let idsInPosition = this.filled.get(positionId);
+    const idsInPosition = this.filled.get(positionId);
     const playerIdIndex = idsInPosition ? idsInPosition.indexOf(playerId) : -1;
     return { idsInPosition, playerIdIndex };
   }
