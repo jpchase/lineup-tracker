@@ -35,7 +35,8 @@ export function buildPlayerTrackerMap(
     players = testlive.getLivePlayers(18);
   }
   if (!keepExistingStatus) {
-    players.forEach((player, index) => {
+    for (let index = 0; index < players.length; index++) {
+      const player = players[index];
       // Set the first 11 players to be On, the last player to be Out, and the
       // remaining players to be Off.
       let status = PlayerStatus.Off;
@@ -45,7 +46,7 @@ export function buildPlayerTrackerMap(
         status = PlayerStatus.Out;
       }
       player.status = status;
-    });
+    }
   }
   const game = { id: gameId || 'thegameid', players } as LiveGame;
   return PlayerTimeTrackerMap.createFromGame(game);

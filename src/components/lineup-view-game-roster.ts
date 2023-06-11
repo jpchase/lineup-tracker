@@ -150,7 +150,8 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
   // Event handlers
   private _copyTeamRoster(e: Event) {
     if (e.target) {
-      (e.target as HTMLInputElement).disabled = true;
+      const button = e.target as HTMLInputElement;
+      button.disabled = true;
     }
     this.ready = false;
     this.dispatch(copyRoster(this.gameId!));

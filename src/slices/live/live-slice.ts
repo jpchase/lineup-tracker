@@ -165,6 +165,7 @@ export const live: Reducer<LiveState> = function reduce(state, action) {
   //   the inner reducers.
   return createNextState(state || (INITIAL_STATE as LiveState), (draft) => {
     Object.assign(draft, liveSlice.reducer(draft, action));
+    // eslint-disable-next-line no-param-reassign
     draft!.shift = shift(draft?.shift, action);
   }) as LiveState;
 };

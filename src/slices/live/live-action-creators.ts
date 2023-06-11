@@ -216,8 +216,8 @@ export class FilledPositionMap {
   }
 
   removePlayer(positionId: string, playerId: string) {
-    playerId = extractIdFromSwapPlayerId(playerId);
-    const { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, playerId);
+    const lookupPlayerId = extractIdFromSwapPlayerId(playerId);
+    const { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, lookupPlayerId);
 
     if (playerIdIndex >= 0) {
       idsInPosition!.splice(playerIdIndex, 1);
@@ -226,9 +226,9 @@ export class FilledPositionMap {
   }
 
   addPlayer(positionId: string, playerId: string) {
-    playerId = extractIdFromSwapPlayerId(playerId);
+    const lookupPlayerId = extractIdFromSwapPlayerId(playerId);
     // eslint-disable-next-line prefer-const
-    let { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, playerId);
+    let { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, lookupPlayerId);
 
     if (playerIdIndex < 0) {
       idsInPosition = idsInPosition || [];

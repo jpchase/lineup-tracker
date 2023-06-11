@@ -64,10 +64,13 @@ export function setupSub(
   onPlayer: LivePlayer,
   positionOverride?: Position
 ) {
-  nextPlayer.status = PlayerStatus.Next;
-  nextPlayer.replaces = onPlayer.id;
+  // Using `modifiedPlayer` is a no-op here. It's a less verbose way to disable the lint
+  // rule "no-param-reassign" for the following lines.
+  const modifiedPlayer = nextPlayer;
+  modifiedPlayer.status = PlayerStatus.Next;
+  modifiedPlayer.replaces = onPlayer.id;
   const position = positionOverride ?? onPlayer.currentPosition!;
-  nextPlayer.currentPosition = { ...position };
+  modifiedPlayer.currentPosition = { ...position };
 }
 
 export function setupSwap(onPlayer: LivePlayer, positionPlayer: LivePlayer, nextId: string) {
@@ -145,6 +148,9 @@ function setPositions(player: LivePlayer, playerIndex: number) {
       break;
   }
 
-  player.currentPosition = currentPosition;
-  player.positions = pos;
+  // Using `modifiedPlayer` is a no-op here. It's a less verbose way to disable the lint
+  // rule "no-param-reassign" for the following lines.
+  const modifiedPlayer = player;
+  modifiedPlayer.currentPosition = currentPosition;
+  modifiedPlayer.positions = pos;
 }

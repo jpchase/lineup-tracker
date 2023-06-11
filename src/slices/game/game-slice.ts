@@ -118,8 +118,9 @@ export const addNewGame =
 
 // Saves the new game in local storage, before adding to the store
 export const saveGame =
-  (newGame: Game): ThunkPromise<void> =>
+  (game: Game): ThunkPromise<void> =>
   async (dispatch, getState) => {
+    const newGame = game;
     if (!newGame.status) {
       newGame.status = GameStatus.New;
     }

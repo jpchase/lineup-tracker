@@ -221,10 +221,10 @@ describe('Live slice: Substitution actions', () => {
         setupSubState(subs);
 
         const currentGame = getGame(currentState, gameId)!;
-        subs.forEach((swap) => {
+        for (const swap of subs) {
           const positionPlayer = getPlayer(currentGame, swap.replacedId!)!;
           swap.expectedFinalPosition = { ...positionPlayer.currentPosition! };
-        });
+        }
 
         const newState: LiveState = live(
           currentState,
@@ -408,10 +408,10 @@ describe('Live slice: Substitution actions', () => {
         const currentGame = getGame(currentState, gameId)!;
         selectPlayers(currentGame, swappedNextIds, true);
 
-        selectedSwaps.forEach((swap) => {
+        for (const swap of selectedSwaps) {
           const positionPlayer = getPlayer(currentGame, swap.replacedId!)!;
           swap.expectedFinalPosition = { ...positionPlayer.currentPosition! };
-        });
+        }
 
         const newState = live(
           currentState,

@@ -129,11 +129,14 @@ export class LineupTeamSelectorDialog extends LitElement {
   }
 
   private clearSelection() {
-    this.teamList?.items.forEach((item) => {
+    if (!this.teamList) {
+      return;
+    }
+    for (const item of this.teamList.items) {
       if (item.selected) {
         item.selected = false;
       }
-    });
+    }
   }
 }
 

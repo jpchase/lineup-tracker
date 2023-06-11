@@ -69,14 +69,16 @@ export function buildLiveStateWithCurrentGame(
 }
 
 export function buildLiveGameWithSetupTasksAndPlayers(
-  lastCompletedStep: SetupSteps = -1
+  lastCompletedStep: SetupSteps = -1 as SetupSteps
 ): LiveGame {
   const game = testlive.getLiveGameWithPlayers();
   buildSetupTasks(game, lastCompletedStep);
   return game;
 }
 
-export function buildLiveGameWithSetupTasks(lastCompletedStep: SetupSteps = -1): LiveGame {
+export function buildLiveGameWithSetupTasks(
+  lastCompletedStep: SetupSteps = -1 as SetupSteps
+): LiveGame {
   const game = buildLiveGameWithSetupTasksAndPlayers(lastCompletedStep);
   game.players = [];
   return game;
@@ -130,10 +132,11 @@ export function buildShiftWithTrackers(
   existingPlayers?: LivePlayer[],
   keepExistingStatus?: boolean
 ): ShiftState {
+  let players;
   if (existingPlayers) {
-    existingPlayers = existingPlayers.filter((player) => !player.isSwap);
+    players = existingPlayers.filter((player) => !player.isSwap);
   }
-  const trackerMap = buildPlayerTrackerMap(gameId, existingPlayers, keepExistingStatus);
+  const trackerMap = buildPlayerTrackerMap(gameId, players, keepExistingStatus);
   return {
     ...SHIFT_INITIAL_STATE,
     trackerMaps: { [trackerMap.id]: trackerMap.toJSON() },

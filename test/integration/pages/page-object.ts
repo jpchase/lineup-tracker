@@ -458,8 +458,8 @@ function processAxeResults(results: AxeResults) {
 }
 
 export function logWithTime(message: string, prefix?: string) {
-  prefix = prefix || 'TEST LOG';
-  console.log(`${prefix} [${currentTimeForLog()}]:`, message);
+  const actualPrefix = prefix ?? 'TEST LOG';
+  console.log(`${actualPrefix} [${currentTimeForLog()}]:`, message);
 }
 
 export function currentTimeForLog(): string {

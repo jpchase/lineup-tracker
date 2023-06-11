@@ -136,12 +136,12 @@ export const applyStarterHandler = (
   const starter = state.proposedStarter;
   const positionId = starter.currentPosition!.id;
 
-  game.players!.forEach((player) => {
+  for (const player of game.players!) {
     if (player.id === starter.id) {
       player.selected = false;
       player.status = PlayerStatus.On;
       player.currentPosition = starter.currentPosition;
-      return;
+      continue;
     }
 
     // Checks for an existing starter in the position.
@@ -150,7 +150,7 @@ export const applyStarterHandler = (
       player.status = PlayerStatus.Off;
       player.currentPosition = undefined;
     }
-  });
+  }
 
   clearProposedStarter(state);
 };

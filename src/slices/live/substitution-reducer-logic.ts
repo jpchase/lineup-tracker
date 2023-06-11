@@ -82,18 +82,18 @@ export const confirmSubHandler = (
     return;
   }
 
-  game.players!.forEach((player) => {
+  for (const player of game.players!) {
     if (player.id === sub.id) {
       player.selected = false;
       player.status = PlayerStatus.Next;
       player.currentPosition = action.payload.newPosition || sub.currentPosition;
       player.replaces = sub.replaces;
-      return;
+      continue;
     }
     if (player.id === sub.replaces) {
       player.selected = false;
     }
-  });
+  }
 
   clearProposedSub(state);
 };
@@ -267,17 +267,17 @@ export const discardPendingSubsHandler = (
     action.payload.selectedOnly,
     /* includeSwaps */ true
   );
-  nextPlayers.forEach((player) => {
+  for (const player of nextPlayers) {
     if (player.isSwap) {
       removePlayer(game, player.id);
-      return;
+      continue;
     }
 
     player.status = PlayerStatus.Off;
     player.replaces = undefined;
     player.currentPosition = undefined;
     player.selected = false;
-  });
+  }
   state.invalidSubs = undefined;
 };
 

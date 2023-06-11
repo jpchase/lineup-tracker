@@ -32,6 +32,10 @@
     "max-classes-per-file": "off",
     "no-continue": "off",
     "no-multi-assign": ["error", { "ignoreNonDeclaration": true }],
+    "no-param-reassign": [
+      "error",
+      { "props": true, "ignorePropertyModificationsFor": ["game", "model", "obj", "state"] }
+    ],
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "prefer-destructuring": "off",
     // Typescript overrides of built-in rules.
@@ -45,7 +49,6 @@
     // Temporarily disable rules, to allow lint to complete successfully.
     "lit-a11y/no-autofocus": "off",
     "no-console": "off",
-    "no-param-reassign": "off",
     "no-shadow": "off",
     "no-undef": "off",
     "no-use-before-define": ["off", { "functions": false, "allowNamedExports": true }],
