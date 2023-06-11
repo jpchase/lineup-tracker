@@ -84,6 +84,8 @@ function getTestTasks(tasks: SetupTask[]): TestSetupTask[] {
       case SetupSteps.Starters:
         expectedName = 'Starting lineup';
         break;
+      default:
+        throw new Error(`Unexpected setup step: ${task.step}`);
     }
     return {
       ...task,

@@ -24,6 +24,9 @@ function getRoster(numPlayers: number): Roster {
       case 2:
         pos = ['AM'];
         break;
+
+      default:
+      // Other cases cover all scenarios
     }
 
     roster[playerId] = {

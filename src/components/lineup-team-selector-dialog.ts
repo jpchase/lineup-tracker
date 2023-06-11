@@ -110,6 +110,8 @@ export class LineupTeamSelectorDialog extends LitElement {
         this.dispatchEvent(new AddNewTeamEvent());
         break;
       }
+      default:
+        break;
     }
   }
 

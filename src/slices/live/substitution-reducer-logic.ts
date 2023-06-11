@@ -394,8 +394,9 @@ function getCurrentSelected(state: LiveState, status: PlayerStatus) {
       return state.selectedOnPlayer;
     case PlayerStatus.Out:
       return state.selectedOutPlayer;
+    default:
+      throw new Error(`Unsupported status: ${status}`);
   }
-  throw new Error(`Unsupported status: ${status}`);
 }
 
 function setCurrentSelected(state: LiveState, status: PlayerStatus, value: string | undefined) {

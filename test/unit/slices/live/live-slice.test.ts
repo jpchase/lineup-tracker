@@ -153,6 +153,8 @@ describe('Live slice', () => {
         case PlayerStatus.On:
           state.selectedOnPlayer = selectedPlayerId;
           break;
+        default:
+        // Ignore other statuses.
       }
     }
 

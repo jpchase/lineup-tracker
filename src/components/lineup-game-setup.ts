@@ -443,11 +443,8 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
 
   private periodsDialogClosed(e: CustomEvent) {
     console.log(`periodsDialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
-    switch (e.detail.action) {
-      case 'save': {
-        this.savePeriods();
-        break;
-      }
+    if (e.detail.action === 'save') {
+      this.savePeriods();
     }
     this.showPeriods = false;
   }

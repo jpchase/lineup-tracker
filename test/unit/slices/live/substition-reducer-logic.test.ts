@@ -147,6 +147,9 @@ describe('Live slice: Substitution actions', () => {
           case PlayerStatus.On:
             onIds.push(newPlayer.id);
             break;
+
+          default:
+          // Ignore other statuses.
         }
       }
       return {

@@ -71,9 +71,8 @@ export class GameSetupPage extends GameDetailPage {
       return element.textContent;
     });
     console.log(`Task status is ${statusText}`);
-    switch (statusText?.trim()) {
-      case 'done':
-        return SetupStatus.Complete;
+    if (statusText?.trim() === 'done') {
+      return SetupStatus.Complete;
     }
     return SetupStatus.InProgress;
   }

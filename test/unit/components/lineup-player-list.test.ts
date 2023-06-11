@@ -29,6 +29,9 @@ function getPlayers(
       case 2:
         pos = ['AM'];
         break;
+
+      default:
+      // Other cases cover all scenarios
     }
 
     players.push({
