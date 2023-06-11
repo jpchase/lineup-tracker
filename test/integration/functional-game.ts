@@ -14,6 +14,7 @@ import {
   readGame,
   readGameRoster,
 } from './server/firestore-access.js';
+
 const { nanoid } = rtk;
 
 describe('Game functional tests', () => {

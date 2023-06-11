@@ -42,7 +42,6 @@
     ],
     // Temporarily disable rules, to allow lint to complete successfully.
     "class-methods-use-this": "off",
-    "import/newline-after-import": "off",
     "import/no-extraneous-dependencies": "off",
     "lit/no-value-attribute": "off",
     "lit-a11y/alt-text": "off",
