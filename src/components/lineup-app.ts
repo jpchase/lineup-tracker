@@ -273,7 +273,7 @@ export class LineupApp extends connect(store)(LitElement) {
                 @click="${this._signinButtonClicked}"
               >
                 ${this._user && this._user.imageUrl
-                  ? html`<img src="${this._user.imageUrl}" />`
+                  ? html`<img src="${this._user.imageUrl}" alt="Logged in as ${this._user.name}" />`
                   : accountIcon}
               </button>
             </div>
