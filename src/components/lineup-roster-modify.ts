@@ -56,7 +56,7 @@ export class LineupRosterModify extends LitElement {
         </mwc-formfield>
         <div class="buttons">
           <mwc-button raised class="cancel" @click="${this.cancelModify}">Cancel</mwc-button>
-          <mwc-button raised class="save" autofocus @click="${this.savePlayer}">Save</mwc-button>
+          <mwc-button raised class="save" @click="${this.savePlayer}">Save</mwc-button>
         </div>
       </div>`;
   }

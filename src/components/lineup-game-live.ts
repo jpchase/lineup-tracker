@@ -180,7 +180,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         </span>
 
         <mwc-button class="cancel" @click="${this.cancelSubClicked}">Cancel</mwc-button>
-        <mwc-button class="ok" autofocus @click="${this.confirmSubClicked}">Confirm</mwc-button>
+        <mwc-button class="ok" @click="${this.confirmSubClicked}">Confirm</mwc-button>
       </div>
     `;
   }
@@ -198,7 +198,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         <span class="proposed-player">${swap.name} #${swap.uniformNumber}</span>
         <span class="proposed-position">${positionText}</span>
         <mwc-button class="cancel" @click="${this.cancelSwapClicked}">Cancel</mwc-button>
-        <mwc-button class="ok" autofocus @click="${this.confirmSwapClicked}">Confirm</mwc-button>
+        <mwc-button class="ok" @click="${this.confirmSwapClicked}">Confirm</mwc-button>
       </div>
     `;
   }

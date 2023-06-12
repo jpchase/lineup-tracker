@@ -52,7 +52,6 @@
       }
     ],
     // Temporarily disable rules, to allow lint to complete successfully.
-    "lit-a11y/no-autofocus": "off",
     "no-console": "off",
     "no-use-before-define": ["off", { "functions": false, "allowNamedExports": true }]
   },

@@ -245,7 +245,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
         <span class="proposed-player">${starter.name} #${starter.uniformNumber}</span>
         <span class="proposed-position">${positionText}</span>
         <mwc-button class="cancel" @click="${this.cancelStarter}">Cancel</mwc-button>
-        <mwc-button class="ok" autofocus @click="${this.applyStarter}">Apply</mwc-button>
+        <mwc-button class="ok" @click="${this.applyStarter}">Apply</mwc-button>
       </div>
     `;
   }
