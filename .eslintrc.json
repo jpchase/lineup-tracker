@@ -33,6 +33,7 @@
     ],
     "lines-between-class-members": "off",
     "max-classes-per-file": "off",
+    "no-console": ["error", { "allow": ["error", "time", "timeEnd", "timeLog", "warn"] }],
     "no-continue": "off",
     "no-multi-assign": ["error", { "ignoreNonDeclaration": true }],
     "no-param-reassign": [
@@ -52,7 +53,6 @@
       }
     ],
     // Temporarily disable rules, to allow lint to complete successfully.
-    "no-console": "off",
     "no-use-before-define": ["off", { "functions": false, "allowNamedExports": true }]
   },
   "overrides": [

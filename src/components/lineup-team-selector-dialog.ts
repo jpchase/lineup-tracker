@@ -31,12 +31,7 @@ export class LineupTeamSelectorDialog extends LitElement {
           justify-content: space-between;
         }
       </style>
-      <mwc-dialog
-        @opening="${this.dialogEvent}"
-        @opened="${this.dialogEvent}"
-        @closing="${this.dialogEvent}"
-        @closed="${this.dialogClosed}"
-      >
+      <mwc-dialog @closed="${this.dialogClosed}">
         <div>
           <div class="dialog-header">
             <span>Select a team</span>
@@ -94,12 +89,7 @@ export class LineupTeamSelectorDialog extends LitElement {
     await this.requestUpdate();
   }
 
-  private dialogEvent(e: CustomEvent) {
-    console.log(`dialogEvent: [${e.type}] = ${JSON.stringify(e.detail)}`);
-  }
-
   private dialogClosed(e: CustomEvent) {
-    console.log(`dialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
     switch (e.detail.action) {
       case 'select': {
         const teamName = this.teams[this.changedTeamId].name;
@@ -117,12 +107,10 @@ export class LineupTeamSelectorDialog extends LitElement {
 
   private listSelected(e: CustomEvent) {
     if (isEventMulti(e)) {
-      console.log(`Unexpected multi-selected event: ${JSON.stringify(e.detail)}`);
       return;
     }
     const selectedEvent = e as SingleSelectedEvent;
     if (selectedEvent.detail.index < 0) {
-      console.log(`Unexpected selected event with negative index: ${JSON.stringify(e.detail)}`);
       return;
     }
     this.changedTeamId = this.teamList!.items[selectedEvent.detail.index].id;

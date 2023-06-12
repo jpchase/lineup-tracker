@@ -68,7 +68,6 @@ export class GameSetupPage extends GameDetailPage {
     const statusText = await taskHandle.$eval('div.status', (element) => {
       return element.textContent;
     });
-    console.log(`Task status is ${statusText}`);
     if (statusText?.trim() === 'done') {
       return SetupStatus.Complete;
     }

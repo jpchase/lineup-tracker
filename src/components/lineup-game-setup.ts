@@ -442,7 +442,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   }
 
   private periodsDialogClosed(e: CustomEvent) {
-    console.log(`periodsDialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
+    // console.log(`periodsDialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
     if (e.detail.action === 'save') {
       this.savePeriods();
     }
@@ -458,10 +458,8 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     const periodLengthField = this.getFormInput('period-length');
     const totalPeriods = numPeriodsField.valueAsNumber;
     const periodLength = periodLengthField.valueAsNumber;
-    console.log(`save: ${totalPeriods}, ${periodLength}`);
 
     this.dispatch(configurePeriods(this.gameId!, totalPeriods, periodLength));
-    console.log(`save: action now dispatched`);
 
     this.showPeriods = false;
   }

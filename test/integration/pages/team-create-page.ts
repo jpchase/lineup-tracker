@@ -85,13 +85,13 @@ export class TeamCreatePage extends PageObject {
 
   private async exposeGetTeamCreateFunc() {
     if (this._getTeamCreateFuncExposed) {
-      console.log('Already done expose');
+      this.log('Already done expose');
       return;
     }
-    console.log('Time to expose');
+    this.log('Time to expose');
     this._getTeamCreateFuncExposed = true;
     await this.page.exposeFunction('getTeamCreateComponent', () => {
-      console.log('in exposed func');
+      this.log('in exposed func');
       return document
         .querySelector('lineup-app')!
         .shadowRoot!.querySelector('lineup-view-team-create')

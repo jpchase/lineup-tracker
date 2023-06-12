@@ -225,7 +225,7 @@ export class PageObject {
       );
       if (mainElement) {
         const teamsLoaded = (mainElement as HTMLElement).dataset.teamsLoaded;
-        console.log(`main data attributes: ${teamsLoaded}`);
+        this.log(`main data attributes: ${teamsLoaded}`);
         return Object.fromEntries(Object.entries((mainElement as HTMLElement).dataset));
       }
       return undefined;
@@ -459,6 +459,7 @@ function processAxeResults(results: AxeResults) {
 
 export function logWithTime(message: string, prefix?: string) {
   const actualPrefix = prefix ?? 'TEST LOG';
+  // eslint-disable-next-line no-console
   console.log(`${actualPrefix} [${currentTimeForLog()}]:`, message);
 }
 

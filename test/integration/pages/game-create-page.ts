@@ -48,7 +48,7 @@ export class GameCreatePage extends PageObject {
     )}`;
     const timeString = localDate.toTimeString().substring(0, 5);
 
-    console.log(
+    this.log(
       `Game date: original = ${game.date}, emulated offset = ${emulatedOffset}, this offset = ${thisOffset}, local = ${localDate}, ${dateString}, ${timeString}`
     );
     const createHandle = existingCreateHandle ?? (await this.getCreateComponent());

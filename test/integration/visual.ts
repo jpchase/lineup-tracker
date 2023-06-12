@@ -101,6 +101,7 @@ function compareScreenshots(view: string) {
 
       const stats = fs.statSync(currentFile);
       const fileSizeInBytes = stats.size;
+      // eslint-disable-next-line no-console
       console.log(`📸 ${view}.png => ${fileSizeInBytes} bytes, ${percentDiff}% different`);
 
       // diff.pack().pipe(fs.createWriteStream(`${currentDir}/${view}-diff.png`));

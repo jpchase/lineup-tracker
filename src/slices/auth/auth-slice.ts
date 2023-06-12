@@ -79,7 +79,7 @@ export const signIn = (): ThunkResult => () => {
       console.error(`Error trying to sign in: ${error}`);
     })
     .finally(() => {
-      console.log('got to the finally clause');
+      debugAuth('got to the finally clause for sign in');
     });
 };
 

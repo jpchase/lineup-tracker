@@ -22,6 +22,7 @@ import {
   ModelReader,
   ModelWriter,
 } from '../../../src/storage/model-converter.js';
+import { logWithTime } from '../pages/page-object.js';
 
 export { Firestore, getFirestore } from 'firebase-admin/firestore';
 
@@ -209,14 +210,14 @@ async function getDocument<T extends Model>(
 ): Promise<T> {
   const docRef = firestore.doc(documentPath);
 
-  console.log(`getDocument for [${documentPath}]}`);
+  logWithTime(`getDocument for [${documentPath}]}`);
   const docSnapshot = await docRef.get();
-  console.log(`getDocument for [${documentPath}]: exists = ${docSnapshot.exists}`);
+  logWithTime(`getDocument for [${documentPath}]: exists = ${docSnapshot.exists}`);
   if (!docSnapshot.exists) {
     throw new Error(`Document not found: ${documentPath}`);
   }
   const result = converter.fromDocument(docSnapshot.id, docSnapshot.data()!);
-  console.log(`getDocument for [${documentPath}]: ${JSON.stringify(result)}`);
+  logWithTime(`getDocument for [${documentPath}]: ${JSON.stringify(result)}`);
   return result;
 }
 
@@ -236,14 +237,14 @@ async function writeDocument<T extends Model>(
   const document: DocumentReference =
     options?.keepExistingId && model.id ? collectionRef.doc(model.id) : collectionRef.doc();
 
-  // console.log(`writeDocument: data = ${JSON.stringify(model)}`);
+  // logWithTime(`writeDocument: data = ${JSON.stringify(model)}`);
   try {
     await document.set(model);
   } catch (reason: any) {
-    console.log(`writeDocument: failed - ${reason}`);
+    logWithTime(`writeDocument: failed - ${reason}`);
   }
 
-  // console.log(`writeDocument: after, document[${document.id}] = ${JSON.stringify(document)}`);
+  // logWithTime(`writeDocument: after, document[${document.id}] = ${JSON.stringify(document)}`);
   model.id = document.id;
 }
 
@@ -256,16 +257,16 @@ async function loadCollection<T extends Model, C extends ModelCollection<T>>(
     .collection(collectionPath)
     .withConverter(new ReaderConverter(converter));
 
-  console.log(`loadCollection for [${collectionPath}]: about to query`);
+  logWithTime(`loadCollection for [${collectionPath}]: about to query`);
   return collectionRef.get().then((querySnapshot: QuerySnapshot<T>) => {
     const results = {} as ModelCollection<T>;
-    console.log(`loadCollection for [${collectionPath}]: ${querySnapshot.size} result(s)`);
+    logWithTime(`loadCollection for [${collectionPath}]: ${querySnapshot.size} result(s)`);
 
     querySnapshot.forEach((docSnapshot: QueryDocumentSnapshot<T>) => {
       const model = docSnapshot.data();
       results[model.id] = model;
     });
-    console.log(`loadCollection for [${collectionPath}]: ${JSON.stringify(results)}`);
+    logWithTime(`loadCollection for [${collectionPath}]: ${JSON.stringify(results)}`);
 
     return results as C;
   });

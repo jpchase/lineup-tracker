@@ -97,6 +97,7 @@ function serveHermeticFont(
       return buildResponse(dataDir, woffFileName, CONTENT_TYPE_WOFF2);
     }
   }
+  // eslint-disable-next-line no-console
   console.log(`Unexpected font request: ${request.url()}`);
   throw new Error(`Unexpected font request: ${request.url()}`);
 }

@@ -39,9 +39,7 @@ export class LineupTeamCreate extends LitElement {
     `;
   }
 
-  private _saveNewTeam(e: CustomEvent) {
-    console.log(`_saveNewTeam: ${JSON.stringify(e.detail)}`);
-
+  private _saveNewTeam(/*e: CustomEvent*/) {
     const nameField = this.shadowRoot!.querySelector('#team-name') as TextField;
     const newTeam: Team = {
       id: '',
@@ -52,9 +50,7 @@ export class LineupTeamCreate extends LitElement {
     this.dispatchEvent(new NewTeamCreatedEvent({ team: newTeam }));
   }
 
-  private _cancelCreateTeam(e: CustomEvent) {
-    console.log(`_cancelCreateTeam: ${JSON.stringify(e.detail)}`);
-  }
+  private _cancelCreateTeam(/*e: CustomEvent*/) {}
 }
 
 declare global {

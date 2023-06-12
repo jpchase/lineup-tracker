@@ -65,9 +65,7 @@ export class LineupRosterModify extends LitElement {
     return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
   }
 
-  private savePlayer(e: CustomEvent) {
-    console.log(`_savePlayer: ${JSON.stringify(e.detail)}`);
-
+  private savePlayer(/* e: CustomEvent */) {
     const nameField = this.getFormInput('nameField');
     const uniformNumberField = this.getFormInput('uniformNumberField');
 

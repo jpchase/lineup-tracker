@@ -88,7 +88,6 @@ export class LineupGameCreate extends LitElement {
   }
 
   private saveNewGame(e: CustomEvent) {
-    console.log(`saveNewGame: ${JSON.stringify(e.detail)}`);
     if (e.detail.action !== 'save') {
       return;
     }

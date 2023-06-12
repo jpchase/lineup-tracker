@@ -67,7 +67,7 @@ export class GameLivePage extends GameDetailPage {
     return clockHandle.evaluate(async (clock) => {
       const startButton = clock.shadowRoot!.querySelector('#start-button');
       if (!startButton) {
-        console.log('Start button not found');
+        this.log('Start button not found');
         return;
       }
       (startButton as HTMLElement).click();

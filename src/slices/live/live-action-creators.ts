@@ -61,7 +61,6 @@ export const pendingSubsAppliedCreator =
     }
     const subs = selectPendingSubs(state, game.id, selectedOnly, /* includeSwaps */ true);
     if (!subs) {
-      console.log('No subs!');
       return;
     }
     const invalidSubs = validatePendingSubs(game, subs);
@@ -178,7 +177,6 @@ function validateFilledPositions(game: LiveGame, filledPositions: FilledPosition
   const requiredPositions = getPositions(formation);
 
   if (filledPositions?.size !== requiredPositions.length) {
-    console.log(`Formation has unfilled positions with current On players`);
     for (const position of requiredPositions) {
       if (!filledPositions.has(position.id)) {
         invalidPositions.set(position.id, `Position [${position.id}] is empty`);

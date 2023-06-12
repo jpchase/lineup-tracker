@@ -20,7 +20,6 @@ const createDynamicMiddlewares = () => {
     const index = allDynamicMiddlewares.findIndex((d) => d === middleware);
 
     if (index === -1) {
-      // eslint-disable-next-line no-console
       console.error('Middleware does not exist!', middleware);
       return;
     }
