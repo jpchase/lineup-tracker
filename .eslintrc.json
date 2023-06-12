@@ -39,7 +39,9 @@
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "prefer-destructuring": "off",
     // Typescript overrides of built-in rules.
+    "no-shadow": "off",
     "no-unused-vars": "off",
+    "@typescript-eslint/no-shadow": ["error", { "allow": ["state"] }],
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
@@ -49,7 +51,6 @@
     // Temporarily disable rules, to allow lint to complete successfully.
     "lit-a11y/no-autofocus": "off",
     "no-console": "off",
-    "no-shadow": "off",
     "no-undef": "off",
     "no-use-before-define": ["off", { "functions": false, "allowNamedExports": true }],
     "object-shorthand": "off"

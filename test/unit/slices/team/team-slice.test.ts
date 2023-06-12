@@ -410,10 +410,13 @@ describe('Team slice', () => {
         ...getNewPlayerData(),
         id: expectedId,
       };
-      const team: Team = getStoredTeam();
+      const currentTeam: Team = getStoredTeam();
 
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([team], team, { signedIn: true, userId: TEST_USER_ID });
+      const getStateMock = mockGetState([currentTeam], currentTeam, {
+        signedIn: true,
+        userId: TEST_USER_ID,
+      });
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake((model) => {
         model.id = expectedId;
         return Promise.resolve();
@@ -425,7 +428,7 @@ describe('Team slice', () => {
       // Checks that the new player was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
         inputPlayer,
-        `${KEY_TEAMS}/${team.id}/${KEY_ROSTER}`,
+        `${KEY_TEAMS}/${currentTeam.id}/${KEY_ROSTER}`,
         sinon.match.object
       );
       expect(inputPlayer, 'Input player should have properties set by saving').to.deep.equal(

@@ -287,8 +287,8 @@ describe('Shift slice', () => {
       gameId = game.id;
     });
 
-    function getTrackersByIds(state: ShiftState, gameId: string, ids: string[]) {
-      const trackerMap = getTrackerMap(state, gameId);
+    function getTrackersByIds(state: ShiftState, trackerGameId: string, ids: string[]) {
+      const trackerMap = getTrackerMap(state, trackerGameId);
       return trackerMap?.trackers?.filter((player) => ids.includes(player.id)) || [];
     }
 

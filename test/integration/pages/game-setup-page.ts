@@ -184,6 +184,7 @@ export class GameSetupPage extends GameDetailPage {
     await this.page.waitForTimeout(100);
 
     await setupHandle.evaluate(
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       async (setupNode, totalPeriods, periodLength) => {
         const setupRoot = setupNode!.shadowRoot!;
 

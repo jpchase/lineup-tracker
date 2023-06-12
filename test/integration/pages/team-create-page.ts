@@ -74,6 +74,7 @@ export class TeamCreatePage extends PageObject {
   }
 
   async selectTeam(teamId: string) {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     await this.page.evaluate((teamId: string) => {
       const app = document.querySelector('lineup-app');
       const selector = app!.shadowRoot!.querySelector('lineup-team-selector');

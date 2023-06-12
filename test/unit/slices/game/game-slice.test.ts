@@ -195,10 +195,10 @@ describe('Game slice', () => {
   describe('getGame', () => {
     let currentState: GameState;
 
-    function mockLoadDocumentWithGame(game: Game) {
+    function mockLoadDocumentWithGame(gameReturned: Game) {
       return readerStub.loadDocument
-        .withArgs(`${KEY_GAMES}/${game.id}`, sinon.match.object)
-        .resolves(game);
+        .withArgs(`${KEY_GAMES}/${gameReturned.id}`, sinon.match.object)
+        .resolves(gameReturned);
     }
 
     function mockLoadCollectionWithGameRoster(gameId: string, roster: Roster) {
