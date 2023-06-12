@@ -1142,7 +1142,7 @@ describe('PlayerTimeTrackerMap', () => {
             totalTime: buildDuration(0, 5).toJSON(),
             onTimer: {
               isRunning: true,
-              startTime: startTime,
+              startTime,
               duration: buildDuration(0, 5).toJSON(),
             },
           },
@@ -1154,7 +1154,7 @@ describe('PlayerTimeTrackerMap', () => {
             totalTime: buildDuration(0, 5).toJSON(),
             offTimer: {
               isRunning: true,
-              startTime: startTime,
+              startTime,
               duration: buildDuration(0, 5).toJSON(),
             },
           },
@@ -1198,7 +1198,7 @@ describe('PlayerTimeTrackerMap', () => {
             totalTime: buildDuration(0, 5).toJSON(),
             onTimer: {
               isRunning: true,
-              startTime: startTime,
+              startTime,
               duration: buildDuration(0, 5).toJSON(),
             },
           },
@@ -1210,7 +1210,7 @@ describe('PlayerTimeTrackerMap', () => {
             totalTime: buildDuration(0, 5).toJSON(),
             offTimer: {
               isRunning: true,
-              startTime: startTime,
+              startTime,
               duration: buildDuration(0, 5).toJSON(),
             },
           },

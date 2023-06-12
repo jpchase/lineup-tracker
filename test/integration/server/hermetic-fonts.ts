@@ -115,7 +115,7 @@ function buildResponse(
     headers: {
       'access-control-allow-origin': '*',
     },
-    contentType: contentType,
+    contentType,
     body: bodyData,
   };
 }

@@ -39,7 +39,7 @@ function getPlayers(
       name: `Player ${i}`,
       uniformNumber: i + (i % 3) * 10,
       positions: pos,
-      status: status,
+      status,
     });
 
     if (otherStatus) {

@@ -225,7 +225,7 @@ describe('Game slice', () => {
       const newState = game(currentState, {
         type: getGame.pending.type,
         meta: {
-          gameId: gameId,
+          gameId,
         },
       });
 
@@ -478,7 +478,7 @@ describe('Game slice', () => {
         sinon.match({
           type: getGame.pending.type,
           meta: {
-            gameId: gameId,
+            gameId,
           },
         })
       );
@@ -509,7 +509,7 @@ describe('Game slice', () => {
         sinon.match({
           type: getGame.pending.type,
           meta: {
-            gameId: gameId,
+            gameId,
           },
         })
       );

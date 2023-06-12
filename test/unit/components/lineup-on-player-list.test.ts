@@ -117,7 +117,7 @@ function getPlayers(
       id: playerId,
       name: `Player ${i}`,
       uniformNumber: i + (i % 3) * 10,
-      currentPosition: currentPosition,
+      currentPosition,
       positions: pos,
       status: status || PlayerStatus.On,
     });
@@ -127,7 +127,7 @@ function getPlayers(
         id: playerId + otherStatus,
         name: `Player ${i}-${otherStatus}`,
         uniformNumber: i + (i % 4) * 10,
-        currentPosition: currentPosition,
+        currentPosition,
         positions: pos,
         status: otherStatus,
       });

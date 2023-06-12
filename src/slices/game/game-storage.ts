@@ -21,7 +21,7 @@ const debugStorage = debug('game-storage');
 const gameConverter: ModelReader<Game> = {
   fromDocument: (id: string, data: DocumentData): Game => {
     return {
-      id: id,
+      id,
       teamId: data.teamId,
       status: data.status,
       name: data.name,

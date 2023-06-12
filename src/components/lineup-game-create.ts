@@ -84,7 +84,7 @@ export class LineupGameCreate extends LitElement {
       Number(timeParts[2]) // minutes
     );
 
-    return { valid: true, date: date };
+    return { valid: true, date };
   }
 
   private saveNewGame(e: CustomEvent) {

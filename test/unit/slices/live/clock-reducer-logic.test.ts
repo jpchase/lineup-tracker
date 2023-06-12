@@ -185,7 +185,7 @@ describe('Live slice: Clock actions', () => {
       expect(newGame?.clock).to.deep.include({
         timer: {
           isRunning: true,
-          startTime: startTime,
+          startTime,
           duration: Duration.zero().toJSON(),
         },
       });
@@ -756,7 +756,7 @@ describe('Live slice: Clock actions', () => {
       expect(newGame?.clock).to.deep.include({
         timer: {
           isRunning: true,
-          startTime: startTime,
+          startTime,
           duration: Duration.zero().toJSON(),
         },
       });

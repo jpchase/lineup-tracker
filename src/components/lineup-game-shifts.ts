@@ -113,7 +113,7 @@ export class LineupGameShifts extends LitElement {
         return {
           id: tracker.id,
           name: this.getPlayer(this.players, tracker.id)?.name!,
-          tracker: tracker,
+          tracker,
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));

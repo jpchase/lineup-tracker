@@ -90,7 +90,7 @@ describe('Game slice: roster actions', () => {
       const newState = gameReducer(currentState, {
         type: copyRoster.pending.type,
         meta: {
-          gameId: gameId,
+          gameId,
         },
       });
 
@@ -208,7 +208,7 @@ describe('Game slice: roster actions', () => {
         sinon.match({
           type: copyRoster.pending.type,
           meta: {
-            gameId: gameId,
+            gameId,
           },
         })
       );
@@ -217,7 +217,7 @@ describe('Game slice: roster actions', () => {
         sinon.match({
           type: copyRoster.fulfilled.type,
           payload: {
-            gameId: gameId,
+            gameId,
             gameRoster: { ...teamRoster },
           },
         })
@@ -278,7 +278,7 @@ describe('Game slice: roster actions', () => {
         sinon.match({
           type: copyRoster.pending.type,
           meta: {
-            gameId: gameId,
+            gameId,
           },
         })
       );

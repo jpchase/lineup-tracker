@@ -91,7 +91,7 @@ describe('lineup-game-clock tests', () => {
     it('only Start button shown when first period is ready to be started', async () => {
       el.timerData = {
         isRunning: false,
-        startTime: startTime,
+        startTime,
         duration: Duration.zero().toJSON(),
       };
       el.periodData = {
@@ -117,7 +117,7 @@ describe('lineup-game-clock tests', () => {
     it('only Start button shown during break before next period (at halftime)', async () => {
       el.timerData = {
         isRunning: false,
-        startTime: startTime,
+        startTime,
         duration: Duration.zero().toJSON(),
       };
       el.periodData = {
@@ -144,7 +144,7 @@ describe('lineup-game-clock tests', () => {
       // hang, leading to a test timeout.
       el.timerData = {
         isRunning: false,
-        startTime: startTime,
+        startTime,
         duration: Duration.create(130).toJSON(),
       };
       el.periodData = {
@@ -174,7 +174,7 @@ describe('lineup-game-clock tests', () => {
       // hang, leading to a test timeout.
       el.timerData = {
         isRunning: false,
-        startTime: startTime,
+        startTime,
         duration: Duration.create(1335).toJSON(),
       };
       el.periodData = {
@@ -203,7 +203,7 @@ describe('lineup-game-clock tests', () => {
     it('all buttons hidden when game is done', async () => {
       el.timerData = {
         isRunning: false,
-        startTime: startTime,
+        startTime,
         duration: Duration.create(600).toJSON(),
       };
       el.periodData = {
@@ -252,7 +252,7 @@ describe('lineup-game-clock tests', () => {
       mockTimeProvider(startTime);
       el.timerData = {
         isRunning: true,
-        startTime: startTime,
+        startTime,
         duration: Duration.zero().toJSON(),
       };
       await el.updateComplete;
@@ -275,7 +275,7 @@ describe('lineup-game-clock tests', () => {
     it('fires event when clock is toggled off', async () => {
       el.timerData = {
         isRunning: true,
-        startTime: startTime,
+        startTime,
         duration: Duration.zero().toJSON(),
       };
       await el.updateComplete;
@@ -294,7 +294,7 @@ describe('lineup-game-clock tests', () => {
       mockTimeProvider(startTime);
       el.timerData = {
         isRunning: true,
-        startTime: startTime,
+        startTime,
         duration: Duration.zero().toJSON(),
       };
       await el.updateComplete;
@@ -305,7 +305,7 @@ describe('lineup-game-clock tests', () => {
       // Set the clock to stopped.
       el.timerData = {
         isRunning: false,
-        startTime: startTime,
+        startTime,
         duration: Duration.create(30).toJSON(),
       };
       await el.updateComplete;
@@ -320,7 +320,7 @@ describe('lineup-game-clock tests', () => {
     it('fires start event when pressed', async () => {
       el.timerData = {
         isRunning: false,
-        startTime: startTime,
+        startTime,
         duration: Duration.zero().toJSON(),
       };
       el.periodData = {
@@ -344,7 +344,7 @@ describe('lineup-game-clock tests', () => {
     it('fires end event when pressed with clock running', async () => {
       el.timerData = {
         isRunning: true,
-        startTime: startTime,
+        startTime,
         duration: Duration.zero().toJSON(),
       };
       el.periodData = {
@@ -366,7 +366,7 @@ describe('lineup-game-clock tests', () => {
     it('fires end event when pressed with clock paused', async () => {
       el.timerData = {
         isRunning: false,
-        startTime: startTime,
+        startTime,
         duration: Duration.zero().toJSON(),
       };
       el.periodData = {
@@ -385,7 +385,7 @@ describe('lineup-game-clock tests', () => {
     it('shows dialog instead of firing end event when period overdue', async () => {
       el.timerData = {
         isRunning: false,
-        startTime: startTime,
+        startTime,
         duration: Duration.create(11 * 60).toJSON(),
       };
       el.periodData = {
@@ -413,7 +413,7 @@ describe('lineup-game-clock tests', () => {
       beforeEach(async () => {
         el.timerData = {
           isRunning: true,
-          startTime: startTime,
+          startTime,
           duration: Duration.zero().toJSON(),
         };
         el.periodData = {

@@ -416,7 +416,7 @@ describe('Timer', () => {
     it('should be initialized correctly from running data', () => {
       const expected = {
         isRunning: true,
-        startTime: startTime,
+        startTime,
         duration: buildDuration(3, 4).toJSON(),
       };
       const provider = mockTimeProvider(timeStartPlus1Minute55);

@@ -1,4 +1,7 @@
 {
+  "globals": {
+    "URLPattern": "readonly"
+  },
   "extends": ["@open-wc", "prettier"],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
@@ -51,9 +54,7 @@
     // Temporarily disable rules, to allow lint to complete successfully.
     "lit-a11y/no-autofocus": "off",
     "no-console": "off",
-    "no-undef": "off",
-    "no-use-before-define": ["off", { "functions": false, "allowNamedExports": true }],
-    "object-shorthand": "off"
+    "no-use-before-define": ["off", { "functions": false, "allowNamedExports": true }]
   },
   "overrides": [
     {

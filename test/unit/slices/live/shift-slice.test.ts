@@ -94,7 +94,7 @@ describe('Shift slice', () => {
       expectedTracker.alreadyOn = true;
       expectedTracker.onTimer = {
         isRunning: true,
-        startTime: startTime,
+        startTime,
         duration: Duration.zero().toJSON(),
       };
 
@@ -341,7 +341,7 @@ describe('Shift slice', () => {
     });
 
     it('should ignore swaps', () => {
-      const swapPlayer = getPlayer({ id: 'foo', status: GameStatus.Live, players: players }, 'P8');
+      const swapPlayer = getPlayer({ id: 'foo', status: GameStatus.Live, players }, 'P8');
       const swap = {
         ...swapPlayer,
         id: `${swapPlayer?.id}_swap`,
