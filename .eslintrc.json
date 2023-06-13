@@ -15,13 +15,6 @@
       "always",
       { "markers": ["!"], "exceptions": ["*"] }
     ],
-    "require-jsdoc": ["error", { "require": { "FunctionDeclaration": false } }],
-    "no-alert": 0,
-    "no-bitwise": 0,
-    "no-eq-null": 1,
-    "guard-for-in": 1,
-    "no-empty": 1,
-    "import/named": "off",
     "import/no-extraneous-dependencies": "off", // Too many false positives, as it does not handle references to @types
     "import/no-unresolved": "off",
     "import/extensions": [
@@ -43,6 +36,7 @@
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "prefer-destructuring": "off",
     // Typescript overrides of built-in rules.
+    "import/named": "off",
     "no-shadow": "off",
     "no-unused-vars": "off",
     "@typescript-eslint/no-shadow": ["error", { "allow": ["state"] }],
