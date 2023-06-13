@@ -1,3 +1,5 @@
+/** @format */
+
 import '@material/mwc-button';
 import '@material/mwc-circular-progress';
 import { html, nothing } from 'lit';
@@ -7,7 +9,13 @@ import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
 import { getGameStore } from '../slices/game-store.js';
-import { addNewGamePlayer, copyRoster, getGame, selectGameById, selectGameRosterLoading } from '../slices/game/game-slice.js';
+import {
+  addNewGamePlayer,
+  copyRoster,
+  getGame,
+  selectGameById,
+  selectGameRosterLoading,
+} from '../slices/game/game-slice.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-roster.js';
 import { AuthorizedViewElement } from './page-view-element.js';
@@ -25,36 +33,44 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
     if (this.game) {
       gameExists = true;
       isNewStatus = this.game.status === GameStatus.New;
-      rosterExists = (Object.keys(this._roster).length > 0);
+      rosterExists = Object.keys(this._roster).length > 0;
 
       updateMetadata({
         title: `Game Roster - ${this._getName()}`,
-        description: `Game roster for: ${this._getName()}`
+        description: `Game roster for: ${this._getName()}`,
       });
     }
 
     return html`
       ${SharedStyles}
       <section>
-      ${gameExists ? html`
-        <h2>Roster: ${this._getName()}</h2>
-        ${rosterExists ? html`
-          <lineup-roster .roster="${this._roster}"
-                         .addPlayerEnabled="${isNewStatus}"
-                         @newplayercreated="${this.newPlayerCreated}"></lineup-roster>
-        ` : html`
-          <div class="empty-list">
-            <div>Roster is empty.</div>
-            <mwc-button id='copy-button' icon="file_copy" ?disabled="${this._copyingInProgress}"
-                        @click="${this._copyTeamRoster}">Copy From Team</mwc-button>
-            ${this.renderCopyingInProgress()}
-          </div>
-        `}
-      ` : html`
-        <p class="empty-list">
-          Game not found.
-        </p>
-      `}
+        ${gameExists
+          ? html`
+              <h2>Roster: ${this._getName()}</h2>
+              ${rosterExists
+                ? html`
+                    <lineup-roster
+                      .roster="${this._roster}"
+                      .addPlayerEnabled="${isNewStatus}"
+                      @newplayercreated="${this.newPlayerCreated}"
+                    >
+                    </lineup-roster>
+                  `
+                : html`
+                    <div class="empty-list">
+                      <div>Roster is empty.</div>
+                      <mwc-button
+                        id="copy-button"
+                        icon="file_copy"
+                        ?disabled="${this._copyingInProgress}"
+                        @click="${this._copyTeamRoster}"
+                        >Copy From Team</mwc-button
+                      >
+                      ${this.renderCopyingInProgress()}
+                    </div>
+                  `}
+            `
+          : html` <p class="empty-list">Game not found.</p> `}
       </section>
     `;
   }
@@ -133,7 +149,10 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
 
   // Event handlers
   private _copyTeamRoster(e: Event) {
-    if (e.target) { (e.target as HTMLInputElement).disabled = true; }
+    if (e.target) {
+      const button = e.target as HTMLInputElement;
+      button.disabled = true;
+    }
     this.ready = false;
     this.dispatch(copyRoster(this.gameId!));
   }
@@ -145,12 +164,21 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
   // Formatting functions
   // TODO: Extract common function (duplicated from LineupViewGameDetail)
   private _getName() {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
-      'Sep', 'Oct', 'Nov', 'Dec'
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     const game = this.game!;
-    return game.opponent + ' ' + monthNames[game.date.getMonth()] + ' ' +
-      game.date.getDate();
+    return `${game.opponent} ${monthNames[game.date.getMonth()]} ${game.date.getDate()}`;
   }
-
 }

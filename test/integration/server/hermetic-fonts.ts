@@ -97,6 +97,7 @@ function serveHermeticFont(
       return buildResponse(dataDir, woffFileName, CONTENT_TYPE_WOFF2);
     }
   }
+  // eslint-disable-next-line no-console
   console.log(`Unexpected font request: ${request.url()}`);
   throw new Error(`Unexpected font request: ${request.url()}`);
 }
@@ -106,7 +107,7 @@ function buildResponse(
   bodyFileName: string,
   contentType: string
 ): ResponseForRequest {
-  let bodyData = fs.readFileSync(path.join(dataDir, bodyFileName));
+  const bodyData = fs.readFileSync(path.join(dataDir, bodyFileName));
   if (!bodyData) {
     throw new Error(`Problem reading file: ${bodyFileName}`);
   }
@@ -115,7 +116,7 @@ function buildResponse(
     headers: {
       'access-control-allow-origin': '*',
     },
-    contentType: contentType,
+    contentType,
     body: bodyData,
   };
 }

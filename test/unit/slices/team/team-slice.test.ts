@@ -1,36 +1,61 @@
+/** @format */
+
 import { Player } from '@app/models/player.js';
 import { Team, TeamData } from '@app/models/team.js';
-import { addNewPlayer, addNewTeam, addPlayer, addTeam, getRoster, getTeams, savePlayer, saveTeam, team, TeamState, TEAM_INITIAL_STATE } from '@app/slices/team/team-slice.js';
+import {
+  addNewPlayer,
+  addNewTeam,
+  addPlayer,
+  addTeam,
+  getRoster,
+  getTeams,
+  savePlayer,
+  saveTeam,
+  team,
+  TeamState,
+  TEAM_INITIAL_STATE,
+} from '@app/slices/team/team-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
-  buildRoster, buildTeams,
+  buildRoster,
+  buildTeams,
   getNewPlayer,
-  getStoredPlayer, getStoredTeam, getPublicTeam, getMockAuthState, getNewPlayerData,
-  MockAuthStateOptions, TEST_USER_ID
+  getStoredPlayer,
+  getStoredTeam,
+  getPublicTeam,
+  getMockAuthState,
+  getNewPlayerData,
+  MockAuthStateOptions,
+  TEST_USER_ID,
 } from '../../helpers/test_data.js';
 
 const KEY_TEAMS = 'teams';
 const KEY_ROSTER = 'roster';
 
 export function getNewTeamData() {
-  return { name: 'New team 1' }
-};
+  return { name: 'New team 1' };
+}
 
 // New team created by the UI does not have an ID until added to storage.
 function getNewTeam(): TeamData {
   return {
-    ...getNewTeamData()
+    ...getNewTeamData(),
   };
 }
 const newTeamSaved: Team = {
   ...getNewTeam(),
-  id: 'somerandomid'
+  id: 'somerandomid',
 };
 
-function mockGetState(teams: Team[], currentTeam?: Team, options?: MockAuthStateOptions, players?: Player[]) {
+function mockGetState(
+  teams: Team[],
+  currentTeam?: Team,
+  options?: MockAuthStateOptions,
+  players?: Player[]
+) {
   return sinon.fake(() => {
     const teamData = buildTeams(teams);
     const rosterData = buildRoster(players);
@@ -43,8 +68,8 @@ function mockGetState(teams: Team[], currentTeam?: Team, options?: MockAuthState
       auth: getMockAuthState(options),
       team: {
         teams: teamData,
-        roster: rosterData
-      }
+        roster: rosterData,
+      },
     };
   });
 }
@@ -77,17 +102,19 @@ describe('Team slice', () => {
   describe('getTeams', () => {
     it('should dispatch an action with owned teams returned from storage', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID })
+      const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
       const loadCollectionStub = mockLoadCollectionWithStoredTeams();
 
       await getTeams()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: getTeams.fulfilled.type,
-        payload: {
-          teams: buildTeams([getStoredTeam()]),
-        }
-      }));
+      expect(dispatchMock).to.have.been.calledWith(
+        sinon.match({
+          type: getTeams.fulfilled.type,
+          payload: {
+            teams: buildTeams([getStoredTeam()]),
+          },
+        })
+      );
 
       expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
     });
@@ -95,10 +122,15 @@ describe('Team slice', () => {
     it('should set the teams state to the retrieved list', () => {
       const expectedTeams = buildTeams([getStoredTeam()]);
 
-      const newState = team(TEAM_INITIAL_STATE,
-        getTeams.fulfilled({
-          teams: expectedTeams
-        }, ''));
+      const newState = team(
+        TEAM_INITIAL_STATE,
+        getTeams.fulfilled(
+          {
+            teams: expectedTeams,
+          },
+          ''
+        )
+      );
 
       expect(newState).to.deep.include({
         teams: expectedTeams,
@@ -111,32 +143,37 @@ describe('Team slice', () => {
 
     it('should dispatch an action with public teams when not signed in', async () => {
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([], undefined, { signedIn: false })
+      const getStateMock = mockGetState([], undefined, { signedIn: false });
       mockLoadCollectionWithPublicTeams();
 
       await getTeams()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: getTeams.fulfilled.type,
-        payload: {
-          teams: buildTeams([getPublicTeam()]),
-        }
-      }));
+      expect(dispatchMock).to.have.been.calledWith(
+        sinon.match({
+          type: getTeams.fulfilled.type,
+          payload: {
+            teams: buildTeams([getPublicTeam()]),
+          },
+        })
+      );
     });
 
     it('should dispatch rejected action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
-      readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      readerStub.loadCollection.onFirstCall().throws(() => {
+        return new Error('Storage failed with some error');
+      });
 
       await getTeams()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: getTeams.rejected.type,
-        error: { message: 'Storage failed with some error' }
-      }));
+      expect(dispatchMock).to.have.been.calledWith(
+        sinon.match({
+          type: getTeams.rejected.type,
+          error: { message: 'Storage failed with some error' },
+        })
+      );
     });
-
   }); // describe('getTeams')
 
   describe('addNewTeam', () => {
@@ -184,20 +221,25 @@ describe('Team slice', () => {
 
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
-      const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
-        (model) => {
-          model.id = expectedId;
-          return Promise.resolve();
-        }
-      );
+      const saveNewDocumentStub = writerStub.saveNewDocument.callsFake((model) => {
+        model.id = expectedId;
+        return Promise.resolve();
+      });
 
       const inputTeam = getNewTeam();
       await saveTeam(inputTeam as Team)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new team was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
-        inputTeam, KEY_TEAMS, undefined, sinon.match.object, { addUserId: true });
-      expect(inputTeam, 'Input team should have properties set by saving').to.deep.equal(expectedSavedTeam);
+        inputTeam,
+        KEY_TEAMS,
+        undefined,
+        sinon.match.object,
+        { addUserId: true }
+      );
+      expect(inputTeam, 'Input team should have properties set by saving').to.deep.equal(
+        expectedSavedTeam
+      );
 
       expect(dispatchMock).to.have.been.calledWith({
         type: addTeam.type,
@@ -208,7 +250,9 @@ describe('Team slice', () => {
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
-      writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      writerStub.saveNewDocument.onFirstCall().throws(() => {
+        return new Error('Storage failed with some error');
+      });
 
       let rejected = false;
       try {
@@ -224,7 +268,8 @@ describe('Team slice', () => {
 
   describe('addTeam', () => {
     const newTeam: Team = {
-      id: 'nt1', name: 'New team 1'
+      id: 'nt1',
+      name: 'New team 1',
     };
 
     it('should populate an empty teams list', () => {
@@ -233,7 +278,7 @@ describe('Team slice', () => {
       const newState = team(TEAM_INITIAL_STATE, addTeam(newTeam));
 
       expect(newState).to.deep.include({
-        teams: expectedTeams
+        teams: expectedTeams,
       });
 
       expect(newState).to.not.equal(TEAM_INITIAL_STATE);
@@ -242,7 +287,7 @@ describe('Team slice', () => {
 
     it('should add to existing teams list', () => {
       const state: TeamState = {
-        ...TEAM_INITIAL_STATE
+        ...TEAM_INITIAL_STATE,
       };
       state.teams = buildTeams([getStoredTeam()]);
 
@@ -251,13 +296,12 @@ describe('Team slice', () => {
       const newState = team(state, addTeam(newTeam));
 
       expect(newState).to.deep.include({
-        teams: expectedTeams
+        teams: expectedTeams,
       });
 
       expect(newState).to.not.equal(state);
       expect(newState.teams).to.not.equal(state.teams);
     });
-
   }); // describe('addTeam')
 
   describe('getRoster', () => {
@@ -281,10 +325,12 @@ describe('Team slice', () => {
       await getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
       const rosterData = buildRoster([getStoredPlayer()]);
-      expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: getRoster.fulfilled.type,
-        payload: rosterData,
-      }));
+      expect(dispatchMock).to.have.been.calledWith(
+        sinon.match({
+          type: getRoster.fulfilled.type,
+          payload: rosterData,
+        })
+      );
     });
 
     it('should set the roster to the retrieved list', () => {
@@ -292,7 +338,7 @@ describe('Team slice', () => {
 
       const newState = team(TEAM_INITIAL_STATE, {
         type: getRoster.fulfilled.type,
-        payload: expectedRoster
+        payload: expectedRoster,
       });
 
       expect(newState).to.deep.include({
@@ -307,17 +353,19 @@ describe('Team slice', () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
 
-      readerStub.loadCollection.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      readerStub.loadCollection.onFirstCall().throws(() => {
+        return new Error('Storage failed with some error');
+      });
 
       await getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).to.have.been.calledWith(sinon.match({
-        type: getRoster.rejected.type,
-        error: { message: 'Storage failed with some error' }
-      }));
-
+      expect(dispatchMock).to.have.been.calledWith(
+        sinon.match({
+          type: getRoster.rejected.type,
+          error: { message: 'Storage failed with some error' },
+        })
+      );
     });
-
   }); // describe('getRoster')
 
   describe('addNewPlayer', () => {
@@ -362,24 +410,30 @@ describe('Team slice', () => {
         ...getNewPlayerData(),
         id: expectedId,
       };
-      const team: Team = getStoredTeam();
+      const currentTeam: Team = getStoredTeam();
 
       const dispatchMock = sinon.stub();
-      const getStateMock = mockGetState([team], team, { signedIn: true, userId: TEST_USER_ID });
-      const saveNewDocumentStub = writerStub.saveNewDocument.callsFake(
-        (model) => {
-          model.id = expectedId;
-          return Promise.resolve();
-        }
-      );
+      const getStateMock = mockGetState([currentTeam], currentTeam, {
+        signedIn: true,
+        userId: TEST_USER_ID,
+      });
+      const saveNewDocumentStub = writerStub.saveNewDocument.callsFake((model) => {
+        model.id = expectedId;
+        return Promise.resolve();
+      });
 
       const inputPlayer = getNewPlayer();
       await savePlayer(inputPlayer)(dispatchMock, getStateMock, undefined);
 
       // Checks that the new player was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
-        inputPlayer, `${KEY_TEAMS}/${team.id}/${KEY_ROSTER}`, sinon.match.object);
-      expect(inputPlayer, 'Input player should have properties set by saving').to.deep.equal(expectedSavedPlayer);
+        inputPlayer,
+        `${KEY_TEAMS}/${currentTeam.id}/${KEY_ROSTER}`,
+        sinon.match.object
+      );
+      expect(inputPlayer, 'Input player should have properties set by saving').to.deep.equal(
+        expectedSavedPlayer
+      );
 
       // Waits for promises to resolve.
       await Promise.resolve();
@@ -392,7 +446,9 @@ describe('Team slice', () => {
     it('should not dispatch an action when storage access fails', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined);
-      writerStub.saveNewDocument.onFirstCall().throws(() => { return new Error('Storage failed with some error'); });
+      writerStub.saveNewDocument.onFirstCall().throws(() => {
+        return new Error('Storage failed with some error');
+      });
 
       let rejected = false;
       try {
@@ -428,7 +484,7 @@ describe('Team slice', () => {
 
     it('should add new player to roster with existing players', () => {
       const state: TeamState = {
-        ...TEAM_INITIAL_STATE
+        ...TEAM_INITIAL_STATE,
       };
       state.roster = buildRoster([existingPlayer]);
 
@@ -441,7 +497,5 @@ describe('Team slice', () => {
       expect(newState).to.not.equal(state);
       expect(newState.roster).to.not.equal(state.roster);
     });
-
   }); // describe('addPlayer')
-
 }); // describe('Team slice')

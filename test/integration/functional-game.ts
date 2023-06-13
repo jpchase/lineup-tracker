@@ -14,6 +14,7 @@ import {
   readGame,
   readGameRoster,
 } from './server/firestore-access.js';
+
 const { nanoid } = rtk;
 
 describe('Game functional tests', () => {
@@ -43,7 +44,7 @@ describe('Game functional tests', () => {
     gameDate.setUTCDate(gameDate.getUTCDate() + 1);
     gameDate.setUTCSeconds(0, 0);
     const newGame = {
-      name: 'New Game - ' + nanoid(),
+      name: `New Game - ${nanoid()}`,
       opponent: 'Integration Opponent',
       date: gameDate,
     } as Game;

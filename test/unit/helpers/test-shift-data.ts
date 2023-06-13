@@ -1,3 +1,5 @@
+/** @format */
+
 import { LiveGame, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerData, PlayerTimeTrackerMap } from '@app/models/shift.js';
@@ -16,13 +18,16 @@ export function buildPlayerTrackers(players?: LivePlayer[]): PlayerTimeTrackerDa
 export function buildPlayerTracker(player: LivePlayer): PlayerTimeTrackerData {
   const tracker: PlayerTimeTrackerData = {
     id: player.id,
-    isOn: (player.status === PlayerStatus.On)
+    isOn: player.status === PlayerStatus.On,
   };
   return tracker;
 }
 
-export function buildPlayerTrackerMap(gameId: string, existingPlayers?: LivePlayer[],
-  keepExistingStatus?: boolean) {
+export function buildPlayerTrackerMap(
+  gameId: string,
+  existingPlayers?: LivePlayer[],
+  keepExistingStatus?: boolean
+) {
   let players;
   if (existingPlayers) {
     players = existingPlayers;
@@ -30,13 +35,18 @@ export function buildPlayerTrackerMap(gameId: string, existingPlayers?: LivePlay
     players = testlive.getLivePlayers(18);
   }
   if (!keepExistingStatus) {
-    players.forEach((player, index) => {
+    for (let index = 0; index < players.length; index++) {
+      const player = players[index];
       // Set the first 11 players to be On, the last player to be Out, and the
       // remaining players to be Off.
-      player.status = (index < 11) ?
-        PlayerStatus.On :
-        (index === 17) ? PlayerStatus.Out : PlayerStatus.Off;
-    });
+      let status = PlayerStatus.Off;
+      if (index < 11) {
+        status = PlayerStatus.On;
+      } else if (index === 17) {
+        status = PlayerStatus.Out;
+      }
+      player.status = status;
+    }
   }
   const game = { id: gameId || 'thegameid', players } as LiveGame;
   return PlayerTimeTrackerMap.createFromGame(game);

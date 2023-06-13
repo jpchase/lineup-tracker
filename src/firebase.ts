@@ -59,10 +59,10 @@ if (env.firebase.enablePersistence) {
 export const firebaseRefs = {
   // app: firebaseApp,
   auth: authRef,
-  firestore: firestore,
+  firestore,
 };
 export const auth = {
   provider: new GoogleAuthProvider(),
-  signInWithPopup: signInWithPopup,
-  onAuthStateChanged: onAuthStateChanged,
+  signInWithPopup,
+  onAuthStateChanged,
 };

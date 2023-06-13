@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { integrationTestData } from './data/integration-data-constants.js';
 import { GameLivePage } from './pages/game-live-page.js';
 import { GameSetupPage, SetupStatus, SetupSteps } from './pages/game-setup-page.js';
-import { PageObject } from './pages/page-object.js';
+import { PageObject, logWithTime } from './pages/page-object.js';
 import { Firestore, createAdminApp, getFirestore } from './server/firestore-access.js';
 
 describe('Live functional tests', () => {
@@ -54,72 +54,72 @@ describe('Live functional tests', () => {
     await gameSetupPage.open({ signIn: true });
 
     // Roster is already populated on the game, mark the step as done.
-    console.log('mark roster done');
+    logWithTime('mark roster done');
     await gameSetupPage.markStepDone(SetupSteps.Roster);
-    console.log('check roster step status');
+    logWithTime('check roster step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Roster);
 
-    console.log('reload at roster step');
+    logWithTime('reload at roster step');
     await gameSetupPage.reload({ signIn: true });
-    console.log('after reload, check roster step status');
+    logWithTime('after reload, check roster step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Roster);
 
     // Complete the formation step.
-    console.log('Set formation');
+    logWithTime('Set formation');
     await gameSetupPage.setFormation('4-3-3');
-    console.log('check formation step status');
+    logWithTime('check formation step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Formation);
 
-    console.log('reload at formation step');
+    logWithTime('reload at formation step');
     await gameSetupPage.reload({ signIn: true });
-    console.log('after reload, check formation step status');
+    logWithTime('after reload, check formation step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Formation);
 
     // Complete the starters step.
     const starters = integrationTestData.TEAM2.games.NEW_WITH_ROSTER.PLAYER_IDS.slice(0, 11);
 
-    console.log('Set starters');
+    logWithTime('Set starters');
     await gameSetupPage.setStarters(starters);
-    console.log('check starters are populated');
+    logWithTime('check starters are populated');
     await expectStarters(gameSetupPage, starters);
 
-    console.log('reload at starters step');
+    logWithTime('reload at starters step');
     await gameSetupPage.reload({ signIn: true });
-    console.log('after reload, check starters are still populated');
+    logWithTime('after reload, check starters are still populated');
     await expectStarters(gameSetupPage, starters);
 
-    console.log('reload (again) at starters step');
+    logWithTime('reload (again) at starters step');
     await gameSetupPage.reload({ signIn: true });
-    console.log('mark starters done');
+    logWithTime('mark starters done');
     await gameSetupPage.markStepDone(SetupSteps.Starters);
-    console.log('check starters step status');
+    logWithTime('check starters step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Starters);
 
-    console.log('reload (last time) at starters step');
+    logWithTime('reload (last time) at starters step');
     await gameSetupPage.reload({ signIn: true });
-    console.log('after reload, check starters step status');
+    logWithTime('after reload, check starters step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Starters);
 
     // Complete the periods step.
-    console.log('Set periods');
+    logWithTime('Set periods');
     await gameSetupPage.setPeriods(4, 20);
-    console.log('check periods step status');
+    logWithTime('check periods step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Periods);
 
-    console.log('reload at periods step');
+    logWithTime('reload at periods step');
     await gameSetupPage.reload({ signIn: true });
-    console.log('after reload, check periods step status');
+    logWithTime('after reload, check periods step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Periods);
 
     // Captains step is currently a no-op, mark the step as done.
-    console.log('mark captains done');
+    logWithTime('mark captains done');
     await gameSetupPage.markStepDone(SetupSteps.Captains);
-    console.log('check captains step status');
+    logWithTime('check captains step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Captains);
 
-    console.log('reload at captains step');
+    logWithTime('reload at captains step');
     await gameSetupPage.reload({ signIn: true });
-    console.log('after reload, check captains step status');
+    logWithTime('after reload, check captains step status');
     await expectStepComplete(gameSetupPage, SetupSteps.Captains);
   });
 

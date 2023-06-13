@@ -1,3 +1,5 @@
+/** @format */
+
 import { setupAuthListeners, startAppListening } from './app/action-listeners.js';
 import { debug } from './common/debug.js';
 import { getUser } from './slices/auth/auth-slice.js';
@@ -37,9 +39,10 @@ export async function initApp() {
       debugInit(`not signed in`);
     }
   } catch (e: unknown) {
-    debugInit(`error during init: ${e}`);
     if (e instanceof Error) {
-      console.error(`Error initializing teams [${e.name}]: ${e.message}\nat ${e.stack}`);
+      debugInit(`Error initializing teams [${e.name}]: ${e.message}\nat ${e.stack}`);
+    } else {
+      debugInit(`error during init: ${e}`);
     }
   }
   window.document.body.dataset.appInitialized = 'true';

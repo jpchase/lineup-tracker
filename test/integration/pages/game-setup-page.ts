@@ -47,10 +47,8 @@ export class GameSetupPage extends GameDetailPage {
     return setupHandle;
   }
 
-  async getTaskElement(step: SetupSteps, setupHandle?: ElementHandle<Element>) {
-    if (!setupHandle) {
-      setupHandle = await this.getSetupComponent();
-    }
+  async getTaskElement(step: SetupSteps, existingSetupHandle?: ElementHandle<Element>) {
+    const setupHandle = existingSetupHandle ?? (await this.getSetupComponent());
     const taskHandle = await setupHandle.$(`pierce/div > div.task.step${step}`);
     if (!taskHandle) {
       throw new Error(`Element for task ${step} not found`);
@@ -70,18 +68,14 @@ export class GameSetupPage extends GameDetailPage {
     const statusText = await taskHandle.$eval('div.status', (element) => {
       return element.textContent;
     });
-    console.log(`Task status is ${statusText}`);
-    switch (statusText?.trim()) {
-      case 'done':
-        return SetupStatus.Complete;
+    if (statusText?.trim() === 'done') {
+      return SetupStatus.Complete;
     }
     return SetupStatus.InProgress;
   }
 
-  async getStarters(setupHandle?: ElementHandle<Element>) {
-    if (!setupHandle) {
-      setupHandle = await this.getSetupComponent();
-    }
+  async getStarters(existingSetupHandle?: ElementHandle<Element>) {
+    const setupHandle = existingSetupHandle ?? (await this.getSetupComponent());
     return setupHandle.evaluate(async (setupNode) => {
       const starterList = setupNode!.shadowRoot!.querySelector('lineup-on-player-list');
       if (!starterList) {
@@ -102,10 +96,8 @@ export class GameSetupPage extends GameDetailPage {
     });
   }
 
-  async setFormation(formationType: string, setupHandle?: ElementHandle<Element>) {
-    if (!setupHandle) {
-      setupHandle = await this.getSetupComponent();
-    }
+  async setFormation(formationType: string, existingSetupHandle?: ElementHandle<Element>) {
+    const setupHandle = existingSetupHandle ?? (await this.getSetupComponent());
 
     // Click the Formation step link, to show the formation widget.
     const taskHandle = await this.getTaskElement(SetupSteps.Formation, setupHandle);
@@ -123,13 +115,11 @@ export class GameSetupPage extends GameDetailPage {
     await this.page.waitForTimeout(100);
   }
 
-  async setStarters(starters: string[], setupHandle?: ElementHandle<Element>) {
+  async setStarters(starters: string[], existingSetupHandle?: ElementHandle<Element>) {
     if (starters.length !== 11) {
       throw new Error(`Starters requires 11 players: ${starters.length} provided`);
     }
-    if (!setupHandle) {
-      setupHandle = await this.getSetupComponent();
-    }
+    const setupHandle = existingSetupHandle ?? (await this.getSetupComponent());
 
     // Populate the starters.
     await setupHandle.evaluate(async (setupNode, starterIds) => {
@@ -182,11 +172,9 @@ export class GameSetupPage extends GameDetailPage {
   async setPeriods(
     totalPeriods: number,
     periodLength: number,
-    setupHandle?: ElementHandle<Element>
+    existingSetupHandle?: ElementHandle<Element>
   ) {
-    if (!setupHandle) {
-      setupHandle = await this.getSetupComponent();
-    }
+    const setupHandle = existingSetupHandle ?? (await this.getSetupComponent());
 
     // Click the Periods step link, to show the dialog.
     const taskHandle = await this.getTaskElement(SetupSteps.Periods, setupHandle);
@@ -195,6 +183,7 @@ export class GameSetupPage extends GameDetailPage {
     await this.page.waitForTimeout(100);
 
     await setupHandle.evaluate(
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       async (setupNode, totalPeriods, periodLength) => {
         const setupRoot = setupNode!.shadowRoot!;
 

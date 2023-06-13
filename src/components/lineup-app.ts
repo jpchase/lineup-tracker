@@ -273,7 +273,7 @@ export class LineupApp extends connect(store)(LitElement) {
                 @click="${this._signinButtonClicked}"
               >
                 ${this._user && this._user.imageUrl
-                  ? html`<img src="${this._user.imageUrl}" />`
+                  ? html`<img src="${this._user.imageUrl}" alt="Logged in as ${this._user.name}" />`
                   : accountIcon}
               </button>
             </div>
@@ -358,9 +358,8 @@ export class LineupApp extends connect(store)(LitElement) {
       render: ({ gameId }) =>
         html`<lineup-view-game-detail gameId="${ifDefined(gameId)}" class="page" active>
         </lineup-view-game-detail>`,
-      enter: async ({ gameId }) => {
+      enter: async (/*{ gameId }*/) => {
         await import('./lineup-view-game-detail.js');
-        console.log(`loading game detail page for ${gameId}`);
         return this.navigateToPage('game');
       },
     },
@@ -370,9 +369,8 @@ export class LineupApp extends connect(store)(LitElement) {
       render: ({ gameId }) =>
         html`<lineup-view-game-roster gameId="${ifDefined(gameId)}" class="page" active>
         </lineup-view-game-roster>`,
-      enter: async ({ gameId }) => {
+      enter: async (/*{ gameId }*/) => {
         await import('./lineup-view-game-roster.js');
-        console.log(`loading game roster page for ${gameId}`);
         return this.navigateToPage('gameroster');
       },
     },
@@ -425,10 +423,12 @@ export class LineupApp extends connect(store)(LitElement) {
 
   private navigateToPage(page: string) {
     // eslint-disable-next-line no-restricted-globals
+    const currentLocation = location.href;
+    // eslint-disable-next-line no-console
     console.log(
-      `navigateToPage: page = ${page}, location  = ${
-        location.href
-      }, router params = ${JSON.stringify(this.router.params)}`
+      `navigateToPage: page = ${page}, location = ${currentLocation}, router params = ${JSON.stringify(
+        this.router.params
+      )}`
     );
 
     store.dispatch(updatePage(page));
@@ -462,7 +462,7 @@ export class LineupApp extends connect(store)(LitElement) {
     if (changedProps.has('_page')) {
       let pageTitle = this.appTitle;
       if (this._page in this._pages) {
-        pageTitle += ' - ' + this._pages[this._page].label;
+        pageTitle += ` -  ${this._pages[this._page].label}`;
       }
       updateMetadata({
         title: pageTitle,

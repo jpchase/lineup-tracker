@@ -11,7 +11,6 @@ snapshots["lineup-team-create tests starts empty"] =
 </mwc-textfield>
 <div class="buttons">
   <mwc-button
-    autofocus=""
     class="save"
     raised=""
   >

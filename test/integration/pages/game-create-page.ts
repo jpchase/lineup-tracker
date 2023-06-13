@@ -28,7 +28,7 @@ export class GameCreatePage extends PageObject {
   }
 
   // TODO: Use same approach as setPeriods
-  async fillGameDetails(game: Game, createHandle?: ElementHandle<Element>) {
+  async fillGameDetails(game: Game, existingCreateHandle?: ElementHandle<Element>) {
     // The game create fields expect the date/time in the local timezone,
     // as emulated by Puppeteer. The timezone is set to 'America/New_York' to
     // have a consistent value for screenshots, regardless of the machine that
@@ -48,12 +48,10 @@ export class GameCreatePage extends PageObject {
     )}`;
     const timeString = localDate.toTimeString().substring(0, 5);
 
-    console.log(
+    this.log(
       `Game date: original = ${game.date}, emulated offset = ${emulatedOffset}, this offset = ${thisOffset}, local = ${localDate}, ${dateString}, ${timeString}`
     );
-    if (!createHandle) {
-      createHandle = await this.getCreateComponent();
-    }
+    const createHandle = existingCreateHandle ?? (await this.getCreateComponent());
 
     await createHandle.evaluate(
       async (createNode, name, opponent, gameDate, gameTime) => {
@@ -85,10 +83,8 @@ export class GameCreatePage extends PageObject {
     );
   }
 
-  async saveNewGame(createHandle?: ElementHandle<Element>) {
-    if (!createHandle) {
-      createHandle = await this.getCreateComponent();
-    }
+  async saveNewGame(existingCreateHandle?: ElementHandle<Element>) {
+    const createHandle = existingCreateHandle ?? (await this.getCreateComponent());
 
     await createHandle.evaluate(async (createNode) => {
       const createRoot = createNode!.shadowRoot!;
@@ -148,10 +144,5 @@ export class GameCreatePage extends PageObject {
 }
 
 function pad0(value: number, count?: number): string {
-  count = count ?? 2;
-  let result = value.toString();
-  for (; result.length < count; --count) {
-    result = '0' + result;
-  }
-  return result;
+  return value.toString().padStart(count ?? 2, '0');
 }

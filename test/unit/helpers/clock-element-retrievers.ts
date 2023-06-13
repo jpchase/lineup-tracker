@@ -1,10 +1,12 @@
-import { LineupGameClock } from "@app/components/lineup-game-clock.js";
-import { Button } from "@material/mwc-button";
-import { Dialog } from "@material/mwc-dialog";
-import { IconButton } from "@material/mwc-icon-button";
-import { IconButtonToggle } from "@material/mwc-icon-button-toggle";
-import { Radio } from "@material/mwc-radio";
-import { expect } from "@open-wc/testing";
+/** @format */
+
+import { LineupGameClock } from '@app/components/lineup-game-clock.js';
+import { Button } from '@material/mwc-button';
+import { Dialog } from '@material/mwc-dialog';
+import { IconButton } from '@material/mwc-icon-button';
+import { IconButtonToggle } from '@material/mwc-icon-button-toggle';
+import { Radio } from '@material/mwc-radio';
+import { expect } from '@open-wc/testing';
 
 export function getClockToggleButton(el: LineupGameClock) {
   const toggle = el.shadowRoot!.querySelector('#toggle-button');

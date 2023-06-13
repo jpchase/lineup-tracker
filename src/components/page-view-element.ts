@@ -1,3 +1,5 @@
+/** @format */
+
 import { html, HTMLTemplateResult, LitElement, PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { Constructor } from '../util/shared-types.js';
@@ -49,9 +51,10 @@ export declare class AuthorizedView extends PageView {
   // -- END: view-inherited members
 }
 
-export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof T>(superClass: T) => {
+export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof T>(
+  superClass: T
+) => {
   class PageViewClass extends superClass {
-
     @property({ type: Boolean })
     public active = false;
 
@@ -95,7 +98,7 @@ export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof
     // Load data, if all keys are available.
     protected maybeLoadData() {
       // TODO: Find a less hacky way to do this.
-      const keyValue = ((this as any)[this.keyPropertyName]) as string;// this.getKeyProperty();
+      const keyValue = (this as any)[this.keyPropertyName] as string; // this.getKeyProperty();
       if (keyValue) {
         this.loadData();
       }
@@ -103,25 +106,26 @@ export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof
 
     // Load data needed to render the element, in response to the key property changing.
     // To be overridden by the element.
-    protected loadData() { }
+    protected loadData() {}
 
     // Clear any data properties stored in the element.
     // To be overridden by the element.
-    protected resetDataProperties() { }
+    protected resetDataProperties() {}
 
     // Check if the element has all the data needed to render.
     // To be overridden by the element.
     protected isDataReady(): boolean {
       return false;
     }
-  };
+  }
 
   return PageViewClass as unknown as Constructor<PageView> & T;
-}
+};
 
-export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructor<LitElement>>(superClass: T) => {
+export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructor<LitElement>>(
+  superClass: T
+) => {
   class AuthorizedViewClass extends superClass {
-
     @state()
     protected authorized = false;
 
@@ -131,7 +135,6 @@ export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructo
       if (changedProperties.has('authorized')) {
         this.resetData();
         this.maybeLoadData();
-        return;
       }
     }
 
@@ -152,42 +155,40 @@ export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructo
         // TODO: Extract into an <lineup-unauthorized> component, and
         // use shared styles.
         return html`
-        <style>
-          :host {
-            display: block;
-            box-sizing: border-box;
-          }
+          <style>
+            :host {
+              display: block;
+              box-sizing: border-box;
+            }
 
-          [hidden] {
-            display: none !important;
-          }
+            [hidden] {
+              display: none !important;
+            }
 
-          section {
-            padding: 24px;
-            background: var(--app-section-odd-color);
-          }
+            section {
+              padding: 24px;
+              background: var(--app-section-odd-color);
+            }
 
-          section > * {
-            max-width: 600px;
-            margin-right: auto;
-            margin-left: auto;
-          }
+            section > * {
+              max-width: 600px;
+              margin-right: auto;
+              margin-left: auto;
+            }
 
-          section:nth-of-type(even) {
-            background: var(--app-section-even-color);
-          }
+            section:nth-of-type(even) {
+              background: var(--app-section-even-color);
+            }
 
-          .unauthorized {
-            text-align: center;
-            white-space: nowrap;
-          }
-        </style>
-        <section>
-          <p class="unauthorized">
-            Sign in to ${this.getAuthorizedDescription()}.
-          </p>
-        </section>
-      `;
+            .unauthorized {
+              text-align: center;
+              white-space: nowrap;
+            }
+          </style>
+          <section>
+            <p class="unauthorized">Sign in to ${this.getAuthorizedDescription()}.</p>
+          </section>
+        `;
       }
       return this.renderView();
     }
@@ -199,10 +200,10 @@ export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructo
     protected getAuthorizedDescription(): string {
       return 'view content';
     }
-  };
+  }
 
   return AuthorizedViewClass as unknown as Constructor<AuthorizedView> & T;
-}
+};
 
 export const PageViewElement = PageViewMixin(LitElement);
 export const AuthorizedViewElement = AuthorizedViewMixin(PageViewElement);

@@ -1,3 +1,5 @@
+/** @format */
+
 import { createContext } from '@lit-labs/context';
 
 export interface PageRouter {

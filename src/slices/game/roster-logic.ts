@@ -1,3 +1,5 @@
+/** @format */
+
 import { createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Player, Roster } from '../../models/player.js';
 import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
@@ -13,9 +15,9 @@ export const copyRoster = createAsyncThunk<
   string,
   {
     // Optional fields for defining thunkApi field types
-    state: RootState,
+    state: RootState;
     // The game id is added to the meta for the pending action.
-    pendingMeta: { gameId: string }
+    pendingMeta: { gameId: string };
   }
 >(
   'game/copyRoster',
@@ -28,7 +30,7 @@ export const copyRoster = createAsyncThunk<
       throw new Error(`No existing game found for id: ${gameId}`);
     }
 
-    const rosterExists = (Object.keys(game.roster).length > 0);
+    const rosterExists = Object.keys(game.roster).length > 0;
     if (rosterExists) {
       return { gameId };
     }
@@ -38,18 +40,19 @@ export const copyRoster = createAsyncThunk<
 
     // TODO: Use batched writes? (Firestore transactions don't work offline)
     const roster: Roster = {};
-    await Promise.all(Object.keys(teamRoster).map((key) => {
-      // Copies the team player to a new player object.
-      const gamePlayer: Player = {
-        ...teamRoster[key]
-      };
-      // Saves player to game roster storage, but keep the same id. This allows matching up player
-      // from team roster across games.
-      return persistGamePlayer(gamePlayer, gameId, false).then(() => {
-        roster[gamePlayer.id] = gamePlayer;
-        return;
+    await Promise.all(
+      Object.keys(teamRoster).map((key) => {
+        // Copies the team player to a new player object.
+        const gamePlayer: Player = {
+          ...teamRoster[key],
+        };
+        // Saves player to game roster storage, but keep the same id. This allows matching up player
+        // from team roster across games.
+        return persistGamePlayer(gamePlayer, gameId, false).then(() => {
+          roster[gamePlayer.id] = gamePlayer;
+        });
       })
-    }));
+    );
 
     return { gameId, gameRoster: roster };
   },
@@ -62,20 +65,25 @@ export const copyRoster = createAsyncThunk<
     },
     getPendingMeta: (base) => {
       return { gameId: base.arg };
-    }
+    },
   }
 );
 
-export const rosterCopyPendingHandler = (state: GameState,
-  _action: ReturnType<typeof copyRoster.pending>) => {
+export const rosterCopyPendingHandler = (
+  state: GameState,
+  _action: ReturnType<typeof copyRoster.pending>
+) => {
   state.rosterFailure = false;
   state.rosterLoading = true;
 };
 
-export const rosterCopiedHandler = (state: GameState, action: PayloadAction<RosterCopiedPayload>) => {
+export const rosterCopiedHandler = (
+  state: GameState,
+  action: PayloadAction<RosterCopiedPayload>
+) => {
   // Set new roster, if required.
   const game = findGame(state, action.payload.gameId);
-  if (action.payload.gameRoster && (Object.keys(game.roster).length === 0)) {
+  if (action.payload.gameRoster && Object.keys(game.roster).length === 0) {
     const gameRoster = action.payload.gameRoster;
     const roster: Roster = {};
     Object.keys(gameRoster).forEach((key) => {
@@ -91,32 +99,41 @@ export const rosterCopiedHandler = (state: GameState, action: PayloadAction<Rost
   state.rosterLoading = false;
 };
 
-export const rosterCopyFailedHandler = (state: GameState,
-  action: ReturnType<typeof copyRoster.rejected>) => {
+export const rosterCopyFailedHandler = (
+  state: GameState,
+  action: ReturnType<typeof copyRoster.rejected>
+) => {
   state.error = action.error.message || action.error.name;
   state.rosterFailure = true;
   state.rosterLoading = false;
 };
 
-export const addNewGamePlayer = (gameId: string, newPlayer: Player): ThunkResult => (dispatch, getState) => {
-  if (!newPlayer) {
-    return;
-  }
-  // Verify that the player id is unique.
-  const game = selectGameById(getState(), gameId);
-  if (game?.roster[newPlayer.id]) {
-    return;
-  }
-  dispatch(saveGamePlayer(gameId, newPlayer));
-};
+export const addNewGamePlayer =
+  (gameId: string, newPlayer: Player): ThunkResult =>
+  (dispatch, getState) => {
+    if (!newPlayer) {
+      return;
+    }
+    // Verify that the player id is unique.
+    const game = selectGameById(getState(), gameId);
+    if (game?.roster[newPlayer.id]) {
+      return;
+    }
+    dispatch(saveGamePlayer(gameId, newPlayer));
+  };
 
-export const saveGamePlayer = (gameId: string, newPlayer: Player): ThunkPromise<void> => async (dispatch) => {
-  // Save the player to Firestore, before adding to the store.
-  await persistGamePlayer(newPlayer, gameId, true);
-  dispatch(gamePlayerAdded(gameId, newPlayer));
-};
+export const saveGamePlayer =
+  (gameId: string, newPlayer: Player): ThunkPromise<void> =>
+  async (dispatch) => {
+    // Save the player to Firestore, before adding to the store.
+    await persistGamePlayer(newPlayer, gameId, true);
+    dispatch(gamePlayerAdded(gameId, newPlayer));
+  };
 
-export const gamePlayerAddedHandler = (state: GameState, action: PayloadAction<PlayerAddedPayload>) => {
+export const gamePlayerAddedHandler = (
+  state: GameState,
+  action: PayloadAction<PlayerAddedPayload>
+) => {
   const game = findGame(state, action.payload.gameId);
   game.roster[action.payload.player.id] = action.payload.player;
 };
@@ -126,6 +143,6 @@ export const gamePlayerAddedPrepare = (gameId: string, player: Player) => {
     payload: {
       gameId,
       player,
-    }
+    },
   };
-}
+};

@@ -1,3 +1,5 @@
+/** @format */
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getEnv } from '../../app/environment.js';
 import { Team } from '../../models/team.js';
@@ -11,18 +13,19 @@ let snackbarTimer: number;
 export const showSnackbar = (): ThunkResult => (dispatch) => {
   dispatch(openSnackBar());
   window.clearTimeout(snackbarTimer);
-  snackbarTimer = window.setTimeout(() =>
-    dispatch(closeSnackBar()), 3000);
+  snackbarTimer = window.setTimeout(() => dispatch(closeSnackBar()), 3000);
 };
 
-export const offlineChanged = (offline: boolean): ThunkResult => (dispatch, getState) => {
-  const appState = getState().app!;
-  // Show the snackbar only if offline status changes.
-  if (offline !== appState.offline && !env.disableOfflineDetection) {
-    dispatch(showSnackbar());
-  }
-  dispatch(updateOffline(offline));
-};
+export const offlineChanged =
+  (offline: boolean): ThunkResult =>
+  (dispatch, getState) => {
+    const appState = getState().app!;
+    // Show the snackbar only if offline status changes.
+    if (offline !== appState.offline && !env.disableOfflineDetection) {
+      dispatch(showSnackbar());
+    }
+    dispatch(updateOffline(offline));
+  };
 
 export const selectCurrentTeam = (state: RootState): Team | undefined => {
   if (!state.app?.teamId) {
@@ -32,7 +35,7 @@ export const selectCurrentTeam = (state: RootState): Team | undefined => {
     id: state.app.teamId,
     name: state.app.teamName,
   };
-}
+};
 
 export const APP_SLICE_NAME = 'app';
 
@@ -59,12 +62,12 @@ const appSlice = createSlice({
   initialState: APP_INITIAL_STATE,
   reducers: {
     currentTeamChanged: {
-      reducer: (state, action: PayloadAction<{ teamId: string, teamName: string }>) => {
+      reducer: (state, action: PayloadAction<{ teamId: string; teamName: string }>) => {
         setCurrentTeam(state, action.payload.teamId, action.payload.teamName);
       },
       prepare: (teamId: string, teamName: string) => {
         return { payload: { teamId, teamName } };
-      }
+      },
     },
     updatePage: {
       reducer: (state, action: PayloadAction<{ page: string }>) => {
@@ -72,7 +75,7 @@ const appSlice = createSlice({
       },
       prepare: (page: string) => {
         return { payload: { page } };
-      }
+      },
     },
     updateOffline: {
       reducer: (state, action: PayloadAction<{ offline: boolean }>) => {
@@ -80,7 +83,7 @@ const appSlice = createSlice({
       },
       prepare: (offline: boolean) => {
         return { payload: { offline } };
-      }
+      },
     },
     updateDrawerState: {
       reducer: (state, action: PayloadAction<{ opened: boolean }>) => {
@@ -88,7 +91,7 @@ const appSlice = createSlice({
       },
       prepare: (opened: boolean) => {
         return { payload: { opened } };
-      }
+      },
     },
     openSnackBar: (state) => {
       state.snackbarOpened = true;
@@ -108,8 +111,11 @@ const { actions, reducer } = appSlice;
 
 export const {
   currentTeamChanged,
-  openSnackBar, closeSnackBar,
-  updateDrawerState, updateOffline, updatePage
+  openSnackBar,
+  closeSnackBar,
+  updateDrawerState,
+  updateOffline,
+  updatePage,
 } = actions;
 export const appReducer = reducer;
 

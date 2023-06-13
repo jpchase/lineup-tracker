@@ -81,7 +81,7 @@ export class LineupPlayerCard extends LitElement {
     if (player?.replaces) {
       const replacedPlayer = this.playerResolver?.getPlayer(player.replaces);
       if (replacedPlayer) {
-        subFor = '-> ' + replacedPlayer.name;
+        subFor = `-> ${replacedPlayer.name}`;
       }
     }
 

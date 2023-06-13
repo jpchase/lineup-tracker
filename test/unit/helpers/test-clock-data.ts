@@ -21,7 +21,7 @@ export function buildStoppedTimer(elapsedSeconds?: number): TimerData {
 }
 
 export function mockTimeProvider(t0: number, t1?: number, t2?: number, t3?: number) {
-  let provider = new CurrentTimeProvider();
+  const provider = new CurrentTimeProvider();
   const stub = sinon.stub(provider, 'getTimeInternal').returns(t0);
   if (t1) {
     stub.onCall(1).returns(t1);
@@ -36,7 +36,7 @@ export function mockTimeProvider(t0: number, t1?: number, t2?: number, t3?: numb
 }
 
 export function manualTimeProvider(currentTime: number) {
-  let provider = new ManualTimeProvider();
+  const provider = new ManualTimeProvider();
   if (currentTime) {
     provider.setCurrentTime(currentTime);
   }

@@ -29,6 +29,9 @@ function getPlayers(
       case 2:
         pos = ['AM'];
         break;
+
+      default:
+      // Other cases cover all scenarios
     }
 
     players.push({
@@ -36,7 +39,7 @@ function getPlayers(
       name: `Player ${i}`,
       uniformNumber: i + (i % 3) * 10,
       positions: pos,
-      status: status,
+      status,
     });
 
     if (otherStatus) {

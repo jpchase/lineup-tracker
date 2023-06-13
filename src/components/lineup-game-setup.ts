@@ -82,7 +82,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
 
     // TODO: Turn this into a property, rather than creating new each time?
     // Is it causing unnecessary updates?
-    let formation = undefined;
+    let formation;
     if (this.formation) {
       formation = FormationBuilder.create(this.formation.type);
     }
@@ -237,7 +237,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
       return nothing;
     }
     const starter = this.proposedStarter;
-    let positionText = formatPosition(starter.currentPosition!);
+    const positionText = formatPosition(starter.currentPosition!);
 
     return html`
       <div>
@@ -245,7 +245,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
         <span class="proposed-player">${starter.name} #${starter.uniformNumber}</span>
         <span class="proposed-position">${positionText}</span>
         <mwc-button class="cancel" @click="${this.cancelStarter}">Cancel</mwc-button>
-        <mwc-button class="ok" autofocus @click="${this.applyStarter}">Apply</mwc-button>
+        <mwc-button class="ok" @click="${this.applyStarter}">Apply</mwc-button>
       </div>
     `;
   }
@@ -254,7 +254,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     if (!this.invalidStarters?.length) {
       return nothing;
     }
-    let errorText = this.invalidStarters.join(', ');
+    const errorText = this.invalidStarters.join(', ');
     return html`
       <span id="starter-errors">
         <mwc-icon>report</mwc-icon>
@@ -442,12 +442,9 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   }
 
   private periodsDialogClosed(e: CustomEvent) {
-    console.log(`periodsDialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
-    switch (e.detail.action) {
-      case 'save': {
-        this.savePeriods();
-        break;
-      }
+    // console.log(`periodsDialogClosed: [${e.type}] = ${JSON.stringify(e.detail)}`);
+    if (e.detail.action === 'save') {
+      this.savePeriods();
     }
     this.showPeriods = false;
   }
@@ -461,10 +458,8 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     const periodLengthField = this.getFormInput('period-length');
     const totalPeriods = numPeriodsField.valueAsNumber;
     const periodLength = periodLengthField.valueAsNumber;
-    console.log(`save: ${totalPeriods}, ${periodLength}`);
 
     this.dispatch(configurePeriods(this.gameId!, totalPeriods, periodLength));
-    console.log(`save: action now dispatched`);
 
     this.showPeriods = false;
   }

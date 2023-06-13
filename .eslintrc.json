@@ -1,23 +1,21 @@
 {
+  "globals": {
+    "URLPattern": "readonly"
+  },
   "extends": ["@open-wc", "prettier"],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "root": true,
   "rules": {
     "arrow-body-style": "off",
+    "class-methods-use-this": "off", // Not useful
     "func-names": ["off", "as-needed"], // Temporarily disable
     "spaced-comment": [
       "off", // Temporarily disable
       "always",
       { "markers": ["!"], "exceptions": ["*"] }
     ],
-    "require-jsdoc": ["error", { "require": { "FunctionDeclaration": false } }],
-    "no-alert": 0,
-    "no-bitwise": 0,
-    "no-eq-null": 1,
-    "guard-for-in": 1,
-    "no-empty": 1,
-    "import/named": "off",
+    "import/no-extraneous-dependencies": "off", // Too many false positives, as it does not handle references to @types
     "import/no-unresolved": "off",
     "import/extensions": [
       "error",
@@ -28,12 +26,20 @@
     ],
     "lines-between-class-members": "off",
     "max-classes-per-file": "off",
+    "no-console": ["error", { "allow": ["error", "time", "timeEnd", "timeLog", "warn"] }],
     "no-continue": "off",
     "no-multi-assign": ["error", { "ignoreNonDeclaration": true }],
+    "no-param-reassign": [
+      "error",
+      { "props": true, "ignorePropertyModificationsFor": ["game", "model", "obj", "state"] }
+    ],
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "prefer-destructuring": "off",
     // Typescript overrides of built-in rules.
+    "import/named": "off",
+    "no-shadow": "off",
     "no-unused-vars": "off",
+    "@typescript-eslint/no-shadow": ["error", { "allow": ["state"] }],
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
@@ -41,30 +47,7 @@
       }
     ],
     // Temporarily disable rules, to allow lint to complete successfully.
-    "class-methods-use-this": "off",
-    "default-case": "off",
-    "import/newline-after-import": "off",
-    "import/no-extraneous-dependencies": "off",
-    "lit/no-value-attribute": "off",
-    "lit-a11y/alt-text": "off",
-    "lit-a11y/no-autofocus": "off",
-    "no-console": "off",
-    "no-extra-boolean-cast": "off",
-    "no-lonely-if": "off",
-    "no-nested-ternary": "off",
-    "no-param-reassign": "off",
-    "no-restricted-globals": "off",
-    "no-shadow": "off",
-    "no-undef": "off",
-    "no-undef-init": "off",
-    "no-unneeded-ternary": "off",
-    "no-unsafe-optional-chaining": "off",
-    "no-use-before-define": "off",
-    "no-useless-constructor": "off",
-    "no-useless-return": "off",
-    "object-shorthand": "off",
-    "prefer-const": "off",
-    "prefer-template": "off"
+    "no-use-before-define": ["off", { "functions": false, "allowNamedExports": true }]
   },
   "overrides": [
     {
@@ -98,6 +81,13 @@
       "rules": {
         "no-inner-declarations": "off",
         "no-loop-func": "off"
+      }
+    },
+    {
+      // TODO: Remove after upgrading to new mwc form fields
+      "files": ["src/components/lineup-game-setup.ts"],
+      "rules": {
+        "lit/no-value-attribute": "off"
       }
     }
   ],

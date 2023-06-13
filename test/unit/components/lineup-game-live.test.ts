@@ -119,7 +119,7 @@ describe('lineup-game-live tests', () => {
     const items = list.shadowRoot!.querySelectorAll('lineup-player-card');
 
     let playerElement: LineupPlayerCard | undefined;
-    for (let element of Array.from(items)) {
+    for (const element of Array.from(items)) {
       const playerCard = element as LineupPlayerCard;
 
       if (playerCard.player && playerCard.player.id === player.id) {
@@ -136,7 +136,7 @@ describe('lineup-game-live tests', () => {
     const items = list.shadowRoot!.querySelectorAll('lineup-player-card');
 
     let playerElement: LineupPlayerCard | undefined;
-    for (let element of Array.from(items)) {
+    for (const element of Array.from(items)) {
       const playerCard = element as LineupPlayerCard;
 
       if (playerCard.data && playerCard.data.player && playerCard.data.player.id === player.id) {
@@ -695,7 +695,7 @@ describe('lineup-game-live tests', () => {
     });
 
     it('dispatches mark player out action', async () => {
-      let foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const offPlayer = foundPlayer!;
 
@@ -727,7 +727,7 @@ describe('lineup-game-live tests', () => {
     });
 
     it('dispatches return out player action', async () => {
-      let foundPlayer = findPlayer(liveGame, PlayerStatus.Out);
+      const foundPlayer = findPlayer(liveGame, PlayerStatus.Out);
       expect(foundPlayer, 'Missing player with out status').to.be.ok;
       const outPlayer = foundPlayer!;
 

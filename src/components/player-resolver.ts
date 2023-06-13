@@ -1,3 +1,5 @@
+/** @format */
+
 import { createContext } from '@lit-labs/context';
 import { LivePlayer } from '../models/live.js';
 

@@ -1,3 +1,5 @@
+/** @format */
+
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { Duration, Timer } from '../models/clock.js';
 
@@ -16,14 +18,15 @@ export class TimerController implements ReactiveController {
     this.updateTimerText();
     this.refresh();
   }
-  get timer() { return this._timer; }
+  get timer() {
+    return this._timer;
+  }
 
   hostConnected() {
     this.refresh();
   }
 
-  hostDisconnected() {
-  }
+  hostDisconnected() {}
 
   protected refresh() {
     if (!this.timer || !this.timer.isRunning) {
@@ -45,10 +48,6 @@ export class TimerController implements ReactiveController {
 }
 
 export class SynchronizedTimerController extends TimerController {
-  constructor(host: ReactiveControllerHost) {
-    super(host);
-  }
-
   override refresh() {
     if (!this.timer || !this.timer.isRunning) {
       return;
@@ -84,7 +83,9 @@ export class SynchronizedTriggerController implements ReactiveController {
     this._isRunning = value;
     this.resetRefreshTimer();
   }
-  get isRunning() { return this._isRunning; }
+  get isRunning() {
+    return this._isRunning;
+  }
 
   hostConnected() {
     this.resetRefreshTimer();
@@ -109,5 +110,4 @@ export class SynchronizedTriggerController implements ReactiveController {
       this.host.requestTimerUpdate();
     }, this.timeout);
   }
-
 }

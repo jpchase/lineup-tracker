@@ -1,3 +1,5 @@
+/** @format */
+
 import { AnyAction, ThunkAction, Unsubscribe } from '@reduxjs/toolkit';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import { Constructor } from '../util/shared-types.js';
@@ -20,7 +22,6 @@ export interface StateSubscribedController {
 }
 
 export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superClass: T) => {
-
   class ConnectStoreClass extends superClass {
     private controllers = new Set<StateSubscribedController>();
     private _storeUnsubscribe!: Unsubscribe;
@@ -62,7 +63,7 @@ export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superCla
 
     private notifyStateChanged(state: RootState) {
       // First, notify any controllers.
-      this.controllers.forEach(controller => {
+      this.controllers.forEach((controller) => {
         controller.stateChanged(state);
       });
 
@@ -88,8 +89,8 @@ export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superCla
     /**
      * The `stateChanged(state)` method will be called when the state is updated.
      */
-    stateChanged(_state: RootState) { }
-  };
+    stateChanged(_state: RootState) {}
+  }
 
   return ConnectStoreClass as unknown as Constructor<StoreConnected> & T;
-}
+};

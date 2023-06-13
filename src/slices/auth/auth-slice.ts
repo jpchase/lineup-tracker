@@ -57,6 +57,7 @@ export const signIn = (): ThunkResult => () => {
     const defaultCredentialToken = `{"sub": "3FK9P5Ledx4voK8w5Ep07DS6dCUc", "email": "algae.orange.312@test.com", "email_verified": true}`;
     let credentialToken = defaultCredentialToken;
 
+    // eslint-disable-next-line no-restricted-globals
     const urlParams = new URLSearchParams(location.search);
     const testUserId = urlParams.get('user');
 
@@ -78,7 +79,7 @@ export const signIn = (): ThunkResult => () => {
       console.error(`Error trying to sign in: ${error}`);
     })
     .finally(() => {
-      console.log('got to the finally clause');
+      debugAuth('got to the finally clause for sign in');
     });
 };
 

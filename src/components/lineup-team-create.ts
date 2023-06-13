@@ -33,15 +33,13 @@ export class LineupTeamCreate extends LitElement {
       <style></style>
       <mwc-textfield id="team-name" label="Team Name" required maxLength="30"></mwc-textfield>
       <div class="buttons">
-        <mwc-button raised class="save" autofocus @click="${this._saveNewTeam}">Save</mwc-button>
+        <mwc-button raised class="save" @click="${this._saveNewTeam}">Save</mwc-button>
         <mwc-button class="cancel" @click="${this._cancelCreateTeam}">Cancel</mwc-button>
       </div>
     `;
   }
 
-  private _saveNewTeam(e: CustomEvent) {
-    console.log(`_saveNewTeam: ${JSON.stringify(e.detail)}`);
-
+  private _saveNewTeam(/*e: CustomEvent*/) {
     const nameField = this.shadowRoot!.querySelector('#team-name') as TextField;
     const newTeam: Team = {
       id: '',
@@ -52,9 +50,7 @@ export class LineupTeamCreate extends LitElement {
     this.dispatchEvent(new NewTeamCreatedEvent({ team: newTeam }));
   }
 
-  private _cancelCreateTeam(e: CustomEvent) {
-    console.log(`_cancelCreateTeam: ${JSON.stringify(e.detail)}`);
-  }
+  private _cancelCreateTeam(/*e: CustomEvent*/) {}
 }
 
 declare global {

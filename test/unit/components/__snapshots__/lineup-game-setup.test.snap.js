@@ -138,10 +138,7 @@ snapshots["lineup-game-setup tests Starters shows confirm starter UI when propos
     <mwc-button class="cancel">
       Cancel
     </mwc-button>
-    <mwc-button
-      autofocus=""
-      class="ok"
-    >
+    <mwc-button class="ok">
       Apply
     </mwc-button>
   </div>

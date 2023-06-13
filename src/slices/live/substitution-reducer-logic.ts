@@ -1,18 +1,32 @@
+/** @format */
+
 import { PayloadAction } from '@reduxjs/toolkit';
 import { Position } from '../../models/formation.js';
-import { findPlayersByStatus, getPlayer, LiveGame, LivePlayer, removePlayer } from '../../models/live.js';
+import {
+  findPlayersByStatus,
+  getPlayer,
+  LiveGame,
+  LivePlayer,
+  removePlayer,
+} from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import {
   buildSwapPlayerId,
   ConfirmSubPayload,
   extractIdFromSwapPlayerId,
   LiveGamePayload,
-  PendingSubsAppliedPayload, PendingSubsDiscardedPayload, PendingSubsInvalidPayload,
-  SelectPlayerPayload
+  PendingSubsAppliedPayload,
+  PendingSubsDiscardedPayload,
+  PendingSubsInvalidPayload,
+  SelectPlayerPayload,
 } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
 
-export const selectPlayerHandler = (state: LiveState, game: LiveGame, action: PayloadAction<SelectPlayerPayload>) => {
+export const selectPlayerHandler = (
+  state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<SelectPlayerPayload>
+) => {
   const playerId = action.payload.playerId;
   const selectedPlayer = getPlayer(game, playerId);
   if (!selectedPlayer) {
@@ -42,56 +56,62 @@ export const selectPlayerHandler = (state: LiveState, game: LiveGame, action: Pa
     if (!madeSub) {
       prepareSwapIfPossible(state, game);
     }
-  } else {
+  } else if (getCurrentSelected(state, status) === playerId) {
     // De-selection.
-    if (getCurrentSelected(state, status) === playerId) {
-      setCurrentSelected(state, status, undefined);
-    }
+    setCurrentSelected(state, status, undefined);
   }
-}
+};
 
 export const selectPlayerPrepare = (gameId: string, playerId: string, selected: boolean) => {
   return {
     payload: {
       gameId,
       playerId,
-      selected: !!selected
-    }
+      selected: !!selected,
+    },
   };
-}
+};
 
-export const confirmSubHandler = (state: LiveState, game: LiveGame, action: PayloadAction<ConfirmSubPayload>) => {
+export const confirmSubHandler = (
+  state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<ConfirmSubPayload>
+) => {
   const sub = state.proposedSub;
   if (!sub) {
     return;
   }
 
-  game.players!.forEach(player => {
+  for (const player of game.players!) {
     if (player.id === sub.id) {
       player.selected = false;
       player.status = PlayerStatus.Next;
       player.currentPosition = action.payload.newPosition || sub.currentPosition;
       player.replaces = sub.replaces;
-      return;
+      continue;
     }
     if (player.id === sub.replaces) {
       player.selected = false;
     }
-  });
+  }
 
   clearProposedSub(state);
-}
+};
 
 export const confirmSubPrepare = (gameId: string, newPosition?: Position) => {
   return {
     payload: {
       gameId,
-      newPosition
-    }
+      newPosition,
+    },
   };
-}
+};
 
-export const cancelSubHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const cancelSubHandler = (
+  state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<LiveGamePayload>
+) => {
   if (!state.proposedSub) {
     return;
   }
@@ -103,9 +123,13 @@ export const cancelSubHandler = (state: LiveState, game: LiveGame, _action: Payl
     }
   }
   clearProposedSub(state);
-}
+};
 
-export const confirmSwapHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const confirmSwapHandler = (
+  state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<LiveGamePayload>
+) => {
   const swap = state.proposedSwap;
   if (!swap) {
     return;
@@ -114,7 +138,7 @@ export const confirmSwapHandler = (state: LiveState, game: LiveGame, _action: Pa
   const swapIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
   for (const playerId of swapIds) {
     const selectedPlayer = getPlayer(game, playerId);
-    if (!!selectedPlayer?.selected) {
+    if (selectedPlayer?.selected) {
       selectedPlayer.selected = false;
     }
   }
@@ -123,29 +147,37 @@ export const confirmSwapHandler = (state: LiveState, game: LiveGame, _action: Pa
     ...swap,
     id: buildSwapPlayerId(swap.id),
     status: PlayerStatus.Next,
-    selected: false
-  }
+    selected: false,
+  };
   game.players!.push(nextSwap);
 
   clearProposedSwap(state);
-}
+};
 
-export const cancelSwapHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const cancelSwapHandler = (
+  state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<LiveGamePayload>
+) => {
   if (!state.proposedSwap) {
     return;
   }
   const cancelIds = [state.selectedOnPlayer!, state.selectedOnPlayer2!];
   for (const playerId of cancelIds) {
     const selectedPlayer = getPlayer(game, playerId);
-    if (!!selectedPlayer?.selected) {
+    if (selectedPlayer?.selected) {
       selectedPlayer.selected = false;
     }
   }
   clearProposedSwap(state);
-}
+};
 
-export const pendingSubsAppliedHandler = (state: LiveState, game: LiveGame, action: PayloadAction<PendingSubsAppliedPayload>) => {
-  action.payload.subs.forEach(sub => {
+export const pendingSubsAppliedHandler = (
+  state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<PendingSubsAppliedPayload>
+) => {
+  action.payload.subs.forEach((sub) => {
     const player = getPlayer(game, sub.id);
     if (!player || player.isSwap || player.status !== PlayerStatus.Next) {
       return;
@@ -165,9 +197,13 @@ export const pendingSubsAppliedHandler = (state: LiveState, game: LiveGame, acti
   });
 
   // Apply any position swaps
-  const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next,
-    action.payload.selectedOnly, /* includeSwaps */ true);
-  nextPlayers.forEach(swapPlayer => {
+  const nextPlayers = findPlayersByStatus(
+    game,
+    PlayerStatus.Next,
+    action.payload.selectedOnly,
+    /* includeSwaps */ true
+  );
+  nextPlayers.forEach((swapPlayer) => {
     if (!swapPlayer.isSwap) {
       return;
     }
@@ -183,19 +219,27 @@ export const pendingSubsAppliedHandler = (state: LiveState, game: LiveGame, acti
     removePlayer(game, swapPlayer.id);
   });
   state.invalidSubs = undefined;
-}
+};
 
-export const pendingSubsAppliedPrepare = (gameId: string, subs: LivePlayer[], selectedOnly?: boolean) => {
+export const pendingSubsAppliedPrepare = (
+  gameId: string,
+  subs: LivePlayer[],
+  selectedOnly?: boolean
+) => {
   return {
     payload: {
       gameId,
       subs,
-      selectedOnly: !!selectedOnly
-    }
+      selectedOnly: !!selectedOnly,
+    },
   };
-}
+};
 
-export const invalidPendingSubsHandler = (state: LiveState, _game: LiveGame, action: PayloadAction<PendingSubsInvalidPayload>) => {
+export const invalidPendingSubsHandler = (
+  state: LiveState,
+  _game: LiveGame,
+  action: PayloadAction<PendingSubsInvalidPayload>
+) => {
   if (!action.payload.invalidSubs?.length) {
     state.invalidSubs = undefined;
     return;
@@ -208,37 +252,49 @@ export const invalidPendingSubsPrepare = (gameId: string, invalidSubs: string[])
     payload: {
       gameId,
       invalidSubs,
-    }
+    },
   };
-}
+};
 
-export const discardPendingSubsHandler = (state: LiveState, game: LiveGame, action: PayloadAction<PendingSubsDiscardedPayload>) => {
-  const nextPlayers = findPlayersByStatus(game, PlayerStatus.Next,
-    action.payload.selectedOnly, /* includeSwaps */ true);
-  nextPlayers.forEach(player => {
+export const discardPendingSubsHandler = (
+  state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<PendingSubsDiscardedPayload>
+) => {
+  const nextPlayers = findPlayersByStatus(
+    game,
+    PlayerStatus.Next,
+    action.payload.selectedOnly,
+    /* includeSwaps */ true
+  );
+  for (const player of nextPlayers) {
     if (player.isSwap) {
       removePlayer(game, player.id);
-      return;
+      continue;
     }
 
     player.status = PlayerStatus.Off;
     player.replaces = undefined;
     player.currentPosition = undefined;
     player.selected = false;
-  });
+  }
   state.invalidSubs = undefined;
-}
+};
 
 export const discardPendingSubsPrepare = (gameId: string, selectedOnly?: boolean) => {
   return {
     payload: {
       gameId,
-      selectedOnly: !!selectedOnly
-    }
+      selectedOnly: !!selectedOnly,
+    },
   };
-}
+};
 
-export const markPlayerOutHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const markPlayerOutHandler = (
+  state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<LiveGamePayload>
+) => {
   if (!state.selectedOffPlayer) {
     return;
   }
@@ -251,7 +307,11 @@ export const markPlayerOutHandler = (state: LiveState, game: LiveGame, _action: 
   state.selectedOffPlayer = undefined;
 };
 
-export const returnOutPlayerHandler = (state: LiveState, game: LiveGame, _action: PayloadAction<LiveGamePayload>) => {
+export const returnOutPlayerHandler = (
+  state: LiveState,
+  game: LiveGame,
+  _action: PayloadAction<LiveGamePayload>
+) => {
   if (!state.selectedOutPlayer) {
     return;
   }
@@ -282,10 +342,10 @@ function prepareSubIfPossible(state: LiveState, game: LiveGame): boolean {
   state.proposedSub = {
     ...offPlayer,
     currentPosition: {
-      ...onPlayer.currentPosition!
+      ...onPlayer.currentPosition!,
     },
-    replaces: onPlayer.id
-  }
+    replaces: onPlayer.id,
+  };
   return true;
 }
 
@@ -313,10 +373,10 @@ function prepareSwapIfPossible(state: LiveState, game: LiveGame) {
   const swap: LivePlayer = {
     ...onPlayer,
     nextPosition: {
-      ...positionPlayer.currentPosition!
+      ...positionPlayer.currentPosition!,
     },
-    isSwap: true
-  }
+    isSwap: true,
+  };
   state.proposedSwap = swap;
 }
 
@@ -334,8 +394,9 @@ function getCurrentSelected(state: LiveState, status: PlayerStatus) {
       return state.selectedOnPlayer;
     case PlayerStatus.Out:
       return state.selectedOutPlayer;
+    default:
+      throw new Error(`Unsupported status: ${status}`);
   }
-  throw new Error(`Unsupported status: ${status}`);
 }
 
 function setCurrentSelected(state: LiveState, status: PlayerStatus, value: string | undefined) {

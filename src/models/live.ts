@@ -28,7 +28,7 @@ export enum SetupSteps {
 }
 
 export const AllSetupSteps: SetupSteps[] = Object.values(SetupSteps).filter(
-  (v) => !isNaN(Number(v))
+  (v) => !Number.isNaN(Number(v))
 ) as SetupSteps[];
 
 export interface SetupTask {
@@ -110,7 +110,7 @@ export function findPlayersByStatus(
   selectedOnly?: boolean,
   includeSwaps?: boolean
 ) {
-  let matches: LivePlayer[] = [];
+  const matches: LivePlayer[] = [];
   game.players!.forEach((player) => {
     if (player.status !== status) {
       return;

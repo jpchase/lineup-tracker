@@ -71,7 +71,7 @@ describe('lineup-game-shifts tests', () => {
 
       const totalTimeElement = row.cells[2];
       expect(totalTimeElement, 'Missing total time element').to.exist;
-      expect(totalTimeElement!.textContent).to.equal(
+      expect(totalTimeElement!.textContent?.trim()).to.equal(
         Duration.format(tracker.totalOnTime),
         'Total time'
       );
@@ -114,7 +114,7 @@ describe('lineup-game-shifts tests', () => {
 
       const totalTimeElement = row.cells[2];
       expect(totalTimeElement, 'Missing total time element').to.exist;
-      expect(totalTimeElement!.textContent).to.equal(
+      expect(totalTimeElement!.textContent?.trim()).to.equal(
         Duration.format(expectedTotalTime),
         `Total time for ${tracker.id}`
       );

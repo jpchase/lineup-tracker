@@ -1,3 +1,5 @@
+/** @format */
+
 import { Player, Roster } from '../../models/player.js';
 
 export interface GamePayload {
@@ -16,6 +18,6 @@ export const prepareGamePayload = (gameId: string) => {
   return {
     payload: {
       gameId,
-    }
+    },
   };
-}
+};

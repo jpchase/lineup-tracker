@@ -148,10 +148,7 @@ snapshots["lineup-game-live tests Subs shows confirm sub UI when proposed sub ex
     <mwc-button class="cancel">
       Cancel
     </mwc-button>
-    <mwc-button
-      autofocus=""
-      class="ok"
-    >
+    <mwc-button class="ok">
       Confirm
     </mwc-button>
   </div>
@@ -174,10 +171,7 @@ snapshots["lineup-game-live tests Subs shows confirm swap UI when proposed swap 
     <mwc-button class="cancel">
       Cancel
     </mwc-button>
-    <mwc-button
-      autofocus=""
-      class="ok"
-    >
+    <mwc-button class="ok">
       Confirm
     </mwc-button>
   </div>

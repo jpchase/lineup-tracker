@@ -12,14 +12,22 @@ function getGames(numGames: number): Games {
   for (let i = 0; i < size; i++) {
     const gameId = `G${i}`;
 
+    // Hours are either 0, before noon, or after noon.
+    let hours = 12 + i;
+    if (i === 0) {
+      hours = 0;
+    } else if (i % 2 === 0) {
+      hours = 11 - i;
+    }
+
     games[gameId] = {
       id: gameId,
       status: GameStatus.New,
       teamId: 'T1',
       name: `Game ${i}`,
       opponent: `Other team ${i}`,
-      // Months start at zero, days start at 1, hours are either 0, before noon, after noon.
-      date: new Date(2016, i % 3, i + 1, i === 0 ? 0 : i % 2 === 0 ? 11 - i : 12 + i),
+      // Months start at zero, days start at 1, hours as set above.
+      date: new Date(2016, i % 3, i + 1, hours),
     };
   }
   return games;

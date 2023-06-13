@@ -52,6 +52,7 @@ export function combineReducersWithReset<S extends EmptyObject, A extends Action
   const combinedReducer = combineReducers(reducers);
   const rootReducer: Reducer<S, A> = (state, action) => {
     if (action.type === RESET_STATE) {
+      // eslint-disable-next-line no-param-reassign
       state = undefined;
     }
     return combinedReducer(state, action);

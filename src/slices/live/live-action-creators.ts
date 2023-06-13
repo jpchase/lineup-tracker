@@ -61,7 +61,6 @@ export const pendingSubsAppliedCreator =
     }
     const subs = selectPendingSubs(state, game.id, selectedOnly, /* includeSwaps */ true);
     if (!subs) {
-      console.log('No subs!');
       return;
     }
     const invalidSubs = validatePendingSubs(game, subs);
@@ -178,7 +177,6 @@ function validateFilledPositions(game: LiveGame, filledPositions: FilledPosition
   const requiredPositions = getPositions(formation);
 
   if (filledPositions?.size !== requiredPositions.length) {
-    console.log(`Formation has unfilled positions with current On players`);
     for (const position of requiredPositions) {
       if (!filledPositions.has(position.id)) {
         invalidPositions.set(position.id, `Position [${position.id}] is empty`);
@@ -216,8 +214,8 @@ export class FilledPositionMap {
   }
 
   removePlayer(positionId: string, playerId: string) {
-    playerId = extractIdFromSwapPlayerId(playerId);
-    const { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, playerId);
+    const lookupPlayerId = extractIdFromSwapPlayerId(playerId);
+    const { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, lookupPlayerId);
 
     if (playerIdIndex >= 0) {
       idsInPosition!.splice(playerIdIndex, 1);
@@ -226,8 +224,9 @@ export class FilledPositionMap {
   }
 
   addPlayer(positionId: string, playerId: string) {
-    playerId = extractIdFromSwapPlayerId(playerId);
-    let { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, playerId);
+    const lookupPlayerId = extractIdFromSwapPlayerId(playerId);
+    // eslint-disable-next-line prefer-const
+    let { idsInPosition, playerIdIndex } = this.getIdsInPosition(positionId, lookupPlayerId);
 
     if (playerIdIndex < 0) {
       idsInPosition = idsInPosition || [];
@@ -241,7 +240,7 @@ export class FilledPositionMap {
   }
 
   private getIdsInPosition(positionId: string, playerId: string) {
-    let idsInPosition = this.filled.get(positionId);
+    const idsInPosition = this.filled.get(positionId);
     const playerIdIndex = idsInPosition ? idsInPosition.indexOf(playerId) : -1;
     return { idsInPosition, playerIdIndex };
   }

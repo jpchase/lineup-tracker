@@ -25,11 +25,9 @@ export class GameLivePage extends GameDetailPage {
     };
   }
 
-  static async createLivePage(options: PageOptions, firestore?: Firestore) {
+  static async createLivePage(options: PageOptions, existingFirestore?: Firestore) {
     // Create a new game, with roster, by copying the existing game.
-    if (!firestore) {
-      firestore = getFirestore(createAdminApp());
-    }
+    const firestore = existingFirestore ?? getFirestore(createAdminApp());
     const newGame = await copyGame(firestore, options.gameId!, options.userId!);
 
     // Sort the players by name, so there is a stable order across tests.
@@ -69,7 +67,7 @@ export class GameLivePage extends GameDetailPage {
     return clockHandle.evaluate(async (clock) => {
       const startButton = clock.shadowRoot!.querySelector('#start-button');
       if (!startButton) {
-        console.log('Start button not found');
+        this.log('Start button not found');
         return;
       }
       (startButton as HTMLElement).click();
@@ -175,10 +173,8 @@ export class GameLivePage extends GameDetailPage {
     return liveHandle;
   }
 
-  private async getClockComponent(liveHandle?: ElementHandle<Element>) {
-    if (!liveHandle) {
-      liveHandle = await this.getLiveComponent();
-    }
+  private async getClockComponent(existingLiveHandle?: ElementHandle<Element>) {
+    const liveHandle = existingLiveHandle ?? (await this.getLiveComponent());
     const clockHandle = await liveHandle.$('pierce/lineup-game-clock');
     if (!clockHandle) {
       throw new Error('Clock component not found');

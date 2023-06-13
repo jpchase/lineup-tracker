@@ -1,7 +1,6 @@
-import {
-  DocumentData,
-  WithFieldValue
-} from 'firebase/firestore';
+/** @format */
+
+import { DocumentData, WithFieldValue } from 'firebase/firestore';
 
 export interface Model {
   id: string;

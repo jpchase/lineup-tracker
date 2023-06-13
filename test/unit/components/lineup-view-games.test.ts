@@ -1,3 +1,5 @@
+/** @format */
+
 import '@app/components/lineup-view-games.js';
 import { LineupViewGames } from '@app/components/lineup-view-games.js';
 import { Games } from '@app/models/game.js';
@@ -7,7 +9,13 @@ import { Button } from '@material/mwc-button';
 import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import { buildGameStateWithGames } from '../helpers/game-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildGames, getMockAuthState, getNewGame, getStoredGame, TEST_USER_ID } from '../helpers/test_data.js';
+import {
+  buildGames,
+  getMockAuthState,
+  getNewGame,
+  getStoredGame,
+  TEST_USER_ID,
+} from '../helpers/test_data.js';
 import { addElementAssertions } from '../helpers/element-assertions.js';
 
 function getExistingGames(): Games {
@@ -28,9 +36,14 @@ describe('lineup-view-games tests', () => {
   });
 
   async function setupElement(preloadedState?: RootState) {
-    const store = setupStore(preloadedState, /*hydrate=*/false);
+    const store = setupStore(preloadedState, /*hydrate=*/ false);
 
-    const template = html`<lineup-view-games active .store=${store} .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/false)}></lineup-view-games>`;
+    const template = html`<lineup-view-games
+      active
+      .store=${store}
+      .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/ false)}
+    >
+    </lineup-view-games>`;
     el = await fixture(template);
   }
 
@@ -130,7 +143,9 @@ describe('lineup-view-games tests', () => {
     setTimeout(() => addButton!.click());
     await oneEvent(addButton!, 'click');
 
-    const cancelButton = createElement.shadowRoot!.querySelector('mwc-button[dialogAction="close"]') as HTMLElement;
+    const cancelButton = createElement.shadowRoot!.querySelector(
+      'mwc-button[dialogAction="close"]'
+    ) as HTMLElement;
 
     setTimeout(() => cancelButton!.click());
     await oneEvent(cancelButton!, 'click');

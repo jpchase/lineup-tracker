@@ -42,7 +42,7 @@ export class LineupPlayerList extends PlayerListElement {
                     >
                     </lineup-player-card>
                     ${this.showCancel
-                      ? html`<mwc-button icon="cancel" @click="${this._doCancel}">Save</mwc-button>`
+                      ? html`<mwc-button icon="cancel" @click="${this.doCancel}">Save</mwc-button>`
                       : ''}
                   `
                 )}
@@ -72,7 +72,7 @@ export class LineupPlayerList extends PlayerListElement {
   }
 
   _getPlayerFilter(mode: string): PlayerFilterFunc {
-    let status = mode.toUpperCase();
+    const status = mode.toUpperCase();
     switch (status) {
       case PlayerStatus.Next:
       case PlayerStatus.Out:
@@ -85,7 +85,6 @@ export class LineupPlayerList extends PlayerListElement {
         };
       default:
         return () => {
-          console.log('Unsupported mode: ', mode);
           return false;
         };
     }
@@ -99,9 +98,7 @@ export class LineupPlayerList extends PlayerListElement {
     return this.players.filter(filterFunc);
   }
 
-  _doCancel(e: CustomEvent) {
-    console.log('_doCancel', e);
-  }
+  doCancel(/*e: CustomEvent*/) {}
 }
 
 declare global {

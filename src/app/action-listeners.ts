@@ -1,3 +1,5 @@
+/** @format */
+
 import { createListenerMiddleware, TypedStartListening, Unsubscribe } from '@reduxjs/toolkit';
 import { debug } from '../common/debug.js';
 import { currentTeamChanged } from '../slices/app/app-slice.js';
@@ -8,15 +10,12 @@ import { getEnv } from './environment.js';
 const debugListeners = debug('listeners');
 const env = getEnv();
 
-export type AppStartListening = TypedStartListening<RootState, AppDispatch>
+export type AppStartListening = TypedStartListening<RootState, AppDispatch>;
 
 export const listenerMiddleware = createListenerMiddleware();
-export const startAppListening =
-  listenerMiddleware.startListening as AppStartListening
+export const startAppListening = listenerMiddleware.startListening as AppStartListening;
 
-export function setupAuthListeners(
-  startListening: AppStartListening
-): Unsubscribe {
+export function setupAuthListeners(startListening: AppStartListening): Unsubscribe {
   const subscriptions = [
     startListening({
       actionCreator: userSignedIn,
@@ -32,15 +31,15 @@ export function setupAuthListeners(
         debugListeners(`Signed in, done setting team`);
       },
     }),
-  ]
+  ];
 
   return () => {
-    subscriptions.forEach((unsubscribe) => unsubscribe())
-  }
+    subscriptions.forEach((unsubscribe) => unsubscribe());
+  };
 }
 
 function initializeTeam(teamParam: string | null) {
-  debugListeners(`initializeTeam: env = ${env.environment}, param = ${teamParam}`)
+  debugListeners(`initializeTeam: env = ${env.environment}, param = ${teamParam}`);
   switch (env.environment) {
     case 'dev':
     case 'test':

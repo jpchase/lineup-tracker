@@ -1,17 +1,24 @@
+/** @format */
+
 import { auth } from '@app/firebase';
 import { User } from '@app/models/auth';
 import { getUser, signIn, userSignedIn, userSignedOut } from '@app/slices/auth/auth-slice.js';
 import { expect } from '@open-wc/testing';
-import { onAuthStateChanged, OperationType, User as FirebaseUser, UserCredential } from 'firebase/auth';
+import {
+  onAuthStateChanged,
+  OperationType,
+  User as FirebaseUser,
+  UserCredential,
+} from 'firebase/auth';
 import sinon from 'sinon';
 
-type AuthStateChangedFn = (typeof onAuthStateChanged);
+type AuthStateChangedFn = typeof onAuthStateChanged;
 
 function buildFirebaseUser(uid: number): FirebaseUser {
   const result: any = {
     uid,
-    displayName: `User ${uid}`
-  }
+    displayName: `User ${uid}`,
+  };
   return result as FirebaseUser;
 }
 
@@ -19,8 +26,8 @@ function buildUserCredential(user: FirebaseUser): UserCredential {
   return {
     user,
     providerId: null,
-    operationType: OperationType.SIGN_IN
-  }
+    operationType: OperationType.SIGN_IN,
+  };
 }
 
 function mockAuthStateChanged(changedValue: FirebaseUser | null): AuthStateChangedFn {
@@ -28,7 +35,7 @@ function mockAuthStateChanged(changedValue: FirebaseUser | null): AuthStateChang
     if (typeof nextOrObserver === 'function') {
       nextOrObserver(changedValue);
     }
-    return () => { };
+    return () => {};
   };
 }
 
@@ -52,9 +59,10 @@ describe('getUser', () => {
     const getStateMock = sinon.stub();
 
     const firebaseUser = {
-      uid: 'su1', displayName: 'Signed in user 1',
+      uid: 'su1',
+      displayName: 'Signed in user 1',
       email: null,
-      photoURL: null
+      photoURL: null,
     } as FirebaseUser;
 
     changedStub.onFirstCall().callsFake(mockAuthStateChanged(firebaseUser));
@@ -66,11 +74,13 @@ describe('getUser', () => {
     expect(changedStub.firstCall).to.have.been.calledWith(sinon.match.object, sinon.match.func);
 
     const signedInUser: User = {
-      id: 'su1', name: 'Signed in user 1', email: '', imageUrl: ''
+      id: 'su1',
+      name: 'Signed in user 1',
+      email: '',
+      imageUrl: '',
     };
 
-    expect(dispatchMock).to.have.been.calledWith(
-      userSignedIn(signedInUser));
+    expect(dispatchMock).to.have.been.calledWith(userSignedIn(signedInUser));
   });
 
   it('should dispatch an action with no user after sign out', () => {
@@ -84,10 +94,8 @@ describe('getUser', () => {
     // Checks that onAuthStateChanged() was called with a callback.
     expect(changedStub).to.have.callCount(1);
 
-    expect(dispatchMock).to.have.been.calledWith(
-      userSignedOut());
+    expect(dispatchMock).to.have.been.calledWith(userSignedOut());
   });
-
 });
 
 describe('signIn', () => {
@@ -131,5 +139,4 @@ describe('signIn', () => {
     // Checks that signInWithPopup() was called.
     expect(signInSpy).to.have.callCount(1);
   });
-
 });

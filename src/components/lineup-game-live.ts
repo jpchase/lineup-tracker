@@ -158,7 +158,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     }
     const sub = this.proposedSub;
     const replaced = this._findPlayer(sub.replaces!)!;
-    let positionText = formatPosition(sub.currentPosition!);
+    const positionText = formatPosition(sub.currentPosition!);
     const allPositions = getPositions(this.formation!);
 
     return html`
@@ -180,7 +180,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         </span>
 
         <mwc-button class="cancel" @click="${this.cancelSubClicked}">Cancel</mwc-button>
-        <mwc-button class="ok" autofocus @click="${this.confirmSubClicked}">Confirm</mwc-button>
+        <mwc-button class="ok" @click="${this.confirmSubClicked}">Confirm</mwc-button>
       </div>
     `;
   }
@@ -190,7 +190,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       return nothing;
     }
     const swap = this.proposedSwap;
-    let positionText = formatPosition(swap.nextPosition!);
+    const positionText = formatPosition(swap.nextPosition!);
 
     return html`
       <div>
@@ -198,7 +198,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         <span class="proposed-player">${swap.name} #${swap.uniformNumber}</span>
         <span class="proposed-position">${positionText}</span>
         <mwc-button class="cancel" @click="${this.cancelSwapClicked}">Cancel</mwc-button>
-        <mwc-button class="ok" autofocus @click="${this.confirmSwapClicked}">Confirm</mwc-button>
+        <mwc-button class="ok" @click="${this.confirmSwapClicked}">Confirm</mwc-button>
       </div>
     `;
   }
@@ -207,7 +207,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     if (!this.invalidSubs?.length) {
       return nothing;
     }
-    let errorText = this.invalidSubs.join(', ');
+    const errorText = this.invalidSubs.join(', ');
     return html`
       <span id="sub-errors">
         <mwc-icon>report</mwc-icon>

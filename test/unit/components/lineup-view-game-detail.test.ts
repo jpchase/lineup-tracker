@@ -1,3 +1,5 @@
+/** @format */
+
 import { LineupViewGameDetail } from '@app/components/lineup-view-game-detail.js';
 import '@app/components/lineup-view-game-detail.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
@@ -6,13 +8,24 @@ import { getGameStoreConfigurator } from '@app/slices/game-store.js';
 import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { buildGameStateWithCurrentGame, buildInitialGameState } from '../helpers/game-state-setup.js';
-import { buildInitialLiveState, buildLiveStateWithCurrentGame } from '../helpers/live-state-setup.js';
+import {
+  buildGameStateWithCurrentGame,
+  buildInitialGameState,
+} from '../helpers/game-state-setup.js';
+import {
+  buildInitialLiveState,
+  buildLiveStateWithCurrentGame,
+} from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import * as testlive from '../helpers/test-live-game-data.js';
-import { buildRoster, getMockAuthState, getNewGameDetail, TEST_USER_ID } from '../helpers/test_data.js';
+import {
+  buildRoster,
+  getMockAuthState,
+  getNewGameDetail,
+  TEST_USER_ID,
+} from '../helpers/test_data.js';
 
-function getGameDetail(): { game: GameDetail, live: LiveGame } {
+function getGameDetail(): { game: GameDetail; live: LiveGame } {
   const live = testlive.getLiveGameWithPlayers();
   const game = getNewGameDetail(buildRoster(live.players));
   return { game, live };
@@ -30,15 +43,24 @@ describe('lineup-view-game-detail tests', () => {
   let el: LineupViewGameDetail;
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
-    const store = setupStore(preloadedState, /*hydrate=*/false);
+    const store = setupStore(preloadedState, /*hydrate=*/ false);
 
-    const template = html`<lineup-view-game-detail gameId="${ifDefined(gameId)}" active .store=${store} .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/false)}></lineup-view-game-detail>`;
+    const template = html`<lineup-view-game-detail
+      gameId="${ifDefined(gameId)}"
+      active
+      .store=${store}
+      .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/ false)}
+    >
+    </lineup-view-game-detail>`;
     el = await fixture(template);
   }
 
   it('shows signin placeholder when not signed in', async () => {
     const { game, live } = getGameDetail();
-    const state = buildRootState(buildGameStateWithCurrentGame(game), buildLiveStateWithCurrentGame(live));
+    const state = buildRootState(
+      buildGameStateWithCurrentGame(game),
+      buildLiveStateWithCurrentGame(live)
+    );
     state.auth = getMockAuthState({ signedIn: false });
 
     await setupElement(state, game.id);

@@ -225,7 +225,7 @@ export class PageObject {
       );
       if (mainElement) {
         const teamsLoaded = (mainElement as HTMLElement).dataset.teamsLoaded;
-        console.log(`main data attributes: ${teamsLoaded}`);
+        this.log(`main data attributes: ${teamsLoaded}`);
         return Object.fromEntries(Object.entries((mainElement as HTMLElement).dataset));
       }
       return undefined;
@@ -458,8 +458,9 @@ function processAxeResults(results: AxeResults) {
 }
 
 export function logWithTime(message: string, prefix?: string) {
-  prefix = prefix || 'TEST LOG';
-  console.log(`${prefix} [${currentTimeForLog()}]:`, message);
+  const actualPrefix = prefix ?? 'TEST LOG';
+  // eslint-disable-next-line no-console
+  console.log(`${actualPrefix} [${currentTimeForLog()}]:`, message);
 }
 
 export function currentTimeForLog(): string {
