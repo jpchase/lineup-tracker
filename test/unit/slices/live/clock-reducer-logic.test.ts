@@ -465,6 +465,27 @@ describe('Live slice: Clock actions', () => {
         );
       });
 
+      it('should dispatch action for overdue period with explicit zero extra minutes when clock running', async () => {
+        mockTimeProvider(timeStartPlus20Minutes);
+        const currentGame = getGame(currentState, gameId)!;
+        currentGame.clock = buildClock(buildRunningTimer(startTime), {
+          currentPeriod: 1,
+          periodStatus: PeriodStatus.Overdue,
+          periodLength: 15,
+        });
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        endPeriodCreator(gameId, /*extraMinutes=*/ 0)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          endPeriod(gameId, timeStartPlus15Minutes)
+        );
+      });
+
       it('should dispatch action for overdue period without extra minutes when clock stopped', async () => {
         mockTimeProvider(timeStartPlus20Minutes);
         const currentGame = getGame(currentState, gameId)!;

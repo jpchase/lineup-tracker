@@ -38,7 +38,7 @@ export const endPeriodCreator =
     }
     let retroactiveStopTime;
     if (
-      extraMinutes &&
+      (extraMinutes || extraMinutes === 0) &&
       game.clock?.periodStatus === PeriodStatus.Overdue &&
       game.clock.timer?.isRunning
     ) {
