@@ -23,7 +23,7 @@ export class LineupViewRoster extends connect(store)(PageViewElement) {
       ${SharedStyles}
       <section>
         <h2>Team: ${this._teamName}</h2>
-        <lineup-roster .roster="${this._roster}" @newplayercreated="${this.newPlayerCreated}">
+        <lineup-roster .roster="${this._roster}" @new-player-created="${this.newPlayerCreated}">
         </lineup-roster>
       </section>
     `;
