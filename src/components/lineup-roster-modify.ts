@@ -46,7 +46,7 @@ export class LineupRosterModify extends LitElement {
           display: block;
         }
       </style>
-      <div>
+      <div id="modify-dialog">
         <h2>New Player</h2>
         <mwc-formfield id="nameField" alignend label="Name">
           <input type="text" required minlength="2" />

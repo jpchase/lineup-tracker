@@ -52,7 +52,7 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
                     <lineup-roster
                       .roster="${this._roster}"
                       .addPlayerEnabled="${isNewStatus}"
-                      @newplayercreated="${this.newPlayerCreated}"
+                      @new-player-created="${this.newPlayerCreated}"
                     >
                     </lineup-roster>
                   `

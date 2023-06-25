@@ -3,23 +3,37 @@
 import { LineupRoster } from '@app/components/lineup-roster.js';
 import '@app/components/lineup-view-game-roster.js';
 import { LineupViewGameRoster } from '@app/components/lineup-view-game-roster.js';
+import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
+import { Player } from '@app/models/player.js';
 import { getGameStoreConfigurator } from '@app/slices/game-store.js';
+import { gamePlayerAdded } from '@app/slices/game/game-slice.js';
+import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';
-import { expect, fixture, html } from '@open-wc/testing';
+import { Button } from '@material/mwc-button';
+import { Fab } from '@material/mwc-fab';
+import { expect, fixture, html, nextFrame } from '@open-wc/testing';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import sinon from 'sinon';
 import {
   buildGameStateWithCurrentGame,
   buildInitialGameState,
 } from '../helpers/game-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import {
+  TEST_USER_ID,
   buildRoster,
   getMockAuthState,
   getNewGameDetail,
+  getNewPlayerData,
   getStoredPlayer,
-  TEST_USER_ID,
 } from '../helpers/test_data.js';
+
+let actions: string[] = [];
+const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
+  actions.push(action);
+  return next(action);
+};
 
 function getGameWithRosterPlayers(): GameDetail {
   return getNewGameDetail(buildRoster([getStoredPlayer()]));
@@ -38,6 +52,18 @@ function buildSignedInState(game?: GameDetail): RootState {
 
 describe('lineup-view-game-roster tests', () => {
   let el: LineupViewGameRoster;
+  let dispatchStub: sinon.SinonSpy;
+
+  beforeEach(async () => {
+    sinon.restore();
+    // readerStub = sinon.stub<typeof reader>(reader);
+    actions = [];
+    addMiddleware(actionLoggerMiddleware);
+  });
+
+  afterEach(async () => {
+    removeMiddleware(actionLoggerMiddleware);
+  });
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
     const store = setupStore(preloadedState, /*hydrate=*/ false);
@@ -50,6 +76,34 @@ describe('lineup-view-game-roster tests', () => {
     >
     </lineup-view-game-roster>`;
     el = await fixture(template);
+    dispatchStub = sinon.spy(el, 'dispatch');
+  }
+
+  function getRosterElement() {
+    const element = el.shadowRoot!.querySelector('section lineup-roster');
+    expect(element, 'Roster element should be shown').to.be.ok;
+    return element as Element;
+  }
+
+  function getAddPlayerButton(rosterElement: Element) {
+    return rosterElement.shadowRoot!.querySelector('mwc-fab') as Fab;
+  }
+
+  function getPlayerModifyDialog(rosterElement: Element) {
+    const modifyElement = rosterElement.shadowRoot!.querySelector('lineup-roster-modify');
+    expect(modifyElement, 'Missing roster modify element').to.exist;
+    return modifyElement!.shadowRoot!.querySelector('#modify-dialog') as Element;
+  }
+
+  function getPlayerInputField(dialog: Element, fieldId: string): HTMLInputElement {
+    const field = dialog.querySelector(`#${fieldId} > input`);
+    expect(field, `Missing field: ${fieldId}`).to.be.ok;
+    return field as HTMLInputElement;
+  }
+
+  function getPlayerSaveButton(dialog: Element) {
+    const button = dialog.querySelector('mwc-button.save');
+    return button as Button;
   }
 
   it('shows signin placeholder when not signed in', async () => {
@@ -161,5 +215,51 @@ describe('lineup-view-game-roster tests', () => {
     expect(rosterElement, 'Roster element should exist').to.be.ok;
 
     expect((rosterElement as LineupRoster).addPlayerEnabled).to.be.false;
+  });
+
+  it('creates new player in game roster when saved', async () => {
+    // Mock the call to add the player in storage.
+    const writerStub = sinon.stub<typeof writer>(writer);
+    writerStub.updateDocument.returns();
+
+    const game = getGameWithRosterPlayers();
+    game.status = GameStatus.New;
+
+    await setupElement(buildSignedInState(game), game.id);
+    await el.updateComplete;
+
+    // Click the "add player" button, then fill in fields in the resulting dialog, and save.
+    const rosterElement = getRosterElement();
+
+    const addPlayerButton = getAddPlayerButton(rosterElement);
+    addPlayerButton.click();
+
+    const playerDialog = getPlayerModifyDialog(rosterElement);
+
+    const playerData = getNewPlayerData();
+    const nameField = getPlayerInputField(playerDialog, 'nameField');
+    nameField.value = playerData.name;
+
+    const uniformField = getPlayerInputField(playerDialog, 'uniformNumberField');
+    uniformField.valueAsNumber = playerData.uniformNumber;
+
+    const saveButton = getPlayerSaveButton(playerDialog);
+    saveButton.click();
+
+    // Allow promises to resolve, in the persistence of the player.
+    await nextFrame();
+
+    // Verifies that the add player action was dispatched.
+    expect(dispatchStub).to.have.been.called;
+
+    const expectedPlayer = {
+      id: '',
+      name: playerData.name,
+      uniformNumber: playerData.uniformNumber,
+      status: playerData.status,
+      positions: [],
+    } as Player;
+    expect(actions).to.have.lengthOf.at.least(1);
+    expect(actions[actions.length - 1]).to.deep.include(gamePlayerAdded(game.id, expectedPlayer));
   });
 });
