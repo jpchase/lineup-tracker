@@ -480,6 +480,8 @@ describe('Live slice: Setup actions', () => {
 
       const newState = live(state, gameSetupCompleted(currentGame.id, currentGame));
 
+      // Ignore the events state for the comparison.
+      delete expectedState.events;
       expect(newState).to.deep.include(expectedState);
     });
   }); // describe('live/gameSetupCompleted')

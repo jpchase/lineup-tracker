@@ -3,7 +3,7 @@
 import { EventCollection } from '@app/models/events.js';
 import { GameEvent, GameEventType } from '@app/models/live.js';
 import {
-  EVENT_INITIAL_STATE,
+  EVENTS_INITIAL_STATE,
   EventState,
   eventsReducer as events,
 } from '@app/slices/live/events-slice.js';
@@ -27,11 +27,11 @@ describe('Events slice', () => {
   });
 
   describe('live/gameSetupCompleted', () => {
-    let currentState: EventState = EVENT_INITIAL_STATE;
+    let currentState: EventState = EVENTS_INITIAL_STATE;
 
     beforeEach(() => {
       currentState = {
-        ...EVENT_INITIAL_STATE,
+        ...EVENTS_INITIAL_STATE,
       };
     });
 

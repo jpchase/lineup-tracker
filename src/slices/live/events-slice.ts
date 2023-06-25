@@ -13,13 +13,13 @@ export interface EventState {
   events?: EventsMap;
 }
 
-export const EVENT_INITIAL_STATE: EventState = {
+export const EVENTS_INITIAL_STATE: EventState = {
   events: undefined,
 };
 
 const eventSlice = createSlice({
   name: 'events',
-  initialState: EVENT_INITIAL_STATE,
+  initialState: EVENTS_INITIAL_STATE,
   reducers: {},
 
   extraReducers: (builder) => {

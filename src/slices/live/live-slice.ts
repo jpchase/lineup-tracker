@@ -26,6 +26,7 @@ import {
   startPeriodPrepare,
   toggleHandler,
 } from './clock-reducer-logic.js';
+import { eventsReducer, EventState } from './events-slice.js';
 import { LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
 import {
   applyStarterHandler,
@@ -79,7 +80,7 @@ export interface LiveGameState {
   invalidSubs?: string[];
 }
 
-export interface LiveState extends LiveGameState {
+export interface LiveState extends LiveGameState, EventState {
   shift?: ShiftState;
 }
 
@@ -167,6 +168,7 @@ export const live: Reducer<LiveState> = function reduce(state, action) {
     Object.assign(draft, liveSlice.reducer(draft, action));
     // eslint-disable-next-line no-param-reassign
     draft!.shift = shift(draft?.shift, action);
+    Object.assign(draft, eventsReducer(draft, action));
   }) as LiveState;
 };
 

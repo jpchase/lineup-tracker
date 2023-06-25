@@ -12,13 +12,13 @@ export interface TrackerMaps {
   [index: string]: PlayerTimeTrackerMapData;
 }
 
-const INITIAL_STATE: ShiftState = {
+export const SHIFT_INITIAL_STATE: ShiftState = {
   trackerMaps: undefined,
 };
 
 const shiftSlice = createSlice({
   name: 'shift',
-  initialState: INITIAL_STATE,
+  initialState: SHIFT_INITIAL_STATE,
   reducers: {},
 
   extraReducers: (builder) => {

@@ -12,6 +12,7 @@ import {
   SetupSteps,
   SetupTask,
 } from '@app/models/live.js';
+import { EVENTS_INITIAL_STATE } from '@app/slices/live/events-slice.js';
 import { LiveGameState, LiveState } from '@app/slices/live/live-slice.js';
 import { ShiftState } from '@app/slices/live/shift-slice.js';
 import { buildRunningTimer, buildStoppedTimer } from './test-clock-data.js';
@@ -48,6 +49,7 @@ export function buildInitialLiveState(): LiveState {
     shift: {
       ...SHIFT_INITIAL_STATE,
     },
+    ...EVENTS_INITIAL_STATE,
   };
 }
 
