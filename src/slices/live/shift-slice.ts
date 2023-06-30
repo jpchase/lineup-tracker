@@ -2,7 +2,13 @@
 
 import { createSlice } from '@reduxjs/toolkit';
 import { PlayerTimeTrackerMap, PlayerTimeTrackerMapData } from '../../models/shift.js';
-import { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } from './live-slice.js';
+import {
+  applyPendingSubs,
+  endPeriod,
+  gameSetupCompleted,
+  startPeriod,
+  toggleClock,
+} from './live-slice.js';
 
 export interface ShiftState {
   trackerMaps?: TrackerMaps;
@@ -49,6 +55,19 @@ const shiftSlice = createSlice({
           return;
         }
         trackerMap.stopShiftTimers(action.payload.stopTime);
+        setTrackerMap(state, trackerMap);
+      })
+      .addCase(toggleClock, (state, action) => {
+        const trackerMap = getTrackerMap(state, action.payload.gameId);
+        if (!trackerMap) {
+          // TODO: Error or message to distinguish failure cases?
+          return;
+        }
+        if (trackerMap.clockRunning) {
+          trackerMap.stopShiftTimers();
+        } else {
+          trackerMap.startShiftTimers();
+        }
         setTrackerMap(state, trackerMap);
       })
       .addCase(applyPendingSubs, (state, action) => {

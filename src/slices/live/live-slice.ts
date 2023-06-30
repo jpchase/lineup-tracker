@@ -327,8 +327,14 @@ export const { actions } = liveSlice;
 // TODO: Figure out better solution
 //   - These are used only by game-slice.ts and shift-slice.ts to avoid an error at runtime:
 //     "ReferenceError: Cannot access 'actions' before initialization"
-export const { applyPendingSubs, endPeriod, gameCompleted, gameSetupCompleted, startPeriod } =
-  actions;
+export const {
+  applyPendingSubs,
+  endPeriod,
+  gameCompleted,
+  gameSetupCompleted,
+  startPeriod,
+  toggleClock,
+} = actions;
 
 type ActionHandler<P extends LiveGamePayload> = (
   state: LiveState,

@@ -14,11 +14,15 @@ import {
   buildShiftWithTrackersFromGame,
   getTrackerMap,
 } from '../../helpers/live-state-setup.js';
-import { mockTimeProvider } from '../../helpers/test-clock-data.js';
+import {
+  buildStoppedTimer,
+  mockCurrentTime,
+  mockTimeProvider,
+} from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 import { buildPlayerTracker } from '../../helpers/test-shift-data.js';
 
-const { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod } = actions;
+const { applyPendingSubs, endPeriod, gameSetupCompleted, startPeriod, toggleClock } = actions;
 
 describe('Shift slice', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
@@ -33,10 +37,6 @@ describe('Shift slice', () => {
       fakeClock.restore();
     }
   });
-
-  function mockCurrentTime(t0: number) {
-    fakeClock = sinon.useFakeTimers({ now: t0 });
-  }
 
   describe('live/gameSetupCompleted', () => {
     let currentState: ShiftState = SHIFT_INITIAL_STATE;
@@ -125,6 +125,123 @@ describe('Shift slice', () => {
       expect(newState).to.equal(currentState);
     });
   }); // describe('clock/startPeriod')
+
+  describe('live/toggleClock', () => {
+    let currentState: ShiftState = SHIFT_INITIAL_STATE;
+    let rosterPlayers: LivePlayer[];
+    const gameId = 'somegameid';
+
+    before(() => {
+      rosterPlayers = testlive.getLivePlayers(18);
+    });
+
+    beforeEach(() => {
+      currentState = buildShiftWithTrackers(gameId, rosterPlayers);
+    });
+
+    it('should set the clock running and capture the start time', () => {
+      // Simulate that clock was running for 10 minutes, when it was previously
+      // toggled off.
+      for (const tracker of currentState.trackerMaps![gameId].trackers!) {
+        const timer = buildStoppedTimer(600 /* 10 minutes*/);
+        if (tracker.isOn) {
+          tracker.alreadyOn = true;
+          tracker.shiftCount = 1;
+          tracker.onTimer = timer;
+        } else {
+          tracker.offTimer = timer;
+        }
+      }
+      mockCurrentTime(timeStartPlus10Minutes);
+
+      const newState = shift(currentState, toggleClock(gameId));
+
+      // Only need to check the first on and off player trackers.
+      const expectedOnTracker = buildPlayerTracker(rosterPlayers[0]);
+      expectedOnTracker.alreadyOn = true;
+      expectedOnTracker.shiftCount = 1;
+      expectedOnTracker.onTimer = {
+        isRunning: true,
+        startTime: timeStartPlus10Minutes,
+        duration: Duration.create(600).toJSON(),
+      };
+      const expectedOffTracker = buildPlayerTracker(rosterPlayers[12]);
+      expectedOffTracker.alreadyOn = false;
+      expectedOffTracker.offTimer = {
+        isRunning: true,
+        startTime: timeStartPlus10Minutes,
+        duration: Duration.create(600).toJSON(),
+      };
+
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      const onTracker = newTrackerMap?.trackers?.find(
+        (tracker) => tracker.id === expectedOnTracker.id
+      );
+      expect(onTracker, `Should find on tracker with id = ${expectedOnTracker.id}`).to.be.ok;
+      expect(onTracker).to.deep.include(expectedOnTracker);
+
+      const offTracker = newTrackerMap?.trackers?.find(
+        (tracker) => tracker.id === expectedOffTracker.id
+      );
+      expect(offTracker, `Should find off tracker with id = ${expectedOffTracker.id}`).to.be.ok;
+      expect(offTracker).to.deep.include(expectedOffTracker);
+
+      expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.true;
+      expect(newTrackerMap).not.to.equal(getTrackerMap(currentState, gameId));
+
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should stop the clock and capture the duration for all trackers', () => {
+      // Set the start time for starting shifts.
+      const timeProvider = mockTimeProvider(startTime);
+      let currentTrackerMapData = getTrackerMap(currentState, gameId);
+      const trackerMap = PlayerTimeTrackerMap.create(currentTrackerMapData!, timeProvider);
+      trackerMap.startShiftTimers();
+      currentTrackerMapData = trackerMap.toJSON();
+      currentState.trackerMaps![gameId] = currentTrackerMapData;
+
+      // Now, mock the underlying time, to be used when stopping
+      // the shifts by the reducer.
+      mockCurrentTime(timeStartPlus5);
+
+      const newState = shift(currentState, toggleClock(gameId));
+
+      // Only need to check the first on and off player trackers.
+      const expectedOnTracker = buildPlayerTracker(rosterPlayers[0]);
+      expectedOnTracker.alreadyOn = true;
+      expectedOnTracker.onTimer = {
+        isRunning: false,
+        startTime: undefined,
+        duration: Duration.create(5).toJSON(),
+      };
+      const expectedOffTracker = buildPlayerTracker(rosterPlayers[12]);
+      expectedOffTracker.alreadyOn = false;
+      expectedOffTracker.offTimer = {
+        isRunning: false,
+        startTime: undefined,
+        duration: Duration.create(5).toJSON(),
+      };
+
+      const newTrackerMap = getTrackerMap(newState, gameId);
+      const onTracker = newTrackerMap?.trackers?.find(
+        (tracker) => tracker.id === expectedOnTracker.id
+      );
+      expect(onTracker, `Should find on tracker with id = ${expectedOnTracker.id}`).to.be.ok;
+      expect(onTracker).to.deep.include(expectedOnTracker);
+
+      const offTracker = newTrackerMap?.trackers?.find(
+        (tracker) => tracker.id === expectedOffTracker.id
+      );
+      expect(offTracker, `Should find off tracker with id = ${expectedOffTracker.id}`).to.be.ok;
+      expect(offTracker).to.deep.include(expectedOffTracker);
+
+      expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
+      expect(newTrackerMap).not.to.equal(currentTrackerMapData);
+
+      expect(newState).not.to.equal(currentState);
+    });
+  }); // describe('live/toggleClock')
 
   describe('clock/endPeriod', () => {
     let currentState: ShiftState = SHIFT_INITIAL_STATE;
