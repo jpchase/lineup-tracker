@@ -84,7 +84,7 @@ export interface LiveState extends LiveGameState, EventState {
   shift?: ShiftState;
 }
 
-const INITIAL_STATE: LiveGameState = {
+export const LIVE_GAME_INITIAL_STATE: LiveGameState = {
   games: {},
   selectedStarterPlayer: undefined,
   selectedStarterPosition: undefined,
@@ -93,6 +93,13 @@ const INITIAL_STATE: LiveGameState = {
   selectedOnPlayer: undefined,
   proposedSub: undefined,
   invalidSubs: undefined,
+};
+
+const LIVE_INITIAL_STATE: LiveState = {
+  ...LIVE_GAME_INITIAL_STATE,
+  // TODO: Figure out to address circular dependency
+  // ...EVENTS_INITIAL_STATE,
+  events: undefined,
 };
 
 export const selectLiveGameById = (state: RootState, gameId: string) => {
@@ -162,9 +169,9 @@ export const live: Reducer<LiveState> = function reduce(state, action) {
   // This is important to avoid triggering unnecessary rendering cycles.
   // - The |state| might be undefined on app initialization. Immer will *not*
   //   create a draft for undefined, which causes an error for Object.assign().
-  //   As a workaround, pass the |INITIAL_STATE|, even though it seems redundant with
+  //   As a workaround, pass the |LIVE_INITIAL_STATE|, even though it seems redundant with
   //   the inner reducers.
-  return createNextState(state || (INITIAL_STATE as LiveState), (draft) => {
+  return createNextState(state || LIVE_INITIAL_STATE, (draft) => {
     Object.assign(draft, liveSlice.reducer(draft, action));
     // eslint-disable-next-line no-param-reassign
     draft!.shift = shift(draft?.shift, action);
@@ -174,7 +181,7 @@ export const live: Reducer<LiveState> = function reduce(state, action) {
 
 export const liveSlice = createSlice({
   name: 'live',
-  initialState: INITIAL_STATE,
+  initialState: LIVE_GAME_INITIAL_STATE,
   reducers: {
     getLiveGame: (state, action: PayloadAction<Game>) => {
       const liveGame: LiveGame = LiveGameBuilder.create(action.payload);

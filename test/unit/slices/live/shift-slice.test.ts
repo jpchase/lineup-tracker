@@ -6,14 +6,13 @@ import { getPlayer, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
 import { actions } from '@app/slices/live/live-slice.js';
-import { shift, ShiftState } from '@app/slices/live/shift-slice.js';
+import { shift, SHIFT_INITIAL_STATE, ShiftState } from '@app/slices/live/shift-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
   buildShiftWithTrackers,
   buildShiftWithTrackersFromGame,
   getTrackerMap,
-  SHIFT_INITIAL_STATE,
 } from '../../helpers/live-state-setup.js';
 import { mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';

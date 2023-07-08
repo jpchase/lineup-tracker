@@ -13,21 +13,11 @@ import {
   SetupTask,
 } from '@app/models/live.js';
 import { EVENTS_INITIAL_STATE } from '@app/slices/live/events-slice.js';
-import { LiveGameState, LiveState } from '@app/slices/live/live-slice.js';
-import { ShiftState } from '@app/slices/live/shift-slice.js';
+import { LIVE_GAME_INITIAL_STATE, LiveState } from '@app/slices/live/live-slice.js';
+import { SHIFT_INITIAL_STATE, ShiftState } from '@app/slices/live/shift-slice.js';
 import { buildRunningTimer, buildStoppedTimer } from './test-clock-data.js';
 import * as testlive from './test-live-game-data.js';
 import { buildPlayerTrackerMap } from './test-shift-data.js';
-
-const LIVE_INITIAL_STATE: LiveGameState = {
-  games: undefined,
-  selectedStarterPlayer: undefined,
-  selectedStarterPosition: undefined,
-  proposedStarter: undefined,
-  selectedOffPlayer: undefined,
-  selectedOnPlayer: undefined,
-  proposedSub: undefined,
-};
 
 const CLOCK_INITIAL_STATE: LiveClock = {
   timer: undefined,
@@ -37,19 +27,16 @@ const CLOCK_INITIAL_STATE: LiveClock = {
   periodLength: 45,
 };
 
-export const SHIFT_INITIAL_STATE: ShiftState = {
-  trackerMaps: undefined,
-};
-
-export const INITIAL_OVERALL_STATE = buildInitialLiveState();
-
 export function buildInitialLiveState(): LiveState {
   return {
-    ...LIVE_INITIAL_STATE,
+    ...LIVE_GAME_INITIAL_STATE,
     shift: {
       ...SHIFT_INITIAL_STATE,
     },
     ...EVENTS_INITIAL_STATE,
+    // Set to a new object, otherwise multiple tests will share the instance
+    // on the constant.
+    games: {},
   };
 }
 

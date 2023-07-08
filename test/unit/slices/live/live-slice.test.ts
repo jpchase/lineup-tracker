@@ -10,9 +10,9 @@ import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
-  INITIAL_OVERALL_STATE,
   buildClock,
   buildClockWithTimer,
+  buildInitialLiveState,
   buildLiveGameWithSetupTasks,
   buildLiveGameWithSetupTasksAndPlayers,
   buildLiveStateWithCurrentGame,
@@ -58,16 +58,14 @@ function mockGetState(currentState: LiveState) {
 
 describe('Live slice', () => {
   it('should return the initial state', () => {
-    expect(live(INITIAL_OVERALL_STATE, getFakeAction())).to.equal(INITIAL_OVERALL_STATE);
+    expect(live(undefined, getFakeAction())).to.deep.equal(buildInitialLiveState());
   });
 
   describe('game/getGame', () => {
     let currentState: LiveState;
 
     beforeEach(() => {
-      currentState = {
-        ...INITIAL_OVERALL_STATE,
-      };
+      currentState = buildInitialLiveState();
     });
 
     it('should set live game to given game with full detail', () => {
