@@ -36,7 +36,7 @@ import {
   selectPlayer,
   selectProposedSub,
   selectProposedSwap,
-  startGamePeriod,
+  startPeriodCreator,
   toggleClock,
 } from '../slices/live/index.js';
 // The specific store configurator, which handles initialization/lazy-loading.
@@ -378,7 +378,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   }
 
   private startClockPeriod() {
-    this.dispatch(startGamePeriod(this._game!.id));
+    this.dispatch(startPeriodCreator(this._game!.id));
   }
 
   private endClockPeriod(e: ClockEndPeriodEvent) {

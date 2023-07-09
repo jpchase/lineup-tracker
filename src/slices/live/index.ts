@@ -6,6 +6,7 @@ export {
   endPeriodCreator,
   markPeriodOverdueCreator,
   pendingSubsAppliedCreator,
+  startPeriodCreator,
   startersCompletedCreator,
 } from './live-action-creators.js';
 export {
@@ -16,7 +17,6 @@ export {
   selectLiveGameById,
   selectProposedSub,
   selectProposedSwap,
-  startGamePeriod,
 } from './live-slice.js';
 
 // Only export actions that can be used directly, i.e. do not have a creator/wrapper.

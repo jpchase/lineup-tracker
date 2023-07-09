@@ -5,7 +5,6 @@ import { Position } from '../../models/formation.js';
 import { Game, GameDetail, GameStatus } from '../../models/game.js';
 import {
   findPlayersByStatus,
-  gameCanStartPeriod,
   getPlayer,
   LiveGame,
   LiveGameBuilder,
@@ -139,22 +138,6 @@ export const rosterCompleted =
       return;
     }
     dispatch(actions.completeRoster(gameId, game.roster));
-  };
-
-export const startGamePeriod =
-  (gameId: string): ThunkResult =>
-  (dispatch, getState) => {
-    const state = getState();
-    const game = selectLiveGameById(state, gameId);
-    if (!game || !game.clock) {
-      return;
-    }
-    dispatch(
-      actions.startPeriod(
-        game.id,
-        gameCanStartPeriod(game, game.clock.currentPeriod, game.clock.totalPeriods)
-      )
-    );
   };
 
 export const liveSlice = createSlice({

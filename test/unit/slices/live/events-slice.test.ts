@@ -71,7 +71,7 @@ describe('Events slice', () => {
     });
   }); // describe('live/gameSetupCompleted')
 
-  describe('clock/startPeriod', () => {
+  describe('live/startPeriod', () => {
     let currentState: EventState = EVENTS_INITIAL_STATE;
     let rosterPlayers: LivePlayer[];
     const gameId = 'somegameid';
@@ -161,5 +161,5 @@ describe('Events slice', () => {
 
       expect(newState).to.equal(currentState);
     });
-  }); // describe('clock/startPeriod')
+  }); // describe('live/startPeriod')
 }); // describe('Events slice')

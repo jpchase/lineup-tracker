@@ -6,7 +6,8 @@ import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.
 import { PlayerStatus } from '@app/models/player.js';
 import { getGame as getGameCreator } from '@app/slices/game/game-slice.js';
 import { live } from '@app/slices/live/composed-reducer.js';
-import { LiveState, actions, startGamePeriod } from '@app/slices/live/live-slice.js';
+import { startPeriodCreator } from '@app/slices/live/index.js';
+import { LiveState, actions } from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
@@ -591,7 +592,7 @@ describe('Live slice', () => {
           const dispatchMock = sinon.stub();
           const getStateMock = mockGetState(currentState);
 
-          await startGamePeriod(gameId)(dispatchMock, getStateMock, undefined);
+          await startPeriodCreator(gameId)(dispatchMock, getStateMock, undefined);
 
           // The request action is dispatched, regardless.
           expect(dispatchMock).to.have.callCount(1);
@@ -628,7 +629,7 @@ describe('Live slice', () => {
           const dispatchMock = sinon.stub();
           const getStateMock = mockGetState(currentState);
 
-          await startGamePeriod(gameId)(dispatchMock, getStateMock, undefined);
+          await startPeriodCreator(gameId)(dispatchMock, getStateMock, undefined);
 
           // The request action is dispatched, regardless.
           expect(dispatchMock).to.have.callCount(1);
@@ -649,7 +650,7 @@ describe('Live slice', () => {
           const dispatchMock = sinon.stub();
           const getStateMock = mockGetState(currentState);
 
-          await startGamePeriod(gameId)(dispatchMock, getStateMock, undefined);
+          await startPeriodCreator(gameId)(dispatchMock, getStateMock, undefined);
 
           // The request action is dispatched, regardless.
           expect(dispatchMock).to.have.callCount(1);
