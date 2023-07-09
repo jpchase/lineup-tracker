@@ -19,8 +19,6 @@ import {
 import { GameStatus } from '../models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
-// The specific store configurator, which handles initialization/lazy-loading.
-import { getLiveStore } from '../slices/live-store.js';
 import {
   cancelSub,
   cancelSwap,
@@ -41,6 +39,8 @@ import {
   startGamePeriod,
   toggleClock,
 } from '../slices/live/index.js';
+// The specific store configurator, which handles initialization/lazy-loading.
+import { getLiveStore } from '../slices/live/live-module-configurator.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';

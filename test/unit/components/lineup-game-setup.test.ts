@@ -18,7 +18,7 @@ import {
   SetupTask,
 } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
+import { getLiveStoreConfigurator } from '@app/slices/live/live-module-configurator.js';
 import { actions as liveActions, selectLiveGameById } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';

@@ -57,7 +57,7 @@
         "import/no-internal-modules": [
           "error",
           {
-            "forbid": ["**/slices/live/!(index.js)"]
+            "forbid": ["**/slices/live/!(index.js|live-module-configurator.js)"]
           }
         ]
       }
