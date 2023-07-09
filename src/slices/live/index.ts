@@ -33,7 +33,6 @@ export const {
   cancelStarter,
   // Clock-related actions
   configurePeriods,
-  endPeriod,
   toggleClock,
   // Sub-related actions
   selectPlayer,

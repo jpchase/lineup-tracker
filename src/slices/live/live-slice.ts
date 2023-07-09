@@ -1,6 +1,6 @@
 /** @format */
 
-import { createNextState, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Position } from '../../models/formation.js';
 import { Game, GameDetail, GameStatus } from '../../models/game.js';
 import {
@@ -26,7 +26,7 @@ import {
   startPeriodPrepare,
   toggleHandler,
 } from './clock-reducer-logic.js';
-import { eventsReducer, EventState } from './events-slice.js';
+import { EventState } from './events-slice.js';
 import { LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
 import {
   applyStarterHandler,
@@ -46,7 +46,7 @@ import {
   startersCompletedHandler,
   updateTasks,
 } from './setup-reducer-logic.js';
-import { shift, ShiftState } from './shift-slice.js';
+import { ShiftState } from './shift-slice.js';
 import {
   cancelSubHandler,
   cancelSwapHandler,
@@ -93,13 +93,6 @@ export const LIVE_GAME_INITIAL_STATE: LiveGameState = {
   selectedOnPlayer: undefined,
   proposedSub: undefined,
   invalidSubs: undefined,
-};
-
-const LIVE_INITIAL_STATE: LiveState = {
-  ...LIVE_GAME_INITIAL_STATE,
-  // TODO: Figure out to address circular dependency
-  // ...EVENTS_INITIAL_STATE,
-  events: undefined,
 };
 
 export const selectLiveGameById = (state: RootState, gameId: string) => {
@@ -163,21 +156,6 @@ export const startGamePeriod =
       )
     );
   };
-
-export const live: Reducer<LiveState> = function reduce(state, action) {
-  // Use immer so that a new object is returned only when something actually changes.
-  // This is important to avoid triggering unnecessary rendering cycles.
-  // - The |state| might be undefined on app initialization. Immer will *not*
-  //   create a draft for undefined, which causes an error for Object.assign().
-  //   As a workaround, pass the |LIVE_INITIAL_STATE|, even though it seems redundant with
-  //   the inner reducers.
-  return createNextState(state || LIVE_INITIAL_STATE, (draft) => {
-    Object.assign(draft, liveSlice.reducer(draft, action));
-    // eslint-disable-next-line no-param-reassign
-    draft!.shift = shift(draft?.shift, action);
-    Object.assign(draft, eventsReducer(draft, action));
-  }) as LiveState;
-};
 
 export const liveSlice = createSlice({
   name: 'live',

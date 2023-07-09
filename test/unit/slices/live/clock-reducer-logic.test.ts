@@ -3,8 +3,9 @@
 import { Duration } from '@app/models/clock.js';
 import { GameStatus } from '@app/models/game.js';
 import { PeriodStatus, SetupSteps } from '@app/models/live.js';
+import { live } from '@app/slices/live/composed-reducer.js';
 import { endPeriodCreator, markPeriodOverdueCreator } from '@app/slices/live/index.js';
-import { LiveState, actions, live } from '@app/slices/live/live-slice.js';
+import { LiveState, actions } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {

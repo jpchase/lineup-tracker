@@ -3,8 +3,9 @@
 import { FormationType, Position } from '@app/models/formation.js';
 import { LiveGame, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
+import { live } from '@app/slices/live/composed-reducer.js';
 import { pendingSubsAppliedCreator } from '@app/slices/live/index.js';
-import { LiveState, actions, live } from '@app/slices/live/live-slice.js';
+import { LiveState, actions } from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
