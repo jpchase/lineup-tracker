@@ -69,6 +69,7 @@ export interface LiveGames {
 
 export enum GameEventType {
   Setup = 'SETUP',
+  StartPeriod = 'STARTPERIOD',
 }
 
 export interface GameEvent extends EventBase<GameEventType> {
