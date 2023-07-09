@@ -1,9 +1,10 @@
 /** @format */
 
-import { createSlice } from '@reduxjs/toolkit';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
 import { GameEvent, GameEventType, LivePlayer } from '../../models/live.js';
+import { LiveGamePayload } from './live-action-types.js';
 import { actions } from './live-slice.js';
 
 const { gameSetupCompleted, startPeriod } = actions;
@@ -27,23 +28,24 @@ const eventSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      .addCase(gameSetupCompleted, (state, action) => {
-        if (!action.payload.gameId || !action.payload.liveGame?.players?.length) {
-          return;
-        }
-        const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
-        gameEvents.addEvent(buildGameEvent(GameEventType.Setup, {}));
-        setGameEvents(state, gameEvents);
-      })
-      .addCase(startPeriod, (state, action) => {
-        if (!action.payload.gameId || !action.payload.gameAllowsStart) {
-          return;
-        }
-        const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
-        // TODO: Use shared start time, provided in payload
-        const startTime = new CurrentTimeProvider().getCurrentTime();
-        gameEvents.addEvent(
-          buildGameEvent(
+      .addCase(
+        gameSetupCompleted,
+        buildActionHandler((_state, action) => {
+          if (!action.payload.liveGame?.players?.length) {
+            return undefined;
+          }
+          return buildGameEvent(GameEventType.Setup, {});
+        })
+      )
+      .addCase(
+        startPeriod,
+        buildActionHandler((_state, action) => {
+          if (!action.payload.gameAllowsStart) {
+            return undefined;
+          }
+          // TODO: Use shared start time, provided in payload
+          const startTime = new CurrentTimeProvider().getCurrentTime();
+          return buildGameEvent(
             GameEventType.StartPeriod,
             {
               clock: {
@@ -54,16 +56,43 @@ const eventSlice = createSlice({
             },
             undefined,
             /* timestamp= */ startTime
-          )
-        );
-        setGameEvents(state, gameEvents);
-      });
+          );
+        })
+      );
   },
 });
 
 const { reducer } = eventSlice;
 
 export const eventsReducer = reducer;
+
+type EventActionHandler<P extends LiveGamePayload> = (
+  state: EventState,
+  action: PayloadAction<P>
+) => GameEvent | undefined;
+
+function buildActionHandler<P extends LiveGamePayload>(handler: EventActionHandler<P>) {
+  return (state: EventState, action: PayloadAction<P>) => {
+    return invokeActionHandler(state, action, handler);
+  };
+}
+
+function invokeActionHandler<P extends LiveGamePayload>(
+  state: EventState,
+  action: PayloadAction<P>,
+  handler: EventActionHandler<P>
+) {
+  if (!action.payload.gameId) {
+    return;
+  }
+  const eventToBeAdded = handler(state, action);
+  if (!eventToBeAdded) {
+    return;
+  }
+  const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
+  gameEvents.addEvent(eventToBeAdded);
+  setGameEvents(state, gameEvents);
+}
 
 function getGameEvents(state: EventState, gameId: string): EventCollection | undefined {
   if (!state.events || !(gameId in state.events)) {
