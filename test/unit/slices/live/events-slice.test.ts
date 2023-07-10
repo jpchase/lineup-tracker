@@ -111,7 +111,10 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(currentState, startPeriod(game.id, /*gameAllowsStart=*/ true));
+      const newState = events(
+        currentState,
+        startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
+      );
 
       expect(newState).to.deep.include({
         events: { [expectedCollection.id]: expectedCollection.toJSON() },
@@ -144,7 +147,10 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(currentState, startPeriod(game.id, /*gameAllowsStart=*/ true));
+      const newState = events(
+        currentState,
+        startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 2, startTime)
+      );
 
       expect(newState).to.deep.include({
         events: { [expectedCollection.id]: expectedCollection.toJSON() },

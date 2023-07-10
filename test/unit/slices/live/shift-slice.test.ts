@@ -86,7 +86,10 @@ describe('Shift slice', () => {
     it('should set the clock running and capture the start time', () => {
       mockCurrentTime(startTime);
 
-      const newState = shift(currentState, startPeriod(gameId, /*gameAllowsStart=*/ true));
+      const newState = shift(
+        currentState,
+        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
+      );
 
       // Only need to check the first player tracker.
       const expectedTracker = buildPlayerTracker(rosterPlayers[0]);

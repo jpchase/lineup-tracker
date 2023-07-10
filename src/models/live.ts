@@ -155,14 +155,3 @@ export function removePlayer(game: LiveGame, playerId: string) {
   game.players.splice(index, 1);
   return true;
 }
-
-export function gameCanStartPeriod(
-  game: LiveGame,
-  previousPeriod: number,
-  totalPeriods: number
-): boolean {
-  if (!(game.status === GameStatus.Start || game.status === GameStatus.Break)) {
-    return false;
-  }
-  return previousPeriod < totalPeriods;
-}

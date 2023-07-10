@@ -760,6 +760,8 @@ describe('lineup-game-live tests', () => {
   }); // describe('Subs')
 
   describe('Clock', () => {
+    const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    let fakeClock: sinon.SinonFakeTimers;
     let gameId: string;
 
     beforeEach(async () => {
@@ -776,7 +778,18 @@ describe('lineup-game-live tests', () => {
       await el.updateComplete;
     });
 
+    afterEach(async () => {
+      if (fakeClock) {
+        fakeClock.restore();
+      }
+    });
+
     it('dispatches start period action when event fired by clock component', async () => {
+      fakeClock = sinon.useFakeTimers({
+        now: startTime,
+        shouldAdvanceTime: false,
+      });
+
       // Trigger the event by clicking the start button.
       const clockElement = getClockElement();
       const startButton = getClockStartPeriodButton(clockElement);
@@ -788,7 +801,7 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        startPeriod(gameId, /*gameAllowsStart  =*/ true)
+        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
       );
     });
 

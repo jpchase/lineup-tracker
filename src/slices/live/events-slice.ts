@@ -1,7 +1,6 @@
 /** @format */
 
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
 import { GameEvent, GameEventType, LivePlayer } from '../../models/live.js';
 import { LiveGamePayload } from './live-action-types.js';
@@ -43,14 +42,12 @@ const eventSlice = createSlice({
           if (!action.payload.gameAllowsStart) {
             return undefined;
           }
-          // TODO: Use shared start time, provided in payload
-          const startTime = new CurrentTimeProvider().getCurrentTime();
+          const startTime = action.payload.startTime!;
           return buildGameEvent(
             GameEventType.StartPeriod,
             {
               clock: {
-                // TODO: Use currentPeriod from payload
-                currentPeriod: 1,
+                currentPeriod: action.payload.currentPeriod!,
                 startTime,
               },
             },

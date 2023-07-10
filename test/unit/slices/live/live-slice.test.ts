@@ -598,7 +598,7 @@ describe('Live slice', () => {
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /* gameAllowsStart= */ true)
+            startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
           );
         });
 
@@ -609,7 +609,7 @@ describe('Live slice', () => {
 
           const newState = live(
             currentState,
-            startPeriod(currentGame.id, /*gameAllowsStart=*/ true)
+            startPeriod(currentGame.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
           );
 
           const newGame = getGame(newState, gameId)!;
@@ -635,7 +635,7 @@ describe('Live slice', () => {
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /* gameAllowsStart= */ false)
+            startPeriod(gameId, /*gameAllowsStart=*/ false)
           );
         });
       }
@@ -656,7 +656,7 @@ describe('Live slice', () => {
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /* gameAllowsStart= */ false)
+            startPeriod(gameId, /*gameAllowsStart=*/ false)
           );
         });
 

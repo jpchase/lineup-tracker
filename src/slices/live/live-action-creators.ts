@@ -2,16 +2,10 @@
 
 import { Duration } from '../../models/clock.js';
 import { FormationBuilder, getPositions } from '../../models/formation.js';
-import {
-  LiveGame,
-  LivePlayer,
-  PeriodStatus,
-  gameCanStartPeriod,
-  getPlayer,
-} from '../../models/live.js';
+import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { ThunkResult } from '../../store.js';
-import { isPeriodOverdue } from './clock-reducer-logic.js';
+import { gameCanStartPeriod, isPeriodOverdue } from './clock-reducer-logic.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions, selectLiveGameById, selectPendingSubs } from './live-slice.js';
 
@@ -30,15 +24,11 @@ export const startPeriodCreator =
   (dispatch, getState) => {
     const state = getState();
     const game = selectLiveGameById(state, gameId);
-    if (!game || !game.clock) {
+    if (!game) {
       return;
     }
-    dispatch(
-      startPeriod(
-        game.id,
-        gameCanStartPeriod(game, game.clock.currentPeriod, game.clock.totalPeriods)
-      )
-    );
+    const period = gameCanStartPeriod(game);
+    dispatch(startPeriod(game.id, period.allowsStart, period.currentPeriod, period.startTime));
   };
 
 export const markPeriodOverdueCreator =
