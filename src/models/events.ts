@@ -58,7 +58,7 @@ export class EventCollection {
     return this;
   }
 
-  addEvent(event: EventBase) {
+  addEvent<E extends EventBase>(event: E) {
     let storedEvent = event;
     if (!event.timestamp) {
       storedEvent = {

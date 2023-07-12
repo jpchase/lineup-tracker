@@ -1,12 +1,13 @@
 /** @format */
 
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
-import { GameEvent, GameEventType, LivePlayer } from '../../models/live.js';
+import { GameEvent, GameEventType } from '../../models/live.js';
 import { LiveGamePayload } from './live-action-types.js';
 import { actions } from './live-slice.js';
 
-const { gameSetupCompleted, startPeriod } = actions;
+const { applyPendingSubs, gameSetupCompleted, startPeriod } = actions;
 
 export interface EventsMap {
   [index: string]: EventCollectionData;
@@ -55,6 +56,36 @@ const eventSlice = createSlice({
             /* timestamp= */ startTime
           );
         })
+      )
+      .addCase(
+        applyPendingSubs,
+        buildActionHandler((_state, action) => {
+          const eventTime = new CurrentTimeProvider().getCurrentTime();
+          const subEvents = [];
+          for (const sub of action.payload.subs) {
+            if (action.payload.selectedOnly && !sub.selected) {
+              continue;
+            }
+            // Record two events:
+            //  1) Sub in: for the player coming in.
+            //  2) Sub out: for the player going out.
+            // TODO: add a "event group id" to link all events that happened together?
+            //       or just rely on having the same timestamp?
+            subEvents.push(
+              buildGameEvent(
+                GameEventType.SubIn,
+                {
+                  position: sub.currentPosition?.id,
+                  replaced: sub.replaces,
+                },
+                sub.id,
+                eventTime
+              )
+            );
+            subEvents.push(buildGameEvent(GameEventType.SubOut, {}, sub.replaces, eventTime));
+          }
+          return subEvents;
+        })
       );
   },
 });
@@ -66,7 +97,7 @@ export const eventsReducer = reducer;
 type EventActionHandler<P extends LiveGamePayload> = (
   state: EventState,
   action: PayloadAction<P>
-) => GameEvent | undefined;
+) => GameEvent | GameEvent[] | undefined;
 
 function buildActionHandler<P extends LiveGamePayload>(handler: EventActionHandler<P>) {
   return (state: EventState, action: PayloadAction<P>) => {
@@ -82,12 +113,18 @@ function invokeActionHandler<P extends LiveGamePayload>(
   if (!action.payload.gameId) {
     return;
   }
-  const eventToBeAdded = handler(state, action);
-  if (!eventToBeAdded) {
+  const eventsToBeAdded = handler(state, action);
+  if (!eventsToBeAdded) {
     return;
   }
   const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
-  gameEvents.addEvent(eventToBeAdded);
+  if (Array.isArray(eventsToBeAdded)) {
+    for (const event of eventsToBeAdded) {
+      gameEvents.addEvent(event);
+    }
+  } else {
+    gameEvents.addEvent(eventsToBeAdded);
+  }
   setGameEvents(state, gameEvents);
 }
 
@@ -115,8 +152,8 @@ function setGameEvents(state: EventState, gameEvents: EventCollection) {
 
 function buildGameEvent(
   type: GameEventType,
-  data: any,
-  player?: LivePlayer,
+  data: Record<string, unknown>,
+  playerId?: string,
   timestamp?: number
 ): GameEvent {
   const event: GameEvent = {
@@ -124,8 +161,8 @@ function buildGameEvent(
     data,
     timestamp,
   };
-  if (player) {
-    event.player = player;
+  if (playerId) {
+    event.playerId = playerId;
   }
   return event;
 }

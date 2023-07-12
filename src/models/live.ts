@@ -70,10 +70,12 @@ export interface LiveGames {
 export enum GameEventType {
   Setup = 'SETUP',
   StartPeriod = 'STARTPERIOD',
+  SubIn = 'SUBIN',
+  SubOut = 'SUBOUT',
 }
 
 export interface GameEvent extends EventBase<GameEventType> {
-  player?: LivePlayer;
+  playerId?: string;
 }
 
 export class LiveGameBuilder {
