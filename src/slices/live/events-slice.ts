@@ -4,7 +4,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
 import { GameEvent, GameEventType } from '../../models/live.js';
-import { LiveGamePayload } from './live-action-types.js';
+import { LiveGamePayload, extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions } from './live-slice.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod } = actions;
@@ -66,7 +66,20 @@ const eventSlice = createSlice({
             if (action.payload.selectedOnly && !sub.selected) {
               continue;
             }
-            // Record two events:
+            if (sub.isSwap) {
+              subEvents.push(
+                buildGameEvent(
+                  GameEventType.Swap,
+                  {
+                    position: sub.nextPosition?.id,
+                  },
+                  extractIdFromSwapPlayerId(sub.id),
+                  eventTime
+                )
+              );
+              continue;
+            }
+            // Record two events for a regular substitution:
             //  1) Sub in: for the player coming in.
             //  2) Sub out: for the player going out.
             // TODO: add a "event group id" to link all events that happened together?

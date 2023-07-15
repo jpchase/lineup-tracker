@@ -12,6 +12,7 @@ import {
 import { actions } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
+import { selectPlayers } from '../../helpers/live-state-setup.js';
 import { mockCurrentTime, mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
@@ -198,7 +199,6 @@ describe('Events slice', () => {
       replacedId: 'P6',
     };
     // Swaps: three on players move to other positions, no overlap with subs above.
-    /*
     const swap1: SubData = {
       nextId: 'P8',
       replacedId: 'P9',
@@ -216,15 +216,11 @@ describe('Events slice', () => {
       replacedId: 'P8',
       isSwap: true,
       swapNextId: 'P10_swap',
-    };*/
+    };
 
     let currentState: EventState = EVENTS_INITIAL_STATE;
     // let game: LiveGame;
     let gameId = 'somegameid';
-
-    before(() => {
-      // rosterPlayers = testlive.getLivePlayers(18);
-    });
 
     beforeEach(() => {
       currentState = {
@@ -248,6 +244,7 @@ describe('Events slice', () => {
           const positionPlayer = getPlayer(game, sub.replacedId!)!;
 
           const nextPlayer = testlive.setupSwap(onPlayer, positionPlayer, sub.swapNextId!);
+          sub.expectedFinalPosition = positionPlayer.currentPosition;
           game.players?.push(nextPlayer);
           continue;
         }
@@ -276,9 +273,9 @@ describe('Events slice', () => {
       return subs.map((input) => input.nextId);
     }
 
-    // function getSwapNextIds(subs: SubData[]): string[] {
-    //   return subs.map((input) => input.swapNextId!);
-    // }
+    function getSwapNextIds(subs: SubData[]): string[] {
+      return subs.map((input) => input.swapNextId!);
+    }
 
     // function getReplacedIds(subs: SubData[]): string[] {
     //   return subs.map((input) => input.replacedId!);
@@ -323,6 +320,137 @@ describe('Events slice', () => {
       const newState = events(
         currentState,
         applyPendingSubs(gameId, getPlayersByIds(game, getNextIds(subs)))
+      );
+
+      expect(newState).to.deep.include({
+        events: { [expectedCollection.id]: expectedCollection.toJSON() },
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should store sub applied events for all next swaps, when not selectedOnly', () => {
+      fakeClock = mockCurrentTime(startTime);
+      const timeProvider = mockTimeProvider(startTime);
+      const swaps = buildSubs(swap1, swap2, swap3);
+      const game = setupSubState(swaps);
+
+      const expectedCollection = EventCollection.create(
+        {
+          id: game.id,
+        },
+        timeProvider
+      );
+      for (const swap of swaps) {
+        expectedCollection.addEvent<GameEvent>({
+          type: GameEventType.Swap,
+          timestamp: startTime,
+          playerId: swap.nextId,
+          data: {
+            position: swap.expectedFinalPosition?.id,
+          },
+        } as GameEvent);
+      }
+
+      const newState = events(
+        currentState,
+        applyPendingSubs(gameId, getPlayersByIds(game, getSwapNextIds(swaps)))
+      );
+
+      expect(newState).to.deep.include({
+        events: { [expectedCollection.id]: expectedCollection.toJSON() },
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should store sub applied events for only selected next subs', () => {
+      fakeClock = mockCurrentTime(startTime);
+      const timeProvider = mockTimeProvider(startTime);
+
+      const selectedSubs = [sub1, sub3];
+      const remainingSubs = [sub2];
+      const subs = buildSubs(...selectedSubs, ...remainingSubs);
+      const game = setupSubState(subs);
+
+      // Apply 2 of the 3 pending subs (> 1 to test it will actually handle multiple, not just first)
+      const nowPlayingIds = getNextIds(selectedSubs);
+      selectPlayers(game, nowPlayingIds, true);
+
+      const expectedCollection = EventCollection.create(
+        {
+          id: game.id,
+        },
+        timeProvider
+      );
+      // There should be a pair of sub in/out events for each of
+      // the selected subs.
+      for (const sub of subs) {
+        if (!nowPlayingIds.includes(sub.nextId)) {
+          continue;
+        }
+        expectedCollection.addEvent<GameEvent>({
+          type: GameEventType.SubIn,
+          timestamp: startTime,
+          playerId: sub.nextId,
+          data: {
+            replaced: sub.replacedId,
+            position: sub.expectedFinalPosition?.id,
+          },
+        } as GameEvent);
+        expectedCollection.addEvent<GameEvent>({
+          type: GameEventType.SubOut,
+          timestamp: startTime,
+          playerId: sub.replacedId,
+          data: {},
+        });
+      }
+
+      const newState = events(
+        currentState,
+        applyPendingSubs(gameId, getPlayersByIds(game, nowPlayingIds))
+      );
+
+      expect(newState).to.deep.include({
+        events: { [expectedCollection.id]: expectedCollection.toJSON() },
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should store sub applied events for only selected next swaps', () => {
+      fakeClock = mockCurrentTime(startTime);
+      const timeProvider = mockTimeProvider(startTime);
+      const selectedSwaps = [swap1, swap3];
+      const remainingSwaps = [swap2];
+      const swaps = buildSubs(...selectedSwaps, ...remainingSwaps);
+      const game = setupSubState(swaps);
+
+      // Apply 2 of the 3 pending swaps (> 1 to test it will actually handle multiple, not just first)
+      const swappedNextIds = getSwapNextIds(selectedSwaps);
+      selectPlayers(game, swappedNextIds, true);
+
+      const expectedCollection = EventCollection.create(
+        {
+          id: game.id,
+        },
+        timeProvider
+      );
+      const nowSwappedIds = getNextIds(selectedSwaps);
+      for (const swap of swaps) {
+        if (!nowSwappedIds.includes(swap.nextId)) {
+          continue;
+        }
+        expectedCollection.addEvent<GameEvent>({
+          type: GameEventType.Swap,
+          timestamp: startTime,
+          playerId: swap.nextId,
+          data: {
+            position: swap.expectedFinalPosition?.id,
+          },
+        } as GameEvent);
+      }
+
+      const newState = events(
+        currentState,
+        applyPendingSubs(gameId, getPlayersByIds(game, swappedNextIds))
       );
 
       expect(newState).to.deep.include({

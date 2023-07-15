@@ -72,6 +72,7 @@ export enum GameEventType {
   StartPeriod = 'STARTPERIOD',
   SubIn = 'SUBIN',
   SubOut = 'SUBOUT',
+  Swap = 'SWAP',
 }
 
 export interface GameEvent extends EventBase<GameEventType> {
