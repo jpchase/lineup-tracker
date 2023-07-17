@@ -1,5 +1,6 @@
 /** @format */
 
+import { idGenerator } from '../util/id-generator.js';
 import { CurrentTimeProvider } from './clock.js';
 import { Model } from './model.js';
 
@@ -7,6 +8,8 @@ export type EventBase<
   EventType extends string = string,
   EventData extends Record<string, unknown> = Record<string, unknown>
 > = {
+  id?: string;
+  groupId?: string;
   type: EventType;
   timestamp?: number;
   model?: Model;
@@ -58,15 +61,33 @@ export class EventCollection {
     return this;
   }
 
-  addEvent<E extends EventBase>(event: E) {
-    let storedEvent = event;
-    if (!event.timestamp) {
-      storedEvent = {
-        ...event,
-        timestamp: new Date(this.timeProvider.getCurrentTime()).getTime(),
-      };
+  populateEvent<E extends EventBase>(event: E) {
+    // TODO: structured clone, in case `data` has objects?
+    const storedEvent = { ...event };
+    if (!event.id) {
+      storedEvent.id = idGenerator.newid('ev');
     }
+    if (!event.timestamp) {
+      storedEvent.timestamp = this.timeProvider.getCurrentTime();
+    }
+    return storedEvent;
+  }
+
+  addEvent<E extends EventBase>(event: E) {
+    const storedEvent = this.populateEvent(event);
     this.events.push(storedEvent);
     return storedEvent;
+  }
+
+  addEventGroup<E extends EventBase>(events: E[]) {
+    const groupId = idGenerator.newid('eg');
+    const result = [];
+    for (const event of events) {
+      const storedEvent = this.populateEvent(event);
+      storedEvent.groupId = groupId;
+      this.events.push(storedEvent);
+      result.push(storedEvent);
+    }
+    return result;
   }
 }

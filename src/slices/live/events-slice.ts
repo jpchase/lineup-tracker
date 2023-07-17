@@ -3,7 +3,7 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
-import { GameEvent, GameEventType } from '../../models/live.js';
+import { GameEvent, GameEventGroup, GameEventType } from '../../models/live.js';
 import { LiveGamePayload, extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions } from './live-slice.js';
 
@@ -21,6 +21,8 @@ export const EVENTS_INITIAL_STATE: EventState = {
   events: undefined,
 };
 
+type EventOrGroup = GameEvent | GameEventGroup;
+
 const eventSlice = createSlice({
   name: 'events',
   initialState: EVENTS_INITIAL_STATE,
@@ -30,7 +32,7 @@ const eventSlice = createSlice({
     builder
       .addCase(
         gameSetupCompleted,
-        buildActionHandler((_state, action) => {
+        buildActionHandler((action) => {
           if (!action.payload.liveGame?.players?.length) {
             return undefined;
           }
@@ -39,7 +41,7 @@ const eventSlice = createSlice({
       )
       .addCase(
         startPeriod,
-        buildActionHandler((_state, action) => {
+        buildActionHandler((action) => {
           if (!action.payload.gameAllowsStart) {
             return undefined;
           }
@@ -59,9 +61,9 @@ const eventSlice = createSlice({
       )
       .addCase(
         applyPendingSubs,
-        buildActionHandler((_state, action) => {
+        buildActionHandler((action) => {
           const eventTime = new CurrentTimeProvider().getCurrentTime();
-          const subEvents = [];
+          const subEvents: EventOrGroup[] = [];
           for (const sub of action.payload.subs) {
             if (action.payload.selectedOnly && !sub.selected) {
               continue;
@@ -84,7 +86,10 @@ const eventSlice = createSlice({
             //  2) Sub out: for the player going out.
             // TODO: add a "event group id" to link all events that happened together?
             //       or just rely on having the same timestamp?
-            subEvents.push(
+            const subGroup: GameEventGroup = {
+              groupedEvents: [],
+            };
+            subGroup.groupedEvents.push(
               buildGameEvent(
                 GameEventType.SubIn,
                 {
@@ -95,7 +100,10 @@ const eventSlice = createSlice({
                 eventTime
               )
             );
-            subEvents.push(buildGameEvent(GameEventType.SubOut, {}, sub.replaces, eventTime));
+            subGroup.groupedEvents.push(
+              buildGameEvent(GameEventType.SubOut, {}, sub.replaces, eventTime)
+            );
+            subEvents.push(subGroup);
           }
           return subEvents;
         })
@@ -108,9 +116,8 @@ const { reducer } = eventSlice;
 export const eventsReducer = reducer;
 
 type EventActionHandler<P extends LiveGamePayload> = (
-  state: EventState,
   action: PayloadAction<P>
-) => GameEvent | GameEvent[] | undefined;
+) => GameEvent | EventOrGroup[] | undefined;
 
 function buildActionHandler<P extends LiveGamePayload>(handler: EventActionHandler<P>) {
   return (state: EventState, action: PayloadAction<P>) => {
@@ -126,14 +133,18 @@ function invokeActionHandler<P extends LiveGamePayload>(
   if (!action.payload.gameId) {
     return;
   }
-  const eventsToBeAdded = handler(state, action);
+  const eventsToBeAdded = handler(action);
   if (!eventsToBeAdded) {
     return;
   }
   const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
   if (Array.isArray(eventsToBeAdded)) {
-    for (const event of eventsToBeAdded) {
-      gameEvents.addEvent(event);
+    for (const eventOrGroup of eventsToBeAdded) {
+      if ('groupedEvents' in eventOrGroup) {
+        gameEvents.addEventGroup(eventOrGroup.groupedEvents);
+      } else {
+        gameEvents.addEvent(eventOrGroup);
+      }
     }
   } else {
     gameEvents.addEvent(eventsToBeAdded);

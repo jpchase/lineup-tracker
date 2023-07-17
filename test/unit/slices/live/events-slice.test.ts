@@ -13,10 +13,39 @@ import { actions } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import { selectPlayers } from '../../helpers/live-state-setup.js';
+import { mockIdGenerator, mockIdGeneratorWithCallback } from '../../helpers/mock-id-generator.js';
 import { mockCurrentTime, mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod } = actions;
+
+function makeEventId(eventIndex: number) {
+  return `ev-id-${eventIndex}`;
+}
+
+function makeEventGroupId(groupIndex: number) {
+  return `eg-id-${groupIndex}`;
+}
+
+function mockCallbackForEventsIdGenerator() {
+  let eventIndex = 0;
+  let groupIndex = 0;
+
+  return (type?: string, _size?: number) => {
+    switch (type) {
+      case 'ev':
+        eventIndex += 1;
+        return makeEventId(eventIndex);
+
+      case 'eg':
+        groupIndex += 1;
+        return makeEventGroupId(groupIndex);
+
+      default:
+        throw new Error(`Unexpected id type: ${type}`);
+    }
+  };
+}
 
 describe('Events slice', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
@@ -39,6 +68,7 @@ describe('Events slice', () => {
     });
 
     it('should store event for setup completed', () => {
+      mockIdGenerator('anewid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const rosterPlayers = testlive.getLivePlayers(18);
@@ -50,6 +80,7 @@ describe('Events slice', () => {
         timeProvider
       );
       expectedCollection.addEvent<GameEvent>({
+        id: 'anewid',
         type: GameEventType.Setup,
         timestamp: startTime,
         data: {},
@@ -89,6 +120,7 @@ describe('Events slice', () => {
     });
 
     it('should store start period event for first period', () => {
+      mockIdGenerator('starteventid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       // const rosterPlayers = testlive.getLivePlayers(18);
@@ -100,6 +132,7 @@ describe('Events slice', () => {
         timeProvider
       );
       expectedCollection.addEvent<GameEvent>({
+        id: 'starteventid',
         type: GameEventType.StartPeriod,
         timestamp: startTime,
         data: {
@@ -124,6 +157,7 @@ describe('Events slice', () => {
     });
 
     it('should store start period event for subsequent period', () => {
+      mockIdGenerator('starteventid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       // const rosterPlayers = testlive.getLivePlayers(18);
@@ -135,6 +169,7 @@ describe('Events slice', () => {
         timeProvider
       );
       expectedCollection.addEvent<GameEvent>({
+        id: 'starteventid',
         type: GameEventType.StartPeriod,
         timestamp: startTime,
         data: {
@@ -286,6 +321,7 @@ describe('Events slice', () => {
     }
 
     it('should store sub applied events for all next subs, when not selectedOnly', () => {
+      mockIdGeneratorWithCallback(mockCallbackForEventsIdGenerator());
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const subs = buildSubs(sub1, sub2, sub3);
@@ -299,8 +335,15 @@ describe('Events slice', () => {
       );
       // There should be a pair of sub in/out events for each of
       // the three subs.
+      let eventIndex = 0;
+      let groupIndex = 0;
       for (const sub of subs) {
+        groupIndex += 1;
+
+        eventIndex += 1;
         expectedCollection.addEvent<GameEvent>({
+          id: makeEventId(eventIndex),
+          groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
@@ -308,8 +351,11 @@ describe('Events slice', () => {
             replaced: sub.replacedId,
             position: sub.expectedFinalPosition?.id,
           },
-        } as GameEvent);
+        });
+        eventIndex += 1;
         expectedCollection.addEvent<GameEvent>({
+          id: makeEventId(eventIndex),
+          groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
           playerId: sub.replacedId,
@@ -329,6 +375,7 @@ describe('Events slice', () => {
     });
 
     it('should store sub applied events for all next swaps, when not selectedOnly', () => {
+      mockIdGeneratorWithCallback(mockCallbackForEventsIdGenerator());
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const swaps = buildSubs(swap1, swap2, swap3);
@@ -340,15 +387,18 @@ describe('Events slice', () => {
         },
         timeProvider
       );
+      let eventIndex = 0;
       for (const swap of swaps) {
+        eventIndex += 1;
         expectedCollection.addEvent<GameEvent>({
+          id: makeEventId(eventIndex),
           type: GameEventType.Swap,
           timestamp: startTime,
           playerId: swap.nextId,
           data: {
             position: swap.expectedFinalPosition?.id,
           },
-        } as GameEvent);
+        });
       }
 
       const newState = events(
@@ -363,6 +413,7 @@ describe('Events slice', () => {
     });
 
     it('should store sub applied events for only selected next subs', () => {
+      mockIdGeneratorWithCallback(mockCallbackForEventsIdGenerator());
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
 
@@ -383,11 +434,18 @@ describe('Events slice', () => {
       );
       // There should be a pair of sub in/out events for each of
       // the selected subs.
+      let eventIndex = 0;
+      let groupIndex = 0;
       for (const sub of subs) {
         if (!nowPlayingIds.includes(sub.nextId)) {
           continue;
         }
+        groupIndex += 1;
+
+        eventIndex += 1;
         expectedCollection.addEvent<GameEvent>({
+          id: makeEventId(eventIndex),
+          groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
@@ -395,8 +453,11 @@ describe('Events slice', () => {
             replaced: sub.replacedId,
             position: sub.expectedFinalPosition?.id,
           },
-        } as GameEvent);
+        });
+        eventIndex += 1;
         expectedCollection.addEvent<GameEvent>({
+          id: makeEventId(eventIndex),
+          groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
           playerId: sub.replacedId,
@@ -416,6 +477,7 @@ describe('Events slice', () => {
     });
 
     it('should store sub applied events for only selected next swaps', () => {
+      mockIdGeneratorWithCallback(mockCallbackForEventsIdGenerator());
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const selectedSwaps = [swap1, swap3];
@@ -434,18 +496,21 @@ describe('Events slice', () => {
         timeProvider
       );
       const nowSwappedIds = getNextIds(selectedSwaps);
+      let eventIndex = 0;
       for (const swap of swaps) {
         if (!nowSwappedIds.includes(swap.nextId)) {
           continue;
         }
+        eventIndex += 1;
         expectedCollection.addEvent<GameEvent>({
+          id: makeEventId(eventIndex),
           type: GameEventType.Swap,
           timestamp: startTime,
           playerId: swap.nextId,
           data: {
             position: swap.expectedFinalPosition?.id,
           },
-        } as GameEvent);
+        });
       }
 
       const newState = events(

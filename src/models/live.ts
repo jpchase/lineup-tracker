@@ -79,6 +79,10 @@ export interface GameEvent extends EventBase<GameEventType> {
   playerId?: string;
 }
 
+export interface GameEventGroup {
+  groupedEvents: GameEvent[];
+}
+
 export class LiveGameBuilder {
   static create(game: Game): LiveGame {
     if (!game) {
