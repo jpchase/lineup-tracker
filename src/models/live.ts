@@ -68,8 +68,9 @@ export interface LiveGames {
 }
 
 export enum GameEventType {
+  PeriodStart = 'PERIODSTART',
+  PeriodEnd = 'PERIODEND',
   Setup = 'SETUP',
-  StartPeriod = 'STARTPERIOD',
   SubIn = 'SUBIN',
   SubOut = 'SUBOUT',
   Swap = 'SWAP',

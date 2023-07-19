@@ -17,7 +17,7 @@ import { mockIdGenerator, mockIdGeneratorWithCallback } from '../../helpers/mock
 import { mockCurrentTime, mockTimeProvider } from '../../helpers/test-clock-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
-const { applyPendingSubs, gameSetupCompleted, startPeriod } = actions;
+const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
 
 function makeEventId(eventIndex: number) {
   return `ev-id-${eventIndex}`;
@@ -49,6 +49,7 @@ function mockCallbackForEventsIdGenerator() {
 
 describe('Events slice', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+  const timeStartPlus20Minutes = new Date(2016, 0, 1, 14, 20, 0).getTime();
   let fakeClock: sinon.SinonFakeTimers;
 
   afterEach(async () => {
@@ -123,7 +124,6 @@ describe('Events slice', () => {
       mockIdGenerator('starteventid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
-      // const rosterPlayers = testlive.getLivePlayers(18);
       const game = testlive.getLiveGame(rosterPlayers);
       const expectedCollection = EventCollection.create(
         {
@@ -133,7 +133,7 @@ describe('Events slice', () => {
       );
       expectedCollection.addEvent<GameEvent>({
         id: 'starteventid',
-        type: GameEventType.StartPeriod,
+        type: GameEventType.PeriodStart,
         timestamp: startTime,
         data: {
           clock: {
@@ -160,7 +160,6 @@ describe('Events slice', () => {
       mockIdGenerator('starteventid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
-      // const rosterPlayers = testlive.getLivePlayers(18);
       const game = testlive.getLiveGame(rosterPlayers);
       const expectedCollection = EventCollection.create(
         {
@@ -170,7 +169,7 @@ describe('Events slice', () => {
       );
       expectedCollection.addEvent<GameEvent>({
         id: 'starteventid',
-        type: GameEventType.StartPeriod,
+        type: GameEventType.PeriodStart,
         timestamp: startTime,
         data: {
           clock: {
@@ -524,4 +523,101 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
   }); // describe('live/applyPendingSubs')
+
+  describe('live/endPeriod', () => {
+    let currentState: EventState = EVENTS_INITIAL_STATE;
+    let rosterPlayers: LivePlayer[];
+    const gameId = 'somegameid';
+
+    before(() => {
+      rosterPlayers = testlive.getLivePlayers(18);
+    });
+
+    beforeEach(() => {
+      currentState = {
+        ...EVENTS_INITIAL_STATE,
+      };
+    });
+
+    it('should store end period event for first period', () => {
+      mockIdGenerator('endeventid');
+      fakeClock = mockCurrentTime(timeStartPlus20Minutes);
+      const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
+      const game = testlive.getLiveGame(rosterPlayers);
+      const expectedCollection = EventCollection.create(
+        {
+          id: game.id,
+        },
+        timeProvider
+      );
+      expectedCollection.addEvent<GameEvent>({
+        id: 'endeventid',
+        type: GameEventType.PeriodEnd,
+        timestamp: timeStartPlus20Minutes,
+        data: {
+          clock: {
+            currentPeriod: 1,
+            endTime: timeStartPlus20Minutes,
+          },
+        },
+      });
+
+      expect(currentState.events, 'events should be empty').to.not.be.ok;
+
+      const newState = events(
+        currentState,
+        endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus20Minutes)
+      );
+
+      expect(newState).to.deep.include({
+        events: { [expectedCollection.id]: expectedCollection.toJSON() },
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should store end period event for last period', () => {
+      mockIdGenerator('endeventid');
+      fakeClock = mockCurrentTime(timeStartPlus20Minutes);
+      const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
+      const game = testlive.getLiveGame(rosterPlayers);
+      const expectedCollection = EventCollection.create(
+        {
+          id: game.id,
+        },
+        timeProvider
+      );
+      expectedCollection.addEvent<GameEvent>({
+        id: 'endeventid',
+        type: GameEventType.PeriodEnd,
+        timestamp: timeStartPlus20Minutes,
+        data: {
+          clock: {
+            currentPeriod: 2,
+            endTime: timeStartPlus20Minutes,
+          },
+        },
+      });
+      expect(currentState.events, 'events should be empty').to.not.be.ok;
+
+      const newState = events(
+        currentState,
+        endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, timeStartPlus20Minutes)
+      );
+
+      expect(newState).to.deep.include({
+        events: { [expectedCollection.id]: expectedCollection.toJSON() },
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should do nothing if game does not allow period to be ended', () => {
+      mockCurrentTime(timeStartPlus20Minutes);
+
+      const newState = events(currentState, endPeriod(gameId, /*gameAllowsEnd=*/ false));
+
+      expect(newState.events, 'events should be empty').to.not.be.ok;
+
+      expect(newState).to.equal(currentState);
+    });
+  }); // describe('live/endPeriod')
 }); // describe('Events slice')

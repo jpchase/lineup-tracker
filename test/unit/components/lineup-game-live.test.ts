@@ -806,6 +806,11 @@ describe('lineup-game-live tests', () => {
     });
 
     it('dispatches end period action when event fired by clock component', async () => {
+      fakeClock = sinon.useFakeTimers({
+        now: startTime,
+        shouldAdvanceTime: false,
+      });
+
       // Get the clock component into a state that allows the period to end.
       getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/ true));
       await el.updateComplete;
@@ -820,7 +825,9 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(endPeriod(gameId));
+      expect(actions[actions.length - 1]).to.deep.include(
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime)
+      );
     });
 
     it('dispatches end period action with extra minutes when event fired by clock component', async () => {
@@ -954,9 +961,9 @@ describe('lineup-game-live tests', () => {
       // the first half is started.
       const store = getStore();
       store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/ true));
-      store.dispatch(endPeriod(liveGame.id));
+      store.dispatch(endPeriod(liveGame.id, /*gameAllowsEnd=*/ true));
       store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/ true));
-      store.dispatch(endPeriod(liveGame.id));
+      store.dispatch(endPeriod(liveGame.id, /*gameAllowsEnd=*/ true));
     }
 
     it('complete button is disabled initially', async () => {

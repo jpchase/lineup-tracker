@@ -685,7 +685,10 @@ describe('Live slice', () => {
         const currentTrackerMap = getTrackerMap(currentState.shift!, currentGame.id);
         currentTrackerMap!.clockRunning = true;
 
-        const newState = live(currentState, endPeriod(currentGame.id));
+        const newState = live(
+          currentState,
+          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime)
+        );
 
         const newGame = getGame(newState, gameId)!;
         expect(newGame.status).to.equal(GameStatus.Break);
@@ -701,7 +704,10 @@ describe('Live slice', () => {
         currentGame.clock!.currentPeriod = 2;
         currentGame.clock!.periodStatus = PeriodStatus.Running;
 
-        const newState = live(currentState, endPeriod(currentGame.id));
+        const newState = live(
+          currentState,
+          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, startTime)
+        );
 
         expect(getGame(newState, gameId)?.status).to.equal(GameStatus.Break);
       });
@@ -712,7 +718,10 @@ describe('Live slice', () => {
         currentGame.clock!.currentPeriod = 2;
         currentGame.clock!.periodStatus = PeriodStatus.Running;
 
-        const newState = live(currentState, endPeriod(currentGame.id));
+        const newState = live(
+          currentState,
+          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, startTime)
+        );
 
         expect(getGame(newState, gameId)?.status).to.equal(GameStatus.Done);
       });
@@ -725,7 +734,7 @@ describe('Live slice', () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
 
-          const newState = live(currentState, endPeriod(currentGame.id));
+          const newState = live(currentState, endPeriod(currentGame.id, /*gameAllowsEnd=*/ false));
 
           expect(getGame(newState, gameId)?.status).to.equal(status);
           expect(newState).to.equal(currentState);

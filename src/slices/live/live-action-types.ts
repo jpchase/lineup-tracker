@@ -45,7 +45,9 @@ export interface StartPeriodPayload extends LiveGamePayload {
 }
 
 export interface EndPeriodPayload extends LiveGamePayload {
-  retroactiveStopTime?: number;
+  gameAllowsEnd: boolean;
+  currentPeriod?: number;
+  stopTime?: number;
 }
 
 export interface OverduePeriodPayload extends LiveGamePayload {

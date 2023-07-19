@@ -7,7 +7,7 @@ import { GameEvent, GameEventGroup, GameEventType } from '../../models/live.js';
 import { LiveGamePayload, extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions } from './live-slice.js';
 
-const { applyPendingSubs, gameSetupCompleted, startPeriod } = actions;
+const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
 
 export interface EventsMap {
   [index: string]: EventCollectionData;
@@ -47,7 +47,7 @@ const eventSlice = createSlice({
           }
           const startTime = action.payload.startTime!;
           return buildGameEvent(
-            GameEventType.StartPeriod,
+            GameEventType.PeriodStart,
             {
               clock: {
                 currentPeriod: action.payload.currentPeriod!,
@@ -56,6 +56,26 @@ const eventSlice = createSlice({
             },
             undefined,
             /* timestamp= */ startTime
+          );
+        })
+      )
+      .addCase(
+        endPeriod,
+        buildActionHandler((action) => {
+          if (!action.payload.gameAllowsEnd) {
+            return undefined;
+          }
+          const endTime = action.payload.stopTime!;
+          return buildGameEvent(
+            GameEventType.PeriodEnd,
+            {
+              clock: {
+                currentPeriod: action.payload.currentPeriod!,
+                endTime,
+              },
+            },
+            undefined,
+            /* timestamp= */ endTime
           );
         })
       )

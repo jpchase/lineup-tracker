@@ -290,7 +290,10 @@ describe('Live slice: Clock actions', () => {
         periodStatus: PeriodStatus.Running,
       });
 
-      const newState = live(currentState, endPeriod(gameId));
+      const newState = live(
+        currentState,
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -312,7 +315,10 @@ describe('Live slice: Clock actions', () => {
         periodStatus: PeriodStatus.Running,
       });
 
-      const newState = live(currentState, endPeriod(gameId));
+      const newState = live(
+        currentState,
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -331,7 +337,10 @@ describe('Live slice: Clock actions', () => {
         periodStatus: PeriodStatus.Overdue,
       });
 
-      const newState = live(currentState, endPeriod(gameId));
+      const newState = live(
+        currentState,
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -350,7 +359,10 @@ describe('Live slice: Clock actions', () => {
         periodStatus: PeriodStatus.Running,
       });
 
-      const newState = live(currentState, endPeriod(gameId));
+      const newState = live(
+        currentState,
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -370,7 +382,10 @@ describe('Live slice: Clock actions', () => {
         totalPeriods: 3,
       });
 
-      const newState = live(currentState, endPeriod(gameId));
+      const newState = live(
+        currentState,
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 3, timeStartPlus10)
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -389,7 +404,7 @@ describe('Live slice: Clock actions', () => {
         periodStatus: PeriodStatus.Pending,
       });
 
-      const newState = live(currentState, endPeriod(gameId));
+      const newState = live(currentState, endPeriod(gameId, /*gameAllowsEnd=*/ false));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -409,7 +424,7 @@ describe('Live slice: Clock actions', () => {
         totalPeriods: 3,
       });
 
-      const newState = live(currentState, endPeriod(gameId));
+      const newState = live(currentState, endPeriod(gameId, /*gameAllowsEnd=*/ false));
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -436,7 +451,9 @@ describe('Live slice: Clock actions', () => {
 
         expect(dispatchMock).to.have.callCount(1);
 
-        expect(dispatchMock.lastCall).to.have.been.calledWith(endPeriod(gameId));
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+        );
       });
 
       it('should dispatch action for running period with clock stopped', async () => {
@@ -454,7 +471,9 @@ describe('Live slice: Clock actions', () => {
 
         expect(dispatchMock).to.have.callCount(1);
 
-        expect(dispatchMock.lastCall).to.have.been.calledWith(endPeriod(gameId));
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+        );
       });
 
       it('should dispatch action for overdue period with extra minutes when clock running', async () => {
@@ -474,7 +493,7 @@ describe('Live slice: Clock actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId, timeStartPlus15Minutes)
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus15Minutes)
         );
       });
 
@@ -495,7 +514,7 @@ describe('Live slice: Clock actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId, timeStartPlus15Minutes)
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus15Minutes)
         );
       });
 
@@ -518,7 +537,9 @@ describe('Live slice: Clock actions', () => {
 
         expect(dispatchMock).to.have.callCount(1);
 
-        expect(dispatchMock.lastCall).to.have.been.calledWith(endPeriod(gameId));
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus20Minutes)
+        );
       });
     }); // describe('action creator')
   }); // describe('live/endPeriod')

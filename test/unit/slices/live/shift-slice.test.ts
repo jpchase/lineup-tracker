@@ -152,7 +152,10 @@ describe('Shift slice', () => {
       // the shifts by the reducer.
       mockCurrentTime(timeStartPlus5);
 
-      const newState = shift(currentState, endPeriod(gameId));
+      const newState = shift(
+        currentState,
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus5)
+      );
 
       // Only need to check the first player tracker.
       const expectedTracker = buildPlayerTracker(rosterPlayers[0]);
@@ -189,7 +192,10 @@ describe('Shift slice', () => {
       // the shifts by the reducer.
       mockCurrentTime(timeStartPlus15Minutes);
 
-      const newState = shift(currentState, endPeriod(gameId, timeStartPlus10Minutes));
+      const newState = shift(
+        currentState,
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10Minutes)
+      );
 
       // Only need to check the first player tracker.
       const expectedTracker = buildPlayerTracker(rosterPlayers[0]);
@@ -223,7 +229,10 @@ describe('Shift slice', () => {
       currentTrackerMapData = trackerMap.toJSON();
       currentState.trackerMaps![gameId] = currentTrackerMapData;
 
-      const newState = shift(currentState, endPeriod(gameId, timeStartPlus10Minutes));
+      const newState = shift(
+        currentState,
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10Minutes)
+      );
 
       // The previous stop time should be kept, and the retroactive time
       // from the action ignored.
@@ -250,7 +259,7 @@ describe('Shift slice', () => {
     it('should do nothing if game does not allow period to be ended', () => {
       mockCurrentTime(startTime);
 
-      const newState = shift(currentState, endPeriod(gameId));
+      const newState = shift(currentState, endPeriod(gameId, /*gameAllowsEnd=*/ false));
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       expect(newTrackerMap?.clockRunning, 'trackerMap.clockRunning').to.be.false;
