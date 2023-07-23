@@ -94,6 +94,7 @@ const eventSlice = createSlice({
                   GameEventType.Swap,
                   {
                     position: sub.nextPosition?.id,
+                    previousPosition: sub.currentPosition?.id,
                   },
                   extractIdFromSwapPlayerId(sub.id),
                   eventTime
