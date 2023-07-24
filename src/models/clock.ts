@@ -229,7 +229,7 @@ export class TimerWidget {
 }
 
 export class DateFormatter {
-  formatter: Intl.DateTimeFormat;
+  private formatter: Intl.DateTimeFormat;
 
   constructor() {
     const options: Intl.DateTimeFormatOptions = {
@@ -239,6 +239,23 @@ export class DateFormatter {
       weekday: 'short',
       hour: 'numeric',
       minute: '2-digit',
+    };
+    this.formatter = new Intl.DateTimeFormat('default', options);
+  }
+
+  format(date: Date): string {
+    return this.formatter.format(date);
+  }
+}
+
+export class TimeFormatter {
+  private formatter: Intl.DateTimeFormat;
+
+  constructor() {
+    const options: Intl.DateTimeFormatOptions = {
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
     };
     this.formatter = new Intl.DateTimeFormat('default', options);
   }

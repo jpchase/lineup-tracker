@@ -8,6 +8,7 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
+import { EventCollectionData } from '../models/events.js';
 import {
   Formation,
   FormationBuilder,
@@ -31,6 +32,7 @@ import {
   markPlayerOut,
   pendingSubsAppliedCreator,
   returnOutPlayer,
+  selectGameEvents,
   selectInvalidSubs,
   selectLiveGameById,
   selectPlayer,
@@ -39,11 +41,11 @@ import {
   startPeriodCreator,
   toggleClock,
 } from '../slices/live/index.js';
-// The specific store configurator, which handles initialization/lazy-loading.
 import { getLiveStore } from '../slices/live/live-module-configurator.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
+import './lineup-game-events.js';
 import './lineup-game-shifts.js';
 import './lineup-on-player-list.js';
 import { PlayerSelectedEvent } from './lineup-player-card.js';
@@ -70,7 +72,14 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       </style>
       <div>
         ${this._game
-          ? html` ${this.renderGame(this.formation!, this._players!, this.trackerData!)} `
+          ? html`
+              ${this.renderGame(
+                this.formation!,
+                this._players!,
+                this.trackerData!,
+                this.eventData!
+              )}
+            `
           : html` <p class="empty-list">Live game not set.</p> `}
       </div>`;
   }
@@ -78,7 +87,8 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   private renderGame(
     formation: Formation,
     players: LivePlayer[],
-    trackerData: PlayerTimeTrackerMapData
+    trackerData: PlayerTimeTrackerMapData,
+    eventData: EventCollectionData
   ) {
     return html` <div toolbar>
         <lineup-game-clock
@@ -149,6 +159,10 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         <h3>Playing Time</h3>
         <lineup-game-shifts .trackerData="${trackerData}" .players="${players}">
         </lineup-game-shifts>
+      </div>
+      <div id="events">
+        <h3>History</h3>
+        <lineup-game-events .eventData="${eventData}" .players="${players}"> </lineup-game-events>
       </div>`;
   }
 
@@ -258,6 +272,9 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   @state()
   private trackerData?: PlayerTimeTrackerMapData;
 
+  @state()
+  private eventData?: EventCollectionData;
+
   @query('lineup-player-list[mode="next"]')
   private nextPlayerList!: LineupPlayerList;
 
@@ -322,6 +339,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     this.invalidSubs = selectInvalidSubs(state);
     const trackerMaps = state.live.shift?.trackerMaps;
     this.trackerData = trackerMaps ? trackerMaps[this._game.id] : undefined;
+    this.eventData = selectGameEvents(state, this._game.id);
     this.timerTrigger.isRunning = !!this.trackerData?.clockRunning;
   }
 

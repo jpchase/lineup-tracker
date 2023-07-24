@@ -4,6 +4,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
 import { GameEvent, GameEventGroup, GameEventType } from '../../models/live.js';
+import { RootState } from '../../store.js';
 import { LiveGamePayload, extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions } from './live-slice.js';
 
@@ -19,6 +20,13 @@ export interface EventState {
 
 export const EVENTS_INITIAL_STATE: EventState = {
   events: undefined,
+};
+
+export const selectGameEvents = (state: RootState, gameId: string) => {
+  if (!state.live || !gameId) {
+    return undefined;
+  }
+  return getGameEventData(state.live, gameId);
 };
 
 type EventOrGroup = GameEvent | GameEventGroup;
@@ -173,19 +181,15 @@ function invokeActionHandler<P extends LiveGamePayload>(
   setGameEvents(state, gameEvents);
 }
 
-function getGameEvents(state: EventState, gameId: string): EventCollection | undefined {
+function getGameEventData(state: EventState, gameId: string): EventCollectionData | undefined {
   if (!state.events || !(gameId in state.events)) {
     return undefined;
   }
-  const data = state.events[gameId];
-  if (!data) {
-    return undefined;
-  }
-  return EventCollection.create(data);
+  return state.events[gameId];
 }
 
 function getOrCreateGameEvents(state: EventState, gameId: string): EventCollection {
-  return getGameEvents(state, gameId) ?? EventCollection.create({ id: gameId });
+  return EventCollection.create(getGameEventData(state, gameId) ?? { id: gameId });
 }
 
 function setGameEvents(state: EventState, gameEvents: EventCollection) {

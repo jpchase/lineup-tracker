@@ -80,6 +80,13 @@ snapshots["lineup-game-live tests shows all player sections for started game"] =
     <lineup-game-shifts>
     </lineup-game-shifts>
   </div>
+  <div id="events">
+    <h3>
+      History
+    </h3>
+    <lineup-game-events>
+    </lineup-game-events>
+  </div>
 </div>
 `;
 /* end snapshot lineup-game-live tests shows all player sections for started game */

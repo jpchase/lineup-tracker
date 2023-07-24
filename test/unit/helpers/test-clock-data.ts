@@ -39,6 +39,12 @@ export function mockTimeProvider(t0: number, t1?: number, t2?: number, t3?: numb
   return provider;
 }
 
+export function mockTimeProviderWithCallback(cb: () => number) {
+  const provider = new CurrentTimeProvider();
+  sinon.stub(provider, 'getTimeInternal').callsFake(cb);
+  return provider;
+}
+
 export function manualTimeProvider(currentTime: number) {
   const provider = new ManualTimeProvider();
   if (currentTime) {
