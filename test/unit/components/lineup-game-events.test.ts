@@ -4,7 +4,13 @@ import '@app/components/lineup-game-events.js';
 import { LineupGameEvents } from '@app/components/lineup-game-events.js';
 import { CurrentTimeProvider, TimeFormatter } from '@app/models/clock';
 import { EventCollection } from '@app/models/events.js';
-import { GameEvent, GameEventType, LiveGame, LivePlayer } from '@app/models/live.js';
+import {
+  GameEvent,
+  GameEventGroup,
+  GameEventType,
+  LiveGame,
+  LivePlayer,
+} from '@app/models/live.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
 import { mockTimeProvider, mockTimeProviderWithCallback } from '../helpers/test-clock-data.js';
@@ -79,11 +85,14 @@ describe('lineup-game-events tests', () => {
     el.eventData = events.toJSON();
     await el.updateComplete;
 
-    const items = getEventItems();
-    expect(items.length).to.equal(events.events.length, 'Rendered event count');
+    // Sort in descending date order, and remove events that are not displayed.
+    const sortedEvents = events
+      .events!.sort((a, b) => b.timestamp! - a.timestamp!)
+      .filter((event) => event.type !== GameEventType.SubOut);
 
-    // Sort in descending date order
-    const sortedEvents = events.events!.sort((a, b) => b.timestamp! - a.timestamp!);
+    const items = getEventItems();
+    expect(items.length).to.equal(sortedEvents.length, 'Rendered event count');
+
     let index = 0;
     const timeFormatter = new TimeFormatter();
     for (const event of sortedEvents) {
@@ -140,6 +149,16 @@ describe('lineup-game-events tests', () => {
       return events.events[0] as GameEvent;
     }
 
+    async function setupEventGroup(group: GameEventGroup) {
+      events.addEventGroup<GameEvent>(group.groupedEvents);
+
+      el.players = players;
+      el.eventData = events.toJSON();
+      await el.updateComplete;
+
+      return events.events[0] as GameEvent;
+    }
+
     function getEventElements(event: GameEvent) {
       const items = getEventItems();
       expect(items.length, 'Rendered event count').to.equal(1);
@@ -157,13 +176,16 @@ describe('lineup-game-events tests', () => {
       return { typeElement, detailsElement };
     }
 
+    function expectEventType(typeElement: HTMLElement, expectedText: string) {
+      expect(typeElement.textContent?.trim(), 'Event type').to.equal(expectedText);
+    }
+
     it(`renders ${GameEventType.Setup} event details`, async () => {
       const event = await setupEvent(buildGameSetupEvent(startTime));
 
       const { typeElement, detailsElement } = getEventElements(event);
 
-      // TODO: Change to actual display text for type
-      expect(typeElement.textContent, 'Event type').to.equal(GameEventType.Setup);
+      expectEventType(typeElement, 'Setup completed');
 
       // TODO: Assert formatted details
       expect(detailsElement.textContent).to.equal('{"clock":{"totalPeriods":2,"periodLength":45}}');
@@ -174,13 +196,28 @@ describe('lineup-game-events tests', () => {
 
       const { typeElement, detailsElement } = getEventElements(event);
 
-      // TODO: Change to actual display text for type
-      expect(typeElement.textContent, 'Event type').to.equal(GameEventType.PeriodStart);
+      expectEventType(typeElement, 'Period started');
 
       // TODO: Assert formatted details
       expect(detailsElement.textContent).to.equal(
         '{"clock":{"currentPeriod":1,"startTime":1451674800000}}'
       );
+    });
+
+    it(`renders ${GameEventType.SubIn} event details`, async () => {
+      const sub1: testlive.SubData = {
+        nextId: 'P11',
+        replacedId: 'P4',
+      };
+      const event = await setupEventGroup(buildSubEvents(startTime, sub1));
+
+      // The SUBOUT event is not displayed, so there should only be one rendered event.
+      const { typeElement, detailsElement } = getEventElements(event);
+
+      expectEventType(typeElement, 'Substitution');
+
+      // TODO: Assert formatted details
+      expect(detailsElement.textContent).to.equal('{"replaced":"P4"}');
     });
   }); // describe('event types')
 

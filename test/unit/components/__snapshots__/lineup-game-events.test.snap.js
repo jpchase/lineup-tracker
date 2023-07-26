@@ -22,21 +22,10 @@ snapshots["lineup-game-events tests renders list of events"] =
         2:00:20 PM
       </td>
       <td class="mdl-data-table__cell--non-numeric playerName">
-        SUBIN
+        Substitution
       </td>
       <td class="details">
         {"replaced":"P4"}
-      </td>
-    </tr>
-    <tr data-event-id="subeventid-P4">
-      <td class="mdl-data-table__cell--non-numeric">
-        2:00:20 PM
-      </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
-        SUBOUT
-      </td>
-      <td class="details">
-        {}
       </td>
     </tr>
     <tr data-event-id="starteventid">
@@ -44,7 +33,7 @@ snapshots["lineup-game-events tests renders list of events"] =
         2:00:10 PM
       </td>
       <td class="mdl-data-table__cell--non-numeric playerName">
-        PERIODSTART
+        Period started
       </td>
       <td class="details">
         {"clock":{"currentPeriod":1,"startTime":1451674810000}}
@@ -55,7 +44,7 @@ snapshots["lineup-game-events tests renders list of events"] =
         2:00:00 PM
       </td>
       <td class="mdl-data-table__cell--non-numeric playerName">
-        SETUP
+        Setup completed
       </td>
       <td class="details">
         {"clock":{"totalPeriods":2,"periodLength":45}}

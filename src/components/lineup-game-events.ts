@@ -10,12 +10,26 @@ import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { TimeFormatter } from '../models/clock.js';
 import { EventBase, EventCollection, EventCollectionData } from '../models/events.js';
-import { LivePlayer } from '../models/live.js';
+import { GameEventType, LivePlayer } from '../models/live.js';
 import { SharedStyles } from './shared-styles.js';
 
 interface EventItem {
   id: string;
   event: EventBase;
+}
+
+function getEventTypeText(eventType: GameEventType): string {
+  switch (eventType) {
+    case GameEventType.PeriodStart:
+      return 'Period started';
+    case GameEventType.Setup:
+      return 'Setup completed';
+    case GameEventType.SubIn:
+      return 'Substitution';
+
+    default:
+      return '<unknown event>';
+  }
 }
 
 // This element is *not* connected to the Redux store.
@@ -48,7 +62,9 @@ export class LineupGameEvents extends LitElement {
                 <td class=" mdl-data-table__cell--non-numeric">
                   ${this.renderEventTime(item.event.timestamp!, timeFormatter)}
                 </td>
-                <td class="playerName mdl-data-table__cell--non-numeric">${item.event.type}</td>
+                <td class="playerName mdl-data-table__cell--non-numeric">
+                  ${getEventTypeText(item.event.type as GameEventType)}
+                </td>
                 <td class="details">${JSON.stringify(item.event.data)}</td>
               </tr>
             `
@@ -90,16 +106,20 @@ export class LineupGameEvents extends LitElement {
     const events = this.events!;
 
     // Return events with most recent first (reverse chronological order).
-    return events.events
-      .map((event) => {
-        return {
-          id: event.id!,
-          type: event.type,
-          // name: this.getPlayer(this.players, tracker.id)?.name!,
-          event,
-        };
-      })
-      .sort((a, b) => b.event.timestamp! - a.event.timestamp!);
+    return (
+      events.events
+        // Ignore sub out events, as the sub in event will show all the detail.
+        .filter((event) => event.type !== GameEventType.SubOut)
+        .map((event) => {
+          return {
+            id: event.id!,
+            type: event.type,
+            // name: this.getPlayer(this.players, tracker.id)?.name!,
+            event,
+          };
+        })
+        .sort((a, b) => b.event.timestamp! - a.event.timestamp!)
+    );
   }
 
   // private getPlayer(players: LivePlayer[], playerId: string) {
