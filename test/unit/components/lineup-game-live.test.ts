@@ -11,8 +11,8 @@ import { FormationType } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { getLiveStoreConfigurator } from '@app/slices/live-store.js';
 import { endPeriodCreator, selectLiveGameById } from '@app/slices/live/index.js';
+import { getLiveStoreConfigurator } from '@app/slices/live/live-module-configurator.js';
 import { actions as liveActions } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
@@ -760,6 +760,8 @@ describe('lineup-game-live tests', () => {
   }); // describe('Subs')
 
   describe('Clock', () => {
+    const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    let fakeClock: sinon.SinonFakeTimers;
     let gameId: string;
 
     beforeEach(async () => {
@@ -776,7 +778,18 @@ describe('lineup-game-live tests', () => {
       await el.updateComplete;
     });
 
+    afterEach(async () => {
+      if (fakeClock) {
+        fakeClock.restore();
+      }
+    });
+
     it('dispatches start period action when event fired by clock component', async () => {
+      fakeClock = sinon.useFakeTimers({
+        now: startTime,
+        shouldAdvanceTime: false,
+      });
+
       // Trigger the event by clicking the start button.
       const clockElement = getClockElement();
       const startButton = getClockStartPeriodButton(clockElement);
@@ -788,11 +801,16 @@ describe('lineup-game-live tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        startPeriod(gameId, /*gameAllowsStart  =*/ true)
+        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
       );
     });
 
     it('dispatches end period action when event fired by clock component', async () => {
+      fakeClock = sinon.useFakeTimers({
+        now: startTime,
+        shouldAdvanceTime: false,
+      });
+
       // Get the clock component into a state that allows the period to end.
       getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/ true));
       await el.updateComplete;
@@ -807,7 +825,9 @@ describe('lineup-game-live tests', () => {
       expect(dispatchStub).to.have.callCount(1);
 
       expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(endPeriod(gameId));
+      expect(actions[actions.length - 1]).to.deep.include(
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime)
+      );
     });
 
     it('dispatches end period action with extra minutes when event fired by clock component', async () => {
@@ -941,9 +961,9 @@ describe('lineup-game-live tests', () => {
       // the first half is started.
       const store = getStore();
       store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/ true));
-      store.dispatch(endPeriod(liveGame.id));
+      store.dispatch(endPeriod(liveGame.id, /*gameAllowsEnd=*/ true));
       store.dispatch(startPeriod(liveGame.id, /*gameAllowsStart =*/ true));
-      store.dispatch(endPeriod(liveGame.id));
+      store.dispatch(endPeriod(liveGame.id, /*gameAllowsEnd=*/ true));
     }
 
     it('complete button is disabled initially', async () => {

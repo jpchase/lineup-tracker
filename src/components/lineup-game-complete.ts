@@ -5,9 +5,9 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { LiveGame, LivePlayer } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
-// The specific store configurator, which handles initialization/lazy-loading.
-import { getLiveStore } from '../slices/live-store.js';
 import { selectLiveGameById } from '../slices/live/index.js';
+// The specific store configurator, which handles initialization/lazy-loading.
+import { getLiveStore } from '../slices/live/live-module-configurator.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-game-shifts.js';
 import { SharedStyles } from './shared-styles.js';

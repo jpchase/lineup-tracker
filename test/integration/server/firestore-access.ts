@@ -12,16 +12,11 @@ import {
 } from 'firebase-admin/firestore';
 import { getEnv } from '../../../src/app/environment.js';
 import { Game, GameDetail } from '../../../src/models/game.js';
+import { Model, ModelCollection } from '../../../src/models/model.js';
 import { Player, PlayerStatus, Roster } from '../../../src/models/player.js';
 // import { gameConverter } from '../../../src/slices/game/game-storage.js'
 import { NewDocOptions } from '../../../src/storage/firestore-writer.js';
-import {
-  Model,
-  ModelCollection,
-  ModelConverter,
-  ModelReader,
-  ModelWriter,
-} from '../../../src/storage/model-converter.js';
+import { ModelConverter, ModelReader, ModelWriter } from '../../../src/storage/model-converter.js';
 import { logWithTime } from '../pages/page-object.js';
 
 export { Firestore, getFirestore } from 'firebase-admin/firestore';

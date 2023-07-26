@@ -1,11 +1,10 @@
 /** @format */
 
-import { createNextState, createSlice, PayloadAction, Reducer } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Position } from '../../models/formation.js';
 import { Game, GameDetail, GameStatus } from '../../models/game.js';
 import {
   findPlayersByStatus,
-  gameCanStartPeriod,
   getPlayer,
   LiveGame,
   LiveGameBuilder,
@@ -26,6 +25,7 @@ import {
   startPeriodPrepare,
   toggleHandler,
 } from './clock-reducer-logic.js';
+import { EventState } from './events-slice.js';
 import { LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
 import {
   applyStarterHandler,
@@ -45,7 +45,7 @@ import {
   startersCompletedHandler,
   updateTasks,
 } from './setup-reducer-logic.js';
-import { shift, ShiftState } from './shift-slice.js';
+import { ShiftState } from './shift-slice.js';
 import {
   cancelSubHandler,
   cancelSwapHandler,
@@ -79,11 +79,11 @@ export interface LiveGameState {
   invalidSubs?: string[];
 }
 
-export interface LiveState extends LiveGameState {
+export interface LiveState extends LiveGameState, EventState {
   shift?: ShiftState;
 }
 
-const INITIAL_STATE: LiveGameState = {
+export const LIVE_GAME_INITIAL_STATE: LiveGameState = {
   games: {},
   selectedStarterPlayer: undefined,
   selectedStarterPosition: undefined,
@@ -140,39 +140,9 @@ export const rosterCompleted =
     dispatch(actions.completeRoster(gameId, game.roster));
   };
 
-export const startGamePeriod =
-  (gameId: string): ThunkResult =>
-  (dispatch, getState) => {
-    const state = getState();
-    const game = selectLiveGameById(state, gameId);
-    if (!game || !game.clock) {
-      return;
-    }
-    dispatch(
-      actions.startPeriod(
-        game.id,
-        gameCanStartPeriod(game, game.clock.currentPeriod, game.clock.totalPeriods)
-      )
-    );
-  };
-
-export const live: Reducer<LiveState> = function reduce(state, action) {
-  // Use immer so that a new object is returned only when something actually changes.
-  // This is important to avoid triggering unnecessary rendering cycles.
-  // - The |state| might be undefined on app initialization. Immer will *not*
-  //   create a draft for undefined, which causes an error for Object.assign().
-  //   As a workaround, pass the |INITIAL_STATE|, even though it seems redundant with
-  //   the inner reducers.
-  return createNextState(state || (INITIAL_STATE as LiveState), (draft) => {
-    Object.assign(draft, liveSlice.reducer(draft, action));
-    // eslint-disable-next-line no-param-reassign
-    draft!.shift = shift(draft?.shift, action);
-  }) as LiveState;
-};
-
 export const liveSlice = createSlice({
   name: 'live',
-  initialState: INITIAL_STATE,
+  initialState: LIVE_GAME_INITIAL_STATE,
   reducers: {
     getLiveGame: (state, action: PayloadAction<Game>) => {
       const liveGame: LiveGame = LiveGameBuilder.create(action.payload);

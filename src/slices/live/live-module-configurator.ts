@@ -1,12 +1,13 @@
 /** @format */
 
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
-import { debug } from '../common/debug.js';
-import { IdbPersistStorage } from '../middleware/idb-persist-storage.js';
-import { RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
-import { live, LiveState } from './live/live-slice.js';
+import { debug } from '../../common/debug.js';
+import { IdbPersistStorage } from '../../middleware/idb-persist-storage.js';
+import { RootStore, SliceStoreConfigurator, store as globalStore } from '../../store.js';
+import { live } from './composed-reducer.js';
+import { LiveState } from './live-slice.js';
 
-const debugStore = debug('live-store');
+const debugStore = debug('live-module');
 
 const REDUCER_KEY = 'live';
 let initialized = false;
@@ -33,7 +34,7 @@ function initReducer(store: RootStore, hydrate: boolean) {
     const persistConfig: PersistConfig<LiveState> = {
       key: REDUCER_KEY,
       storage: new IdbPersistStorage(),
-      whitelist: ['games', 'shift'],
+      whitelist: ['events', 'games', 'shift'],
       debug: true,
     };
 

@@ -1,11 +1,10 @@
 /** @format */
 
-import { Duration } from '../../models/clock.js';
 import { FormationBuilder, getPositions } from '../../models/formation.js';
-import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '../../models/live.js';
+import { LiveGame, LivePlayer, getPlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { ThunkResult } from '../../store.js';
-import { isPeriodOverdue } from './clock-reducer-logic.js';
+import { gameCanEndPeriod, gameCanStartPeriod, isPeriodOverdue } from './clock-reducer-logic.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions, selectLiveGameById, selectPendingSubs } from './live-slice.js';
 
@@ -16,7 +15,20 @@ const {
   invalidStarters,
   markPeriodOverdue,
   startersCompleted,
+  startPeriod,
 } = actions;
+
+export const startPeriodCreator =
+  (gameId: string): ThunkResult =>
+  (dispatch, getState) => {
+    const state = getState();
+    const game = selectLiveGameById(state, gameId);
+    if (!game) {
+      return;
+    }
+    const period = gameCanStartPeriod(game);
+    dispatch(startPeriod(game.id, period.allowsStart, period.currentPeriod, period.startTime));
+  };
 
 export const markPeriodOverdueCreator =
   (gameId: string): ThunkResult =>
@@ -36,19 +48,8 @@ export const endPeriodCreator =
     if (!game) {
       return;
     }
-    let retroactiveStopTime;
-    if (
-      (extraMinutes || extraMinutes === 0) &&
-      game.clock?.periodStatus === PeriodStatus.Overdue &&
-      game.clock.timer?.isRunning
-    ) {
-      const actualLength = game.clock.periodLength + extraMinutes;
-      retroactiveStopTime = Duration.addToDate(
-        game.clock.timer!.startTime!,
-        Duration.create(actualLength * 60)
-      );
-    }
-    dispatch(endPeriod(game.id, retroactiveStopTime));
+    const period = gameCanEndPeriod(game, extraMinutes);
+    dispatch(endPeriod(game.id, period.allowsEnd, period.currentPeriod, period.stopTime));
   };
 
 export const pendingSubsAppliedCreator =

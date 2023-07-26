@@ -57,7 +57,7 @@
         "import/no-internal-modules": [
           "error",
           {
-            "forbid": ["**/slices/live/!(index.js)"]
+            "forbid": ["**/slices/live/!(index.js|live-module-configurator.js)"]
           }
         ]
       }
@@ -88,6 +88,17 @@
       "files": ["src/components/lineup-game-setup.ts"],
       "rules": {
         "lit/no-value-attribute": "off"
+      }
+    },
+    {
+      "files": [
+        "src/models/*.ts",
+        "test/unit/models/*.ts",
+        "src/slices/live/events-slice.ts",
+        "test/unit/slices/live/events-slice.test.ts"
+      ],
+      "rules": {
+        "no-use-before-define": ["error", { "functions": false, "allowNamedExports": true }]
       }
     }
   ],

@@ -12,13 +12,13 @@ export interface TrackerMaps {
   [index: string]: PlayerTimeTrackerMapData;
 }
 
-const INITIAL_STATE: ShiftState = {
+export const SHIFT_INITIAL_STATE: ShiftState = {
   trackerMaps: undefined,
 };
 
 const shiftSlice = createSlice({
   name: 'shift',
-  initialState: INITIAL_STATE,
+  initialState: SHIFT_INITIAL_STATE,
   reducers: {},
 
   extraReducers: (builder) => {
@@ -48,7 +48,7 @@ const shiftSlice = createSlice({
           // TODO: Error or message to distinguish failure cases?
           return;
         }
-        trackerMap.stopShiftTimers(action.payload.retroactiveStopTime);
+        trackerMap.stopShiftTimers(action.payload.stopTime);
         setTrackerMap(state, trackerMap);
       })
       .addCase(applyPendingSubs, (state, action) => {

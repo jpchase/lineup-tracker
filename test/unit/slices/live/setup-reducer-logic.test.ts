@@ -5,8 +5,9 @@ import { GameStatus } from '@app/models/game.js';
 import { getPlayer, LivePlayer, SetupSteps } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTrackerMap } from '@app/models/shift.js';
+import { live } from '@app/slices/live/composed-reducer.js';
 import { startersCompletedCreator } from '@app/slices/live/live-action-creators.js';
-import { actions, live, LiveState } from '@app/slices/live/live-slice.js';
+import { actions, LiveState } from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
@@ -480,6 +481,8 @@ describe('Live slice: Setup actions', () => {
 
       const newState = live(state, gameSetupCompleted(currentGame.id, currentGame));
 
+      // Ignore the events state for the comparison.
+      delete expectedState.events;
       expect(newState).to.deep.include(expectedState);
     });
   }); // describe('live/gameSetupCompleted')

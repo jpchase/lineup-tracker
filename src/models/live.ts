@@ -1,6 +1,7 @@
 /** @format */
 
 import { TimerData } from './clock.js';
+import { EventBase } from './events.js';
 import { FormationMetadata, Position } from './formation.js';
 import { Game, GameDetail, GameStatus } from './game.js';
 import { Player, PlayerStatus } from './player.js';
@@ -64,6 +65,23 @@ export interface LiveGame {
 
 export interface LiveGames {
   [index: string]: LiveGame;
+}
+
+export enum GameEventType {
+  PeriodStart = 'PERIODSTART',
+  PeriodEnd = 'PERIODEND',
+  Setup = 'SETUP',
+  SubIn = 'SUBIN',
+  SubOut = 'SUBOUT',
+  Swap = 'SWAP',
+}
+
+export interface GameEvent extends EventBase<GameEventType> {
+  playerId?: string;
+}
+
+export interface GameEventGroup {
+  groupedEvents: GameEvent[];
 }
 
 export class LiveGameBuilder {
@@ -144,15 +162,4 @@ export function removePlayer(game: LiveGame, playerId: string) {
   }
   game.players.splice(index, 1);
   return true;
-}
-
-export function gameCanStartPeriod(
-  game: LiveGame,
-  previousPeriod: number,
-  totalPeriods: number
-): boolean {
-  if (!(game.status === GameStatus.Start || game.status === GameStatus.Break)) {
-    return false;
-  }
-  return previousPeriod < totalPeriods;
 }

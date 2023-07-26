@@ -15,10 +15,11 @@ import {
 } from 'firebase/firestore';
 import { debug, debugError } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
+import { Model } from '../models/model.js';
 import { selectCurrentTeam } from '../slices/app/app-slice.js';
 import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
 import { RootState } from '../store.js';
-import { Model, ModelWriter } from './model-converter.js';
+import { ModelWriter } from './model-converter.js';
 
 const debugFirestore = debug('firestore');
 

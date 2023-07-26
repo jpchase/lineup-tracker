@@ -1,7 +1,7 @@
 /** @format */
 
 import { PayloadAction } from '@reduxjs/toolkit';
-import { Timer } from '../../models/clock.js';
+import { CurrentTimeProvider, Duration, Timer } from '../../models/clock.js';
 import { GameStatus } from '../../models/game.js';
 import { LiveGame, LiveGameBuilder, PeriodStatus, SetupSteps } from '../../models/live.js';
 import {
@@ -66,11 +66,8 @@ export const startPeriodHandler = (
   if (!action.payload.gameAllowsStart) {
     return;
   }
-  if (
-    game.clock &&
-    (game.clock.currentPeriod === game.clock.totalPeriods ||
-      game.clock.periodStatus === PeriodStatus.Running)
-  ) {
+  const period = gameCanStartPeriod(game);
+  if (!period.allowsStart) {
     return;
   }
   game.status = GameStatus.Live;
@@ -79,19 +76,22 @@ export const startPeriodHandler = (
   const timer = new Timer();
   timer.start();
   state.timer = timer.toJSON();
-  if (!state.currentPeriod || state.currentPeriod < 1) {
-    state.currentPeriod = 1;
-  } else {
-    state.currentPeriod += 1;
-  }
+  state.currentPeriod = period.currentPeriod!;
   state.periodStatus = PeriodStatus.Running;
 };
 
-export const startPeriodPrepare = (gameId: string, gameAllowsStart: boolean) => {
+export const startPeriodPrepare = (
+  gameId: string,
+  gameAllowsStart: boolean,
+  currentPeriod?: number,
+  startTime?: number
+) => {
   return {
     payload: {
       gameId,
       gameAllowsStart,
+      currentPeriod,
+      startTime,
     },
   };
 };
@@ -101,23 +101,17 @@ export const endPeriodHandler = (
   game: LiveGame,
   action: PayloadAction<EndPeriodPayload>
 ) => {
-  if (game.status !== GameStatus.Live) {
+  if (!action.payload.gameAllowsEnd) {
     return;
   }
-  if (
-    game.clock?.periodStatus !== PeriodStatus.Running &&
-    game.clock?.periodStatus !== PeriodStatus.Overdue
-  ) {
+  const period = gameCanEndPeriod(game);
+  if (!period.allowsEnd) {
     return;
   }
-  const retroactiveStopTime =
-    game.clock.periodStatus === PeriodStatus.Overdue
-      ? action.payload.retroactiveStopTime
-      : undefined;
 
   const state = getInitializedClock(game);
   const timer = new Timer(state.timer);
-  timer.stop(retroactiveStopTime);
+  timer.stop(action.payload.stopTime);
   state.timer = timer.toJSON();
   if (state.currentPeriod === state.totalPeriods) {
     // Ending the last period of the game.
@@ -129,11 +123,18 @@ export const endPeriodHandler = (
   }
 };
 
-export const endPeriodPrepare = (gameId: string, retroactiveStopTime?: number) => {
+export const endPeriodPrepare = (
+  gameId: string,
+  gameAllowsEnd: boolean,
+  currentPeriod?: number,
+  stopTime?: number
+) => {
   return {
     payload: {
       gameId,
-      retroactiveStopTime,
+      gameAllowsEnd,
+      currentPeriod,
+      stopTime,
     },
   };
 };
@@ -180,7 +181,7 @@ export const markPeriodOverduePrepare = (gameId: string, ignoreTimeForTesting?: 
   };
 };
 
-export const isPeriodOverdue = (game?: LiveGame, ignoreTimeForTesting?: boolean): boolean => {
+export function isPeriodOverdue(game?: LiveGame, ignoreTimeForTesting?: boolean): boolean {
   if (game?.status !== GameStatus.Live || game.clock?.periodStatus !== PeriodStatus.Running) {
     return false;
   }
@@ -196,7 +197,77 @@ export const isPeriodOverdue = (game?: LiveGame, ignoreTimeForTesting?: boolean)
     return true;
   }
   return false;
-};
+}
+
+export function gameCanStartPeriod(game: LiveGame): {
+  allowsStart: boolean;
+  currentPeriod?: number;
+  startTime?: number;
+} {
+  let allowsStart = false;
+  if (game.status === GameStatus.Start || game.status === GameStatus.Break) {
+    if (game.clock) {
+      allowsStart = game.clock.currentPeriod < game.clock.totalPeriods;
+      // game.clock.periodStatus !== PeriodStatus.Running
+    } else {
+      // Clock is not initialized, which means the game has yet to be started.
+      allowsStart = true;
+    }
+  }
+  if (!allowsStart) {
+    return { allowsStart };
+  }
+
+  const clock = game.clock ?? LiveGameBuilder.createClock();
+
+  let currentPeriod;
+  if (!clock.currentPeriod || clock.currentPeriod < 1) {
+    currentPeriod = 1;
+  } else {
+    currentPeriod = clock.currentPeriod + 1;
+  }
+  return { allowsStart, currentPeriod, startTime: new CurrentTimeProvider().getCurrentTime() };
+}
+
+export function gameCanEndPeriod(
+  game: LiveGame,
+  extraMinutes?: number
+): {
+  allowsEnd: boolean;
+  currentPeriod?: number;
+  stopTime?: number;
+} {
+  let allowsEnd = false;
+  if (game.status === GameStatus.Live) {
+    if (game.clock) {
+      allowsEnd =
+        game.clock.periodStatus === PeriodStatus.Running ||
+        game.clock.periodStatus === PeriodStatus.Overdue;
+    } else {
+      // Clock is not initialized, which means the game has yet to be started.
+      allowsEnd = false;
+    }
+  }
+  if (!allowsEnd) {
+    return { allowsEnd };
+  }
+
+  const currentPeriod = game.clock!.currentPeriod;
+
+  let stopTime;
+  if (
+    (extraMinutes || extraMinutes === 0) &&
+    game.clock?.periodStatus === PeriodStatus.Overdue &&
+    game.clock.timer?.isRunning
+  ) {
+    const actualLength = game.clock.periodLength + extraMinutes;
+    stopTime = Duration.addToDate(game.clock.timer!.startTime!, Duration.create(actualLength * 60));
+  } else {
+    stopTime = new CurrentTimeProvider().getCurrentTime();
+  }
+
+  return { allowsEnd, currentPeriod, stopTime };
+}
 
 function getInitializedClock(game: LiveGame) {
   if (!game.clock) {

@@ -5,14 +5,16 @@ import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { getGame as getGameCreator } from '@app/slices/game/game-slice.js';
-import { LiveState, actions, live, startGamePeriod } from '@app/slices/live/live-slice.js';
+import { live } from '@app/slices/live/composed-reducer.js';
+import { startPeriodCreator } from '@app/slices/live/index.js';
+import { LiveState, actions } from '@app/slices/live/live-slice.js';
 import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
-  INITIAL_OVERALL_STATE,
   buildClock,
   buildClockWithTimer,
+  buildInitialLiveState,
   buildLiveGameWithSetupTasks,
   buildLiveGameWithSetupTasksAndPlayers,
   buildLiveStateWithCurrentGame,
@@ -58,16 +60,14 @@ function mockGetState(currentState: LiveState) {
 
 describe('Live slice', () => {
   it('should return the initial state', () => {
-    expect(live(INITIAL_OVERALL_STATE, getFakeAction())).to.equal(INITIAL_OVERALL_STATE);
+    expect(live(undefined, getFakeAction())).to.deep.equal(buildInitialLiveState());
   });
 
   describe('game/getGame', () => {
     let currentState: LiveState;
 
     beforeEach(() => {
-      currentState = {
-        ...INITIAL_OVERALL_STATE,
-      };
+      currentState = buildInitialLiveState();
     });
 
     it('should set live game to given game with full detail', () => {
@@ -592,13 +592,13 @@ describe('Live slice', () => {
           const dispatchMock = sinon.stub();
           const getStateMock = mockGetState(currentState);
 
-          await startGamePeriod(gameId)(dispatchMock, getStateMock, undefined);
+          await startPeriodCreator(gameId)(dispatchMock, getStateMock, undefined);
 
           // The request action is dispatched, regardless.
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /* gameAllowsStart= */ true)
+            startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
           );
         });
 
@@ -609,7 +609,7 @@ describe('Live slice', () => {
 
           const newState = live(
             currentState,
-            startPeriod(currentGame.id, /*gameAllowsStart=*/ true)
+            startPeriod(currentGame.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
           );
 
           const newGame = getGame(newState, gameId)!;
@@ -629,13 +629,13 @@ describe('Live slice', () => {
           const dispatchMock = sinon.stub();
           const getStateMock = mockGetState(currentState);
 
-          await startGamePeriod(gameId)(dispatchMock, getStateMock, undefined);
+          await startPeriodCreator(gameId)(dispatchMock, getStateMock, undefined);
 
           // The request action is dispatched, regardless.
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /* gameAllowsStart= */ false)
+            startPeriod(gameId, /*gameAllowsStart=*/ false)
           );
         });
       }
@@ -650,13 +650,13 @@ describe('Live slice', () => {
           const dispatchMock = sinon.stub();
           const getStateMock = mockGetState(currentState);
 
-          await startGamePeriod(gameId)(dispatchMock, getStateMock, undefined);
+          await startPeriodCreator(gameId)(dispatchMock, getStateMock, undefined);
 
           // The request action is dispatched, regardless.
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /* gameAllowsStart= */ false)
+            startPeriod(gameId, /*gameAllowsStart=*/ false)
           );
         });
 
@@ -685,7 +685,10 @@ describe('Live slice', () => {
         const currentTrackerMap = getTrackerMap(currentState.shift!, currentGame.id);
         currentTrackerMap!.clockRunning = true;
 
-        const newState = live(currentState, endPeriod(currentGame.id));
+        const newState = live(
+          currentState,
+          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime)
+        );
 
         const newGame = getGame(newState, gameId)!;
         expect(newGame.status).to.equal(GameStatus.Break);
@@ -701,7 +704,10 @@ describe('Live slice', () => {
         currentGame.clock!.currentPeriod = 2;
         currentGame.clock!.periodStatus = PeriodStatus.Running;
 
-        const newState = live(currentState, endPeriod(currentGame.id));
+        const newState = live(
+          currentState,
+          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, startTime)
+        );
 
         expect(getGame(newState, gameId)?.status).to.equal(GameStatus.Break);
       });
@@ -712,7 +718,10 @@ describe('Live slice', () => {
         currentGame.clock!.currentPeriod = 2;
         currentGame.clock!.periodStatus = PeriodStatus.Running;
 
-        const newState = live(currentState, endPeriod(currentGame.id));
+        const newState = live(
+          currentState,
+          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, startTime)
+        );
 
         expect(getGame(newState, gameId)?.status).to.equal(GameStatus.Done);
       });
@@ -725,7 +734,7 @@ describe('Live slice', () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
 
-          const newState = live(currentState, endPeriod(currentGame.id));
+          const newState = live(currentState, endPeriod(currentGame.id, /*gameAllowsEnd=*/ false));
 
           expect(getGame(newState, gameId)?.status).to.equal(status);
           expect(newState).to.equal(currentState);

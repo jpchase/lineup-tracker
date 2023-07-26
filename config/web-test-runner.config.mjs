@@ -8,7 +8,7 @@ function aliasResolverPlugin() {
   return {
     async resolveImport({ source, context }) {
       if (!source.startsWith('@app/')) {
-        return;
+        return undefined;
       }
       const requestedFile = context.path.endsWith('/') ? `${context.path}index.html` : context.path;
       const depth = requestedFile.split('/').length - 1;
@@ -28,8 +28,8 @@ function aliasResolverPlugin() {
 
 const puppeteerExecutablePath = puppeteer.executablePath();
 
-const storage_test_files = 'test/storage/**/*.test.js';
-const unit_test_files = 'test/unit/**/*.test.js';
+const storageTestFiles = 'test/storage/**/*.test.js';
+const unitTestFiles = 'test/unit/**/*.test.js';
 
 export default {
   nodeResolve: true,
@@ -43,15 +43,15 @@ export default {
   groups: [
     {
       name: 'all',
-      files: [unit_test_files, storage_test_files]
+      files: [unitTestFiles, storageTestFiles]
     },
     {
       name: 'unit',
-      files: unit_test_files
+      files: unitTestFiles
     },
     {
       name: 'storage',
-      files: storage_test_files
+      files: storageTestFiles
     },
     {
       name: 'single',

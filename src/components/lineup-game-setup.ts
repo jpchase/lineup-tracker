@@ -19,7 +19,6 @@ import { GameDetail } from '../models/game.js';
 import { LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/live.js';
 import { getGameStore } from '../slices/game-store.js';
 import { gameSetupCompletedCreator, selectGameById } from '../slices/game/game-slice.js';
-import { getLiveStore } from '../slices/live-store.js';
 import {
   applyStarter,
   cancelStarter,
@@ -34,12 +33,13 @@ import {
   selectStarterPosition,
   startersCompletedCreator,
 } from '../slices/live/index.js';
+import { getLiveStore } from '../slices/live/live-module-configurator.js';
 import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
 import './lineup-on-player-list.js';
+import { PlayerSelectedEvent, PositionSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';
 import { PageRouter, pageRouterContext } from './page-router.js';
 import { SharedStyles } from './shared-styles.js';
-import { PlayerSelectedEvent, PositionSelectedEvent } from './lineup-player-card.js';
 
 function getStepName(step: SetupSteps): string {
   switch (step) {
