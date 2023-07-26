@@ -4,10 +4,10 @@ import '@app/components/lineup-game-events.js';
 import { LineupGameEvents } from '@app/components/lineup-game-events.js';
 import { CurrentTimeProvider, TimeFormatter } from '@app/models/clock';
 import { EventCollection } from '@app/models/events.js';
-import { GameEvent } from '@app/models/live.js';
+import { GameEvent, GameEventType, LiveGame, LivePlayer } from '@app/models/live.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
-import { mockTimeProviderWithCallback } from '../helpers/test-clock-data.js';
+import { mockTimeProvider, mockTimeProviderWithCallback } from '../helpers/test-clock-data.js';
 import {
   buildGameSetupEvent,
   buildPeriodStartEvent,
@@ -100,17 +100,89 @@ describe('lineup-game-events tests', () => {
 
       const typeElement = item.cells[1];
       expect(typeElement, 'Missing type element').to.exist;
-      expect(typeElement!.textContent, 'Event type').to.equal(event.type);
+      // Only check that the type is shown, as the text varies by event type.
+      expect(typeElement!.textContent, 'Event type').not.to.be.empty;
 
       const detailsElement = item.cells[2];
       expect(detailsElement, 'Missing details element').to.exist;
       // Only checks that details are provided, as they vary based on event type.
-      // TODO: Implement event-specific tests.
       expect(detailsElement!.textContent, 'Details').not.to.be.empty;
     }
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();
   });
+
+  describe('event types', () => {
+    let game: LiveGame;
+    let players: LivePlayer[];
+    let events: EventCollection;
+
+    beforeEach(() => {
+      game = testlive.getLiveGameWithPlayers();
+      players = game.players!;
+
+      const timeProvider = mockTimeProvider(startTime);
+      events = EventCollection.create(
+        {
+          id: game.id,
+        },
+        timeProvider
+      );
+    });
+
+    async function setupEvent(event: GameEvent) {
+      events.addEvent<GameEvent>(event);
+
+      el.players = players;
+      el.eventData = events.toJSON();
+      await el.updateComplete;
+
+      return events.events[0] as GameEvent;
+    }
+
+    function getEventElements(event: GameEvent) {
+      const items = getEventItems();
+      expect(items.length, 'Rendered event count').to.equal(1);
+
+      const item = (items[0] as HTMLTableRowElement)!;
+
+      expect(item.dataset.eventId).to.equal(event.id, 'Item id should match player id');
+
+      const typeElement = item.cells[1]!;
+      expect(typeElement, 'Missing type element').to.exist;
+
+      const detailsElement = item.cells[2]!;
+      expect(detailsElement, 'Missing details element').to.exist;
+
+      return { typeElement, detailsElement };
+    }
+
+    it(`renders ${GameEventType.Setup} event details`, async () => {
+      const event = await setupEvent(buildGameSetupEvent(startTime));
+
+      const { typeElement, detailsElement } = getEventElements(event);
+
+      // TODO: Change to actual display text for type
+      expect(typeElement.textContent, 'Event type').to.equal(GameEventType.Setup);
+
+      // TODO: Assert formatted details
+      expect(detailsElement.textContent).to.equal('{"clock":{"totalPeriods":2,"periodLength":45}}');
+    });
+
+    it(`renders ${GameEventType.PeriodStart} event details`, async () => {
+      const event = await setupEvent(buildPeriodStartEvent(startTime));
+
+      const { typeElement, detailsElement } = getEventElements(event);
+
+      // TODO: Change to actual display text for type
+      expect(typeElement.textContent, 'Event type').to.equal(GameEventType.PeriodStart);
+
+      // TODO: Assert formatted details
+      expect(detailsElement.textContent).to.equal(
+        '{"clock":{"currentPeriod":1,"startTime":1451674800000}}'
+      );
+    });
+  }); // describe('event types')
 
   it.skip('shows only the most recent events', async () => {
     expect.fail('not implemented');
