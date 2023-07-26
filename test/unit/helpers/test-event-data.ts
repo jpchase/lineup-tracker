@@ -1,6 +1,6 @@
 /** @format */
 
-import { GameEvent, GameEventGroup, GameEventType } from '@app/models/live.js';
+import { GameEvent, GameEventGroup, GameEventType, PeriodStartEvent } from '@app/models/live.js';
 import { SubData } from './test-live-game-data.js';
 
 export function buildGameSetupEvent(
@@ -21,7 +21,7 @@ export function buildGameSetupEvent(
   };
 }
 
-export function buildPeriodStartEvent(startTime: number, currentPeriod = 1): GameEvent {
+export function buildPeriodStartEvent(startTime: number, currentPeriod = 1): PeriodStartEvent {
   return {
     id: 'starteventid',
     type: GameEventType.PeriodStart,

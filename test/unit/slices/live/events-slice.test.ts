@@ -15,6 +15,7 @@ import sinon from 'sinon';
 import { selectPlayers } from '../../helpers/live-state-setup.js';
 import { mockIdGenerator, mockIdGeneratorWithCallback } from '../../helpers/mock-id-generator.js';
 import { mockCurrentTime, mockTimeProvider } from '../../helpers/test-clock-data.js';
+import { buildPeriodStartEvent } from '../../helpers/test-event-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
@@ -131,17 +132,9 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
-        id: 'starteventid',
-        type: GameEventType.PeriodStart,
-        timestamp: startTime,
-        data: {
-          clock: {
-            currentPeriod: 1,
-            startTime,
-          },
-        },
-      });
+      expectedCollection.addEvent<GameEvent>(
+        buildPeriodStartEvent(startTime, /* currentPeriod= */ 1)
+      );
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 

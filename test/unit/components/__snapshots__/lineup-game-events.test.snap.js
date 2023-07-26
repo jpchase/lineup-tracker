@@ -36,7 +36,7 @@ snapshots["lineup-game-events tests renders list of events"] =
         Period started
       </td>
       <td class="details">
-        {"clock":{"currentPeriod":1,"startTime":1451674810000}}
+        Start of period 1
       </td>
     </tr>
     <tr data-event-id="setupeventid">

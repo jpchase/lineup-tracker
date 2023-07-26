@@ -199,9 +199,7 @@ describe('lineup-game-events tests', () => {
       expectEventType(typeElement, 'Period started');
 
       // TODO: Assert formatted details
-      expect(detailsElement.textContent).to.equal(
-        '{"clock":{"currentPeriod":1,"startTime":1451674800000}}'
-      );
+      expect(detailsElement.textContent).to.equal('Start of period 1');
     });
 
     it(`renders ${GameEventType.SubIn} event details`, async () => {

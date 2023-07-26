@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { TimeFormatter } from '../models/clock.js';
 import { EventBase, EventCollection, EventCollectionData } from '../models/events.js';
-import { GameEventType, LivePlayer } from '../models/live.js';
+import { GameEvent, GameEventType, LivePlayer, PeriodStartEvent } from '../models/live.js';
 import { SharedStyles } from './shared-styles.js';
 
 interface EventItem {
@@ -65,7 +65,7 @@ export class LineupGameEvents extends LitElement {
                 <td class="playerName mdl-data-table__cell--non-numeric">
                   ${getEventTypeText(item.event.type as GameEventType)}
                 </td>
-                <td class="details">${JSON.stringify(item.event.data)}</td>
+                <td class="details">${this.renderEventDetails(item.event as GameEvent)}</td>
               </tr>
             `
           )}
@@ -76,6 +76,20 @@ export class LineupGameEvents extends LitElement {
   private renderEventTime(timestamp: number, formatter: TimeFormatter) {
     // TODO: Also show as offset from start of game period
     return html`${formatter.format(new Date(timestamp))}`;
+  }
+
+  private renderEventDetails(event: GameEvent) {
+    switch (event.type) {
+      case GameEventType.PeriodStart: {
+        const startEvent = event as PeriodStartEvent;
+        // TODO: Show "First half" or "game started", "Second half"?
+        return html`Start of period ${startEvent.data.clock.currentPeriod}`;
+      }
+      // TODO: Period end, show "halftime", or "final whistle" or <something else>
+
+      default:
+    }
+    return html`${JSON.stringify(event.data)}`;
   }
 
   private events?: EventCollection;

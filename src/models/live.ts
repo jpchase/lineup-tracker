@@ -76,6 +76,15 @@ export enum GameEventType {
   Swap = 'SWAP',
 }
 
+export interface PeriodStartEventData extends Record<string, unknown> {
+  clock: {
+    currentPeriod: number;
+    startTime: number;
+  };
+}
+
+export interface PeriodStartEvent extends EventBase<GameEventType, PeriodStartEventData> {}
+
 export interface GameEvent extends EventBase<GameEventType> {
   playerId?: string;
 }
