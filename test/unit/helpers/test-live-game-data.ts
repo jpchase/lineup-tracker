@@ -6,6 +6,22 @@ import { LiveGame, LiveGames, LivePlayer } from '@app/models/live.js';
 import { Player, PlayerStatus } from '@app/models/player.js';
 import { STORED_GAME_ID } from './test_data.js';
 
+export interface SubData {
+  // Player in Next status (either going on or swapping position).
+  nextId: string;
+  // Player in On status to come off for sub, or the player whose position
+  // will be taken by a swap.
+  replacedId?: string;
+  // Sub into this position, instead of that from the replaced player.
+  positionOverride?: Position;
+  // Indicates a swap, rather than a regular sub.
+  isSwap?: boolean;
+  // Placeholder id for player in Next status, that swap positions.
+  swapNextId?: string;
+  // The final position for the sub, after all subs/swaps applied.
+  finalPosition?: Position;
+}
+
 export function buildLiveGames(games: LiveGame[]): LiveGames {
   return games.reduce((obj, game) => {
     obj[game.id] = game;

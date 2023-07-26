@@ -17,6 +17,28 @@ snapshots["lineup-game-events tests renders list of events"] =
     </tr>
   </thead>
   <tbody id="events-list">
+    <tr data-event-id="subeventid-P11">
+      <td class="mdl-data-table__cell--non-numeric">
+        2:00:20 PM
+      </td>
+      <td class="mdl-data-table__cell--non-numeric playerName">
+        SUBIN
+      </td>
+      <td class="details">
+        {"replaced":"P4"}
+      </td>
+    </tr>
+    <tr data-event-id="subeventid-P4">
+      <td class="mdl-data-table__cell--non-numeric">
+        2:00:20 PM
+      </td>
+      <td class="mdl-data-table__cell--non-numeric playerName">
+        SUBOUT
+      </td>
+      <td class="details">
+        {}
+      </td>
+    </tr>
     <tr data-event-id="starteventid">
       <td class="mdl-data-table__cell--non-numeric">
         2:00:10 PM
@@ -43,4 +65,3 @@ snapshots["lineup-game-events tests renders list of events"] =
 </table>
 `;
 /* end snapshot lineup-game-events tests renders list of events */
-

@@ -1,6 +1,7 @@
 /** @format */
 
-import { GameEvent, GameEventType } from '@app/models/live.js';
+import { GameEvent, GameEventGroup, GameEventType } from '@app/models/live.js';
+import { SubData } from './test-live-game-data.js';
 
 export function buildGameSetupEvent(
   startTime: number,
@@ -32,4 +33,31 @@ export function buildPeriodStartEvent(startTime: number, currentPeriod = 1): Gam
       },
     },
   };
+}
+
+export function buildSubEvents(eventTime: number, sub: SubData): GameEventGroup {
+  const subGroup: GameEventGroup = {
+    groupedEvents: [],
+  };
+  subGroup.groupedEvents.push({
+    id: `subeventid-${sub.nextId}`,
+    // groupId: makeEventGroupId(groupIndex),
+    type: GameEventType.SubIn,
+    timestamp: eventTime,
+    playerId: sub.nextId,
+    data: {
+      replaced: sub.replacedId,
+      position: sub.finalPosition?.id,
+    },
+  });
+  // eventIndex += 1;
+  subGroup.groupedEvents.push({
+    id: `subeventid-${sub.replacedId}`,
+    // groupId: makeEventGroupId(groupIndex),
+    type: GameEventType.SubOut,
+    timestamp: eventTime,
+    playerId: sub.replacedId,
+    data: {},
+  });
+  return subGroup;
 }

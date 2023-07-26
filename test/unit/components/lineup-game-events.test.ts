@@ -8,7 +8,11 @@ import { GameEvent } from '@app/models/live.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
 import { mockTimeProviderWithCallback } from '../helpers/test-clock-data.js';
-import { buildGameSetupEvent, buildPeriodStartEvent } from '../helpers/test-event-data.js';
+import {
+  buildGameSetupEvent,
+  buildPeriodStartEvent,
+  buildSubEvents,
+} from '../helpers/test-event-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 
 function buildGameEvents(gameId: string, timeProvider: CurrentTimeProvider) {
@@ -21,6 +25,14 @@ function buildGameEvents(gameId: string, timeProvider: CurrentTimeProvider) {
   );
   events.addEvent<GameEvent>(buildGameSetupEvent(timeProvider.getCurrentTime()));
   events.addEvent<GameEvent>(buildPeriodStartEvent(timeProvider.getCurrentTime()));
+
+  const sub1: testlive.SubData = {
+    nextId: 'P11',
+    replacedId: 'P4',
+  };
+  events.addEventGroup<GameEvent>(
+    buildSubEvents(timeProvider.getCurrentTime(), sub1).groupedEvents
+  );
   return events;
 }
 
