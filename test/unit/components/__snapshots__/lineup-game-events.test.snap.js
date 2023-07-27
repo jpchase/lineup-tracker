@@ -25,7 +25,7 @@ snapshots["lineup-game-events tests renders list of events"] =
         Substitution
       </td>
       <td class="details">
-        {"replaced":"P4"}
+        Player 11 replaced Player 4, at RW
       </td>
     </tr>
     <tr data-event-id="starteventid">

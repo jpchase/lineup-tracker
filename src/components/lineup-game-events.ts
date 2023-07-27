@@ -2,6 +2,7 @@
  * @format
  */
 
+import { contextProvided } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
@@ -10,7 +11,14 @@ import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { TimeFormatter } from '../models/clock.js';
 import { EventBase, EventCollection, EventCollectionData } from '../models/events.js';
-import { GameEvent, GameEventType, LivePlayer, PeriodStartEvent } from '../models/live.js';
+import {
+  GameEvent,
+  GameEventType,
+  LivePlayer,
+  PeriodStartEvent,
+  SubInEvent,
+} from '../models/live.js';
+import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 
 interface EventItem {
@@ -87,12 +95,22 @@ export class LineupGameEvents extends LitElement {
       }
       // TODO: Period end, show "halftime", or "final whistle" or <something else>
 
+      case GameEventType.SubIn: {
+        const subInEvent = event as SubInEvent;
+        const inPlayer = this.lookupPlayer(subInEvent.playerId);
+        const outPlayer = this.lookupPlayer(subInEvent.data.replaced);
+        return html`${inPlayer?.name} replaced ${outPlayer?.name}, at ${subInEvent.data.position}`;
+      }
       default:
     }
     return html`${JSON.stringify(event.data)}`;
   }
 
   private events?: EventCollection;
+
+  @contextProvided({ context: playerResolverContext, subscribe: true })
+  @property({ attribute: false })
+  playerResolver!: PlayerResolver;
 
   @property({ type: Object })
   public eventData?: EventCollectionData;
@@ -136,9 +154,9 @@ export class LineupGameEvents extends LitElement {
     );
   }
 
-  // private getPlayer(players: LivePlayer[], playerId: string) {
-  //   return players.find((p) => p.id === playerId);
-  // }
+  private lookupPlayer(playerId: string) {
+    return this.playerResolver.getPlayer(playerId);
+  }
 }
 
 declare global {

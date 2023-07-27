@@ -2,17 +2,21 @@
 
 import '@app/components/lineup-game-events.js';
 import { LineupGameEvents } from '@app/components/lineup-game-events.js';
+import { PlayerResolver } from '@app/components/player-resolver.js';
 import { CurrentTimeProvider, TimeFormatter } from '@app/models/clock';
 import { EventCollection } from '@app/models/events.js';
+import { formatPosition } from '@app/models/formation.js';
 import {
   GameEvent,
   GameEventGroup,
   GameEventType,
   LiveGame,
   LivePlayer,
+  getPlayer,
 } from '@app/models/live.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
 import { mockTimeProvider, mockTimeProviderWithCallback } from '../helpers/test-clock-data.js';
 import {
   buildGameSetupEvent,
@@ -21,20 +25,21 @@ import {
 } from '../helpers/test-event-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 
-function buildGameEvents(gameId: string, timeProvider: CurrentTimeProvider) {
-  //}, players: LivePlayer[]) {
+function buildGameEvents(game: LiveGame, timeProvider: CurrentTimeProvider) {
   const events = EventCollection.create(
     {
-      id: gameId,
+      id: game.id,
     },
     timeProvider
   );
   events.addEvent<GameEvent>(buildGameSetupEvent(timeProvider.getCurrentTime()));
   events.addEvent<GameEvent>(buildPeriodStartEvent(timeProvider.getCurrentTime()));
 
+  const replacedPlayer = getPlayer(game, 'P4');
   const sub1: testlive.SubData = {
     nextId: 'P11',
-    replacedId: 'P4',
+    replacedId: replacedPlayer?.id,
+    finalPosition: { ...replacedPlayer?.currentPosition! },
   };
   events.addEventGroup<GameEvent>(
     buildSubEvents(timeProvider.getCurrentTime(), sub1).groupedEvents
@@ -54,17 +59,29 @@ function mockCallbackForTimeProvider(startTime: number, incrementSeconds: number
 
 describe('lineup-game-events tests', () => {
   let el: LineupGameEvents;
+  let game: LiveGame;
+  let players: LivePlayer[];
   let fakeClock: sinon.SinonFakeTimers;
+  let mockPlayerResolver: PlayerResolver;
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
 
   beforeEach(async () => {
-    el = await fixture(html`<lineup-game-events></lineup-game-events>`);
+    // Wire up a node that will handle context requests for a PlayerResolver.
+    mockPlayerResolver = {
+      getPlayer: (playerId) => {
+        return getPlayer(game, playerId);
+      },
+    };
+    const parentNode = buildPlayerResolverParentNode(mockPlayerResolver);
+
+    el = await fixture(html`<lineup-game-events></lineup-game-events>`, { parentNode });
   });
 
   afterEach(async () => {
     if (fakeClock) {
       fakeClock.restore();
     }
+    sinon.restore();
   });
 
   function getEventItems() {
@@ -73,13 +90,13 @@ describe('lineup-game-events tests', () => {
   }
 
   it('renders list of events', async () => {
-    const game = testlive.getLiveGameWithPlayers();
-    const players = game.players!;
+    game = testlive.getLiveGameWithPlayers();
+    players = game.players!;
     // Create a collection of representative events, which occur 10 seconds apart.
     const timeProvider = mockTimeProviderWithCallback(
       mockCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
     );
-    const events = buildGameEvents(game.id, timeProvider);
+    const events = buildGameEvents(game, timeProvider);
 
     el.players = players;
     el.eventData = events.toJSON();
@@ -122,8 +139,6 @@ describe('lineup-game-events tests', () => {
   });
 
   describe('event types', () => {
-    let game: LiveGame;
-    let players: LivePlayer[];
     let events: EventCollection;
 
     beforeEach(() => {
@@ -203,19 +218,26 @@ describe('lineup-game-events tests', () => {
     });
 
     it(`renders ${GameEventType.SubIn} event details`, async () => {
-      const sub1: testlive.SubData = {
-        nextId: 'P11',
-        replacedId: 'P4',
+      const inPlayer = getPlayer(game, 'P11');
+      const outPlayer = getPlayer(game, 'P4');
+      const sub: testlive.SubData = {
+        nextId: inPlayer?.id!,
+        replacedId: outPlayer?.id!,
+        finalPosition: { ...outPlayer?.currentPosition! },
       };
-      const event = await setupEventGroup(buildSubEvents(startTime, sub1));
+      const event = await setupEventGroup(buildSubEvents(startTime, sub));
 
-      // The SUBOUT event is not displayed, so there should only be one rendered event.
+      // The sub out event is not displayed, so there should only be one rendered event.
       const { typeElement, detailsElement } = getEventElements(event);
 
       expectEventType(typeElement, 'Substitution');
 
+      const positionText = formatPosition(sub.finalPosition!);
+      expect(positionText, 'formatted position').to.not.be.empty;
+
+      const expectedDetailText = `${inPlayer?.name} replaced ${outPlayer?.name}, at ${positionText}`;
       // TODO: Assert formatted details
-      expect(detailsElement.textContent).to.equal('{"replaced":"P4"}');
+      expect(detailsElement.textContent).to.equal(expectedDetailText);
     });
   }); // describe('event types')
 

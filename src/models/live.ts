@@ -67,6 +67,7 @@ export interface LiveGames {
   [index: string]: LiveGame;
 }
 
+// Game events
 export enum GameEventType {
   PeriodStart = 'PERIODSTART',
   PeriodEnd = 'PERIODEND',
@@ -85,12 +86,41 @@ export interface PeriodStartEventData extends Record<string, unknown> {
 
 export interface PeriodStartEvent extends EventBase<GameEventType, PeriodStartEventData> {}
 
+// Base game event types
 export interface GameEvent extends EventBase<GameEventType> {
   playerId?: string;
 }
 
+export interface GamePlayerEvent<
+  EventType extends GameEventType = GameEventType,
+  EventData extends Record<string, unknown> = Record<string, unknown>
+> extends EventBase<EventType, EventData> {
+  playerId: string;
+}
+
 export interface GameEventGroup {
   groupedEvents: GameEvent[];
+}
+
+// Event-specific types
+
+export interface SubInEventData extends Record<string, unknown> {
+  replaced: string;
+  position: string;
+}
+
+export interface SubInEvent extends EventBase<GameEventType.SubIn, SubInEventData> {
+  type: GameEventType.SubIn;
+  playerId: string;
+}
+
+export interface SubOutEventData extends Record<string, unknown> {
+  // Data is empty
+}
+
+export interface SubOutEvent extends GamePlayerEvent<GameEventType.SubOut, SubOutEventData> {
+  // type: GameEventType.SubOut;
+  // playerId: string;
 }
 
 export class LiveGameBuilder {
