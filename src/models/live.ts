@@ -123,6 +123,14 @@ export interface SubOutEvent extends GamePlayerEvent<GameEventType.SubOut, SubOu
   // playerId: string;
 }
 
+export interface PositionSwapEventData extends Record<string, unknown> {
+  position: string;
+  previousPosition: string;
+}
+
+export interface PositionSwapEvent
+  extends GamePlayerEvent<GameEventType.Swap, PositionSwapEventData> {}
+
 export class LiveGameBuilder {
   static create(game: Game): LiveGame {
     if (!game) {

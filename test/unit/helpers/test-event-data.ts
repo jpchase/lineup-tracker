@@ -5,6 +5,7 @@ import {
   GameEventGroup,
   GameEventType,
   PeriodStartEvent,
+  PositionSwapEvent,
   SubInEvent,
   SubOutEvent,
 } from '@app/models/live.js';
@@ -68,4 +69,17 @@ export function buildSubEvents(eventTime: number, sub: SubData): GameEventGroup 
   subGroup.groupedEvents.push(inEvent);
   subGroup.groupedEvents.push(outEvent);
   return subGroup;
+}
+
+export function buildSwapEvent(eventTime: number, swap: SubData): PositionSwapEvent {
+  return {
+    id: `swapeventid-${swap.nextId}`,
+    type: GameEventType.Swap,
+    timestamp: eventTime,
+    playerId: swap.nextId,
+    data: {
+      position: swap.finalPosition?.id!,
+      previousPosition: swap.initialPosition?.id!,
+    },
+  };
 }

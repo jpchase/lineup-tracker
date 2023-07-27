@@ -18,6 +18,8 @@ export interface SubData {
   isSwap?: boolean;
   // Placeholder id for player in Next status, that swap positions.
   swapNextId?: string;
+  // The initial position for the sub, before any subs/swaps applied.
+  initialPosition?: Position;
   // The final position for the sub, after all subs/swaps applied.
   finalPosition?: Position;
 }

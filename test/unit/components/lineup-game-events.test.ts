@@ -22,6 +22,7 @@ import {
   buildGameSetupEvent,
   buildPeriodStartEvent,
   buildSubEvents,
+  buildSwapEvent,
 } from '../helpers/test-event-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 
@@ -236,8 +237,32 @@ describe('lineup-game-events tests', () => {
       expect(positionText, 'formatted position').to.not.be.empty;
 
       const expectedDetailText = `${inPlayer?.name} replaced ${outPlayer?.name}, at ${positionText}`;
-      // TODO: Assert formatted details
       expect(detailsElement.textContent).to.equal(expectedDetailText);
+    });
+
+    it(`renders ${GameEventType.Swap} event details`, async () => {
+      const inPlayer = getPlayer(game, 'P11');
+      const positionPlayer = getPlayer(game, 'P4');
+      const swap: testlive.SubData = {
+        nextId: inPlayer?.id!,
+        initialPosition: { ...inPlayer?.currentPosition! },
+        finalPosition: { ...positionPlayer?.currentPosition! },
+      };
+      const event = await setupEvent(buildSwapEvent(startTime, swap));
+
+      // The sub out event is not displayed, so there should only be one rendered event.
+      const { typeElement, detailsElement } = getEventElements(event);
+
+      expectEventType(typeElement, 'Position changed');
+
+      const positionText = formatPosition(swap.finalPosition!);
+      expect(positionText, 'formatted position').to.not.be.empty;
+
+      const oldPositionText = formatPosition(swap.initialPosition!);
+      expect(oldPositionText, 'formatted position').to.not.be.empty;
+
+      const expectedDetailText = `${inPlayer?.name} moved to ${positionText} (from ${oldPositionText})`;
+      expect(detailsElement.textContent?.replace(/\s{2,}/g, ' ')).to.equal(expectedDetailText);
     });
   }); // describe('event types')
 

@@ -16,6 +16,7 @@ import {
   GameEventType,
   LivePlayer,
   PeriodStartEvent,
+  PositionSwapEvent,
   SubInEvent,
 } from '../models/live.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
@@ -34,9 +35,16 @@ function getEventTypeText(eventType: GameEventType): string {
       return 'Setup completed';
     case GameEventType.SubIn:
       return 'Substitution';
+    case GameEventType.Swap:
+      return 'Position changed';
+
+    // TODO: Add formatted text for these event types.
+    case GameEventType.PeriodEnd:
+    case GameEventType.SubOut:
+      return eventType;
 
     default:
-      return '<unknown event>';
+      throw new TypeError(`Unknown event type: ${eventType}`);
   }
 }
 
@@ -101,9 +109,17 @@ export class LineupGameEvents extends LitElement {
         const outPlayer = this.lookupPlayer(subInEvent.data.replaced);
         return html`${inPlayer?.name} replaced ${outPlayer?.name}, at ${subInEvent.data.position}`;
       }
+
+      case GameEventType.Swap: {
+        const swapEvent = event as PositionSwapEvent;
+        const player = this.lookupPlayer(swapEvent.playerId);
+        return html`${player?.name} moved to ${swapEvent.data.position} (from
+        ${swapEvent.data.previousPosition})`;
+      }
+
       default:
+        return html`${JSON.stringify(event.data)}`;
     }
-    return html`${JSON.stringify(event.data)}`;
   }
 
   private events?: EventCollection;

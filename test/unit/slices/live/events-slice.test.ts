@@ -2,7 +2,15 @@
 
 import { EventCollection } from '@app/models/events.js';
 import { FormationType, Position } from '@app/models/formation.js';
-import { GameEvent, GameEventType, LiveGame, LivePlayer, getPlayer } from '@app/models/live.js';
+import {
+  GameEvent,
+  GameEventType,
+  LiveGame,
+  LivePlayer,
+  SubInEvent,
+  SubOutEvent,
+  getPlayer,
+} from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import {
   EVENTS_INITIAL_STATE,
@@ -336,24 +344,24 @@ describe('Events slice', () => {
         groupIndex += 1;
 
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubInEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
           data: {
-            replaced: sub.replacedId,
-            position: sub.expectedFinalPosition?.id,
+            replaced: sub.replacedId!,
+            position: sub.expectedFinalPosition?.id!,
           },
         });
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubOutEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
-          playerId: sub.replacedId,
+          playerId: sub.replacedId!,
           data: {},
         });
       }
@@ -486,24 +494,24 @@ describe('Events slice', () => {
         }
 
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubInEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
           data: {
-            replaced: sub.replacedId,
-            position: sub.expectedFinalPosition?.id,
+            replaced: sub.replacedId!,
+            position: sub.expectedFinalPosition?.id!,
           },
         });
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubOutEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
-          playerId: sub.replacedId,
+          playerId: sub.replacedId!,
           data: {},
         });
       }
@@ -547,24 +555,24 @@ describe('Events slice', () => {
         groupIndex += 1;
 
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubInEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
           data: {
-            replaced: sub.replacedId,
-            position: sub.expectedFinalPosition?.id,
+            replaced: sub.replacedId!,
+            position: sub.expectedFinalPosition?.id!,
           },
         });
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubOutEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
-          playerId: sub.replacedId,
+          playerId: sub.replacedId!,
           data: {},
         });
       }
@@ -712,24 +720,24 @@ describe('Events slice', () => {
         }
 
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubInEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
           data: {
-            replaced: sub.replacedId,
-            position: sub.expectedFinalPosition?.id,
+            replaced: sub.replacedId!,
+            position: sub.expectedFinalPosition?.id!,
           },
         });
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubOutEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
-          playerId: sub.replacedId,
+          playerId: sub.replacedId!,
           data: {},
         });
       }
