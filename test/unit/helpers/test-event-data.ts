@@ -1,11 +1,11 @@
 /** @format */
 
 import {
-  GameEvent,
   GameEventGroup,
   GameEventType,
   PeriodStartEvent,
   PositionSwapEvent,
+  SetupEvent,
   SubInEvent,
   SubOutEvent,
 } from '@app/models/live.js';
@@ -15,7 +15,7 @@ export function buildGameSetupEvent(
   startTime: number,
   totalPeriods = 2,
   periodLength = 45
-): GameEvent {
+): SetupEvent {
   return {
     id: 'setupeventid',
     type: GameEventType.Setup,

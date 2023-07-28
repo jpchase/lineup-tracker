@@ -17,6 +17,29 @@ snapshots["lineup-game-events tests renders list of events"] =
     </tr>
   </thead>
   <tbody id="events-list">
+    <tr data-event-id="subeventid-P12">
+      <td class="mdl-data-table__cell--non-numeric">
+        2:00:30 PM
+      </td>
+      <td class="mdl-data-table__cell--non-numeric playerName">
+        Substitution
+      </td>
+      <td class="details">
+        Player 12 replaced Player 5, at LFB
+      </td>
+    </tr>
+    <tr data-event-id="swapeventid-P8">
+      <td class="mdl-data-table__cell--non-numeric">
+        2:00:30 PM
+      </td>
+      <td class="mdl-data-table__cell--non-numeric playerName">
+        Position changed
+      </td>
+      <td class="details">
+        Player 8 moved to RFB (from
+        LFB)
+      </td>
+    </tr>
     <tr data-event-id="subeventid-P11">
       <td class="mdl-data-table__cell--non-numeric">
         2:00:20 PM
