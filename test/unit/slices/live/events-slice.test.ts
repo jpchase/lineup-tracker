@@ -133,7 +133,6 @@ describe('Events slice', () => {
     });
 
     it('should store start period event for first period', () => {
-      mockIdGenerator('starteventid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const game = testlive.getLiveGame(rosterPlayers);
@@ -143,9 +142,9 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<PeriodStartEvent>(
-        buildPeriodStartEvent(startTime, /* currentPeriod= */ 1)
-      );
+      const startEvent = buildPeriodStartEvent(startTime, /* currentPeriod= */ 1);
+      expectedCollection.addEvent<PeriodStartEvent>(startEvent);
+      mockIdGenerator(startEvent.id!);
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
@@ -161,7 +160,6 @@ describe('Events slice', () => {
     });
 
     it('should store start period event for subsequent period', () => {
-      mockIdGenerator('starteventid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const game = testlive.getLiveGame(rosterPlayers);
@@ -171,17 +169,10 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<PeriodStartEvent>({
-        id: 'starteventid',
-        type: GameEventType.PeriodStart,
-        timestamp: startTime,
-        data: {
-          clock: {
-            currentPeriod: 2,
-            startTime,
-          },
-        },
-      });
+      const startEvent = buildPeriodStartEvent(startTime, /* currentPeriod= */ 2);
+      expectedCollection.addEvent<PeriodStartEvent>(startEvent);
+      mockIdGenerator(startEvent.id!);
+
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
       const newState = events(

@@ -3,6 +3,7 @@
 import {
   GameEventGroup,
   GameEventType,
+  PeriodEndEvent,
   PeriodStartEvent,
   PositionSwapEvent,
   SetupEvent,
@@ -31,13 +32,27 @@ export function buildGameSetupEvent(
 
 export function buildPeriodStartEvent(startTime: number, currentPeriod = 1): PeriodStartEvent {
   return {
-    id: 'starteventid',
+    id: `starteventid-${currentPeriod}`,
     type: GameEventType.PeriodStart,
     timestamp: startTime,
     data: {
       clock: {
         currentPeriod,
         startTime,
+      },
+    },
+  };
+}
+
+export function buildPeriodEndEvent(endTime: number, currentPeriod = 1): PeriodEndEvent {
+  return {
+    id: `endeventid-${currentPeriod}`,
+    type: GameEventType.PeriodEnd,
+    timestamp: endTime,
+    data: {
+      clock: {
+        currentPeriod,
+        endTime,
       },
     },
   };

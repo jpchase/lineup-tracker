@@ -6,15 +6,16 @@ import { contextProvided } from '@lit-labs/context';
 import '@material/mwc-button';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
-import { html, LitElement, PropertyValues } from 'lit';
+import { html, LitElement, nothing, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { TimeFormatter } from '../models/clock.js';
+import { Duration, TimeFormatter } from '../models/clock.js';
 import { EventBase, EventCollection, EventCollectionData } from '../models/events.js';
 import {
   GameEvent,
   GameEventType,
   LivePlayer,
+  PeriodEndEvent,
   PeriodStartEvent,
   PositionSwapEvent,
   SubInEvent,
@@ -29,6 +30,8 @@ interface EventItem {
 
 function getEventTypeText(eventType: GameEventType): string {
   switch (eventType) {
+    case GameEventType.PeriodEnd:
+      return 'Period completed';
     case GameEventType.PeriodStart:
       return 'Period started';
     case GameEventType.Setup:
@@ -39,7 +42,6 @@ function getEventTypeText(eventType: GameEventType): string {
       return 'Position changed';
 
     // TODO: Add formatted text for these event types.
-    case GameEventType.PeriodEnd:
     case GameEventType.SubOut:
       return eventType;
 
@@ -60,6 +62,10 @@ export class LineupGameEvents extends LitElement {
         :host {
           display: inline-block;
         }
+
+        .relative {
+          margin-left: 0.5em;
+        }
       </style>
       <table class="mdl-data-table mdl-js-data-table is-upgraded">
         <thead>
@@ -75,8 +81,8 @@ export class LineupGameEvents extends LitElement {
             (item: EventItem) => item.id,
             (item: EventItem /*, index: number*/) => html`
               <tr data-event-id="${item.id}">
-                <td class=" mdl-data-table__cell--non-numeric">
-                  ${this.renderEventTime(item.event.timestamp!, timeFormatter)}
+                <td class="mdl-data-table__cell--non-numeric">
+                  ${this.renderEventTime(item.event as GameEvent, timeFormatter)}
                 </td>
                 <td class="playerName mdl-data-table__cell--non-numeric">
                   ${getEventTypeText(item.event.type as GameEventType)}
@@ -89,9 +95,37 @@ export class LineupGameEvents extends LitElement {
       </table>`;
   }
 
-  private renderEventTime(timestamp: number, formatter: TimeFormatter) {
-    // TODO: Also show as offset from start of game period
-    return html`${formatter.format(new Date(timestamp))}`;
+  private renderEventTime(event: GameEvent, formatter: TimeFormatter) {
+    let showRelativeTime = false;
+    switch (event.type) {
+      case GameEventType.PeriodStart:
+      case GameEventType.PeriodEnd:
+      case GameEventType.SubIn:
+      case GameEventType.Swap:
+        showRelativeTime = true;
+        break;
+
+      default:
+    }
+
+    const eventTime = event.timestamp!;
+    let relativeText = '';
+    if (showRelativeTime && this.periods?.length) {
+      // Get the start time for the period containing this event.
+      let containingPeriod = this.periods[0];
+      for (let index = 1; index < this.periods.length; index++) {
+        const period = this.periods[index];
+        if (period.startTime > eventTime) {
+          break;
+        }
+        containingPeriod = period;
+      }
+      const elapsed = Duration.calculateElapsed(containingPeriod.startTime, eventTime);
+      relativeText = Duration.format(elapsed);
+    }
+
+    return html`<span class="absolute">${formatter.format(new Date(eventTime))}</span
+      >${showRelativeTime ? html`<span class="relative">[${relativeText}]</span>` : nothing}`;
   }
 
   private renderEventDetails(event: GameEvent) {
@@ -101,7 +135,11 @@ export class LineupGameEvents extends LitElement {
         // TODO: Show "First half" or "game started", "Second half"?
         return html`Start of period ${startEvent.data.clock.currentPeriod}`;
       }
-      // TODO: Period end, show "halftime", or "final whistle" or <something else>
+      case GameEventType.PeriodEnd: {
+        const startEvent = event as PeriodEndEvent;
+        // TODO: Period end, show "halftime", or "final whistle" or <something else>
+        return html`End of period ${startEvent.data.clock.currentPeriod}`;
+      }
 
       case GameEventType.SubIn: {
         const subInEvent = event as SubInEvent;
@@ -123,6 +161,7 @@ export class LineupGameEvents extends LitElement {
   }
 
   private events?: EventCollection;
+  private periods?: { periodNumber: number; startTime: number }[];
 
   @contextProvided({ context: playerResolverContext, subscribe: true })
   @property({ attribute: false })
@@ -143,7 +182,25 @@ export class LineupGameEvents extends LitElement {
       return;
     }
 
-    this.events = this.eventData ? EventCollection.create(this.eventData) : undefined;
+    if (this.eventData) {
+      this.events = EventCollection.create(this.eventData);
+      this.periods = [];
+      for (const event of this.events.events) {
+        if (event.type !== GameEventType.PeriodStart) {
+          continue;
+        }
+        const periodStart = event as PeriodStartEvent;
+        this.periods.push({
+          periodNumber: periodStart.data.clock.currentPeriod,
+          startTime: periodStart.data.clock.startTime,
+        });
+      }
+      // Ensure periods are sorted in ascending order of start time.
+      this.periods.sort((a, b) => a.startTime - b.startTime);
+    } else {
+      this.events = undefined;
+      this.periods = undefined;
+    }
   }
 
   private getEventItems(): EventItem[] {

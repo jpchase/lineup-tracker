@@ -17,9 +17,30 @@ snapshots["lineup-game-events tests renders list of events"] =
     </tr>
   </thead>
   <tbody id="events-list">
+    <tr data-event-id="endeventid-1">
+      <td class="mdl-data-table__cell--non-numeric">
+        <span class="absolute">
+          2:00:40 PM
+        </span>
+        <span class="relative">
+          [00:30]
+        </span>
+      </td>
+      <td class="mdl-data-table__cell--non-numeric playerName">
+        Period completed
+      </td>
+      <td class="details">
+        End of period 1
+      </td>
+    </tr>
     <tr data-event-id="subeventid-P12">
       <td class="mdl-data-table__cell--non-numeric">
-        2:00:30 PM
+        <span class="absolute">
+          2:00:30 PM
+        </span>
+        <span class="relative">
+          [00:20]
+        </span>
       </td>
       <td class="mdl-data-table__cell--non-numeric playerName">
         Substitution
@@ -30,7 +51,12 @@ snapshots["lineup-game-events tests renders list of events"] =
     </tr>
     <tr data-event-id="swapeventid-P8">
       <td class="mdl-data-table__cell--non-numeric">
-        2:00:30 PM
+        <span class="absolute">
+          2:00:30 PM
+        </span>
+        <span class="relative">
+          [00:20]
+        </span>
       </td>
       <td class="mdl-data-table__cell--non-numeric playerName">
         Position changed
@@ -42,7 +68,12 @@ snapshots["lineup-game-events tests renders list of events"] =
     </tr>
     <tr data-event-id="subeventid-P11">
       <td class="mdl-data-table__cell--non-numeric">
-        2:00:20 PM
+        <span class="absolute">
+          2:00:20 PM
+        </span>
+        <span class="relative">
+          [00:10]
+        </span>
       </td>
       <td class="mdl-data-table__cell--non-numeric playerName">
         Substitution
@@ -51,9 +82,14 @@ snapshots["lineup-game-events tests renders list of events"] =
         Player 11 replaced Player 4, at RW
       </td>
     </tr>
-    <tr data-event-id="starteventid">
+    <tr data-event-id="starteventid-1">
       <td class="mdl-data-table__cell--non-numeric">
-        2:00:10 PM
+        <span class="absolute">
+          2:00:10 PM
+        </span>
+        <span class="relative">
+          [00:00]
+        </span>
       </td>
       <td class="mdl-data-table__cell--non-numeric playerName">
         Period started
@@ -64,7 +100,9 @@ snapshots["lineup-game-events tests renders list of events"] =
     </tr>
     <tr data-event-id="setupeventid">
       <td class="mdl-data-table__cell--non-numeric">
-        2:00:00 PM
+        <span class="absolute">
+          2:00:00 PM
+        </span>
       </td>
       <td class="mdl-data-table__cell--non-numeric playerName">
         Setup completed

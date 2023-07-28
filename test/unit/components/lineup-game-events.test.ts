@@ -3,7 +3,7 @@
 import '@app/components/lineup-game-events.js';
 import { LineupGameEvents } from '@app/components/lineup-game-events.js';
 import { PlayerResolver } from '@app/components/player-resolver.js';
-import { CurrentTimeProvider, TimeFormatter } from '@app/models/clock';
+import { CurrentTimeProvider, Duration, TimeFormatter } from '@app/models/clock';
 import { EventCollection } from '@app/models/events.js';
 import { formatPosition } from '@app/models/formation.js';
 import {
@@ -12,6 +12,7 @@ import {
   GameEventType,
   LiveGame,
   LivePlayer,
+  PeriodEndEvent,
   PeriodStartEvent,
   PositionSwapEvent,
   SetupEvent,
@@ -23,6 +24,7 @@ import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.j
 import { mockTimeProvider, mockTimeProviderWithCallback } from '../helpers/test-clock-data.js';
 import {
   buildGameSetupEvent,
+  buildPeriodEndEvent,
   buildPeriodStartEvent,
   buildSubEvents,
   buildSwapEvent,
@@ -71,6 +73,8 @@ function buildGameEvents(game: LiveGame, timeProvider: CurrentTimeProvider) {
   events.addEventGroup<GameEvent>(buildSubEvents(sub2Time, sub2).groupedEvents);
   events.addEvent<PositionSwapEvent>(buildSwapEvent(sub2Time, swap));
 
+  events.addEvent<PeriodEndEvent>(buildPeriodEndEvent(timeProvider.getCurrentTime()));
+
   return events;
 }
 
@@ -90,7 +94,9 @@ describe('lineup-game-events tests', () => {
   let players: LivePlayer[];
   let fakeClock: sinon.SinonFakeTimers;
   let mockPlayerResolver: PlayerResolver;
+  const timeFormatter = new TimeFormatter();
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+  const periodEndTime = new Date(2016, 0, 1, 14, 46, 25).getTime();
 
   beforeEach(async () => {
     // Wire up a node that will handle context requests for a PlayerResolver.
@@ -112,8 +118,24 @@ describe('lineup-game-events tests', () => {
   });
 
   function getEventItems() {
-    const items = el.shadowRoot!.querySelectorAll('#events-list tr');
+    const items = el.shadowRoot!.querySelectorAll<HTMLTableRowElement>('#events-list tr');
     return items;
+  }
+
+  function expectEventAbsoluteTime(timeElement: HTMLElement, expectedTime: number) {
+    const absoluteElement = timeElement.querySelector('.absolute');
+    expect(absoluteElement, 'Missing absolute time element').to.exist;
+    expect(absoluteElement!.textContent?.trim(), 'Event absolute time').to.equal(
+      timeFormatter.format(new Date(expectedTime))
+    );
+  }
+
+  function expectEventPeriodRelativeTime(timeElement: HTMLElement, expectedElapsedSeconds: number) {
+    const relativeElement = timeElement.querySelector('.relative');
+    expect(relativeElement, 'Missing relative time element').to.exist;
+    expect(relativeElement!.textContent?.trim(), 'Period relative time').to.equal(
+      `[${Duration.format(Duration.create(expectedElapsedSeconds))}]`
+    );
   }
 
   it('renders list of events', async () => {
@@ -138,18 +160,15 @@ describe('lineup-game-events tests', () => {
     expect(items.length).to.equal(sortedEvents.length, 'Rendered event count');
 
     let index = 0;
-    const timeFormatter = new TimeFormatter();
     for (const event of sortedEvents) {
-      const item = (items[index] as HTMLTableRowElement)!;
+      const item = items[index]!;
       index += 1;
 
       expect(item.dataset.eventId).to.equal(event.id, 'Item id should match player id');
 
       const timeElement = item.cells[0];
       expect(timeElement, 'Missing event time element').to.exist;
-      expect(timeElement!.textContent?.trim(), 'Event time').to.equal(
-        timeFormatter.format(new Date(event.timestamp!))
-      );
+      expectEventAbsoluteTime(timeElement, event.timestamp!);
 
       const typeElement = item.cells[1];
       expect(typeElement, 'Missing type element').to.exist;
@@ -181,33 +200,62 @@ describe('lineup-game-events tests', () => {
       );
     });
 
-    async function setupEvent(event: GameEvent) {
-      events.addEvent<GameEvent>(event);
+    async function setupEvent(
+      event: GameEvent,
+      periodStart?: { startTime: number; currentPeriod?: number }
+    ) {
+      const addedEvent = events.addEvent<GameEvent>(event);
+
+      // Add start event, so that relative times can be computed.
+      if (periodStart) {
+        events.addEvent<PeriodStartEvent>(
+          buildPeriodStartEvent(periodStart.startTime, periodStart.currentPeriod)
+        );
+      }
 
       el.players = players;
       el.eventData = events.toJSON();
       await el.updateComplete;
 
-      return events.events[0] as GameEvent;
+      return addedEvent as GameEvent;
     }
 
-    async function setupEventGroup(group: GameEventGroup) {
-      events.addEventGroup<GameEvent>(group.groupedEvents);
+    async function setupEventGroup(
+      group: GameEventGroup,
+      periodStart?: { startTime: number; currentPeriod?: number }
+    ) {
+      const addedEvents = events.addEventGroup<GameEvent>(group.groupedEvents);
+
+      // Add start event, so that relative times can be computed.
+      if (periodStart) {
+        events.addEvent<PeriodStartEvent>(
+          buildPeriodStartEvent(periodStart.startTime, periodStart.currentPeriod)
+        );
+      }
 
       el.players = players;
       el.eventData = events.toJSON();
       await el.updateComplete;
 
-      return events.events[0] as GameEvent;
+      return addedEvents[0] as GameEvent;
     }
 
     function getEventElements(event: GameEvent) {
       const items = getEventItems();
-      expect(items.length, 'Rendered event count').to.equal(1);
 
-      const item = (items[0] as HTMLTableRowElement)!;
+      let matchedItem: HTMLTableRowElement | undefined;
+      for (const current of Array.from(items)) {
+        if (current.dataset.eventId === event.id) {
+          matchedItem = current;
+          break;
+        }
+      }
+      expect(matchedItem, `Item for event ${event.id} not found`).to.exist;
 
-      expect(item.dataset.eventId).to.equal(event.id, 'Item id should match player id');
+      const item = matchedItem!;
+
+      const timeElement = item.cells[0]!;
+      expect(timeElement, 'Missing event time element').to.exist;
 
       const typeElement = item.cells[1]!;
       expect(typeElement, 'Missing type element').to.exist;
@@ -215,7 +263,7 @@ describe('lineup-game-events tests', () => {
       const detailsElement = item.cells[2]!;
       expect(detailsElement, 'Missing details element').to.exist;
 
-      return { typeElement, detailsElement };
+      return { typeElement, detailsElement, timeElement };
     }
 
     function expectEventType(typeElement: HTMLElement, expectedText: string) {
@@ -234,14 +282,32 @@ describe('lineup-game-events tests', () => {
     });
 
     it(`renders ${GameEventType.PeriodStart} event details`, async () => {
-      const event = await setupEvent(buildPeriodStartEvent(startTime));
+      const event = await setupEvent(buildPeriodStartEvent(startTime), { startTime });
 
-      const { typeElement, detailsElement } = getEventElements(event);
+      const { typeElement, detailsElement, timeElement } = getEventElements(event);
+
+      expectEventAbsoluteTime(timeElement, startTime);
+      expectEventPeriodRelativeTime(timeElement, /* elapsedSeconds= */ 0);
 
       expectEventType(typeElement, 'Period started');
 
-      // TODO: Assert formatted details
       expect(detailsElement.textContent).to.equal('Start of period 1');
+    });
+
+    it(`renders ${GameEventType.PeriodEnd} event details`, async () => {
+      const event = await setupEvent(buildPeriodEndEvent(periodEndTime), { startTime });
+
+      const { typeElement, detailsElement, timeElement } = getEventElements(event);
+
+      expectEventAbsoluteTime(timeElement, periodEndTime);
+      expectEventPeriodRelativeTime(
+        timeElement,
+        /* elapsedSeconds= */ (periodEndTime - startTime) / 1000
+      );
+
+      expectEventType(typeElement, 'Period completed');
+
+      expect(detailsElement.textContent).to.equal('End of period 1');
     });
 
     it(`renders ${GameEventType.SubIn} event details`, async () => {
@@ -252,10 +318,18 @@ describe('lineup-game-events tests', () => {
         replacedId: outPlayer?.id!,
         finalPosition: { ...outPlayer?.currentPosition! },
       };
-      const event = await setupEventGroup(buildSubEvents(startTime, sub));
+
+      // The sub happens 11 minutes, 17 seconds after the period starts.
+      const elapsedSecondsForSub = 11 * 60 + 17;
+      const event = await setupEventGroup(
+        buildSubEvents(startTime + elapsedSecondsForSub * 1000, sub),
+        { startTime }
+      );
 
       // The sub out event is not displayed, so there should only be one rendered event.
-      const { typeElement, detailsElement } = getEventElements(event);
+      const { typeElement, detailsElement, timeElement } = getEventElements(event);
+
+      expectEventPeriodRelativeTime(timeElement, elapsedSecondsForSub);
 
       expectEventType(typeElement, 'Substitution');
 
@@ -274,10 +348,18 @@ describe('lineup-game-events tests', () => {
         initialPosition: { ...inPlayer?.currentPosition! },
         finalPosition: { ...positionPlayer?.currentPosition! },
       };
-      const event = await setupEvent(buildSwapEvent(startTime, swap));
+
+      // The swap happens 50 seconds after the period starts.
+      const elapsedSecondsForSwap = 50;
+      const event = await setupEvent(
+        buildSwapEvent(startTime + elapsedSecondsForSwap * 1000, swap),
+        { startTime }
+      );
 
       // The sub out event is not displayed, so there should only be one rendered event.
-      const { typeElement, detailsElement } = getEventElements(event);
+      const { typeElement, detailsElement, timeElement } = getEventElements(event);
+
+      expectEventPeriodRelativeTime(timeElement, elapsedSecondsForSwap);
 
       expectEventType(typeElement, 'Position changed');
 
