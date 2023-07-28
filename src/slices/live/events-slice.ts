@@ -3,7 +3,18 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
-import { GameEvent, GameEventGroup, GameEventType } from '../../models/live.js';
+import {
+  GameEvent,
+  GameEventGroup,
+  GameEventType,
+  GamePlayerEvent,
+  PeriodEndEvent,
+  PeriodStartEvent,
+  PositionSwapEvent,
+  SetupEvent,
+  SubInEvent,
+  SubOutEvent,
+} from '../../models/live.js';
 import { RootState } from '../../store.js';
 import { LiveGamePayload, extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions } from './live-slice.js';
@@ -44,7 +55,7 @@ const eventSlice = createSlice({
           if (!action.payload.liveGame?.players?.length) {
             return undefined;
           }
-          return buildGameEvent(GameEventType.Setup, {});
+          return buildGameEvent<SetupEvent>(GameEventType.Setup, {});
         })
       )
       .addCase(
@@ -54,7 +65,7 @@ const eventSlice = createSlice({
             return undefined;
           }
           const startTime = action.payload.startTime!;
-          return buildGameEvent(
+          return buildGameEvent<PeriodStartEvent>(
             GameEventType.PeriodStart,
             {
               clock: {
@@ -74,7 +85,7 @@ const eventSlice = createSlice({
             return undefined;
           }
           const endTime = action.payload.stopTime!;
-          return buildGameEvent(
+          return buildGameEvent<PeriodEndEvent>(
             GameEventType.PeriodEnd,
             {
               clock: {
@@ -98,11 +109,11 @@ const eventSlice = createSlice({
             }
             if (sub.isSwap) {
               subEvents.push(
-                buildGameEvent(
+                buildGameEvent<PositionSwapEvent>(
                   GameEventType.Swap,
                   {
-                    position: sub.nextPosition?.id,
-                    previousPosition: sub.currentPosition?.id,
+                    position: sub.nextPosition?.id!,
+                    previousPosition: sub.currentPosition?.id!,
                   },
                   extractIdFromSwapPlayerId(sub.id),
                   eventTime
@@ -119,18 +130,18 @@ const eventSlice = createSlice({
               groupedEvents: [],
             };
             subGroup.groupedEvents.push(
-              buildGameEvent(
+              buildGameEvent<SubInEvent>(
                 GameEventType.SubIn,
                 {
-                  position: sub.currentPosition?.id,
-                  replaced: sub.replaces,
+                  position: sub.currentPosition?.id!,
+                  replaced: sub.replaces!,
                 },
                 sub.id,
                 eventTime
               )
             );
             subGroup.groupedEvents.push(
-              buildGameEvent(GameEventType.SubOut, {}, sub.replaces, eventTime)
+              buildGameEvent<SubOutEvent>(GameEventType.SubOut, {}, sub.replaces, eventTime)
             );
             subEvents.push(subGroup);
           }
@@ -199,19 +210,19 @@ function setGameEvents(state: EventState, gameEvents: EventCollection) {
   state.events[gameEvents.id] = gameEvents.toJSON();
 }
 
-function buildGameEvent(
+function buildGameEvent<Event extends GameEvent, EventData = Event['data']>(
   type: GameEventType,
-  data: Record<string, unknown>,
+  data: EventData,
   playerId?: string,
   timestamp?: number
-): GameEvent {
-  const event: GameEvent = {
+): Event {
+  const event = {
     type,
     data,
     timestamp,
-  };
+  } as Event;
   if (playerId) {
-    event.playerId = playerId;
+    (event as unknown as GamePlayerEvent).playerId = playerId;
   }
   return event;
 }

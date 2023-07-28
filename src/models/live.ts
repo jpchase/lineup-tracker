@@ -77,24 +77,16 @@ export enum GameEventType {
   Swap = 'SWAP',
 }
 
-export interface PeriodStartEventData extends Record<string, unknown> {
-  clock: {
-    currentPeriod: number;
-    startTime: number;
-  };
-}
-
-export interface PeriodStartEvent extends EventBase<GameEventType, PeriodStartEventData> {}
-
 // Base game event types
-export interface GameEvent extends EventBase<GameEventType> {
-  playerId?: string;
-}
+export interface GameEvent<
+  EventType extends GameEventType = GameEventType,
+  EventData extends Record<string, unknown> = Record<string, unknown>
+> extends EventBase<EventType, EventData> {}
 
 export interface GamePlayerEvent<
   EventType extends GameEventType = GameEventType,
   EventData extends Record<string, unknown> = Record<string, unknown>
-> extends EventBase<EventType, EventData> {
+> extends GameEvent<EventType, EventData> {
   playerId: string;
 }
 
@@ -104,30 +96,43 @@ export interface GameEventGroup {
 
 // Event-specific types
 
+export interface SetupEventData extends Record<string, unknown> {
+  // Data is empty
+}
+export interface SetupEvent extends GameEvent<GameEventType.Setup, SetupEventData> {}
+
+export interface PeriodStartEventData extends Record<string, unknown> {
+  clock: {
+    currentPeriod: number;
+    startTime: number;
+  };
+}
+export interface PeriodStartEvent
+  extends EventBase<GameEventType.PeriodStart, PeriodStartEventData> {}
+
+export interface PeriodEndEventData extends Record<string, unknown> {
+  clock: {
+    currentPeriod: number;
+    endTime: number;
+  };
+}
+export interface PeriodEndEvent extends EventBase<GameEventType.PeriodEnd, PeriodEndEventData> {}
+
 export interface SubInEventData extends Record<string, unknown> {
   replaced: string;
   position: string;
 }
-
-export interface SubInEvent extends EventBase<GameEventType.SubIn, SubInEventData> {
-  type: GameEventType.SubIn;
-  playerId: string;
-}
+export interface SubInEvent extends GamePlayerEvent<GameEventType.SubIn, SubInEventData> {}
 
 export interface SubOutEventData extends Record<string, unknown> {
   // Data is empty
 }
-
-export interface SubOutEvent extends GamePlayerEvent<GameEventType.SubOut, SubOutEventData> {
-  // type: GameEventType.SubOut;
-  // playerId: string;
-}
+export interface SubOutEvent extends GamePlayerEvent<GameEventType.SubOut, SubOutEventData> {}
 
 export interface PositionSwapEventData extends Record<string, unknown> {
   position: string;
   previousPosition: string;
 }
-
 export interface PositionSwapEvent
   extends GamePlayerEvent<GameEventType.Swap, PositionSwapEventData> {}
 

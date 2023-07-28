@@ -3,10 +3,13 @@
 import { EventCollection } from '@app/models/events.js';
 import { FormationType, Position } from '@app/models/formation.js';
 import {
-  GameEvent,
   GameEventType,
   LiveGame,
   LivePlayer,
+  PeriodEndEvent,
+  PeriodStartEvent,
+  PositionSwapEvent,
+  SetupEvent,
   SubInEvent,
   SubOutEvent,
   getPlayer,
@@ -89,7 +92,7 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
+      expectedCollection.addEvent<SetupEvent>({
         id: 'anewid',
         type: GameEventType.Setup,
         timestamp: startTime,
@@ -140,7 +143,7 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>(
+      expectedCollection.addEvent<PeriodStartEvent>(
         buildPeriodStartEvent(startTime, /* currentPeriod= */ 1)
       );
 
@@ -168,7 +171,7 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
+      expectedCollection.addEvent<PeriodStartEvent>({
         id: 'starteventid',
         type: GameEventType.PeriodStart,
         timestamp: startTime,
@@ -393,14 +396,14 @@ describe('Events slice', () => {
       let eventIndex = 0;
       for (const swap of swaps) {
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<PositionSwapEvent>({
           id: makeEventId(eventIndex),
           type: GameEventType.Swap,
           timestamp: startTime,
           playerId: swap.nextId,
           data: {
-            position: swap.expectedFinalPosition?.id,
-            previousPosition: swap.initialPosition?.id,
+            position: swap.expectedFinalPosition?.id!,
+            previousPosition: swap.initialPosition?.id!,
           },
         });
       }
@@ -480,14 +483,14 @@ describe('Events slice', () => {
 
         if (sub.isSwap) {
           eventIndex += 1;
-          expectedCollection.addEvent<GameEvent>({
+          expectedCollection.addEvent<PositionSwapEvent>({
             id: makeEventId(eventIndex),
             type: GameEventType.Swap,
             timestamp: startTime,
             playerId: sub.nextId,
             data: {
-              position: sub.expectedFinalPosition?.id,
-              previousPosition: sub.initialPosition?.id,
+              position: sub.expectedFinalPosition?.id!,
+              previousPosition: sub.initialPosition?.id!,
             },
           });
           continue;
@@ -614,14 +617,14 @@ describe('Events slice', () => {
           continue;
         }
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<PositionSwapEvent>({
           id: makeEventId(eventIndex),
           type: GameEventType.Swap,
           timestamp: startTime,
           playerId: swap.nextId,
           data: {
-            position: swap.expectedFinalPosition?.id,
-            previousPosition: swap.initialPosition?.id,
+            position: swap.expectedFinalPosition?.id!,
+            previousPosition: swap.initialPosition?.id!,
           },
         });
       }
@@ -706,14 +709,14 @@ describe('Events slice', () => {
 
         if (sub.isSwap) {
           eventIndex += 1;
-          expectedCollection.addEvent<GameEvent>({
+          expectedCollection.addEvent<PositionSwapEvent>({
             id: makeEventId(eventIndex),
             type: GameEventType.Swap,
             timestamp: startTime,
             playerId: sub.nextId,
             data: {
-              position: sub.expectedFinalPosition?.id,
-              previousPosition: sub.initialPosition?.id,
+              position: sub.expectedFinalPosition?.id!,
+              previousPosition: sub.initialPosition?.id!,
             },
           });
           continue;
@@ -777,7 +780,7 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
+      expectedCollection.addEvent<PeriodEndEvent>({
         id: 'endeventid',
         type: GameEventType.PeriodEnd,
         timestamp: timeStartPlus20Minutes,
@@ -813,7 +816,7 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
+      expectedCollection.addEvent<PeriodEndEvent>({
         id: 'endeventid',
         type: GameEventType.PeriodEnd,
         timestamp: timeStartPlus20Minutes,
