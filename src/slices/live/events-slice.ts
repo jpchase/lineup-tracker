@@ -3,7 +3,19 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
-import { GameEvent, GameEventGroup, GameEventType } from '../../models/live.js';
+import {
+  GameEvent,
+  GameEventGroup,
+  GameEventType,
+  GamePlayerEvent,
+  PeriodEndEvent,
+  PeriodStartEvent,
+  PositionSwapEvent,
+  SetupEvent,
+  SubInEvent,
+  SubOutEvent,
+} from '../../models/live.js';
+import { RootState } from '../../store.js';
 import { LiveGamePayload, extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions } from './live-slice.js';
 
@@ -21,6 +33,13 @@ export const EVENTS_INITIAL_STATE: EventState = {
   events: undefined,
 };
 
+export const selectGameEvents = (state: RootState, gameId: string) => {
+  if (!state.live || !gameId) {
+    return undefined;
+  }
+  return getGameEventData(state.live, gameId);
+};
+
 type EventOrGroup = GameEvent | GameEventGroup;
 
 const eventSlice = createSlice({
@@ -33,10 +52,16 @@ const eventSlice = createSlice({
       .addCase(
         gameSetupCompleted,
         buildActionHandler((action) => {
-          if (!action.payload.liveGame?.players?.length) {
+          const game = action.payload.liveGame;
+          if (!game.players?.length) {
             return undefined;
           }
-          return buildGameEvent(GameEventType.Setup, {});
+          return buildGameEvent<SetupEvent>(GameEventType.Setup, {
+            clock: {
+              periodLength: game.clock?.periodLength!,
+              totalPeriods: game.clock?.totalPeriods!,
+            },
+          });
         })
       )
       .addCase(
@@ -46,7 +71,7 @@ const eventSlice = createSlice({
             return undefined;
           }
           const startTime = action.payload.startTime!;
-          return buildGameEvent(
+          return buildGameEvent<PeriodStartEvent>(
             GameEventType.PeriodStart,
             {
               clock: {
@@ -66,7 +91,7 @@ const eventSlice = createSlice({
             return undefined;
           }
           const endTime = action.payload.stopTime!;
-          return buildGameEvent(
+          return buildGameEvent<PeriodEndEvent>(
             GameEventType.PeriodEnd,
             {
               clock: {
@@ -90,11 +115,11 @@ const eventSlice = createSlice({
             }
             if (sub.isSwap) {
               subEvents.push(
-                buildGameEvent(
+                buildGameEvent<PositionSwapEvent>(
                   GameEventType.Swap,
                   {
-                    position: sub.nextPosition?.id,
-                    previousPosition: sub.currentPosition?.id,
+                    position: sub.nextPosition?.id!,
+                    previousPosition: sub.currentPosition?.id!,
                   },
                   extractIdFromSwapPlayerId(sub.id),
                   eventTime
@@ -111,18 +136,18 @@ const eventSlice = createSlice({
               groupedEvents: [],
             };
             subGroup.groupedEvents.push(
-              buildGameEvent(
+              buildGameEvent<SubInEvent>(
                 GameEventType.SubIn,
                 {
-                  position: sub.currentPosition?.id,
-                  replaced: sub.replaces,
+                  position: sub.currentPosition?.id!,
+                  replaced: sub.replaces!,
                 },
                 sub.id,
                 eventTime
               )
             );
             subGroup.groupedEvents.push(
-              buildGameEvent(GameEventType.SubOut, {}, sub.replaces, eventTime)
+              buildGameEvent<SubOutEvent>(GameEventType.SubOut, {}, sub.replaces, eventTime)
             );
             subEvents.push(subGroup);
           }
@@ -173,19 +198,15 @@ function invokeActionHandler<P extends LiveGamePayload>(
   setGameEvents(state, gameEvents);
 }
 
-function getGameEvents(state: EventState, gameId: string): EventCollection | undefined {
+function getGameEventData(state: EventState, gameId: string): EventCollectionData | undefined {
   if (!state.events || !(gameId in state.events)) {
     return undefined;
   }
-  const data = state.events[gameId];
-  if (!data) {
-    return undefined;
-  }
-  return EventCollection.create(data);
+  return state.events[gameId];
 }
 
 function getOrCreateGameEvents(state: EventState, gameId: string): EventCollection {
-  return getGameEvents(state, gameId) ?? EventCollection.create({ id: gameId });
+  return EventCollection.create(getGameEventData(state, gameId) ?? { id: gameId });
 }
 
 function setGameEvents(state: EventState, gameEvents: EventCollection) {
@@ -195,19 +216,19 @@ function setGameEvents(state: EventState, gameEvents: EventCollection) {
   state.events[gameEvents.id] = gameEvents.toJSON();
 }
 
-function buildGameEvent(
+function buildGameEvent<Event extends GameEvent, EventData = Event['data']>(
   type: GameEventType,
-  data: Record<string, unknown>,
+  data: EventData,
   playerId?: string,
   timestamp?: number
-): GameEvent {
-  const event: GameEvent = {
+): Event {
+  const event = {
     type,
     data,
     timestamp,
-  };
+  } as Event;
   if (playerId) {
-    event.playerId = playerId;
+    (event as unknown as GamePlayerEvent).playerId = playerId;
   }
   return event;
 }

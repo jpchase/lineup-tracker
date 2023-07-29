@@ -2,7 +2,18 @@
 
 import { EventCollection } from '@app/models/events.js';
 import { FormationType, Position } from '@app/models/formation.js';
-import { GameEvent, GameEventType, LiveGame, LivePlayer, getPlayer } from '@app/models/live.js';
+import {
+  GameEventType,
+  LiveGame,
+  LivePlayer,
+  PeriodEndEvent,
+  PeriodStartEvent,
+  PositionSwapEvent,
+  SetupEvent,
+  SubInEvent,
+  SubOutEvent,
+  getPlayer,
+} from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import {
   EVENTS_INITIAL_STATE,
@@ -12,9 +23,14 @@ import {
 import { actions } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { selectPlayers } from '../../helpers/live-state-setup.js';
+import {
+  buildClock,
+  buildLiveStateWithCurrentGame,
+  selectPlayers,
+} from '../../helpers/live-state-setup.js';
 import { mockIdGenerator, mockIdGeneratorWithCallback } from '../../helpers/mock-id-generator.js';
 import { mockCurrentTime, mockTimeProvider } from '../../helpers/test-clock-data.js';
+import { buildGameSetupEvent, buildPeriodStartEvent } from '../../helpers/test-event-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
@@ -69,23 +85,24 @@ describe('Events slice', () => {
     });
 
     it('should store event for setup completed', () => {
-      mockIdGenerator('anewid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
-      const rosterPlayers = testlive.getLivePlayers(18);
-      const game = testlive.getLiveGame(rosterPlayers);
+
+      const game = testlive.getLiveGameWithPlayers();
+      game.clock = buildClock();
+      currentState = buildLiveStateWithCurrentGame(game, {
+        ...EVENTS_INITIAL_STATE,
+      });
+
       const expectedCollection = EventCollection.create(
         {
           id: game.id,
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
-        id: 'anewid',
-        type: GameEventType.Setup,
-        timestamp: startTime,
-        data: {},
-      });
+      const setupEvent = buildGameSetupEvent(startTime);
+      expectedCollection.addEvent<SetupEvent>(setupEvent);
+      mockIdGenerator(setupEvent.id!);
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
@@ -121,7 +138,6 @@ describe('Events slice', () => {
     });
 
     it('should store start period event for first period', () => {
-      mockIdGenerator('starteventid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const game = testlive.getLiveGame(rosterPlayers);
@@ -131,17 +147,9 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
-        id: 'starteventid',
-        type: GameEventType.PeriodStart,
-        timestamp: startTime,
-        data: {
-          clock: {
-            currentPeriod: 1,
-            startTime,
-          },
-        },
-      });
+      const startEvent = buildPeriodStartEvent(startTime, /* currentPeriod= */ 1);
+      expectedCollection.addEvent<PeriodStartEvent>(startEvent);
+      mockIdGenerator(startEvent.id!);
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
@@ -157,7 +165,6 @@ describe('Events slice', () => {
     });
 
     it('should store start period event for subsequent period', () => {
-      mockIdGenerator('starteventid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const game = testlive.getLiveGame(rosterPlayers);
@@ -167,17 +174,10 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
-        id: 'starteventid',
-        type: GameEventType.PeriodStart,
-        timestamp: startTime,
-        data: {
-          clock: {
-            currentPeriod: 2,
-            startTime,
-          },
-        },
-      });
+      const startEvent = buildPeriodStartEvent(startTime, /* currentPeriod= */ 2);
+      expectedCollection.addEvent<PeriodStartEvent>(startEvent);
+      mockIdGenerator(startEvent.id!);
+
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
       const newState = events(
@@ -343,24 +343,24 @@ describe('Events slice', () => {
         groupIndex += 1;
 
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubInEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
           data: {
-            replaced: sub.replacedId,
-            position: sub.expectedFinalPosition?.id,
+            replaced: sub.replacedId!,
+            position: sub.expectedFinalPosition?.id!,
           },
         });
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubOutEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
-          playerId: sub.replacedId,
+          playerId: sub.replacedId!,
           data: {},
         });
       }
@@ -392,14 +392,14 @@ describe('Events slice', () => {
       let eventIndex = 0;
       for (const swap of swaps) {
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<PositionSwapEvent>({
           id: makeEventId(eventIndex),
           type: GameEventType.Swap,
           timestamp: startTime,
           playerId: swap.nextId,
           data: {
-            position: swap.expectedFinalPosition?.id,
-            previousPosition: swap.initialPosition?.id,
+            position: swap.expectedFinalPosition?.id!,
+            previousPosition: swap.initialPosition?.id!,
           },
         });
       }
@@ -479,38 +479,38 @@ describe('Events slice', () => {
 
         if (sub.isSwap) {
           eventIndex += 1;
-          expectedCollection.addEvent<GameEvent>({
+          expectedCollection.addEvent<PositionSwapEvent>({
             id: makeEventId(eventIndex),
             type: GameEventType.Swap,
             timestamp: startTime,
             playerId: sub.nextId,
             data: {
-              position: sub.expectedFinalPosition?.id,
-              previousPosition: sub.initialPosition?.id,
+              position: sub.expectedFinalPosition?.id!,
+              previousPosition: sub.initialPosition?.id!,
             },
           });
           continue;
         }
 
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubInEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
           data: {
-            replaced: sub.replacedId,
-            position: sub.expectedFinalPosition?.id,
+            replaced: sub.replacedId!,
+            position: sub.expectedFinalPosition?.id!,
           },
         });
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubOutEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
-          playerId: sub.replacedId,
+          playerId: sub.replacedId!,
           data: {},
         });
       }
@@ -554,24 +554,24 @@ describe('Events slice', () => {
         groupIndex += 1;
 
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubInEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
           data: {
-            replaced: sub.replacedId,
-            position: sub.expectedFinalPosition?.id,
+            replaced: sub.replacedId!,
+            position: sub.expectedFinalPosition?.id!,
           },
         });
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubOutEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
-          playerId: sub.replacedId,
+          playerId: sub.replacedId!,
           data: {},
         });
       }
@@ -613,14 +613,14 @@ describe('Events slice', () => {
           continue;
         }
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<PositionSwapEvent>({
           id: makeEventId(eventIndex),
           type: GameEventType.Swap,
           timestamp: startTime,
           playerId: swap.nextId,
           data: {
-            position: swap.expectedFinalPosition?.id,
-            previousPosition: swap.initialPosition?.id,
+            position: swap.expectedFinalPosition?.id!,
+            previousPosition: swap.initialPosition?.id!,
           },
         });
       }
@@ -705,38 +705,38 @@ describe('Events slice', () => {
 
         if (sub.isSwap) {
           eventIndex += 1;
-          expectedCollection.addEvent<GameEvent>({
+          expectedCollection.addEvent<PositionSwapEvent>({
             id: makeEventId(eventIndex),
             type: GameEventType.Swap,
             timestamp: startTime,
             playerId: sub.nextId,
             data: {
-              position: sub.expectedFinalPosition?.id,
-              previousPosition: sub.initialPosition?.id,
+              position: sub.expectedFinalPosition?.id!,
+              previousPosition: sub.initialPosition?.id!,
             },
           });
           continue;
         }
 
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubInEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubIn,
           timestamp: startTime,
           playerId: sub.nextId,
           data: {
-            replaced: sub.replacedId,
-            position: sub.expectedFinalPosition?.id,
+            replaced: sub.replacedId!,
+            position: sub.expectedFinalPosition?.id!,
           },
         });
         eventIndex += 1;
-        expectedCollection.addEvent<GameEvent>({
+        expectedCollection.addEvent<SubOutEvent>({
           id: makeEventId(eventIndex),
           groupId: makeEventGroupId(groupIndex),
           type: GameEventType.SubOut,
           timestamp: startTime,
-          playerId: sub.replacedId,
+          playerId: sub.replacedId!,
           data: {},
         });
       }
@@ -776,7 +776,7 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
+      expectedCollection.addEvent<PeriodEndEvent>({
         id: 'endeventid',
         type: GameEventType.PeriodEnd,
         timestamp: timeStartPlus20Minutes,
@@ -812,7 +812,7 @@ describe('Events slice', () => {
         },
         timeProvider
       );
-      expectedCollection.addEvent<GameEvent>({
+      expectedCollection.addEvent<PeriodEndEvent>({
         id: 'endeventid',
         type: GameEventType.PeriodEnd,
         timestamp: timeStartPlus20Minutes,
