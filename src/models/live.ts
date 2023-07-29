@@ -97,7 +97,10 @@ export interface GameEventGroup {
 // Event-specific types
 
 export interface SetupEventData extends Record<string, unknown> {
-  // Data is empty
+  clock: {
+    periodLength: number;
+    totalPeriods: number;
+  };
 }
 export interface SetupEvent extends GameEvent<GameEventType.Setup, SetupEventData> {}
 

@@ -52,10 +52,16 @@ const eventSlice = createSlice({
       .addCase(
         gameSetupCompleted,
         buildActionHandler((action) => {
-          if (!action.payload.liveGame?.players?.length) {
+          const game = action.payload.liveGame;
+          if (!game.players?.length) {
             return undefined;
           }
-          return buildGameEvent<SetupEvent>(GameEventType.Setup, {});
+          return buildGameEvent<SetupEvent>(GameEventType.Setup, {
+            clock: {
+              periodLength: game.clock?.periodLength!,
+              totalPeriods: game.clock?.totalPeriods!,
+            },
+          });
         })
       )
       .addCase(

@@ -23,10 +23,14 @@ import {
 import { actions } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
-import { selectPlayers } from '../../helpers/live-state-setup.js';
+import {
+  buildClock,
+  buildLiveStateWithCurrentGame,
+  selectPlayers,
+} from '../../helpers/live-state-setup.js';
 import { mockIdGenerator, mockIdGeneratorWithCallback } from '../../helpers/mock-id-generator.js';
 import { mockCurrentTime, mockTimeProvider } from '../../helpers/test-clock-data.js';
-import { buildPeriodStartEvent } from '../../helpers/test-event-data.js';
+import { buildGameSetupEvent, buildPeriodStartEvent } from '../../helpers/test-event-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
@@ -81,23 +85,24 @@ describe('Events slice', () => {
     });
 
     it('should store event for setup completed', () => {
-      mockIdGenerator('anewid');
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
-      const rosterPlayers = testlive.getLivePlayers(18);
-      const game = testlive.getLiveGame(rosterPlayers);
+
+      const game = testlive.getLiveGameWithPlayers();
+      game.clock = buildClock();
+      currentState = buildLiveStateWithCurrentGame(game, {
+        ...EVENTS_INITIAL_STATE,
+      });
+
       const expectedCollection = EventCollection.create(
         {
           id: game.id,
         },
         timeProvider
       );
-      expectedCollection.addEvent<SetupEvent>({
-        id: 'anewid',
-        type: GameEventType.Setup,
-        timestamp: startTime,
-        data: {},
-      });
+      const setupEvent = buildGameSetupEvent(startTime);
+      expectedCollection.addEvent<SetupEvent>(setupEvent);
+      mockIdGenerator(setupEvent.id!);
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
