@@ -54,7 +54,12 @@ export function manualTimeProvider(currentTime: number) {
 }
 
 export function buildDuration(minutes: number, seconds: number): Duration {
-  const total = minutes * 60 + seconds;
+  if (minutes < 0 && seconds < 0) {
+    throw RangeError(
+      `Negative durations must be specified with only minutes negative, or zero minutes and negative seconds`
+    );
+  }
+  const total = minutes * 60 + (minutes < 0 ? -seconds : seconds);
   return Duration.create(total);
 }
 
@@ -69,7 +74,7 @@ export function isElapsedEqual(actual: Duration, expected: number[]) {
 
   const expectedDuration = buildDuration(expected[0], expected[1]);
 
-  return expectedDuration._elapsed === actual._elapsed;
+  return expectedDuration.getTotalSeconds() === actual.getTotalSeconds();
 }
 
 export function addDurationAssertion<ActualType>(

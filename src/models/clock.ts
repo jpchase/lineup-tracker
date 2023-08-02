@@ -5,11 +5,19 @@ function pad0(value: number, count: number): string {
 }
 
 export class CurrentTimeProvider {
-  isFrozen: boolean;
-  frozenTime: number | undefined;
+  private _isFrozen: boolean;
+  private frozenTime: number | undefined;
 
   constructor() {
-    this.isFrozen = false;
+    this._isFrozen = false;
+  }
+
+  // Data properties are private writeable only.
+  get isFrozen(): boolean {
+    return this._isFrozen;
+  }
+  protected set isFrozen(value: boolean) {
+    this._isFrozen = value;
   }
 
   getTimeInternal(): number {
@@ -49,7 +57,7 @@ export interface DurationData {
 
 export class Duration {
   // Number of seconds
-  _elapsed: number;
+  private _elapsed: number;
 
   constructor(passedData?: DurationData) {
     const data: DurationData = passedData ?? {};
@@ -63,8 +71,9 @@ export class Duration {
   }
 
   getMinutes(): number {
-    // remove seconds from the time
-    const elapsedNoSeconds = Math.floor(this._elapsed / 60);
+    // Remove seconds from the time.
+    const truncateFunc = this._elapsed > 0 ? Math.floor : Math.ceil;
+    const elapsedNoSeconds = truncateFunc(this._elapsed / 60);
 
     // get minutes
     return Math.round(elapsedNoSeconds % 100);
@@ -108,7 +117,7 @@ export class Duration {
 }
 
 export class ManualTimeProvider extends CurrentTimeProvider {
-  currentTime: number | undefined;
+  private currentTime: number | undefined;
 
   setCurrentTime(newTime: number) {
     this.currentTime = newTime;
@@ -130,17 +139,39 @@ export interface TimerData {
 }
 
 export class Timer {
-  provider: CurrentTimeProvider;
-  isRunning: boolean;
-  startTime: number | undefined;
-  duration: Duration;
+  readonly provider: CurrentTimeProvider;
+  private _isRunning: boolean;
+  private _startTime?: number;
+  private _duration: Duration;
 
   constructor(passedData?: TimerData, timeProvider?: CurrentTimeProvider) {
     const data: TimerData = passedData ?? {};
     this.provider = timeProvider ?? new CurrentTimeProvider();
-    this.isRunning = data.isRunning ?? false;
-    this.startTime = data.startTime;
-    this.duration = new Duration(data.duration);
+    this._isRunning = data.isRunning ?? false;
+    this._startTime = data.startTime;
+    this._duration = new Duration(data.duration);
+  }
+
+  // Data properties are private writeable only.
+  get isRunning(): boolean {
+    return this._isRunning;
+  }
+  protected set isRunning(value: boolean) {
+    this._isRunning = value;
+  }
+
+  get startTime(): number | undefined {
+    return this._startTime;
+  }
+  protected set startTime(value: number | undefined) {
+    this._startTime = value;
+  }
+
+  get duration(): Duration {
+    return this._duration;
+  }
+  protected set duration(value: Duration) {
+    this._duration = value;
   }
 
   reset() {
@@ -195,36 +226,6 @@ export class Timer {
 
     // Added elapsed to accumulated duration
     return Duration.add(this.duration, elapsed);
-  }
-}
-
-export class TimerWidget {
-  timer: Timer | undefined;
-  display: HTMLElement;
-
-  constructor(display: HTMLElement) {
-    this.display = display;
-  }
-
-  attach(timer: Timer) {
-    this.timer = timer;
-    this.refresh();
-  }
-
-  refresh() {
-    if (!this.timer || !this.timer.isRunning) {
-      return;
-    }
-    this.print();
-    requestAnimationFrame(this.refresh.bind(this));
-  }
-
-  print() {
-    let text = '';
-    if (this.timer) {
-      text = Duration.format(this.timer.getElapsed());
-    }
-    this.display.innerText = text;
   }
 }
 
