@@ -28,7 +28,9 @@ describe('Live slice: Clock actions', () => {
   const timeStartPlus10 = new Date(2016, 0, 1, 14, 0, 10).getTime();
   const timeStartPlus1Minute55 = new Date(2016, 0, 1, 14, 1, 55).getTime();
   const timeStartPlus15Minutes = new Date(2016, 0, 1, 14, 15, 0).getTime();
+  const timeStartPlus18Minutes = new Date(2016, 0, 1, 14, 18, 0).getTime();
   const timeStartPlus20Minutes = new Date(2016, 0, 1, 14, 20, 0).getTime();
+  const timeStartPlus23Minutes = new Date(2016, 0, 1, 14, 23, 0).getTime();
   let fakeClock: sinon.SinonFakeTimers;
 
   afterEach(async () => {
@@ -497,6 +499,37 @@ describe('Live slice: Clock actions', () => {
         );
       });
 
+      it('should dispatch action for overdue period with extra minutes when clock running after being toggled', async () => {
+        mockTimeProvider(timeStartPlus18Minutes);
+        const currentGame = getGame(currentState, gameId)!;
+
+        // Simulate the game clock being toggled off for 10 minutes.
+        //   - Running for 10 minutes when toggled off
+        //   - Left off for 8 minutes
+        //   - Restarted at 18 minutes
+        const toggledTimer = buildRunningTimer(timeStartPlus18Minutes, /*elapsedSeconds=*/ 10 * 60);
+        currentGame.clock = buildClock(
+          toggledTimer,
+          {
+            currentPeriod: 1,
+            periodStatus: PeriodStatus.Overdue,
+            periodLength: 12,
+          },
+          buildStoppedTimer(/*elapsedSeconds=*/ 8 * 60)
+        );
+
+        const dispatchMock = sinon.stub();
+        const getStateMock = mockGetState(undefined, undefined, undefined, currentState);
+
+        endPeriodCreator(gameId, /*extraMinutes=*/ 3)(dispatchMock, getStateMock, undefined);
+
+        expect(dispatchMock).to.have.callCount(1);
+
+        expect(dispatchMock.lastCall).to.have.been.calledWith(
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus23Minutes)
+        );
+      });
+
       it('should dispatch action for overdue period with explicit zero extra minutes when clock running', async () => {
         mockTimeProvider(timeStartPlus20Minutes);
         const currentGame = getGame(currentState, gameId)!;
@@ -819,6 +852,30 @@ describe('Live slice: Clock actions', () => {
       expect(newState).not.to.equal(currentState);
     });
 
+    it('should start when timer is not running and stop the stoppage timer', () => {
+      mockTimeProvider(timeStartPlus10);
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(buildStoppedTimer(), undefined, buildRunningTimer(startTime));
+
+      const newState = live(currentState, toggleClock(gameId));
+
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
+        timer: {
+          isRunning: true,
+          startTime: timeStartPlus10,
+          duration: Duration.zero().toJSON(),
+        },
+        stoppageTimer: {
+          isRunning: false,
+          startTime: undefined,
+          duration: Duration.create(10).toJSON(),
+        },
+      });
+
+      expect(newState).not.to.equal(currentState);
+    });
+
     it('should stop when timer is already running', () => {
       mockTimeProvider(timeStartPlus10);
       const currentGame = getGame(currentState, gameId)!;
@@ -832,6 +889,11 @@ describe('Live slice: Clock actions', () => {
           isRunning: false,
           startTime: undefined,
           duration: Duration.create(5).toJSON(),
+        },
+        stoppageTimer: {
+          isRunning: true,
+          startTime: timeStartPlus10,
+          duration: Duration.zero().toJSON(),
         },
       });
 
@@ -851,6 +913,34 @@ describe('Live slice: Clock actions', () => {
           isRunning: false,
           startTime: undefined,
           duration: Duration.create(30).toJSON(),
+        },
+      });
+
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should stop when running and add to previous stoppages', () => {
+      mockTimeProvider(timeStartPlus10);
+      const currentGame = getGame(currentState, gameId)!;
+      currentGame.clock = buildClock(
+        buildRunningTimer(startTime, 20),
+        undefined,
+        buildStoppedTimer(15)
+      );
+
+      const newState = live(currentState, toggleClock(gameId));
+
+      const newGame = getGame(newState, gameId);
+      expect(newGame?.clock).to.deep.include({
+        timer: {
+          isRunning: false,
+          startTime: undefined,
+          duration: Duration.create(30).toJSON(),
+        },
+        stoppageTimer: {
+          isRunning: true,
+          startTime: timeStartPlus10,
+          duration: Duration.create(15).toJSON(),
         },
       });
 

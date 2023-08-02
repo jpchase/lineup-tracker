@@ -35,9 +35,9 @@ export const configurePeriodsHandler = (
   ) {
     return;
   }
-  const state = getInitializedClock(game);
-  state.totalPeriods = periods;
-  state.periodLength = length;
+  const { clock } = getInitializedClock(game);
+  clock.totalPeriods = periods;
+  clock.periodLength = length;
 
   if (game.status === GameStatus.New) {
     completeSetupStepForAction(game, SetupSteps.Periods);
@@ -72,12 +72,12 @@ export const startPeriodHandler = (
   }
   game.status = GameStatus.Live;
 
-  const state = getInitializedClock(game);
-  const timer = new Timer();
+  const { clock, timer } = getInitializedClock(game);
+
   timer.start();
-  state.timer = timer.toJSON();
-  state.currentPeriod = period.currentPeriod!;
-  state.periodStatus = PeriodStatus.Running;
+  clock.timer = timer.toJSON();
+  clock.currentPeriod = period.currentPeriod!;
+  clock.periodStatus = PeriodStatus.Running;
 };
 
 export const startPeriodPrepare = (
@@ -109,17 +109,24 @@ export const endPeriodHandler = (
     return;
   }
 
-  const state = getInitializedClock(game);
-  const timer = new Timer(state.timer);
+  const { clock, timer, stoppageTimer } = getInitializedClock(game);
+
+  // At most one of the timers will be running. Can call stop on both since
+  // it will be ignored if already stopped.
+  timer.provider.freeze();
   timer.stop(action.payload.stopTime);
-  state.timer = timer.toJSON();
-  if (state.currentPeriod === state.totalPeriods) {
+  stoppageTimer.stop(action.payload.stopTime);
+  timer.provider.unfreeze();
+
+  clock.timer = timer.toJSON();
+  clock.stoppageTimer = stoppageTimer.toJSON();
+  if (clock.currentPeriod === clock.totalPeriods) {
     // Ending the last period of the game.
     game.status = GameStatus.Done;
-    state.periodStatus = PeriodStatus.Done;
+    clock.periodStatus = PeriodStatus.Done;
   } else {
     game.status = GameStatus.Break;
-    state.periodStatus = PeriodStatus.Pending;
+    clock.periodStatus = PeriodStatus.Pending;
   }
 };
 
@@ -147,15 +154,19 @@ export const toggleHandler = (
   if (!game.clock) {
     return;
   }
-  const state = getInitializedClock(game);
-  const timer = new Timer(state.timer);
+  const { clock, timer, stoppageTimer } = getInitializedClock(game);
 
+  timer.provider.freeze();
   if (timer.isRunning) {
     timer.stop();
+    stoppageTimer.start();
   } else {
     timer.start();
+    stoppageTimer.stop();
   }
-  state.timer = timer.toJSON();
+  timer.provider.unfreeze();
+  clock.timer = timer.toJSON();
+  clock.stoppageTimer = stoppageTimer.toJSON();
 };
 
 export const markPeriodOverdueHandler = (
@@ -166,7 +177,7 @@ export const markPeriodOverdueHandler = (
   if (!isPeriodOverdue(game, action.payload.ignoreTimeForTesting)) {
     return;
   }
-  const clock = getInitializedClock(game);
+  const { clock } = getInitializedClock(game);
 
   // TODO: The change doesn't seem to stick when looking at the UI
   clock.periodStatus = PeriodStatus.Overdue;
@@ -254,14 +265,28 @@ export function gameCanEndPeriod(
 
   const currentPeriod = game.clock!.currentPeriod;
 
-  let stopTime;
+  let stopTime: number | undefined;
   if (
     (extraMinutes || extraMinutes === 0) &&
     game.clock?.periodStatus === PeriodStatus.Overdue &&
     game.clock.timer?.isRunning
   ) {
+    // Compute an overridden stop time as:
+    //   Period start time + period length + extra minutes + stoppage time (if any).
+    const periodTimer = new Timer(game.clock.timer);
+    const periodStartTime = periodTimer.startTime!;
+
     const actualLength = game.clock.periodLength + extraMinutes;
-    stopTime = Duration.addToDate(game.clock.timer!.startTime!, Duration.create(actualLength * 60));
+    // The timer start time is when it was last started, *not* the actual start time of
+    // the period. If the timer was ever started, need to back up the time to be added
+    // by the saved duration.
+    // TODO: Add subtract method to Duration class?
+    const correctedDuration = Duration.add(
+      Duration.create(actualLength * 60),
+      Duration.create(-periodTimer.duration.getTotalSeconds())
+    );
+
+    stopTime = Duration.addToDate(periodStartTime, correctedDuration);
   } else {
     stopTime = new CurrentTimeProvider().getCurrentTime();
   }
@@ -273,5 +298,8 @@ function getInitializedClock(game: LiveGame) {
   if (!game.clock) {
     game.clock = LiveGameBuilder.createClock();
   }
-  return game.clock;
+  const timeProvider = new CurrentTimeProvider();
+  const timer = new Timer(game.clock.timer, timeProvider);
+  const stoppageTimer = new Timer(game.clock.stoppageTimer, timeProvider);
+  return { clock: game.clock, timer, stoppageTimer };
 }

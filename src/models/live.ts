@@ -47,6 +47,7 @@ export interface LivePlayer extends Player {
 
 export interface LiveClock {
   timer?: TimerData;
+  stoppageTimer?: TimerData;
   currentPeriod: number;
   periodStatus: PeriodStatus;
   totalPeriods: number;
@@ -169,6 +170,7 @@ export class LiveGameBuilder {
   static createClock(): LiveClock {
     return {
       timer: undefined,
+      stoppageTimer: undefined,
       currentPeriod: 0,
       periodStatus: PeriodStatus.Pending,
       totalPeriods: 2,
