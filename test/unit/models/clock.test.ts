@@ -235,6 +235,8 @@ describe('Timer', () => {
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
   const timeStartPlus5 = new Date(2016, 0, 1, 14, 0, 5).getTime();
   const timeStartPlus10 = new Date(2016, 0, 1, 14, 0, 10).getTime();
+  const timeStartPlus20 = new Date(2016, 0, 1, 14, 0, 20).getTime();
+  const timeStartPlus30 = new Date(2016, 0, 1, 14, 0, 30).getTime();
   const timeStartPlus1Minute55 = new Date(2016, 0, 1, 14, 1, 55).getTime();
 
   Assertion.addMethod('initialized', function (this) {
@@ -277,6 +279,13 @@ describe('Timer', () => {
     expect(timer.isRunning).to.be.true;
   });
 
+  it('should be running from specified start time', () => {
+    const timer = new Timer();
+    timer.start(timeStartPlus1Minute55);
+    expect(timer.isRunning).to.be.true;
+    expect(timer.startTime).to.equal(timeStartPlus1Minute55);
+  });
+
   it('should not be running after stop', () => {
     const timer = new Timer();
     timer.start();
@@ -308,6 +317,15 @@ describe('Timer', () => {
       expect(timer).to.have.elapsed([0, 5]);
     });
 
+    it('should have correct elapsed from specified start time when running', () => {
+      const provider = manualTimeProvider(timeStartPlus1Minute55);
+      const timer = new Timer(undefined, provider);
+      timer.start(timeStartPlus30);
+      expect(timer).to.have.elapsed([1, 25]);
+      timer.start();
+      expect(timer).to.have.elapsed([1, 25]);
+    });
+
     it('should have correct elapsed when running for more than an hour', () => {
       const provider = manualTimeProvider(startTime);
       const timer = new Timer(undefined, provider);
@@ -333,6 +351,16 @@ describe('Timer', () => {
       expect(timer).to.have.elapsed([0, 10]);
     });
 
+    it('should have correct elapsed from specified start time after stopped', () => {
+      const provider = manualTimeProvider(timeStartPlus30);
+      const timer = new Timer(undefined, provider);
+      timer.start(timeStartPlus10);
+      timer.stop();
+      expect(timer).to.have.elapsed([0, 20]);
+      timer.stop();
+      expect(timer).to.have.elapsed([0, 20]);
+    });
+
     it('should have correct elapsed after stopped retroactively', () => {
       const provider = mockTimeProvider(startTime, timeStartPlus10);
       const timer = new Timer(undefined, provider);
@@ -341,6 +369,16 @@ describe('Timer', () => {
       expect(timer).to.have.elapsed([0, 5]);
       timer.stop();
       expect(timer).to.have.elapsed([0, 5]);
+    });
+
+    it('should have correct elapsed from specified start time after stopped retroactively', () => {
+      const provider = manualTimeProvider(timeStartPlus30);
+      const timer = new Timer(undefined, provider);
+      timer.start(timeStartPlus10);
+      timer.stop(timeStartPlus20);
+      expect(timer).to.have.elapsed([0, 10]);
+      timer.stop();
+      expect(timer).to.have.elapsed([0, 10]);
     });
 
     it('should have correct elapsed after restarting', () => {

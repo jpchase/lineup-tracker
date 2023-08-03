@@ -188,13 +188,13 @@ export class Timer {
     };
   }
 
-  start() {
+  start(startTime?: number) {
     if (this.isRunning) {
       // Already started
       return;
     }
     this.isRunning = true;
-    this.startTime = this.getCurrentTime();
+    this.startTime = startTime ?? this.getCurrentTime();
   }
 
   stop(retroactiveStopTime?: number) {

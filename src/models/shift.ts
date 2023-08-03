@@ -125,17 +125,17 @@ export class PlayerTimeTracker {
     this.currentTimer?.reset();
   }
 
-  startShift() {
+  startShift(startTime?: number) {
     if (this.isOn) {
       this.onTimer = this.onTimer || new Timer(undefined, this.timeProvider);
-      this.onTimer.start();
+      this.onTimer.start(startTime);
       if (!this.alreadyOn) {
         this.alreadyOn = true;
         this.shiftCount += 1;
       }
     } else {
       this.offTimer = this.offTimer || new Timer(undefined, this.timeProvider);
-      this.offTimer.start();
+      this.offTimer.start(startTime);
     }
   }
 
@@ -267,7 +267,7 @@ export class PlayerTimeTrackerMap {
     return this.trackers.values();
   }
 
-  startShiftTimers() {
+  startShiftTimers(startTime?: number) {
     if (!this.trackers?.length) {
       throw new Error('Map is empty');
     }
@@ -275,7 +275,7 @@ export class PlayerTimeTrackerMap {
     this.clockRunning = true;
     this.timeProvider.freeze();
     this.trackers.forEach((tracker) => {
-      tracker.startShift();
+      tracker.startShift(startTime);
     });
     this.timeProvider.unfreeze();
   }

@@ -10,12 +10,8 @@ import {
 } from '@app/models/shift.js';
 import { Assertion } from '@esm-bundle/chai';
 import { expect } from '@open-wc/testing';
-import {
-  addDurationAssertion,
-  buildDuration,
-  manualTimeProvider,
-  mockTimeProvider,
-} from '../helpers/test-clock-data.js';
+import { buildDuration, manualTimeProvider, mockTimeProvider } from '../helpers/test-clock-data.js';
+import { addShiftTrackingMatchers } from '../helpers/test-shift-data.js';
 
 declare global {
   export namespace Chai {
@@ -35,29 +31,8 @@ declare global {
   }
 }
 
-function addTimingMatchers() {
-  addDurationAssertion<PlayerTimeTracker>('shiftTime', 'tracker shiftTime', (tracker) =>
-    tracker ? tracker.shiftTime : null
-  );
-  addDurationAssertion<PlayerTimeTracker>('totalTime', 'tracker totalTime', (tracker) =>
-    tracker ? tracker.totalOnTime : null
-  );
-
-  Assertion.addMethod('shiftCount', function (this, expected: number) {
-    const tracker = this._obj as PlayerTimeTracker;
-    this.assert(
-      tracker?.shiftCount === expected,
-      'expected tracker shiftCount #{act} to be #{exp}',
-      'expected tracker shiftCount #{act} to not be #{exp}',
-      expected,
-      tracker?.shiftCount,
-      /*showDiff=*/ false
-    );
-  });
-}
-
 describe('PlayerTimeTracker', () => {
-  addTimingMatchers();
+  addShiftTrackingMatchers();
 
   it('should have correct total time after shift reset', () => {
     const expected = {
@@ -108,7 +83,9 @@ describe('PlayerTimeTrackerMap', () => {
   const timeStartPlus35 = new Date(2016, 0, 1, 14, 0, 35).getTime();
   const timeStartPlus1Minute55 = new Date(2016, 0, 1, 14, 1, 55).getTime();
 
-  addTimingMatchers();
+  before(() => {
+    addShiftTrackingMatchers();
+  });
 
   Assertion.addMethod('initialized', function (this) {
     const map = this._obj as PlayerTimeTrackerMap;
@@ -175,16 +152,6 @@ describe('PlayerTimeTrackerMap', () => {
       tracker && tracker.id === expected && !tracker.isOn && !tracker.alreadyOn,
       'expected #{this} with id = #{exp} to be off',
       'expected #{this} with id = #{exp} to not be off',
-      expected
-    );
-  });
-
-  Assertion.addMethod('running', function (this, expected: string) {
-    const tracker = this._obj as PlayerTimeTracker;
-    this.assert(
-      tracker && (tracker.isOn ? tracker.onTimer?.isRunning : tracker.offTimer?.isRunning),
-      'expected #{this} to be running',
-      'expected #{this} to not be running',
       expected
     );
   });
