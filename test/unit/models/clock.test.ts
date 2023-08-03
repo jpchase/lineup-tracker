@@ -159,9 +159,14 @@ describe('Duration', () => {
       { left: [1, 2], right: [3, 4], sum: [4, 6] },
       { left: [1, 59], right: [0, 1], sum: [2, 0] },
       { left: [12, 29], right: [10, 32], sum: [23, 1] },
+      { left: [0, 1], right: [0, -1], sum: [0, 0] },
+      { left: [4, 6], right: [-3, 4], sum: [1, 2] },
     ];
 
     function formatDuration(duration: Duration) {
+      if (duration.getTotalSeconds() < 0) {
+        return `-[${-duration.getMinutes()},${-duration.getSeconds()}]`;
+      }
       return `[${duration.getMinutes()},${duration.getSeconds()}]`;
     }
 
@@ -197,6 +202,33 @@ describe('Duration', () => {
       addTest(left, right, sum);
     });
   }); // add
+
+  describe('Existing data', () => {
+    it('should be initialized correctly for null data', () => {
+      const duration = new Duration(undefined);
+      expect(duration).to.deep.equal(Duration.zero());
+    });
+
+    it('should be initialized correctly for empty data', () => {
+      const duration = new Duration({});
+      expect(duration).to.deep.equal(Duration.zero());
+    });
+
+    it('should be initialized correctly from postive elapsed data', () => {
+      const duration = new Duration({ value: 184 });
+      expect(duration).to.deep.equal(buildDuration(3, 4));
+    });
+
+    it('should be initialized correctly from negative elapsed data', () => {
+      const duration = new Duration({ value: -184 });
+      expect(duration).to.deep.equal(buildDuration(-3, 4));
+    });
+
+    it('should be initialized correctly from negative elapsed seconds only', () => {
+      const duration = new Duration({ value: -34 });
+      expect(duration).to.deep.equal(buildDuration(0, -34));
+    });
+  }); // describe('Existing data')
 });
 
 describe('Timer', () => {

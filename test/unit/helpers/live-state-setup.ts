@@ -97,11 +97,16 @@ export function buildSetupTasks(game: LiveGame, lastCompletedStep: SetupSteps) {
   }
 }
 
-export function buildClock(timer?: TimerData, rest?: Partial<LiveClock>): LiveClock {
+export function buildClock(
+  timer?: TimerData,
+  rest?: Partial<LiveClock>,
+  stoppageTimer?: TimerData
+): LiveClock {
   return {
     ...CLOCK_INITIAL_STATE,
     ...rest,
     timer,
+    stoppageTimer,
   };
 }
 
