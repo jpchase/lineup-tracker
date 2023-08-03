@@ -2,7 +2,13 @@
 
 import { LiveGame, LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { PlayerTimeTrackerData, PlayerTimeTrackerMap } from '@app/models/shift.js';
+import {
+  PlayerTimeTracker,
+  PlayerTimeTrackerData,
+  PlayerTimeTrackerMap,
+} from '@app/models/shift.js';
+import { Assertion } from '@esm-bundle/chai';
+import { addDurationAssertion } from './test-clock-data.js';
 import * as testlive from './test-live-game-data.js';
 
 export function buildPlayerTrackers(players?: LivePlayer[]): PlayerTimeTrackerData[] {
@@ -50,4 +56,35 @@ export function buildPlayerTrackerMap(
   }
   const game = { id: gameId || 'thegameid', players } as LiveGame;
   return PlayerTimeTrackerMap.createFromGame(game);
+}
+
+export function addShiftTrackingMatchers() {
+  addDurationAssertion<PlayerTimeTracker>('shiftTime', 'tracker shiftTime', (tracker) =>
+    tracker ? tracker.shiftTime : null
+  );
+  addDurationAssertion<PlayerTimeTracker>('totalTime', 'tracker totalTime', (tracker) =>
+    tracker ? tracker.totalOnTime : null
+  );
+
+  Assertion.addMethod('shiftCount', function (this, expected: number) {
+    const tracker = this._obj as PlayerTimeTracker;
+    this.assert(
+      tracker?.shiftCount === expected,
+      'expected tracker shiftCount #{act} to be #{exp}',
+      'expected tracker shiftCount #{act} to not be #{exp}',
+      expected,
+      tracker?.shiftCount,
+      /*showDiff=*/ false
+    );
+  });
+
+  Assertion.addMethod('running', function (this, expected: string) {
+    const tracker = this._obj as PlayerTimeTracker;
+    this.assert(
+      tracker && (tracker.isOn ? tracker.onTimer?.isRunning : tracker.offTimer?.isRunning),
+      'expected #{this} to be running',
+      'expected #{this} to not be running',
+      expected
+    );
+  });
 }
