@@ -101,7 +101,7 @@
     "eslint": "^8.46.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-lit": "^1.8.0",
+    "eslint-plugin-lit": "^1.8.3",
     "firebase-admin": "^11.5.0",
     "firebase-tools": "^11.23.1",
     "html-webpack-plugin": "^5.5.0",
