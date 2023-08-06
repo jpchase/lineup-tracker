@@ -1,7 +1,7 @@
 /** @format */
 
 import { CurrentTimeProvider } from './clock.js';
-import { GameEvent, GameEventType, PeriodStartEvent, PeriodEndEvent, LiveGame } from './live.js';
+import { GameEvent, GameEventType, LiveGame } from './live.js';
 import { PlayerTimeTrackerMap } from './shift.js';
 
 export function createShiftTrackerFromEvents(
@@ -17,16 +17,13 @@ export function createShiftTrackerFromEvents(
 }
 
 function evolve(trackerMap: PlayerTimeTrackerMap, event: GameEvent) {
-  // TODO: Find a better way, instead of checking type *and* casting to strongly-typed event
   switch (event.type) {
     case GameEventType.PeriodStart: {
-      const startEvent = event as PeriodStartEvent;
-      trackerMap.startShiftTimers(startEvent.data.clock.startTime);
+      trackerMap.startShiftTimers(event.data.clock.startTime);
       break;
     }
     case GameEventType.PeriodEnd: {
-      const endEvent = event as PeriodEndEvent;
-      trackerMap.stopShiftTimers(endEvent.data.clock.endTime);
+      trackerMap.stopShiftTimers(event.data.clock.endTime);
       break;
     }
     case GameEventType.Setup:

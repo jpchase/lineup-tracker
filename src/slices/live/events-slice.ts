@@ -7,13 +7,13 @@ import {
   GameEvent,
   GameEventGroup,
   GameEventType,
-  GamePlayerEvent,
   PeriodEndEvent,
   PeriodStartEvent,
   PositionSwapEvent,
   SetupEvent,
   SubInEvent,
   SubOutEvent,
+  isGamePlayerEvent,
 } from '../../models/live.js';
 import { RootState } from '../../store.js';
 import { LiveGamePayload, extractIdFromSwapPlayerId } from './live-action-types.js';
@@ -227,8 +227,11 @@ function buildGameEvent<Event extends GameEvent, EventData = Event['data']>(
     data,
     timestamp,
   } as Event;
-  if (playerId) {
-    (event as unknown as GamePlayerEvent).playerId = playerId;
+  if (isGamePlayerEvent(event)) {
+    if (!playerId) {
+      throw new Error(`Event type ${type} must provide valid 'playerId'`);
+    }
+    event.playerId = playerId;
   }
   return event;
 }
