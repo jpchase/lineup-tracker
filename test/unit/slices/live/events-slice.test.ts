@@ -18,6 +18,8 @@ import { PlayerStatus } from '@app/models/player.js';
 import {
   EVENTS_INITIAL_STATE,
   EventState,
+  EventsMap,
+  eventSelected,
   eventsReducer as events,
 } from '@app/slices/live/events-slice.js';
 import { actions } from '@app/slices/live/live-slice.js';
@@ -29,8 +31,17 @@ import {
   selectPlayers,
 } from '../../helpers/live-state-setup.js';
 import { mockIdGenerator, mockIdGeneratorWithCallback } from '../../helpers/mock-id-generator.js';
-import { mockCurrentTime, mockTimeProvider } from '../../helpers/test-clock-data.js';
-import { buildGameSetupEvent, buildPeriodStartEvent } from '../../helpers/test-event-data.js';
+import {
+  incrementingCallbackForTimeProvider,
+  mockCurrentTime,
+  mockTimeProvider,
+  mockTimeProviderWithCallback,
+} from '../../helpers/test-clock-data.js';
+import {
+  buildGameEvents,
+  buildGameSetupEvent,
+  buildPeriodStartEvent,
+} from '../../helpers/test-event-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
@@ -846,4 +857,102 @@ describe('Events slice', () => {
       expect(newState).to.equal(currentState);
     });
   }); // describe('live/endPeriod')
+
+  describe('event selection', () => {
+    let currentState: EventState;
+    let game: LiveGame;
+    let gameEvents: EventCollection;
+
+    beforeEach(() => {
+      game = testlive.getLiveGameWithPlayers();
+      // Create a collection of representative events, which occur 10 seconds apart.
+      const timeProvider = mockTimeProviderWithCallback(
+        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
+      );
+      gameEvents = buildGameEvents(game, timeProvider);
+      const eventsMap: EventsMap = {
+        [gameEvents.id]: gameEvents.toJSON(),
+      };
+
+      currentState = {
+        ...EVENTS_INITIAL_STATE,
+        events: eventsMap,
+      };
+    });
+
+    it('should add first event that was selected', () => {
+      const selectedEventId = gameEvents.events[0].id!;
+      const newState = events(
+        currentState,
+        eventSelected(game.id, selectedEventId, /* selected= */ true)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [selectedEventId],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should do nothing if event is already selected', () => {
+      const selectedEventId = gameEvents.events[0].id!;
+      currentState.eventsSelectedIds = [selectedEventId];
+
+      const newState = events(
+        currentState,
+        eventSelected(game.id, selectedEventId, /* selected= */ true)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [selectedEventId],
+      });
+      expect(newState).to.equal(currentState);
+    });
+
+    it('should add second event that was selected', () => {
+      const selectedEventId = gameEvents.events[0].id!;
+      const alreadySelectedEventId = gameEvents.events[1].id!;
+      currentState.eventsSelectedIds = [alreadySelectedEventId];
+
+      const newState = events(
+        currentState,
+        eventSelected(game.id, selectedEventId, /* selected= */ true)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [alreadySelectedEventId, selectedEventId],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should remove only event that was de-selected', () => {
+      const deselectedEventId = gameEvents.events[1].id!;
+      currentState.eventsSelectedIds = [deselectedEventId];
+
+      const newState = events(
+        currentState,
+        eventSelected(game.id, deselectedEventId, /* selected= */ false)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should remove de-selected event leaving others still selected', () => {
+      const deselectedEventId = gameEvents.events[0].id!;
+      const stillSelectedEventId = gameEvents.events[1].id!;
+      currentState.eventsSelectedIds = [deselectedEventId, stillSelectedEventId];
+
+      const newState = events(
+        currentState,
+        eventSelected(game.id, deselectedEventId, /* selected= */ false)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [stillSelectedEventId],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+  }); // describe('live/gameSetupCompleted')
 }); // describe('Events slice')
