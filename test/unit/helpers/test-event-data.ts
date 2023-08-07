@@ -1,15 +1,21 @@
 /** @format */
 
+import { CurrentTimeProvider } from '@app/models/clock.js';
+import { EventCollection } from '@app/models/events.js';
 import {
+  GameEvent,
   GameEventGroup,
   GameEventType,
+  LiveGame,
   PeriodEndEvent,
   PeriodStartEvent,
   PositionSwapEvent,
   SetupEvent,
   SubInEvent,
   SubOutEvent,
+  getPlayer,
 } from '@app/models/live.js';
+import * as testlive from './test-live-game-data.js';
 import { SubData } from './test-live-game-data.js';
 
 export function buildGameSetupEvent(
@@ -97,4 +103,51 @@ export function buildSwapEvent(eventTime: number, swap: SubData): PositionSwapEv
       previousPosition: swap.initialPosition?.id!,
     },
   };
+}
+
+export function buildGameEvents(game: LiveGame, timeProvider: CurrentTimeProvider) {
+  const events = EventCollection.create(
+    {
+      id: game.id,
+    },
+    timeProvider
+  );
+  events.addEvent<SetupEvent>(buildGameSetupEvent(timeProvider.getCurrentTime()));
+  events.addEvent<PeriodStartEvent>(buildPeriodStartEvent(timeProvider.getCurrentTime()));
+
+  // First sub
+  const replacedPlayer1 = getPlayer(game, 'P4');
+  const sub1: testlive.SubData = {
+    nextId: 'P11',
+    replacedId: replacedPlayer1?.id,
+    finalPosition: { ...replacedPlayer1?.currentPosition! },
+  };
+  events.addEventGroup<GameEvent>(
+    buildSubEvents(timeProvider.getCurrentTime(), sub1).groupedEvents
+  );
+
+  // Second sub, with swap.
+  //  - Swap player moves to the position of the player being replaced.
+  //  - Sub player takes position left by swap player.
+  const replacedPlayer2 = getPlayer(game, 'P5');
+  const swapPlayer = getPlayer(game, 'P8');
+  const sub2: testlive.SubData = {
+    nextId: 'P12',
+    replacedId: replacedPlayer2?.id,
+    positionOverride: { ...swapPlayer?.currentPosition! },
+    finalPosition: { ...swapPlayer?.currentPosition! },
+  };
+  const swap: testlive.SubData = {
+    nextId: swapPlayer?.id!,
+    initialPosition: { ...swapPlayer?.currentPosition! },
+    finalPosition: { ...replacedPlayer2?.currentPosition! },
+  };
+
+  const sub2Time = timeProvider.getCurrentTime();
+  events.addEventGroup<GameEvent>(buildSubEvents(sub2Time, sub2).groupedEvents);
+  events.addEvent<PositionSwapEvent>(buildSwapEvent(sub2Time, swap));
+
+  events.addEvent<PeriodEndEvent>(buildPeriodEndEvent(timeProvider.getCurrentTime()));
+
+  return events;
 }

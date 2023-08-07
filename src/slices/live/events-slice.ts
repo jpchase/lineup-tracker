@@ -16,7 +16,11 @@ import {
   isGamePlayerEvent,
 } from '../../models/live.js';
 import { RootState } from '../../store.js';
-import { LiveGamePayload, extractIdFromSwapPlayerId } from './live-action-types.js';
+import {
+  EventSelectedPayload,
+  LiveGamePayload,
+  extractIdFromSwapPlayerId,
+} from './live-action-types.js';
 import { actions } from './live-slice.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
@@ -27,10 +31,12 @@ export interface EventsMap {
 
 export interface EventState {
   events?: EventsMap;
+  eventsSelectedIds?: string[];
 }
 
 export const EVENTS_INITIAL_STATE: EventState = {
   events: undefined,
+  eventsSelectedIds: undefined,
 };
 
 export const selectGameEvents = (state: RootState, gameId: string) => {
@@ -45,7 +51,45 @@ type EventOrGroup = GameEvent | GameEventGroup;
 const eventSlice = createSlice({
   name: 'events',
   initialState: EVENTS_INITIAL_STATE,
-  reducers: {},
+  reducers: {
+    eventSelected: {
+      reducer: (state: EventState, action: PayloadAction<EventSelectedPayload>) => {
+        const eventId = action.payload.eventId;
+
+        const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
+        const selectedEvent = gameEvents.events.find((event) => event.id === eventId);
+        if (!selectedEvent) {
+          return;
+        }
+
+        if (!state.eventsSelectedIds) {
+          state.eventsSelectedIds = [];
+        }
+
+        if (action.payload.selected) {
+          if (state.eventsSelectedIds.includes(eventId)) {
+            // Already selected
+            return;
+          }
+          state.eventsSelectedIds.push(eventId);
+        } else {
+          const index = state.eventsSelectedIds.indexOf(eventId);
+          if (index >= 0) {
+            state.eventsSelectedIds.splice(index, 1);
+          }
+        }
+      },
+      prepare: (gameId: string, eventId: string, selected: boolean) => {
+        return {
+          payload: {
+            gameId,
+            eventId,
+            selected: !!selected,
+          },
+        };
+      },
+    },
+  },
 
   extraReducers: (builder) => {
     builder
@@ -160,6 +204,7 @@ const eventSlice = createSlice({
 const { reducer } = eventSlice;
 
 export const eventsReducer = reducer;
+export const { eventSelected } = eventSlice.actions;
 
 type EventActionHandler<P extends LiveGamePayload> = (
   action: PayloadAction<P>

@@ -81,6 +81,12 @@ export interface StartersInvalidPayload extends LiveGamePayload {
   invalidStarters: string[];
 }
 
+// Event action payloads
+export interface EventSelectedPayload extends LiveGamePayload {
+  eventId: string;
+  selected: boolean;
+}
+
 export const prepareLiveGamePayload = (gameId: string) => {
   return {
     payload: {
