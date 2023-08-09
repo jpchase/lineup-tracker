@@ -112,6 +112,7 @@ snapshots["lineup-game-live tests Subs shows confirm sub UI when proposed sub ex
       </span>
       <select
         id="new-position-select"
+        title="Override target position for sub"
         value=""
       >
         <option value="">

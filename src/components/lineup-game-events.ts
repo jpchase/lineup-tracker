@@ -68,7 +68,7 @@ export class LineupGameEvents extends LitElement {
         }
 
         tr[selected] {
-          background-color: red;
+          background-color: var(--mdc-theme-primary);
         }
       </style>
       <table class="mdl-data-table mdl-js-data-table is-upgraded">
