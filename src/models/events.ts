@@ -24,7 +24,7 @@ export interface EventCollectionData {
 export class EventCollection {
   timeProvider: CurrentTimeProvider;
   id: string;
-  events: EventBase[];
+  private events: EventBase[];
 
   private constructor(data: EventCollectionData, timeProvider?: CurrentTimeProvider) {
     this.timeProvider = timeProvider || new CurrentTimeProvider();
@@ -59,6 +59,22 @@ export class EventCollection {
       this.events.push({ ...event });
     }
     return this;
+  }
+
+  get eventsForTesting() {
+    return this.events;
+  }
+
+  [Symbol.iterator]() {
+    return this.events.values();
+  }
+
+  get size(): number {
+    return this.events.length;
+  }
+
+  get(id: string) {
+    return this.events.find((event) => event.id === id);
   }
 
   populateEvent<E extends EventBase>(event: E) {

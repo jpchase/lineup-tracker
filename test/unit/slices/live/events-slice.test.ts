@@ -20,7 +20,7 @@ import {
   EventState,
   EventsMap,
   eventSelected,
-  eventsReducer as events,
+  eventsReducer,
 } from '@app/slices/live/events-slice.js';
 import { actions } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
@@ -117,7 +117,7 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(currentState, gameSetupCompleted(game.id, game));
+      const newState = eventsReducer(currentState, gameSetupCompleted(game.id, game));
 
       expect(newState).to.deep.include({
         events: { [expectedCollection.id]: expectedCollection.toJSON() },
@@ -127,7 +127,7 @@ describe('Events slice', () => {
 
     it('should do nothing if the game has no players', () => {
       const game = testlive.getLiveGame();
-      const newState = events(currentState, gameSetupCompleted(game.id, game));
+      const newState = eventsReducer(currentState, gameSetupCompleted(game.id, game));
 
       expect(newState).to.equal(currentState);
     });
@@ -164,7 +164,7 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
       );
@@ -191,7 +191,7 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 2, startTime)
       );
@@ -205,7 +205,7 @@ describe('Events slice', () => {
     it('should do nothing if game does not allow period to be started', () => {
       mockCurrentTime(startTime);
 
-      const newState = events(currentState, startPeriod(gameId, /*gameAllowsStart=*/ false));
+      const newState = eventsReducer(currentState, startPeriod(gameId, /*gameAllowsStart=*/ false));
 
       expect(newState.events, 'events should be empty').to.not.be.ok;
 
@@ -376,7 +376,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         applyPendingSubs(gameId, getPlayersByIds(game, getNextIds(subs)))
       );
@@ -415,7 +415,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         applyPendingSubs(gameId, getPlayersByIds(game, getSwapNextIds(swaps)))
       );
@@ -526,7 +526,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(currentState, applyPendingSubs(gameId, pendingSubPlayers));
+      const newState = eventsReducer(currentState, applyPendingSubs(gameId, pendingSubPlayers));
 
       expect(newState).to.deep.include({
         events: { [expectedCollection.id]: expectedCollection.toJSON() },
@@ -587,7 +587,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         applyPendingSubs(gameId, getPlayersByIds(game, nowPlayingIds))
       );
@@ -636,7 +636,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         applyPendingSubs(gameId, getPlayersByIds(game, swappedNextIds))
       );
@@ -752,7 +752,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(currentState, applyPendingSubs(gameId, pendingSubPlayers));
+      const newState = eventsReducer(currentState, applyPendingSubs(gameId, pendingSubPlayers));
 
       expect(newState).to.deep.include({
         events: { [expectedCollection.id]: expectedCollection.toJSON() },
@@ -801,7 +801,7 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus20Minutes)
       );
@@ -836,7 +836,7 @@ describe('Events slice', () => {
       });
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, timeStartPlus20Minutes)
       );
@@ -850,7 +850,7 @@ describe('Events slice', () => {
     it('should do nothing if game does not allow period to be ended', () => {
       mockCurrentTime(timeStartPlus20Minutes);
 
-      const newState = events(currentState, endPeriod(gameId, /*gameAllowsEnd=*/ false));
+      const newState = eventsReducer(currentState, endPeriod(gameId, /*gameAllowsEnd=*/ false));
 
       expect(newState.events, 'events should be empty').to.not.be.ok;
 
@@ -880,9 +880,18 @@ describe('Events slice', () => {
       };
     });
 
+    function getEventIds(events: EventCollection): string[] {
+      const ids = [];
+
+      for (const event of events) {
+        ids.push(event.id!);
+      }
+      return ids;
+    }
+
     it('should add first event that was selected', () => {
-      const selectedEventId = gameEvents.events[0].id!;
-      const newState = events(
+      const selectedEventId = getEventIds(gameEvents)[0];
+      const newState = eventsReducer(
         currentState,
         eventSelected(game.id, selectedEventId, /* selected= */ true)
       );
@@ -894,10 +903,10 @@ describe('Events slice', () => {
     });
 
     it('should do nothing if event is already selected', () => {
-      const selectedEventId = gameEvents.events[0].id!;
+      const selectedEventId = getEventIds(gameEvents)[0];
       currentState.eventsSelectedIds = [selectedEventId];
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         eventSelected(game.id, selectedEventId, /* selected= */ true)
       );
@@ -909,11 +918,12 @@ describe('Events slice', () => {
     });
 
     it('should add second event that was selected', () => {
-      const selectedEventId = gameEvents.events[0].id!;
-      const alreadySelectedEventId = gameEvents.events[1].id!;
+      const ids = getEventIds(gameEvents);
+      const selectedEventId = ids[0];
+      const alreadySelectedEventId = ids[1];
       currentState.eventsSelectedIds = [alreadySelectedEventId];
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         eventSelected(game.id, selectedEventId, /* selected= */ true)
       );
@@ -925,10 +935,10 @@ describe('Events slice', () => {
     });
 
     it('should remove only event that was de-selected', () => {
-      const deselectedEventId = gameEvents.events[1].id!;
+      const deselectedEventId = getEventIds(gameEvents)[0];
       currentState.eventsSelectedIds = [deselectedEventId];
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         eventSelected(game.id, deselectedEventId, /* selected= */ false)
       );
@@ -940,11 +950,12 @@ describe('Events slice', () => {
     });
 
     it('should remove de-selected event leaving others still selected', () => {
-      const deselectedEventId = gameEvents.events[0].id!;
-      const stillSelectedEventId = gameEvents.events[1].id!;
+      const ids = getEventIds(gameEvents);
+      const deselectedEventId = ids[0];
+      const stillSelectedEventId = ids[1];
       currentState.eventsSelectedIds = [deselectedEventId, stillSelectedEventId];
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         eventSelected(game.id, deselectedEventId, /* selected= */ false)
       );

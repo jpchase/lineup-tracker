@@ -57,7 +57,7 @@ const eventSlice = createSlice({
         const eventId = action.payload.eventId;
 
         const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
-        const selectedEvent = gameEvents.events.find((event) => event.id === eventId);
+        const selectedEvent = gameEvents.get(eventId);
         if (!selectedEvent) {
           return;
         }

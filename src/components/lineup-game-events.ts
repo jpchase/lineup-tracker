@@ -14,7 +14,6 @@ import { EventBase, EventCollection, EventCollectionData } from '../models/event
 import {
   GameEvent,
   GameEventType,
-  LivePlayer,
   PeriodEndEvent,
   PeriodStartEvent,
   PositionSwapEvent,
@@ -170,9 +169,6 @@ export class LineupGameEvents extends LitElement {
   @property({ type: Object })
   public eventData?: EventCollectionData;
 
-  @property({ type: Array })
-  public players: LivePlayer[] = [];
-
   override willUpdate(changedProperties: PropertyValues<this>) {
     if (!changedProperties.has('eventData')) {
       return;
@@ -185,7 +181,7 @@ export class LineupGameEvents extends LitElement {
     if (this.eventData) {
       this.events = EventCollection.create(this.eventData);
       this.periods = [];
-      for (const event of this.events.events) {
+      for (const event of this.events) {
         if (event.type !== GameEventType.PeriodStart) {
           continue;
         }
@@ -204,27 +200,23 @@ export class LineupGameEvents extends LitElement {
   }
 
   private getEventItems(): EventItem[] {
-    if (!this.events?.events.length || !this.players.length) {
+    if (!this.events?.size) {
       return [];
     }
 
-    const events = this.events!;
-
+    const items: EventItem[] = [];
+    for (const event of this.events) {
+      // Ignore sub out events, as the sub in event will show all the detail.
+      if (event.type === GameEventType.SubOut) {
+        continue;
+      }
+      items.push({
+        id: event.id!,
+        event,
+      });
+    }
     // Return events with most recent first (reverse chronological order).
-    return (
-      events.events
-        // Ignore sub out events, as the sub in event will show all the detail.
-        .filter((event) => event.type !== GameEventType.SubOut)
-        .map((event) => {
-          return {
-            id: event.id!,
-            type: event.type,
-            // name: this.getPlayer(this.players, tracker.id)?.name!,
-            event,
-          };
-        })
-        .sort((a, b) => b.event.timestamp! - a.event.timestamp!)
-    );
+    return items.sort((a, b) => b.event.timestamp! - a.event.timestamp!);
   }
 
   private lookupPlayer(playerId: string) {
