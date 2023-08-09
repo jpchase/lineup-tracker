@@ -3,7 +3,7 @@ export const snapshots = {};
 
 snapshots["lineup-game-events tests rendering shows list of events with common details"] = 
 `<table class="is-upgraded mdl-data-table mdl-js-data-table">
-  <thead>
+  <thead id="events-header">
     <tr>
       <th class="mdl-data-table__cell--non-numeric">
         Time
@@ -26,7 +26,7 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
           [00:30]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Period completed
       </td>
       <td class="details">
@@ -42,7 +42,7 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
           [00:20]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Substitution
       </td>
       <td class="details">
@@ -58,7 +58,7 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
           [00:20]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Position changed
       </td>
       <td class="details">
@@ -75,7 +75,7 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
           [00:10]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Substitution
       </td>
       <td class="details">
@@ -91,7 +91,7 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
           [00:00]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Period started
       </td>
       <td class="details">
@@ -104,7 +104,7 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
           2:00:00 PM
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Setup completed
       </td>
       <td class="details">
@@ -118,16 +118,24 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
 
 snapshots["lineup-game-events tests rendering shows list with selected events highlighted"] = 
 `<table class="is-upgraded mdl-data-table mdl-js-data-table">
-  <thead>
+  <thead id="events-header">
     <tr>
-      <th class="mdl-data-table__cell--non-numeric">
-        Time
-      </th>
-      <th class="mdl-data-table__cell--non-numeric">
-        Type
-      </th>
-      <th class="mdl-data-table__cell--non-numeric">
-        Details
+      <th colspan="3">
+        <mwc-icon-button
+          icon="close"
+          id="cancel-selection-button"
+          label="Cancel selection"
+        >
+        </mwc-icon-button>
+        <span id="selection-count">
+          3 events
+        </span>
+        <mwc-icon-button
+          icon="edit"
+          id="edit-selection-button"
+          label="Edit selected events"
+        >
+        </mwc-icon-button>
       </th>
     </tr>
   </thead>
@@ -141,7 +149,7 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
           [00:30]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Period completed
       </td>
       <td class="details">
@@ -160,7 +168,7 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
           [00:20]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Substitution
       </td>
       <td class="details">
@@ -176,7 +184,7 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
           [00:20]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Position changed
       </td>
       <td class="details">
@@ -196,7 +204,7 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
           [00:10]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Substitution
       </td>
       <td class="details">
@@ -215,7 +223,7 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
           [00:00]
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Period started
       </td>
       <td class="details">
@@ -228,7 +236,7 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
           2:00:00 PM
         </span>
       </td>
-      <td class="mdl-data-table__cell--non-numeric playerName">
+      <td class="eventType mdl-data-table__cell--non-numeric">
         Setup completed
       </td>
       <td class="details">

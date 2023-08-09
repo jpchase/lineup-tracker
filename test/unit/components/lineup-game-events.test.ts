@@ -14,6 +14,7 @@ import {
   PeriodStartEvent,
   getPlayer,
 } from '@app/models/live.js';
+import { IconButton } from '@material/mwc-icon-button';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
@@ -63,6 +64,30 @@ describe('lineup-game-events tests', () => {
   function getEventItems() {
     const items = el.shadowRoot!.querySelectorAll<HTMLTableRowElement>('#events-list tr');
     return items;
+  }
+
+  function getEventItemHeader() {
+    const headerElement = el.shadowRoot!.querySelector<HTMLTableRowElement>('#events-header tr');
+    expect(headerElement, 'events header').to.exist;
+    return headerElement!;
+  }
+
+  function getSelectionCancelButton(headerElement: HTMLElement) {
+    const button = headerElement.querySelector('#cancel-selection-button');
+    expect(button, 'selection cancel button').to.exist;
+    return button as IconButton;
+  }
+
+  function getSelectionCountElement(headerElement: HTMLElement) {
+    const element = headerElement.querySelector('#selection-count');
+    expect(element, 'selection count element').to.exist;
+    return element as HTMLElement;
+  }
+
+  function getSelectionEditButton(headerElement: HTMLElement) {
+    const button = headerElement.querySelector('#edit-selection-button');
+    expect(button, 'selection edit button').to.exist;
+    return button as IconButton;
   }
 
   function expectEventAbsoluteTime(timeElement: HTMLElement, expectedTime: number) {
@@ -450,19 +475,43 @@ describe('lineup-game-events tests', () => {
       expect(alreadySelectedItem, 'should still be selected').to.have.attribute('selected');
     });
 
-    it.skip('shows edit button when event selected', async () => {
-      expect.fail('not implemented');
+    it('shows selection toolbar when single event selected', async () => {
+      // Make one item selected.
+      const items = getEventItems();
+      el.eventsSelectedIds = [items[0].dataset.eventId!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+      expect(headerElement.cells, 'header should have a single cell').to.have.length(1);
+
+      const cancelButton = getSelectionCancelButton(headerElement.cells[0]);
+      expect(cancelButton.disabled, 'cancel button should exist and be enabled').to.be.false;
+
+      const countElement = getSelectionCountElement(headerElement.cells[0]);
+      expect(countElement.textContent?.trim()).to.equal('1 event');
+
+      const editButton = getSelectionEditButton(headerElement.cells[0]);
+      expect(editButton.disabled, 'edit button should exist and be enabled').to.be.false;
     });
 
-    it.skip('edit button hidden when multiple events selected', async () => {
-      expect.fail('not implemented');
+    it('shows selection toolbar when multiple events selected', async () => {
+      // Make multiple items selected.
+      const items = getEventItems();
+      const item1 = items[0];
+      const item2 = items[1];
+      el.eventsSelectedIds = [item1.dataset.eventId!, item2.dataset.eventId!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+
+      const countElement = getSelectionCountElement(headerElement.cells[0]);
+      expect(countElement.textContent?.trim()).to.equal('2 events');
+
+      const editButton = getSelectionEditButton(headerElement.cells[0]);
+      expect(editButton.disabled, 'edit button should exist and be enabled').to.be.false;
     });
 
     it.skip('shows dialog when edit button clicked', async () => {
-      expect.fail('not implemented');
-    });
-
-    it.skip('shows bulk edit button when multiple events selected', async () => {
       expect.fail('not implemented');
     });
 

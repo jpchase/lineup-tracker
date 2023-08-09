@@ -56,6 +56,7 @@ export class LineupGameEvents extends LitElement {
   override render() {
     const items = this.getEventItems();
     const timeFormatter = new TimeFormatter();
+    const selectionCount = this.eventsSelectedIds.length;
 
     return html` ${SharedStyles}
       <style>
@@ -72,12 +73,8 @@ export class LineupGameEvents extends LitElement {
         }
       </style>
       <table class="mdl-data-table mdl-js-data-table is-upgraded">
-        <thead>
-          <tr>
-            <th class="mdl-data-table__cell--non-numeric">Time</th>
-            <th class="mdl-data-table__cell--non-numeric">Type</th>
-            <th class="mdl-data-table__cell--non-numeric">Details</th>
-          </tr>
+        <thead id="events-header">
+          ${this.renderListHeader(selectionCount)}
         </thead>
         <tbody id="events-list">
           ${repeat(
@@ -92,7 +89,7 @@ export class LineupGameEvents extends LitElement {
                 <td class="mdl-data-table__cell--non-numeric">
                   ${this.renderEventTime(item.event as GameEvent, timeFormatter)}
                 </td>
-                <td class="playerName mdl-data-table__cell--non-numeric">
+                <td class="eventType mdl-data-table__cell--non-numeric">
                   ${getEventTypeText(item.event.type as GameEventType)}
                 </td>
                 <td class="details">${this.renderEventDetails(item.event as GameEvent)}</td>
@@ -101,6 +98,36 @@ export class LineupGameEvents extends LitElement {
           )}
         </tbody>
       </table>`;
+  }
+
+  private renderListHeader(selectionCount: number) {
+    if (selectionCount > 0) {
+      // Render the event selection toolbar
+      const selectedText = selectionCount === 1 ? '1 event' : `${selectionCount} events`;
+      return html`<tr>
+        <th class="" colspan="3">
+          <mwc-icon-button
+            id="cancel-selection-button"
+            icon="close"
+            label="Cancel selection"
+            @click="${this.cancelSelection}"
+          ></mwc-icon-button>
+          <span id="selection-count">${selectedText}</span>
+          <mwc-icon-button
+            id="edit-selection-button"
+            icon="edit"
+            label="Edit selected events"
+            @click="${this.editSelection}"
+          ></mwc-icon-button>
+        </th>
+      </tr>`;
+    }
+
+    return html`<tr>
+      <th class="mdl-data-table__cell--non-numeric">Time</th>
+      <th class="mdl-data-table__cell--non-numeric">Type</th>
+      <th class="mdl-data-table__cell--non-numeric">Details</th>
+    </tr>`;
   }
 
   private renderEventTime(event: GameEvent, formatter: TimeFormatter) {
@@ -244,6 +271,16 @@ export class LineupGameEvents extends LitElement {
     console.log(`Row clicked for event: ${eventId}, ${item.tagName}`);
     const isSelected = item.hasAttribute('selected');
     this.dispatchEvent(new EventSelectedEvent({ eventId, selected: !isSelected }));
+  }
+
+  private cancelSelection() {
+    // eslint-disable-next-line no-console
+    console.log(`Cancel selection`);
+  }
+
+  private editSelection() {
+    // eslint-disable-next-line no-console
+    console.log(`Edit selection`);
   }
 }
 
