@@ -3,7 +3,7 @@
 import { liveSlice } from './live-slice.js';
 
 export { getLiveSliceConfigurator } from './composed-reducer.js';
-export { selectGameEvents } from './events-slice.js';
+export { eventSelected, selectEventsSelected, selectGameEvents } from './events-slice.js';
 export {
   endPeriodCreator,
   markPeriodOverdueCreator,

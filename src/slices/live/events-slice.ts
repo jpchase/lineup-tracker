@@ -46,6 +46,10 @@ export const selectGameEvents = (state: RootState, gameId: string) => {
   return getGameEventData(state.live, gameId);
 };
 
+export const selectEventsSelected = (state: RootState) => {
+  return state.live?.eventsSelectedIds?.slice();
+};
+
 type EventOrGroup = GameEvent | GameEventGroup;
 
 const eventSlice = createSlice({

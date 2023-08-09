@@ -18,7 +18,6 @@ import { PlayerStatus } from '@app/models/player.js';
 import {
   EVENTS_INITIAL_STATE,
   EventState,
-  EventsMap,
   eventSelected,
   eventsReducer,
 } from '@app/slices/live/events-slice.js';
@@ -27,6 +26,7 @@ import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
   buildClock,
+  buildEventState,
   buildLiveStateWithCurrentGame,
   selectPlayers,
 } from '../../helpers/live-state-setup.js';
@@ -870,14 +870,7 @@ describe('Events slice', () => {
         incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
       );
       gameEvents = buildGameEvents(game, timeProvider);
-      const eventsMap: EventsMap = {
-        [gameEvents.id]: gameEvents.toJSON(),
-      };
-
-      currentState = {
-        ...EVENTS_INITIAL_STATE,
-        events: eventsMap,
-      };
+      currentState = buildEventState(gameEvents);
     });
 
     function getEventIds(events: EventCollection): string[] {

@@ -7,10 +7,12 @@ import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { EventCollection } from '@app/models/events.js';
 import { FormationType } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
+import { eventSelected } from '@app/slices/live/events-slice.js';
 import { endPeriodCreator, selectLiveGameById } from '@app/slices/live/index.js';
 import { actions as liveActions } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
@@ -28,11 +30,13 @@ import {
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import {
   buildClock,
+  buildEventState,
   buildLiveStateWithCurrentGame,
   buildShiftWithTrackersFromGame,
 } from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRunningTimer } from '../helpers/test-clock-data.js';
+import { buildRunningTimer, manualTimeProvider } from '../helpers/test-clock-data.js';
+import { buildGameEvents } from '../helpers/test-event-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
 
@@ -213,6 +217,7 @@ describe('lineup-game-live tests', () => {
     expect(outPlayers.hidden, 'Section for out should be shown').to.be.false;
 
     await expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).to.be.accessible();
   });
 
   describe('Subs', () => {
@@ -391,6 +396,11 @@ describe('lineup-game-live tests', () => {
       expect(confirmSection, 'Missing confirm sub div').to.be.ok;
 
       await expect(confirmSection).dom.to.equalSnapshot();
+      await expect(confirmSection).to.be.accessible({
+        // Disable label-title-only until UI revamped to use MWC components, instead of bare <select>.
+        // TODO: Remove this ignored rule after verifying accessibility with new UI
+        ignoredRules: ['label-title-only'],
+      });
     });
 
     it('dispatches confirm sub action when confirmed', async () => {
@@ -498,6 +508,7 @@ describe('lineup-game-live tests', () => {
       expect(confirmSection, 'Missing confirm swap element').to.be.ok;
 
       await expect(confirmSection).dom.to.equalSnapshot();
+      await expect(confirmSection).to.be.accessible();
     });
 
     it('dispatches confirm swap action when confirmed', async () => {
@@ -580,6 +591,11 @@ describe('lineup-game-live tests', () => {
       ).to.contain(expectedInvalidPositions);
 
       await expect(errorElement).dom.to.equalSnapshot();
+      await expect(errorElement).to.be.accessible({
+        // Disable color-contrast as colors depend on global styles, which are
+        // not available in standalone component.
+        ignoredRules: ['color-contrast'],
+      });
     });
 
     it('dispatches apply pending action for all subs when none are selected', async () => {
@@ -992,7 +1008,75 @@ describe('lineup-game-live tests', () => {
     });
   }); // describe('Complete Game')
 
-  it('a11y', async () => {
-    await expect(el).to.be.accessible();
-  });
+  describe('Events', () => {
+    const eventTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    let liveGame: LiveGame;
+    let gameEvents: EventCollection;
+
+    beforeEach(async () => {
+      const { game, live } = getGameDetail();
+      gameEvents = buildGameEvents(live, manualTimeProvider(eventTime));
+
+      const gameState = buildGameStateWithCurrentGame(game);
+      const liveState = buildLiveStateWithCurrentGame(live, buildEventState(gameEvents));
+
+      await setupElement(buildRootState(gameState, liveState), live.id);
+      await el.updateComplete;
+      liveGame = selectLiveGameById(getStore().getState(), live.id)!;
+    });
+
+    function getEventsElement() {
+      const element = el.shadowRoot!.querySelector('lineup-game-events');
+      expect(element, 'game events element should be shown').to.be.ok;
+      return element!;
+    }
+
+    function getEventItems(eventsElement: Element) {
+      const items =
+        eventsElement.shadowRoot!.querySelectorAll<HTMLTableRowElement>('#events-list tr');
+      expect(items.length, 'event items rendered').to.be.at.least(0);
+      return items;
+    }
+
+    it('dispatches event selected action when event item selected', async () => {
+      const eventToSelect = gameEvents.eventsForTesting[0];
+
+      const eventsElement = getEventsElement();
+      const eventItems = getEventItems(eventsElement);
+
+      const eventItem = Array.from(eventItems).find(
+        (item) => item.dataset.eventId === eventToSelect.id
+      );
+      expect(eventItem, `rendered item for event ${eventToSelect.id}`).to.be.ok;
+
+      // Simulates selection of an event item.
+      eventItem!.click();
+
+      // Verifies that the event selected action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        eventSelected(liveGame.id, eventToSelect.id!, /* selected= */ true)
+      );
+    });
+
+    it('marks event item selected when already selected', async () => {
+      const eventToSelect = gameEvents.eventsForTesting[0];
+
+      const store = getStore();
+      store.dispatch(eventSelected(liveGame.id, eventToSelect.id!, /* selected= */ true));
+      await el.updateComplete;
+
+      const eventsElement = getEventsElement();
+      const eventItems = getEventItems(eventsElement);
+
+      const eventItem = Array.from(eventItems).find(
+        (item) => item.dataset.eventId === eventToSelect.id
+      );
+      expect(eventItem, `rendered item for event ${eventToSelect.id}`).to.be.ok;
+
+      expect(eventItem, 'already selected item').to.have.attribute('selected');
+    });
+  }); // describe('Events')
 });
