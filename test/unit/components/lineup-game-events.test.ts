@@ -11,7 +11,6 @@ import {
   GameEventGroup,
   GameEventType,
   LiveGame,
-  LivePlayer,
   PeriodStartEvent,
   getPlayer,
 } from '@app/models/live.js';
@@ -36,7 +35,6 @@ import * as testlive from '../helpers/test-live-game-data.js';
 describe('lineup-game-events tests', () => {
   let el: LineupGameEvents;
   let game: LiveGame;
-  let players: LivePlayer[];
   let fakeClock: sinon.SinonFakeTimers;
   let mockPlayerResolver: PlayerResolver;
   const timeFormatter = new TimeFormatter();
@@ -85,14 +83,12 @@ describe('lineup-game-events tests', () => {
 
   it('renders list of events', async () => {
     game = testlive.getLiveGameWithPlayers();
-    players = game.players!;
     // Create a collection of representative events, which occur 10 seconds apart.
     const timeProvider = mockTimeProviderWithCallback(
       incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
     );
     const events = buildGameEvents(game, timeProvider);
 
-    el.players = players;
     el.eventData = events.toJSON();
     await el.updateComplete;
 
@@ -134,7 +130,6 @@ describe('lineup-game-events tests', () => {
 
     beforeEach(() => {
       game = testlive.getLiveGameWithPlayers();
-      players = game.players!;
 
       const timeProvider = mockTimeProvider(startTime);
       events = EventCollection.create(
@@ -158,7 +153,6 @@ describe('lineup-game-events tests', () => {
         );
       }
 
-      el.players = players;
       el.eventData = events.toJSON();
       await el.updateComplete;
 
@@ -178,7 +172,6 @@ describe('lineup-game-events tests', () => {
         );
       }
 
-      el.players = players;
       el.eventData = events.toJSON();
       await el.updateComplete;
 
