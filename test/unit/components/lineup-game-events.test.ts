@@ -1,7 +1,7 @@
 /** @format */
 
 import '@app/components/lineup-game-events.js';
-import { LineupGameEvents } from '@app/components/lineup-game-events.js';
+import { EventSelectedEvent, LineupGameEvents } from '@app/components/lineup-game-events.js';
 import { PlayerResolver } from '@app/components/player-resolver.js';
 import { Duration, TimeFormatter } from '@app/models/clock';
 import { EventCollection } from '@app/models/events.js';
@@ -14,7 +14,7 @@ import {
   PeriodStartEvent,
   getPlayer,
 } from '@app/models/live.js';
-import { expect, fixture, html } from '@open-wc/testing';
+import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
 import {
@@ -81,49 +81,92 @@ describe('lineup-game-events tests', () => {
     );
   }
 
-  it('renders list of events', async () => {
-    game = testlive.getLiveGameWithPlayers();
-    // Create a collection of representative events, which occur 10 seconds apart.
-    const timeProvider = mockTimeProviderWithCallback(
-      incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
-    );
-    const events = buildGameEvents(game, timeProvider);
+  describe('rendering', () => {
+    let events: EventCollection;
 
-    el.eventData = events.toJSON();
-    await el.updateComplete;
+    beforeEach(() => {
+      game = testlive.getLiveGameWithPlayers();
 
-    // Sort in descending date order, and remove events that are not displayed.
-    const sortedEvents = events
-      .events!.sort((a, b) => b.timestamp! - a.timestamp!)
-      .filter((event) => event.type !== GameEventType.SubOut);
+      // Create a collection of representative events, which occur 10 seconds apart.
+      const timeProvider = mockTimeProviderWithCallback(
+        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
+      );
+      events = buildGameEvents(game, timeProvider);
+    });
 
-    const items = getEventItems();
-    expect(items.length).to.equal(sortedEvents.length, 'Rendered event count');
+    it('shows list of events with common details', async () => {
+      el.eventData = events.toJSON();
+      await el.updateComplete;
 
-    let index = 0;
-    for (const event of sortedEvents) {
-      const item = items[index]!;
-      index += 1;
+      // Sort in descending date order, and remove events that are not displayed.
+      const sortedEvents = events.eventsForTesting
+        .filter((event) => event.type !== GameEventType.SubOut)
+        .sort((a, b) => b.timestamp! - a.timestamp!);
 
-      expect(item.dataset.eventId).to.equal(event.id, 'Item id should match player id');
+      const items = getEventItems();
+      expect(items.length).to.equal(sortedEvents.length, 'Rendered event count');
 
-      const timeElement = item.cells[0];
-      expect(timeElement, 'Missing event time element').to.exist;
-      expectEventAbsoluteTime(timeElement, event.timestamp!);
+      let index = 0;
+      for (const event of sortedEvents) {
+        const item = items[index]!;
+        index += 1;
 
-      const typeElement = item.cells[1];
-      expect(typeElement, 'Missing type element').to.exist;
-      // Only check that the type is shown, as the text varies by event type.
-      expect(typeElement!.textContent, 'Event type').not.to.be.empty;
+        expect(item.dataset.eventId).to.equal(event.id, 'Item id should match player id');
 
-      const detailsElement = item.cells[2];
-      expect(detailsElement, 'Missing details element').to.exist;
-      // Only checks that details are provided, as they vary based on event type.
-      expect(detailsElement!.textContent, 'Details').not.to.be.empty;
-    }
-    await expect(el).shadowDom.to.equalSnapshot();
-    await expect(el).to.be.accessible();
-  });
+        const timeElement = item.cells[0];
+        expect(timeElement, 'Missing event time element').to.exist;
+        expectEventAbsoluteTime(timeElement, event.timestamp!);
+
+        const typeElement = item.cells[1];
+        expect(typeElement, 'Missing type element').to.exist;
+        // Only check that the type is shown, as the text varies by event type.
+        expect(typeElement!.textContent, 'Event type').not.to.be.empty;
+
+        const detailsElement = item.cells[2];
+        expect(detailsElement, 'Missing details element').to.exist;
+        // Only checks that details are provided, as they vary based on event type.
+        expect(detailsElement!.textContent, 'Details').not.to.be.empty;
+      }
+      await expect(el).shadowDom.to.equalSnapshot();
+      await expect(el).to.be.accessible();
+    });
+
+    it('shows list with selected events highlighted', async () => {
+      // Randomly select 3 events.
+      const selectedIds = [];
+      let index = 0;
+      for (const event of events) {
+        switch (index) {
+          case 1:
+          case 2:
+          case 4:
+            selectedIds.push(event.id!);
+            break;
+          default:
+          // do nothing
+        }
+        index += 1;
+      }
+
+      el.eventsSelectedIds = selectedIds;
+      el.eventData = events.toJSON();
+      await el.updateComplete;
+
+      const items = getEventItems();
+      for (const item of Array.from(items)) {
+        const eventId = item.dataset.eventId!;
+        const expectSelected = selectedIds.includes(eventId);
+
+        if (expectSelected) {
+          expect(item, `event ${eventId}`).to.have.attribute('selected');
+        } else {
+          expect(item, `event ${eventId}`).to.not.have.attribute('selected');
+        }
+      }
+      await expect(el).shadowDom.to.equalSnapshot();
+      await expect(el).to.be.accessible();
+    });
+  }); // describe('rendering')
 
   describe('event types', () => {
     let events: EventCollection;
@@ -311,6 +354,122 @@ describe('lineup-game-events tests', () => {
       expect(detailsElement.textContent?.replace(/\s{2,}/g, ' ')).to.equal(expectedDetailText);
     });
   }); // describe('event types')
+
+  describe('event editing', () => {
+    let events: EventCollection;
+
+    beforeEach(async () => {
+      game = testlive.getLiveGameWithPlayers();
+
+      const timeProvider = mockTimeProvider(startTime);
+
+      events = buildGameEvents(game, timeProvider);
+
+      el.eventData = events.toJSON();
+      await el.updateComplete;
+    });
+
+    it('fires selected event when list item is clicked', async () => {
+      const items = getEventItems();
+      const item = items[0];
+      const eventId = item.dataset.eventId!;
+
+      // Trigger the selection.
+      setTimeout(() => item.click());
+
+      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+
+      expect(detail.eventId).to.equal(eventId);
+      expect(detail.selected, 'Event item should now be selected').to.be.true;
+    });
+
+    it('fires selected event when list item is clicked with other items already selected', async () => {
+      const items = getEventItems();
+      const item = items[0];
+      const eventId = item.dataset.eventId!;
+
+      // Make another item already selected.
+      const alreadySelectedItem = items[1];
+      el.eventsSelectedIds = [alreadySelectedItem.dataset.eventId!];
+      await el.updateComplete;
+
+      expect(alreadySelectedItem, 'already selected item').to.have.attribute('selected');
+
+      // Trigger the selection.
+      setTimeout(() => item.click());
+
+      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+
+      expect(detail.eventId).to.equal(eventId);
+      expect(detail.selected, 'Event item should now be selected').to.be.true;
+
+      expect(alreadySelectedItem, 'should still be selected').to.have.attribute('selected');
+    });
+
+    it('fires de-selected event when selected list item is clicked', async () => {
+      const items = getEventItems();
+      const item = items[0];
+      const eventId = item.dataset.eventId!;
+
+      // Make the item selected.
+      el.eventsSelectedIds = [eventId];
+      await el.updateComplete;
+
+      expect(item, 'event item').to.have.attribute('selected');
+
+      // Trigger the selection.
+      setTimeout(() => item.click());
+
+      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+
+      expect(detail.eventId).to.equal(eventId);
+      expect(detail.selected, 'Event item should no longer be selected').to.be.false;
+    });
+
+    it('fires de-selected event when selected list item is clicked leaving other items selected', async () => {
+      const items = getEventItems();
+      const item = items[0];
+      const eventId = item.dataset.eventId!;
+
+      // Make the item and another item selected.
+      const alreadySelectedItem = items[1];
+      el.eventsSelectedIds = [eventId, alreadySelectedItem.dataset.eventId!];
+      await el.updateComplete;
+
+      expect(item, 'event item').to.have.attribute('selected');
+      expect(alreadySelectedItem, 'already selected item').to.have.attribute('selected');
+
+      // Trigger the selection.
+      setTimeout(() => item.click());
+
+      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+
+      expect(detail.eventId).to.equal(eventId);
+      expect(detail.selected, 'Event item should no longer be selected').to.be.false;
+
+      expect(alreadySelectedItem, 'should still be selected').to.have.attribute('selected');
+    });
+
+    it.skip('shows edit button when event selected', async () => {
+      expect.fail('not implemented');
+    });
+
+    it.skip('edit button hidden when multiple events selected', async () => {
+      expect.fail('not implemented');
+    });
+
+    it.skip('shows dialog when edit button clicked', async () => {
+      expect.fail('not implemented');
+    });
+
+    it.skip('shows bulk edit button when multiple events selected', async () => {
+      expect.fail('not implemented');
+    });
+
+    it.skip('shows dialog with multiple events when bulk edit button clicked', async () => {
+      expect.fail('not implemented');
+    });
+  }); // describe('event editing')
 
   it.skip('shows only the most recent events', async () => {
     expect.fail('not implemented');

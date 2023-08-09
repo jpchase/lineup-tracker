@@ -24,6 +24,7 @@ import { SharedStyles } from './shared-styles.js';
 
 interface EventItem {
   id: string;
+  selected: boolean;
   event: EventBase;
 }
 
@@ -65,6 +66,10 @@ export class LineupGameEvents extends LitElement {
         .relative {
           margin-left: 0.5em;
         }
+
+        tr[selected] {
+          background-color: red;
+        }
       </style>
       <table class="mdl-data-table mdl-js-data-table is-upgraded">
         <thead>
@@ -79,7 +84,11 @@ export class LineupGameEvents extends LitElement {
             items,
             (item: EventItem) => item.id,
             (item: EventItem /*, index: number*/) => html`
-              <tr data-event-id="${item.id}">
+              <tr
+                data-event-id="${item.id}"
+                ?selected="${item.selected}"
+                @click="${this.itemClicked}"
+              >
                 <td class="mdl-data-table__cell--non-numeric">
                   ${this.renderEventTime(item.event as GameEvent, timeFormatter)}
                 </td>
@@ -169,6 +178,9 @@ export class LineupGameEvents extends LitElement {
   @property({ type: Object })
   public eventData?: EventCollectionData;
 
+  @property({ type: Array })
+  public eventsSelectedIds: string[] = [];
+
   override willUpdate(changedProperties: PropertyValues<this>) {
     if (!changedProperties.has('eventData')) {
       return;
@@ -204,6 +216,7 @@ export class LineupGameEvents extends LitElement {
       return [];
     }
 
+    const selectedIds = this.eventsSelectedIds ?? [];
     const items: EventItem[] = [];
     for (const event of this.events) {
       // Ignore sub out events, as the sub in event will show all the detail.
@@ -212,6 +225,7 @@ export class LineupGameEvents extends LitElement {
       }
       items.push({
         id: event.id!,
+        selected: selectedIds.includes(event.id!),
         event,
       });
     }
@@ -222,10 +236,43 @@ export class LineupGameEvents extends LitElement {
   private lookupPlayer(playerId: string) {
     return this.playerResolver.getPlayer(playerId);
   }
+
+  private itemClicked(e: Event) {
+    const item = e.currentTarget as HTMLTableRowElement;
+    const eventId = item.dataset.eventId!;
+    // eslint-disable-next-line no-console
+    console.log(`Row clicked for event: ${eventId}, ${item.tagName}`);
+    const isSelected = item.hasAttribute('selected');
+    this.dispatchEvent(new EventSelectedEvent({ eventId, selected: !isSelected }));
+  }
+}
+
+export interface EventSelectedDetail {
+  selected: boolean;
+  eventId: string;
+}
+
+const EVENT_SELECTED_EVENT_NAME = 'event-selected';
+export class EventSelectedEvent extends CustomEvent<EventSelectedDetail> {
+  static eventName = EVENT_SELECTED_EVENT_NAME;
+
+  constructor(detail: EventSelectedDetail) {
+    super(EventSelectedEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true,
+    });
+  }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
     'lineup-game-events': LineupGameEvents;
+  }
+}
+
+declare global {
+  interface HTMLElementEventMap {
+    [EVENT_SELECTED_EVENT_NAME]: EventSelectedEvent;
   }
 }
