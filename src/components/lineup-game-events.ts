@@ -4,10 +4,14 @@
 
 import { consume } from '@lit/context';
 import '@material/mwc-button';
+import { Dialog } from '@material/mwc-dialog';
+import { MDCDialogCloseEventDetail } from '@material/mwc-dialog/mwc-dialog-base.js';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
+import { Radio } from '@material/mwc-radio';
+import '@material/mwc-radio/mwc-radio.js';
 import { html, LitElement, nothing, PropertyValues } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { Duration, TimeFormatter } from '../models/clock.js';
 import { EventBase, EventCollection, EventCollectionData } from '../models/events.js';
@@ -26,6 +30,11 @@ interface EventItem {
   id: string;
   selected: boolean;
   event: EventBase;
+}
+
+enum EditTimeOptions {
+  Custom = 'custom',
+  Existing = 'existing',
 }
 
 function getEventTypeText(eventType: GameEventType): string {
@@ -58,7 +67,8 @@ export class LineupGameEvents extends LitElement {
     const timeFormatter = new TimeFormatter();
     const selectionCount = this.eventsSelectedIds.length;
 
-    return html` ${SharedStyles}
+    return html`
+      ${SharedStyles}
       <style>
         :host {
           display: inline-block;
@@ -70,6 +80,10 @@ export class LineupGameEvents extends LitElement {
 
         tr[selected] {
           background-color: var(--mdc-theme-primary);
+        }
+
+        ul.fields {
+          list-style-type: none;
         }
       </style>
       <table class="mdl-data-table mdl-js-data-table is-upgraded">
@@ -97,7 +111,9 @@ export class LineupGameEvents extends LitElement {
             `
           )}
         </tbody>
-      </table>`;
+      </table>
+      ${this.renderEditDialog(selectionCount)}
+    `;
   }
 
   private renderListHeader(selectionCount: number) {
@@ -195,6 +211,70 @@ export class LineupGameEvents extends LitElement {
     }
   }
 
+  private renderEditDialog(selectionCount: number) {
+    if (!selectionCount) {
+      return nothing;
+    }
+
+    const editTimeCustom = this.editTimeOption === EditTimeOptions.Custom;
+
+    let customTime: Date | null = null;
+    if (selectionCount === 1) {
+      const selectedEvent = this.events?.get(this.eventsSelectedIds[0])!;
+      customTime = new Date(selectedEvent.timestamp!);
+      customTime.setMilliseconds(0);
+    }
+
+    return html`<mwc-dialog
+      id="edit-dialog"
+      heading="Edit event dates"
+      @closed="${this.applyEventUpdates}"
+    >
+      <ul class="fields">
+        <li>
+          <mwc-formfield label="Custom">
+            <mwc-radio
+              id="time-custom-radio"
+              name="editTimeOptions"
+              value="${EditTimeOptions.Custom}"
+              checked
+              @change="${this.timeRadioChanged}"
+            >
+            </mwc-radio>
+          </mwc-formfield>
+        </li>
+        <li>
+          <mwc-formfield id="custom-time-field" alignend label="Set event time">
+            <input
+              type="time"
+              step="1"
+              .valueAsDate=${customTime}
+              ?required=${editTimeCustom}
+              ?disabled=${!editTimeCustom}
+            />
+          </mwc-formfield>
+        </li>
+        <li>
+          <mwc-formfield label="Existing">
+            <mwc-radio
+              id="time-existing-radio"
+              name="editTimeOptions"
+              value="${EditTimeOptions.Existing}"
+              @change="${this.timeRadioChanged}"
+            >
+            </mwc-radio>
+          </mwc-formfield>
+        </li>
+        <li>
+          <mwc-formfield id="existing-time-field" alignend label="From existing event">
+          </mwc-formfield>
+        </li>
+      </ul>
+      <mwc-button slot="primaryAction" dialogAction="save">Save</mwc-button>
+      <mwc-button slot="secondaryAction" dialogAction="close">Cancel</mwc-button>
+    </mwc-dialog> `;
+  }
+
   private events?: EventCollection;
   private periods?: { periodNumber: number; startTime: number }[];
 
@@ -207,6 +287,9 @@ export class LineupGameEvents extends LitElement {
 
   @property({ type: Array })
   public eventsSelectedIds: string[] = [];
+
+  @state()
+  private editTimeOption = EditTimeOptions.Custom;
 
   override willUpdate(changedProperties: PropertyValues<this>) {
     if (!changedProperties.has('eventData')) {
@@ -278,9 +361,35 @@ export class LineupGameEvents extends LitElement {
     console.log(`Cancel selection`);
   }
 
-  private editSelection() {
+  private async editSelection() {
     // eslint-disable-next-line no-console
     console.log(`Edit selection`);
+    const dialog = this.shadowRoot!.querySelector<Dialog>('#edit-dialog');
+    // this.editTimeCustom = true;
+    dialog!.show();
+    this.requestUpdate();
+    // await this.updateComplete;
+  }
+
+  private timeRadioChanged(e: UIEvent) {
+    const radio = e.target as Radio;
+    this.editTimeOption = radio.value as EditTimeOptions;
+  }
+
+  private applyEventUpdates(e: CustomEvent<MDCDialogCloseEventDetail>) {
+    if (e.detail.action !== 'save') {
+      // return;
+    }
+    /*
+    let extraMinutes: number | undefined;
+    if (this.endOverdueRetroactive) {
+      const minutesField = this.shadowRoot!.querySelector(
+        '#overdue-minutes-field > input'
+      ) as HTMLInputElement;
+      extraMinutes = minutesField.valueAsNumber;
+    }
+    this.dispatchEvent(new ClockEndPeriodEvent({ extraMinutes }));
+    */
   }
 }
 

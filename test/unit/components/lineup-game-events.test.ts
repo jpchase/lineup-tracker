@@ -14,9 +14,11 @@ import {
   PeriodStartEvent,
   getPlayer,
 } from '@app/models/live.js';
+import { Dialog } from '@material/mwc-dialog';
 import { IconButton } from '@material/mwc-icon-button';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
+import { addElementAssertions } from '../helpers/element-assertions.js';
 import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
 import {
   incrementingCallbackForTimeProvider,
@@ -41,6 +43,10 @@ describe('lineup-game-events tests', () => {
   const timeFormatter = new TimeFormatter();
   const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
   const periodEndTime = new Date(2016, 0, 1, 14, 46, 25).getTime();
+
+  before(async () => {
+    addElementAssertions();
+  });
 
   beforeEach(async () => {
     // Wire up a node that will handle context requests for a PlayerResolver.
@@ -188,7 +194,7 @@ describe('lineup-game-events tests', () => {
           expect(item, `event ${eventId}`).to.not.have.attribute('selected');
         }
       }
-      await expect(el).shadowDom.to.equalSnapshot();
+      await expect(el).shadowDom.to.equalSnapshot({ ignoreTags: ['mwc-dialog'] });
       await expect(el).to.be.accessible();
     });
   }); // describe('rendering')
@@ -394,6 +400,12 @@ describe('lineup-game-events tests', () => {
       await el.updateComplete;
     });
 
+    function getEditDialog() {
+      const element = el.shadowRoot!.querySelector('#edit-dialog');
+      expect(element, 'edit dialog').to.exist;
+      return element as Dialog;
+    }
+
     it('fires selected event when list item is clicked', async () => {
       const items = getEventItems();
       const item = items[0];
@@ -511,28 +523,64 @@ describe('lineup-game-events tests', () => {
       expect(editButton.disabled, 'edit button should exist and be enabled').to.be.false;
     });
 
-    it.skip('shows dialog when edit button clicked', async () => {
-      expect.fail('not implemented');
+    it('shows dialog when edit button clicked', async () => {
+      // Make one item selected.
+      const items = getEventItems();
+      el.eventsSelectedIds = [items[0].dataset.eventId!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+      const editButton = getSelectionEditButton(headerElement.cells[0]);
+
+      setTimeout(() => editButton.click());
+      await oneEvent(editButton, 'click');
+
+      const editDialog = getEditDialog();
+      expect(editDialog, 'after edit clicked').to.be.open;
+
+      await expect(editDialog).to.equalSnapshot();
     });
 
-    it.skip('shows dialog with multiple events when bulk edit button clicked', async () => {
+    it('shows dialog with multiple events when edit button clicked', async () => {
+      // Make multiple items selected.
+      const items = getEventItems();
+      const item1 = items[0];
+      const item2 = items[1];
+      el.eventsSelectedIds = [item1.dataset.eventId!, item2.dataset.eventId!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+      const editButton = getSelectionEditButton(headerElement.cells[0]);
+
+      setTimeout(() => editButton.click());
+      await oneEvent(editButton, 'click');
+
+      const editDialog = getEditDialog();
+      expect(editDialog, 'after edit clicked').to.be.open;
+
+      await expect(editDialog).to.equalSnapshot();
+    });
+
+    it.skip('resets fields in dialog when shown again', async () => {
       expect.fail('not implemented');
     });
   }); // describe('event editing')
 
-  it.skip('shows only the most recent events', async () => {
-    expect.fail('not implemented');
-  });
+  describe('pagination', () => {
+    it.skip('shows only the most recent events', async () => {
+      expect.fail('not implemented');
+    });
 
-  it.skip('new events replace older events when only showing the most recent', async () => {
-    expect.fail('not implemented');
-  });
+    it.skip('new events replace older events when only showing the most recent', async () => {
+      expect.fail('not implemented');
+    });
 
-  it.skip('shows more events when explicitly requested', async () => {
-    expect.fail('not implemented');
-  });
+    it.skip('shows more events when explicitly requested', async () => {
+      expect.fail('not implemented');
+    });
 
-  it.skip('old events remain when show all preference is enabled', async () => {
-    expect.fail('not implemented');
-  });
+    it.skip('old events remain when show all preference is enabled', async () => {
+      expect.fail('not implemented');
+    });
+  }); // describe('pagination')
 });
