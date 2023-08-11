@@ -248,3 +248,135 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
 `;
 /* end snapshot lineup-game-events tests rendering shows list with selected events highlighted */
 
+snapshots["lineup-game-events tests event editing shows dialog when edit button clicked"] = 
+`<mwc-dialog
+  heading="Edit event dates"
+  id="edit-dialog"
+  open=""
+>
+  <ul class="fields">
+    <li>
+      <mwc-formfield label="Custom">
+        <mwc-radio
+          checked=""
+          id="time-custom-radio"
+          name="editTimeOptions"
+          value="custom"
+        >
+        </mwc-radio>
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="custom-time-field"
+        label="Set event time"
+      >
+        <input
+          required=""
+          step="1"
+          type="time"
+        >
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield label="Existing">
+        <mwc-radio
+          id="time-existing-radio"
+          name="editTimeOptions"
+          value="existing"
+        >
+        </mwc-radio>
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="existing-time-field"
+        label="From existing event"
+      >
+      </mwc-formfield>
+    </li>
+  </ul>
+  <mwc-button
+    dialogaction="save"
+    slot="primaryAction"
+  >
+    Save
+  </mwc-button>
+  <mwc-button
+    dialogaction="close"
+    slot="secondaryAction"
+  >
+    Cancel
+  </mwc-button>
+</mwc-dialog>
+`;
+/* end snapshot lineup-game-events tests event editing shows dialog when edit button clicked */
+
+snapshots["lineup-game-events tests event editing shows dialog with multiple events when edit button clicked"] = 
+`<mwc-dialog
+  heading="Edit event dates"
+  id="edit-dialog"
+  open=""
+>
+  <ul class="fields">
+    <li>
+      <mwc-formfield label="Custom">
+        <mwc-radio
+          checked=""
+          id="time-custom-radio"
+          name="editTimeOptions"
+          value="custom"
+        >
+        </mwc-radio>
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="custom-time-field"
+        label="Set event time"
+      >
+        <input
+          required=""
+          step="1"
+          type="time"
+        >
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield label="Existing">
+        <mwc-radio
+          id="time-existing-radio"
+          name="editTimeOptions"
+          value="existing"
+        >
+        </mwc-radio>
+      </mwc-formfield>
+    </li>
+    <li>
+      <mwc-formfield
+        alignend=""
+        id="existing-time-field"
+        label="From existing event"
+      >
+      </mwc-formfield>
+    </li>
+  </ul>
+  <mwc-button
+    dialogaction="save"
+    slot="primaryAction"
+  >
+    Save
+  </mwc-button>
+  <mwc-button
+    dialogaction="close"
+    slot="secondaryAction"
+  >
+    Cancel
+  </mwc-button>
+</mwc-dialog>
+`;
+/* end snapshot lineup-game-events tests event editing shows dialog with multiple events when edit button clicked */
+
