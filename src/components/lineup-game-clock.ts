@@ -4,6 +4,7 @@ import '@material/mwc-button';
 import '@material/mwc-dialog';
 import { Dialog } from '@material/mwc-dialog';
 import { MDCDialogCloseEventDetail } from '@material/mwc-dialog/mwc-dialog-base.js';
+import '@material/mwc-formfield';
 import '@material/mwc-icon';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
