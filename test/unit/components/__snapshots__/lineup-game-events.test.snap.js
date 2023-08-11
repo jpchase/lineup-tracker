@@ -273,6 +273,7 @@ snapshots["lineup-game-events tests event editing shows dialog when edit button 
         label="Set event time"
       >
         <input
+          aria-label="Set event time"
           required=""
           step="1"
           type="time"
@@ -339,6 +340,7 @@ snapshots["lineup-game-events tests event editing shows dialog with multiple eve
         label="Set event time"
       >
         <input
+          aria-label="Set event time"
           required=""
           step="1"
           type="time"

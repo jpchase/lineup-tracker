@@ -3,6 +3,7 @@
 import { consume } from '@lit/context';
 import '@material/mwc-button';
 import '@material/mwc-dialog';
+import '@material/mwc-formfield';
 import '@material/mwc-icon';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
