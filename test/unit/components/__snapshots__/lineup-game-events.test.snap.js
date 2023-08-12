@@ -254,6 +254,26 @@ snapshots["lineup-game-events tests event editing shows dialog when edit button 
   id="edit-dialog"
   open=""
 >
+  <table
+    class="edit-events-list"
+    rules="all"
+  >
+    <tbody>
+      <tr data-event-id="setupeventid">
+        <td class="mdl-data-table__cell--non-numeric">
+          <span class="absolute">
+            2:00:00 PM
+          </span>
+        </td>
+        <td class="eventType mdl-data-table__cell--non-numeric">
+          Setup completed
+        </td>
+        <td class="details">
+          {"clock":{"totalPeriods":2,"periodLength":45}}
+        </td>
+      </tr>
+    </tbody>
+  </table>
   <ul class="fields">
     <li>
       <mwc-formfield label="Custom">
@@ -321,6 +341,42 @@ snapshots["lineup-game-events tests event editing shows dialog with multiple eve
   id="edit-dialog"
   open=""
 >
+  <table
+    class="edit-events-list"
+    rules="all"
+  >
+    <tbody>
+      <tr data-event-id="setupeventid">
+        <td class="mdl-data-table__cell--non-numeric">
+          <span class="absolute">
+            2:00:00 PM
+          </span>
+        </td>
+        <td class="eventType mdl-data-table__cell--non-numeric">
+          Setup completed
+        </td>
+        <td class="details">
+          {"clock":{"totalPeriods":2,"periodLength":45}}
+        </td>
+      </tr>
+      <tr data-event-id="starteventid-1">
+        <td class="mdl-data-table__cell--non-numeric">
+          <span class="absolute">
+            2:00:00 PM
+          </span>
+          <span class="relative">
+            [00:00]
+          </span>
+        </td>
+        <td class="eventType mdl-data-table__cell--non-numeric">
+          Period started
+        </td>
+        <td class="details">
+          Start of period 1
+        </td>
+      </tr>
+    </tbody>
+  </table>
   <ul class="fields">
     <li>
       <mwc-formfield label="Custom">

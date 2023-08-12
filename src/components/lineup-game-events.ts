@@ -64,9 +64,8 @@ function getEventTypeText(eventType: GameEventType): string {
 @customElement('lineup-game-events')
 export class LineupGameEvents extends LitElement {
   override render() {
-    const items = this.getEventItems();
     const timeFormatter = new TimeFormatter();
-    const selectionCount = this.eventsSelectedIds.length;
+    const selectionCount = this.selectedItems.length;
 
     return html`
       ${SharedStyles}
@@ -77,6 +76,13 @@ export class LineupGameEvents extends LitElement {
 
         .relative {
           margin-left: 0.5em;
+        }
+
+        #events-list,
+        .edit-events-list,
+        .edit-events-list tbody {
+          border: 1px solid;
+          vertical-align: top;
         }
 
         tr[selected] {
@@ -92,29 +98,40 @@ export class LineupGameEvents extends LitElement {
           ${this.renderListHeader(selectionCount)}
         </thead>
         <tbody id="events-list">
-          ${repeat(
-            items,
-            (item: EventItem) => item.id,
-            (item: EventItem /*, index: number*/) => html`
-              <tr
-                data-event-id="${item.id}"
-                ?selected="${item.selected}"
-                @click="${this.itemClicked}"
-              >
-                <td class="mdl-data-table__cell--non-numeric">
-                  ${this.renderEventTime(item.event as GameEvent, timeFormatter)}
-                </td>
-                <td class="eventType mdl-data-table__cell--non-numeric">
-                  ${getEventTypeText(item.event.type as GameEventType)}
-                </td>
-                <td class="details">${this.renderEventDetails(item.event as GameEvent)}</td>
-              </tr>
-            `
-          )}
+          ${this.renderListItems(this.eventItems, timeFormatter)}
         </tbody>
       </table>
-      ${this.renderEditDialog(selectionCount)}
+      ${this.renderEditDialog(timeFormatter)}
     `;
+  }
+
+  private renderListItems(
+    items: EventItem[],
+    timeFormatter: TimeFormatter,
+    mode: string = 'default'
+  ) {
+    // Only handle selection in default rendering mode.
+    const clickHandler = mode === 'default' ? this.itemClicked : null;
+    const allowSelection = mode === 'default';
+    return html`${repeat(
+      items,
+      (item: EventItem) => item.id + mode,
+      (item: EventItem /*, index: number*/) => html`
+        <tr
+          data-event-id="${item.id}"
+          ?selected="${allowSelection && item.selected}"
+          @click="${clickHandler}"
+        >
+          <td class="mdl-data-table__cell--non-numeric">
+            ${this.renderEventTime(item.event as GameEvent, timeFormatter)}
+          </td>
+          <td class="eventType mdl-data-table__cell--non-numeric">
+            ${getEventTypeText(item.event.type as GameEventType)}
+          </td>
+          <td class="details">${this.renderEventDetails(item.event as GameEvent)}</td>
+        </tr>
+      `
+    )}`;
   }
 
   private renderListHeader(selectionCount: number) {
@@ -212,25 +229,28 @@ export class LineupGameEvents extends LitElement {
     }
   }
 
-  private renderEditDialog(selectionCount: number) {
+  private renderEditDialog(timeFormatter: TimeFormatter) {
+    const selectionCount = this.selectedItems.length;
     if (!selectionCount) {
       return nothing;
     }
 
     const editTimeCustom = this.editTimeOption === EditTimeOptions.Custom;
 
-    let customTime: Date | null = null;
-    if (selectionCount === 1) {
-      const selectedEvent = this.events?.get(this.eventsSelectedIds[0])!;
-      customTime = new Date(selectedEvent.timestamp!);
-      customTime.setMilliseconds(0);
-    }
+    const selectedEvent = this.selectedItems[0].event;
+    const customTime = new Date(selectedEvent.timestamp!);
+    customTime.setMilliseconds(0);
 
     return html`<mwc-dialog
       id="edit-dialog"
       heading="Edit event dates"
       @closed="${this.applyEventUpdates}"
     >
+      <table class="edit-events-list" rules="all">
+        <tbody>
+          ${this.renderListItems(this.selectedItems, timeFormatter, 'edit')}
+        </tbody>
+      </table>
       <ul class="fields">
         <li>
           <mwc-formfield label="Custom">
@@ -276,7 +296,8 @@ export class LineupGameEvents extends LitElement {
     </mwc-dialog> `;
   }
 
-  private events?: EventCollection;
+  private eventItems: EventItem[] = [];
+  private selectedItems: EventItem[] = [];
   private periods?: { periodNumber: number; startTime: number }[];
 
   @consume({ context: playerResolverContext, subscribe: true })
@@ -293,18 +314,43 @@ export class LineupGameEvents extends LitElement {
   private editTimeOption = EditTimeOptions.Custom;
 
   override willUpdate(changedProperties: PropertyValues<this>) {
-    if (!changedProperties.has('eventData')) {
+    if (!changedProperties.has('eventData') && !changedProperties.has('eventsSelectedIds')) {
       return;
     }
-    const oldValue = changedProperties.get('eventData');
-    if (this.eventData === oldValue) {
+    const eventDataChanged = this.eventData !== changedProperties.get('eventData');
+    const selectedChanged = this.eventsSelectedIds !== changedProperties.get('eventsSelectedIds');
+    if (!eventDataChanged && !selectedChanged) {
       return;
     }
 
-    if (this.eventData) {
-      this.events = EventCollection.create(this.eventData);
+    if (eventDataChanged) {
+      const events = this.eventData ? EventCollection.create(this.eventData) : undefined;
+      this.eventItems = [];
+      this.selectedItems = [];
+      this.periods = undefined;
+
+      if (!events?.size) {
+        return;
+      }
       this.periods = [];
-      for (const event of this.events) {
+      const selectedIds = this.eventsSelectedIds ?? [];
+      for (const event of events) {
+        // Ignore sub out events, as the sub in event will show all the detail.
+        if (event.type === GameEventType.SubOut) {
+          continue;
+        }
+        // Map the event into the UI model.
+        const item: EventItem = {
+          id: event.id!,
+          selected: selectedIds.includes(event.id!),
+          event,
+        };
+        this.eventItems.push(item);
+        if (item.selected) {
+          this.selectedItems.push(item);
+        }
+
+        // Populate the list of periods, from any period start events.
         if (event.type !== GameEventType.PeriodStart) {
           continue;
         }
@@ -314,34 +360,31 @@ export class LineupGameEvents extends LitElement {
           startTime: periodStart.data.clock.startTime,
         });
       }
+      // Ensure events are most recent first (reverse chronological order).
+      this.eventItems.sort((a, b) => b.event.timestamp! - a.event.timestamp!);
       // Ensure periods are sorted in ascending order of start time.
       this.periods.sort((a, b) => a.startTime - b.startTime);
-    } else {
-      this.events = undefined;
-      this.periods = undefined;
+      return;
     }
-  }
-
-  private getEventItems(): EventItem[] {
-    if (!this.events?.size) {
-      return [];
+    // Only the selected events have changed. The event items will already be populated,
+    // although the array may be empty.
+    this.selectedItems = [];
+    if (!this.eventsSelectedIds?.length) {
+      return;
     }
-
-    const selectedIds = this.eventsSelectedIds ?? [];
-    const items: EventItem[] = [];
-    for (const event of this.events) {
-      // Ignore sub out events, as the sub in event will show all the detail.
-      if (event.type === GameEventType.SubOut) {
+    let selectedCount = 0;
+    const expectedCount = this.eventsSelectedIds.length;
+    for (const item of this.eventItems) {
+      if (!item.selected) {
         continue;
       }
-      items.push({
-        id: event.id!,
-        selected: selectedIds.includes(event.id!),
-        event,
-      });
+      this.selectedItems.push(item);
+      selectedCount += 1;
+      if (selectedCount >= expectedCount) {
+        // Found all the selected items.
+        break;
+      }
     }
-    // Return events with most recent first (reverse chronological order).
-    return items.sort((a, b) => b.event.timestamp! - a.event.timestamp!);
   }
 
   private lookupPlayer(playerId: string) {
