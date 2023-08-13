@@ -1,10 +1,14 @@
 /** @format */
 
 import '@app/components/lineup-game-events.js';
-import { EventSelectedEvent, LineupGameEvents } from '@app/components/lineup-game-events.js';
+import {
+  EventSelectedEvent,
+  EventsUpdatedEvent,
+  LineupGameEvents,
+} from '@app/components/lineup-game-events.js';
 import { PlayerResolver } from '@app/components/player-resolver.js';
 import { Duration, TimeFormatter } from '@app/models/clock';
-import { EventCollection } from '@app/models/events.js';
+import { EventBase, EventCollection } from '@app/models/events.js';
 import { formatPosition } from '@app/models/formation.js';
 import {
   GameEvent,
@@ -16,7 +20,9 @@ import {
 } from '@app/models/live.js';
 import { Dialog } from '@material/mwc-dialog';
 import { IconButton } from '@material/mwc-icon-button';
-import { expect, fixture, html, oneEvent } from '@open-wc/testing';
+import { Radio } from '@material/mwc-radio';
+import { Select } from '@material/mwc-select';
+import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { addElementAssertions } from '../helpers/element-assertions.js';
 import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
@@ -94,6 +100,12 @@ describe('lineup-game-events tests', () => {
     const button = headerElement.querySelector('#edit-selection-button');
     expect(button, 'selection edit button').to.exist;
     return button as IconButton;
+  }
+
+  function getEditDialog() {
+    const element = el.shadowRoot!.querySelector('#edit-dialog');
+    expect(element, 'edit dialog').to.exist;
+    return element as Dialog;
   }
 
   function expectEventAbsoluteTime(timeElement: HTMLElement, expectedTime: number) {
@@ -386,7 +398,7 @@ describe('lineup-game-events tests', () => {
     });
   }); // describe('event types')
 
-  describe('event editing', () => {
+  describe('event selection', () => {
     let events: EventCollection;
 
     beforeEach(async () => {
@@ -399,12 +411,6 @@ describe('lineup-game-events tests', () => {
       el.eventData = events.toJSON();
       await el.updateComplete;
     });
-
-    function getEditDialog() {
-      const element = el.shadowRoot!.querySelector('#edit-dialog');
-      expect(element, 'edit dialog').to.exist;
-      return element as Dialog;
-    }
 
     it('fires selected event when list item is clicked', async () => {
       const items = getEventItems();
@@ -560,9 +566,149 @@ describe('lineup-game-events tests', () => {
 
       await expect(editDialog).to.equalSnapshot();
     });
+  }); // describe('event selection')
 
-    it.skip('resets fields in dialog when shown again', async () => {
+  describe('event editing', () => {
+    let events: EventCollection;
+    let selectedEvent: EventBase;
+    let editDialog: Dialog;
+
+    beforeEach(async () => {
+      game = testlive.getLiveGameWithPlayers();
+
+      const timeProvider = mockTimeProvider(startTime);
+
+      events = buildGameEvents(game, timeProvider);
+      selectedEvent = events.eventsForTesting[0];
+
+      el.eventData = events.toJSON();
+      el.eventsSelectedIds = [selectedEvent.id!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+      const editButton = getSelectionEditButton(headerElement.cells[0]);
+
+      setTimeout(() => editButton.click());
+      await oneEvent(editButton, 'click');
+
+      editDialog = getEditDialog();
+      expect(editDialog, 'after edit clicked').to.be.open;
+    });
+
+    it('resets fields in dialog when shown again', async () => {
       expect.fail('not implemented');
+    });
+
+    it('validates fields when edit dialog saved', () => {
+      expect.fail('not implemented');
+    });
+
+    it('does not fire update event when dialog cancelled', async () => {
+      // Listen for update event
+      let eventFired = false;
+      const handler = function () {
+        eventFired = true;
+        el.removeEventListener(EventsUpdatedEvent.eventName, handler);
+      };
+      el.addEventListener(EventsUpdatedEvent.eventName, handler);
+
+      const cancelButton = editDialog.querySelector(
+        'mwc-button[dialogAction="close"]'
+      ) as HTMLElement;
+      setTimeout(() => cancelButton!.click());
+      await oneEvent(cancelButton!, 'click');
+      await nextFrame();
+      await aTimeout(100);
+
+      expect(editDialog, 'after cancel click').not.to.be.open;
+      expect(eventFired, 'Update event should not be fired').to.be.false;
+    });
+
+    it('fires update event when dialog saved for custom time', async () => {
+      // Check that the "custom time" option is the default.
+      const useCustom = editDialog.querySelector('#time-custom-radio') as Radio;
+      expect(useCustom, 'custom time option').to.exist;
+      expect(useCustom.checked, 'Custom option should be checked by default').to.be.true;
+
+      const selectedEventTime = new Date(selectedEvent.timestamp!);
+      const initialEventTime = new Date(
+        1970,
+        0,
+        1,
+        selectedEventTime.getHours(),
+        selectedEventTime.getMinutes(),
+        selectedEventTime.getSeconds()
+      );
+      const customTimeField = editDialog.querySelector(
+        '#custom-time-field > input'
+      ) as HTMLInputElement;
+      expect(customTimeField, 'custom time field').to.exist;
+      expect(
+        customTimeField.valueAsDate,
+        'custom time should default to time of selected event'
+      ).to.deep.equal(initialEventTime);
+
+      // Set time to 10 seconds earlier.
+      const expectedCustomTime = new Date(selectedEvent.timestamp! - 10000);
+      customTimeField.valueAsDate = expectedCustomTime;
+
+      const saveButton = editDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
+      setTimeout(() => saveButton.click());
+
+      const { detail } = (await oneEvent(el, EventsUpdatedEvent.eventName)) as EventsUpdatedEvent;
+      expect(detail, 'Event detail should be set for custom time').to.deep.equal({
+        updatedEventIds: [selectedEvent.id!],
+        useExistingTime: false,
+        existingEventId: undefined,
+        customTime: expectedCustomTime.getTime(),
+      });
+    });
+
+    it('fires update event with selected event id when dialog saved for existing time', async () => {
+      // The existing time fields are not initially set/available.
+      const useExisting = editDialog.querySelector('#time-existing-radio') as Radio;
+      expect(useExisting, 'existing time option').to.exist;
+      expect(useExisting.checked, 'Existing option should not be checked initially').to.be.false;
+
+      const existingTimeField = editDialog.querySelector('#existing-time-field') as Select;
+      expect(existingTimeField, 'existing time field').to.exist;
+      expect(existingTimeField.disabled, 'Existing field should be disabled initially').to.be.true;
+
+      // Set the existing option.
+      setTimeout(() => useExisting.click());
+      await oneEvent(useExisting, 'click');
+      await el.updateComplete;
+
+      expect(useExisting.checked, 'Existing option should now be checked').to.be.true;
+      expect(existingTimeField.disabled, 'Existing time field should now be enabled').to.be.false;
+
+      const customTimeField = editDialog.querySelector(
+        '#custom-time-field > input'
+      ) as HTMLInputElement;
+      expect(customTimeField.disabled, 'Custom time field should now be disabled').to.be.true;
+
+      // Select a different event to provide the time.
+      const existingEvent = events.eventsForTesting[1];
+      //
+      // let index = 0;
+      for (const item of existingTimeField.items) {
+        if (item.dataset.eventId === existingEvent.id) {
+          item.selected = true;
+          break;
+        }
+      }
+      // existingTimeField.select(1);
+
+      const saveButton = editDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
+      setTimeout(() => saveButton.click());
+
+      const { detail } = (await oneEvent(el, EventsUpdatedEvent.eventName)) as EventsUpdatedEvent;
+      expect(detail, 'Event detail should be set for existing time').to.deep.equal({
+        updatedEventIds: [selectedEvent.id!],
+        useExistingTime: true,
+        existingEventId: existingEvent.id!,
+        customTime: undefined,
+      });
     });
   }); // describe('event editing')
 
