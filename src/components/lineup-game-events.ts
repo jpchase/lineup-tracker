@@ -6,11 +6,14 @@ import { consume } from '@lit/context';
 import '@material/mwc-button';
 import { Dialog } from '@material/mwc-dialog';
 import { MDCDialogCloseEventDetail } from '@material/mwc-dialog/mwc-dialog-base.js';
+import '@material/mwc-formfield';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
-import '@material/mwc-formfield';
+import '@material/mwc-list/mwc-list-item.js';
 import { Radio } from '@material/mwc-radio';
 import '@material/mwc-radio/mwc-radio.js';
+import '@material/mwc-select';
+import { Select } from '@material/mwc-select';
 import { html, LitElement, nothing, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
@@ -287,8 +290,30 @@ export class LineupGameEvents extends LitElement {
           </mwc-formfield>
         </li>
         <li>
-          <mwc-formfield id="existing-time-field" alignend label="From existing event">
-          </mwc-formfield>
+          <mwc-select
+            id="existing-time-field"
+            ?required=${!editTimeCustom}
+            ?disabled=${editTimeCustom}
+            ?fixedmenuposition=${true}
+          >
+            ${repeat(
+              this.eventItems,
+              (item: EventItem) => item.id,
+              (item: EventItem /*, index: number*/) => html`
+                <mwc-list-item data-event-id="${item.id}" value="${item.id}"
+                  ><span>
+                    <span> ${this.renderEventTime(item.event as GameEvent, timeFormatter)} </span>
+                    <span class="eventType">
+                      ${getEventTypeText(item.event.type as GameEventType)}
+                    </span>
+                    <span class="details"
+                      >${this.renderEventDetails(item.event as GameEvent)}</span
+                    ></span
+                  >
+                </mwc-list-item>
+              `
+            )}
+          </mwc-select>
         </li>
       </ul>
       <mwc-button slot="primaryAction" dialogAction="save">Save</mwc-button>
@@ -422,7 +447,32 @@ export class LineupGameEvents extends LitElement {
 
   private applyEventUpdates(e: CustomEvent<MDCDialogCloseEventDetail>) {
     if (e.detail.action !== 'save') {
-      // return;
+      return;
+    }
+    const useExistingTime = this.editTimeOption === EditTimeOptions.Existing;
+    let existingEventId: string | undefined;
+    let customTime: number | undefined;
+
+    if (useExistingTime) {
+      const existingField = this.shadowRoot!.querySelector('#existing-time-field') as Select;
+      existingEventId = existingField.selected?.value;
+    } else {
+      const customField = this.shadowRoot!.querySelector(
+        '#custom-time-field > input'
+      ) as HTMLInputElement;
+      // The field only provides the time, not the date. Copy the date from
+      // one of the selected events.
+      // NOTE: This is ignoring the edge case of a game that spans midnight.
+      const enteredTime = customField.valueAsDate!;
+      const gameDate = new Date(this.selectedItems[0].event.timestamp!);
+      customTime = new Date(
+        gameDate.getFullYear(),
+        gameDate.getMonth(),
+        gameDate.getDate(),
+        enteredTime.getHours(),
+        enteredTime.getMinutes(),
+        enteredTime.getSeconds()
+      ).getTime();
     }
     /*
     let extraMinutes: number | undefined;
@@ -434,6 +484,14 @@ export class LineupGameEvents extends LitElement {
     }
     this.dispatchEvent(new ClockEndPeriodEvent({ extraMinutes }));
     */
+    this.dispatchEvent(
+      new EventsUpdatedEvent({
+        updatedEventIds: this.selectedItems.map((item) => item.id),
+        useExistingTime,
+        existingEventId,
+        customTime,
+      })
+    );
   }
 }
 
@@ -455,6 +513,26 @@ export class EventSelectedEvent extends CustomEvent<EventSelectedDetail> {
   }
 }
 
+export interface EventsUpdatedDetail {
+  updatedEventIds: string[];
+  useExistingTime: boolean;
+  existingEventId?: string;
+  customTime?: number;
+}
+
+const EVENTS_UPDATED_EVENT_NAME = 'events-updated';
+export class EventsUpdatedEvent extends CustomEvent<EventsUpdatedDetail> {
+  static eventName = EVENTS_UPDATED_EVENT_NAME;
+
+  constructor(detail: EventsUpdatedDetail) {
+    super(EventsUpdatedEvent.eventName, {
+      detail,
+      bubbles: true,
+      composed: true,
+    });
+  }
+}
+
 declare global {
   interface HTMLElementTagNameMap {
     'lineup-game-events': LineupGameEvents;
@@ -464,5 +542,6 @@ declare global {
 declare global {
   interface HTMLElementEventMap {
     [EVENT_SELECTED_EVENT_NAME]: EventSelectedEvent;
+    [EVENTS_UPDATED_EVENT_NAME]: EventsUpdatedEvent;
   }
 }
