@@ -18,6 +18,7 @@ import {
 import { RootState } from '../../store.js';
 import {
   EventSelectedPayload,
+  EventsUpdatedPayload,
   LiveGamePayload,
   extractIdFromSwapPlayerId,
 } from './live-action-types.js';
@@ -89,6 +90,58 @@ const eventSlice = createSlice({
             gameId,
             eventId,
             selected: !!selected,
+          },
+        };
+      },
+    },
+    eventsUpdated: {
+      reducer: (state: EventState, action: PayloadAction<EventsUpdatedPayload>) => {
+        const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
+
+        let updatedEventTime: number;
+        if (action.payload.useExistingTime) {
+          const existingEvent = gameEvents.get(action.payload.existingEventId!);
+          if (!existingEvent) {
+            // TODO: Error?
+            return;
+          }
+          updatedEventTime = existingEvent.timestamp!;
+        } else {
+          if (!action.payload.customTime) {
+            // TODO: Error?
+            return;
+          }
+          updatedEventTime = action.payload.customTime;
+        }
+
+        for (const eventId of action.payload.updatedEventIds) {
+          const selectedEvent = gameEvents.get(eventId);
+          if (!selectedEvent) {
+            continue;
+          }
+          selectedEvent.timestamp = updatedEventTime;
+        }
+
+        // Committing an update just clears all selected events, for simplicity.
+        // The provided list of event IDs should always be the same as the currently
+        // selected.
+        state.eventsSelectedIds = [];
+        setGameEvents(state, gameEvents);
+      },
+      prepare: (
+        gameId: string,
+        updatedEventIds: string[],
+        useExistingTime: boolean,
+        existingEventId?: string,
+        customTime?: number
+      ) => {
+        return {
+          payload: {
+            gameId,
+            updatedEventIds,
+            useExistingTime,
+            existingEventId,
+            customTime,
           },
         };
       },
@@ -208,7 +261,7 @@ const eventSlice = createSlice({
 const { reducer } = eventSlice;
 
 export const eventsReducer = reducer;
-export const { eventSelected } = eventSlice.actions;
+export const { eventSelected, eventsUpdated } = eventSlice.actions;
 
 type EventActionHandler<P extends LiveGamePayload> = (
   action: PayloadAction<P>

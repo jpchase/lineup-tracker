@@ -2,7 +2,12 @@
 
 import { liveSlice } from './live-slice.js';
 
-export { eventSelected, selectEventsSelected, selectGameEvents } from './events-slice.js';
+export {
+  eventSelected,
+  selectEventsSelected,
+  selectGameEvents,
+  eventsUpdated,
+} from './events-slice.js';
 export {
   endPeriodCreator,
   markPeriodOverdueCreator,
