@@ -87,6 +87,13 @@ export interface EventSelectedPayload extends LiveGamePayload {
   selected: boolean;
 }
 
+export interface EventsUpdatedPayload extends LiveGamePayload {
+  updatedEventIds: string[];
+  useExistingTime: boolean;
+  existingEventId?: string;
+  customTime?: number;
+}
+
 export const prepareLiveGamePayload = (gameId: string) => {
   return {
     payload: {

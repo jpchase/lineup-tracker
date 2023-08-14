@@ -20,6 +20,7 @@ import {
   EventState,
   eventSelected,
   eventsReducer,
+  eventsUpdated,
 } from '@app/slices/live/events-slice.js';
 import { actions } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
@@ -882,7 +883,7 @@ describe('Events slice', () => {
       return ids;
     }
 
-    it('should add first event that was selected', () => {
+    it('adds first event that was selected', () => {
       const selectedEventId = getEventIds(gameEvents)[0];
       const newState = eventsReducer(
         currentState,
@@ -895,7 +896,7 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
-    it('should do nothing if event is already selected', () => {
+    it('do nothing if event is already selected', () => {
       const selectedEventId = getEventIds(gameEvents)[0];
       currentState.eventsSelectedIds = [selectedEventId];
 
@@ -910,7 +911,7 @@ describe('Events slice', () => {
       expect(newState).to.equal(currentState);
     });
 
-    it('should add second event that was selected', () => {
+    it('adds second event that was selected', () => {
       const ids = getEventIds(gameEvents);
       const selectedEventId = ids[0];
       const alreadySelectedEventId = ids[1];
@@ -927,7 +928,7 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
-    it('should remove only event that was de-selected', () => {
+    it('removes only event that was de-selected', () => {
       const deselectedEventId = getEventIds(gameEvents)[0];
       currentState.eventsSelectedIds = [deselectedEventId];
 
@@ -942,7 +943,7 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
-    it('should remove de-selected event leaving others still selected', () => {
+    it('removes de-selected event leaving others still selected', () => {
       const ids = getEventIds(gameEvents);
       const deselectedEventId = ids[0];
       const stillSelectedEventId = ids[1];
@@ -958,5 +959,149 @@ describe('Events slice', () => {
       });
       expect(newState).not.to.equal(currentState);
     });
-  }); // describe('live/gameSetupCompleted')
+  }); // describe('event selection')
+
+  describe('event updates', () => {
+    let currentState: EventState;
+    let game: LiveGame;
+    let gameEvents: EventCollection;
+    let updatedEvents: EventCollection;
+
+    beforeEach(() => {
+      game = testlive.getLiveGameWithPlayers();
+      // Create a collection of representative events, which occur 10 seconds apart.
+      const timeProvider = mockTimeProviderWithCallback(
+        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
+      );
+      gameEvents = buildGameEvents(game, timeProvider);
+
+      updatedEvents = EventCollection.create({
+        id: game.id,
+      });
+      for (const event of gameEvents.eventsForTesting) {
+        updatedEvents.addEvent({ ...event });
+      }
+      currentState = buildEventState(gameEvents);
+    });
+
+    it('applies custom date to single selected event', () => {
+      const selectedEvent = gameEvents.eventsForTesting[0];
+      const selectedEventId = selectedEvent.id!;
+      currentState.eventsSelectedIds = [selectedEventId];
+
+      // Update the selected event to 15 seconds earlier
+      const customTime = new Date(selectedEvent.timestamp!);
+      customTime.setSeconds(customTime.getSeconds() - 15);
+
+      const newState = eventsReducer(
+        currentState,
+        eventsUpdated(
+          game.id,
+          [selectedEventId],
+          /* useExistingTime= */ false,
+          undefined,
+          customTime.getTime()
+        )
+      );
+
+      const updatedEvent = updatedEvents.get(selectedEventId)!;
+      updatedEvent.timestamp = customTime.getTime();
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies custom date to multiple selected events', () => {
+      const selectedEvent = gameEvents.eventsForTesting[0];
+      const selectedEventId = selectedEvent.id!;
+      const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
+      currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+
+      // Update the selected event to 15 seconds earlier
+      const customTime = new Date(selectedEvent.timestamp!);
+      customTime.setSeconds(customTime.getSeconds() - 15);
+
+      const newState = eventsReducer(
+        currentState,
+        eventsUpdated(
+          game.id,
+          [selectedEventId, anotherSelectedEventId],
+          /* useExistingTime= */ false,
+          undefined,
+          customTime.getTime()
+        )
+      );
+
+      for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+        const updatedEvent = updatedEvents.get(updatedId)!;
+        updatedEvent.timestamp = customTime.getTime();
+      }
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies existing event date to single selected event', () => {
+      const selectedEventId = gameEvents.eventsForTesting[0].id!;
+      currentState.eventsSelectedIds = [selectedEventId];
+
+      const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+      const newState = eventsReducer(
+        currentState,
+        eventsUpdated(
+          game.id,
+          [selectedEventId],
+          /* useExistingTime= */ true,
+          existingEventId,
+          undefined
+        )
+      );
+
+      const updatedEvent = updatedEvents.get(selectedEventId)!;
+      updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp!;
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies existing event date to multiple selected events', () => {
+      const selectedEventId = gameEvents.eventsForTesting[0].id!;
+      const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
+      currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+
+      const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+      const newState = eventsReducer(
+        currentState,
+        eventsUpdated(
+          game.id,
+          [selectedEventId, anotherSelectedEventId],
+          /* useExistingTime= */ true,
+          existingEventId,
+          undefined
+        )
+      );
+
+      for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+        const updatedEvent = updatedEvents.get(updatedId)!;
+        updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp!;
+      }
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+  }); // describe('event updates')
 }); // describe('Events slice')
