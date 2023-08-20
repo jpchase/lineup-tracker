@@ -16,6 +16,16 @@ export type EventBase<
   data: EventData;
 };
 
+/*
+type RecordedEvent<
+  EventType extends string = string,
+  EventData extends Record<string, unknown> = Record<string, unknown>
+> = Omit<EventBase, "id"> & {
+  id: string;
+  timestamp: number;
+};
+*/
+
 export interface EventCollectionData {
   id: string;
   events?: EventBase[];
