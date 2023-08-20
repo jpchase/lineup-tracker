@@ -18,16 +18,19 @@ export function createShiftTrackerFromEvents(
 
 function evolve(trackerMap: PlayerTimeTrackerMap, event: GameEvent) {
   switch (event.type) {
-    case GameEventType.PeriodStart: {
+    case GameEventType.PeriodStart:
       trackerMap.startShiftTimers(event.data.clock.startTime);
       break;
-    }
-    case GameEventType.PeriodEnd: {
+
+    case GameEventType.PeriodEnd:
       trackerMap.stopShiftTimers(event.data.clock.endTime);
       break;
-    }
-    case GameEventType.Setup:
+
     case GameEventType.SubIn:
+      trackerMap.substitutePlayer(event.playerId, event.data.replaced, event.timestamp);
+      break;
+
+    case GameEventType.Setup:
     case GameEventType.SubOut:
     case GameEventType.Swap:
     default:
