@@ -6,14 +6,14 @@ import { connect } from 'pwa-helpers/connect-mixin.js';
 import { Roster } from '../models/player.js';
 import { selectCurrentTeam } from '../slices/app/app-slice.js';
 import { addNewPlayer, getRoster, team, TeamState } from '../slices/team/team-slice.js';
-import { RootState, store } from '../store.js';
+import { OptionalReducer, RootState, store } from '../store.js';
 import './lineup-roster.js';
 import { PageViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 // We are lazy loading its reducer.
 store.addReducers({
-  team,
+  team: team as OptionalReducer<typeof team>,
 });
 
 @customElement('lineup-view-roster')

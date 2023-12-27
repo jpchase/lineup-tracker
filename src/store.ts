@@ -5,7 +5,6 @@ import {
   AnyAction,
   combineReducers,
   configureStore,
-  EmptyObject,
   Reducer,
   ReducersMapObject,
   Store,
@@ -13,7 +12,7 @@ import {
   ThunkDispatch,
 } from '@reduxjs/toolkit';
 import { listenerMiddleware } from './app/action-listeners.js';
-import dynamicMiddlewares from './middleware/dynamic-middlewares.js';
+import { middleware as dynamicMiddlewares } from './middleware/dynamic-middlewares.js';
 import { lazyReducerEnhancer, LazyStore } from './middleware/lazy-reducers.js';
 import { configureAppStore } from './slices/app/app-module-configurator.js';
 import type { AppState, APP_SLICE_NAME } from './slices/app/app-slice.js';
@@ -46,15 +45,17 @@ export interface SliceStoreConfigurator {
 // Action creator to cause the store to be reset (primarily intended for testing).
 export const resetState = (): RootActionReset => ({ type: RESET_STATE });
 
-export function combineReducersWithReset<S extends EmptyObject, A extends Action>(
+export function combineReducersWithReset<S extends {}, A extends Action>(
   reducers: ReducersMapObject<S, A>
 ): Reducer<S, A> {
   const combinedReducer = combineReducers(reducers);
+  // @ts-expect-error More weirdness with type mismatches
   const rootReducer: Reducer<S, A> = (state, action) => {
     if (action.type === RESET_STATE) {
       // eslint-disable-next-line no-param-reassign
       state = undefined;
     }
+    // @ts-expect-error More weirdness with type mismatches
     return combinedReducer(state, action);
   };
   return rootReducer;
@@ -67,9 +68,11 @@ export function setupStore(preloadedState?: RootState, hydrate: boolean = true) 
   const baseStore = configureStore({
     reducer: ((state) => state) as Reducer<RootState>,
     preloadedState,
-    enhancers: [lazyReducerEnhancer(combineReducersWithReset)],
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(listenerMiddleware.middleware, dynamicMiddlewares),
+    enhancers: (getDefaultEnhancers) =>
+      // @ts-expect-error More weirdness with type mismatches
+      getDefaultEnhancers().concat(lazyReducerEnhancer(combineReducersWithReset)),
   });
   type BaseStore = typeof baseStore;
 
@@ -86,3 +89,6 @@ export const store: RootStore = setupStore();
 export type AppDispatch = typeof store.dispatch;
 export type ThunkResult = ThunkAction<void, RootState, undefined, AnyAction>;
 export type ThunkPromise<R> = ThunkAction<Promise<R>, RootState, undefined, AnyAction>;
+
+type SliceStateFromReducer<R> = R extends Reducer<infer S, any, any> | undefined ? S : never;
+export type OptionalReducer<R> = Reducer<SliceStateFromReducer<R> | undefined>;

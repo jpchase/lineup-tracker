@@ -6,7 +6,7 @@ import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
-import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { FormationType } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
@@ -83,7 +83,7 @@ describe('lineup-game-live tests', () => {
 
   afterEach(async () => {
     sinon.restore();
-    removeMiddleware(actionLoggerMiddleware);
+    // removeMiddleware(actionLoggerMiddleware);
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {

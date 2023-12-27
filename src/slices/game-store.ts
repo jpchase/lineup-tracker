@@ -1,7 +1,12 @@
 /** @format */
 
 import { debug } from '../common/debug.js';
-import { RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
+import {
+  OptionalReducer,
+  RootStore,
+  SliceStoreConfigurator,
+  store as globalStore,
+} from '../store.js';
 import { gameReducer } from './game/game-slice.js';
 
 const debugStore = debug('game-store');
@@ -19,7 +24,7 @@ export function getGameStore(storeInstance?: RootStore): RootStore {
     );
     // Lazy load the reducer
     store.addReducers({
-      [REDUCER_KEY]: gameReducer,
+      [REDUCER_KEY]: gameReducer as OptionalReducer<typeof gameReducer>,
     });
     initialized = true;
   }

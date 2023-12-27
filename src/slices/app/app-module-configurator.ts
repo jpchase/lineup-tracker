@@ -3,8 +3,8 @@
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { debug } from '../../common/debug.js';
 import { IdbPersistStorage } from '../../middleware/idb-persist-storage.js';
-import type { RootStore, SliceStoreConfigurator } from '../../store.js';
-import { appReducer, AppState, APP_SLICE_NAME } from './app-slice.js';
+import type { OptionalReducer, RootStore, SliceStoreConfigurator } from '../../store.js';
+import { APP_SLICE_NAME, AppState, appReducer } from './app-slice.js';
 
 const debugStore = debug('app-module');
 
@@ -38,7 +38,7 @@ export function configureAppStore(storeInstance: RootStore, hydrate: boolean): R
 
     debugStore(`configureAppStore: add the ${hydrate ? 'persist-wrapped' : 'app'} reducer`);
     storeInstance.addReducers({
-      [APP_SLICE_NAME]: reducer,
+      [APP_SLICE_NAME]: reducer as OptionalReducer<typeof appReducer>,
     });
     if (hydrate) {
       persistStore(storeInstance);

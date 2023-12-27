@@ -57,16 +57,14 @@
     "@material/mwc-textfield": "^0.27.0",
     "@material/mwc-top-app-bar": "^0.27.0",
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
-    "@reduxjs/toolkit": "^1.8.6",
+    "@reduxjs/toolkit": "^2.0.1",
     "debug": "^4.3.4",
     "firebase": "^9.17.1",
     "idb-keyval": "^6.2.0",
-    "immer": "^9.0.19",
+    "immer": "^10.0.3",
     "lit": "^2.7.6",
     "pwa-helpers": "^0.9.0",
-    "redux": "^4.2.1",
     "redux-persist": "^6.0.0",
-    "redux-thunk": "^2.4.2",
     "ts-loader": "^9.4.4"
   },
   "devDependencies": {

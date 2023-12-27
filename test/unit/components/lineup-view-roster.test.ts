@@ -2,7 +2,7 @@
 
 import { LineupViewRoster } from '@app/components/lineup-view-roster';
 import '@app/components/lineup-view-roster.js';
-import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { Player, Roster } from '@app/models/player.js';
 import { Team, Teams } from '@app/models/team.js';
 import { currentTeamChanged } from '@app/slices/app/app-slice.js';
@@ -54,7 +54,7 @@ describe('lineup-view-roster tests', () => {
   });
 
   afterEach(async () => {
-    removeMiddleware(actionLoggerMiddleware);
+    // removeMiddleware(actionLoggerMiddleware);
   });
 
   async function setupElement(preloadedState?: RootState) {

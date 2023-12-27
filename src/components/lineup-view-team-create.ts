@@ -5,7 +5,7 @@ import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { addNewTeam, team } from '../slices/team/team-slice.js';
-import { store } from '../store.js';
+import { OptionalReducer, store } from '../store.js';
 import './lineup-team-create.js';
 import { NewTeamCreatedEvent } from './lineup-team-create.js';
 import { PageRouter, pageRouterContext } from './page-router.js';
@@ -14,7 +14,7 @@ import { SharedStyles } from './shared-styles.js';
 
 // We are lazy loading its reducer.
 store.addReducers({
-  team,
+  team: team as OptionalReducer<typeof team>,
 });
 
 @customElement('lineup-view-team-create')
