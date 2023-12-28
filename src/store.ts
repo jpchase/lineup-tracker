@@ -3,7 +3,7 @@
 import { AnyAction, configureStore, Store, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { listenerMiddleware } from './app/action-listeners.js';
 import { middleware as dynamicMiddlewares } from './middleware/dynamic-middlewares.js';
-import { configureAppStore } from './slices/app/app-module-configurator.js';
+import { getAppSliceConfigurator } from './slices/app/index.js';
 import { rootReducer, type RootState } from './slices/index.js';
 
 export { RootState } from './slices/index.js';
@@ -25,7 +25,10 @@ export function setupStore(preloadedState?: RootState, hydrate: boolean = true) 
   });
 
   // Initially loaded reducers.
-  configureAppStore(store, hydrate);
+  //  - The app slice is not lazy-loaded, but it's configuration depends on whether
+  //    hydration is enabled.
+  const appConfigurator = getAppSliceConfigurator();
+  appConfigurator(store, { disableHydration: !hydrate });
 
   return store;
 }

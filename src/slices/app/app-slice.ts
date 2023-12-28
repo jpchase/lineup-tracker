@@ -1,7 +1,9 @@
 /** @format */
 
 import { createSlice, PayloadAction, type WithSlice } from '@reduxjs/toolkit';
+import { PersistConfig } from 'redux-persist';
 import { getEnv } from '../../app/environment.js';
+import { buildSliceConfigurator, SliceConfigurator } from '../../middleware/slice-configurator.js';
 import { Team } from '../../models/team.js';
 import type { RootState, ThunkResult } from '../../store.js';
 import { addTeam } from '../team/team-slice.js';
@@ -111,6 +113,13 @@ export const appSlice = createSlice({
 //  - The module "name" is actually the relative path to interface definition.
 declare module '..' {
   export interface LazyLoadedSlices extends WithSlice<typeof appSlice> {}
+}
+
+export function getAppSliceConfigurator(): SliceConfigurator {
+  const persistConfig: Partial<PersistConfig<AppState>> = {
+    whitelist: ['teamId', 'teamName'],
+  };
+  return buildSliceConfigurator(appSlice, persistConfig);
 }
 
 const { actions, reducer } = appSlice;

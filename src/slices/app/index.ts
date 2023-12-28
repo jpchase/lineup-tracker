@@ -1,3 +1,3 @@
 /** @format */
 
-export { currentTeamChanged } from './app-slice.js';
+export { currentTeamChanged, getAppSliceConfigurator } from './app-slice.js';
