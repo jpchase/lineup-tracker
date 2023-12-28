@@ -57,7 +57,7 @@
     "@material/mwc-textfield": "^0.27.0",
     "@material/mwc-top-app-bar": "^0.27.0",
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
-    "@reduxjs/toolkit": "^1.8.6",
+    "@reduxjs/toolkit": "^2.0.1",
     "debug": "^4.3.4",
     "firebase": "^9.17.1",
     "idb-keyval": "^6.2.0",
