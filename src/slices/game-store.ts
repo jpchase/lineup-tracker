@@ -1,7 +1,7 @@
 /** @format */
 
 import { debug } from '../common/debug.js';
-import { RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
+import { RootStore, SliceStoreConfigurator } from '../store.js';
 import { gameReducer } from './game/game-slice.js';
 import { rootReducer } from './index.js';
 
@@ -10,8 +10,10 @@ const debugStore = debug('game-store');
 const REDUCER_KEY = 'game';
 let initialized = false;
 
-export function getGameStore(storeInstance?: RootStore): RootStore {
-  const store = storeInstance || globalStore;
+export function getGameStore(storeInstance: RootStore): RootStore {
+  if (!storeInstance) {
+    throw new Error(`getGameStore: storeInstance must be provided`);
+  }
   if (!initialized) {
     debugStore(
       `getGameStore: ${
@@ -25,11 +27,14 @@ export function getGameStore(storeInstance?: RootStore): RootStore {
     });
     initialized = true;
   }
-  return store;
+  return storeInstance;
 }
 
 export function getGameStoreConfigurator(_hydrate: boolean): SliceStoreConfigurator {
   return (storeInstance?: RootStore) => {
+    if (!storeInstance) {
+      throw new Error(`storeInstance must be provided`);
+    }
     return getGameStore(storeInstance);
   };
 }

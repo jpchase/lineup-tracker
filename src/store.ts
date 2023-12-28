@@ -13,7 +13,7 @@ export type RootStore = Store<RootState> & {
 };
 
 export interface SliceStoreConfigurator {
-  (storeInstance?: RootStore, ...rest: any[]): RootStore;
+  (storeInstance: RootStore, ...rest: any[]): RootStore;
 }
 
 export function setupStore(preloadedState?: RootState, hydrate: boolean = true) {

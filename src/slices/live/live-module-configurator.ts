@@ -3,7 +3,7 @@
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { debug } from '../../common/debug.js';
 import { IdbPersistStorage } from '../../middleware/idb-persist-storage.js';
-import { RootStore, SliceStoreConfigurator, store as globalStore } from '../../store.js';
+import { RootStore, SliceStoreConfigurator } from '../../store.js';
 import { rootReducer } from '../index.js';
 import { live } from './composed-reducer.js';
 import { LiveState } from './live-slice.js';
@@ -13,9 +13,11 @@ const debugStore = debug('live-module');
 const REDUCER_KEY = 'live';
 let initialized = false;
 
-export function getLiveStore(storeInstance?: RootStore, hydrate: boolean = true): RootStore {
+export function getLiveStore(storeInstance: RootStore, hydrate: boolean = true): RootStore {
   debugStore(`getLiveStore called: storeInstance is set ${!!storeInstance}`);
-  const store = storeInstance || globalStore;
+  if (!storeInstance) {
+    throw new Error(`configureAppStore: storeInstance must be provided`);
+  }
   if (!initialized) {
     debugStore(
       `getLiveStore: ${
@@ -23,10 +25,10 @@ export function getLiveStore(storeInstance?: RootStore, hydrate: boolean = true)
       }`
     );
     // Lazy load the reducer
-    initReducer(store, hydrate);
+    initReducer(storeInstance, hydrate);
     initialized = true;
   }
-  return store;
+  return storeInstance;
 }
 
 function initReducer(store: RootStore, hydrate: boolean) {
@@ -55,6 +57,9 @@ function initReducer(store: RootStore, hydrate: boolean) {
 
 export function getLiveStoreConfigurator(hydrate: boolean): SliceStoreConfigurator {
   return (storeInstance?: RootStore) => {
+    if (!storeInstance) {
+      throw new Error(`storeInstance must be provided`);
+    }
     return getLiveStore(storeInstance, hydrate);
   };
 }

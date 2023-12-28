@@ -328,7 +328,8 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   private invalidStarters?: string[];
 
   override firstUpdated() {
-    getGameStore(this.store);
+    // The store will be set by the time this is called.
+    getGameStore(this.store!);
   }
 
   override stateChanged(state: RootState) {

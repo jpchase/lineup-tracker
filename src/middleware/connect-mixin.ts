@@ -1,7 +1,7 @@
 /** @format */
 
 import { AnyAction, ThunkAction, Unsubscribe } from '@reduxjs/toolkit';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
 import { Constructor } from '../util/shared-types.js';
 
 interface CustomElement {
@@ -33,13 +33,13 @@ export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superCla
         super.connectedCallback();
       }
 
+      // Use the global store, if the store instance was not previously set.
+      if (!this.store) {
+        this.store = globalStore;
+      }
       // Configure the store, to allow for lazy loading.
       if (this.storeConfigurator) {
-        if (this.store) {
-          this.storeConfigurator(this.store);
-        } else {
-          this.store = this.storeConfigurator(this.store);
-        }
+        this.storeConfigurator(this.store);
       }
       const store = this.store;
       if (store) {
