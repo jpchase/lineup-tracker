@@ -33,7 +33,8 @@ export function buildSliceConfigurator<State>(
 
   function initReducer(store: RootStore, hydrate: boolean) {
     let reducer;
-    if (hydrate && persistConfig) {
+    const persisted = hydrate && persistConfig;
+    if (persisted) {
       const fullConfig: PersistConfig<State> = {
         ...persistConfig,
         key: slice.reducerPath,
@@ -46,13 +47,13 @@ export function buildSliceConfigurator<State>(
       reducer = slice.reducer;
     }
 
-    debugConfig(`initReducer: add the ${hydrate ? 'persist-wrapped' : ''} reducer`);
+    debugConfig(`initReducer: add the ${persisted ? 'persist-wrapped' : 'slice'} reducer`);
 
     rootReducer.inject({
       reducerPath: slice.reducerPath,
       reducer: reducer as typeof slice.reducer,
     });
-    return hydrate ? persistStore(store) : undefined;
+    return persisted ? persistStore(store) : undefined;
   }
 
   return (storeInstance: RootStore, config?: SliceConfig) => {

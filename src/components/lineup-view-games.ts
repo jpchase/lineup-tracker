@@ -7,9 +7,8 @@ import { debug } from '../common/debug.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { Game, Games } from '../models/game.js';
 import { selectCurrentTeam } from '../slices/app/app-slice.js';
-import { getGameStore } from '../slices/game-store.js';
-import { addNewGame, getGames } from '../slices/game/game-slice.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import { addNewGame, getGameSliceConfigurator, getGames } from '../slices/game/index.js';
+import { RootState, RootStore } from '../store.js';
 import './lineup-game-create.js';
 import { GameCreatedEvent, LineupGameCreate } from './lineup-game-create.js';
 import './lineup-game-list.js';
@@ -43,9 +42,6 @@ export class LineupViewGames extends ConnectStoreMixin(AuthorizedViewElement) {
   @property({ type: Object })
   override store?: RootStore;
 
-  @property({ type: Object })
-  storeConfigurator?: SliceStoreConfigurator = getGameStore;
-
   @query('lineup-game-create')
   protected createElement?: LineupGameCreate;
 
@@ -59,6 +55,7 @@ export class LineupViewGames extends ConnectStoreMixin(AuthorizedViewElement) {
 
   constructor() {
     super();
+    this.registerSliceConfigurator(getGameSliceConfigurator());
     this.registerController(new SignedInAuthController(this));
   }
 

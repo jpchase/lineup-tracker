@@ -17,8 +17,8 @@ import {
 } from '../models/formation.js';
 import { GameDetail } from '../models/game.js';
 import { LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/live.js';
-import { getGameStore } from '../slices/game-store.js';
 import { gameSetupCompletedCreator, selectGameById } from '../slices/game/game-slice.js';
+import { getGameSliceConfigurator } from '../slices/game/index.js';
 import {
   applyStarter,
   cancelStarter,
@@ -327,9 +327,9 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   @state()
   private invalidStarters?: string[];
 
-  override firstUpdated() {
-    // The store will be set by the time this is called.
-    getGameStore(this.store!);
+  constructor() {
+    super();
+    this.registerSliceConfigurator(getGameSliceConfigurator());
   }
 
   override stateChanged(state: RootState) {

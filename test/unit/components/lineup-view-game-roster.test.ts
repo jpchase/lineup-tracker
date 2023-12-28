@@ -6,7 +6,6 @@ import { LineupViewGameRoster } from '@app/components/lineup-view-game-roster.js
 import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { Player } from '@app/models/player.js';
-import { getGameStoreConfigurator } from '@app/slices/game-store.js';
 import { gamePlayerAdded } from '@app/slices/game/game-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';
@@ -72,7 +71,6 @@ describe('lineup-view-game-roster tests', () => {
       gameId="${ifDefined(gameId)}"
       active
       .store=${store}
-      .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/ false)}
     >
     </lineup-view-game-roster>`;
     el = await fixture(template);
