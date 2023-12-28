@@ -5,7 +5,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { Roster } from '../models/player.js';
 import { selectCurrentTeam } from '../slices/app/app-slice.js';
-import { configureTeamModule } from '../slices/team/team-module-configurator.js';
+import { getTeamSliceConfigurator } from '../slices/team/index.js';
 import { addNewPlayer, getRoster } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store.js';
 import './lineup-roster.js';
@@ -13,7 +13,8 @@ import { PageViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 // We are lazy loading its reducer.
-configureTeamModule(store);
+const teamConfigurator = getTeamSliceConfigurator();
+teamConfigurator(store);
 
 @customElement('lineup-view-roster')
 export class LineupViewRoster extends connect(store)(PageViewElement) {

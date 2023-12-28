@@ -23,7 +23,7 @@ import {
   updatePage,
 } from '../slices/app/app-slice.js';
 import { signIn } from '../slices/auth/auth-slice.js';
-import { configureTeamModule } from '../slices/team/team-module-configurator.js';
+import { getTeamSliceConfigurator } from '../slices/team/index.js';
 import { getTeams, selectTeamsLoaded } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store.js';
 import { accountIcon } from './lineup-icons.js';
@@ -33,7 +33,8 @@ import './lineup-team-selector.js';
 import { pageRouterContext } from './page-router.js';
 
 // Lazy load the reducers.
-configureTeamModule(store);
+const teamConfigurator = getTeamSliceConfigurator();
+teamConfigurator(store);
 
 interface Page {
   page: string;
