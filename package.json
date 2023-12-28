@@ -78,7 +78,7 @@
     "@blockquote/test-runner-mocha-style-reporter": "^1.4.1",
     "@esm-bundle/chai": "^4.3.4-fix.0",
     "@lhci/cli": "^0.12.0",
-    "@open-wc/eslint-config": "^10.0.0",
+    "@open-wc/eslint-config": "^12.0.2",
     "@open-wc/testing": "^3.1.6",
     "@types/debug": "^4.1.7",
     "@types/mocha": "^10.0.1",
