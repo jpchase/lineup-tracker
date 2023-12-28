@@ -22,9 +22,10 @@ import {
   updateDrawerState,
   updatePage,
 } from '../slices/app/app-slice.js';
-import { auth, signIn } from '../slices/auth/auth-slice.js';
-import { getTeams, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
-import { OptionalReducer, RootState, store } from '../store.js';
+import { signIn } from '../slices/auth/auth-slice.js';
+import { configureTeamModule } from '../slices/team/team-module-configurator.js';
+import { getTeams, selectTeamsLoaded } from '../slices/team/team-slice.js';
+import { RootState, store } from '../store.js';
 import { accountIcon } from './lineup-icons.js';
 import './lineup-team-selector-dialog.js';
 import { TeamChangedEvent } from './lineup-team-selector-dialog.js';
@@ -32,10 +33,7 @@ import './lineup-team-selector.js';
 import { pageRouterContext } from './page-router.js';
 
 // Lazy load the reducers.
-store.addReducers({
-  auth: auth as OptionalReducer<typeof auth>,
-  team: team as OptionalReducer<typeof team>,
-});
+configureTeamModule(store);
 
 interface Page {
   page: string;

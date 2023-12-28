@@ -48,6 +48,8 @@ describe('lineup-game-complete tests', () => {
 
   it('shows no game placeholder when no current game', async () => {
     const store = getStore();
+    // TODO: build this into the configurator
+    store.dispatch({ type: `fake-${Math.random()}` });
     expect(store.getState().live, 'LiveState should exist').to.be.ok;
 
     const placeholder = el.shadowRoot!.querySelector('div p.empty-list');

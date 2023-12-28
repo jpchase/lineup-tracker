@@ -3,6 +3,8 @@
 import { Player } from '@app/models/player.js';
 import { Team, TeamData } from '@app/models/team.js';
 import {
+  TEAM_INITIAL_STATE,
+  TeamState,
   addNewPlayer,
   addNewTeam,
   addPlayer,
@@ -11,29 +13,29 @@ import {
   getTeams,
   savePlayer,
   saveTeam,
-  team,
-  TeamState,
-  TEAM_INITIAL_STATE,
+  teamSlice,
 } from '@app/slices/team/team-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
-  buildRoster,
-  buildTeams,
-  getNewPlayer,
-  getStoredPlayer,
-  getStoredTeam,
-  getPublicTeam,
-  getMockAuthState,
-  getNewPlayerData,
   MockAuthStateOptions,
   TEST_USER_ID,
+  buildRoster,
+  buildTeams,
+  getMockAuthState,
+  getNewPlayer,
+  getNewPlayerData,
+  getPublicTeam,
+  getStoredPlayer,
+  getStoredTeam,
 } from '../../helpers/test_data.js';
 
 const KEY_TEAMS = 'teams';
 const KEY_ROSTER = 'roster';
+
+const team = teamSlice.reducer;
 
 export function getNewTeamData() {
   return { name: 'New team 1' };

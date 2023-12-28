@@ -1,6 +1,6 @@
 /** @format */
 
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction, type WithSlice } from '@reduxjs/toolkit';
 import { Game, GameDetail, Games, GameStatus } from '../../models/game.js';
 import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
@@ -244,11 +244,15 @@ const gameSlice = createSlice({
   },
 });
 
-const { actions, reducer } = gameSlice;
+// Extend the root state typings with this slice.
+//  - The module "name" is actually the relative path to interface definition.
+declare module '..' {
+  export interface LazyLoadedSlices extends WithSlice<typeof gameSlice> {}
+}
 
-export const gameReducer = reducer;
+export const gameReducer = gameSlice.reducer;
 
-export const { addGame, gamePlayerAdded } = actions;
+export const { addGame, gamePlayerAdded } = gameSlice.actions;
 
 export const selectGameById = (state: RootState, gameId: string) => {
   return maybeFindGame(state.game, gameId);

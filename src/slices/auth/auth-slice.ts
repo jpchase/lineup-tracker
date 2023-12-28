@@ -83,7 +83,7 @@ export const signIn = (): ThunkResult => () => {
     });
 };
 
-const authSlice = createSlice({
+export const authSlice = createSlice({
   name: 'auth',
   initialState: INITIAL_STATE,
   reducers: {
@@ -98,10 +98,7 @@ const authSlice = createSlice({
   },
 });
 
-const { actions, reducer } = authSlice;
-
-export const { userSignedIn, userSignedOut } = actions;
-export const auth = reducer;
+export const { userSignedIn, userSignedOut } = authSlice.actions;
 
 export const selectCurrentUser = (state: RootState) => state.auth?.user;
 

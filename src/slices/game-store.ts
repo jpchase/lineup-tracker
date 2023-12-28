@@ -1,13 +1,9 @@
 /** @format */
 
 import { debug } from '../common/debug.js';
-import {
-  OptionalReducer,
-  RootStore,
-  SliceStoreConfigurator,
-  store as globalStore,
-} from '../store.js';
+import { RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
 import { gameReducer } from './game/game-slice.js';
+import { rootReducer } from './index.js';
 
 const debugStore = debug('game-store');
 
@@ -16,15 +12,16 @@ let initialized = false;
 
 export function getGameStore(storeInstance?: RootStore): RootStore {
   const store = storeInstance || globalStore;
-  if (!initialized || !store.hasReducer(REDUCER_KEY)) {
+  if (!initialized) {
     debugStore(
       `getGameStore: ${
         initialized ? 'game state missing, add reducer' : 'first call, do initialization'
       }`
     );
     // Lazy load the reducer
-    store.addReducers({
-      [REDUCER_KEY]: gameReducer as OptionalReducer<typeof gameReducer>,
+    rootReducer.inject({
+      reducerPath: REDUCER_KEY,
+      reducer: gameReducer,
     });
     initialized = true;
   }

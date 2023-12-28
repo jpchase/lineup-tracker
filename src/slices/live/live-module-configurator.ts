@@ -3,12 +3,8 @@
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { debug } from '../../common/debug.js';
 import { IdbPersistStorage } from '../../middleware/idb-persist-storage.js';
-import {
-  OptionalReducer,
-  RootStore,
-  SliceStoreConfigurator,
-  store as globalStore,
-} from '../../store.js';
+import { RootStore, SliceStoreConfigurator, store as globalStore } from '../../store.js';
+import { rootReducer } from '../index.js';
 import { live } from './composed-reducer.js';
 import { LiveState } from './live-slice.js';
 
@@ -20,7 +16,7 @@ let initialized = false;
 export function getLiveStore(storeInstance?: RootStore, hydrate: boolean = true): RootStore {
   debugStore(`getLiveStore called: storeInstance is set ${!!storeInstance}`);
   const store = storeInstance || globalStore;
-  if (!initialized || !store.hasReducer(REDUCER_KEY)) {
+  if (!initialized) {
     debugStore(
       `getLiveStore: ${
         initialized ? 'live state missing, add reducer' : 'first call, do initialization'
@@ -50,8 +46,9 @@ function initReducer(store: RootStore, hydrate: boolean) {
 
   debugStore(`initReducer: add the ${hydrate ? 'persist-wrapped' : 'live'} reducer`);
 
-  store.addReducers({
-    [REDUCER_KEY]: reducer as OptionalReducer<typeof live>,
+  rootReducer.inject({
+    reducerPath: REDUCER_KEY,
+    reducer: reducer as typeof live,
   });
   return hydrate ? persistStore(store) : undefined;
 }
