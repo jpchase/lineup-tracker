@@ -6,7 +6,6 @@ import { PlayerStatus } from '@app/models/player.js';
 import { live } from '@app/slices/live/composed-reducer.js';
 import { pendingSubsAppliedCreator } from '@app/slices/live/index.js';
 import { LiveState, actions } from '@app/slices/live/live-slice.js';
-import { RootState } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
@@ -15,17 +14,13 @@ import {
   getGame,
   selectPlayers,
 } from '../../helpers/live-state-setup.js';
+import { mockGetState as mockGetRootState } from '../../helpers/root-state-setup.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
 const { applyPendingSubs, discardPendingSubs, invalidPendingSubs } = actions;
 
 function mockGetState(currentState: LiveState) {
-  return sinon.fake(() => {
-    const mockState: RootState = {
-      live: currentState,
-    };
-    return mockState;
-  });
+  return mockGetRootState(undefined, undefined, undefined, currentState);
 }
 
 describe('Live slice: Substitution actions', () => {

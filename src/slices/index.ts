@@ -7,4 +7,4 @@ export interface LazyLoadedSlices {}
 
 export const rootReducer = combineSlices(authSlice).withLazyLoadedSlices<LazyLoadedSlices>();
 
-export type RootStateNew = ReturnType<typeof rootReducer>;
+export type RootState = ReturnType<typeof rootReducer>;

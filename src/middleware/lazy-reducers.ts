@@ -47,6 +47,7 @@ export const lazyReducerEnhancer = (combineReducers: CombineReducers) => {
       };
 
       let lazyReducers = {} as ReducersMap;
+      // @ts-expect-error The `auth` state is no longer optional, as a static slice
       const nextStore = nextCreator(origReducer, preloadedState);
       const newStore = {
         ...nextStore,
