@@ -1,7 +1,13 @@
 /** @format */
 
 import { AnyAction, ThunkAction, Unsubscribe } from '@reduxjs/toolkit';
-import { RootState, RootStore, SliceStoreConfigurator, store as globalStore } from '../store.js';
+import {
+  AppStore,
+  RootState,
+  RootStore,
+  SliceStoreConfigurator,
+  store as globalStore,
+} from '../store.js';
 import { Constructor } from '../util/shared-types.js';
 import { SliceConfigurator } from './slice-configurator.js';
 
@@ -39,7 +45,8 @@ export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superCla
       if (!this.store) {
         this.store = globalStore;
       }
-      const store = this.store;
+      // TODO: remove cast when this.store is no longer `RootStore`
+      const store = this.store as AppStore;
       // Configure lazy-loaded slices.
       this.configurators.forEach((configurator) => {
         // TODO: pass options, namely to disable hydration
