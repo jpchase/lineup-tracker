@@ -162,7 +162,7 @@ export const teamSlice = createSlice({
 
 // Extend the root state typings with this slice.
 //  - The module "name" is actually the relative path to interface definition.
-declare module '..' {
+declare module '../reducer' {
   export interface LazyLoadedSlices extends WithSlice<typeof teamSlice> {}
 }
 

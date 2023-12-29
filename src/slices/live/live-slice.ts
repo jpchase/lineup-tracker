@@ -324,7 +324,7 @@ export const liveSlice = createSlice({
 
 // Extend the root state typings with this slice.
 //  - The module "name" is actually the relative path to interface definition.
-declare module '..' {
+declare module '../reducer' {
   // This does not use `WithSlice` as there isn't a slice for the combined state.
   export interface LazyLoadedSlices {
     live: LiveState;

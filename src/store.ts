@@ -4,9 +4,9 @@ import { AnyAction, configureStore, Store, ThunkAction, ThunkDispatch } from '@r
 import { listenerMiddleware } from './app/action-listeners.js';
 import { middleware as dynamicMiddlewares } from './middleware/dynamic-middlewares.js';
 import { getAppSliceConfigurator } from './slices/app/index.js';
-import { rootReducer, type RootState } from './slices/index.js';
+import { rootReducer, type RootState } from './slices/reducer.js';
 
-export { RootState } from './slices/index.js';
+export { RootState } from './slices/reducer.js';
 
 export type RootStore = Store<RootState> & {
   dispatch: ThunkDispatch<RootState, undefined, AnyAction>;

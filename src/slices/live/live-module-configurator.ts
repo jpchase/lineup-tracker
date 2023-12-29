@@ -4,7 +4,7 @@ import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { debug } from '../../common/debug.js';
 import { IdbPersistStorage } from '../../middleware/idb-persist-storage.js';
 import { RootStore, SliceStoreConfigurator } from '../../store.js';
-import { rootReducer } from '../index.js';
+import { rootReducer } from '../reducer.js';
 import { live } from './composed-reducer.js';
 import { LiveState } from './live-slice.js';
 

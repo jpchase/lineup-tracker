@@ -3,7 +3,7 @@
 import { Slice } from '@reduxjs/toolkit';
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { debug } from '../common/debug.js';
-import { rootReducer } from '../slices/index.js';
+import { rootReducer } from '../slices/reducer.js';
 import { RootStore } from '../store.js';
 import { IdbPersistStorage } from './idb-persist-storage.js';
 
