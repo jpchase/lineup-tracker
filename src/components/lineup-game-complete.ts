@@ -6,7 +6,7 @@ import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { LiveGame, LivePlayer } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 import { getLiveSliceConfigurator, selectLiveGameById } from '../slices/live/index.js';
-import { RootState, RootStore } from '../store.js';
+import { RootState } from '../store.js';
 import './lineup-game-shifts.js';
 import { SharedStyles } from './shared-styles.js';
 
@@ -32,9 +32,6 @@ export class LineupGameComplete extends ConnectStoreMixin(LitElement) {
       <lineup-game-shifts .trackerData="${trackerData}" .players="${players}"></lineup-game-shifts>
     </div>`;
   }
-
-  @property({ type: Object })
-  override store?: RootStore;
 
   @property({ type: String })
   gameId?: string;

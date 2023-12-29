@@ -16,7 +16,7 @@ import {
   selectGameById,
   selectGameRosterLoading,
 } from '../slices/game/game-slice.js';
-import { RootState, RootStore } from '../store.js';
+import { RootState } from '../store.js';
 import './lineup-roster.js';
 import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
@@ -87,9 +87,6 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
       </div>
     `;
   }
-
-  @property({ type: Object })
-  override store?: RootStore;
 
   @property({ type: String })
   gameId?: string;

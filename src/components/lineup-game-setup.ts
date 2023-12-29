@@ -34,7 +34,7 @@ import {
   selectStarterPosition,
   startersCompletedCreator,
 } from '../slices/live/index.js';
-import { RootState, RootStore } from '../store.js';
+import { RootState } from '../store.js';
 import './lineup-on-player-list.js';
 import { PlayerSelectedEvent, PositionSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';
@@ -280,9 +280,6 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
       >Done</mwc-button
     >`;
   }
-
-  @property({ type: Object })
-  override store?: RootStore;
 
   @contextProvided({ context: pageRouterContext, subscribe: true })
   @property({ attribute: false })

@@ -42,7 +42,7 @@ import {
   startPeriodCreator,
   toggleClock,
 } from '../slices/live/index.js';
-import { RootState, RootStore } from '../store.js';
+import { RootState } from '../store.js';
 import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-events.js';
@@ -229,9 +229,6 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       </span>
     `;
   }
-
-  @property({ type: Object })
-  override store?: RootStore;
 
   @property({ type: String })
   gameId?: string;

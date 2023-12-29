@@ -1,13 +1,8 @@
 /** @format */
 
 import { AnyAction, ThunkAction, Unsubscribe } from '@reduxjs/toolkit';
-import {
-  AppStore,
-  RootState,
-  RootStore,
-  SliceStoreConfigurator,
-  store as globalStore,
-} from '../store.js';
+import { property } from 'lit/decorators.js';
+import { AppStore, RootState, store as globalStore } from '../store.js';
 import { Constructor } from '../util/shared-types.js';
 import { SliceConfigurator } from './slice-configurator.js';
 
@@ -17,7 +12,7 @@ interface CustomElement {
 }
 
 export declare class StoreConnected {
-  store?: RootStore;
+  store?: AppStore;
   stateChanged(state: RootState): void;
   dispatch<R>(action: AnyAction | ThunkAction<R, RootState, any, any>): AnyAction | R;
   protected registerController(controller: StateSubscribedController): void;
@@ -33,8 +28,9 @@ export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superCla
     private configurators = new Set<SliceConfigurator>();
     private controllers = new Set<StateSubscribedController>();
     private _storeUnsubscribe!: Unsubscribe;
-    store?: RootStore;
-    storeConfigurator?: SliceStoreConfigurator;
+
+    @property({ type: Object })
+    store?: AppStore;
 
     override connectedCallback() {
       if (super.connectedCallback) {
@@ -45,17 +41,11 @@ export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superCla
       if (!this.store) {
         this.store = globalStore;
       }
-      // TODO: remove cast when this.store is no longer `RootStore`
-      const store = this.store as AppStore;
+      const store = this.store;
       // Configure lazy-loaded slices.
       this.configurators.forEach((configurator) => {
-        // TODO: pass options, namely to disable hydration
         configurator(store);
       });
-      // Configure the store, to allow for lazy loading.
-      if (this.storeConfigurator) {
-        this.storeConfigurator(this.store);
-      }
       if (store) {
         // Connect the element to the store.
         this._storeUnsubscribe = store.subscribe(() => {

@@ -2,13 +2,13 @@
 
 import '@material/mwc-fab';
 import { html } from 'lit';
-import { customElement, property, query, state } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 import { debug } from '../common/debug.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { Game, Games } from '../models/game.js';
 import { selectCurrentTeam } from '../slices/app/app-slice.js';
 import { addNewGame, getGameSliceConfigurator, getGames } from '../slices/game/index.js';
-import { RootState, RootStore } from '../store.js';
+import { RootState } from '../store.js';
 import './lineup-game-create.js';
 import { GameCreatedEvent, LineupGameCreate } from './lineup-game-create.js';
 import './lineup-game-list.js';
@@ -38,9 +38,6 @@ export class LineupViewGames extends ConnectStoreMixin(AuthorizedViewElement) {
       </section>
     `;
   }
-
-  @property({ type: Object })
-  override store?: RootStore;
 
   @query('lineup-game-create')
   protected createElement?: LineupGameCreate;

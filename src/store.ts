@@ -1,6 +1,6 @@
 /** @format */
 
-import { AnyAction, configureStore, Store, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
+import { AnyAction, configureStore, ThunkAction } from '@reduxjs/toolkit';
 import { listenerMiddleware } from './app/action-listeners.js';
 import { middleware as dynamicMiddlewares } from './middleware/dynamic-middlewares.js';
 import { buildSliceConfigStoreEnhancer, SliceConfig } from './middleware/slice-configurator.js';
@@ -8,14 +8,6 @@ import { getAppSliceConfigurator } from './slices/app/index.js';
 import { rootReducer, type RootState } from './slices/reducer.js';
 
 export { RootState } from './slices/reducer.js';
-
-export type RootStore = Store<RootState> & {
-  dispatch: ThunkDispatch<RootState, undefined, AnyAction>;
-};
-
-export interface SliceStoreConfigurator {
-  (storeInstance: RootStore, ...rest: any[]): RootStore;
-}
 
 export function setupStore(preloadedState?: RootState, hydrate: boolean = true) {
   const sliceConfig: SliceConfig = { disableHydration: !hydrate };
