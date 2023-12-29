@@ -1,6 +1,6 @@
 /** @format */
 
-import { Slice, StoreEnhancer } from '@reduxjs/toolkit';
+import { Reducer, StoreEnhancer } from '@reduxjs/toolkit';
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { debug } from '../common/debug.js';
 import { rootReducer } from '../slices/reducer.js';
@@ -26,8 +26,14 @@ export interface SliceConfigurator2 {
   configure(storeInstance: AppStore, config?: SliceConfig): void;
 }
 
+interface SliceLike<State> {
+  name: string;
+  reducerPath: string;
+  reducer: Reducer<State>;
+}
+
 export function buildSliceConfigurator<State>(
-  slice: Slice<State>,
+  slice: SliceLike<State>,
   persistConfig?: Partial<PersistConfig<State>>
 ): SliceConfigurator {
   const debugConfig = debug(`config[${slice.name}]`);

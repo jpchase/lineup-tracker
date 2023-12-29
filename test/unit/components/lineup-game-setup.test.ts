@@ -18,7 +18,6 @@ import {
   SetupTask,
 } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { getLiveStoreConfigurator } from '@app/slices/live/live-module-configurator.js';
 import { actions as liveActions, selectLiveGameById } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';
@@ -138,7 +137,6 @@ describe('lineup-game-setup tests', () => {
     const template = html`<lineup-game-setup
       .gameId="${gameId}"
       .store=${store}
-      .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/ false)}
     ></lineup-game-setup>`;
     el = await fixture(template, { parentNode });
     dispatchStub = sinon.spy(el, 'dispatch');

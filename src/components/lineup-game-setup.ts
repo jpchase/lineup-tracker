@@ -26,6 +26,7 @@ import {
   configurePeriods,
   formationSelected,
   getLiveGame,
+  getLiveSliceConfigurator,
   rosterCompleted,
   selectInvalidStarters,
   selectLiveGameById,
@@ -33,8 +34,7 @@ import {
   selectStarterPosition,
   startersCompletedCreator,
 } from '../slices/live/index.js';
-import { getLiveStore } from '../slices/live/live-module-configurator.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import { RootState, RootStore } from '../store.js';
 import './lineup-on-player-list.js';
 import { PlayerSelectedEvent, PositionSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';
@@ -284,9 +284,6 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   @property({ type: Object })
   override store?: RootStore;
 
-  @property({ type: Object })
-  storeConfigurator?: SliceStoreConfigurator = getLiveStore;
-
   @contextProvided({ context: pageRouterContext, subscribe: true })
   @property({ attribute: false })
   pageRouter!: PageRouter;
@@ -330,6 +327,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   constructor() {
     super();
     this.registerSliceConfigurator(getGameSliceConfigurator());
+    this.registerSliceConfigurator(getLiveSliceConfigurator());
   }
 
   override stateChanged(state: RootState) {

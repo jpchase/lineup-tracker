@@ -2,6 +2,8 @@
 
 import { createNextState } from '@reduxjs/toolkit';
 import { Reducer } from 'redux';
+import { PersistConfig } from 'redux-persist';
+import { SliceConfigurator, buildSliceConfigurator } from '../../middleware/slice-configurator.js';
 import { EVENTS_INITIAL_STATE, eventsReducer } from './events-slice.js';
 import { LIVE_GAME_INITIAL_STATE, LiveState, liveSlice } from './live-slice.js';
 import { shift } from './shift-slice.js';
@@ -27,3 +29,13 @@ export const live: Reducer<LiveState> = function reduce(state, action) {
     Object.assign(draft, eventsReducer(draft, action));
   }) as LiveState;
 };
+
+export function getLiveSliceConfigurator(): SliceConfigurator {
+  const persistConfig: Partial<PersistConfig<LiveState>> = {
+    whitelist: ['events', 'games', 'shift'],
+  };
+  return buildSliceConfigurator(
+    { name: liveSlice.name, reducerPath: liveSlice.reducerPath, reducer: live },
+    persistConfig
+  );
+}
