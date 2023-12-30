@@ -1,6 +1,6 @@
 /** @format */
 
-import { Reducer, StoreEnhancer } from '@reduxjs/toolkit';
+import { Reducer, StoreEnhancer, nanoid } from '@reduxjs/toolkit';
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { debug } from '../common/debug.js';
 import { rootReducer } from '../slices/reducer.js';
@@ -32,14 +32,15 @@ interface SliceLike<State> {
   reducer: Reducer<State>;
 }
 
+function reducerPathExists(store: AppStore, reducerPath: string) {
+  return Object.keys(store.getState()).includes(reducerPath);
+}
+
 export function buildSliceConfigurator<State>(
   slice: SliceLike<State>,
   persistConfig?: Partial<PersistConfig<State>>
 ): SliceConfigurator {
   const debugConfig = debug(`config[${slice.name}]`);
-  // TODO: Does the "initialized" flag need to be per store instance?
-  // This would only be a problem in tests where there are multiple instances created?
-  let initialized = false;
 
   function initReducer(store: AppStore, hydrate: boolean) {
     let reducer;
@@ -63,24 +64,35 @@ export function buildSliceConfigurator<State>(
       reducerPath: slice.reducerPath,
       reducer: reducer as typeof slice.reducer,
     });
-    return persisted ? persistStore(store) : undefined;
+    const result = persisted ? persistStore(store) : undefined;
+    // Force initialization of the slice state, if necessary.
+    //  - The `inject()` call does *not* dispatch an action, which would initialize.
+    //  - If persisted, the `persistStore()` call does dispatch an action.
+    //  - Check for existence of the slice state, regardless. This is to be robust
+    //    against changes in the `persistStore()` implementation.
+    const stateExists = reducerPathExists(store, slice.reducerPath);
+    debugConfig(`store contains the reducer path [${slice.reducerPath}]: ${stateExists}`);
+    if (!stateExists) {
+      // Dispatch a fake action to cause initialization. Use a random action type
+      // to prevent special handling of the the fake action.
+      store.dispatch({ type: nanoid() });
+    }
+    return result;
   }
 
-  return (storeInstance: AppStore /*, config?: SliceConfig*/) => {
-    debugConfig(
-      `started: storeInstance is set ${!!storeInstance}, config = ${JSON.stringify(
-        storeInstance?.sliceConfig
-      )}`
-    );
-    if (!storeInstance) {
+  return (store: AppStore /*, config?: SliceConfig*/) => {
+    if (!store) {
       throw new Error(`storeInstance must be provided`);
     }
-    if (!initialized) {
-      debugConfig('first call, do initialization');
+    const stateExists = reducerPathExists(store, slice.reducerPath);
+    debugConfig(
+      `started: state exists = ${stateExists}, config = ${JSON.stringify(store?.sliceConfig)}`
+    );
+    if (!stateExists) {
+      debugConfig(`state missing for [${slice.reducerPath}], add reducer`);
       // Lazy load the reducer.
-      const hydrate = !storeInstance.sliceConfig.disableHydration;
-      initReducer(storeInstance, hydrate);
-      initialized = true;
+      const hydrate = !store.sliceConfig.disableHydration;
+      initReducer(store, hydrate);
     }
     debugConfig('ended');
   };

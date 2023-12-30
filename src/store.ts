@@ -12,7 +12,7 @@ export { RootState } from './slices/reducer.js';
 export function setupStore(preloadedState?: RootState, hydrate: boolean = true) {
   const sliceConfig: SliceConfig = { disableHydration: !hydrate };
 
-  const store /*: RootStore*/ = configureStore({
+  const store = configureStore({
     reducer: rootReducer,
     preloadedState,
     middleware: (getDefaultMiddleware) =>
