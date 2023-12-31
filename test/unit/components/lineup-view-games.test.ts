@@ -3,7 +3,6 @@
 import '@app/components/lineup-view-games.js';
 import { LineupViewGames } from '@app/components/lineup-view-games.js';
 import { Games } from '@app/models/game.js';
-import { getGameStoreConfigurator } from '@app/slices/game-store.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
@@ -38,12 +37,7 @@ describe('lineup-view-games tests', () => {
   async function setupElement(preloadedState?: RootState) {
     const store = setupStore(preloadedState, /*hydrate=*/ false);
 
-    const template = html`<lineup-view-games
-      active
-      .store=${store}
-      .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/ false)}
-    >
-    </lineup-view-games>`;
+    const template = html`<lineup-view-games active .store=${store}></lineup-view-games>`;
     el = await fixture(template);
   }
 

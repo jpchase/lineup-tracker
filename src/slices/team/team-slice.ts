@@ -1,7 +1,8 @@
 /** @format */
 
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction, type WithSlice } from '@reduxjs/toolkit';
 import { debug } from '../../common/debug.js';
+import { buildSliceConfigurator, SliceConfigurator } from '../../middleware/slice-configurator.js';
 import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
 import { CollectionFilter, whereFilter } from '../../storage/firestore-reader.js';
@@ -129,7 +130,7 @@ export const TEAM_INITIAL_STATE: TeamState = {
   error: '',
 };
 
-const teamSlice = createSlice({
+export const teamSlice = createSlice({
   name: 'team',
   initialState: TEAM_INITIAL_STATE,
   reducers: {
@@ -159,9 +160,16 @@ const teamSlice = createSlice({
   },
 });
 
-const { actions, reducer } = teamSlice;
+// Extend the root state typings with this slice.
+//  - The module "name" is actually the relative path to interface definition.
+declare module '../reducer' {
+  export interface LazyLoadedSlices extends WithSlice<typeof teamSlice> {}
+}
 
-export const team = reducer;
-export const { addTeam, addPlayer } = actions;
+export function getTeamSliceConfigurator(): SliceConfigurator {
+  return buildSliceConfigurator(teamSlice);
+}
+
+export const { addTeam, addPlayer } = teamSlice.actions;
 
 export const selectTeamsLoaded = (state: RootState) => state.team?.teamsLoaded;

@@ -5,10 +5,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { LiveGame, LivePlayer } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
-import { selectLiveGameById } from '../slices/live/index.js';
-// The specific store configurator, which handles initialization/lazy-loading.
-import { getLiveStore } from '../slices/live/live-module-configurator.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import { getLiveSliceConfigurator, selectLiveGameById } from '../slices/live/index.js';
+import { RootState } from '../store.js';
 import './lineup-game-shifts.js';
 import { SharedStyles } from './shared-styles.js';
 
@@ -35,12 +33,6 @@ export class LineupGameComplete extends ConnectStoreMixin(LitElement) {
     </div>`;
   }
 
-  @property({ type: Object })
-  override store?: RootStore;
-
-  @property({ type: Object })
-  storeConfigurator?: SliceStoreConfigurator = getLiveStore;
-
   @property({ type: String })
   gameId?: string;
 
@@ -52,6 +44,11 @@ export class LineupGameComplete extends ConnectStoreMixin(LitElement) {
 
   @state()
   private trackerData?: PlayerTimeTrackerMapData;
+
+  constructor() {
+    super();
+    this.registerSliceConfigurator(getLiveSliceConfigurator());
+  }
 
   override stateChanged(state: RootState) {
     if (!state.live || !this.gameId) {

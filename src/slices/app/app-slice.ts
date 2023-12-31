@@ -1,7 +1,9 @@
 /** @format */
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, type WithSlice } from '@reduxjs/toolkit';
+import { PersistConfig } from 'redux-persist';
 import { getEnv } from '../../app/environment.js';
+import { buildSliceConfigurator, SliceConfigurator } from '../../middleware/slice-configurator.js';
 import { Team } from '../../models/team.js';
 import type { RootState, ThunkResult } from '../../store.js';
 import { addTeam } from '../team/team-slice.js';
@@ -57,7 +59,7 @@ export const APP_INITIAL_STATE: AppState = {
   teamName: '',
 };
 
-const appSlice = createSlice({
+export const appSlice = createSlice({
   name: APP_SLICE_NAME,
   initialState: APP_INITIAL_STATE,
   reducers: {
@@ -106,6 +108,19 @@ const appSlice = createSlice({
     });
   },
 });
+
+// Extend the root state typings with this slice.
+//  - The module "name" is actually the relative path to interface definition.
+declare module '../reducer' {
+  export interface LazyLoadedSlices extends WithSlice<typeof appSlice> {}
+}
+
+export function getAppSliceConfigurator(): SliceConfigurator {
+  const persistConfig: Partial<PersistConfig<AppState>> = {
+    whitelist: ['teamId', 'teamName'],
+  };
+  return buildSliceConfigurator(appSlice, persistConfig);
+}
 
 const { actions, reducer } = appSlice;
 

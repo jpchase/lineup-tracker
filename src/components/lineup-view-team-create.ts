@@ -4,7 +4,8 @@ import { contextProvided } from '@lit-labs/context';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { addNewTeam, team } from '../slices/team/team-slice.js';
+import { getTeamSliceConfigurator } from '../slices/team/index.js';
+import { addNewTeam } from '../slices/team/team-slice.js';
 import { store } from '../store.js';
 import './lineup-team-create.js';
 import { NewTeamCreatedEvent } from './lineup-team-create.js';
@@ -13,9 +14,8 @@ import { PageViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 // We are lazy loading its reducer.
-store.addReducers({
-  team,
-});
+const teamConfigurator = getTeamSliceConfigurator();
+teamConfigurator(store);
 
 @customElement('lineup-view-team-create')
 export class LineupViewTeamCreate extends connect(store)(PageViewElement) {

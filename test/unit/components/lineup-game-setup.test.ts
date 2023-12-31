@@ -6,7 +6,7 @@ import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard, PositionSelectedEvent } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { PageRouter } from '@app/components/page-router.js';
-import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { FormationBuilder, FormationType, getPositions } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import {
@@ -18,7 +18,6 @@ import {
   SetupTask,
 } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { getLiveStoreConfigurator } from '@app/slices/live/live-module-configurator.js';
 import { actions as liveActions, selectLiveGameById } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';
@@ -121,7 +120,7 @@ describe('lineup-game-setup tests', () => {
   });
 
   afterEach(async () => {
-    removeMiddleware(actionLoggerMiddleware);
+    // removeMiddleware(actionLoggerMiddleware);
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string): Promise<PageRouter> {
@@ -138,7 +137,6 @@ describe('lineup-game-setup tests', () => {
     const template = html`<lineup-game-setup
       .gameId="${gameId}"
       .store=${store}
-      .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/ false)}
     ></lineup-game-setup>`;
     el = await fixture(template, { parentNode });
     dispatchStub = sinon.spy(el, 'dispatch');

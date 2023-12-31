@@ -4,7 +4,6 @@ import { LineupViewGameDetail } from '@app/components/lineup-view-game-detail.js
 import '@app/components/lineup-view-game-detail.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame } from '@app/models/live.js';
-import { getGameStoreConfigurator } from '@app/slices/game-store.js';
 import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import { ifDefined } from 'lit/directives/if-defined.js';
@@ -49,7 +48,6 @@ describe('lineup-view-game-detail tests', () => {
       gameId="${ifDefined(gameId)}"
       active
       .store=${store}
-      .storeConfigurator=${getGameStoreConfigurator(/*hydrate=*/ false)}
     >
     </lineup-view-game-detail>`;
     el = await fixture(template);

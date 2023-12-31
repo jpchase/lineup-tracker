@@ -5,7 +5,7 @@ import { BaseRouteConfig, RouteConfig, Router } from '@lit-labs/router';
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
-import { html, LitElement, PropertyValues } from 'lit';
+import { LitElement, PropertyValues, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
@@ -22,8 +22,9 @@ import {
   updateDrawerState,
   updatePage,
 } from '../slices/app/app-slice.js';
-import { auth, signIn } from '../slices/auth/auth-slice.js';
-import { getTeams, selectTeamsLoaded, team } from '../slices/team/team-slice.js';
+import { signIn } from '../slices/auth/auth-slice.js';
+import { getTeamSliceConfigurator } from '../slices/team/index.js';
+import { getTeams, selectTeamsLoaded } from '../slices/team/team-slice.js';
 import { RootState, store } from '../store.js';
 import { accountIcon } from './lineup-icons.js';
 import './lineup-team-selector-dialog.js';
@@ -32,10 +33,8 @@ import './lineup-team-selector.js';
 import { pageRouterContext } from './page-router.js';
 
 // Lazy load the reducers.
-store.addReducers({
-  auth,
-  team,
-});
+const teamConfigurator = getTeamSliceConfigurator();
+teamConfigurator(store);
 
 interface Page {
   page: string;

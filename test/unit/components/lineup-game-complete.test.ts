@@ -4,7 +4,6 @@ import '@app/components/lineup-game-complete.js';
 import { LineupGameComplete } from '@app/components/lineup-game-complete.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame } from '@app/models/live.js';
-import { getLiveStoreConfigurator } from '@app/slices/live/live-module-configurator.js';
 import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
@@ -33,11 +32,7 @@ describe('lineup-game-complete tests', () => {
   async function setupElement(preloadedState?: RootState, gameId?: string) {
     const store = setupStore(preloadedState, /*hydrate=*/ false);
 
-    const template = html`<lineup-game-complete
-      .gameId="${gameId}"
-      .store=${store}
-      .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/ false)}
-    >
+    const template = html`<lineup-game-complete .gameId="${gameId}" .store=${store}>
     </lineup-game-complete>`;
     el = await fixture(template);
   }

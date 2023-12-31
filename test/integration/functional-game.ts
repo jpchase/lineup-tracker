@@ -1,7 +1,7 @@
 /** @format */
 
 import { Game } from '@app/models/game.js';
-import rtk from '@reduxjs/toolkit';
+import { nanoid } from '@reduxjs/toolkit';
 import { expect } from 'chai';
 import { integrationTestData } from './data/integration-data-constants.js';
 import { GameCreatePage } from './pages/game-create-page.js';
@@ -14,8 +14,6 @@ import {
   readGame,
   readGameRoster,
 } from './server/firestore-access.js';
-
-const { nanoid } = rtk;
 
 describe('Game functional tests', () => {
   let firestore: Firestore;

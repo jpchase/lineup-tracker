@@ -6,13 +6,12 @@ import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
-import { addMiddleware, removeMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { FormationType } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { endPeriodCreator, selectLiveGameById } from '@app/slices/live/index.js';
-import { getLiveStoreConfigurator } from '@app/slices/live/live-module-configurator.js';
 import { actions as liveActions } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
@@ -83,7 +82,7 @@ describe('lineup-game-live tests', () => {
 
   afterEach(async () => {
     sinon.restore();
-    removeMiddleware(actionLoggerMiddleware);
+    // removeMiddleware(actionLoggerMiddleware);
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
@@ -92,7 +91,6 @@ describe('lineup-game-live tests', () => {
     const template = html`<lineup-game-live
       .gameId="${gameId}"
       .store=${store}
-      .storeConfigurator=${getLiveStoreConfigurator(/*hydrate=*/ false)}
     ></lineup-game-live>`;
     el = await fixture(template);
     dispatchStub = sinon.spy(el, 'dispatch');

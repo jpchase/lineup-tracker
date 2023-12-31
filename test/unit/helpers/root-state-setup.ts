@@ -10,6 +10,7 @@ import { buildInitialLiveState } from './live-state-setup.js';
 
 export function buildRootState(game?: GameState, live?: LiveState): RootState {
   return {
+    auth: {} as AuthState,
     game,
     live,
   };

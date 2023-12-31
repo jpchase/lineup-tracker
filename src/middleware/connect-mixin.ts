@@ -1,8 +1,10 @@
 /** @format */
 
 import { AnyAction, ThunkAction, Unsubscribe } from '@reduxjs/toolkit';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import { property } from 'lit/decorators.js';
+import { AppStore, RootState, store as globalStore } from '../store.js';
 import { Constructor } from '../util/shared-types.js';
+import { SliceConfigurator } from './slice-configurator.js';
 
 interface CustomElement {
   connectedCallback?(): void;
@@ -10,11 +12,11 @@ interface CustomElement {
 }
 
 export declare class StoreConnected {
-  store?: RootStore;
+  store?: AppStore;
   stateChanged(state: RootState): void;
   dispatch<R>(action: AnyAction | ThunkAction<R, RootState, any, any>): AnyAction | R;
-  // TODO: Make protected
   protected registerController(controller: StateSubscribedController): void;
+  protected registerSliceConfigurator(configurator: SliceConfigurator): void;
 }
 
 export interface StateSubscribedController {
@@ -23,25 +25,27 @@ export interface StateSubscribedController {
 
 export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superClass: T) => {
   class ConnectStoreClass extends superClass {
+    private configurators = new Set<SliceConfigurator>();
     private controllers = new Set<StateSubscribedController>();
     private _storeUnsubscribe!: Unsubscribe;
-    store?: RootStore;
-    storeConfigurator?: SliceStoreConfigurator;
+
+    @property({ type: Object })
+    store?: AppStore;
 
     override connectedCallback() {
       if (super.connectedCallback) {
         super.connectedCallback();
       }
 
-      // Configure the store, to allow for lazy loading.
-      if (this.storeConfigurator) {
-        if (this.store) {
-          this.storeConfigurator(this.store);
-        } else {
-          this.store = this.storeConfigurator(this.store);
-        }
+      // Use the global store, if the store instance was not previously set.
+      if (!this.store) {
+        this.store = globalStore;
       }
       const store = this.store;
+      // Configure lazy-loaded slices.
+      this.configurators.forEach((configurator) => {
+        configurator(store);
+      });
       if (store) {
         // Connect the element to the store.
         this._storeUnsubscribe = store.subscribe(() => {
@@ -69,6 +73,13 @@ export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superCla
 
       // Finally, notify the element.
       this.stateChanged(state);
+    }
+
+    protected registerSliceConfigurator(configurator: SliceConfigurator) {
+      if (!configurator) {
+        return;
+      }
+      this.configurators.add(configurator);
     }
 
     protected registerController(controller: StateSubscribedController) {

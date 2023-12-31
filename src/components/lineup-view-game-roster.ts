@@ -8,7 +8,7 @@ import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
-import { getGameStore } from '../slices/game-store.js';
+import { getGameSliceConfigurator } from '../slices/game/index.js';
 import {
   addNewGamePlayer,
   copyRoster,
@@ -16,7 +16,7 @@ import {
   selectGameById,
   selectGameRosterLoading,
 } from '../slices/game/game-slice.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import { RootState } from '../store.js';
 import './lineup-roster.js';
 import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
@@ -88,12 +88,6 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
     `;
   }
 
-  @property({ type: Object })
-  override store?: RootStore;
-
-  @property({ type: Object })
-  storeConfigurator?: SliceStoreConfigurator = getGameStore;
-
   @property({ type: String })
   gameId?: string;
 
@@ -110,6 +104,7 @@ export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElemen
 
   constructor() {
     super();
+    this.registerSliceConfigurator(getGameSliceConfigurator());
     this.registerController(new SignedInAuthController(this));
   }
 

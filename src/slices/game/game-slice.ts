@@ -1,6 +1,7 @@
 /** @format */
 
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction, type WithSlice } from '@reduxjs/toolkit';
+import { buildSliceConfigurator, SliceConfigurator } from '../../middleware/slice-configurator.js';
 import { Game, GameDetail, Games, GameStatus } from '../../models/game.js';
 import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
@@ -173,7 +174,7 @@ export const GAME_INITIAL_STATE: GameState = {
   error: '',
 };
 
-const gameSlice = createSlice({
+export const gameSlice = createSlice({
   name: 'game',
   initialState: GAME_INITIAL_STATE,
   reducers: {
@@ -244,11 +245,19 @@ const gameSlice = createSlice({
   },
 });
 
-const { actions, reducer } = gameSlice;
+// Extend the root state typings with this slice.
+//  - The module "name" is actually the relative path to interface definition.
+declare module '../reducer' {
+  export interface LazyLoadedSlices extends WithSlice<typeof gameSlice> {}
+}
 
-export const gameReducer = reducer;
+export function getGameSliceConfigurator(): SliceConfigurator {
+  return buildSliceConfigurator(gameSlice);
+}
 
-export const { addGame, gamePlayerAdded } = actions;
+export const gameReducer = gameSlice.reducer;
+
+export const { addGame, gamePlayerAdded } = gameSlice.actions;
 
 export const selectGameById = (state: RootState, gameId: string) => {
   return maybeFindGame(state.game, gameId);

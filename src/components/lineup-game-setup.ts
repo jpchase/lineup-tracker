@@ -17,8 +17,8 @@ import {
 } from '../models/formation.js';
 import { GameDetail } from '../models/game.js';
 import { LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/live.js';
-import { getGameStore } from '../slices/game-store.js';
 import { gameSetupCompletedCreator, selectGameById } from '../slices/game/game-slice.js';
+import { getGameSliceConfigurator } from '../slices/game/index.js';
 import {
   applyStarter,
   cancelStarter,
@@ -26,6 +26,7 @@ import {
   configurePeriods,
   formationSelected,
   getLiveGame,
+  getLiveSliceConfigurator,
   rosterCompleted,
   selectInvalidStarters,
   selectLiveGameById,
@@ -33,8 +34,7 @@ import {
   selectStarterPosition,
   startersCompletedCreator,
 } from '../slices/live/index.js';
-import { getLiveStore } from '../slices/live/live-module-configurator.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import { RootState } from '../store.js';
 import './lineup-on-player-list.js';
 import { PlayerSelectedEvent, PositionSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';
@@ -281,12 +281,6 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     >`;
   }
 
-  @property({ type: Object })
-  override store?: RootStore;
-
-  @property({ type: Object })
-  storeConfigurator?: SliceStoreConfigurator = getLiveStore;
-
   @contextProvided({ context: pageRouterContext, subscribe: true })
   @property({ attribute: false })
   pageRouter!: PageRouter;
@@ -327,8 +321,10 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   @state()
   private invalidStarters?: string[];
 
-  override firstUpdated() {
-    getGameStore(this.store);
+  constructor() {
+    super();
+    this.registerSliceConfigurator(getGameSliceConfigurator());
+    this.registerSliceConfigurator(getLiveSliceConfigurator());
   }
 
   override stateChanged(state: RootState) {

@@ -28,6 +28,7 @@ import {
   discardPendingSubs,
   endPeriodCreator,
   gameCompleted,
+  getLiveSliceConfigurator,
   markPeriodOverdueCreator,
   markPlayerOut,
   pendingSubsAppliedCreator,
@@ -41,8 +42,7 @@ import {
   startPeriodCreator,
   toggleClock,
 } from '../slices/live/index.js';
-import { getLiveStore } from '../slices/live/live-module-configurator.js';
-import { RootState, RootStore, SliceStoreConfigurator } from '../store.js';
+import { RootState } from '../store.js';
 import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-events.js';
@@ -230,12 +230,6 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     `;
   }
 
-  @property({ type: Object })
-  override store?: RootStore;
-
-  @property({ type: Object })
-  storeConfigurator?: SliceStoreConfigurator = getLiveStore;
-
   @property({ type: String })
   gameId?: string;
 
@@ -299,6 +293,11 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       return this._findPlayer(playerId);
     },
   });
+
+  constructor() {
+    super();
+    this.registerSliceConfigurator(getLiveSliceConfigurator());
+  }
 
   override stateChanged(state: RootState) {
     if (!state.live || !this.gameId) {

@@ -1,15 +1,15 @@
 /** @format */
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { Position } from '../../models/formation.js';
 import { Game, GameDetail, GameStatus } from '../../models/game.js';
 import {
-  findPlayersByStatus,
-  getPlayer,
   LiveGame,
   LiveGameBuilder,
   LiveGames,
   LivePlayer,
+  findPlayersByStatus,
+  getPlayer,
 } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
 import { RootState, ThunkResult } from '../../store.js';
@@ -321,6 +321,15 @@ export const liveSlice = createSlice({
     );
   },
 });
+
+// Extend the root state typings with this slice.
+//  - The module "name" is actually the relative path to interface definition.
+declare module '../reducer' {
+  // This does not use `WithSlice` as there isn't a slice for the combined state.
+  export interface LazyLoadedSlices {
+    live: LiveState;
+  }
+}
 
 export const { actions } = liveSlice;
 
