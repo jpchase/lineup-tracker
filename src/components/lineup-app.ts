@@ -507,7 +507,7 @@ export class LineupApp extends connect(store)(LitElement) {
     this._page = state.app!.page;
     this.drawerOpen = state.app!.drawerOpened;
 
-    this._user = state.auth!.user;
+    this._user = state.auth.user;
 
     this._teams = state.team!.teams;
     this.currentTeam = selectCurrentTeam(state);
