@@ -17,8 +17,11 @@ import {
 } from '../models/formation.js';
 import { GameDetail } from '../models/game.js';
 import { LiveGame, LivePlayer, SetupStatus, SetupSteps, SetupTask } from '../models/live.js';
-import { gameSetupCompletedCreator, selectGameById } from '../slices/game/game-slice.js';
-import { getGameSliceConfigurator } from '../slices/game/index.js';
+import {
+  gameSetupCompletedCreator,
+  getGameSliceConfigurator,
+  selectGameById,
+} from '../slices/game/index.js';
 import {
   applyStarter,
   cancelStarter,

@@ -2,7 +2,7 @@
 
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { StateSubscribedController } from '../../middleware/connect-mixin.js';
-import { selectCurrentUserId } from '../../slices/auth/auth-slice.js';
+import { selectCurrentUserId } from '../../slices/auth/index.js';
 import { RootState } from '../../store.js';
 import { AuthorizedView } from '../page-view-element.js';
 

@@ -2,8 +2,8 @@
 
 import { createListenerMiddleware, TypedStartListening, Unsubscribe } from '@reduxjs/toolkit';
 import { debug } from '../common/debug.js';
-import { currentTeamChanged } from '../slices/app/app-slice.js';
-import { userSignedIn } from '../slices/auth/auth-slice.js';
+import { currentTeamChanged } from '../slices/app/index.js';
+import { userSignedIn } from '../slices/auth/index.js';
 import type { AppDispatch, RootState } from '../store.js';
 import { getEnv } from './environment.js';
 

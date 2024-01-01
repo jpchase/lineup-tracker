@@ -13,9 +13,9 @@ const env = getEnv();
 let snackbarTimer: number;
 
 export const showSnackbar = (): ThunkResult => (dispatch) => {
-  dispatch(openSnackBar());
+  dispatch(appSlice.actions.openSnackBar());
   window.clearTimeout(snackbarTimer);
-  snackbarTimer = window.setTimeout(() => dispatch(closeSnackBar()), 3000);
+  snackbarTimer = window.setTimeout(() => dispatch(appSlice.actions.closeSnackBar()), 3000);
 };
 
 export const offlineChanged =
@@ -26,7 +26,7 @@ export const offlineChanged =
     if (offline !== appState.offline && !env.disableOfflineDetection) {
       dispatch(showSnackbar());
     }
-    dispatch(updateOffline(offline));
+    dispatch(appSlice.actions.updateOffline(offline));
   };
 
 export const selectCurrentTeam = (state: RootState): Team | undefined => {
@@ -122,17 +122,9 @@ export function getAppSliceConfigurator(): SliceConfigurator {
   return buildSliceConfigurator(appSlice, persistConfig);
 }
 
-const { actions, reducer } = appSlice;
-
-export const {
-  currentTeamChanged,
-  openSnackBar,
-  closeSnackBar,
-  updateDrawerState,
-  updateOffline,
-  updatePage,
-} = actions;
-export const appReducer = reducer;
+export const { currentTeamChanged, updateDrawerState, updatePage } = appSlice.actions;
+export const actions = appSlice.actions;
+export const appReducer = appSlice.reducer;
 
 function setCurrentTeam(state: AppState, teamId: string, teamName: string) {
   state.teamId = teamId;

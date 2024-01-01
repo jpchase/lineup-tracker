@@ -5,10 +5,9 @@ import { Team, TeamData } from '@app/models/team.js';
 import {
   TEAM_INITIAL_STATE,
   TeamState,
+  actions,
   addNewPlayer,
   addNewTeam,
-  addPlayer,
-  addTeam,
   getRoster,
   getTeams,
   savePlayer,
@@ -35,6 +34,7 @@ import {
 const KEY_TEAMS = 'teams';
 const KEY_ROSTER = 'roster';
 
+const { addPlayer, addTeam } = actions;
 const team = teamSlice.reducer;
 
 export function getNewTeamData() {

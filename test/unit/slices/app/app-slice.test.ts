@@ -2,14 +2,16 @@
 
 import { Team } from '@app/models/team.js';
 import {
-  appReducer as app,
-  AppState,
   APP_INITIAL_STATE,
-  currentTeamChanged,
+  AppState,
+  actions,
+  appReducer as app,
 } from '@app/slices/app/app-slice.js';
-import { addTeam } from '@app/slices/team/team-slice.js';
+import { addTeam } from '@app/slices/team/index.js';
 import { expect } from '@open-wc/testing';
 import { getStoredTeam } from '../../helpers/test_data.js';
+
+const { currentTeamChanged } = actions;
 
 describe('App slice', () => {
   const newTeam: Team = {

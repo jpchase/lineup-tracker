@@ -16,8 +16,8 @@ import {
 import { debug, debugError } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
 import { Model } from '../models/model.js';
-import { selectCurrentTeam } from '../slices/app/app-slice.js';
-import { selectCurrentUserId } from '../slices/auth/auth-slice.js';
+import { selectCurrentTeam } from '../slices/app/index.js';
+import { selectCurrentUserId } from '../slices/auth/index.js';
 import { RootState } from '../store.js';
 import { ModelWriter } from './model-converter.js';
 

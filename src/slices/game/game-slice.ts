@@ -126,7 +126,7 @@ export const saveGame =
       newGame.status = GameStatus.New;
     }
     await persistNewGame(newGame, getState());
-    dispatch(addGame(newGame));
+    dispatch(gameSlice.actions.addGame(newGame));
   };
 
 export const gameSetupCompletedCreator =
@@ -255,9 +255,8 @@ export function getGameSliceConfigurator(): SliceConfigurator {
   return buildSliceConfigurator(gameSlice);
 }
 
+export const actions = gameSlice.actions;
 export const gameReducer = gameSlice.reducer;
-
-export const { addGame, gamePlayerAdded } = gameSlice.actions;
 
 export const selectGameById = (state: RootState, gameId: string) => {
   return maybeFindGame(state.game, gameId);

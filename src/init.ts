@@ -2,7 +2,7 @@
 
 import { setupAuthListeners, startAppListening } from './app/action-listeners.js';
 import { debug } from './common/debug.js';
-import { getUser } from './slices/auth/auth-slice.js';
+import { getUser } from './slices/auth/index.js';
 import { store } from './store.js';
 
 const debugInit = debug('initApp');

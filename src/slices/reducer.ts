@@ -1,7 +1,7 @@
 /** @format */
 
 import { combineSlices } from '@reduxjs/toolkit';
-import { authSlice } from './auth/index.js';
+import { authSlice } from './auth/auth-slice.js';
 
 export interface LazyLoadedSlices {}
 

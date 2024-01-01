@@ -3,10 +3,10 @@
 import { GameDetail } from '@app/models/game.js';
 import { Player, Roster } from '@app/models/player.js';
 import {
-  copyRoster,
-  gamePlayerAdded,
-  gameReducer,
   GameState,
+  copyRoster,
+  actions as gameActions,
+  gameReducer,
 } from '@app/slices/game/game-slice.js';
 import * as actions from '@app/slices/game/roster-logic.js';
 import { reader } from '@app/storage/firestore-reader.js';
@@ -19,6 +19,7 @@ import {
 } from '../../helpers/game-state-setup.js';
 import { mockGetState } from '../../helpers/root-state-setup.js';
 import {
+  STORED_GAME_ID,
   buildRoster,
   getNewGameDetail,
   getNewPlayer,
@@ -26,8 +27,9 @@ import {
   getOtherStoredPlayer,
   getStoredGame,
   getStoredPlayer,
-  STORED_GAME_ID,
 } from '../../helpers/test_data.js';
+
+const { gamePlayerAdded } = gameActions;
 
 function getTeamRoster() {
   return buildRoster([getStoredPlayer(), getOtherStoredPlayer()]);

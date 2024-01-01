@@ -36,11 +36,11 @@ export const getUser = (): ThunkPromise<boolean> => (dispatch) => {
   authApi.onAuthStateChanged(firebaseRefs.auth, (user: FirebaseUser | null) => {
     if (user) {
       debugAuth(`onAuthStateChanged: id = ${user.uid}, name = ${user.displayName}`);
-      dispatch(userSignedIn(getUserFromFirebaseUser(user)));
+      dispatch(authSlice.actions.userSignedIn(getUserFromFirebaseUser(user)));
       resolveFunc(true);
     } else {
       debugAuth(`onAuthStateChanged: user = ${user}`);
-      dispatch(userSignedOut());
+      dispatch(authSlice.actions.userSignedOut());
       resolveFunc(false);
     }
   });
@@ -98,7 +98,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const { userSignedIn, userSignedOut } = authSlice.actions;
+export const { actions } = authSlice;
 
 export const selectCurrentUser = (state: RootState) => state.auth?.user;
 

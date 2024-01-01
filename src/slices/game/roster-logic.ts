@@ -5,7 +5,7 @@ import { Player, Roster } from '../../models/player.js';
 import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { loadTeamRoster } from '../team/team-storage.js';
 import { PlayerAddedPayload, RosterCopiedPayload } from './game-action-types.js';
-import { findGame, gamePlayerAdded, GameState, selectGameById } from './game-slice.js';
+import { findGame, actions, GameState, selectGameById } from './game-slice.js';
 import { persistGamePlayer } from './game-storage.js';
 
 export const copyRoster = createAsyncThunk<
@@ -127,7 +127,7 @@ export const saveGamePlayer =
   async (dispatch) => {
     // Save the player to Firestore, before adding to the store.
     await persistGamePlayer(newPlayer, gameId, true);
-    dispatch(gamePlayerAdded(gameId, newPlayer));
+    dispatch(actions.gamePlayerAdded(gameId, newPlayer));
   };
 
 export const gamePlayerAddedHandler = (
