@@ -2,15 +2,17 @@
 
 import { auth } from '@app/firebase';
 import { User } from '@app/models/auth';
-import { getUser, signIn, userSignedIn, userSignedOut } from '@app/slices/auth/auth-slice.js';
+import { actions, getUser, signIn } from '@app/slices/auth/auth-slice.js';
 import { expect } from '@open-wc/testing';
 import {
-  onAuthStateChanged,
-  OperationType,
   User as FirebaseUser,
+  OperationType,
   UserCredential,
+  onAuthStateChanged,
 } from 'firebase/auth';
 import sinon from 'sinon';
+
+const { userSignedIn, userSignedOut } = actions;
 
 type AuthStateChangedFn = typeof onAuthStateChanged;
 

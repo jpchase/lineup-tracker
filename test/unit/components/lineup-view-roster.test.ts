@@ -5,8 +5,8 @@ import '@app/components/lineup-view-roster.js';
 import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { Player, Roster } from '@app/models/player.js';
 import { Team, Teams } from '@app/models/team.js';
-import { currentTeamChanged } from '@app/slices/app/app-slice.js';
-import { addPlayer, getRoster, getTeams } from '@app/slices/team/team-slice.js';
+import { currentTeamChanged } from '@app/slices/app/index.js';
+import { getRoster, getTeams, actions as teamActions } from '@app/slices/team/team-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, store } from '@app/store.js';
@@ -25,6 +25,8 @@ import {
   getStoredPlayer,
   getStoredTeam,
 } from '../helpers/test_data.js';
+
+const { addPlayer } = teamActions;
 
 let actions: string[] = [];
 const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {

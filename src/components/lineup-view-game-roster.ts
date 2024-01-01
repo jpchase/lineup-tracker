@@ -8,14 +8,14 @@ import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
-import { getGameSliceConfigurator } from '../slices/game/index.js';
 import {
   addNewGamePlayer,
   copyRoster,
   getGame,
+  getGameSliceConfigurator,
   selectGameById,
   selectGameRosterLoading,
-} from '../slices/game/game-slice.js';
+} from '../slices/game/index.js';
 import { RootState } from '../store.js';
 import './lineup-roster.js';
 import { AuthorizedViewElement } from './page-view-element.js';

@@ -21,10 +21,10 @@ import {
   selectCurrentTeam,
   updateDrawerState,
   updatePage,
-} from '../slices/app/app-slice.js';
-import { signIn } from '../slices/auth/auth-slice.js';
+} from '../slices/app/index.js';
+import { signIn } from '../slices/auth/index.js';
 import { getTeamSliceConfigurator } from '../slices/team/index.js';
-import { getTeams, selectTeamsLoaded } from '../slices/team/team-slice.js';
+import { getTeams, selectTeamsLoaded } from '../slices/team/index.js';
 import { RootState, store } from '../store.js';
 import { accountIcon } from './lineup-icons.js';
 import './lineup-team-selector-dialog.js';

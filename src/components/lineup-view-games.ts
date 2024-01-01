@@ -6,7 +6,7 @@ import { customElement, query, state } from 'lit/decorators.js';
 import { debug } from '../common/debug.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { Game, Games } from '../models/game.js';
-import { selectCurrentTeam } from '../slices/app/app-slice.js';
+import { selectCurrentTeam } from '../slices/app/index.js';
 import { addNewGame, getGameSliceConfigurator, getGames } from '../slices/game/index.js';
 import { RootState } from '../store.js';
 import './lineup-game-create.js';

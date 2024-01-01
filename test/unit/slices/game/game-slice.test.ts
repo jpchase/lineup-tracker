@@ -5,12 +5,12 @@ import { LiveGameBuilder } from '@app/models/live.js';
 import { Roster } from '@app/models/player.js';
 import { AuthState } from '@app/slices/auth/auth-slice.js';
 import {
-  addGame,
-  addNewGame,
-  gameCompletedCreator,
-  gameReducer as game,
-  gameSetupCompletedCreator,
   GameState,
+  addNewGame,
+  gameReducer as game,
+  actions as gameActions,
+  gameCompletedCreator,
+  gameSetupCompletedCreator,
   getGame,
   getGames,
   saveGame,
@@ -28,6 +28,8 @@ import {
 import { buildLiveStateWithCurrentGame } from '../../helpers/live-state-setup.js';
 import { mockGetState } from '../../helpers/root-state-setup.js';
 import {
+  OTHER_STORED_GAME_ID,
+  TEST_USER_ID,
   buildGames,
   buildRoster,
   getMockAuthState,
@@ -41,12 +43,11 @@ import {
   getStoredGameData,
   getStoredPlayer,
   getStoredTeam,
-  OTHER_STORED_GAME_ID,
-  TEST_USER_ID,
 } from '../../helpers/test_data.js';
 
 const KEY_GAMES = 'games';
 
+const { addGame } = gameActions;
 const { gameCompleted, gameSetupCompleted } = liveActions;
 
 function getOtherStoredGameWithoutDetail(): Game {

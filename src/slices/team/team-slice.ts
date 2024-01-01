@@ -72,7 +72,7 @@ export const saveTeam =
   async (dispatch, getState) => {
     // Save the team to Firestore, before adding to the store.
     await persistTeam(newTeam, getState());
-    dispatch(addTeam(newTeam));
+    dispatch(teamSlice.actions.addTeam(newTeam));
   };
 
 export const getRoster = createAsyncThunk(
@@ -111,7 +111,7 @@ export const savePlayer =
     // Save the player to Firestore, before adding to the store.
     const teamId = selectCurrentTeam(getState())?.id!;
     await savePlayerToTeamRoster(newPlayer, teamId);
-    dispatch(addPlayer(newPlayer));
+    dispatch(teamSlice.actions.addPlayer(newPlayer));
   };
 
 export interface TeamState {
@@ -170,6 +170,7 @@ export function getTeamSliceConfigurator(): SliceConfigurator {
   return buildSliceConfigurator(teamSlice);
 }
 
-export const { addTeam, addPlayer } = teamSlice.actions;
+export const { actions } = teamSlice;
+export const { addTeam } = teamSlice.actions;
 
 export const selectTeamsLoaded = (state: RootState) => state.team?.teamsLoaded;
