@@ -1,6 +1,6 @@
 /** @format */
 
-import { ContextProvider } from '@lit-labs/context';
+import { ContextProvider } from '@lit/context';
 import { BaseRouteConfig, RouteConfig, Router } from '@lit-labs/router';
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';

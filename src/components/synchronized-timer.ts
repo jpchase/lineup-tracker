@@ -1,6 +1,6 @@
 /** @format */
 
-import { createContext } from '@lit-labs/context';
+import { createContext } from '@lit/context';
 
 export interface SynchronizedTimer {
   timerUpdateRequested(): void;

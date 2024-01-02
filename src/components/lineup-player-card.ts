@@ -1,6 +1,6 @@
 /** @format */
 
-import { ContextConsumer, contextProvided } from '@lit-labs/context';
+import { ContextConsumer, consume } from '@lit/context';
 import '@material/mwc-icon';
 import { LitElement, PropertyValues, html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -194,17 +194,16 @@ export class LineupPlayerCard extends LitElement {
 
   private timer = new SynchronizedTimerController(this);
 
-  protected timerNotifier = new ContextConsumer(
-    this,
-    synchronizedTimerContext,
-    (notifier /*, dispose*/) => {
+  protected timerNotifier = new ContextConsumer(this, {
+    context: synchronizedTimerContext,
+    callback: (notifier /*, dispose*/) => {
       // TODO: implement dispose to unregister from notifications
       notifier.registerTimer(this.timer);
     },
-    true // we want updates when the notifier changes
-  );
+    subscribe: true, // we want updates when the notifier changes
+  });
 
-  @contextProvided({ context: playerResolverContext, subscribe: true })
+  @consume({ context: playerResolverContext })
   @property({ attribute: false })
   playerResolver!: PlayerResolver;
 
