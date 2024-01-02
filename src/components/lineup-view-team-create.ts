@@ -1,6 +1,6 @@
 /** @format */
 
-import { contextProvided } from '@lit-labs/context';
+import { consume } from '@lit/context';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
@@ -28,7 +28,7 @@ export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
     `;
   }
 
-  @contextProvided({ context: pageRouterContext, subscribe: true })
+  @consume({ context: pageRouterContext, subscribe: true })
   @property({ attribute: false })
   pageRouter!: PageRouter;
 

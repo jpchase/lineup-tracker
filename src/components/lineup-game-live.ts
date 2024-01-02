@@ -1,6 +1,6 @@
 /** @format */
 
-import { ContextProvider } from '@lit-labs/context';
+import { ContextProvider } from '@lit/context';
 import '@material/mwc-button';
 import '@material/mwc-icon';
 import { html, LitElement, nothing } from 'lit';

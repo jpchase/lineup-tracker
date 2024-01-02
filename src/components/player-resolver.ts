@@ -1,6 +1,6 @@
 /** @format */
 
-import { createContext } from '@lit-labs/context';
+import { createContext } from '@lit/context';
 import { LivePlayer } from '../models/live.js';
 
 export interface PlayerResolver {

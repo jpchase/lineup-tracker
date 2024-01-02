@@ -1,6 +1,6 @@
 /** @format */
 
-import { createContext } from '@lit-labs/context';
+import { createContext } from '@lit/context';
 
 export interface PageRouter {
   // TODO: Pass page name and params separately

@@ -1,6 +1,6 @@
 /** @format */
 
-import { contextProvided } from '@lit-labs/context';
+import { consume } from '@lit/context';
 import '@material/mwc-button';
 import '@material/mwc-dialog';
 import '@material/mwc-icon';
@@ -284,7 +284,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     >`;
   }
 
-  @contextProvided({ context: pageRouterContext, subscribe: true })
+  @consume({ context: pageRouterContext, subscribe: true })
   @property({ attribute: false })
   pageRouter!: PageRouter;
 

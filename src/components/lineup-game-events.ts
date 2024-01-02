@@ -2,7 +2,7 @@
  * @format
  */
 
-import { contextProvided } from '@lit-labs/context';
+import { consume } from '@lit/context';
 import '@material/mwc-button';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
@@ -163,7 +163,7 @@ export class LineupGameEvents extends LitElement {
   private events?: EventCollection;
   private periods?: { periodNumber: number; startTime: number }[];
 
-  @contextProvided({ context: playerResolverContext, subscribe: true })
+  @consume({ context: playerResolverContext, subscribe: true })
   @property({ attribute: false })
   playerResolver!: PlayerResolver;
 

@@ -3,7 +3,7 @@
  * @license
  */
 
-import { ContextConsumer } from '@lit-labs/context';
+import { ContextConsumer } from '@lit/context';
 import '@material/mwc-button';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
@@ -66,15 +66,14 @@ export class LineupGameShifts extends LitElement {
 
   private trackerMap?: PlayerTimeTrackerMap;
 
-  protected timerNotifier = new ContextConsumer(
-    this,
-    synchronizedTimerContext,
-    (notifier /*, dispose*/) => {
+  protected timerNotifier = new ContextConsumer(this, {
+    context: synchronizedTimerContext,
+    callback: (notifier /*, dispose*/) => {
       // TODO: implement dispose to unregister from notifications
       notifier.registerTimer(this);
     },
-    true // we want updates when the notifier changes
-  );
+    subscribe: true, // we want updates when the notifier changes
+  });
 
   @property({ type: Object })
   public trackerData?: PlayerTimeTrackerMapData;
