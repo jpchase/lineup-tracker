@@ -27,6 +27,7 @@ function evolve(trackerMap: PlayerTimeTrackerMap, event: GameEvent) {
       break;
 
     case GameEventType.SubIn:
+      console.log(`sub event: ${JSON.stringify(event)}`);
       trackerMap.substitutePlayer(event.playerId, event.data.replaced, event.timestamp);
       break;
 
