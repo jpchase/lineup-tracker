@@ -9,8 +9,13 @@ export function createShiftTrackerFromEvents(
   events: GameEvent[],
   timeProvider?: CurrentTimeProvider
 ) {
+  // Ensure that the events are replayed in order they occurred.
+  const sortedEvents = events.slice(0);
+  sortedEvents.sort((a: GameEvent, b: GameEvent) => {
+    return a.timestamp! - b.timestamp!;
+  });
   const trackerMap = PlayerTimeTrackerMap.createFromGame(game, timeProvider);
-  for (const event of events) {
+  for (const event of sortedEvents) {
     evolve(trackerMap, event);
   }
   return trackerMap;
@@ -27,7 +32,6 @@ function evolve(trackerMap: PlayerTimeTrackerMap, event: GameEvent) {
       break;
 
     case GameEventType.SubIn:
-      console.log(`sub event: ${JSON.stringify(event)}`);
       trackerMap.substitutePlayer(event.playerId, event.data.replaced, event.timestamp);
       break;
 

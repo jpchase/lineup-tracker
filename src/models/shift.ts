@@ -82,7 +82,6 @@ export class PlayerTimeTracker {
   }
 
   get shiftTime() {
-    console.log(`shiftTime: ${this.toDebugString()}, running = ${this.currentTimer?.isRunning}`);
     return this.currentTimer?.getElapsed() || Duration.zero();
   }
 
@@ -145,12 +144,10 @@ export class PlayerTimeTracker {
   }
 
   substituteIn(clockRunning: boolean, subTime?: number) {
-    console.log(`subIn: running = ${clockRunning}, time = ${subTime}, ${this.toDebugString()}`);
     this.substituteInternal(/*goingOn=*/ true, clockRunning, subTime);
   }
 
   substituteOut(clockRunning: boolean, subTime?: number) {
-    console.log(`subOut: running = ${clockRunning}, time = ${subTime}, ${this.toDebugString()}`);
     this.substituteInternal(/*goingOn=*/ false, clockRunning, subTime);
   }
 
@@ -166,13 +163,7 @@ export class PlayerTimeTracker {
       this.isOn = true;
     } else {
       // Update total time before flipping on flag.
-      const beforeTime = this.totalTime;
       this.totalTime = Duration.add(this.totalTime, this.shiftTime);
-      console.log(
-        `update total, before = ${JSON.stringify(beforeTime)}, after = ${JSON.stringify(
-          this.totalTime
-        )}`
-      );
       this.isOn = false;
       this.alreadyOn = false;
     }
@@ -313,7 +304,6 @@ export class PlayerTimeTrackerMap {
     if (!this.trackers?.length) {
       throw new Error('Map is empty');
     }
-    console.log(`substitute time: ${subTime}`);
 
     const subTrackers: [PlayerTimeTracker, PlayerTimeTracker][] = [];
 
