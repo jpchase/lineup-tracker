@@ -125,17 +125,17 @@ export class PlayerTimeTracker {
     this.currentTimer?.reset();
   }
 
-  startShift() {
+  startShift(startTime?: number) {
     if (this.isOn) {
       this.onTimer = this.onTimer || new Timer(undefined, this.timeProvider);
-      this.onTimer.start();
+      this.onTimer.start(startTime);
       if (!this.alreadyOn) {
         this.alreadyOn = true;
         this.shiftCount += 1;
       }
     } else {
       this.offTimer = this.offTimer || new Timer(undefined, this.timeProvider);
-      this.offTimer.start();
+      this.offTimer.start(startTime);
     }
   }
 
@@ -143,21 +143,21 @@ export class PlayerTimeTracker {
     this.currentTimer?.stop(retroactiveStopTime);
   }
 
-  substituteIn(clockRunning: boolean) {
-    this.substituteInternal(/*goingOn=*/ true, clockRunning);
+  substituteIn(clockRunning: boolean, subTime?: number) {
+    this.substituteInternal(/*goingOn=*/ true, clockRunning, subTime);
   }
 
-  substituteOut(clockRunning: boolean) {
-    this.substituteInternal(/*goingOn=*/ false, clockRunning);
+  substituteOut(clockRunning: boolean, subTime?: number) {
+    this.substituteInternal(/*goingOn=*/ false, clockRunning, subTime);
   }
 
-  private substituteInternal(goingOn: boolean, clockRunning: boolean) {
+  private substituteInternal(goingOn: boolean, clockRunning: boolean, subTime?: number) {
     if (goingOn === this.isOn) {
       throw new Error(`Invalid status to sub ${goingOn ? 'in' : 'out'}: ${this.toDebugString()}`);
     }
 
     // End the current on/off shift.
-    this.stopShift();
+    this.stopShift(subTime);
 
     if (goingOn) {
       this.isOn = true;
@@ -172,7 +172,7 @@ export class PlayerTimeTracker {
     this.resetShift();
 
     if (clockRunning) {
-      this.startShift();
+      this.startShift(subTime);
     }
   }
 }
@@ -267,7 +267,7 @@ export class PlayerTimeTrackerMap {
     return this.trackers.values();
   }
 
-  startShiftTimers() {
+  startShiftTimers(startTime?: number) {
     if (!this.trackers?.length) {
       throw new Error('Map is empty');
     }
@@ -275,7 +275,7 @@ export class PlayerTimeTrackerMap {
     this.clockRunning = true;
     this.timeProvider.freeze();
     this.trackers.forEach((tracker) => {
-      tracker.startShift();
+      tracker.startShift(startTime);
     });
     this.timeProvider.unfreeze();
   }
@@ -293,11 +293,11 @@ export class PlayerTimeTrackerMap {
     this.timeProvider.unfreeze();
   }
 
-  substitutePlayer(playerInId: string, playerOutId: string) {
-    this.substitutePlayers([{ in: playerInId, out: playerOutId }]);
+  substitutePlayer(playerInId: string, playerOutId: string, subTime?: number) {
+    this.substitutePlayers([{ in: playerInId, out: playerOutId }], subTime);
   }
 
-  substitutePlayers(subs: { in: string; out: string }[]) {
+  substitutePlayers(subs: { in: string; out: string }[], subTime?: number) {
     if (!subs?.length) {
       throw new Error('No subs provided');
     }
@@ -329,8 +329,8 @@ export class PlayerTimeTrackerMap {
     subTrackers.forEach((pair) => {
       const [playerInTracker, playerOutTracker] = pair;
 
-      playerInTracker.substituteIn(this.clockRunning);
-      playerOutTracker.substituteOut(this.clockRunning);
+      playerInTracker.substituteIn(this.clockRunning, subTime);
+      playerOutTracker.substituteOut(this.clockRunning, subTime);
     });
 
     if (unfreeze) {
