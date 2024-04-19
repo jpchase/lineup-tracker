@@ -1,10 +1,10 @@
 /** @format */
 
 import { TimerData } from '@app/models/clock.js';
-import { EventCollection } from '@app/models/events.js';
 import { FormationType } from '@app/models/formation.js';
 import {
   AllSetupSteps,
+  GameEventCollection,
   LiveClock,
   LiveGame,
   LivePlayer,
@@ -123,7 +123,7 @@ export function buildShiftWithTrackersFromGame(
 }
 
 export function buildEventState(
-  gameEvents: EventCollection,
+  gameEvents: GameEventCollection,
   eventsSelectedIds?: string[]
 ): EventState {
   return {

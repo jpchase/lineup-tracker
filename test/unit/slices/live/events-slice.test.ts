@@ -3,6 +3,8 @@
 import { EventCollection } from '@app/models/events.js';
 import { FormationType, Position } from '@app/models/formation.js';
 import {
+  GameEvent,
+  GameEventCollection,
   GameEventType,
   LiveGame,
   LivePlayer,
@@ -106,7 +108,7 @@ describe('Events slice', () => {
         ...EVENTS_INITIAL_STATE,
       });
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -153,7 +155,7 @@ describe('Events slice', () => {
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const game = testlive.getLiveGame(rosterPlayers);
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -180,7 +182,7 @@ describe('Events slice', () => {
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const game = testlive.getLiveGame(rosterPlayers);
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -341,7 +343,7 @@ describe('Events slice', () => {
       const subs = buildSubs(sub1, sub2, sub3);
       const game = setupSubState(subs);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -395,7 +397,7 @@ describe('Events slice', () => {
       const swaps = buildSubs(swap1, swap2, swap3);
       const game = setupSubState(swaps);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -478,7 +480,7 @@ describe('Events slice', () => {
         getNextIds(subs).concat(getSwapNextIds(swaps))
       );
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -549,7 +551,7 @@ describe('Events slice', () => {
       const nowPlayingIds = getNextIds(selectedSubs);
       selectPlayers(game, nowPlayingIds, true);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -612,7 +614,7 @@ describe('Events slice', () => {
       const swappedNextIds = getSwapNextIds(selectedSwaps);
       selectPlayers(game, swappedNextIds, true);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -699,7 +701,7 @@ describe('Events slice', () => {
 
       const pendingSubPlayers = getPlayersByIds(game, toBeSelected);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -782,7 +784,7 @@ describe('Events slice', () => {
       fakeClock = mockCurrentTime(timeStartPlus20Minutes);
       const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
       const game = testlive.getLiveGame(rosterPlayers);
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -818,7 +820,7 @@ describe('Events slice', () => {
       fakeClock = mockCurrentTime(timeStartPlus20Minutes);
       const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
       const game = testlive.getLiveGame(rosterPlayers);
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -862,7 +864,7 @@ describe('Events slice', () => {
   describe('event selection', () => {
     let currentState: EventState;
     let game: LiveGame;
-    let gameEvents: EventCollection;
+    let gameEvents: GameEventCollection;
 
     beforeEach(() => {
       game = testlive.getLiveGameWithPlayers();
@@ -964,8 +966,8 @@ describe('Events slice', () => {
   describe('event updates', () => {
     let currentState: EventState;
     let game: LiveGame;
-    let gameEvents: EventCollection;
-    let updatedEvents: EventCollection;
+    let gameEvents: GameEventCollection;
+    let updatedEvents: GameEventCollection;
 
     beforeEach(() => {
       game = testlive.getLiveGameWithPlayers();

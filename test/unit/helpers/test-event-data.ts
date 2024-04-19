@@ -4,6 +4,7 @@ import { CurrentTimeProvider } from '@app/models/clock.js';
 import { EventCollection } from '@app/models/events.js';
 import {
   GameEvent,
+  GameEventCollection,
   GameEventGroup,
   GameEventType,
   LiveGame,
@@ -105,15 +106,18 @@ export function buildSwapEvent(eventTime: number, swap: SubData): PositionSwapEv
   };
 }
 
-export function buildGameEvents(game: LiveGame, timeProvider: CurrentTimeProvider) {
-  const events = EventCollection.create(
+export function buildGameEvents(
+  game: LiveGame,
+  timeProvider: CurrentTimeProvider
+): GameEventCollection {
+  const events = EventCollection.create<GameEvent>(
     {
       id: game.id,
     },
     timeProvider
   );
-  events.addEvent<SetupEvent>(buildGameSetupEvent(timeProvider.getCurrentTime()));
-  events.addEvent<PeriodStartEvent>(buildPeriodStartEvent(timeProvider.getCurrentTime()));
+  events.addEvent(buildGameSetupEvent(timeProvider.getCurrentTime()));
+  events.addEvent(buildPeriodStartEvent(timeProvider.getCurrentTime()));
 
   // First sub
   const replacedPlayer1 = getPlayer(game, 'P4');
@@ -122,9 +126,7 @@ export function buildGameEvents(game: LiveGame, timeProvider: CurrentTimeProvide
     replacedId: replacedPlayer1?.id,
     finalPosition: { ...replacedPlayer1?.currentPosition! },
   };
-  events.addEventGroup<GameEvent>(
-    buildSubEvents(timeProvider.getCurrentTime(), sub1).groupedEvents
-  );
+  events.addEventGroup(buildSubEvents(timeProvider.getCurrentTime(), sub1).groupedEvents);
 
   // Second sub, with swap.
   //  - Swap player moves to the position of the player being replaced.
@@ -144,10 +146,10 @@ export function buildGameEvents(game: LiveGame, timeProvider: CurrentTimeProvide
   };
 
   const sub2Time = timeProvider.getCurrentTime();
-  events.addEventGroup<GameEvent>(buildSubEvents(sub2Time, sub2).groupedEvents);
-  events.addEvent<PositionSwapEvent>(buildSwapEvent(sub2Time, swap));
+  events.addEventGroup(buildSubEvents(sub2Time, sub2).groupedEvents);
+  events.addEvent(buildSwapEvent(sub2Time, swap));
 
-  events.addEvent<PeriodEndEvent>(buildPeriodEndEvent(timeProvider.getCurrentTime()));
+  events.addEvent(buildPeriodEndEvent(timeProvider.getCurrentTime()));
 
   return events;
 }

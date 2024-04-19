@@ -5,6 +5,8 @@ import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
 import {
   GameEvent,
+  GameEventCollection,
+  GameEventCollectionData,
   GameEventGroup,
   GameEventType,
   PeriodEndEvent,
@@ -27,7 +29,7 @@ import { actions } from './live-slice.js';
 const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
 
 export interface EventsMap {
-  [index: string]: EventCollectionData;
+  [index: string]: EventCollectionData<GameEvent>;
 }
 
 export interface EventState {
@@ -300,18 +302,18 @@ function invokeActionHandler<P extends LiveGamePayload>(
   setGameEvents(state, gameEvents);
 }
 
-function getGameEventData(state: EventState, gameId: string): EventCollectionData | undefined {
+function getGameEventData(state: EventState, gameId: string): GameEventCollectionData | undefined {
   if (!state.events || !(gameId in state.events)) {
     return undefined;
   }
   return state.events[gameId];
 }
 
-function getOrCreateGameEvents(state: EventState, gameId: string): EventCollection {
-  return EventCollection.create(getGameEventData(state, gameId) ?? { id: gameId });
+function getOrCreateGameEvents(state: EventState, gameId: string): GameEventCollection {
+  return EventCollection.create<GameEvent>(getGameEventData(state, gameId) ?? { id: gameId });
 }
 
-function setGameEvents(state: EventState, gameEvents: EventCollection) {
+function setGameEvents(state: EventState, gameEvents: GameEventCollection) {
   if (!state.events) {
     state.events = {};
   }

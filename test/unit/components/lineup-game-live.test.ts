@@ -7,10 +7,15 @@ import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
-import { EventCollection } from '@app/models/events.js';
 import { FormationType } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
-import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
+import {
+  GameEventCollection,
+  LiveGame,
+  LivePlayer,
+  PeriodStatus,
+  getPlayer,
+} from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { eventSelected } from '@app/slices/live/events-slice.js';
 import { endPeriodCreator, selectLiveGameById } from '@app/slices/live/index.js';
@@ -1011,7 +1016,7 @@ describe('lineup-game-live tests', () => {
   describe('Events', () => {
     const eventTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
     let liveGame: LiveGame;
-    let gameEvents: EventCollection;
+    let gameEvents: GameEventCollection;
 
     beforeEach(async () => {
       const { game, live } = getGameDetail();

@@ -18,22 +18,15 @@ import { html, LitElement, nothing, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { Duration, TimeFormatter } from '../models/clock.js';
-import { EventBase, EventCollection, EventCollectionData } from '../models/events.js';
-import {
-  GameEvent,
-  GameEventType,
-  PeriodEndEvent,
-  PeriodStartEvent,
-  PositionSwapEvent,
-  SubInEvent,
-} from '../models/live.js';
+import { EventCollection } from '../models/events.js';
+import { GameEvent, GameEventCollectionData, GameEventType } from '../models/live.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 
 interface EventItem {
   id: string;
   selected: boolean;
-  event: EventBase;
+  event: GameEvent;
 }
 
 enum EditTimeOptions {
@@ -126,12 +119,12 @@ export class LineupGameEvents extends LitElement {
           @click="${clickHandler}"
         >
           <td class="mdl-data-table__cell--non-numeric">
-            ${this.renderEventTime(item.event as GameEvent, timeFormatter)}
+            ${this.renderEventTime(item.event, timeFormatter)}
           </td>
           <td class="eventType mdl-data-table__cell--non-numeric">
-            ${getEventTypeText(item.event.type as GameEventType)}
+            ${getEventTypeText(item.event.type)}
           </td>
-          <td class="details">${this.renderEventDetails(item.event as GameEvent)}</td>
+          <td class="details">${this.renderEventDetails(item.event)}</td>
         </tr>
       `
     )}`;
@@ -203,28 +196,24 @@ export class LineupGameEvents extends LitElement {
   private renderEventDetails(event: GameEvent) {
     switch (event.type) {
       case GameEventType.PeriodStart: {
-        const startEvent = event as PeriodStartEvent;
         // TODO: Show "First half" or "game started", "Second half"?
-        return html`Start of period ${startEvent.data.clock.currentPeriod}`;
+        return html`Start of period ${event.data.clock.currentPeriod}`;
       }
       case GameEventType.PeriodEnd: {
-        const startEvent = event as PeriodEndEvent;
         // TODO: Period end, show "halftime", or "final whistle" or <something else>
-        return html`End of period ${startEvent.data.clock.currentPeriod}`;
+        return html`End of period ${event.data.clock.currentPeriod}`;
       }
 
       case GameEventType.SubIn: {
-        const subInEvent = event as SubInEvent;
-        const inPlayer = this.lookupPlayer(subInEvent.playerId);
-        const outPlayer = this.lookupPlayer(subInEvent.data.replaced);
-        return html`${inPlayer?.name} replaced ${outPlayer?.name}, at ${subInEvent.data.position}`;
+        const inPlayer = this.lookupPlayer(event.playerId);
+        const outPlayer = this.lookupPlayer(event.data.replaced);
+        return html`${inPlayer?.name} replaced ${outPlayer?.name}, at ${event.data.position}`;
       }
 
       case GameEventType.Swap: {
-        const swapEvent = event as PositionSwapEvent;
-        const player = this.lookupPlayer(swapEvent.playerId);
-        return html`${player?.name} moved to ${swapEvent.data.position} (from
-        ${swapEvent.data.previousPosition})`;
+        const player = this.lookupPlayer(event.playerId);
+        return html`${player?.name} moved to ${event.data.position} (from
+        ${event.data.previousPosition})`;
       }
 
       default:
@@ -302,13 +291,9 @@ export class LineupGameEvents extends LitElement {
               (item: EventItem /*, index: number*/) => html`
                 <mwc-list-item data-event-id="${item.id}" value="${item.id}"
                   ><span>
-                    <span> ${this.renderEventTime(item.event as GameEvent, timeFormatter)} </span>
-                    <span class="eventType">
-                      ${getEventTypeText(item.event.type as GameEventType)}
-                    </span>
-                    <span class="details"
-                      >${this.renderEventDetails(item.event as GameEvent)}</span
-                    ></span
+                    <span> ${this.renderEventTime(item.event, timeFormatter)} </span>
+                    <span class="eventType"> ${getEventTypeText(item.event.type)} </span>
+                    <span class="details">${this.renderEventDetails(item.event)}</span></span
                   >
                 </mwc-list-item>
               `
@@ -330,7 +315,7 @@ export class LineupGameEvents extends LitElement {
   playerResolver!: PlayerResolver;
 
   @property({ type: Object })
-  public eventData?: EventCollectionData;
+  public eventData?: GameEventCollectionData;
 
   @property({ type: Array })
   public eventsSelectedIds: string[] = [];
@@ -379,10 +364,9 @@ export class LineupGameEvents extends LitElement {
         if (event.type !== GameEventType.PeriodStart) {
           continue;
         }
-        const periodStart = event as PeriodStartEvent;
         this.periods.push({
-          periodNumber: periodStart.data.clock.currentPeriod,
-          startTime: periodStart.data.clock.startTime,
+          periodNumber: event.data.clock.currentPeriod,
+          startTime: event.data.clock.startTime,
         });
       }
       // Ensure events are most recent first (reverse chronological order).

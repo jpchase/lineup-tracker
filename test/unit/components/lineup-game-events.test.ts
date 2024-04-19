@@ -12,6 +12,7 @@ import { EventBase, EventCollection } from '@app/models/events.js';
 import { formatPosition } from '@app/models/formation.js';
 import {
   GameEvent,
+  GameEventCollection,
   GameEventGroup,
   GameEventType,
   LiveGame,
@@ -125,7 +126,7 @@ describe('lineup-game-events tests', () => {
   }
 
   describe('rendering', () => {
-    let events: EventCollection;
+    let events: GameEventCollection;
 
     beforeEach(() => {
       game = testlive.getLiveGameWithPlayers();
@@ -212,7 +213,7 @@ describe('lineup-game-events tests', () => {
   }); // describe('rendering')
 
   describe('event types', () => {
-    let events: EventCollection;
+    let events: GameEventCollection;
 
     beforeEach(() => {
       game = testlive.getLiveGameWithPlayers();
@@ -399,7 +400,7 @@ describe('lineup-game-events tests', () => {
   }); // describe('event types')
 
   describe('event selection', () => {
-    let events: EventCollection;
+    let events: GameEventCollection;
 
     beforeEach(async () => {
       game = testlive.getLiveGameWithPlayers();
@@ -569,7 +570,7 @@ describe('lineup-game-events tests', () => {
   }); // describe('event selection')
 
   describe('event editing', () => {
-    let events: EventCollection;
+    let events: GameEventCollection;
     let selectedEvent: EventBase;
     let editDialog: Dialog;
 

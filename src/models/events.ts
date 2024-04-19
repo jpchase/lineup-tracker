@@ -16,17 +16,17 @@ export type EventBase<
   data: EventData;
 };
 
-export interface EventCollectionData {
+export interface EventCollectionData<Event extends EventBase = EventBase> {
   id: string;
-  events?: EventBase[];
+  events?: Event[];
 }
 
-export class EventCollection {
+export class EventCollection<Event extends EventBase = EventBase> {
   timeProvider: CurrentTimeProvider;
   id: string;
-  private events: EventBase[];
+  private events: Event[];
 
-  private constructor(data: EventCollectionData, timeProvider?: CurrentTimeProvider) {
+  private constructor(data: EventCollectionData<Event>, timeProvider?: CurrentTimeProvider) {
     this.timeProvider = timeProvider || new CurrentTimeProvider();
     this.id = data.id;
     this.events = [];
@@ -35,7 +35,10 @@ export class EventCollection {
     }
   }
 
-  static create(data: EventCollectionData, timeProvider?: CurrentTimeProvider): EventCollection {
+  static create<Event extends EventBase = EventBase>(
+    data: EventCollectionData<Event>,
+    timeProvider?: CurrentTimeProvider
+  ): EventCollection<Event> {
     if (!data.id) {
       throw new Error('id must be provided');
     }
@@ -49,7 +52,7 @@ export class EventCollection {
     };
   }
 
-  private initialize(events?: EventBase[]) {
+  private initialize(events?: Event[]) {
     if (!events || !events.length) {
       throw new Error('events must be provided to initialize');
     }
@@ -77,7 +80,7 @@ export class EventCollection {
     return this.events.find((event) => event.id === id);
   }
 
-  populateEvent<E extends EventBase>(event: E) {
+  private populateEvent(event: Event) {
     // TODO: structured clone, in case `data` has objects?
     const storedEvent = { ...event };
     if (!event.id) {
@@ -89,13 +92,13 @@ export class EventCollection {
     return storedEvent;
   }
 
-  addEvent<E extends EventBase>(event: E) {
+  addEvent<E extends Event>(event: E) {
     const storedEvent = this.populateEvent(event);
     this.events.push(storedEvent);
     return storedEvent;
   }
 
-  addEventGroup<E extends EventBase>(events: E[]) {
+  addEventGroup<E extends Event>(events: E[]) {
     const groupId = idGenerator.newid('eg');
     const result = [];
     for (const event of events) {
