@@ -1,7 +1,7 @@
 /** @format */
 
 import { TimerData } from './clock.js';
-import { EventBase } from './events.js';
+import { EventBase, EventCollection, EventCollectionData } from './events.js';
 import { FormationMetadata, Position } from './formation.js';
 import { Game, GameDetail, GameStatus } from './game.js';
 import { Player, PlayerStatus } from './player.js';
@@ -144,6 +144,9 @@ export type GameEvent = PeriodStartEvent | PeriodEndEvent | SetupEvent | GamePla
 export interface GameEventGroup {
   groupedEvents: GameEvent[];
 }
+
+export type GameEventCollection = EventCollection<GameEvent>;
+export type GameEventCollectionData = EventCollectionData<GameEvent>;
 
 export function isGamePlayerEvent(event: GameEvent): event is GamePlayerEvent {
   switch (event.type) {

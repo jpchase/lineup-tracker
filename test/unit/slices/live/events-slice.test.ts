@@ -3,6 +3,8 @@
 import { EventCollection } from '@app/models/events.js';
 import { FormationType, Position } from '@app/models/formation.js';
 import {
+  GameEvent,
+  GameEventCollection,
   GameEventType,
   LiveGame,
   LivePlayer,
@@ -18,19 +20,31 @@ import { PlayerStatus } from '@app/models/player.js';
 import {
   EVENTS_INITIAL_STATE,
   EventState,
-  eventsReducer as events,
+  eventSelected,
+  eventsReducer,
+  eventsUpdated,
 } from '@app/slices/live/events-slice.js';
 import { actions } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
   buildClock,
+  buildEventState,
   buildLiveStateWithCurrentGame,
   selectPlayers,
 } from '../../helpers/live-state-setup.js';
 import { mockIdGenerator, mockIdGeneratorWithCallback } from '../../helpers/mock-id-generator.js';
-import { mockCurrentTime, mockTimeProvider } from '../../helpers/test-clock-data.js';
-import { buildGameSetupEvent, buildPeriodStartEvent } from '../../helpers/test-event-data.js';
+import {
+  incrementingCallbackForTimeProvider,
+  mockCurrentTime,
+  mockTimeProvider,
+  mockTimeProviderWithCallback,
+} from '../../helpers/test-clock-data.js';
+import {
+  buildGameEvents,
+  buildGameSetupEvent,
+  buildPeriodStartEvent,
+} from '../../helpers/test-event-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
@@ -94,7 +108,7 @@ describe('Events slice', () => {
         ...EVENTS_INITIAL_STATE,
       });
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -106,7 +120,7 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(currentState, gameSetupCompleted(game.id, game));
+      const newState = eventsReducer(currentState, gameSetupCompleted(game.id, game));
 
       expect(newState).to.deep.include({
         events: { [expectedCollection.id]: expectedCollection.toJSON() },
@@ -116,7 +130,7 @@ describe('Events slice', () => {
 
     it('should do nothing if the game has no players', () => {
       const game = testlive.getLiveGame();
-      const newState = events(currentState, gameSetupCompleted(game.id, game));
+      const newState = eventsReducer(currentState, gameSetupCompleted(game.id, game));
 
       expect(newState).to.equal(currentState);
     });
@@ -141,7 +155,7 @@ describe('Events slice', () => {
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const game = testlive.getLiveGame(rosterPlayers);
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -153,7 +167,7 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
       );
@@ -168,7 +182,7 @@ describe('Events slice', () => {
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
       const game = testlive.getLiveGame(rosterPlayers);
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -180,7 +194,7 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 2, startTime)
       );
@@ -194,7 +208,7 @@ describe('Events slice', () => {
     it('should do nothing if game does not allow period to be started', () => {
       mockCurrentTime(startTime);
 
-      const newState = events(currentState, startPeriod(gameId, /*gameAllowsStart=*/ false));
+      const newState = eventsReducer(currentState, startPeriod(gameId, /*gameAllowsStart=*/ false));
 
       expect(newState.events, 'events should be empty').to.not.be.ok;
 
@@ -329,7 +343,7 @@ describe('Events slice', () => {
       const subs = buildSubs(sub1, sub2, sub3);
       const game = setupSubState(subs);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -365,7 +379,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         applyPendingSubs(gameId, getPlayersByIds(game, getNextIds(subs)))
       );
@@ -383,7 +397,7 @@ describe('Events slice', () => {
       const swaps = buildSubs(swap1, swap2, swap3);
       const game = setupSubState(swaps);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -404,7 +418,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         applyPendingSubs(gameId, getPlayersByIds(game, getSwapNextIds(swaps)))
       );
@@ -466,7 +480,7 @@ describe('Events slice', () => {
         getNextIds(subs).concat(getSwapNextIds(swaps))
       );
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -515,7 +529,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(currentState, applyPendingSubs(gameId, pendingSubPlayers));
+      const newState = eventsReducer(currentState, applyPendingSubs(gameId, pendingSubPlayers));
 
       expect(newState).to.deep.include({
         events: { [expectedCollection.id]: expectedCollection.toJSON() },
@@ -537,7 +551,7 @@ describe('Events slice', () => {
       const nowPlayingIds = getNextIds(selectedSubs);
       selectPlayers(game, nowPlayingIds, true);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -576,7 +590,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         applyPendingSubs(gameId, getPlayersByIds(game, nowPlayingIds))
       );
@@ -600,7 +614,7 @@ describe('Events slice', () => {
       const swappedNextIds = getSwapNextIds(selectedSwaps);
       selectPlayers(game, swappedNextIds, true);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -625,7 +639,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         applyPendingSubs(gameId, getPlayersByIds(game, swappedNextIds))
       );
@@ -687,7 +701,7 @@ describe('Events slice', () => {
 
       const pendingSubPlayers = getPlayersByIds(game, toBeSelected);
 
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -741,7 +755,7 @@ describe('Events slice', () => {
         });
       }
 
-      const newState = events(currentState, applyPendingSubs(gameId, pendingSubPlayers));
+      const newState = eventsReducer(currentState, applyPendingSubs(gameId, pendingSubPlayers));
 
       expect(newState).to.deep.include({
         events: { [expectedCollection.id]: expectedCollection.toJSON() },
@@ -770,7 +784,7 @@ describe('Events slice', () => {
       fakeClock = mockCurrentTime(timeStartPlus20Minutes);
       const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
       const game = testlive.getLiveGame(rosterPlayers);
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -790,7 +804,7 @@ describe('Events slice', () => {
 
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus20Minutes)
       );
@@ -806,7 +820,7 @@ describe('Events slice', () => {
       fakeClock = mockCurrentTime(timeStartPlus20Minutes);
       const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
       const game = testlive.getLiveGame(rosterPlayers);
-      const expectedCollection = EventCollection.create(
+      const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
@@ -825,7 +839,7 @@ describe('Events slice', () => {
       });
       expect(currentState.events, 'events should be empty').to.not.be.ok;
 
-      const newState = events(
+      const newState = eventsReducer(
         currentState,
         endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, timeStartPlus20Minutes)
       );
@@ -839,11 +853,257 @@ describe('Events slice', () => {
     it('should do nothing if game does not allow period to be ended', () => {
       mockCurrentTime(timeStartPlus20Minutes);
 
-      const newState = events(currentState, endPeriod(gameId, /*gameAllowsEnd=*/ false));
+      const newState = eventsReducer(currentState, endPeriod(gameId, /*gameAllowsEnd=*/ false));
 
       expect(newState.events, 'events should be empty').to.not.be.ok;
 
       expect(newState).to.equal(currentState);
     });
   }); // describe('live/endPeriod')
+
+  describe('event selection', () => {
+    let currentState: EventState;
+    let game: LiveGame;
+    let gameEvents: GameEventCollection;
+
+    beforeEach(() => {
+      game = testlive.getLiveGameWithPlayers();
+      // Create a collection of representative events, which occur 10 seconds apart.
+      const timeProvider = mockTimeProviderWithCallback(
+        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
+      );
+      gameEvents = buildGameEvents(game, timeProvider);
+      currentState = buildEventState(gameEvents);
+    });
+
+    function getEventIds(events: EventCollection): string[] {
+      const ids = [];
+
+      for (const event of events) {
+        ids.push(event.id!);
+      }
+      return ids;
+    }
+
+    it('adds first event that was selected', () => {
+      const selectedEventId = getEventIds(gameEvents)[0];
+      const newState = eventsReducer(
+        currentState,
+        eventSelected(game.id, selectedEventId, /* selected= */ true)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [selectedEventId],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('do nothing if event is already selected', () => {
+      const selectedEventId = getEventIds(gameEvents)[0];
+      currentState.eventsSelectedIds = [selectedEventId];
+
+      const newState = eventsReducer(
+        currentState,
+        eventSelected(game.id, selectedEventId, /* selected= */ true)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [selectedEventId],
+      });
+      expect(newState).to.equal(currentState);
+    });
+
+    it('adds second event that was selected', () => {
+      const ids = getEventIds(gameEvents);
+      const selectedEventId = ids[0];
+      const alreadySelectedEventId = ids[1];
+      currentState.eventsSelectedIds = [alreadySelectedEventId];
+
+      const newState = eventsReducer(
+        currentState,
+        eventSelected(game.id, selectedEventId, /* selected= */ true)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [alreadySelectedEventId, selectedEventId],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('removes only event that was de-selected', () => {
+      const deselectedEventId = getEventIds(gameEvents)[0];
+      currentState.eventsSelectedIds = [deselectedEventId];
+
+      const newState = eventsReducer(
+        currentState,
+        eventSelected(game.id, deselectedEventId, /* selected= */ false)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('removes de-selected event leaving others still selected', () => {
+      const ids = getEventIds(gameEvents);
+      const deselectedEventId = ids[0];
+      const stillSelectedEventId = ids[1];
+      currentState.eventsSelectedIds = [deselectedEventId, stillSelectedEventId];
+
+      const newState = eventsReducer(
+        currentState,
+        eventSelected(game.id, deselectedEventId, /* selected= */ false)
+      );
+
+      expect(newState).to.deep.include({
+        eventsSelectedIds: [stillSelectedEventId],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+  }); // describe('event selection')
+
+  describe('event updates', () => {
+    let currentState: EventState;
+    let game: LiveGame;
+    let gameEvents: GameEventCollection;
+    let updatedEvents: GameEventCollection;
+
+    beforeEach(() => {
+      game = testlive.getLiveGameWithPlayers();
+      // Create a collection of representative events, which occur 10 seconds apart.
+      const timeProvider = mockTimeProviderWithCallback(
+        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
+      );
+      gameEvents = buildGameEvents(game, timeProvider);
+
+      updatedEvents = EventCollection.create({
+        id: game.id,
+      });
+      for (const event of gameEvents.eventsForTesting) {
+        updatedEvents.addEvent({ ...event });
+      }
+      currentState = buildEventState(gameEvents);
+    });
+
+    it('applies custom date to single selected event', () => {
+      const selectedEvent = gameEvents.eventsForTesting[0];
+      const selectedEventId = selectedEvent.id!;
+      currentState.eventsSelectedIds = [selectedEventId];
+
+      // Update the selected event to 15 seconds earlier
+      const customTime = new Date(selectedEvent.timestamp!);
+      customTime.setSeconds(customTime.getSeconds() - 15);
+
+      const newState = eventsReducer(
+        currentState,
+        eventsUpdated(
+          game.id,
+          [selectedEventId],
+          /* useExistingTime= */ false,
+          undefined,
+          customTime.getTime()
+        )
+      );
+
+      const updatedEvent = updatedEvents.get(selectedEventId)!;
+      updatedEvent.timestamp = customTime.getTime();
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies custom date to multiple selected events', () => {
+      const selectedEvent = gameEvents.eventsForTesting[0];
+      const selectedEventId = selectedEvent.id!;
+      const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
+      currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+
+      // Update the selected event to 15 seconds earlier
+      const customTime = new Date(selectedEvent.timestamp!);
+      customTime.setSeconds(customTime.getSeconds() - 15);
+
+      const newState = eventsReducer(
+        currentState,
+        eventsUpdated(
+          game.id,
+          [selectedEventId, anotherSelectedEventId],
+          /* useExistingTime= */ false,
+          undefined,
+          customTime.getTime()
+        )
+      );
+
+      for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+        const updatedEvent = updatedEvents.get(updatedId)!;
+        updatedEvent.timestamp = customTime.getTime();
+      }
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies existing event date to single selected event', () => {
+      const selectedEventId = gameEvents.eventsForTesting[0].id!;
+      currentState.eventsSelectedIds = [selectedEventId];
+
+      const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+      const newState = eventsReducer(
+        currentState,
+        eventsUpdated(
+          game.id,
+          [selectedEventId],
+          /* useExistingTime= */ true,
+          existingEventId,
+          undefined
+        )
+      );
+
+      const updatedEvent = updatedEvents.get(selectedEventId)!;
+      updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp!;
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies existing event date to multiple selected events', () => {
+      const selectedEventId = gameEvents.eventsForTesting[0].id!;
+      const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
+      currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+
+      const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+      const newState = eventsReducer(
+        currentState,
+        eventsUpdated(
+          game.id,
+          [selectedEventId, anotherSelectedEventId],
+          /* useExistingTime= */ true,
+          existingEventId,
+          undefined
+        )
+      );
+
+      for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+        const updatedEvent = updatedEvents.get(updatedId)!;
+        updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp!;
+      }
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+  }); // describe('event updates')
 }); // describe('Events slice')

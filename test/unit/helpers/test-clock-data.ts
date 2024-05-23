@@ -53,6 +53,16 @@ export function manualTimeProvider(currentTime: number) {
   return provider;
 }
 
+export function incrementingCallbackForTimeProvider(startTime: number, incrementSeconds: number) {
+  let currentTime = startTime;
+
+  return () => {
+    const result = currentTime;
+    currentTime += incrementSeconds * 1000;
+    return result;
+  };
+}
+
 export function buildDuration(minutes: number, seconds: number): Duration {
   if (minutes < 0 && seconds < 0) {
     throw RangeError(

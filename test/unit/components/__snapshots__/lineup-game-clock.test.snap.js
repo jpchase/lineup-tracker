@@ -338,6 +338,7 @@ snapshots["lineup-game-clock tests end period shows dialog instead of firing end
         label="Extra Minutes"
       >
         <input
+          aria-label="Extra Minutes"
           disabled=""
           max="15"
           min="1"
