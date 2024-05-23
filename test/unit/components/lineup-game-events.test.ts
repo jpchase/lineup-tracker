@@ -596,11 +596,11 @@ describe('lineup-game-events tests', () => {
       expect(editDialog, 'after edit clicked').to.be.open;
     });
 
-    it('resets fields in dialog when shown again', async () => {
+    it.skip('resets fields in dialog when shown again', async () => {
       expect.fail('not implemented');
     });
 
-    it('validates fields when edit dialog saved', () => {
+    it.skip('validates fields when edit dialog saved', () => {
       expect.fail('not implemented');
     });
 

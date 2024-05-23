@@ -4,14 +4,15 @@
 
 import { consume } from '@lit/context';
 import '@material/mwc-button';
+import '@material/mwc-dialog';
 import { Dialog } from '@material/mwc-dialog';
 import { MDCDialogCloseEventDetail } from '@material/mwc-dialog/mwc-dialog-base.js';
 import '@material/mwc-formfield';
 import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
 import '@material/mwc-list/mwc-list-item.js';
+import '@material/mwc-radio';
 import { Radio } from '@material/mwc-radio';
-import '@material/mwc-radio/mwc-radio.js';
 import '@material/mwc-select';
 import { Select } from '@material/mwc-select';
 import { html, LitElement, nothing, PropertyValues } from 'lit';
@@ -430,6 +431,8 @@ export class LineupGameEvents extends LitElement {
   }
 
   private applyEventUpdates(e: CustomEvent<MDCDialogCloseEventDetail>) {
+    // eslint-disable-next-line no-console
+    console.log(`applyEventUpdates: event = ${JSON.stringify(e.detail)}`);
     if (e.detail.action !== 'save') {
       return;
     }
@@ -448,6 +451,9 @@ export class LineupGameEvents extends LitElement {
       // one of the selected events.
       // NOTE: This is ignoring the edge case of a game that spans midnight.
       const enteredTime = customField.valueAsDate!;
+      // eslint-disable-next-line no-console
+      console.log(`applyEventUpdates: enteredTime = ${enteredTime}`);
+      // TODO: enteredTime will be null, if the field doesn't have a valid time
       const gameDate = new Date(this.selectedItems[0].event.timestamp!);
       customTime = new Date(
         gameDate.getFullYear(),
@@ -468,6 +474,11 @@ export class LineupGameEvents extends LitElement {
     }
     this.dispatchEvent(new ClockEndPeriodEvent({ extraMinutes }));
     */
+    // eslint-disable-next-line no-console
+    console.log(
+      `applyEventUpdates: useExistingTime = ${useExistingTime}, existingEventId = ${existingEventId}, customTime = ${customTime}`
+    );
+
     this.dispatchEvent(
       new EventsUpdatedEvent({
         updatedEventIds: this.selectedItems.map((item) => item.id),
