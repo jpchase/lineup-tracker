@@ -28,6 +28,7 @@ import {
   discardPendingSubs,
   endPeriodCreator,
   eventSelected,
+  eventsUpdated,
   gameCompleted,
   getLiveSliceConfigurator,
   markPeriodOverdueCreator,
@@ -48,7 +49,7 @@ import { RootState } from '../store.js';
 import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-events.js';
-import { EventSelectedEvent } from './lineup-game-events.js';
+import { EventSelectedEvent, EventsUpdatedEvent } from './lineup-game-events.js';
 import './lineup-game-shifts.js';
 import './lineup-on-player-list.js';
 import { PlayerSelectedEvent } from './lineup-player-card.js';
@@ -171,6 +172,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
           .eventData="${eventData}"
           .eventsSelectedIds="${eventsSelectedIds}"
           @event-selected="${this.toggleEventSelected}"
+          @events-updated="${this.updateEvents}"
         >
         </lineup-game-events>
       </div>`;
@@ -289,7 +291,10 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   private timerTrigger = new SynchronizedTriggerController(this, 10000);
   private timerNotifier = new SynchronizedTimerNotifier();
 
-  protected timerContext = new ContextProvider(this, synchronizedTimerContext, this.timerNotifier);
+  protected timerContext = new ContextProvider(this, {
+    context: synchronizedTimerContext,
+    initialValue: this.timerNotifier,
+  });
 
   public requestTimerUpdate() {
     this.timerNotifier.notifyTimers();
@@ -301,9 +306,12 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   }
 
   // Protected as a workaround for "not read" TS error.
-  protected playerResolver = new ContextProvider(this, playerResolverContext, {
-    getPlayer: (playerId) => {
-      return this._findPlayer(playerId);
+  protected playerResolver = new ContextProvider(this, {
+    context: playerResolverContext,
+    initialValue: {
+      getPlayer: (playerId) => {
+        return this._findPlayer(playerId);
+      },
     },
   });
 
@@ -335,6 +343,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     const clock = this._game.clock;
     if (clock) {
       this.clockData = clock.timer;
+      // TODO: This line causes multiple update warning
       this.clockPeriodData = {
         currentPeriod: clock.currentPeriod,
         periodLength: clock.periodLength,
@@ -422,6 +431,18 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
 
   private toggleEventSelected(e: EventSelectedEvent) {
     this.dispatch(eventSelected(this._game!.id, e.detail.eventId, e.detail.selected));
+  }
+
+  private updateEvents(e: EventsUpdatedEvent) {
+    this.dispatch(
+      eventsUpdated(
+        this._game!.id,
+        e.detail.updatedEventIds,
+        e.detail.useExistingTime,
+        e.detail.existingEventId,
+        e.detail.customTime
+      )
+    );
   }
 
   private _findPlayer(playerId: string) {

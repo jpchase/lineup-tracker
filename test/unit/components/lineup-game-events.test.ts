@@ -1,5 +1,6 @@
 /** @format */
 
+import { GameResolver } from '@app/components/core/game-resolver.js';
 import '@app/components/lineup-game-events.js';
 import {
   EventSelectedEvent,
@@ -7,7 +8,7 @@ import {
   LineupGameEvents,
 } from '@app/components/lineup-game-events.js';
 import { PlayerResolver } from '@app/components/player-resolver.js';
-import { Duration, TimeFormatter } from '@app/models/clock';
+import { Duration, TimeFormatter, pad0 } from '@app/models/clock';
 import { EventBase, EventCollection } from '@app/models/events.js';
 import { formatPosition } from '@app/models/formation.js';
 import {
@@ -26,6 +27,7 @@ import { Select } from '@material/mwc-select';
 import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { addElementAssertions } from '../helpers/element-assertions.js';
+import { mockGameResolver } from '../helpers/mock-game-resolver.js';
 import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
 import {
   incrementingCallbackForTimeProvider,
@@ -47,9 +49,10 @@ describe('lineup-game-events tests', () => {
   let game: LiveGame;
   let fakeClock: sinon.SinonFakeTimers;
   let mockPlayerResolver: PlayerResolver;
+  let gameResolver: GameResolver;
   const timeFormatter = new TimeFormatter();
-  const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
-  const periodEndTime = new Date(2016, 0, 1, 14, 46, 25).getTime();
+  const startTime = new Date(2016, 5, 1, 14, 0, 0).getTime();
+  const periodEndTime = new Date(2016, 5, 1, 14, 46, 25).getTime();
 
   before(async () => {
     addElementAssertions();
@@ -63,6 +66,18 @@ describe('lineup-game-events tests', () => {
       },
     };
     const parentNode = buildPlayerResolverParentNode(mockPlayerResolver);
+
+    gameResolver = {
+      getCurrentGame: () => {
+        return {
+          id: game.id,
+          date: new Date(startTime),
+          name: 'foo',
+          opponent: 'bar',
+        };
+      },
+    };
+    mockGameResolver(parentNode, gameResolver);
 
     el = await fixture(html`<lineup-game-events></lineup-game-events>`, { parentNode });
   });
@@ -107,6 +122,42 @@ describe('lineup-game-events tests', () => {
     const element = el.shadowRoot!.querySelector('#edit-dialog');
     expect(element, 'edit dialog').to.exist;
     return element as Dialog;
+  }
+
+  function getEditSaveButton(editDialog: Dialog) {
+    const element = editDialog.querySelector('mwc-button[dialogAction="save"]');
+    expect(element, 'save button').to.exist;
+    return element as HTMLElement;
+  }
+
+  function getEditCancelButton(editDialog: Dialog) {
+    const element = editDialog.querySelector('mwc-button[dialogAction="close"]');
+    expect(element, 'cancel button').to.exist;
+    return element as HTMLElement;
+  }
+
+  function getEditCustomTimeOption(editDialog: Dialog) {
+    const element = editDialog.querySelector('#time-custom-radio');
+    expect(element, 'custom time option').to.exist;
+    return element as Radio;
+  }
+
+  function getEditExistingTimeOption(editDialog: Dialog) {
+    const element = editDialog.querySelector('#time-existing-radio');
+    expect(element, 'existing time option').to.exist;
+    return element as Radio;
+  }
+
+  function getEditCustomTimeField(editDialog: Dialog) {
+    const element = editDialog.querySelector('#custom-time-field > input');
+    expect(element, 'custom time field').to.exist;
+    return element as HTMLInputElement;
+  }
+
+  function getEditExistingTimeField(editDialog: Dialog) {
+    const element = editDialog.querySelector('#existing-time-field');
+    expect(element, 'existing time field').to.exist;
+    return element as Select;
   }
 
   function expectEventAbsoluteTime(timeElement: HTMLElement, expectedTime: number) {
@@ -573,6 +624,7 @@ describe('lineup-game-events tests', () => {
     let events: GameEventCollection;
     let selectedEvent: EventBase;
     let editDialog: Dialog;
+    let editButton: IconButton;
 
     beforeEach(async () => {
       game = testlive.getLiveGameWithPlayers();
@@ -587,7 +639,7 @@ describe('lineup-game-events tests', () => {
       await el.updateComplete;
 
       const headerElement = getEventItemHeader();
-      const editButton = getSelectionEditButton(headerElement.cells[0]);
+      editButton = getSelectionEditButton(headerElement.cells[0]);
 
       setTimeout(() => editButton.click());
       await oneEvent(editButton, 'click');
@@ -596,11 +648,122 @@ describe('lineup-game-events tests', () => {
       expect(editDialog, 'after edit clicked').to.be.open;
     });
 
-    it.skip('resets fields in dialog when shown again', async () => {
-      expect.fail('not implemented');
+    function formatTimeFieldValue(time: Date) {
+      //  - The time field always uses UTC, and in 24 hour format.
+      //  - The input to the field is adjusted by the UTC offset, so it displays local time.
+      //  - e.g. A time of 2:00pm EST (7:00pm UTC) is adjusted to 2:00pm UTC, so the
+      //    resulting value in the field is "14:00:00";
+      const timeInputValue = `${pad0(time.getHours(), 2)}:${pad0(time.getMinutes(), 2)}:${pad0(
+        time.getSeconds(),
+        2
+      )}`;
+      return timeInputValue;
+    }
+
+    it('defaults to custom time option', async () => {
+      // Check that the "custom time" option is the default.
+      const useCustom = getEditCustomTimeOption(editDialog);
+      expect(useCustom.checked, 'Custom option should be checked by default').to.be.true;
+
+      // Check that the time field defaults to first selected event.
+      const selectedEventTime = new Date(selectedEvent.timestamp!);
+      const expectedTimeString = formatTimeFieldValue(selectedEventTime);
+
+      const customTimeField = getEditCustomTimeField(editDialog);
+      expect(customTimeField.disabled, 'Custom time field should be enabled').to.be.false;
+
+      expect(
+        customTimeField.value,
+        'custom time should default to time of selected event displayed as local time zone'
+      ).to.deep.equal(expectedTimeString);
+
+      // The existing time fields are not initially set/available.
+      const useExisting = getEditExistingTimeOption(editDialog);
+      expect(useExisting.checked, 'Existing option should not be checked initially').to.be.false;
+
+      const existingTimeField = getEditExistingTimeField(editDialog);
+      expect(existingTimeField.disabled, 'Existing field should be disabled initially').to.be.true;
+    });
+
+    it('resets fields in dialog when shown again', async () => {
+      const useCustom = getEditCustomTimeOption(editDialog);
+      const customTimeField = getEditCustomTimeField(editDialog);
+      const useExisting = getEditExistingTimeOption(editDialog);
+      const existingTimeField = getEditExistingTimeField(editDialog);
+
+      // Set the custom time field to a different value.
+      const differentCustomTime = new Date(selectedEvent.timestamp! + 20000);
+      customTimeField.value = formatTimeFieldValue(differentCustomTime);
+
+      // Set the existing option.
+      setTimeout(() => useExisting.click());
+      await oneEvent(useExisting, 'click');
+      await el.updateComplete;
+
+      expect(useExisting.checked, 'Existing option should now be checked').to.be.true;
+      expect(existingTimeField.disabled, 'Existing time field should now be enabled').to.be.false;
+
+      expect(useCustom.checked, 'Custom option should now be unchecked').to.be.false;
+      expect(customTimeField.disabled, 'Custom time field should now be disabled').to.be.true;
+
+      const cancelButton = getEditCancelButton(editDialog);
+      setTimeout(() => cancelButton!.click());
+      await oneEvent(cancelButton!, 'click');
+
+      // Show the dialog again.
+      setTimeout(() => editButton.click());
+      await oneEvent(editButton, 'click');
+
+      // The custom time fields are reset back to checked/enabled.
+      expect(useCustom.checked, 'Custom option should be checked again').to.be.true;
+      expect(customTimeField.disabled, 'Custom time field should enabled again').to.be.false;
+
+      // The custom time field value is reset to first selected event.
+      const expectedTimeString = formatTimeFieldValue(new Date(selectedEvent.timestamp!));
+      expect(
+        customTimeField.value,
+        'custom time should be reset to time of selected event'
+      ).to.deep.equal(expectedTimeString);
+
+      // The existing time fields are reset back to unchecked/disabled.
+      expect(useExisting.checked, 'Existing option should not be checked initially').to.be.false;
+      expect(existingTimeField.disabled, 'Existing field should be disabled initially').to.be.true;
+    });
+
+    it('re-enables custom time field after changing back from existing option', async () => {
+      const useCustom = getEditCustomTimeOption(editDialog);
+      const customTimeField = getEditCustomTimeField(editDialog);
+      const useExisting = getEditExistingTimeOption(editDialog);
+      const existingTimeField = getEditExistingTimeField(editDialog);
+
+      // Set the existing option.
+      setTimeout(() => useExisting.click());
+      await oneEvent(useExisting, 'click');
+      await el.updateComplete;
+
+      expect(useExisting.checked, 'Existing option should now be checked').to.be.true;
+      expect(existingTimeField.disabled, 'Existing time field should now be enabled').to.be.false;
+
+      expect(useCustom.checked, 'Custom option should now be unchecked').to.be.false;
+      expect(customTimeField.disabled, 'Custom time field should now be disabled').to.be.true;
+
+      // Set back to the custom option.
+      setTimeout(() => useCustom.click());
+      await oneEvent(useCustom, 'click');
+      await el.updateComplete;
+
+      expect(useExisting.checked, 'Existing option should now be unchecked').to.be.false;
+      expect(existingTimeField.disabled, 'Existing time field should be disabled again').to.be.true;
+
+      expect(useCustom.checked, 'Custom option should now be checked').to.be.true;
+      expect(customTimeField.disabled, 'Custom time field should now be enabled again').to.be.false;
     });
 
     it.skip('validates fields when edit dialog saved', () => {
+      expect.fail('not implemented');
+    });
+
+    it.skip('prevents saving when custom time is outside min and max values', () => {
       expect.fail('not implemented');
     });
 
@@ -613,9 +776,7 @@ describe('lineup-game-events tests', () => {
       };
       el.addEventListener(EventsUpdatedEvent.eventName, handler);
 
-      const cancelButton = editDialog.querySelector(
-        'mwc-button[dialogAction="close"]'
-      ) as HTMLElement;
+      const cancelButton = getEditCancelButton(editDialog);
       setTimeout(() => cancelButton!.click());
       await oneEvent(cancelButton!, 'click');
       await nextFrame();
@@ -626,34 +787,13 @@ describe('lineup-game-events tests', () => {
     });
 
     it('fires update event when dialog saved for custom time', async () => {
-      // Check that the "custom time" option is the default.
-      const useCustom = editDialog.querySelector('#time-custom-radio') as Radio;
-      expect(useCustom, 'custom time option').to.exist;
-      expect(useCustom.checked, 'Custom option should be checked by default').to.be.true;
-
-      const selectedEventTime = new Date(selectedEvent.timestamp!);
-      const initialEventTime = new Date(
-        1970,
-        0,
-        1,
-        selectedEventTime.getHours(),
-        selectedEventTime.getMinutes(),
-        selectedEventTime.getSeconds()
-      );
-      const customTimeField = editDialog.querySelector(
-        '#custom-time-field > input'
-      ) as HTMLInputElement;
-      expect(customTimeField, 'custom time field').to.exist;
-      expect(
-        customTimeField.valueAsDate,
-        'custom time should default to time of selected event'
-      ).to.deep.equal(initialEventTime);
+      const customTimeField = getEditCustomTimeField(editDialog);
 
       // Set time to 10 seconds earlier.
       const expectedCustomTime = new Date(selectedEvent.timestamp! - 10000);
-      customTimeField.valueAsDate = expectedCustomTime;
+      customTimeField.value = formatTimeFieldValue(expectedCustomTime);
 
-      const saveButton = editDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
+      const saveButton = getEditSaveButton(editDialog);
       setTimeout(() => saveButton.click());
 
       const { detail } = (await oneEvent(el, EventsUpdatedEvent.eventName)) as EventsUpdatedEvent;
@@ -663,44 +803,30 @@ describe('lineup-game-events tests', () => {
         existingEventId: undefined,
         customTime: expectedCustomTime.getTime(),
       });
+      const expectedTimeString = timeFormatter.format(expectedCustomTime);
+      const actualTimeString = timeFormatter.format(new Date(detail.customTime!));
+      expect(actualTimeString, 'Custom time in event detail').to.equal(expectedTimeString);
     });
 
     it('fires update event with selected event id when dialog saved for existing time', async () => {
-      // The existing time fields are not initially set/available.
-      const useExisting = editDialog.querySelector('#time-existing-radio') as Radio;
-      expect(useExisting, 'existing time option').to.exist;
-      expect(useExisting.checked, 'Existing option should not be checked initially').to.be.false;
-
-      const existingTimeField = editDialog.querySelector('#existing-time-field') as Select;
-      expect(existingTimeField, 'existing time field').to.exist;
-      expect(existingTimeField.disabled, 'Existing field should be disabled initially').to.be.true;
+      const useExisting = getEditExistingTimeOption(editDialog);
+      const existingTimeField = getEditExistingTimeField(editDialog);
 
       // Set the existing option.
       setTimeout(() => useExisting.click());
       await oneEvent(useExisting, 'click');
       await el.updateComplete;
 
-      expect(useExisting.checked, 'Existing option should now be checked').to.be.true;
-      expect(existingTimeField.disabled, 'Existing time field should now be enabled').to.be.false;
-
-      const customTimeField = editDialog.querySelector(
-        '#custom-time-field > input'
-      ) as HTMLInputElement;
-      expect(customTimeField.disabled, 'Custom time field should now be disabled').to.be.true;
-
       // Select a different event to provide the time.
       const existingEvent = events.eventsForTesting[1];
-      //
-      // let index = 0;
       for (const item of existingTimeField.items) {
         if (item.dataset.eventId === existingEvent.id) {
           item.selected = true;
           break;
         }
       }
-      // existingTimeField.select(1);
 
-      const saveButton = editDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
+      const saveButton = getEditSaveButton(editDialog);
       setTimeout(() => saveButton.click());
 
       const { detail } = (await oneEvent(el, EventsUpdatedEvent.eventName)) as EventsUpdatedEvent;

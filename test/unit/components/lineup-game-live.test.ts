@@ -1,6 +1,7 @@
 /** @format */
 
 import { ClockEndPeriodEvent, LineupGameClock } from '@app/components/lineup-game-clock.js';
+import { EventsUpdatedEvent } from '@app/components/lineup-game-events.js';
 import '@app/components/lineup-game-live.js';
 import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
@@ -17,12 +18,16 @@ import {
   getPlayer,
 } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { eventSelected } from '@app/slices/live/events-slice.js';
-import { endPeriodCreator, selectLiveGameById } from '@app/slices/live/index.js';
+import {
+  endPeriodCreator,
+  eventSelected,
+  eventsUpdated,
+  selectLiveGameById,
+} from '@app/slices/live/index.js';
 import { actions as liveActions } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
-import { expect, fixture, html, oneEvent } from '@open-wc/testing';
+import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import {
   getClockEndOverdueExtraMinutes,
@@ -1082,6 +1087,43 @@ describe('lineup-game-live tests', () => {
       expect(eventItem, `rendered item for event ${eventToSelect.id}`).to.be.ok;
 
       expect(eventItem, 'already selected item').to.have.attribute('selected');
+    });
+
+    it('dispatches events updated action when event edits completed', async () => {
+      const eventToSelect = gameEvents.eventsForTesting[0];
+
+      const store = getStore();
+      store.dispatch(eventSelected(liveGame.id, eventToSelect.id!, /* selected= */ true));
+      await el.updateComplete;
+
+      const eventsElement = getEventsElement();
+
+      // Set the event time 1 minute earlier.
+      const customTime = eventToSelect.timestamp! - 60000;
+      eventsElement.dispatchEvent(
+        new EventsUpdatedEvent({
+          updatedEventIds: [eventToSelect.id!],
+          useExistingTime: false,
+          // existingEventId,
+          customTime,
+        })
+      );
+
+      await nextFrame();
+
+      // Verifies that the event selected action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+
+      expect(actions).to.have.lengthOf.at.least(1);
+      expect(actions[actions.length - 1]).to.deep.include(
+        eventsUpdated(
+          liveGame.id,
+          [eventToSelect.id!],
+          /* useExistingTime= */ false,
+          /* existingEventId= */ undefined,
+          customTime
+        )
+      );
     });
   }); // describe('Events')
 });

@@ -2,7 +2,7 @@
  * @format
  */
 
-import { consume } from '@lit/context';
+import { consume, ContextConsumer } from '@lit/context';
 import '@material/mwc-button';
 import '@material/mwc-dialog';
 import { Dialog } from '@material/mwc-dialog';
@@ -18,9 +18,10 @@ import { Select } from '@material/mwc-select';
 import { html, LitElement, nothing, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { Duration, TimeFormatter } from '../models/clock.js';
+import { convertLocalTimeToSameInUTC, Duration, TimeFormatter } from '../models/clock.js';
 import { EventCollection } from '../models/events.js';
 import { GameEvent, GameEventCollectionData, GameEventType } from '../models/live.js';
+import { gameResolverContext } from './core/game-resolver.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 
@@ -105,7 +106,7 @@ export class LineupGameEvents extends LitElement {
   private renderListItems(
     items: EventItem[],
     timeFormatter: TimeFormatter,
-    mode: string = 'default'
+    mode: 'default' | 'edit' = 'default'
   ) {
     // Only handle selection in default rendering mode.
     const clickHandler = mode === 'default' ? this.itemClicked : null;
@@ -225,14 +226,12 @@ export class LineupGameEvents extends LitElement {
   private renderEditDialog(timeFormatter: TimeFormatter) {
     const selectionCount = this.selectedItems.length;
     if (!selectionCount) {
+      // eslint-disable-next-line no-console
+      console.log(`RED: no selected items`);
       return nothing;
     }
 
     const editTimeCustom = this.editTimeOption === EditTimeOptions.Custom;
-
-    const selectedEvent = this.selectedItems[0].event;
-    const customTime = new Date(selectedEvent.timestamp!);
-    customTime.setMilliseconds(0);
 
     return html`<mwc-dialog
       id="edit-dialog"
@@ -251,7 +250,7 @@ export class LineupGameEvents extends LitElement {
               id="time-custom-radio"
               name="editTimeOptions"
               value="${EditTimeOptions.Custom}"
-              checked
+              ?checked=${editTimeCustom}
               @change="${this.timeRadioChanged}"
             >
             </mwc-radio>
@@ -259,13 +258,7 @@ export class LineupGameEvents extends LitElement {
         </li>
         <li>
           <mwc-formfield id="custom-time-field" alignend label="Set event time">
-            <input
-              type="time"
-              step="1"
-              .valueAsDate=${customTime}
-              ?required=${editTimeCustom}
-              ?disabled=${!editTimeCustom}
-            />
+            <input type="time" step="1" ?required=${editTimeCustom} ?disabled=${!editTimeCustom} />
           </mwc-formfield>
         </li>
         <li>
@@ -292,8 +285,8 @@ export class LineupGameEvents extends LitElement {
               (item: EventItem /*, index: number*/) => html`
                 <mwc-list-item data-event-id="${item.id}" value="${item.id}"
                   ><span>
-                    <span> ${this.renderEventTime(item.event, timeFormatter)} </span>
-                    <span class="eventType"> ${getEventTypeText(item.event.type)} </span>
+                    <span>${this.renderEventTime(item.event, timeFormatter)}</span>
+                    <span class="eventType">${getEventTypeText(item.event.type)}</span>
                     <span class="details">${this.renderEventDetails(item.event)}</span></span
                   >
                 </mwc-list-item>
@@ -310,6 +303,10 @@ export class LineupGameEvents extends LitElement {
   private eventItems: EventItem[] = [];
   private selectedItems: EventItem[] = [];
   private periods?: { periodNumber: number; startTime: number }[];
+  private gameResolver = new ContextConsumer(this, {
+    context: gameResolverContext,
+    subscribe: true,
+  });
 
   @consume({ context: playerResolverContext, subscribe: true })
   @property({ attribute: false })
@@ -416,13 +413,31 @@ export class LineupGameEvents extends LitElement {
   }
 
   private async editSelection() {
-    // eslint-disable-next-line no-console
-    console.log(`Edit selection`);
     const dialog = this.shadowRoot!.querySelector<Dialog>('#edit-dialog');
-    // this.editTimeCustom = true;
+    const customTimeField = this.shadowRoot!.querySelector(
+      '#custom-time-field > input'
+    ) as HTMLInputElement;
+
+    // Default to the custom time option, with the time field set to the time
+    // of the first selected event.
+    //  - The time field always uses UTC, and in 24 hour format.
+    //  - The input to the field is adjusted by the UTC offset, so it displays local time.
+    //  - e.g. A time of 2:00pm EST (7:00pm UTC) is adjusted to 2:00pm UTC, so the
+    //    resulting value in the field is "14:00:00";
+    const selectedEventTime = new Date(this.selectedItems[0].event.timestamp!);
+    const customTime = convertLocalTimeToSameInUTC(selectedEventTime);
+    customTime.setMilliseconds(0);
+    // eslint-disable-next-line no-console
+    console.log(
+      `ES: Default the custom time to ${customTime}, from first event time ${selectedEventTime}`
+    );
+    customTimeField.valueAsDate = customTime;
+    // TODO: Set min/max for time, based on game date.
+    this.editTimeOption = EditTimeOptions.Custom;
+
     dialog!.show();
     this.requestUpdate();
-    // await this.updateComplete;
+    await this.updateComplete;
   }
 
   private timeRadioChanged(e: UIEvent) {
@@ -452,28 +467,26 @@ export class LineupGameEvents extends LitElement {
       // NOTE: This is ignoring the edge case of a game that spans midnight.
       const enteredTime = customField.valueAsDate!;
       // eslint-disable-next-line no-console
-      console.log(`applyEventUpdates: enteredTime = ${enteredTime}`);
+      console.log(
+        `applyEventUpdates: enteredTime = ${enteredTime} [${
+          customField.value
+        }], h = ${enteredTime.getHours()} [${enteredTime.getUTCHours()}], m = ${enteredTime.getMinutes()} [${enteredTime.getUTCMinutes()}], s = ${enteredTime.getSeconds()} [${enteredTime.getUTCSeconds()}]`
+      );
       // TODO: enteredTime will be null, if the field doesn't have a valid time
-      const gameDate = new Date(this.selectedItems[0].event.timestamp!);
+      const gameDate = this.gameResolver.value?.getCurrentGame()?.date!;
       customTime = new Date(
         gameDate.getFullYear(),
         gameDate.getMonth(),
         gameDate.getDate(),
-        enteredTime.getHours(),
-        enteredTime.getMinutes(),
-        enteredTime.getSeconds()
+        enteredTime.getUTCHours(),
+        enteredTime.getUTCMinutes(),
+        enteredTime.getUTCSeconds()
       ).getTime();
+      // eslint-disable-next-line no-console
+      console.log(
+        `applyEventUpdates: combinedDate = ${new Date(customTime)}, from gameDate = ${gameDate}`
+      );
     }
-    /*
-    let extraMinutes: number | undefined;
-    if (this.endOverdueRetroactive) {
-      const minutesField = this.shadowRoot!.querySelector(
-        '#overdue-minutes-field > input'
-      ) as HTMLInputElement;
-      extraMinutes = minutesField.valueAsNumber;
-    }
-    this.dispatchEvent(new ClockEndPeriodEvent({ extraMinutes }));
-    */
     // eslint-disable-next-line no-console
     console.log(
       `applyEventUpdates: useExistingTime = ${useExistingTime}, existingEventId = ${existingEventId}, customTime = ${customTime}`
