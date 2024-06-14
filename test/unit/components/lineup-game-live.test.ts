@@ -7,7 +7,6 @@ import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
-import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { FormationType } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import {
@@ -29,6 +28,7 @@ import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
+import { ActionLogger } from '../helpers/action-logger.js';
 import {
   getClockEndOverdueExtraMinutes,
   getClockEndOverdueRetroactiveOption,
@@ -67,12 +67,6 @@ const {
   toggleClock,
 } = liveActions;
 
-let actions: string[] = [];
-const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
-  actions.push(action);
-  return next(action);
-};
-
 function getGameDetail(): { game: GameDetail; live: LiveGame } {
   const live = testlive.getLiveGameWithPlayers();
   const game = getNewGameDetail(buildRoster(live.players));
@@ -87,16 +81,16 @@ function findPlayer(game: LiveGame, status: PlayerStatus) {
 describe('lineup-game-live tests', () => {
   let el: LineupGameLive;
   let dispatchStub: sinon.SinonSpy;
+  let actionLogger: ActionLogger;
   beforeEach(async () => {
-    actions = [];
-    addMiddleware(actionLoggerMiddleware);
+    actionLogger = new ActionLogger();
+    actionLogger.setup();
 
     await setupElement();
   });
 
   afterEach(async () => {
     sinon.restore();
-    // removeMiddleware(actionLoggerMiddleware);
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
@@ -308,9 +302,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the confirm swap action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(confirmSwap(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(confirmSwap(gameId));
     }
 
     it('dispatches select player action when off player selected', async () => {
@@ -326,9 +318,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the select player action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         selectPlayer(gameId, player.id, /*selected =*/ true)
       );
     });
@@ -346,9 +336,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the select player action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         selectPlayer(gameId, player.id, /*selected =*/ true)
       );
     });
@@ -366,9 +354,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the select player action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         selectPlayer(gameId, player.id, /*selected =*/ true)
       );
     });
@@ -437,9 +423,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the confirm sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(confirmSub(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(confirmSub(gameId));
     });
 
     it('dispatches confirm sub action with new position when confirmed', async () => {
@@ -469,9 +453,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the confirm sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         confirmSub(gameId, otherPositionPlayer.currentPosition)
       );
     });
@@ -500,9 +482,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the cancel sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(cancelSub(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(cancelSub(gameId));
     });
 
     it('shows confirm swap UI when proposed swap exists', async () => {
@@ -540,9 +520,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the apply swap action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(confirmSwap(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(confirmSwap(gameId));
     });
 
     it('dispatches cancel swap action when cancelled', async () => {
@@ -564,9 +542,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the cancel sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(cancelSwap(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(cancelSwap(gameId));
     });
 
     it('shows errors when pending subs are invalid', async () => {
@@ -629,9 +605,7 @@ describe('lineup-game-live tests', () => {
       testlive.setupSub(expectedSub2, getPlayer(liveGame, ON_PLAYER2_ID)!);
 
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         applyPendingSubs(gameId, [expectedSub1, expectedSub2], /* selectedOnly */ false)
       );
     });
@@ -660,9 +634,7 @@ describe('lineup-game-live tests', () => {
       testlive.setupSub(selectedSub1, getPlayer(liveGame, ON_PLAYER_ID)!);
 
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         applyPendingSubs(gameId, [selectedSub1], /* selectedOnly */ true)
       );
     });
@@ -683,9 +655,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the discard sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         discardPendingSubs(gameId, /* selectedOnly */ false)
       );
     });
@@ -711,9 +681,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the discard sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         discardPendingSubs(gameId, /* selectedOnly */ true)
       );
     });
@@ -740,9 +708,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the mark player out action was dispatched.
       expect(dispatchStub).to.have.callCount(2);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(markPlayerOut(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(markPlayerOut(gameId));
 
       // Verifies the off player is now in the Out section.
       const outList = getOutList();
@@ -772,9 +738,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the return out player action was dispatched.
       expect(dispatchStub).to.have.callCount(2);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(returnOutPlayer(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(returnOutPlayer(gameId));
 
       // Verifies the out player is now back in the Off section.
       const subsList = getSubsList();
@@ -822,9 +786,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the start period action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
       );
     });
@@ -847,9 +809,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the end period action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime)
       );
     });
@@ -884,9 +844,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the end period action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(endPeriodCreator(gameId, 3));
+      expect(actionLogger.lastAction()).to.deep.include(endPeriodCreator(gameId, 3));
     });
 
     it('dispatches toggle clock action when fired by clock component', async () => {
@@ -902,9 +860,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the toggle clock action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(toggleClock(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(toggleClock(gameId));
     });
   }); // describe('Clock')
 
@@ -958,9 +914,7 @@ describe('lineup-game-live tests', () => {
       // The action should now have been dispatched.
       //  - First action is the startPeriod
       expect(dispatchStub).to.be.called;
-
-      expect(actions).to.have.lengthOf.at.least(2);
-      expect(actions).to.deep.include(markPeriodOverdue(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(markPeriodOverdue(gameId));
     });
   }); // describe('Overdue periods');
 
@@ -1012,9 +966,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the complete game action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(gameCompleted(liveGame.id));
+      expect(actionLogger.lastAction()).to.deep.include(gameCompleted(liveGame.id));
     });
   }); // describe('Complete Game')
 
@@ -1064,9 +1016,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the event selected action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         eventSelected(liveGame.id, eventToSelect.id!, /* selected= */ true)
       );
     });
@@ -1113,9 +1063,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the event selected action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         eventsUpdated(
           liveGame.id,
           [eventToSelect.id!],
