@@ -22,7 +22,7 @@ import {
   EventState,
   eventSelected,
   eventsReducer,
-  eventsUpdated,
+  eventUpdateRequested,
 } from '@app/slices/live/events-slice.js';
 import { actions } from '@app/slices/live/live-slice.js';
 import { expect } from '@open-wc/testing';
@@ -997,7 +997,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        eventsUpdated(
+        eventUpdateRequested(
           game.id,
           [selectedEventId],
           /* useExistingTime= */ false,
@@ -1028,7 +1028,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        eventsUpdated(
+        eventUpdateRequested(
           game.id,
           [selectedEventId, anotherSelectedEventId],
           /* useExistingTime= */ false,
@@ -1057,7 +1057,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        eventsUpdated(
+        eventUpdateRequested(
           game.id,
           [selectedEventId],
           /* useExistingTime= */ true,
@@ -1085,7 +1085,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        eventsUpdated(
+        eventUpdateRequested(
           game.id,
           [selectedEventId, anotherSelectedEventId],
           /* useExistingTime= */ true,

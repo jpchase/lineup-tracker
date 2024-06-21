@@ -7,7 +7,7 @@ export {
   eventSelected,
   selectEventsSelected,
   selectGameEvents,
-  eventsUpdated,
+  eventUpdateRequested,
 } from './events-slice.js';
 export {
   endPeriodCreator,

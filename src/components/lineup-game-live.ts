@@ -28,7 +28,7 @@ import {
   discardPendingSubs,
   endPeriodCreator,
   eventSelected,
-  eventsUpdated,
+  eventUpdateRequested,
   gameCompleted,
   getLiveSliceConfigurator,
   markPeriodOverdueCreator,
@@ -435,7 +435,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
 
   private updateEvents(e: EventsUpdatedEvent) {
     this.dispatch(
-      eventsUpdated(
+      eventUpdateRequested(
         this._game!.id,
         e.detail.updatedEventIds,
         e.detail.useExistingTime,

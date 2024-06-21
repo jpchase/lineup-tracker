@@ -20,7 +20,7 @@ import { PlayerStatus } from '@app/models/player.js';
 import {
   endPeriodCreator,
   eventSelected,
-  eventsUpdated,
+  eventUpdateRequested,
   selectLiveGameById,
 } from '@app/slices/live/index.js';
 import { actions as liveActions } from '@app/slices/live/live-slice.js';
@@ -98,7 +98,7 @@ describe('lineup-game-live tests', () => {
 
     const template = html`<lineup-game-live
       .gameId="${gameId}"
-      .store=${store}
+      .store="${store}"
     ></lineup-game-live>`;
     el = await fixture(template);
     dispatchStub = sinon.spy(el, 'dispatch');
@@ -1064,7 +1064,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the event selected action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        eventsUpdated(
+        eventUpdateRequested(
           liveGame.id,
           [eventToSelect.id!],
           /* useExistingTime= */ false,

@@ -87,7 +87,7 @@ export interface EventSelectedPayload extends LiveGamePayload {
   selected: boolean;
 }
 
-export interface EventsUpdatedPayload extends LiveGamePayload {
+export interface EventUpdateRequestedPayload extends LiveGamePayload {
   updatedEventIds: string[];
   useExistingTime: boolean;
   existingEventId?: string;

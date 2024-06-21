@@ -20,7 +20,7 @@ import {
 import { RootState } from '../../store.js';
 import {
   EventSelectedPayload,
-  EventsUpdatedPayload,
+  EventUpdateRequestedPayload,
   LiveGamePayload,
   extractIdFromSwapPlayerId,
 } from './live-action-types.js';
@@ -96,10 +96,12 @@ const eventSlice = createSlice({
         };
       },
     },
-    eventsUpdated: {
-      reducer: (state: EventState, action: PayloadAction<EventsUpdatedPayload>) => {
+    eventUpdateRequested: {
+      reducer: (state: EventState, action: PayloadAction<EventUpdateRequestedPayload>) => {
         const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
 
+        // TODO: If the "period start" event is updated, the game clock needs to be updated
+        // as well
         let updatedEventTime: number;
         if (action.payload.useExistingTime) {
           const existingEvent = gameEvents.get(action.payload.existingEventId!);
@@ -263,7 +265,7 @@ const eventSlice = createSlice({
 const { reducer } = eventSlice;
 
 export const eventsReducer = reducer;
-export const { eventSelected, eventsUpdated } = eventSlice.actions;
+export const { eventSelected, eventUpdateRequested } = eventSlice.actions;
 
 type EventActionHandler<P extends LiveGamePayload> = (
   action: PayloadAction<P>
