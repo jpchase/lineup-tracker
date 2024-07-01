@@ -1,7 +1,7 @@
 /** @format */
 
 import { FormationType, Position } from '../../models/formation.js';
-import { LiveGame, LivePlayer } from '../../models/live.js';
+import { GameEvent, LiveGame, LivePlayer } from '../../models/live.js';
 import { Roster } from '../../models/player.js';
 
 const SWAP_ID_SUFFIX = '_swap';
@@ -92,6 +92,10 @@ export interface EventUpdateRequestedPayload extends LiveGamePayload {
   useExistingTime: boolean;
   existingEventId?: string;
   customTime?: number;
+}
+
+export interface EventsUpdatedPayload extends LiveGamePayload {
+  events: GameEvent[];
 }
 
 export const prepareLiveGamePayload = (gameId: string) => {

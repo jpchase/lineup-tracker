@@ -1,5 +1,6 @@
 /** @format */
 
+import { listenerMiddleware, startAppListening } from '@app/app/action-listeners.js';
 import { EventCollection } from '@app/models/events.js';
 import { FormationType, Position } from '@app/models/formation.js';
 import {
@@ -17,16 +18,21 @@ import {
   getPlayer,
 } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
+import { getLiveSliceConfigurator } from '@app/slices/live/composed-reducer.js';
 import {
   EVENTS_INITIAL_STATE,
   EventState,
   eventSelected,
-  eventsReducer,
   eventUpdateRequested,
+  eventsReducer,
+  eventsUpdated,
+  setupEventsListeners,
 } from '@app/slices/live/events-slice.js';
 import { actions } from '@app/slices/live/live-slice.js';
+import { AppStore, setupStore } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
+import { ActionLogger } from '../../helpers/action-logger.js';
 import {
   buildClock,
   buildEventState,
@@ -34,6 +40,7 @@ import {
   selectPlayers,
 } from '../../helpers/live-state-setup.js';
 import { mockIdGenerator, mockIdGeneratorWithCallback } from '../../helpers/mock-id-generator.js';
+import { buildRootState } from '../../helpers/root-state-setup.js';
 import {
   incrementingCallbackForTimeProvider,
   mockCurrentTime,
@@ -986,7 +993,7 @@ describe('Events slice', () => {
       currentState = buildEventState(gameEvents);
     });
 
-    it('applies custom date to single selected event', () => {
+    it('applies custom time to single selected event', () => {
       const selectedEvent = gameEvents.eventsForTesting[0];
       const selectedEventId = selectedEvent.id!;
       currentState.eventsSelectedIds = [selectedEventId];
@@ -1016,7 +1023,7 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
-    it('applies custom date to multiple selected events', () => {
+    it('applies custom time to multiple selected events', () => {
       const selectedEvent = gameEvents.eventsForTesting[0];
       const selectedEventId = selectedEvent.id!;
       const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
@@ -1049,7 +1056,7 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
-    it('applies existing event date to single selected event', () => {
+    it('applies existing event time to single selected event', () => {
       const selectedEventId = gameEvents.eventsForTesting[0].id!;
       currentState.eventsSelectedIds = [selectedEventId];
 
@@ -1076,7 +1083,7 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
-    it('applies existing event date to multiple selected events', () => {
+    it('applies existing event time to multiple selected events', () => {
       const selectedEventId = gameEvents.eventsForTesting[0].id!;
       const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
       currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
@@ -1105,5 +1112,153 @@ describe('Events slice', () => {
       });
       expect(newState).not.to.equal(currentState);
     });
+
+    describe('listeners', () => {
+      let store: AppStore;
+      let dispatchStub: sinon.SinonSpy;
+      let actionLogger: ActionLogger;
+
+      beforeEach(() => {
+        actionLogger = new ActionLogger();
+        actionLogger.setup();
+
+        currentState = buildEventState(gameEvents);
+
+        const tempstore = setupStore(undefined, /*hydrate=*/ false);
+        const configurator = getLiveSliceConfigurator();
+        configurator(tempstore);
+
+        // Shouldn't have to do this before?
+        setupEventsListeners(startAppListening);
+      });
+
+      afterEach(() => {
+        listenerMiddleware.clearListeners();
+      });
+
+      async function setupTestStore() {
+        const liveState = buildLiveStateWithCurrentGame(game, { ...currentState });
+
+        const root = buildRootState(undefined, liveState);
+        store = setupStore(root /*buildRootState(undefined, liveState)*/, /*hydrate=*/ false);
+        const configurator = getLiveSliceConfigurator();
+        configurator(store);
+
+        dispatchStub = sinon.spy(store, 'dispatch');
+      }
+
+      it('updated action is dispatched for single updated event with custom time', async () => {
+        const selectedEvent = gameEvents.eventsForTesting[0];
+        const selectedEventId = selectedEvent.id!;
+        currentState.eventsSelectedIds = [selectedEventId];
+        setupTestStore();
+
+        // Update the selected event to 15 seconds earlier
+        const customTime = new Date(selectedEvent.timestamp!);
+        customTime.setSeconds(customTime.getSeconds() - 15);
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [selectedEventId],
+            /* useExistingTime= */ false,
+            undefined,
+            customTime.getTime()
+          )
+        );
+
+        const updatedEvent = updatedEvents.get(selectedEventId)!;
+        updatedEvent.timestamp = customTime.getTime();
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(eventsUpdated(game.id, [updatedEvent]));
+      });
+
+      it('updated action is dispatched for multiple selected events with custom time', async () => {
+        const selectedEvent = gameEvents.eventsForTesting[0];
+        const selectedEventId = selectedEvent.id!;
+        const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
+        currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+        setupTestStore();
+
+        // Update the selected event to 15 seconds earlier
+        const customTime = new Date(selectedEvent.timestamp!);
+        customTime.setSeconds(customTime.getSeconds() - 15);
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [selectedEventId, anotherSelectedEventId],
+            /* useExistingTime= */ false,
+            undefined,
+            customTime.getTime()
+          )
+        );
+
+        const expectedEvents = [];
+        for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+          const updatedEvent = updatedEvents.get(updatedId)!;
+          updatedEvent.timestamp = customTime.getTime();
+          expectedEvents.push(updatedEvent);
+        }
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(eventsUpdated(game.id, expectedEvents));
+      });
+
+      it('updated action is dispatched for single selected event with existing event time', () => {
+        const selectedEventId = gameEvents.eventsForTesting[0].id!;
+        currentState.eventsSelectedIds = [selectedEventId];
+        setupTestStore();
+
+        const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [selectedEventId],
+            /* useExistingTime= */ true,
+            existingEventId,
+            undefined
+          )
+        );
+
+        const updatedEvent = updatedEvents.get(selectedEventId)!;
+        updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp!;
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(eventsUpdated(game.id, [updatedEvent]));
+      });
+
+      it('updated action is dispatched for multiple selected events with existing event time', () => {
+        const selectedEventId = gameEvents.eventsForTesting[0].id!;
+        const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
+        currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+        setupTestStore();
+
+        const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [selectedEventId, anotherSelectedEventId],
+            /* useExistingTime= */ true,
+            existingEventId,
+            undefined
+          )
+        );
+
+        const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
+        const expectedEvents = [];
+        for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+          const updatedEvent = updatedEvents.get(updatedId)!;
+          updatedEvent.timestamp = existingTime;
+          expectedEvents.push(updatedEvent);
+        }
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(eventsUpdated(game.id, expectedEvents));
+      });
+    }); // describe('listeners')
   }); // describe('event updates')
 }); // describe('Events slice')

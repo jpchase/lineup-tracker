@@ -1,6 +1,8 @@
 /** @format */
 
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { PayloadAction, Unsubscribe, createSlice } from '@reduxjs/toolkit';
+import { AppStartListening } from '../../app/action-listeners.js';
+import { debug } from '../../common/debug.js';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
 import {
@@ -21,12 +23,15 @@ import { RootState } from '../../store.js';
 import {
   EventSelectedPayload,
   EventUpdateRequestedPayload,
+  EventsUpdatedPayload,
   LiveGamePayload,
   extractIdFromSwapPlayerId,
 } from './live-action-types.js';
 import { actions } from './live-slice.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
+
+const debugEvents = debug('events');
 
 export interface EventsMap {
   [index: string]: EventCollectionData<GameEvent>;
@@ -42,11 +47,16 @@ export const EVENTS_INITIAL_STATE: EventState = {
   eventsSelectedIds: undefined,
 };
 
+const selectEventState = (state: RootState): EventState | undefined => {
+  return state.live;
+};
+
 export const selectGameEvents = (state: RootState, gameId: string) => {
-  if (!state.live || !gameId) {
+  const eventState = selectEventState(state);
+  if (!eventState || !gameId) {
     return undefined;
   }
-  return getGameEventData(state.live, gameId);
+  return getGameEventData(eventState, gameId);
 };
 
 export const selectEventsSelected = (state: RootState) => {
@@ -121,6 +131,7 @@ const eventSlice = createSlice({
         for (const eventId of action.payload.updatedEventIds) {
           const selectedEvent = gameEvents.get(eventId);
           if (!selectedEvent) {
+            debugEvents(`game events does not have ${eventId}`);
             continue;
           }
           selectedEvent.timestamp = updatedEventTime;
@@ -146,6 +157,19 @@ const eventSlice = createSlice({
             useExistingTime,
             existingEventId,
             customTime,
+          },
+        };
+      },
+    },
+    eventsUpdated: {
+      reducer: (_state: EventState, _action: PayloadAction<EventsUpdatedPayload>) => {
+        // No-op, as this action is defined here, but only handled elsewhere.
+      },
+      prepare: (gameId: string, events: GameEvent[]) => {
+        return {
+          payload: {
+            gameId,
+            events,
           },
         };
       },
@@ -265,11 +289,40 @@ const eventSlice = createSlice({
 const { reducer } = eventSlice;
 
 export const eventsReducer = reducer;
-export const { eventSelected, eventUpdateRequested } = eventSlice.actions;
+export const { eventSelected, eventUpdateRequested, eventsUpdated } = eventSlice.actions;
 
 type EventActionHandler<P extends LiveGamePayload> = (
   action: PayloadAction<P>
 ) => GameEvent | EventOrGroup[] | undefined;
+
+export function setupEventsListeners(startListening: AppStartListening): Unsubscribe {
+  debugEvents('setupEventListeners - start');
+  const subscriptions = [
+    startListening({
+      actionCreator: eventUpdateRequested,
+      effect: async (action, listenerApi) => {
+        debugEvents(`EL: action = ${JSON.stringify(action)}`);
+        const gameEvents = getOrCreateGameEvents(
+          selectEventState(listenerApi.getState())!,
+          action.payload.gameId
+        );
+
+        // Get the latest version of each of the updated events
+        const events: GameEvent[] = [];
+        for (const eventId of action.payload.updatedEventIds) {
+          events.push(gameEvents.get(eventId)!);
+        }
+
+        await listenerApi.dispatch(eventsUpdated(action.payload.gameId, events));
+        debugEvents(`EL: action dispatched`);
+      },
+    }),
+  ];
+
+  return () => {
+    subscriptions.forEach((unsubscribe) => unsubscribe());
+  };
+}
 
 function buildActionHandler<P extends LiveGamePayload>(handler: EventActionHandler<P>) {
   return (state: EventState, action: PayloadAction<P>) => {
