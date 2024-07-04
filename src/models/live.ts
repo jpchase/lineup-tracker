@@ -49,6 +49,7 @@ export interface LiveClock {
   timer?: TimerData;
   stoppageTimer?: TimerData;
   currentPeriod: number;
+  periodStartTime?: number;
   periodStatus: PeriodStatus;
   totalPeriods: number;
   periodLength: number;
@@ -197,6 +198,7 @@ export class LiveGameBuilder {
       timer: undefined,
       stoppageTimer: undefined,
       currentPeriod: 0,
+      periodStartTime: undefined,
       periodStatus: PeriodStatus.Pending,
       totalPeriods: 2,
       periodLength: 45,

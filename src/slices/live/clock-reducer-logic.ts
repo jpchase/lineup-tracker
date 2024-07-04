@@ -77,6 +77,7 @@ export const startPeriodHandler = (
   timer.start();
   clock.timer = timer.toJSON();
   clock.currentPeriod = period.currentPeriod!;
+  clock.periodStartTime = clock.timer.startTime;
   clock.periodStatus = PeriodStatus.Running;
 };
 
