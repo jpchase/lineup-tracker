@@ -16,14 +16,14 @@ export class GameCreatePage extends PageObject {
 
   override get openFunc(): PageOpenFunction | undefined {
     return async () => {
-      await this.page.waitForTimeout(500);
+      await this.waitForTimeout(500);
       const buttonHandle = await this.querySelectorInView('lineup-view-games', 'mwc-fab');
       if (!buttonHandle) {
         throw new Error('New game button not found');
       }
       await buttonHandle.click();
       // Brief wait for dialog to render.
-      await this.page.waitForTimeout(100);
+      await this.waitForTimeout(100);
     };
   }
 
@@ -104,7 +104,7 @@ export class GameCreatePage extends PageObject {
     this.log(`game create button clicked`);
     // TODO: Use wait for view ready, once the page is waiting for game to be created.
     // Could do similar to the "roster copying" on the game roster page?
-    await this.page.waitForTimeout(3500);
+    await this.waitForTimeout(3500);
     this.log(`wait for game create finished`);
   }
 

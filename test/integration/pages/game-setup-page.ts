@@ -32,7 +32,7 @@ export class GameSetupPage extends GameDetailPage {
   override get openFunc(): PageOpenFunction | undefined {
     return async () => {
       this.log('in openFunc for more waiting');
-      await this.page.waitForTimeout(2000);
+      await this.waitForTimeout(2000);
     };
   }
 
@@ -112,7 +112,7 @@ export class GameSetupPage extends GameDetailPage {
     await formationSelect.select(formationType);
 
     // Brief wait for components to render updates.
-    await this.page.waitForTimeout(100);
+    await this.waitForTimeout(100);
   }
 
   async setStarters(starters: string[], existingSetupHandle?: ElementHandle<Element>) {
@@ -166,7 +166,7 @@ export class GameSetupPage extends GameDetailPage {
     }, starters);
 
     // Brief wait for components to render updates.
-    await this.page.waitForTimeout(100);
+    await this.waitForTimeout(100);
   }
 
   async setPeriods(
@@ -180,7 +180,7 @@ export class GameSetupPage extends GameDetailPage {
     const taskHandle = await this.getTaskElement(SetupSteps.Periods, setupHandle);
     const linkHandle = await this.getTaskLink(taskHandle);
     linkHandle.click();
-    await this.page.waitForTimeout(100);
+    await this.waitForTimeout(100);
 
     await setupHandle.evaluate(
       // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -209,7 +209,7 @@ export class GameSetupPage extends GameDetailPage {
     );
 
     // Brief wait for components to render updates.
-    await this.page.waitForTimeout(100);
+    await this.waitForTimeout(100);
   }
 
   async markStepDone(step: SetupSteps, setupHandle?: ElementHandle<Element>) {
@@ -226,7 +226,7 @@ export class GameSetupPage extends GameDetailPage {
       (completeButton as HTMLElement).click();
     });
     // Brief wait for components to render updates.
-    await this.page.waitForTimeout(50);
+    await this.waitForTimeout(50);
   }
 
   async completeSetup(starters: string[]) {
