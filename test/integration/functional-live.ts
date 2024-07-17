@@ -37,6 +37,11 @@ describe('Live functional tests', () => {
     expect(timer?.isRunning ?? false, 'Game clock running?').to.equal(running);
   }
 
+  async function expectClockStart(livePage: GameLivePage, startTime: number) {
+    const timer = await livePage.getGameClock();
+    expect(timer?.startTime, 'Game clock start').to.equal(startTime);
+  }
+
   async function expectOnPlayers(livePage: GameLivePage, expectedPlayers: string[]) {
     const actualPlayers = await livePage.getOnPlayers();
     const playerIds = actualPlayers.map((player) => player.id);
@@ -173,6 +178,44 @@ describe('Live functional tests', () => {
     });
     expect(storedGame.players).to.equal('all the players in the correct status, along with timers');
     */
+  });
+
+  it.only('game event edits are applied', async () => {
+    // Create page in live view, with game ready to be started.
+    const { livePage, newGame, starters } = await GameLivePage.createLivePage(
+      {
+        userId: integrationTestData.TEAM2.OWNER_ID,
+        team: { teamId: integrationTestData.TEAM2.ID },
+        gameId: integrationTestData.TEAM2.games.NEW_WITH_ROSTER.ID,
+      },
+      firestore
+    );
+    pageObject = livePage;
+
+    // Until game is started running, all players still have Off status.
+    const onPlayers = starters;
+    const offPlayers = Object.keys(newGame.roster).filter(
+      (playerId) => !starters.includes(playerId)
+    );
+
+    // Start the game running.
+    await expectClockRunning(livePage, /*running=*/ false);
+
+    await livePage.startGamePeriod();
+    await expectClockRunning(livePage, /*running=*/ true);
+    await expectOnPlayers(livePage, onPlayers);
+
+    // Perform a substitution.
+    const subbedPlayers = onPlayers.slice(1);
+    subbedPlayers.push(offPlayers[0]);
+    await livePage.substitutePlayer(onPlayers[0], offPlayers[0]);
+    await expectOnPlayers(livePage, subbedPlayers);
+
+    // Edit the period start time.
+    const clockData = (await livePage.getGameClock())!;
+    const newStartTime = clockData.startTime! - 30;
+    await livePage.editPeriodStart(newStartTime);
+    await expectClockStart(livePage, newStartTime);
   });
 
   it.skip('finished game is synced to storage', async () => {
