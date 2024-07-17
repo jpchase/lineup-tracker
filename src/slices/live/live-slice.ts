@@ -19,6 +19,7 @@ import {
   configurePeriodsPrepare,
   endPeriodHandler,
   endPeriodPrepare,
+  eventsUpdatedHandler,
   markPeriodOverdueHandler,
   markPeriodOverduePrepare,
   startPeriodHandler,
@@ -26,7 +27,7 @@ import {
   toggleHandler,
 } from './clock-reducer-logic.js';
 import { EventState } from './events-slice.js';
-import { LiveGamePayload, prepareLiveGamePayload } from './live-action-types.js';
+import { LiveGamePayload, eventsUpdated, prepareLiveGamePayload } from './live-action-types.js';
 import {
   applyStarterHandler,
   cancelStarterHandler,
@@ -319,6 +320,7 @@ export const liveSlice = createSlice({
         setCurrentGame(state, game);
       }
     );
+    builder.addCase(eventsUpdated, buildActionHandler(eventsUpdatedHandler));
   },
 });
 

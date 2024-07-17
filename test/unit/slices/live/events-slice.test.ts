@@ -25,9 +25,9 @@ import {
   eventSelected,
   eventUpdateRequested,
   eventsReducer,
-  eventsUpdated,
   setupEventsListeners,
 } from '@app/slices/live/events-slice.js';
+import { eventsUpdated } from '@app/slices/live/live-action-types.js';
 import { actions } from '@app/slices/live/live-slice.js';
 import { AppStore, setupStore } from '@app/store.js';
 import { expect } from '@open-wc/testing';

@@ -23,8 +23,8 @@ import { RootState } from '../../store.js';
 import {
   EventSelectedPayload,
   EventUpdateRequestedPayload,
-  EventsUpdatedPayload,
   LiveGamePayload,
+  eventsUpdated,
   extractIdFromSwapPlayerId,
 } from './live-action-types.js';
 import { actions } from './live-slice.js';
@@ -161,19 +161,6 @@ const eventSlice = createSlice({
         };
       },
     },
-    eventsUpdated: {
-      reducer: (_state: EventState, _action: PayloadAction<EventsUpdatedPayload>) => {
-        // No-op, as this action is defined here, but only handled elsewhere.
-      },
-      prepare: (gameId: string, events: GameEvent[]) => {
-        return {
-          payload: {
-            gameId,
-            events,
-          },
-        };
-      },
-    },
   },
 
   extraReducers: (builder) => {
@@ -289,7 +276,7 @@ const eventSlice = createSlice({
 const { reducer } = eventSlice;
 
 export const eventsReducer = reducer;
-export const { eventSelected, eventUpdateRequested, eventsUpdated } = eventSlice.actions;
+export const { eventSelected, eventUpdateRequested } = eventSlice.actions;
 
 type EventActionHandler<P extends LiveGamePayload> = (
   action: PayloadAction<P>

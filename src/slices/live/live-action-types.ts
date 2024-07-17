@@ -1,5 +1,6 @@
 /** @format */
 
+import { PrepareAction, createAction } from '@reduxjs/toolkit';
 import { FormationType, Position } from '../../models/formation.js';
 import { GameEvent, LiveGame, LivePlayer } from '../../models/live.js';
 import { Roster } from '../../models/player.js';
@@ -97,6 +98,18 @@ export interface EventUpdateRequestedPayload extends LiveGamePayload {
 export interface EventsUpdatedPayload extends LiveGamePayload {
   events: GameEvent[];
 }
+
+export const eventsUpdated = createAction<PrepareAction<EventsUpdatedPayload>>(
+  'events/eventsUpdated',
+  (gameId: string, events: GameEvent[]) => {
+    return {
+      payload: {
+        gameId,
+        events,
+      },
+    };
+  }
+);
 
 export const prepareLiveGamePayload = (gameId: string) => {
   return {
