@@ -1,7 +1,18 @@
 /** @format */
 
-function pad0(value: number, count: number): string {
+export function pad0(value: number, count: number): string {
   return value.toString().padStart(count, '0');
+}
+
+// Converts the time in `localDate` to the same hour and minute in UTC, so
+// that the time is the same, if timezone is ignored. For example, "2:15 PM EST"
+// (which is "7:15 PM UTC") becomes "2:15 PM UTC".
+// This is a wonky thing to do, but is sometimes necessary for use with HTML
+// controls or APIs that ignore/drop the timezone.
+export function convertLocalTimeToSameInUTC(localDate: Date): Date {
+  const convertedDate = new Date(localDate);
+  convertedDate.setUTCMinutes(localDate.getUTCMinutes() - localDate.getTimezoneOffset());
+  return convertedDate;
 }
 
 export class CurrentTimeProvider {

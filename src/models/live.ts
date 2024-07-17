@@ -1,7 +1,7 @@
 /** @format */
 
 import { TimerData } from './clock.js';
-import { EventBase } from './events.js';
+import { EventBase, EventCollection, EventCollectionData } from './events.js';
 import { FormationMetadata, Position } from './formation.js';
 import { Game, GameDetail, GameStatus } from './game.js';
 import { Player, PlayerStatus } from './player.js';
@@ -49,6 +49,7 @@ export interface LiveClock {
   timer?: TimerData;
   stoppageTimer?: TimerData;
   currentPeriod: number;
+  periodStartTime?: number;
   periodStatus: PeriodStatus;
   totalPeriods: number;
   periodLength: number;
@@ -145,6 +146,9 @@ export interface GameEventGroup {
   groupedEvents: GameEvent[];
 }
 
+export type GameEventCollection = EventCollection<GameEvent>;
+export type GameEventCollectionData = EventCollectionData<GameEvent>;
+
 export function isGamePlayerEvent(event: GameEvent): event is GamePlayerEvent {
   switch (event.type) {
     case GameEventType.SubIn:
@@ -194,6 +198,7 @@ export class LiveGameBuilder {
       timer: undefined,
       stoppageTimer: undefined,
       currentPeriod: 0,
+      periodStartTime: undefined,
       periodStatus: PeriodStatus.Pending,
       totalPeriods: 2,
       periodLength: 45,

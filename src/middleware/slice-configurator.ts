@@ -1,7 +1,8 @@
 /** @format */
 
-import { Reducer, StoreEnhancer, nanoid } from '@reduxjs/toolkit';
+import { Reducer, StoreEnhancer, Unsubscribe, nanoid } from '@reduxjs/toolkit';
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
+import { AppStartListening, startAppListening } from '../app/action-listeners.js';
 import { debug } from '../common/debug.js';
 import { rootReducer } from '../slices/reducer.js';
 import { AppStore } from '../store.js';
@@ -21,6 +22,10 @@ export interface SliceConfigurator {
   (storeInstance: AppStore /*, config?: SliceConfig*/): void;
 }
 
+export interface SliceSetupListeners {
+  (startListening: AppStartListening): Unsubscribe;
+}
+
 export interface SliceConfigurator2 {
   name: string;
   configure(storeInstance: AppStore, config?: SliceConfig): void;
@@ -30,6 +35,7 @@ interface SliceLike<State> {
   name: string;
   reducerPath: string;
   reducer: Reducer<State>;
+  setupListeners?: SliceSetupListeners;
 }
 
 function reducerPathExists(store: AppStore, reducerPath: string) {
@@ -93,6 +99,12 @@ export function buildSliceConfigurator<State>(
       // Lazy load the reducer.
       const hydrate = !store.sliceConfig.disableHydration;
       initReducer(store, hydrate);
+
+      if (slice.setupListeners) {
+        debugConfig(`setup listeners`);
+        /*const listeners =*/ slice.setupListeners(startAppListening);
+        // TODO: wrap listeners in an unsubcribe function, that actually gets used
+      }
     }
     debugConfig('ended');
   };
