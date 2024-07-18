@@ -92,7 +92,7 @@ export class PageObject {
   }
 
   protected async waitForTimeout(milliseconds: number) {
-    return new Promise((resolve) => {
+    await new Promise((resolve) => {
       setTimeout(resolve, milliseconds);
     });
   }
