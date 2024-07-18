@@ -60,13 +60,13 @@ describe('Live slice: Setup actions', () => {
   describe('live/formationSelected', () => {
     it('should set formation type and update setup tasks to mark formation complete', () => {
       const expectedGame = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/ SetupSteps.Formation
+        /*lastCompletedStep=*/ SetupSteps.Formation,
       );
       expectedGame.formation = { type: FormationType.F3_1_4_2 };
       const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
       const currentGame = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/ SetupSteps.Formation - 1
+        /*lastCompletedStep=*/ SetupSteps.Formation - 1,
       );
       delete currentGame.formation;
       const state = buildLiveStateWithCurrentGame(currentGame);
@@ -366,12 +366,12 @@ describe('Live slice: Setup actions', () => {
     describe('live/startersCompleted', () => {
       it('should update setup tasks to mark starters complete', () => {
         const game = buildLiveGameWithSetupTasksAndPlayers(
-          /*lastCompletedStep=*/ SetupSteps.Starters - 1
+          /*lastCompletedStep=*/ SetupSteps.Starters - 1,
         );
         const state = buildLiveStateWithCurrentGame(game);
 
         const expectedGame = buildLiveGameWithSetupTasksAndPlayers(
-          /*lastCompletedStep=*/ SetupSteps.Starters
+          /*lastCompletedStep=*/ SetupSteps.Starters,
         );
         const expectedState = buildLiveStateWithCurrentGame(expectedGame);
 
@@ -434,7 +434,7 @@ describe('Live slice: Setup actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          invalidStarters(gameId, allOpenPositions.sort())
+          invalidStarters(gameId, allOpenPositions.sort()),
         );
       });
 
@@ -456,11 +456,11 @@ describe('Live slice: Setup actions', () => {
   describe('live/gameSetupCompleted', () => {
     it('should set status to Start, clear setup tasks, init clock and shift trackers', () => {
       const currentGame = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/ SetupSteps.Captains
+        /*lastCompletedStep=*/ SetupSteps.Captains,
       );
 
       const expectedGame = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/ SetupSteps.Captains
+        /*lastCompletedStep=*/ SetupSteps.Captains,
       );
       expectedGame.status = GameStatus.Start;
       expectedGame.clock = buildClock();

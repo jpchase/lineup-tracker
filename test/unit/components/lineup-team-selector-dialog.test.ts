@@ -128,7 +128,7 @@ describe('lineup-team-selector-dialog tests', () => {
 
     expect(
       teamElement.hasAttribute('selected'),
-      `List item for ${selectedTeamId} should not be selected yet`
+      `List item for ${selectedTeamId} should not be selected yet`,
     ).to.be.false;
 
     setTimeout(() => teamElement.click());
@@ -137,7 +137,7 @@ describe('lineup-team-selector-dialog tests', () => {
 
     expect(
       teamElement.hasAttribute('selected'),
-      `List item for ${selectedTeamId} should be selected`
+      `List item for ${selectedTeamId} should be selected`,
     ).to.be.true;
     await expect(teamElement).to.equalSnapshot();
   });
@@ -201,7 +201,7 @@ describe('lineup-team-selector-dialog tests', () => {
     const teamElement = await selectTeamItem(selectedTeamId);
     expect(
       teamElement.hasAttribute('selected'),
-      `List item for ${selectedTeamId} should be selected`
+      `List item for ${selectedTeamId} should be selected`,
     ).to.be.true;
 
     const selectButton = getSelectButton();
@@ -211,7 +211,7 @@ describe('lineup-team-selector-dialog tests', () => {
     await el.show();
     expect(
       teamElement.hasAttribute('selected'),
-      `List item for ${selectedTeamId} should no longer be selected`
+      `List item for ${selectedTeamId} should no longer be selected`,
     ).to.be.false;
   });
 

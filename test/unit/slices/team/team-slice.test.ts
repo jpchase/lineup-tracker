@@ -56,7 +56,7 @@ function mockGetState(
   teams: Team[],
   currentTeam?: Team,
   options?: MockAuthStateOptions,
-  players?: Player[]
+  players?: Player[],
 ) {
   return sinon.fake(() => {
     const teamData = buildTeams(teams);
@@ -115,7 +115,7 @@ describe('Team slice', () => {
           payload: {
             teams: buildTeams([getStoredTeam()]),
           },
-        })
+        }),
       );
 
       expect(loadCollectionStub, 'loadCollection').to.have.callCount(1);
@@ -130,8 +130,8 @@ describe('Team slice', () => {
           {
             teams: expectedTeams,
           },
-          ''
-        )
+          '',
+        ),
       );
 
       expect(newState).to.deep.include({
@@ -156,7 +156,7 @@ describe('Team slice', () => {
           payload: {
             teams: buildTeams([getPublicTeam()]),
           },
-        })
+        }),
       );
     });
 
@@ -173,7 +173,7 @@ describe('Team slice', () => {
         sinon.match({
           type: getTeams.rejected.type,
           error: { message: 'Storage failed with some error' },
-        })
+        }),
       );
     });
   }); // describe('getTeams')
@@ -237,10 +237,10 @@ describe('Team slice', () => {
         KEY_TEAMS,
         undefined,
         sinon.match.object,
-        { addUserId: true }
+        { addUserId: true },
       );
       expect(inputTeam, 'Input team should have properties set by saving').to.deep.equal(
-        expectedSavedTeam
+        expectedSavedTeam,
       );
 
       expect(dispatchMock).to.have.been.calledWith({
@@ -331,7 +331,7 @@ describe('Team slice', () => {
         sinon.match({
           type: getRoster.fulfilled.type,
           payload: rosterData,
-        })
+        }),
       );
     });
 
@@ -365,7 +365,7 @@ describe('Team slice', () => {
         sinon.match({
           type: getRoster.rejected.type,
           error: { message: 'Storage failed with some error' },
-        })
+        }),
       );
     });
   }); // describe('getRoster')
@@ -431,10 +431,10 @@ describe('Team slice', () => {
       expect(saveNewDocumentStub).calledOnceWith(
         inputPlayer,
         `${KEY_TEAMS}/${currentTeam.id}/${KEY_ROSTER}`,
-        sinon.match.object
+        sinon.match.object,
       );
       expect(inputPlayer, 'Input player should have properties set by saving').to.deep.equal(
-        expectedSavedPlayer
+        expectedSavedPlayer,
       );
 
       // Waits for promises to resolve.

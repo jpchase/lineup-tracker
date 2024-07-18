@@ -77,7 +77,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
                 this.formation!,
                 this._players!,
                 this.trackerData!,
-                this.eventData!
+                this.eventData!,
               )}
             `
           : html` <p class="empty-list">Live game not set.</p> `}
@@ -88,7 +88,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     formation: Formation,
     players: LivePlayer[],
     trackerData: PlayerTimeTrackerMapData,
-    eventData: EventCollectionData
+    eventData: EventCollectionData,
   ) {
     return html` <div toolbar>
         <lineup-game-clock
@@ -188,7 +188,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
             ${map(
               allPositions,
               (position) =>
-                html`<option value="${position.id}">${formatPosition(position)}</option>`
+                html`<option value="${position.id}">${formatPosition(position)}</option>`,
             )}
           </select>
         </span>

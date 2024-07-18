@@ -89,7 +89,7 @@ export class LineupGameEvents extends LitElement {
                 </td>
                 <td class="details">${this.renderEventDetails(item.event as GameEvent)}</td>
               </tr>
-            `
+            `,
           )}
         </tbody>
       </table>`;

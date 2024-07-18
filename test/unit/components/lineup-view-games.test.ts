@@ -138,7 +138,7 @@ describe('lineup-view-games tests', () => {
     await oneEvent(addButton!, 'click');
 
     const cancelButton = createElement.shadowRoot!.querySelector(
-      'mwc-button[dialogAction="close"]'
+      'mwc-button[dialogAction="close"]',
     ) as HTMLElement;
 
     setTimeout(() => cancelButton!.click());

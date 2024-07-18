@@ -147,7 +147,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
                     </div>
                     <div class="status">${this.renderTaskStatus(task)}</div>
                   </div>
-                `
+                `,
               )}
               <div class="flex-equal-justified">
                 <mwc-button

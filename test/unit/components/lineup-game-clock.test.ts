@@ -449,7 +449,7 @@ describe('lineup-game-clock tests', () => {
         el.addEventListener(ClockEndPeriodEvent.eventName, handler);
 
         const cancelButton = overdueDialog.querySelector(
-          'mwc-button[dialogAction="close"]'
+          'mwc-button[dialogAction="close"]',
         ) as HTMLElement;
         setTimeout(() => cancelButton!.click());
         await oneEvent(cancelButton!, 'click');
@@ -467,7 +467,7 @@ describe('lineup-game-clock tests', () => {
         expect(useCurrent.checked, 'Current option should be checked by default').to.be.true;
 
         const saveButton = overdueDialog.querySelector(
-          'mwc-button[dialogAction="save"]'
+          'mwc-button[dialogAction="save"]',
         ) as HTMLElement;
         setTimeout(() => saveButton.click());
 
@@ -503,7 +503,7 @@ describe('lineup-game-clock tests', () => {
         const { detail } = await oneEvent(el, ClockEndPeriodEvent.eventName);
         expect(
           (detail as ClockEndPeriodDetail).extraMinutes,
-          'Event extra minutes should be set to input value'
+          'Event extra minutes should be set to input value',
         ).to.equal(3);
       });
     }); // describe('overdue')

@@ -38,7 +38,7 @@ function reducerPathExists(store: AppStore, reducerPath: string) {
 
 export function buildSliceConfigurator<State>(
   slice: SliceLike<State>,
-  persistConfig?: Partial<PersistConfig<State>>
+  persistConfig?: Partial<PersistConfig<State>>,
 ): SliceConfigurator {
   const debugConfig = debug(`config[${slice.name}]`);
 
@@ -86,7 +86,7 @@ export function buildSliceConfigurator<State>(
     }
     const stateExists = reducerPathExists(store, slice.reducerPath);
     debugConfig(
-      `started: state exists = ${stateExists}, config = ${JSON.stringify(store?.sliceConfig)}`
+      `started: state exists = ${stateExists}, config = ${JSON.stringify(store?.sliceConfig)}`,
     );
     if (!stateExists) {
       debugConfig(`state missing for [${slice.reducerPath}], add reducer`);
@@ -99,7 +99,7 @@ export function buildSliceConfigurator<State>(
 }
 
 export function buildSliceConfigStoreEnhancer(
-  config: SliceConfig
+  config: SliceConfig,
 ): StoreEnhancer<SliceConfigStore> {
   return (nextCreator) => {
     return (origReducer, preloadedState) => {

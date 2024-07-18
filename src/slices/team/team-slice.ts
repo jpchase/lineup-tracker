@@ -87,7 +87,7 @@ export const getRoster = createAsyncThunk(
       }
       return true;
     },
-  }
+  },
 );
 
 export const addNewPlayer =

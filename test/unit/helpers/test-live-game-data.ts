@@ -80,7 +80,7 @@ export function getLivePlayers(numPlayers: number, status?: PlayerStatus): LiveP
 export function setupSub(
   nextPlayer: LivePlayer,
   onPlayer: LivePlayer,
-  positionOverride?: Position
+  positionOverride?: Position,
 ) {
   // Using `modifiedPlayer` is a no-op here. It's a less verbose way to disable the lint
   // rule "no-param-reassign" for the following lines.

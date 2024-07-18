@@ -73,7 +73,7 @@ describe('lineup-game-shifts tests', () => {
       expect(totalTimeElement, 'Missing total time element').to.exist;
       expect(totalTimeElement!.textContent?.trim()).to.equal(
         Duration.format(tracker.totalOnTime),
-        'Total time'
+        'Total time',
       );
     }
     await expect(el).shadowDom.to.equalSnapshot();
@@ -116,7 +116,7 @@ describe('lineup-game-shifts tests', () => {
       expect(totalTimeElement, 'Missing total time element').to.exist;
       expect(totalTimeElement!.textContent?.trim()).to.equal(
         Duration.format(expectedTotalTime),
-        `Total time for ${tracker.id}`
+        `Total time for ${tracker.id}`,
       );
     }
   });

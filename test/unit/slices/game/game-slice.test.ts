@@ -132,7 +132,7 @@ describe('Game slice', () => {
         sinon.match({
           type: getGames.fulfilled.type,
           payload: { ...expectedGames },
-        })
+        }),
       );
       expect(loadCollectionStub).to.have.callCount(1);
     });
@@ -170,7 +170,7 @@ describe('Game slice', () => {
         sinon.match({
           type: getGames.fulfilled.type,
           payload: { ...expectedGames },
-        })
+        }),
       );
     });
 
@@ -188,7 +188,7 @@ describe('Game slice', () => {
         sinon.match({
           type: getGames.rejected.type,
           error: { message: 'Storage failed with some error' },
-        })
+        }),
       );
     });
   }); // describe('getGames')
@@ -246,7 +246,7 @@ describe('Game slice', () => {
       const loadDocumentStub = mockLoadDocumentWithGame(expectedGame);
       const loadCollectionStub = mockLoadCollectionWithGameRoster(
         expectedGameDetail.id,
-        expectedGameDetail.roster
+        expectedGameDetail.roster,
       );
 
       await getGame(expectedGameDetail.id)(dispatchMock, getStateMock, undefined);
@@ -263,14 +263,14 @@ describe('Game slice', () => {
           meta: {
             gameId: expectedGameDetail.id,
           },
-        })
+        }),
       );
 
       expect(dispatchMock.lastCall).to.have.been.calledWith(
         sinon.match({
           type: getGame.fulfilled.type,
           payload: expectedGameDetail,
-        })
+        }),
       );
     });
 
@@ -324,7 +324,7 @@ describe('Game slice', () => {
         sinon.match({
           type: getGame.fulfilled.type,
           payload: storedGame,
-        })
+        }),
       );
     });
 
@@ -362,7 +362,7 @@ describe('Game slice', () => {
       const getStateMock = mockGetState(
         buildGameStateWithGames(buildGames([loadedGame])),
         undefined,
-        undefined
+        undefined,
       );
 
       await getGame(loadedGame.id)(dispatchMock, getStateMock, undefined);
@@ -377,7 +377,7 @@ describe('Game slice', () => {
         sinon.match({
           type: getGame.fulfilled.type,
           payload: loadedGame,
-        })
+        }),
       );
     });
 
@@ -401,7 +401,7 @@ describe('Game slice', () => {
         sinon.match({
           type: getGame.fulfilled.type,
           payload: loadedGame,
-        })
+        }),
       );
     });
 
@@ -436,13 +436,13 @@ describe('Game slice', () => {
               ...expectedGameDetail,
               hasDetail: false,
             },
-          ])
-        )
+          ]),
+        ),
       );
       const loadDocumentStub = mockLoadDocumentWithGame(expectedGame);
       const loadCollectionStub = mockLoadCollectionWithGameRoster(
         expectedGameDetail.id,
-        expectedGameDetail.roster
+        expectedGameDetail.roster,
       );
 
       await getGame(expectedGame.id)(dispatchMock, getStateMock, undefined);
@@ -457,7 +457,7 @@ describe('Game slice', () => {
         sinon.match({
           type: getGame.fulfilled.type,
           payload: expectedGameDetail,
-        })
+        }),
       );
     });
 
@@ -481,14 +481,14 @@ describe('Game slice', () => {
           meta: {
             gameId,
           },
-        })
+        }),
       );
 
       expect(dispatchMock.lastCall).to.have.been.calledWith(
         sinon.match({
           type: getGame.rejected.type,
           error: { message: `Document not found: ${KEY_GAMES}/${gameId}` },
-        })
+        }),
       );
     });
 
@@ -512,14 +512,14 @@ describe('Game slice', () => {
           meta: {
             gameId,
           },
-        })
+        }),
       );
 
       expect(dispatchMock.lastCall).to.have.been.calledWith(
         sinon.match({
           type: getGame.rejected.type,
           error: { message: 'Storage failed with some error' },
-        })
+        }),
       );
     });
 
@@ -612,7 +612,7 @@ describe('Game slice', () => {
       const getStateMock = mockGetState(
         undefined,
         signedInAuthState,
-        getMockTeamState([], getStoredTeam())
+        getMockTeamState([], getStoredTeam()),
       );
       const saveNewDocumentStub = writerStub.saveNewDocument.callsFake((model) => {
         model.id = expectedSavedGame.id;
@@ -629,10 +629,10 @@ describe('Game slice', () => {
         KEY_GAMES,
         undefined,
         sinon.match.object,
-        { addTeamId: true, addUserId: true }
+        { addTeamId: true, addUserId: true },
       );
       expect(inputGame, 'Input game should have properties set by saving').to.deep.equal(
-        expectedSavedGame
+        expectedSavedGame,
       );
 
       expect(dispatchMock).to.have.been.calledWith(addGame(expectedSavedGame));
@@ -676,7 +676,7 @@ describe('Game slice', () => {
         gameState,
         signedInAuthState,
         getMockTeamState([], getStoredTeam()),
-        liveState
+        liveState,
       );
       const updateDocumentStub = writerStub.updateDocument.returns();
 
@@ -688,7 +688,7 @@ describe('Game slice', () => {
       // Checks that the game was saved to the database.
       expect(updateDocumentStub).calledOnceWith(
         { status: GameStatus.Start },
-        `${KEY_GAMES}/${existingGame.id}`
+        `${KEY_GAMES}/${existingGame.id}`,
       );
     });
 
@@ -700,7 +700,7 @@ describe('Game slice', () => {
         gameState,
         signedInAuthState,
         getMockTeamState([], getStoredTeam()),
-        liveState
+        liveState,
       );
 
       writerStub.updateDocument.onFirstCall().throws(() => {
@@ -742,7 +742,7 @@ describe('Game slice', () => {
       const getStateMock = mockGetState(
         gameState,
         signedInAuthState,
-        getMockTeamState([], getStoredTeam())
+        getMockTeamState([], getStoredTeam()),
       );
       const updateDocumentStub = writerStub.updateDocument.returns();
 
@@ -754,7 +754,7 @@ describe('Game slice', () => {
       // Checks that the game was saved to the database.
       expect(updateDocumentStub).calledOnceWith(
         { status: GameStatus.Done },
-        `${KEY_GAMES}/${existingGame.id}`
+        `${KEY_GAMES}/${existingGame.id}`,
       );
     });
 
@@ -764,7 +764,7 @@ describe('Game slice', () => {
       const getStateMock = mockGetState(
         gameState,
         signedInAuthState,
-        getMockTeamState([], getStoredTeam())
+        getMockTeamState([], getStoredTeam()),
       );
 
       writerStub.updateDocument.onFirstCall().throws(() => {

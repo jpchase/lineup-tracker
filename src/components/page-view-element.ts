@@ -52,7 +52,7 @@ export declare class AuthorizedView extends PageView {
 }
 
 export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof T>(
-  superClass: T
+  superClass: T,
 ) => {
   class PageViewClass extends superClass {
     @property({ type: Boolean })
@@ -123,7 +123,7 @@ export const PageViewMixin = <T extends Constructor<LitElement>, K extends keyof
 };
 
 export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructor<LitElement>>(
-  superClass: T
+  superClass: T,
 ) => {
   class AuthorizedViewClass extends superClass {
     @state()

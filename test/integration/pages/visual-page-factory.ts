@@ -27,7 +27,7 @@ export interface VisualPageConfig {
 }
 
 export function* getAllVisualPages(
-  breakpoint: BreakpointConfig
+  breakpoint: BreakpointConfig,
 ): Generator<VisualPageConfig, void> {
   const pageOptions: PageOptions = { viewPort: breakpoint.viewPort };
 

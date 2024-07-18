@@ -42,7 +42,7 @@ export function buildInitialLiveState(): LiveState {
 
 export function buildLiveStateWithCurrentGame(
   game: LiveGame,
-  rest?: Partial<LiveState>
+  rest?: Partial<LiveState>,
 ): LiveState {
   const state: LiveState = {
     ...buildInitialLiveState(),
@@ -58,7 +58,7 @@ export function buildLiveStateWithCurrentGame(
 }
 
 export function buildLiveGameWithSetupTasksAndPlayers(
-  lastCompletedStep: SetupSteps = -1 as SetupSteps
+  lastCompletedStep: SetupSteps = -1 as SetupSteps,
 ): LiveGame {
   const game = testlive.getLiveGameWithPlayers();
   buildSetupTasks(game, lastCompletedStep);
@@ -66,7 +66,7 @@ export function buildLiveGameWithSetupTasksAndPlayers(
 }
 
 export function buildLiveGameWithSetupTasks(
-  lastCompletedStep: SetupSteps = -1 as SetupSteps
+  lastCompletedStep: SetupSteps = -1 as SetupSteps,
 ): LiveGame {
   const game = buildLiveGameWithSetupTasksAndPlayers(lastCompletedStep);
   game.players = [];
@@ -100,7 +100,7 @@ export function buildSetupTasks(game: LiveGame, lastCompletedStep: SetupSteps) {
 export function buildClock(
   timer?: TimerData,
   rest?: Partial<LiveClock>,
-  stoppageTimer?: TimerData
+  stoppageTimer?: TimerData,
 ): LiveClock {
   return {
     ...CLOCK_INITIAL_STATE,
@@ -116,7 +116,7 @@ export function buildClockWithTimer(isRunning?: boolean): LiveClock {
 
 export function buildShiftWithTrackersFromGame(
   game: LiveGame,
-  keepExistingStatus?: boolean
+  keepExistingStatus?: boolean,
 ): ShiftState {
   return buildShiftWithTrackers(game.id, game.players, keepExistingStatus);
 }
@@ -124,7 +124,7 @@ export function buildShiftWithTrackersFromGame(
 export function buildShiftWithTrackers(
   gameId: string,
   existingPlayers?: LivePlayer[],
-  keepExistingStatus?: boolean
+  keepExistingStatus?: boolean,
 ): ShiftState {
   let players;
   if (existingPlayers) {

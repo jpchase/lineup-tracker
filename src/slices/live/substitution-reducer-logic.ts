@@ -25,7 +25,7 @@ import { LiveState } from './live-slice.js';
 export const selectPlayerHandler = (
   state: LiveState,
   game: LiveGame,
-  action: PayloadAction<SelectPlayerPayload>
+  action: PayloadAction<SelectPlayerPayload>,
 ) => {
   const playerId = action.payload.playerId;
   const selectedPlayer = getPlayer(game, playerId);
@@ -75,7 +75,7 @@ export const selectPlayerPrepare = (gameId: string, playerId: string, selected: 
 export const confirmSubHandler = (
   state: LiveState,
   game: LiveGame,
-  action: PayloadAction<ConfirmSubPayload>
+  action: PayloadAction<ConfirmSubPayload>,
 ) => {
   const sub = state.proposedSub;
   if (!sub) {
@@ -110,7 +110,7 @@ export const confirmSubPrepare = (gameId: string, newPosition?: Position) => {
 export const cancelSubHandler = (
   state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   if (!state.proposedSub) {
     return;
@@ -128,7 +128,7 @@ export const cancelSubHandler = (
 export const confirmSwapHandler = (
   state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   const swap = state.proposedSwap;
   if (!swap) {
@@ -157,7 +157,7 @@ export const confirmSwapHandler = (
 export const cancelSwapHandler = (
   state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   if (!state.proposedSwap) {
     return;
@@ -175,7 +175,7 @@ export const cancelSwapHandler = (
 export const pendingSubsAppliedHandler = (
   state: LiveState,
   game: LiveGame,
-  action: PayloadAction<PendingSubsAppliedPayload>
+  action: PayloadAction<PendingSubsAppliedPayload>,
 ) => {
   action.payload.subs.forEach((sub) => {
     const player = getPlayer(game, sub.id);
@@ -201,7 +201,7 @@ export const pendingSubsAppliedHandler = (
     game,
     PlayerStatus.Next,
     action.payload.selectedOnly,
-    /* includeSwaps */ true
+    /* includeSwaps */ true,
   );
   nextPlayers.forEach((swapPlayer) => {
     if (!swapPlayer.isSwap) {
@@ -224,7 +224,7 @@ export const pendingSubsAppliedHandler = (
 export const pendingSubsAppliedPrepare = (
   gameId: string,
   subs: LivePlayer[],
-  selectedOnly?: boolean
+  selectedOnly?: boolean,
 ) => {
   return {
     payload: {
@@ -238,7 +238,7 @@ export const pendingSubsAppliedPrepare = (
 export const invalidPendingSubsHandler = (
   state: LiveState,
   _game: LiveGame,
-  action: PayloadAction<PendingSubsInvalidPayload>
+  action: PayloadAction<PendingSubsInvalidPayload>,
 ) => {
   if (!action.payload.invalidSubs?.length) {
     state.invalidSubs = undefined;
@@ -259,13 +259,13 @@ export const invalidPendingSubsPrepare = (gameId: string, invalidSubs: string[])
 export const discardPendingSubsHandler = (
   state: LiveState,
   game: LiveGame,
-  action: PayloadAction<PendingSubsDiscardedPayload>
+  action: PayloadAction<PendingSubsDiscardedPayload>,
 ) => {
   const nextPlayers = findPlayersByStatus(
     game,
     PlayerStatus.Next,
     action.payload.selectedOnly,
-    /* includeSwaps */ true
+    /* includeSwaps */ true,
   );
   for (const player of nextPlayers) {
     if (player.isSwap) {
@@ -293,7 +293,7 @@ export const discardPendingSubsPrepare = (gameId: string, selectedOnly?: boolean
 export const markPlayerOutHandler = (
   state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   if (!state.selectedOffPlayer) {
     return;
@@ -310,7 +310,7 @@ export const markPlayerOutHandler = (
 export const returnOutPlayerHandler = (
   state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   if (!state.selectedOutPlayer) {
     return;

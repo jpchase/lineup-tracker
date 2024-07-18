@@ -40,7 +40,7 @@ describe('lineup-roster-modify tests', () => {
 
     const { detail } = (await oneEvent(
       el,
-      NewPlayerCreatedEvent.eventName
+      NewPlayerCreatedEvent.eventName,
     )) as NewPlayerCreatedEvent;
 
     expect(detail.player).to.deep.equal({

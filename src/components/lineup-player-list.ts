@@ -44,7 +44,7 @@ export class LineupPlayerList extends PlayerListElement {
                     ${this.showCancel
                       ? html`<mwc-button icon="cancel" @click="${this.doCancel}">Save</mwc-button>`
                       : ''}
-                  `
+                  `,
                 )}
               </div>
             `

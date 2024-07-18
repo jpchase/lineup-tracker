@@ -15,7 +15,7 @@ import { SubData } from './test-live-game-data.js';
 export function buildGameSetupEvent(
   startTime: number,
   totalPeriods = 2,
-  periodLength = 45
+  periodLength = 45,
 ): SetupEvent {
   return {
     id: 'setupeventid',

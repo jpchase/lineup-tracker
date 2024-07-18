@@ -104,7 +104,7 @@ describe('lineup-roster tests', () => {
         expect(positionsElement, 'Missing positions element').to.exist;
         expect(positionsElement!.textContent).to.equal(
           player.positions.join(', '),
-          'Player positions'
+          'Player positions',
         );
       }
       await expect(el).shadowDom.to.equalSnapshot();

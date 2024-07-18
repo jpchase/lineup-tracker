@@ -201,7 +201,7 @@ export class PlayerTimeTrackerMap {
 
   static create(
     data: PlayerTimeTrackerMapData,
-    timeProvider?: CurrentTimeProvider
+    timeProvider?: CurrentTimeProvider,
   ): PlayerTimeTrackerMap {
     if (!data.id) {
       throw new Error('id must be provided');
@@ -313,7 +313,7 @@ export class PlayerTimeTrackerMap {
 
       if (!playerInTracker || !playerOutTracker || playerInTracker.isOn || !playerOutTracker.isOn) {
         throw new Error(
-          `Invalid status to substitute, playerIn = ${playerInTracker?.toDebugString()}, playerOut = ${playerOutTracker?.toDebugString()}`
+          `Invalid status to substitute, playerIn = ${playerInTracker?.toDebugString()}, playerOut = ${playerOutTracker?.toDebugString()}`,
         );
       }
 

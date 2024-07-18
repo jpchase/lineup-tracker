@@ -426,8 +426,8 @@ export class LineupApp extends connect(store)(LitElement) {
     // eslint-disable-next-line no-console
     console.log(
       `navigateToPage: page = ${page}, location = ${currentLocation}, router params = ${JSON.stringify(
-        this.router.params
-      )}`
+        this.router.params,
+      )}`,
     );
 
     store.dispatch(updatePage(page));

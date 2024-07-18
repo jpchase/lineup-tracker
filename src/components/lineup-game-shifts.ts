@@ -58,7 +58,7 @@ export class LineupGameShifts extends LitElement {
                   ${Duration.format(row.tracker.totalOnTime)}
                 </td>
               </tr>
-            `
+            `,
           )}
         </tbody>
       </table>`;

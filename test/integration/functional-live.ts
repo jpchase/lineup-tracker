@@ -131,14 +131,14 @@ describe('Live functional tests', () => {
         team: { teamId: integrationTestData.TEAM2.ID },
         gameId: integrationTestData.TEAM2.games.NEW_WITH_ROSTER.ID,
       },
-      firestore
+      firestore,
     );
     pageObject = livePage;
 
     // Until game is started running, all players still have Off status.
     const onPlayers = starters;
     const offPlayers = Object.keys(newGame.roster).filter(
-      (playerId) => !starters.includes(playerId)
+      (playerId) => !starters.includes(playerId),
     );
 
     // Start the game running.

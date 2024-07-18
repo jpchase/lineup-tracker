@@ -117,7 +117,7 @@ export class PageObject {
       logWithTime(
         `PAGE REQUEST FAIL: ${response?.status()} ${
           request.failure()!.errorText
-        } [${request.url()}] ${JSON.stringify(response?.timing())}`
+        } [${request.url()}] ${JSON.stringify(response?.timing())}`,
       );
     });
 
@@ -227,7 +227,7 @@ export class PageObject {
     return this.page.evaluate(async () => {
       const app = document.querySelector('lineup-app');
       const mainElement = app?.shadowRoot?.querySelector(
-        'mwc-drawer > div[slot=appContent] > main'
+        'mwc-drawer > div[slot=appContent] > main',
       );
       if (mainElement) {
         const teamsLoaded = (mainElement as HTMLElement).dataset.teamsLoaded;

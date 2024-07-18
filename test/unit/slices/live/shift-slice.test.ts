@@ -88,7 +88,7 @@ describe('Shift slice', () => {
 
       const newState = shift(
         currentState,
-        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
+        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime),
       );
 
       // Only need to check the first player tracker.
@@ -102,7 +102,7 @@ describe('Shift slice', () => {
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const firstTracker = newTrackerMap?.trackers?.find(
-        (tracker) => tracker.id === expectedTracker.id
+        (tracker) => tracker.id === expectedTracker.id,
       );
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
@@ -175,13 +175,13 @@ describe('Shift slice', () => {
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const onTracker = newTrackerMap?.trackers?.find(
-        (tracker) => tracker.id === expectedOnTracker.id
+        (tracker) => tracker.id === expectedOnTracker.id,
       );
       expect(onTracker, `Should find on tracker with id = ${expectedOnTracker.id}`).to.be.ok;
       expect(onTracker).to.deep.include(expectedOnTracker);
 
       const offTracker = newTrackerMap?.trackers?.find(
-        (tracker) => tracker.id === expectedOffTracker.id
+        (tracker) => tracker.id === expectedOffTracker.id,
       );
       expect(offTracker, `Should find off tracker with id = ${expectedOffTracker.id}`).to.be.ok;
       expect(offTracker).to.deep.include(expectedOffTracker);
@@ -225,13 +225,13 @@ describe('Shift slice', () => {
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const onTracker = newTrackerMap?.trackers?.find(
-        (tracker) => tracker.id === expectedOnTracker.id
+        (tracker) => tracker.id === expectedOnTracker.id,
       );
       expect(onTracker, `Should find on tracker with id = ${expectedOnTracker.id}`).to.be.ok;
       expect(onTracker).to.deep.include(expectedOnTracker);
 
       const offTracker = newTrackerMap?.trackers?.find(
-        (tracker) => tracker.id === expectedOffTracker.id
+        (tracker) => tracker.id === expectedOffTracker.id,
       );
       expect(offTracker, `Should find off tracker with id = ${expectedOffTracker.id}`).to.be.ok;
       expect(offTracker).to.deep.include(expectedOffTracker);
@@ -271,7 +271,7 @@ describe('Shift slice', () => {
 
       const newState = shift(
         currentState,
-        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus5)
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus5),
       );
 
       // Only need to check the first player tracker.
@@ -285,7 +285,7 @@ describe('Shift slice', () => {
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const firstTracker = newTrackerMap?.trackers?.find(
-        (tracker) => tracker.id === expectedTracker.id
+        (tracker) => tracker.id === expectedTracker.id,
       );
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
@@ -311,7 +311,7 @@ describe('Shift slice', () => {
 
       const newState = shift(
         currentState,
-        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10Minutes)
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10Minutes),
       );
 
       // Only need to check the first player tracker.
@@ -325,7 +325,7 @@ describe('Shift slice', () => {
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const firstTracker = newTrackerMap?.trackers?.find(
-        (tracker) => tracker.id === expectedTracker.id
+        (tracker) => tracker.id === expectedTracker.id,
       );
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
@@ -348,7 +348,7 @@ describe('Shift slice', () => {
 
       const newState = shift(
         currentState,
-        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10Minutes)
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10Minutes),
       );
 
       // The previous stop time should be kept, and the retroactive time
@@ -364,7 +364,7 @@ describe('Shift slice', () => {
 
       const newTrackerMap = getTrackerMap(newState, gameId);
       const firstTracker = newTrackerMap?.trackers?.find(
-        (tracker) => tracker.id === expectedTracker.id
+        (tracker) => tracker.id === expectedTracker.id,
       );
       expect(firstTracker, `Should find tracker with id = ${expectedTracker.id}`).to.be.ok;
       expect(firstTracker).to.deep.include(expectedTracker);
