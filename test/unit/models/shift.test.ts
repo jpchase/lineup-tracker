@@ -104,7 +104,7 @@ describe('PlayerTimeTrackerMap', () => {
       `expected map to have clock stopped, without any trackers`,
       `expected map to have clock running, with trackers`,
       expected,
-      actual
+      actual,
     );
   });
 
@@ -122,7 +122,7 @@ describe('PlayerTimeTrackerMap', () => {
       'expected #{act} to have size #{exp}',
       'expected #{act} to not have size #{exp}',
       expected,
-      actual
+      actual,
     );
   });
 
@@ -132,7 +132,7 @@ describe('PlayerTimeTrackerMap', () => {
       tracker && tracker.id === expected && tracker.isOn,
       'expected #{this} with id = #{exp} to be on',
       'expected #{this} with id = #{exp} to not be on',
-      expected
+      expected,
     );
   });
 
@@ -142,7 +142,7 @@ describe('PlayerTimeTrackerMap', () => {
       tracker && tracker.isOn && tracker.alreadyOn,
       'expected #{this} to be already on',
       'expected #{this} to not be already on',
-      expected
+      expected,
     );
   });
 
@@ -152,7 +152,7 @@ describe('PlayerTimeTrackerMap', () => {
       tracker && tracker.id === expected && !tracker.isOn && !tracker.alreadyOn,
       'expected #{this} with id = #{exp} to be off',
       'expected #{this} with id = #{exp} to not be off',
-      expected
+      expected,
     );
   });
 
@@ -263,7 +263,7 @@ describe('PlayerTimeTrackerMap', () => {
         expect(() => {
           map.substitutePlayer(playerOnId, playerOnId);
         }).to.throw(
-          'Invalid status to substitute, playerIn = {"id":"1","isOn":true}, playerOut = {"id":"1","isOn":true}'
+          'Invalid status to substitute, playerIn = {"id":"1","isOn":true}, playerOut = {"id":"1","isOn":true}',
         );
       });
 

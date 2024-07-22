@@ -57,7 +57,7 @@ describe('lineup-view-game-detail tests', () => {
     const { game, live } = getGameDetail();
     const state = buildRootState(
       buildGameStateWithCurrentGame(game),
-      buildLiveStateWithCurrentGame(live)
+      buildLiveStateWithCurrentGame(live),
     );
     state.auth = getMockAuthState({ signedIn: false });
 

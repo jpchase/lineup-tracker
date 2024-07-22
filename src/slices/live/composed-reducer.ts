@@ -36,6 +36,6 @@ export function getLiveSliceConfigurator(): SliceConfigurator {
   };
   return buildSliceConfigurator(
     { name: liveSlice.name, reducerPath: liveSlice.reducerPath, reducer: live },
-    persistConfig
+    persistConfig,
   );
 }

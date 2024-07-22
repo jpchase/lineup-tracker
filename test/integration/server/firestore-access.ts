@@ -159,7 +159,7 @@ export async function readGameRoster(firestore: Firestore, gameId: string): Prom
 export async function copyGame(
   firestore: Firestore,
   gameId: string,
-  userId: string
+  userId: string,
 ): Promise<GameDetail> {
   const existingGame = await readGame(firestore, gameId);
   const existingRoster = await readGameRoster(firestore, gameId);
@@ -190,7 +190,7 @@ export async function copyGame(
       return writeDocument(firestore, gamePlayer, rosterPath, playerConverter, options).then(() => {
         roster[gamePlayer.id] = gamePlayer;
       });
-    })
+    }),
   );
 
   copiedGame.hasDetail = true;
@@ -201,7 +201,7 @@ export async function copyGame(
 async function getDocument<T extends Model>(
   firestore: Firestore,
   documentPath: string,
-  converter: ModelReader<T>
+  converter: ModelReader<T>,
 ): Promise<T> {
   const docRef = firestore.doc(documentPath);
 
@@ -221,7 +221,7 @@ async function writeDocument<T extends Model>(
   model: T,
   collectionPathOrReference: string,
   modelWriter?: ModelWriter<T>,
-  options?: NewDocOptions
+  options?: NewDocOptions,
 ) {
   const collectionRef = firestore
     .collection(collectionPathOrReference)
@@ -246,7 +246,7 @@ async function writeDocument<T extends Model>(
 async function loadCollection<T extends Model, C extends ModelCollection<T>>(
   firestore: Firestore,
   collectionPath: string,
-  converter: ModelReader<T>
+  converter: ModelReader<T>,
 ) {
   const collectionRef = firestore
     .collection(collectionPath)

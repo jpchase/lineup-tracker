@@ -242,7 +242,7 @@ describe('lineup-player-card tests', () => {
 
     const { detail } = (await oneEvent(
       el,
-      PositionSelectedEvent.eventName
+      PositionSelectedEvent.eventName,
     )) as PositionSelectedEvent;
 
     expect(detail.player, 'Event should not provide a player').not.to.be.ok;
@@ -261,7 +261,7 @@ describe('lineup-player-card tests', () => {
 
     const { detail } = (await oneEvent(
       el,
-      PositionSelectedEvent.eventName
+      PositionSelectedEvent.eventName,
     )) as PositionSelectedEvent;
 
     expect(detail.player, 'Event should not provide a player').not.to.be.ok;
@@ -281,7 +281,7 @@ describe('lineup-player-card tests', () => {
 
     const { detail } = (await oneEvent(
       el,
-      PositionSelectedEvent.eventName
+      PositionSelectedEvent.eventName,
     )) as PositionSelectedEvent;
 
     expect(detail.player, 'Event should provide player').to.equal(data.player);
@@ -302,7 +302,7 @@ describe('lineup-player-card tests', () => {
 
     const { detail } = (await oneEvent(
       el,
-      PositionSelectedEvent.eventName
+      PositionSelectedEvent.eventName,
     )) as PositionSelectedEvent;
 
     expect(detail.player, 'Event should provide player').to.equal(data.player);
@@ -365,7 +365,7 @@ describe('lineup-player-card tests', () => {
     function buildModeTestPlayer(
       status: PlayerStatus,
       currentPosition?: Position,
-      subForId?: string
+      subForId?: string,
     ) {
       const player = getPlayer();
       player.status = status;
@@ -394,7 +394,7 @@ describe('lineup-player-card tests', () => {
         expect(player.currentPosition, 'player.currentPosition').to.be.ok;
         expect(currentPositionElement?.textContent).to.equal(
           formatPosition(player.currentPosition!),
-          'currentPosition element'
+          'currentPosition element',
         );
       } else {
         expect(currentPositionElement, 'currentPosition').not.to.be.shown;
@@ -414,7 +414,7 @@ describe('lineup-player-card tests', () => {
 
         expect(positionsElement?.textContent).to.equal(
           player?.positions.join(', '),
-          'playerPositions element'
+          'playerPositions element',
         );
       } else {
         expect(positionsElement, 'positions').not.to.be.shown;
@@ -427,7 +427,7 @@ describe('lineup-player-card tests', () => {
         // Shift time is 1:05 (65 seconds).
         expect(getShiftTimeText(shiftElement)).to.equal(
           Duration.format(Duration.create(65)),
-          'shiftTime element'
+          'shiftTime element',
         );
       } else {
         expect(shiftElement, 'shiftTime').not.to.be.shown;
@@ -441,7 +441,7 @@ describe('lineup-player-card tests', () => {
       const { player, timeTracker } = buildModeTestPlayer(
         modeTest.playerStatus,
         modeTest.currentPosition,
-        modeTest.subForId
+        modeTest.subForId,
       );
       el.player = player;
       el.mode = player.status;
@@ -455,7 +455,7 @@ describe('lineup-player-card tests', () => {
       const { player, timeTracker } = buildModeTestPlayer(
         modeTest.playerStatus,
         modeTest.currentPosition,
-        modeTest.subForId
+        modeTest.subForId,
       );
       const data = getCardData(player);
       el.data = data;
@@ -473,7 +473,7 @@ describe('lineup-player-card tests', () => {
         const { player } = buildModeTestPlayer(
           modeTest.playerStatus,
           modeTest.currentPosition,
-          modeTest.subForId
+          modeTest.subForId,
         );
         const timeTracker = new PlayerTimeTracker(buildPlayerTracker(player));
         timeTracker.startShift();
@@ -496,7 +496,7 @@ describe('lineup-player-card tests', () => {
         const shiftElement = playerElement.querySelector('.shiftTime') as HTMLElement;
         expect(getShiftTimeText(shiftElement)).to.equal(
           Duration.format(Duration.create(elapsedSeconds)),
-          'shiftTime element'
+          'shiftTime element',
         );
       });
     }
@@ -506,7 +506,7 @@ describe('lineup-player-card tests', () => {
         const { player, timeTracker } = buildModeTestPlayer(
           modeTest.playerStatus,
           modeTest.currentPosition,
-          modeTest.subForId
+          modeTest.subForId,
         );
         player.isSwap = true;
         player.nextPosition = { id: 'RCB', type: 'CB' };
@@ -518,7 +518,7 @@ describe('lineup-player-card tests', () => {
         expect(player.currentPosition, 'player.currentPosition').to.be.ok;
         expect(
           player.currentPosition,
-          'Swap should have different current and next positions'
+          'Swap should have different current and next positions',
         ).to.not.deep.equal(player.nextPosition);
 
         const playerElement = verifyPlayerElements(player);
@@ -527,7 +527,7 @@ describe('lineup-player-card tests', () => {
         expect(currentPositionElement, 'currentPosition element').to.be.shown;
         expect(currentPositionElement!.textContent).to.equal(
           formatPosition(player.nextPosition!),
-          'currentPosition element'
+          'currentPosition element',
         );
 
         const subForElement = playerElement.querySelector('.subFor');

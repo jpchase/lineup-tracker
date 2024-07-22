@@ -21,7 +21,7 @@ export class GameLivePage extends GameDetailPage {
 
   protected override get openFunc(): PageOpenFunction | undefined {
     return async () => {
-      await this.page.waitForTimeout(2000);
+      await this.waitForTimeout(2000);
     };
   }
 
@@ -32,7 +32,7 @@ export class GameLivePage extends GameDetailPage {
 
     // Sort the players by name, so there is a stable order across tests.
     const sortedPlayers = Object.values(newGame.roster).sort((a, b) =>
-      a.name.localeCompare(b.name)
+      a.name.localeCompare(b.name),
     );
     const starters = sortedPlayers.slice(0, 11).map((player) => player.id);
 
@@ -90,7 +90,7 @@ export class GameLivePage extends GameDetailPage {
 
         // Select the on player, |onPlayerId|, to be substituted.
         const onItems = Array.from<LineupPlayerCard>(
-          onList.shadowRoot!.querySelectorAll('lineup-player-card')
+          onList.shadowRoot!.querySelectorAll('lineup-player-card'),
         );
         const onCard = onItems.find((card) => card.data?.player?.id === onId);
         if (!onCard) {
@@ -100,7 +100,7 @@ export class GameLivePage extends GameDetailPage {
 
         // Select the off player, |nextPlayerId|, that will replace them.
         const subs = Array.from<LineupPlayerCard>(
-          subsList.shadowRoot!.querySelectorAll('lineup-player-card')
+          subsList.shadowRoot!.querySelectorAll('lineup-player-card'),
         );
         const subCard = subs.find((card) => card.player?.id === nextId);
         if (!subCard) {
@@ -133,7 +133,7 @@ export class GameLivePage extends GameDetailPage {
         (applyButton as HTMLElement).click();
       },
       onPlayerId,
-      nextPlayerId
+      nextPlayerId,
     );
   }
 

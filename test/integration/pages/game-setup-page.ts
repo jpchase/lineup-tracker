@@ -32,14 +32,14 @@ export class GameSetupPage extends GameDetailPage {
   override get openFunc(): PageOpenFunction | undefined {
     return async () => {
       this.log('in openFunc for more waiting');
-      await this.page.waitForTimeout(2000);
+      await this.waitForTimeout(2000);
     };
   }
 
   private async getSetupComponent() {
     const setupHandle = await this.querySelectorInView(
       'lineup-view-game-detail',
-      'lineup-game-setup'
+      'lineup-game-setup',
     );
     if (!setupHandle) {
       throw new Error('Setup component not found');
@@ -112,7 +112,7 @@ export class GameSetupPage extends GameDetailPage {
     await formationSelect.select(formationType);
 
     // Brief wait for components to render updates.
-    await this.page.waitForTimeout(100);
+    await this.waitForTimeout(100);
   }
 
   async setStarters(starters: string[], existingSetupHandle?: ElementHandle<Element>) {
@@ -130,7 +130,7 @@ export class GameSetupPage extends GameDetailPage {
         throw new Error(`Lists not found`);
       }
       const positions = Array.from<LineupPlayerCard>(
-        startersList.shadowRoot!.querySelectorAll('lineup-player-card')
+        startersList.shadowRoot!.querySelectorAll('lineup-player-card'),
       );
       let index = 0;
       for (const playerId of starterIds) {
@@ -139,7 +139,7 @@ export class GameSetupPage extends GameDetailPage {
 
         // Select the |playerId| in the subs list.
         const subs = Array.from<LineupPlayerCard>(
-          subsList.shadowRoot!.querySelectorAll('lineup-player-card')
+          subsList.shadowRoot!.querySelectorAll('lineup-player-card'),
         );
         const subCard = subs.find((card) => card.player?.id === playerId);
         if (!subCard) {
@@ -166,13 +166,13 @@ export class GameSetupPage extends GameDetailPage {
     }, starters);
 
     // Brief wait for components to render updates.
-    await this.page.waitForTimeout(100);
+    await this.waitForTimeout(100);
   }
 
   async setPeriods(
     totalPeriods: number,
     periodLength: number,
-    existingSetupHandle?: ElementHandle<Element>
+    existingSetupHandle?: ElementHandle<Element>,
   ) {
     const setupHandle = existingSetupHandle ?? (await this.getSetupComponent());
 
@@ -180,7 +180,7 @@ export class GameSetupPage extends GameDetailPage {
     const taskHandle = await this.getTaskElement(SetupSteps.Periods, setupHandle);
     const linkHandle = await this.getTaskLink(taskHandle);
     linkHandle.click();
-    await this.page.waitForTimeout(100);
+    await this.waitForTimeout(100);
 
     await setupHandle.evaluate(
       // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -195,21 +195,21 @@ export class GameSetupPage extends GameDetailPage {
         numPeriodsField.value = `${totalPeriods}`;
 
         const periodLengthField = setupRoot.querySelector(
-          `#period-length > input`
+          `#period-length > input`,
         ) as HTMLInputElement;
         periodLengthField.valueAsNumber = periodLength;
 
         const saveButton = periodsDialog.querySelector(
-          'mwc-button[dialogAction="save"]'
+          'mwc-button[dialogAction="save"]',
         ) as HTMLButtonElement;
         saveButton.click();
       },
       totalPeriods,
-      periodLength
+      periodLength,
     );
 
     // Brief wait for components to render updates.
-    await this.page.waitForTimeout(100);
+    await this.waitForTimeout(100);
   }
 
   async markStepDone(step: SetupSteps, setupHandle?: ElementHandle<Element>) {
@@ -226,7 +226,7 @@ export class GameSetupPage extends GameDetailPage {
       (completeButton as HTMLElement).click();
     });
     // Brief wait for components to render updates.
-    await this.page.waitForTimeout(50);
+    await this.waitForTimeout(50);
   }
 
   async completeSetup(starters: string[]) {

@@ -51,7 +51,7 @@ export const copyRoster = createAsyncThunk<
         return persistGamePlayer(gamePlayer, gameId, false).then(() => {
           roster[gamePlayer.id] = gamePlayer;
         });
-      })
+      }),
     );
 
     return { gameId, gameRoster: roster };
@@ -66,12 +66,12 @@ export const copyRoster = createAsyncThunk<
     getPendingMeta: (base) => {
       return { gameId: base.arg };
     },
-  }
+  },
 );
 
 export const rosterCopyPendingHandler = (
   state: GameState,
-  _action: ReturnType<typeof copyRoster.pending>
+  _action: ReturnType<typeof copyRoster.pending>,
 ) => {
   state.rosterFailure = false;
   state.rosterLoading = true;
@@ -79,7 +79,7 @@ export const rosterCopyPendingHandler = (
 
 export const rosterCopiedHandler = (
   state: GameState,
-  action: PayloadAction<RosterCopiedPayload>
+  action: PayloadAction<RosterCopiedPayload>,
 ) => {
   // Set new roster, if required.
   const game = findGame(state, action.payload.gameId);
@@ -101,7 +101,7 @@ export const rosterCopiedHandler = (
 
 export const rosterCopyFailedHandler = (
   state: GameState,
-  action: ReturnType<typeof copyRoster.rejected>
+  action: ReturnType<typeof copyRoster.rejected>,
 ) => {
   state.error = action.error.message || action.error.name;
   state.rosterFailure = true;
@@ -132,7 +132,7 @@ export const saveGamePlayer =
 
 export const gamePlayerAddedHandler = (
   state: GameState,
-  action: PayloadAction<PlayerAddedPayload>
+  action: PayloadAction<PlayerAddedPayload>,
 ) => {
   const game = findGame(state, action.payload.gameId);
   game.roster[action.payload.player.id] = action.payload.player;

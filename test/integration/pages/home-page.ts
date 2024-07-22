@@ -28,7 +28,7 @@ export class HomePage extends PageObject {
       return undefined;
     }
     return async () => {
-      await this.page.waitForTimeout(500);
+      await this.waitForTimeout(500);
       await this.page.evaluate(`(async () => {
         console.log('click the menu button');
         const menuButton = document.querySelector('lineup-app').shadowRoot.

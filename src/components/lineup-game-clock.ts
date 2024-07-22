@@ -229,7 +229,7 @@ export class LineupGameClock extends LitElement {
     let extraMinutes: number | undefined;
     if (this.endOverdueRetroactive) {
       const minutesField = this.shadowRoot!.querySelector(
-        '#overdue-minutes-field > input'
+        '#overdue-minutes-field > input',
       ) as HTMLInputElement;
       extraMinutes = minutesField.valueAsNumber;
     }

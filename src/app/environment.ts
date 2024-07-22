@@ -1,7 +1,7 @@
 /** @format */
 
 import { FirebaseOptions } from 'firebase/app';
-import envConfig from '../env-config.json' assert { type: 'json' };
+import envConfig from '../env-config.json' with { type: 'json' };
 
 export interface Host {
   protocol?: string;

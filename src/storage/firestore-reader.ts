@@ -33,7 +33,7 @@ export interface CollectionFilter {
 export function whereFilter(
   field: string,
   operator: WhereFilterOp,
-  value: unknown
+  value: unknown,
 ): CollectionFilter {
   return { field, operator, value };
 }
@@ -64,7 +64,7 @@ function loadCollection<T extends Model, C extends ModelCollection<T>>(
   // TODO: Add try/catch for firestore/collection/get calls?
   const firestore: Firestore = firebaseRefs.firestore;
   const collectionRef = collection(firestore, collectionPath).withConverter(
-    new ReaderConverter(converter)
+    new ReaderConverter(converter),
   );
 
   let queryRef: Query<T> = collectionRef;
@@ -93,7 +93,7 @@ function loadCollection<T extends Model, C extends ModelCollection<T>>(
 
 async function loadDocument<T extends Model>(
   documentPath: string,
-  converter: ModelReader<T>
+  converter: ModelReader<T>,
 ): Promise<T> {
   const firestore: Firestore = firebaseRefs.firestore;
   const documentRef = doc(firestore, documentPath);

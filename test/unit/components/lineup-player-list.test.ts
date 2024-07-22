@@ -10,7 +10,7 @@ import { assert, expect, fixture, html } from '@open-wc/testing';
 function getPlayers(
   numPlayers: number,
   status: PlayerStatus,
-  otherStatus?: PlayerStatus
+  otherStatus?: PlayerStatus,
 ): LivePlayer[] {
   const size = numPlayers || 6;
   const players: LivePlayer[] = [];

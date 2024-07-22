@@ -95,7 +95,7 @@ function getTestTasks(tasks: SetupTask[]): TestSetupTask[] {
 
 function buildLiveStateWithTasks(
   newGame: GameDetail,
-  lastCompletedStep: SetupSteps = -1 as SetupSteps
+  lastCompletedStep: SetupSteps = -1 as SetupSteps,
 ) {
   const liveGame = LiveGameBuilder.create(newGame);
 
@@ -219,7 +219,7 @@ describe('lineup-game-setup tests', () => {
 
     expect(items.length).to.be.greaterThanOrEqual(
       index + 1,
-      `Items doesn't contain index ${index}`
+      `Items doesn't contain index ${index}`,
     );
 
     const taskElement = items[index];
@@ -552,7 +552,7 @@ describe('lineup-game-setup tests', () => {
 
       expect(actions).to.have.lengthOf.at.least(1);
       expect(actions[actions.length - 1]).to.deep.include(
-        selectStarterPosition(gameId, playerElement.data!.position)
+        selectStarterPosition(gameId, playerElement.data!.position),
       );
     });
 
@@ -565,7 +565,7 @@ describe('lineup-game-setup tests', () => {
 
       const { detail } = (await oneEvent(
         el,
-        PositionSelectedEvent.eventName
+        PositionSelectedEvent.eventName,
       )) as PositionSelectedEvent;
       await el.updateComplete;
 
@@ -657,14 +657,14 @@ describe('lineup-game-setup tests', () => {
       expect(errorText, 'Missing starter error text').to.be.ok;
 
       const expectedInvalidPositions = getPositions(
-        FormationBuilder.create(liveGame.formation!.type)
+        FormationBuilder.create(liveGame.formation!.type),
       )
         .map((position) => position.id)
         .sort()
         .join(', ');
       expect(
         errorText!.textContent,
-        'Starter error text should contain invalid positions'
+        'Starter error text should contain invalid positions',
       ).to.contain(expectedInvalidPositions);
 
       await expect(errorElement).dom.to.equalSnapshot();

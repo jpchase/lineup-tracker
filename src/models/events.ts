@@ -6,7 +6,7 @@ import { Model } from './model.js';
 
 export type EventBase<
   EventType extends string = string,
-  EventData extends Record<string, unknown> = Record<string, unknown>
+  EventData extends Record<string, unknown> = Record<string, unknown>,
 > = {
   id?: string;
   groupId?: string;

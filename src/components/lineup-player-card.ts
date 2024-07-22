@@ -269,7 +269,7 @@ export class LineupPlayerCard extends LitElement {
     const player = this._getPlayer();
     if (this.data) {
       this.dispatchEvent(
-        new PositionSelectedEvent({ position: this.data.position, player, selected: newSelected })
+        new PositionSelectedEvent({ position: this.data.position, player, selected: newSelected }),
       );
     } else {
       this.dispatchEvent(new PlayerSelectedEvent({ player, selected: newSelected }));
