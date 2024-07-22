@@ -94,7 +94,7 @@ describe('EventCollection', () => {
       });
 
       expect(collection.eventsForTesting, 'events should have stored event').to.include(
-        storedEvent
+        storedEvent,
       );
     });
 
@@ -124,7 +124,7 @@ describe('EventCollection', () => {
       });
 
       expect(collection.eventsForTesting, 'events should have stored event').to.include(
-        storedEvent
+        storedEvent,
       );
     });
 
@@ -153,7 +153,7 @@ describe('EventCollection', () => {
       });
 
       expect(collection.eventsForTesting, 'events should have stored event').to.include(
-        storedEvent
+        storedEvent,
       );
     });
 

@@ -106,7 +106,7 @@ export class LineupGameEvents extends LitElement {
   private renderListItems(
     items: EventItem[],
     timeFormatter: TimeFormatter,
-    mode: 'default' | 'edit' = 'default'
+    mode: 'default' | 'edit' = 'default',
   ) {
     // Only handle selection in default rendering mode.
     const clickHandler = mode === 'default' ? this.itemClicked : null;
@@ -128,7 +128,7 @@ export class LineupGameEvents extends LitElement {
           </td>
           <td class="details">${this.renderEventDetails(item.event)}</td>
         </tr>
-      `
+      `,
     )}`;
   }
 
@@ -290,7 +290,7 @@ export class LineupGameEvents extends LitElement {
                     <span class="details">${this.renderEventDetails(item.event)}</span></span
                   >
                 </mwc-list-item>
-              `
+              `,
             )}
           </mwc-select>
         </li>
@@ -415,7 +415,7 @@ export class LineupGameEvents extends LitElement {
   private async editSelection() {
     const dialog = this.shadowRoot!.querySelector<Dialog>('#edit-dialog');
     const customTimeField = this.shadowRoot!.querySelector(
-      '#custom-time-field > input'
+      '#custom-time-field > input',
     ) as HTMLInputElement;
 
     // Default to the custom time option, with the time field set to the time
@@ -429,7 +429,7 @@ export class LineupGameEvents extends LitElement {
     customTime.setMilliseconds(0);
     // eslint-disable-next-line no-console
     console.log(
-      `ES: Default the custom time to ${customTime}, from first event time ${selectedEventTime}`
+      `ES: Default the custom time to ${customTime}, from first event time ${selectedEventTime}`,
     );
     customTimeField.valueAsDate = customTime;
     // TODO: Set min/max for time, based on game date.
@@ -460,7 +460,7 @@ export class LineupGameEvents extends LitElement {
       existingEventId = existingField.selected?.value;
     } else {
       const customField = this.shadowRoot!.querySelector(
-        '#custom-time-field > input'
+        '#custom-time-field > input',
       ) as HTMLInputElement;
       // The field only provides the time, not the date. Copy the date from
       // one of the selected events.
@@ -470,7 +470,7 @@ export class LineupGameEvents extends LitElement {
       console.log(
         `applyEventUpdates: enteredTime = ${enteredTime} [${
           customField.value
-        }], h = ${enteredTime.getHours()} [${enteredTime.getUTCHours()}], m = ${enteredTime.getMinutes()} [${enteredTime.getUTCMinutes()}], s = ${enteredTime.getSeconds()} [${enteredTime.getUTCSeconds()}]`
+        }], h = ${enteredTime.getHours()} [${enteredTime.getUTCHours()}], m = ${enteredTime.getMinutes()} [${enteredTime.getUTCMinutes()}], s = ${enteredTime.getSeconds()} [${enteredTime.getUTCSeconds()}]`,
       );
       // TODO: enteredTime will be null, if the field doesn't have a valid time
       const gameDate = this.gameResolver.value?.getCurrentGame()?.date!;
@@ -480,16 +480,16 @@ export class LineupGameEvents extends LitElement {
         gameDate.getDate(),
         enteredTime.getUTCHours(),
         enteredTime.getUTCMinutes(),
-        enteredTime.getUTCSeconds()
+        enteredTime.getUTCSeconds(),
       ).getTime();
       // eslint-disable-next-line no-console
       console.log(
-        `applyEventUpdates: combinedDate = ${new Date(customTime)}, from gameDate = ${gameDate}`
+        `applyEventUpdates: combinedDate = ${new Date(customTime)}, from gameDate = ${gameDate}`,
       );
     }
     // eslint-disable-next-line no-console
     console.log(
-      `applyEventUpdates: useExistingTime = ${useExistingTime}, existingEventId = ${existingEventId}, customTime = ${customTime}`
+      `applyEventUpdates: useExistingTime = ${useExistingTime}, existingEventId = ${existingEventId}, customTime = ${customTime}`,
     );
 
     this.dispatchEvent(
@@ -498,7 +498,7 @@ export class LineupGameEvents extends LitElement {
         useExistingTime,
         existingEventId,
         customTime,
-      })
+      }),
     );
   }
 }

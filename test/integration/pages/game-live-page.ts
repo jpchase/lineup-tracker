@@ -185,7 +185,7 @@ export class GameLivePage extends GameDetailPage {
         throw new Error('Period start event is missing');
       }
       const startEventItem = eventsRoot.querySelector(
-        `#events-list tr[data-event-id="${startEvent.id}"]`
+        `#events-list tr[data-event-id="${startEvent.id}"]`,
       ) as HTMLElement;
       if (!startEventItem) {
         throw new Error(`Event item missing for id = {startEvent.id}`);
@@ -208,7 +208,7 @@ export class GameLivePage extends GameDetailPage {
       // eslint-disable-next-line no-console
       console.log(`Click the edit button to show the dialog`);
       const editButton = eventsRoot.querySelector(
-        '#events-header th #edit-selection-button'
+        '#events-header th #edit-selection-button',
       ) as HTMLElement;
       if (!editButton) {
         throw new Error('Edit button not found');
@@ -224,7 +224,7 @@ export class GameLivePage extends GameDetailPage {
         throw new Error('Edit dialog not found');
       }
       const customTimeField = editDialog.querySelector(
-        '#custom-time-field > input'
+        '#custom-time-field > input',
       ) as HTMLInputElement;
       if (!customTimeField) {
         throw new Error('Custom time field not found');
@@ -298,7 +298,7 @@ export class GameLivePage extends GameDetailPage {
     //    resulting value in the field is "14:00:00";
     const timeInputValue = `${pad0(time.getHours(), 2)}:${pad0(time.getMinutes(), 2)}:${pad0(
       time.getSeconds(),
-      2
+      2,
     )}`;
     return timeInputValue;
   }

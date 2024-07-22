@@ -346,7 +346,7 @@ describe('Live slice: Clock actions', () => {
         {
           currentPeriod: 1,
           periodStartTime: startTime,
-        }
+        },
       );
 
       const updatedPeriodStartEvent = buildPeriodStartEvent(updatedStartTime, /*currentPeriod=*/ 1);
@@ -418,7 +418,7 @@ describe('Live slice: Clock actions', () => {
         {
           currentPeriod: 2,
           periodStartTime: startTime,
-        }
+        },
       );
 
       const updatedPeriodStartEvent = buildPeriodStartEvent(updatedStartTime, /*currentPeriod=*/ 2);
@@ -471,7 +471,7 @@ describe('Live slice: Clock actions', () => {
         {
           currentPeriod: 2,
           periodStartTime: startTime,
-        }
+        },
       );
 
       const updatedPeriodStartEvent = buildPeriodStartEvent(updatedStartTime, /*currentPeriod=*/ 1);
@@ -1130,7 +1130,7 @@ describe('Live slice: Clock actions', () => {
         {
           periodStartTime: startTime,
         },
-        buildRunningTimer(startTime)
+        buildRunningTimer(startTime),
       );
 
       const newState = live(currentState, toggleClock(gameId));

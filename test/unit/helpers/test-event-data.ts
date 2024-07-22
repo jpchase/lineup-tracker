@@ -108,13 +108,13 @@ export function buildSwapEvent(eventTime: number, swap: SubData): PositionSwapEv
 
 export function buildGameEvents(
   game: LiveGame,
-  timeProvider: CurrentTimeProvider
+  timeProvider: CurrentTimeProvider,
 ): GameEventCollection {
   const events = EventCollection.create<GameEvent>(
     {
       id: game.id,
     },
-    timeProvider
+    timeProvider,
   );
   events.addEvent(buildGameSetupEvent(timeProvider.getCurrentTime()));
   events.addEvent(buildPeriodStartEvent(timeProvider.getCurrentTime()));

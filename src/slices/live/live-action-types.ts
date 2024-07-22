@@ -108,7 +108,7 @@ export const eventsUpdated = createAction<PrepareAction<EventsUpdatedPayload>>(
         events,
       },
     };
-  }
+  },
 );
 
 export const prepareLiveGamePayload = (gameId: string) => {

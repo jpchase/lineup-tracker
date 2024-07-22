@@ -221,7 +221,7 @@ export function isPeriodOverdue(game?: LiveGame, ignoreTimeForTesting?: boolean)
 export const eventsUpdatedHandler = (
   _state: LiveState,
   game: LiveGame,
-  action: PayloadAction<EventsUpdatedPayload>
+  action: PayloadAction<EventsUpdatedPayload>,
 ) => {
   if (game.status === GameStatus.Done) {
     // No updates when game is already completed.
@@ -255,7 +255,7 @@ export const eventsUpdatedHandler = (
           const timeDifferenceSeconds = (clock.periodStartTime! - updatedStartTime) / 1000;
           const updatedDuration = Duration.add(
             timer.duration,
-            Duration.create(timeDifferenceSeconds)
+            Duration.create(timeDifferenceSeconds),
           );
           updatedTimer.duration = updatedDuration.toJSON();
         }

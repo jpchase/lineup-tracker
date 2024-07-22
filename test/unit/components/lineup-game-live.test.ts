@@ -319,7 +319,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the select player action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        selectPlayer(gameId, player.id, /*selected =*/ true)
+        selectPlayer(gameId, player.id, /*selected =*/ true),
       );
     });
 
@@ -337,7 +337,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the select player action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        selectPlayer(gameId, player.id, /*selected =*/ true)
+        selectPlayer(gameId, player.id, /*selected =*/ true),
       );
     });
 
@@ -1007,7 +1007,7 @@ describe('lineup-game-live tests', () => {
       const eventItems = getEventItems(eventsElement);
 
       const eventItem = Array.from(eventItems).find(
-        (item) => item.dataset.eventId === eventToSelect.id
+        (item) => item.dataset.eventId === eventToSelect.id,
       );
       expect(eventItem, `rendered item for event ${eventToSelect.id}`).to.be.ok;
 
@@ -1017,7 +1017,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the event selected action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        eventSelected(liveGame.id, eventToSelect.id!, /* selected= */ true)
+        eventSelected(liveGame.id, eventToSelect.id!, /* selected= */ true),
       );
     });
 
@@ -1032,7 +1032,7 @@ describe('lineup-game-live tests', () => {
       const eventItems = getEventItems(eventsElement);
 
       const eventItem = Array.from(eventItems).find(
-        (item) => item.dataset.eventId === eventToSelect.id
+        (item) => item.dataset.eventId === eventToSelect.id,
       );
       expect(eventItem, `rendered item for event ${eventToSelect.id}`).to.be.ok;
 
@@ -1056,7 +1056,7 @@ describe('lineup-game-live tests', () => {
           useExistingTime: false,
           // existingEventId,
           customTime,
-        })
+        }),
       );
 
       await nextFrame();
@@ -1069,8 +1069,8 @@ describe('lineup-game-live tests', () => {
           [eventToSelect.id!],
           /* useExistingTime= */ false,
           /* existingEventId= */ undefined,
-          customTime
-        )
+          customTime,
+        ),
       );
     });
   }); // describe('Events')

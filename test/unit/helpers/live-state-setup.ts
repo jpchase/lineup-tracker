@@ -125,7 +125,7 @@ export function buildShiftWithTrackersFromGame(
 
 export function buildEventState(
   gameEvents: GameEventCollection,
-  eventsSelectedIds?: string[]
+  eventsSelectedIds?: string[],
 ): EventState {
   return {
     ...EVENTS_INITIAL_STATE,

@@ -877,7 +877,7 @@ describe('Events slice', () => {
       game = testlive.getLiveGameWithPlayers();
       // Create a collection of representative events, which occur 10 seconds apart.
       const timeProvider = mockTimeProviderWithCallback(
-        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
+        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10),
       );
       gameEvents = buildGameEvents(game, timeProvider);
       currentState = buildEventState(gameEvents);
@@ -896,7 +896,7 @@ describe('Events slice', () => {
       const selectedEventId = getEventIds(gameEvents)[0];
       const newState = eventsReducer(
         currentState,
-        eventSelected(game.id, selectedEventId, /* selected= */ true)
+        eventSelected(game.id, selectedEventId, /* selected= */ true),
       );
 
       expect(newState).to.deep.include({
@@ -911,7 +911,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        eventSelected(game.id, selectedEventId, /* selected= */ true)
+        eventSelected(game.id, selectedEventId, /* selected= */ true),
       );
 
       expect(newState).to.deep.include({
@@ -928,7 +928,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        eventSelected(game.id, selectedEventId, /* selected= */ true)
+        eventSelected(game.id, selectedEventId, /* selected= */ true),
       );
 
       expect(newState).to.deep.include({
@@ -943,7 +943,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        eventSelected(game.id, deselectedEventId, /* selected= */ false)
+        eventSelected(game.id, deselectedEventId, /* selected= */ false),
       );
 
       expect(newState).to.deep.include({
@@ -960,7 +960,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        eventSelected(game.id, deselectedEventId, /* selected= */ false)
+        eventSelected(game.id, deselectedEventId, /* selected= */ false),
       );
 
       expect(newState).to.deep.include({
@@ -980,7 +980,7 @@ describe('Events slice', () => {
       game = testlive.getLiveGameWithPlayers();
       // Create a collection of representative events, which occur 10 seconds apart.
       const timeProvider = mockTimeProviderWithCallback(
-        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
+        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10),
       );
       gameEvents = buildGameEvents(game, timeProvider);
 
@@ -1009,8 +1009,8 @@ describe('Events slice', () => {
           [selectedEventId],
           /* useExistingTime= */ false,
           undefined,
-          customTime.getTime()
-        )
+          customTime.getTime(),
+        ),
       );
 
       const updatedEvent = updatedEvents.get(selectedEventId)!;
@@ -1040,8 +1040,8 @@ describe('Events slice', () => {
           [selectedEventId, anotherSelectedEventId],
           /* useExistingTime= */ false,
           undefined,
-          customTime.getTime()
-        )
+          customTime.getTime(),
+        ),
       );
 
       for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
@@ -1069,8 +1069,8 @@ describe('Events slice', () => {
           [selectedEventId],
           /* useExistingTime= */ true,
           existingEventId,
-          undefined
-        )
+          undefined,
+        ),
       );
 
       const updatedEvent = updatedEvents.get(selectedEventId)!;
@@ -1097,8 +1097,8 @@ describe('Events slice', () => {
           [selectedEventId, anotherSelectedEventId],
           /* useExistingTime= */ true,
           existingEventId,
-          undefined
-        )
+          undefined,
+        ),
       );
 
       for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
@@ -1163,8 +1163,8 @@ describe('Events slice', () => {
             [selectedEventId],
             /* useExistingTime= */ false,
             undefined,
-            customTime.getTime()
-          )
+            customTime.getTime(),
+          ),
         );
 
         const updatedEvent = updatedEvents.get(selectedEventId)!;
@@ -1191,8 +1191,8 @@ describe('Events slice', () => {
             [selectedEventId, anotherSelectedEventId],
             /* useExistingTime= */ false,
             undefined,
-            customTime.getTime()
-          )
+            customTime.getTime(),
+          ),
         );
 
         const expectedEvents = [];
@@ -1219,8 +1219,8 @@ describe('Events slice', () => {
             [selectedEventId],
             /* useExistingTime= */ true,
             existingEventId,
-            undefined
-          )
+            undefined,
+          ),
         );
 
         const updatedEvent = updatedEvents.get(selectedEventId)!;
@@ -1244,8 +1244,8 @@ describe('Events slice', () => {
             [selectedEventId, anotherSelectedEventId],
             /* useExistingTime= */ true,
             existingEventId,
-            undefined
-          )
+            undefined,
+          ),
         );
 
         const existingTime = updatedEvents.get(existingEventId)?.timestamp!;

@@ -148,7 +148,7 @@ const eventSlice = createSlice({
         updatedEventIds: string[],
         useExistingTime: boolean,
         existingEventId?: string,
-        customTime?: number
+        customTime?: number,
       ) => {
         return {
           payload: {
@@ -291,7 +291,7 @@ export function setupEventsListeners(startListening: AppStartListening): Unsubsc
         debugEvents(`EL: action = ${JSON.stringify(action)}`);
         const gameEvents = getOrCreateGameEvents(
           selectEventState(listenerApi.getState())!,
-          action.payload.gameId
+          action.payload.gameId,
         );
 
         // Get the latest version of each of the updated events

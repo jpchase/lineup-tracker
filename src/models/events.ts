@@ -37,7 +37,7 @@ export class EventCollection<Event extends EventBase = EventBase> {
 
   static create<Event extends EventBase = EventBase>(
     data: EventCollectionData<Event>,
-    timeProvider?: CurrentTimeProvider
+    timeProvider?: CurrentTimeProvider,
   ): EventCollection<Event> {
     if (!data.id) {
       throw new Error('id must be provided');

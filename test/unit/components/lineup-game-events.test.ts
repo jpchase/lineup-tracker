@@ -184,7 +184,7 @@ describe('lineup-game-events tests', () => {
 
       // Create a collection of representative events, which occur 10 seconds apart.
       const timeProvider = mockTimeProviderWithCallback(
-        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10)
+        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10),
       );
       events = buildGameEvents(game, timeProvider);
     });
@@ -655,7 +655,7 @@ describe('lineup-game-events tests', () => {
       //    resulting value in the field is "14:00:00";
       const timeInputValue = `${pad0(time.getHours(), 2)}:${pad0(time.getMinutes(), 2)}:${pad0(
         time.getSeconds(),
-        2
+        2,
       )}`;
       return timeInputValue;
     }
@@ -674,7 +674,7 @@ describe('lineup-game-events tests', () => {
 
       expect(
         customTimeField.value,
-        'custom time should default to time of selected event displayed as local time zone'
+        'custom time should default to time of selected event displayed as local time zone',
       ).to.deep.equal(expectedTimeString);
 
       // The existing time fields are not initially set/available.
@@ -722,7 +722,7 @@ describe('lineup-game-events tests', () => {
       const expectedTimeString = formatTimeFieldValue(new Date(selectedEvent.timestamp!));
       expect(
         customTimeField.value,
-        'custom time should be reset to time of selected event'
+        'custom time should be reset to time of selected event',
       ).to.deep.equal(expectedTimeString);
 
       // The existing time fields are reset back to unchecked/disabled.
