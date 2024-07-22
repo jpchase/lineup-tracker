@@ -16,6 +16,7 @@ export {
   startPeriodCreator,
   startersCompletedCreator,
 } from './live-action-creators.js';
+export { eventsUpdated } from './live-action-types.js';
 export {
   LiveState,
   rosterCompleted,

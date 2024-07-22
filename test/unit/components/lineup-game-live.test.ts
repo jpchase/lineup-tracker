@@ -21,6 +21,7 @@ import {
   endPeriodCreator,
   eventSelected,
   eventUpdateRequested,
+  eventsUpdated,
   selectLiveGameById,
 } from '@app/slices/live/index.js';
 import { actions as liveActions } from '@app/slices/live/live-slice.js';
@@ -1063,7 +1064,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the event selected action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-      expect(actionLogger.lastAction()).to.deep.include(
+      expect(actionLogger.lastAction(eventsUpdated.type)).to.deep.include(
         eventUpdateRequested(
           liveGame.id,
           [eventToSelect.id!],
