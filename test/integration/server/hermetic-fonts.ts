@@ -35,7 +35,7 @@ type ServeResult =
 
 export function serveHermeticFontPuppeteer(
   request: HTTPRequest,
-  dataDir: string
+  dataDir: string,
 ): ResponseForRequest | undefined {
   return serveHermeticFont(request, dataDir);
 }
@@ -67,7 +67,7 @@ export function serveHermeticFontDevServer(context: Context, dataDir: string): S
 
 function serveHermeticFont(
   request: RequestAdapter,
-  dataDir: string
+  dataDir: string,
 ): ResponseForRequest | undefined {
   const requestUrl = new URL(request.url());
   const isFontApis =
@@ -105,7 +105,7 @@ function serveHermeticFont(
 function buildResponse(
   dataDir: string,
   bodyFileName: string,
-  contentType: string
+  contentType: string,
 ): ResponseForRequest {
   const bodyData = fs.readFileSync(path.join(dataDir, bodyFileName));
   if (!bodyData) {

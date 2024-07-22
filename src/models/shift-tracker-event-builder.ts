@@ -7,7 +7,7 @@ import { PlayerTimeTrackerMap } from './shift.js';
 export function createShiftTrackerFromEvents(
   game: LiveGame,
   events: Iterable<GameEvent>,
-  timeProvider?: CurrentTimeProvider
+  timeProvider?: CurrentTimeProvider,
 ) {
   // Ensure that the events are replayed in order they occurred.
   const sortedEvents = [...events];

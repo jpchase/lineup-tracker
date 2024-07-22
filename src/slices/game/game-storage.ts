@@ -52,7 +52,7 @@ export function loadGames(teamId: string, currentUserId?: string): Promise<Games
     KEY_GAMES,
     gameConverter,
     gameFilter,
-    whereFilter(FIELD_TEAMID, '==', teamId)
+    whereFilter(FIELD_TEAMID, '==', teamId),
   );
 }
 
@@ -82,6 +82,6 @@ export async function persistGamePlayer(newPlayer: Player, gameId: string, isNew
     buildGameRosterPath(gameId),
     playerConverter,
     undefined,
-    options
+    options,
   );
 }

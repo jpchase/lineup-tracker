@@ -280,7 +280,7 @@ describe('createShiftTrackerFromEvents', () => {
 
     // No need to check swap 3 position tracker, as this is the same player that was subbed off.
     expect(swap3withSub3.replacedId, 'swap 3 position player should be replaced in sub 3').to.equal(
-      offTracker?.id
+      offTracker?.id,
     );
   });
 
@@ -375,7 +375,7 @@ describe('createShiftTrackerFromEvents', () => {
 
     // No need to check swap 3 position tracker, as this is the same player that was subbed off.
     expect(swap3withSub3.replacedId, 'swap 3 position player should be replaced in sub 3').to.equal(
-      offTracker?.id
+      offTracker?.id,
     );
   });
 }); // describe('createShiftTrackerFromEvents')

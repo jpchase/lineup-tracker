@@ -164,7 +164,7 @@ describe('lineup-game-events tests', () => {
     const absoluteElement = timeElement.querySelector('.absolute');
     expect(absoluteElement, 'Missing absolute time element').to.exist;
     expect(absoluteElement!.textContent?.trim(), 'Event absolute time').to.equal(
-      timeFormatter.format(new Date(expectedTime))
+      timeFormatter.format(new Date(expectedTime)),
     );
   }
 
@@ -172,7 +172,7 @@ describe('lineup-game-events tests', () => {
     const relativeElement = timeElement.querySelector('.relative');
     expect(relativeElement, 'Missing relative time element').to.exist;
     expect(relativeElement!.textContent?.trim(), 'Period relative time').to.equal(
-      `[${Duration.format(Duration.create(expectedElapsedSeconds))}]`
+      `[${Duration.format(Duration.create(expectedElapsedSeconds))}]`,
     );
   }
 
@@ -274,20 +274,20 @@ describe('lineup-game-events tests', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
     });
 
     async function setupEvent(
       event: GameEvent,
-      periodStart?: { startTime: number; currentPeriod?: number }
+      periodStart?: { startTime: number; currentPeriod?: number },
     ) {
       const addedEvent = events.addEvent<GameEvent>(event);
 
       // Add start event, so that relative times can be computed.
       if (periodStart) {
         events.addEvent<PeriodStartEvent>(
-          buildPeriodStartEvent(periodStart.startTime, periodStart.currentPeriod)
+          buildPeriodStartEvent(periodStart.startTime, periodStart.currentPeriod),
         );
       }
 
@@ -299,14 +299,14 @@ describe('lineup-game-events tests', () => {
 
     async function setupEventGroup(
       group: GameEventGroup,
-      periodStart?: { startTime: number; currentPeriod?: number }
+      periodStart?: { startTime: number; currentPeriod?: number },
     ) {
       const addedEvents = events.addEventGroup<GameEvent>(group.groupedEvents);
 
       // Add start event, so that relative times can be computed.
       if (periodStart) {
         events.addEvent<PeriodStartEvent>(
-          buildPeriodStartEvent(periodStart.startTime, periodStart.currentPeriod)
+          buildPeriodStartEvent(periodStart.startTime, periodStart.currentPeriod),
         );
       }
 
@@ -378,7 +378,7 @@ describe('lineup-game-events tests', () => {
       expectEventAbsoluteTime(timeElement, periodEndTime);
       expectEventPeriodRelativeTime(
         timeElement,
-        /* elapsedSeconds= */ (periodEndTime - startTime) / 1000
+        /* elapsedSeconds= */ (periodEndTime - startTime) / 1000,
       );
 
       expectEventType(typeElement, 'Period completed');
@@ -399,7 +399,7 @@ describe('lineup-game-events tests', () => {
       const elapsedSecondsForSub = 11 * 60 + 17;
       const event = await setupEventGroup(
         buildSubEvents(startTime + elapsedSecondsForSub * 1000, sub),
-        { startTime }
+        { startTime },
       );
 
       // The sub out event is not displayed, so there should only be one rendered event.
@@ -429,7 +429,7 @@ describe('lineup-game-events tests', () => {
       const elapsedSecondsForSwap = 50;
       const event = await setupEvent(
         buildSwapEvent(startTime + elapsedSecondsForSwap * 1000, swap),
-        { startTime }
+        { startTime },
       );
 
       // The sub out event is not displayed, so there should only be one rendered event.

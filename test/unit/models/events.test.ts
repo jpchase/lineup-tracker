@@ -45,7 +45,7 @@ describe('EventCollection', () => {
       `expected collection to be empty, without any events`,
       `expected collection to have events`,
       expected,
-      actual
+      actual,
     );
   });
 
@@ -63,7 +63,7 @@ describe('EventCollection', () => {
       'expected #{act} to have size #{exp}',
       'expected #{act} to not have size #{exp}',
       expected,
-      actual
+      actual,
     );
   });
 
@@ -201,7 +201,7 @@ describe('EventCollection', () => {
 
       expect(
         collection.eventsForTesting,
-        'events should have stored group events'
+        'events should have stored group events',
       ).to.have.deep.ordered.members(storedEvents);
     });
   }); // describe('event recording')

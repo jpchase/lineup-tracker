@@ -33,7 +33,7 @@ export interface NewDocOptions {
 function buildNewDocumentData(
   model: Model,
   modelWriter?: ModelWriter<any>,
-  options?: NewDocOptions
+  options?: NewDocOptions,
 ): DocumentData {
   const data: DocumentData = modelWriter
     ? modelWriter.toDocument(model)
@@ -78,7 +78,7 @@ async function saveNewDocument<T extends Model>(
   collectionPathOrReference: string,
   modelWriter?: ModelWriter<T>,
   state?: RootState,
-  options?: NewDocOptions
+  options?: NewDocOptions,
 ) {
   // Set parent ids, if necessary.
   if (options && state) {
@@ -101,7 +101,7 @@ async function saveNewDocument<T extends Model>(
 
   const firestore: Firestore = firebaseRefs.firestore;
   const collectionRef = collection(firestore, collectionPathOrReference).withConverter(
-    new WriterConverter(modelWriter, options)
+    new WriterConverter(modelWriter, options),
   );
 
   // Unless requested to use model id, omit the doc path, which will cause a new unique id to be

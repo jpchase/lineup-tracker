@@ -28,7 +28,7 @@ import { LiveState } from './live-slice.js';
 export const rosterCompletedHandler = (
   _state: LiveState,
   game: LiveGame,
-  action: PayloadAction<RosterCompletedPayload>
+  action: PayloadAction<RosterCompletedPayload>,
 ) => {
   // Setup live players from roster
   const roster = action.payload.roster;
@@ -54,7 +54,7 @@ export const rosterCompletedPrepare = (gameId: string, roster: Roster) => {
 export const formationSelectedHandler = (
   _state: LiveState,
   game: LiveGame,
-  action: PayloadAction<FormationSelectedPayload>
+  action: PayloadAction<FormationSelectedPayload>,
 ) => {
   if (!action.payload.formationType) {
     return;
@@ -76,7 +76,7 @@ export const formationSelectedPrepare = (gameId: string, formationType: Formatio
 export const selectStarterHandler = (
   state: LiveState,
   game: LiveGame,
-  action: PayloadAction<SelectStarterPayload>
+  action: PayloadAction<SelectStarterPayload>,
 ) => {
   const playerId = action.payload.playerId;
   const selectedPlayer = getPlayer(game, playerId);
@@ -109,7 +109,7 @@ export const selectStarterPrepare = (gameId: string, playerId: string, selected:
 export const selectStarterPositionHandler = (
   state: LiveState,
   game: LiveGame,
-  action: PayloadAction<SelectStarterPositionPayload>
+  action: PayloadAction<SelectStarterPositionPayload>,
 ) => {
   state.selectedStarterPosition = action.payload.position;
 
@@ -128,7 +128,7 @@ export const selectStarterPositionPrepare = (gameId: string, position: Position)
 export const applyStarterHandler = (
   state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   if (!state.proposedStarter) {
     return;
@@ -158,7 +158,7 @@ export const applyStarterHandler = (
 export const cancelStarterHandler = (
   state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   if (!state.proposedStarter) {
     return;
@@ -173,7 +173,7 @@ export const cancelStarterHandler = (
 export const startersCompletedHandler = (
   state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   completeSetupStepForAction(game, SetupSteps.Starters);
   state.invalidStarters = undefined;
@@ -182,7 +182,7 @@ export const startersCompletedHandler = (
 export const invalidStartersHandler = (
   state: LiveState,
   _game: LiveGame,
-  action: PayloadAction<StartersInvalidPayload>
+  action: PayloadAction<StartersInvalidPayload>,
 ) => {
   if (!action.payload.invalidStarters?.length) {
     state.invalidStarters = undefined;
@@ -203,7 +203,7 @@ export const invalidStartersPrepare = (gameId: string, invalidStarters: string[]
 export const captainsCompletedHandler = (
   _state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   completeSetupStepForAction(game, SetupSteps.Captains);
 };
@@ -211,7 +211,7 @@ export const captainsCompletedHandler = (
 export const setupCompletedHandler = (
   _state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<GameSetupCompletedPayload>
+  _action: PayloadAction<GameSetupCompletedPayload>,
 ) => {
   if (game.status !== GameStatus.New) {
     return;

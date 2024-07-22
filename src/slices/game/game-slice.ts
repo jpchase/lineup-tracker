@@ -49,7 +49,7 @@ export const getGames = createAsyncThunk<
       }
       return true;
     },
-  }
+  },
 );
 
 export const getGame = createAsyncThunk<
@@ -93,7 +93,7 @@ export const getGame = createAsyncThunk<
     getPendingMeta: (base) => {
       return { gameId: base.arg };
     },
-  }
+  },
 );
 
 export const addNewGame =
@@ -197,7 +197,7 @@ export const gameSlice = createSlice({
       (state: GameState, _action: ReturnType<typeof getGame.pending>) => {
         state.detailFailure = false;
         state.detailLoading = true;
-      }
+      },
     );
     builder.addCase(getGame.fulfilled, (state: GameState, action: PayloadAction<GameDetail>) => {
       state.detailFailure = false;
@@ -224,7 +224,7 @@ export const gameSlice = createSlice({
         state.error = action.error.message || action.error.name;
         state.detailFailure = true;
         state.detailLoading = false;
-      }
+      },
     );
     // Copy roster actions
     builder.addCase(copyRoster.pending, rosterCopyPendingHandler);

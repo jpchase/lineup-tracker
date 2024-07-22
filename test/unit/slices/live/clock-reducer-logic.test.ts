@@ -60,7 +60,7 @@ describe('Live slice: Clock actions', () => {
     it('should set the period total/length', () => {
       const newState = live(
         currentState,
-        configurePeriods(gameId, /*totalPeriods=*/ 1, /*periodLength=*/ 20)
+        configurePeriods(gameId, /*totalPeriods=*/ 1, /*periodLength=*/ 20),
       );
 
       const newGame = getGame(newState, gameId);
@@ -74,12 +74,12 @@ describe('Live slice: Clock actions', () => {
 
     it('should update setup tasks to mark periods complete, in New status', () => {
       const game = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/ SetupSteps.Periods - 1
+        /*lastCompletedStep=*/ SetupSteps.Periods - 1,
       );
       currentState = buildLiveStateWithCurrentGame(game);
 
       const expectedGame = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/ SetupSteps.Periods
+        /*lastCompletedStep=*/ SetupSteps.Periods,
       );
       expectedGame.clock = buildClock(undefined, {
         totalPeriods: 3,
@@ -89,7 +89,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        configurePeriods(gameId, /*totalPeriods=*/ 3, /*periodLength=*/ 25)
+        configurePeriods(gameId, /*totalPeriods=*/ 3, /*periodLength=*/ 25),
       );
 
       expect(newState).to.deep.include(expectedState);
@@ -113,7 +113,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        configurePeriods(gameId, /*totalPeriods=*/ 3, /*periodLength=*/ 25)
+        configurePeriods(gameId, /*totalPeriods=*/ 3, /*periodLength=*/ 25),
       );
 
       expect(newState).to.deep.include(expectedState);
@@ -123,13 +123,13 @@ describe('Live slice: Clock actions', () => {
 
     it('should do nothing if totalPeriods is invalid', () => {
       const game = buildLiveGameWithSetupTasksAndPlayers(
-        /*lastCompletedStep=*/ SetupSteps.Periods - 1
+        /*lastCompletedStep=*/ SetupSteps.Periods - 1,
       );
       currentState = buildLiveStateWithCurrentGame(game);
 
       const newState = live(
         currentState,
-        configurePeriods(gameId, /*totalPeriods=*/ 0, /*periodLength=*/ 45)
+        configurePeriods(gameId, /*totalPeriods=*/ 0, /*periodLength=*/ 45),
       );
 
       expect(newState).to.equal(currentState);
@@ -138,7 +138,7 @@ describe('Live slice: Clock actions', () => {
     it('should do nothing if periodLength is invalid', () => {
       const newState = live(
         currentState,
-        configurePeriods(gameId, /*totalPeriods=*/ 2, /*periodLength=*/ 5)
+        configurePeriods(gameId, /*totalPeriods=*/ 2, /*periodLength=*/ 5),
       );
 
       expect(newState).to.equal(currentState);
@@ -150,7 +150,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        configurePeriods(gameId, /*totalPeriods=*/ 2, /*periodLength=*/ 35)
+        configurePeriods(gameId, /*totalPeriods=*/ 2, /*periodLength=*/ 35),
       );
 
       expect(newState).to.equal(currentState);
@@ -162,7 +162,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        configurePeriods(gameId, /*totalPeriods=*/ 2, /*periodLength=*/ 35)
+        configurePeriods(gameId, /*totalPeriods=*/ 2, /*periodLength=*/ 35),
       );
 
       expect(newState).to.equal(currentState);
@@ -187,7 +187,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
+        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime),
       );
 
       const newGame = getGame(newState, gameId);
@@ -209,7 +209,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
+        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime),
       );
 
       const newGame = getGame(newState, gameId);
@@ -252,7 +252,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 2, startTime)
+        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 2, startTime),
       );
 
       const newGame = getGame(newState, gameId);
@@ -543,7 +543,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10),
       );
 
       const newGame = getGame(newState, gameId);
@@ -570,7 +570,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10),
       );
 
       const newGame = getGame(newState, gameId);
@@ -594,7 +594,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10),
       );
 
       const newGame = getGame(newState, gameId);
@@ -618,7 +618,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10),
       );
 
       const newGame = getGame(newState, gameId);
@@ -643,7 +643,7 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 3, timeStartPlus10)
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 3, timeStartPlus10),
       );
 
       const newGame = getGame(newState, gameId);
@@ -712,7 +712,7 @@ describe('Live slice: Clock actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10),
         );
       });
 
@@ -732,7 +732,7 @@ describe('Live slice: Clock actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10)
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus10),
         );
       });
 
@@ -753,7 +753,7 @@ describe('Live slice: Clock actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus15Minutes)
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus15Minutes),
         );
       });
 
@@ -773,7 +773,7 @@ describe('Live slice: Clock actions', () => {
             periodStatus: PeriodStatus.Overdue,
             periodLength: 12,
           },
-          buildStoppedTimer(/*elapsedSeconds=*/ 8 * 60)
+          buildStoppedTimer(/*elapsedSeconds=*/ 8 * 60),
         );
 
         const dispatchMock = sinon.stub();
@@ -784,7 +784,7 @@ describe('Live slice: Clock actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus23Minutes)
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus23Minutes),
         );
       });
 
@@ -805,7 +805,7 @@ describe('Live slice: Clock actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus15Minutes)
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus15Minutes),
         );
       });
 
@@ -818,7 +818,7 @@ describe('Live slice: Clock actions', () => {
             currentPeriod: 1,
             periodStatus: PeriodStatus.Overdue,
             periodLength: 12,
-          }
+          },
         );
 
         const dispatchMock = sinon.stub();
@@ -829,7 +829,7 @@ describe('Live slice: Clock actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus20Minutes)
+          endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus20Minutes),
         );
       });
     }); // describe('action creator')
@@ -879,7 +879,7 @@ describe('Live slice: Clock actions', () => {
           periodStartTime: startTime,
           periodStatus: PeriodStatus.Running,
           periodLength: 10,
-        }
+        },
       );
 
       const newState = live(currentState, markPeriodOverdue(gameId));
@@ -924,7 +924,7 @@ describe('Live slice: Clock actions', () => {
           currentPeriod: 1,
           periodStatus: PeriodStatus.Running,
           periodLength: 10,
-        }
+        },
       );
 
       const newState = live(currentState, markPeriodOverdue(gameId));
@@ -1212,7 +1212,7 @@ describe('Live slice: Clock actions', () => {
         {
           periodStartTime: originalPeriodStartTime,
         },
-        buildStoppedTimer(15)
+        buildStoppedTimer(15),
       );
 
       const newState = live(currentState, toggleClock(gameId));

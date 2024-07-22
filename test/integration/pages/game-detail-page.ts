@@ -13,7 +13,7 @@ export class GameDetailPage extends PageObject {
 
   protected override get openFunc(): PageOpenFunction | undefined {
     return async () => {
-      await this.page.waitForTimeout(2000);
+      await this.waitForTimeout(2000);
     };
   }
 }

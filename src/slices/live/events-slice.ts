@@ -178,7 +178,7 @@ const eventSlice = createSlice({
               totalPeriods: game.clock?.totalPeriods!,
             },
           });
-        })
+        }),
       )
       .addCase(
         startPeriod,
@@ -196,9 +196,9 @@ const eventSlice = createSlice({
               },
             },
             undefined,
-            /* timestamp= */ startTime
+            /* timestamp= */ startTime,
           );
-        })
+        }),
       )
       .addCase(
         endPeriod,
@@ -216,9 +216,9 @@ const eventSlice = createSlice({
               },
             },
             undefined,
-            /* timestamp= */ endTime
+            /* timestamp= */ endTime,
           );
-        })
+        }),
       )
       .addCase(
         applyPendingSubs,
@@ -238,8 +238,8 @@ const eventSlice = createSlice({
                     previousPosition: sub.currentPosition?.id!,
                   },
                   extractIdFromSwapPlayerId(sub.id),
-                  eventTime
-                )
+                  eventTime,
+                ),
               );
               continue;
             }
@@ -259,16 +259,16 @@ const eventSlice = createSlice({
                   replaced: sub.replaces!,
                 },
                 sub.id,
-                eventTime
-              )
+                eventTime,
+              ),
             );
             subGroup.groupedEvents.push(
-              buildGameEvent<SubOutEvent>(GameEventType.SubOut, {}, sub.replaces, eventTime)
+              buildGameEvent<SubOutEvent>(GameEventType.SubOut, {}, sub.replaces, eventTime),
             );
             subEvents.push(subGroup);
           }
           return subEvents;
-        })
+        }),
       );
   },
 });
@@ -279,7 +279,7 @@ export const eventsReducer = reducer;
 export const { eventSelected, eventUpdateRequested } = eventSlice.actions;
 
 type EventActionHandler<P extends LiveGamePayload> = (
-  action: PayloadAction<P>
+  action: PayloadAction<P>,
 ) => GameEvent | EventOrGroup[] | undefined;
 
 export function setupEventsListeners(startListening: AppStartListening): Unsubscribe {
@@ -320,7 +320,7 @@ function buildActionHandler<P extends LiveGamePayload>(handler: EventActionHandl
 function invokeActionHandler<P extends LiveGamePayload>(
   state: EventState,
   action: PayloadAction<P>,
-  handler: EventActionHandler<P>
+  handler: EventActionHandler<P>,
 ) {
   if (!action.payload.gameId) {
     return;
@@ -366,7 +366,7 @@ function buildGameEvent<Event extends GameEvent, EventData = Event['data']>(
   type: GameEventType,
   data: EventData,
   playerId?: string,
-  timestamp?: number
+  timestamp?: number,
 ): Event {
   const event = {
     type,

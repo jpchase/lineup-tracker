@@ -36,7 +36,7 @@ export class LineupGameList extends LitElement {
                       </a>
                       <a href="/gameroster/${game.id}" title="View roster">${peopleIcon}</a>
                     </div>
-                  `
+                  `,
                 )}
               </div>
             `

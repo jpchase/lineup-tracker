@@ -104,7 +104,7 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
       if (!filledPositions.has(sub.nextPosition!.id)) {
         invalidSubs.set(
           sub.id,
-          `swap into position that doesn't exist in formation: ${sub.nextPosition!.id}`
+          `swap into position that doesn't exist in formation: ${sub.nextPosition!.id}`,
         );
         continue;
       }
@@ -169,7 +169,7 @@ function validateFilledPositions(game: LiveGame, filledPositions: FilledPosition
     if (ids.length !== 1) {
       invalidPositions.set(
         position,
-        `Position [${position}] should have 1 id, instead has ${ids.length}`
+        `Position [${position}] should have 1 id, instead has ${ids.length}`,
       );
     }
   }

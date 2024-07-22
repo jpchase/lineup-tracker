@@ -19,7 +19,7 @@ interface PlayerLine extends FormationLine {
 
 function getLineForPosition(lines: PlayerLine[], position: Position): PlayerLine | undefined {
   return lines.find((line) =>
-    line.positions.some((linePosition) => linePosition.id === position.id)
+    line.positions.some((linePosition) => linePosition.id === position.id),
   );
 }
 
@@ -85,10 +85,10 @@ export class LineupOnPlayerList extends PlayerListElement {
                             .timeTracker="${this.getTracker(cardData.player!)}"
                           >
                           </lineup-player-card>
-                        `
+                        `,
                       )}
                     </div>
-                  `
+                  `,
                 )}
               </div>
             `

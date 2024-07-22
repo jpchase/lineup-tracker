@@ -14,7 +14,7 @@ export function buildInitialGameState(): GameState {
 
 export function buildGameStateWithCurrentGame(
   game: GameDetail,
-  rest?: Partial<GameState>
+  rest?: Partial<GameState>,
 ): GameState {
   const state: GameState = {
     ...buildInitialGameState(),

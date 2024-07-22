@@ -78,7 +78,7 @@ describe('Game slice: roster actions', () => {
       await actions.copyRoster(undefined as unknown as string)(
         dispatchMock,
         getStateMock,
-        undefined
+        undefined,
       );
 
       expect(readerStub.loadCollection, 'loadCollection').to.not.have.been.called;
@@ -120,7 +120,7 @@ describe('Game slice: roster actions', () => {
         sinon.match({
           type: copyRoster.rejected.type,
           error: { message: 'No existing game found for id: nosuchgame' },
-        })
+        }),
       );
     });
 
@@ -142,7 +142,7 @@ describe('Game slice: roster actions', () => {
         {
           rosterLoading: false,
           rosterFailure: false,
-        }
+        },
       );
 
       expect(newState).to.deep.include(expectedState);
@@ -200,7 +200,7 @@ describe('Game slice: roster actions', () => {
           `${KEY_GAMES}/${gameId}/roster`,
           sinon.match.object,
           undefined,
-          { keepExistingId: true }
+          { keepExistingId: true },
         );
       });
       expect(dispatchMock).to.have.callCount(2);
@@ -212,7 +212,7 @@ describe('Game slice: roster actions', () => {
           meta: {
             gameId,
           },
-        })
+        }),
       );
 
       expect(dispatchMock.lastCall).to.have.been.calledWith(
@@ -222,7 +222,7 @@ describe('Game slice: roster actions', () => {
             gameId,
             gameRoster: { ...teamRoster },
           },
-        })
+        }),
       );
     });
 
@@ -232,7 +232,7 @@ describe('Game slice: roster actions', () => {
 
       expect(
         Object.keys((currentState.games[currentGame.id] as GameDetail).roster),
-        'roster should initially be empty'
+        'roster should initially be empty',
       ).to.be.empty;
 
       const newState = gameReducer(currentState, {
@@ -282,14 +282,14 @@ describe('Game slice: roster actions', () => {
           meta: {
             gameId,
           },
-        })
+        }),
       );
 
       expect(dispatchMock.lastCall).to.have.been.calledWith(
         sinon.match({
           type: copyRoster.rejected.type,
           error: { message: 'Storage failed with some error' },
-        })
+        }),
       );
     });
 
@@ -318,7 +318,7 @@ describe('Game slice: roster actions', () => {
 
       actions.addNewGamePlayer(
         /*gameId=*/ undefined as unknown as string,
-        /*newPlayer=*/ undefined as unknown as Player
+        /*newPlayer=*/ undefined as unknown as Player,
       )(dispatchMock, getStateMock, undefined);
 
       expect(getStateMock).to.not.have.been.called;
@@ -333,7 +333,7 @@ describe('Game slice: roster actions', () => {
       actions.addNewGamePlayer(STORED_GAME_ID, getNewPlayer())(
         dispatchMock,
         getStateMock,
-        undefined
+        undefined,
       );
 
       expect(getStateMock).to.have.been.called;
@@ -348,7 +348,7 @@ describe('Game slice: roster actions', () => {
       actions.addNewGamePlayer(STORED_GAME_ID, getStoredPlayer())(
         dispatchMock,
         getStateMock,
-        undefined
+        undefined,
       );
 
       expect(getStateMock).to.have.been.called;
@@ -376,23 +376,23 @@ describe('Game slice: roster actions', () => {
       await actions.saveGamePlayer(STORED_GAME_ID, inputPlayer)(
         dispatchMock,
         getStateMock,
-        undefined
+        undefined,
       );
 
       // Checks that the new player was saved to the database.
       expect(saveNewDocumentStub).calledOnceWith(
         inputPlayer,
         `${KEY_GAMES}/${STORED_GAME_ID}/${KEY_ROSTER}`,
-        sinon.match.object
+        sinon.match.object,
       );
       expect(inputPlayer, 'Input player should have properties set by saving').to.deep.equal(
-        expectedSavedPlayer
+        expectedSavedPlayer,
       );
 
       // Waits for promises to resolve.
       await Promise.resolve();
       expect(dispatchMock).to.have.been.calledWith(
-        gamePlayerAdded(STORED_GAME_ID, expectedSavedPlayer)
+        gamePlayerAdded(STORED_GAME_ID, expectedSavedPlayer),
       );
     });
 
@@ -408,7 +408,7 @@ describe('Game slice: roster actions', () => {
         await actions.saveGamePlayer(STORED_GAME_ID, getNewPlayer())(
           dispatchMock,
           getStateMock,
-          undefined
+          undefined,
         );
       } catch {
         rejected = true;

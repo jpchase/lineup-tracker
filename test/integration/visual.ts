@@ -48,7 +48,7 @@ describe('👀 page screenshots are correct', () => {
 
           const result = await pageObject.checkAccessibility();
           logWithTime(
-            `${breakpoint.name}-${pageConfig.name}: ${result.violationCount} accessibility violations`
+            `${breakpoint.name}-${pageConfig.name}: ${result.violationCount} accessibility violations`,
           );
           expect(result.violationCount, result.violationMessage).to.equal(0);
         });

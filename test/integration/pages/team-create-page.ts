@@ -69,7 +69,7 @@ export class TeamCreatePage extends PageObject {
     await buttonHandle.click();
     this.log(`team create button clicked`);
     // It appears to take ~2.5s for Firebase emulators to complete the write to storage.
-    await this.page.waitForTimeout(3000);
+    await this.waitForTimeout(3000);
     this.log(`wait for team create finished`);
   }
 

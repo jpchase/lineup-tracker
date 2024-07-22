@@ -29,7 +29,7 @@ export enum SetupSteps {
 }
 
 export const AllSetupSteps: SetupSteps[] = Object.values(SetupSteps).filter(
-  (v) => !Number.isNaN(Number(v))
+  (v) => !Number.isNaN(Number(v)),
 ) as SetupSteps[];
 
 export interface SetupTask {
@@ -82,12 +82,12 @@ export enum GameEventType {
 // Base game event types
 export interface GameEventBase<
   EventType extends GameEventType = GameEventType,
-  EventData extends Record<string, unknown> = Record<string, unknown>
+  EventData extends Record<string, unknown> = Record<string, unknown>,
 > extends EventBase<EventType, EventData> {}
 
 export interface GamePlayerEventBase<
   EventType extends GameEventType = GameEventType,
-  EventData extends Record<string, unknown> = Record<string, unknown>
+  EventData extends Record<string, unknown> = Record<string, unknown>,
 > extends GameEventBase<EventType, EventData> {
   playerId: string;
 }
@@ -210,7 +210,7 @@ export function findPlayersByStatus(
   game: LiveGame,
   status: PlayerStatus,
   selectedOnly?: boolean,
-  includeSwaps?: boolean
+  includeSwaps?: boolean,
 ) {
   const matches: LivePlayer[] = [];
   game.players!.forEach((player) => {

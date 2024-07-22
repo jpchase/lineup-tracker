@@ -41,6 +41,6 @@ export function getLiveSliceConfigurator(): SliceConfigurator {
       reducer: live,
       setupListeners: setupEventsListeners,
     },
-    persistConfig
+    persistConfig,
   );
 }

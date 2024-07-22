@@ -81,7 +81,7 @@ export class LineupGameCreate extends LitElement {
       Number(dateParts[2]) - 1, // months, which are zero-based
       Number(dateParts[3]), // days
       Number(timeParts[1]), // hours
-      Number(timeParts[2]) // minutes
+      Number(timeParts[2]), // minutes
     );
 
     return { valid: true, date };
@@ -112,7 +112,7 @@ export class LineupGameCreate extends LitElement {
     this.dispatchEvent(
       new GameCreatedEvent({
         game: newGame,
-      })
+      }),
     );
   }
 

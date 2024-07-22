@@ -28,7 +28,7 @@ const PERIOD_OVERDUE_BUFFER_MINUTES = 5;
 export const configurePeriodsHandler = (
   _state: LiveState,
   game: LiveGame,
-  action: PayloadAction<ConfigurePeriodsPayload>
+  action: PayloadAction<ConfigurePeriodsPayload>,
 ) => {
   const periods = action.payload.totalPeriods || 0;
   const length = action.payload.periodLength || 0;
@@ -54,7 +54,7 @@ export const configurePeriodsHandler = (
 export const configurePeriodsPrepare = (
   gameId: string,
   totalPeriods: number,
-  periodLength: number
+  periodLength: number,
 ) => {
   return {
     payload: {
@@ -68,7 +68,7 @@ export const configurePeriodsPrepare = (
 export const startPeriodHandler = (
   _state: LiveState,
   game: LiveGame,
-  action: PayloadAction<StartPeriodPayload>
+  action: PayloadAction<StartPeriodPayload>,
 ) => {
   if (!action.payload.gameAllowsStart) {
     return;
@@ -92,7 +92,7 @@ export const startPeriodPrepare = (
   gameId: string,
   gameAllowsStart: boolean,
   currentPeriod?: number,
-  startTime?: number
+  startTime?: number,
 ) => {
   return {
     payload: {
@@ -107,7 +107,7 @@ export const startPeriodPrepare = (
 export const endPeriodHandler = (
   _state: LiveState,
   game: LiveGame,
-  action: PayloadAction<EndPeriodPayload>
+  action: PayloadAction<EndPeriodPayload>,
 ) => {
   if (!action.payload.gameAllowsEnd) {
     return;
@@ -142,7 +142,7 @@ export const endPeriodPrepare = (
   gameId: string,
   gameAllowsEnd: boolean,
   currentPeriod?: number,
-  stopTime?: number
+  stopTime?: number,
 ) => {
   return {
     payload: {
@@ -157,7 +157,7 @@ export const endPeriodPrepare = (
 export const toggleHandler = (
   _state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>
+  _action: PayloadAction<LiveGamePayload>,
 ) => {
   if (!game.clock) {
     return;
@@ -180,7 +180,7 @@ export const toggleHandler = (
 export const markPeriodOverdueHandler = (
   _state: LiveState,
   game: LiveGame,
-  action: PayloadAction<OverduePeriodPayload>
+  action: PayloadAction<OverduePeriodPayload>,
 ) => {
   if (!isPeriodOverdue(game, action.payload.ignoreTimeForTesting)) {
     return;
@@ -314,7 +314,7 @@ export function gameCanStartPeriod(game: LiveGame): {
 
 export function gameCanEndPeriod(
   game: LiveGame,
-  extraMinutes?: number
+  extraMinutes?: number,
 ): {
   allowsEnd: boolean;
   currentPeriod?: number;
@@ -355,7 +355,7 @@ export function gameCanEndPeriod(
     // TODO: Add subtract method to Duration class?
     const correctedDuration = Duration.add(
       Duration.create(actualLength * 60),
-      Duration.create(-periodTimer.duration.getTotalSeconds())
+      Duration.create(-periodTimer.duration.getTotalSeconds()),
     );
 
     stopTime = Duration.addToDate(periodStartTime, correctedDuration);

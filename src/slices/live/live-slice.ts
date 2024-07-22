@@ -111,7 +111,7 @@ export const selectPendingSubs = (
   state: RootState,
   gameId: string,
   selectedOnly?: boolean,
-  includeSwaps?: boolean
+  includeSwaps?: boolean,
 ) => {
   const game = selectLiveGameById(state, gameId);
   if (!game) {
@@ -318,7 +318,7 @@ export const liveSlice = createSlice({
         }
 
         setCurrentGame(state, game);
-      }
+      },
     );
     builder.addCase(eventsUpdated, buildActionHandler(eventsUpdatedHandler));
   },
@@ -350,7 +350,7 @@ export const {
 type ActionHandler<P extends LiveGamePayload> = (
   state: LiveState,
   game: LiveGame,
-  action: PayloadAction<P>
+  action: PayloadAction<P>,
 ) => void;
 
 function buildActionHandler<P extends LiveGamePayload>(handler: ActionHandler<P>) {
@@ -362,7 +362,7 @@ function buildActionHandler<P extends LiveGamePayload>(handler: ActionHandler<P>
 function invokeActionHandler<P extends LiveGamePayload>(
   state: LiveState,
   action: PayloadAction<P>,
-  handler: ActionHandler<P>
+  handler: ActionHandler<P>,
 ) {
   const game = findGame(state, action.payload.gameId);
   if (!game) {

@@ -175,12 +175,12 @@ describe('Live slice: Substitution actions', () => {
         if (notSwappedIds?.includes(sub.nextId)) {
           expect(player.currentPosition).to.not.deep.equal(
             expectedPosition,
-            `Not swapped [${player.id}], the currentPosition property`
+            `Not swapped [${player.id}], the currentPosition property`,
           );
         } else {
           expect(player.currentPosition).to.deep.equal(
             expectedPosition,
-            `Swapped [${player.id}], the currentPosition property`
+            `Swapped [${player.id}], the currentPosition property`,
           );
         }
       }
@@ -195,19 +195,19 @@ describe('Live slice: Substitution actions', () => {
           currentState,
           applyPendingSubs(
             gameId,
-            getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
-          )
+            getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs)),
+          ),
         );
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
 
         expect(newIds[PlayerStatus.On]).to.contain.members(
           getNextIds(subs),
-          'All next players should now be on'
+          'All next players should now be on',
         );
         expect(newIds[PlayerStatus.Off]).to.contain.members(
           getReplacedIds(subs),
-          'All replaced players should now be off'
+          'All replaced players should now be off',
         );
         expect(newIds[PlayerStatus.Next], 'No next players should remain').to.be.empty;
       });
@@ -226,8 +226,8 @@ describe('Live slice: Substitution actions', () => {
           currentState,
           applyPendingSubs(
             gameId,
-            getPlayersByIds(getGame(currentState, gameId)!, getSwapNextIds(subs))
-          )
+            getPlayersByIds(getGame(currentState, gameId)!, getSwapNextIds(subs)),
+          ),
         );
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
@@ -284,9 +284,9 @@ describe('Live slice: Substitution actions', () => {
             gameId,
             getPlayersByIds(
               getGame(currentState, gameId)!,
-              nowPlayingIds.concat(getSwapNextIds(swaps))
-            )
-          )
+              nowPlayingIds.concat(getSwapNextIds(swaps)),
+            ),
+          ),
         );
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
@@ -295,11 +295,11 @@ describe('Live slice: Substitution actions', () => {
 
         expect(newIds[PlayerStatus.On]).to.contain.members(
           nowPlayingIds,
-          'All next players should now be on'
+          'All next players should now be on',
         );
         expect(newIds[PlayerStatus.Off]).to.contain.members(
           subbedOffIds,
-          'All replaced players should now be off'
+          'All replaced players should now be off',
         );
         expect(newIds[PlayerStatus.Next], 'No next players should remain').to.be.empty;
       });
@@ -324,27 +324,27 @@ describe('Live slice: Substitution actions', () => {
           applyPendingSubs(
             gameId,
             getPlayersByIds(currentGame, nowPlayingIds),
-            /* selectedOnly */ true
-          )
+            /* selectedOnly */ true,
+          ),
         );
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
 
         expect(newIds[PlayerStatus.On]).to.contain.members(
           nowPlayingIds,
-          'Specified next players should now be on'
+          'Specified next players should now be on',
         );
         expect(newIds[PlayerStatus.On]).to.contain.members(
           stillOnIds,
-          'Players not yet replaced should still be on'
+          'Players not yet replaced should still be on',
         );
         expect(newIds[PlayerStatus.Off]).to.contain.members(
           subbedOffIds,
-          'Specified replaced players should now be off'
+          'Specified replaced players should now be off',
         );
         expect(newIds[PlayerStatus.Next]).to.have.members(
           stillNextIds,
-          'Next players not specified should remain'
+          'Next players not specified should remain',
         );
 
         for (const onId of nowPlayingIds) {
@@ -352,15 +352,15 @@ describe('Live slice: Substitution actions', () => {
 
           expect(
             player.replaces,
-            `Now playing [${player.id}], the replaces property should be cleared`
+            `Now playing [${player.id}], the replaces property should be cleared`,
           ).to.not.be.ok;
           expect(
             player.currentPosition,
-            `Now playing [${player.id}], the currentPosition property should still be set`
+            `Now playing [${player.id}], the currentPosition property should still be set`,
           ).to.be.ok;
           expect(
             player.selected,
-            `Now playing [${player.id}], the selected property should be false`
+            `Now playing [${player.id}], the selected property should be false`,
           ).to.be.false;
         }
 
@@ -369,11 +369,11 @@ describe('Live slice: Substitution actions', () => {
 
           expect(player.replaces).to.equal(
             'P5',
-            `Still next [${player.id}], the replaces property should still be set`
+            `Still next [${player.id}], the replaces property should still be set`,
           );
           expect(
             player.currentPosition,
-            `Still next [${player.id}], the currentPosition property should still be set`
+            `Still next [${player.id}], the currentPosition property should still be set`,
           ).to.be.ok;
         }
 
@@ -382,7 +382,7 @@ describe('Live slice: Substitution actions', () => {
 
           expect(
             player.currentPosition,
-            `Now off [${player.id}], the currentPosition property should be cleared`
+            `Now off [${player.id}], the currentPosition property should be cleared`,
           ).to.not.be.ok;
           expect(player.selected, `Now off [${player.id}], the selected property should be false`)
             .to.not.be.ok;
@@ -414,8 +414,8 @@ describe('Live slice: Substitution actions', () => {
           applyPendingSubs(
             gameId,
             getPlayersByIds(currentGame, swappedNextIds),
-            /* selectedOnly */ true
-          )
+            /* selectedOnly */ true,
+          ),
         );
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
@@ -424,11 +424,11 @@ describe('Live slice: Substitution actions', () => {
 
         expect(newIds[PlayerStatus.On]).to.contain.members(
           getNextIds(swaps),
-          'On players should be unchanged'
+          'On players should be unchanged',
         );
         expect(newIds[PlayerStatus.Next]).to.have.members(
           stillNextIds,
-          'Next swaps not specified should remain'
+          'Next swaps not specified should remain',
         );
 
         for (const onId of nowSwappedIds) {
@@ -496,8 +496,8 @@ describe('Live slice: Substitution actions', () => {
           applyPendingSubs(
             gameId,
             getPlayersByIds(currentGame, toBeSelected),
-            /* selectedOnly */ true
-          )
+            /* selectedOnly */ true,
+          ),
         );
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
@@ -506,19 +506,19 @@ describe('Live slice: Substitution actions', () => {
 
         expect(newIds[PlayerStatus.On]).to.contain.members(
           nowPlayingIds,
-          'Specified next players should now be on'
+          'Specified next players should now be on',
         );
         expect(newIds[PlayerStatus.On]).to.contain.members(
           stillOnIds,
-          'Players not yet replaced should still be on'
+          'Players not yet replaced should still be on',
         );
         expect(newIds[PlayerStatus.Off]).to.contain.members(
           subbedOffIds,
-          'Specified replaced players should now be off'
+          'Specified replaced players should now be off',
         );
         expect(newIds[PlayerStatus.Next]).to.have.members(
           stillNextIds.concat(stillNextSwapIds),
-          'Next players not specified should remain'
+          'Next players not specified should remain',
         );
 
         for (const onId of nowPlayingIds) {
@@ -526,15 +526,15 @@ describe('Live slice: Substitution actions', () => {
 
           expect(
             player.replaces,
-            `Now playing [${player.id}], the replaces property should be cleared`
+            `Now playing [${player.id}], the replaces property should be cleared`,
           ).to.not.be.ok;
           expect(
             player.currentPosition,
-            `Now playing [${player.id}], the currentPosition property should still be set`
+            `Now playing [${player.id}], the currentPosition property should still be set`,
           ).to.be.ok;
           expect(
             player.selected,
-            `Now playing [${player.id}], the selected property should be false`
+            `Now playing [${player.id}], the selected property should be false`,
           ).to.be.false;
         }
 
@@ -543,11 +543,11 @@ describe('Live slice: Substitution actions', () => {
 
           expect(player.replaces).to.equal(
             'P5',
-            `Still next [${player.id}], the replaces property should still be set`
+            `Still next [${player.id}], the replaces property should still be set`,
           );
           expect(
             player.currentPosition,
-            `Still next [${player.id}], the currentPosition property should still be set`
+            `Still next [${player.id}], the currentPosition property should still be set`,
           ).to.be.ok;
         }
 
@@ -556,7 +556,7 @@ describe('Live slice: Substitution actions', () => {
 
           expect(
             player.currentPosition,
-            `Now off [${player.id}], the currentPosition property should be cleared`
+            `Now off [${player.id}], the currentPosition property should be cleared`,
           ).to.not.be.ok;
           expect(player.selected, `Now off [${player.id}], the selected property should be false`)
             .to.not.be.ok;
@@ -582,19 +582,19 @@ describe('Live slice: Substitution actions', () => {
           applyPendingSubs(
             gameId,
             getPlayersByIds(currentGame, nowPlayingIds),
-            /* selectedOnly */ false
-          )
+            /* selectedOnly */ false,
+          ),
         );
         const newGame = getGame(newState, gameId)!;
         const newIds = getIdsByStatus(newGame);
 
         expect(newIds[PlayerStatus.On]).to.contain.members(
           nowPlayingIds,
-          'All next players should now be on'
+          'All next players should now be on',
         );
         expect(newIds[PlayerStatus.Off]).to.contain.members(
           subbedOffIds,
-          'All replaced players should now be off'
+          'All replaced players should now be off',
         );
 
         for (const onId of nowPlayingIds) {
@@ -602,7 +602,7 @@ describe('Live slice: Substitution actions', () => {
 
           expect(
             player.selected,
-            `Now playing [${player.id}], the selected property should be false`
+            `Now playing [${player.id}], the selected property should be false`,
           ).to.be.false;
         }
 
@@ -623,8 +623,8 @@ describe('Live slice: Substitution actions', () => {
           currentState,
           applyPendingSubs(
             gameId,
-            getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
-          )
+            getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs)),
+          ),
         );
 
         expect(newState.invalidSubs, 'Invalid subs should be cleared').not.to.be.ok;
@@ -646,8 +646,8 @@ describe('Live slice: Substitution actions', () => {
           applyPendingSubs(
             gameId,
             getPlayersByIds(currentGame, nowPlayingIds),
-            /* selectedOnly */ true
-          )
+            /* selectedOnly */ true,
+          ),
         );
 
         expect(newState.invalidSubs, 'Invalid subs should be cleared').not.to.be.ok;
@@ -681,8 +681,8 @@ describe('Live slice: Substitution actions', () => {
         expect(dispatchMock.lastCall).to.have.been.calledWith(
           applyPendingSubs(
             gameId,
-            getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs))
-          )
+            getPlayersByIds(getGame(currentState, gameId)!, getNextIds(subs)),
+          ),
         );
       });
 
@@ -700,8 +700,8 @@ describe('Live slice: Substitution actions', () => {
         expect(dispatchMock.lastCall).to.have.been.calledWith(
           applyPendingSubs(
             gameId,
-            getPlayersByIds(getGame(currentState, gameId)!, getSwapNextIds(subs))
-          )
+            getPlayersByIds(getGame(currentState, gameId)!, getSwapNextIds(subs)),
+          ),
         );
       });
 
@@ -755,9 +755,9 @@ describe('Live slice: Substitution actions', () => {
             gameId,
             getPlayersByIds(
               getGame(currentState, gameId)!,
-              getNextIds(subs).concat(getSwapNextIds(swaps))
-            )
-          )
+              getNextIds(subs).concat(getSwapNextIds(swaps)),
+            ),
+          ),
         );
       });
 
@@ -774,7 +774,7 @@ describe('Live slice: Substitution actions', () => {
         expect(dispatchMock).to.have.callCount(1);
 
         expect(dispatchMock.lastCall).to.have.been.calledWith(
-          invalidPendingSubs(gameId, [sub3.nextId])
+          invalidPendingSubs(gameId, [sub3.nextId]),
         );
       });
 
@@ -799,8 +799,8 @@ describe('Live slice: Substitution actions', () => {
         expect(dispatchMock.lastCall).to.have.been.calledWith(
           invalidPendingSubs(
             gameId,
-            [positionPlayer.currentPosition!.id, swapPlayer.currentPosition!.id].sort()
-          )
+            [positionPlayer.currentPosition!.id, swapPlayer.currentPosition!.id].sort(),
+          ),
         );
       });
 
@@ -831,8 +831,8 @@ describe('Live slice: Substitution actions', () => {
         expect(dispatchMock.lastCall).to.have.been.calledWith(
           invalidPendingSubs(
             gameId,
-            [replacedPlayer.currentPosition!.id, replacedPositionPlayer.currentPosition!.id].sort()
-          )
+            [replacedPlayer.currentPosition!.id, replacedPositionPlayer.currentPosition!.id].sort(),
+          ),
         );
       });
 
@@ -858,7 +858,7 @@ describe('Live slice: Substitution actions', () => {
           invalidPendingSubs(gameId, [
             replacedPositionPlayer.currentPosition!.id,
             swapPlayer.currentPosition!.id,
-          ])
+          ]),
         );
       });
 
@@ -883,8 +883,8 @@ describe('Live slice: Substitution actions', () => {
         expect(dispatchMock.lastCall).to.have.been.calledWith(
           invalidPendingSubs(
             gameId,
-            [swapPlayer.currentPosition!.id, replacedPositionPlayer.currentPosition!.id].sort()
-          )
+            [swapPlayer.currentPosition!.id, replacedPositionPlayer.currentPosition!.id].sort(),
+          ),
         );
       });
     }); // describe('apply action creator')
@@ -903,11 +903,11 @@ describe('Live slice: Substitution actions', () => {
 
         expect(newIds[PlayerStatus.On]).to.contain.members(
           stillOnIds,
-          'All to be replaced players should still be on'
+          'All to be replaced players should still be on',
         );
         expect(newIds[PlayerStatus.Off]).to.contain.members(
           nowOffIds,
-          'All next players should now be off'
+          'All next players should now be off',
         );
         expect(newIds[PlayerStatus.Next], 'No next players should remain').to.be.empty;
       });
@@ -932,15 +932,15 @@ describe('Live slice: Substitution actions', () => {
 
         expect(newIds[PlayerStatus.On]).to.contain.members(
           stillOnIds,
-          'All to be replaced players should still be on'
+          'All to be replaced players should still be on',
         );
         expect(newIds[PlayerStatus.Off]).to.contain.members(
           nowOffIds,
-          'Specified next players should now be off'
+          'Specified next players should now be off',
         );
         expect(newIds[PlayerStatus.Next]).to.have.members(
           stillNextIds,
-          'Next players not specified should remain'
+          'Next players not specified should remain',
         );
 
         for (const nextId of stillNextIds) {
@@ -948,11 +948,11 @@ describe('Live slice: Substitution actions', () => {
 
           expect(player.replaces).to.equal(
             'P5',
-            `Still next [${player.id}], the replaces property should still be set`
+            `Still next [${player.id}], the replaces property should still be set`,
           );
           expect(
             player.currentPosition,
-            `Still next [${player.id}], the currentPosition property should still be set`
+            `Still next [${player.id}], the currentPosition property should still be set`,
           ).to.be.ok;
         }
 
@@ -963,7 +963,7 @@ describe('Live slice: Substitution actions', () => {
             .to.not.be.ok;
           expect(
             player.currentPosition,
-            `Now off [${player.id}], the currentPosition property should be cleared`
+            `Now off [${player.id}], the currentPosition property should be cleared`,
           ).to.not.be.ok;
           expect(player.selected, `Now off [${player.id}], the selected property should be false`)
             .to.not.be.ok;
@@ -1002,7 +1002,7 @@ describe('Live slice: Substitution actions', () => {
 
         expect(newIds[PlayerStatus.Next]).to.have.members(
           stillNextIds,
-          'Next players not specified should remain'
+          'Next players not specified should remain',
         );
       });
 

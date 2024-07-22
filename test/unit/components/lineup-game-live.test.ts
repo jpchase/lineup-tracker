@@ -355,7 +355,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the select player action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        selectPlayer(gameId, player.id, /*selected =*/ true)
+        selectPlayer(gameId, player.id, /*selected =*/ true),
       );
     });
 
@@ -443,7 +443,7 @@ describe('lineup-game-live tests', () => {
       expect(applyButton, 'Missing apply button').to.be.ok;
 
       const positionSelect = confirmSection?.querySelector(
-        '#new-position-select'
+        '#new-position-select',
       ) as HTMLSelectElement;
       expect(positionSelect, 'Missing position select').to.be.ok;
 
@@ -454,7 +454,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the confirm sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        confirmSub(gameId, otherPositionPlayer.currentPosition)
+        confirmSub(gameId, otherPositionPlayer.currentPosition),
       );
     });
 
@@ -573,7 +573,7 @@ describe('lineup-game-live tests', () => {
         .join(', ');
       expect(
         errorText!.textContent,
-        'Sub error text should contain invalid swap positions'
+        'Sub error text should contain invalid swap positions',
       ).to.contain(expectedInvalidPositions);
 
       await expect(errorElement).dom.to.equalSnapshot();
@@ -606,7 +606,7 @@ describe('lineup-game-live tests', () => {
 
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        applyPendingSubs(gameId, [expectedSub1, expectedSub2], /* selectedOnly */ false)
+        applyPendingSubs(gameId, [expectedSub1, expectedSub2], /* selectedOnly */ false),
       );
     });
 
@@ -635,7 +635,7 @@ describe('lineup-game-live tests', () => {
 
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        applyPendingSubs(gameId, [selectedSub1], /* selectedOnly */ true)
+        applyPendingSubs(gameId, [selectedSub1], /* selectedOnly */ true),
       );
     });
 
@@ -656,7 +656,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the discard sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        discardPendingSubs(gameId, /* selectedOnly */ false)
+        discardPendingSubs(gameId, /* selectedOnly */ false),
       );
     });
 
@@ -682,7 +682,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the discard sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        discardPendingSubs(gameId, /* selectedOnly */ true)
+        discardPendingSubs(gameId, /* selectedOnly */ true),
       );
     });
 
@@ -787,7 +787,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the start period action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
+        startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime),
       );
     });
 
@@ -810,7 +810,7 @@ describe('lineup-game-live tests', () => {
       // Verifies that the end period action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime)
+        endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime),
       );
     });
 

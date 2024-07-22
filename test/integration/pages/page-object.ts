@@ -91,6 +91,12 @@ export class PageObject {
     logWithTime(message);
   }
 
+  protected async waitForTimeout(milliseconds: number) {
+    await new Promise((resolve) => {
+      setTimeout(resolve, milliseconds);
+    });
+  }
+
   async init() {
     const browser = await puppeteer.launch({
       args: ['--disable-gpu', '--font-render-hinting=none'],
@@ -111,7 +117,7 @@ export class PageObject {
       logWithTime(
         `PAGE REQUEST FAIL: ${response?.status()} ${
           request.failure()!.errorText
-        } [${request.url()}] ${JSON.stringify(response?.timing())}`
+        } [${request.url()}] ${JSON.stringify(response?.timing())}`,
       );
     });
 
@@ -184,7 +190,7 @@ export class PageObject {
     }
     if (!this.componentName) {
       this.log(`waitForLoad: last wait for timeout`);
-      await this.page.waitForTimeout(1500);
+      await this.waitForTimeout(1500);
     }
     this.log(`waitForLoad: finished`);
   }
@@ -221,7 +227,7 @@ export class PageObject {
     return this.page.evaluate(async () => {
       const app = document.querySelector('lineup-app');
       const mainElement = app?.shadowRoot?.querySelector(
-        'mwc-drawer > div[slot=appContent] > main'
+        'mwc-drawer > div[slot=appContent] > main',
       );
       if (mainElement) {
         const teamsLoaded = (mainElement as HTMLElement).dataset.teamsLoaded;
@@ -252,7 +258,7 @@ export class PageObject {
       if (attempts < maxAttempts - 1) {
         console.timeLog('wait for teams-loaded');
         // eslint-disable-next-line no-await-in-loop -- This loop is for async retries.
-        await this.page.waitForTimeout(200);
+        await this.waitForTimeout(200);
       }
     }
     console.timeEnd('wait for teams-loaded');
@@ -295,7 +301,7 @@ export class PageObject {
       console.timeLog('wait for teams-loaded');
     }
     console.timeEnd('wait for teams-loaded');
-    await this.page.waitForTimeout(2000);
+    await this.waitForTimeout(2000);
     console.log('done waiting: ' + new Date().toTimeString());
     mainDataset = await this.getMainElementDataset();
     console.log(`teams loaded value 2: ${mainDataset?.teamsLoaded}`);
@@ -310,7 +316,7 @@ export class PageObject {
     })()`)) as ElementHandle;
     await buttonHandle.click();
     // TODO: Is this wait needed to let promises resolve, or does the sign in actually need the time.
-    await this.page.waitForTimeout(100);
+    await this.waitForTimeout(100);
   }
 
   async querySelectorInView(viewName: string, selector: string) {

@@ -29,7 +29,7 @@ export function addElementAssertions() {
       open,
       `expected dialog to be open`,
       `expected dialog to not be open`,
-      undefined // not used, required by type definition
+      undefined, // not used, required by type definition
     );
   });
 
@@ -41,7 +41,7 @@ export function addElementAssertions() {
       shown,
       `expected element to be shown`,
       `expected element to not be shown`,
-      undefined // not used, required by type definition
+      undefined, // not used, required by type definition
     );
   });
 }

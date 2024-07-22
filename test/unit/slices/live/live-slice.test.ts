@@ -128,7 +128,7 @@ describe('Live slice', () => {
     function buildLiveGameForSelected(
       status: PlayerStatus,
       selected: boolean,
-      playerId?: string
+      playerId?: string,
     ): LiveGame {
       const game = buildLiveGameWithPlayers();
       const lookupId = playerId || selectedPlayerId;
@@ -159,7 +159,7 @@ describe('Live slice', () => {
     it('All statuses are covered by selected tests', () => {
       expect(
         trackedStatuses.length + flagOnlyStatuses.length,
-        'Selected tests for every status'
+        'Selected tests for every status',
       ).to.equal(Object.values(PlayerStatus).length);
     });
 
@@ -174,7 +174,7 @@ describe('Live slice', () => {
           const newState = live(currentState, selectPlayer(gameId, selectedPlayer.id, true));
 
           const expectedState = buildLiveStateWithCurrentGame(
-            buildLiveGameForSelected(status, true)
+            buildLiveGameForSelected(status, true),
           );
           setTrackedPlayer(expectedState, status);
 
@@ -186,7 +186,7 @@ describe('Live slice', () => {
           setTrackedPlayer(state, status);
 
           const expectedState = buildLiveStateWithCurrentGame(
-            buildLiveGameForSelected(status, false)
+            buildLiveGameForSelected(status, false),
           );
 
           const newState = live(state, selectPlayer(gameId, selectedPlayer.id, false));
@@ -363,7 +363,7 @@ describe('Live slice', () => {
       it('should set off player to Next with overridden position', () => {
         const newState: LiveState = live(
           currentState,
-          confirmSub(gameId, otherPositionPlayer.currentPosition!)
+          confirmSub(gameId, otherPositionPlayer.currentPosition!),
         );
         const newGame = getGame(newState, gameId)!;
 
@@ -523,7 +523,7 @@ describe('Live slice', () => {
         expect(cancelledOnPlayer!.selected, 'On player should no longer be selected').to.not.be.ok;
 
         const cancelledPositionPlayer = newGame?.players?.find(
-          (player) => player.id === positionPlayerId
+          (player) => player.id === positionPlayerId,
         );
         expect(cancelledPositionPlayer).to.not.be.undefined;
         expect(cancelledPositionPlayer!.selected, 'Position player should no longer be selected').to
@@ -574,7 +574,7 @@ describe('Live slice', () => {
     it('All statuses are covered by start/end period tests', () => {
       expect(
         startAllowedStatuses.length + endAllowedStatuses.length + otherStatuses.length,
-        'Start/end period tests for every status'
+        'Start/end period tests for every status',
       ).to.equal(Object.values(GameStatus).length);
     });
 
@@ -593,7 +593,7 @@ describe('Live slice', () => {
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
+            startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime),
           );
         });
 
@@ -604,7 +604,7 @@ describe('Live slice', () => {
 
           const newState = live(
             currentState,
-            startPeriod(currentGame.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
+            startPeriod(currentGame.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime),
           );
 
           const newGame = getGame(newState, gameId)!;
@@ -630,7 +630,7 @@ describe('Live slice', () => {
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /*gameAllowsStart=*/ false)
+            startPeriod(gameId, /*gameAllowsStart=*/ false),
           );
         });
       }
@@ -651,7 +651,7 @@ describe('Live slice', () => {
           expect(dispatchMock).to.have.callCount(1);
 
           expect(dispatchMock.lastCall).to.have.been.calledWith(
-            startPeriod(gameId, /*gameAllowsStart=*/ false)
+            startPeriod(gameId, /*gameAllowsStart=*/ false),
           );
         });
 
@@ -662,7 +662,7 @@ describe('Live slice', () => {
 
           const newState = live(
             currentState,
-            startPeriod(currentGame.id, /*gameAllowsStart=*/ false)
+            startPeriod(currentGame.id, /*gameAllowsStart=*/ false),
           );
 
           expect(getGame(newState, gameId)?.status).to.equal(status);
@@ -682,7 +682,7 @@ describe('Live slice', () => {
 
         const newState = live(
           currentState,
-          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime)
+          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime),
         );
 
         const newGame = getGame(newState, gameId)!;
@@ -701,7 +701,7 @@ describe('Live slice', () => {
 
         const newState = live(
           currentState,
-          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, startTime)
+          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, startTime),
         );
 
         expect(getGame(newState, gameId)?.status).to.equal(GameStatus.Break);
@@ -715,7 +715,7 @@ describe('Live slice', () => {
 
         const newState = live(
           currentState,
-          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, startTime)
+          endPeriod(currentGame.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, startTime),
         );
 
         expect(getGame(newState, gameId)?.status).to.equal(GameStatus.Done);
@@ -761,7 +761,7 @@ describe('Live slice', () => {
     it('All statuses are covered by gameCompleted tests', () => {
       expect(
         completeAllowedStatuses.length + otherStatuses.length,
-        'Game completed tests for every status'
+        'Game completed tests for every status',
       ).to.equal(Object.values(GameStatus).length);
     });
 

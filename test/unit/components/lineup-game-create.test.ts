@@ -39,7 +39,7 @@ describe('lineup-game-create tests', () => {
     opponentField.value = ' Some Opponent ';
 
     const cancelButton = el.shadowRoot!.querySelector(
-      'mwc-button[dialogAction="close"]'
+      'mwc-button[dialogAction="close"]',
     ) as HTMLElement;
     cancelButton.click();
     await nextFrame();
@@ -67,7 +67,7 @@ describe('lineup-game-create tests', () => {
     opponentField.value = ' Some Opponent ';
 
     const saveButton = el.shadowRoot!.querySelector(
-      'mwc-button[dialogAction="save"]'
+      'mwc-button[dialogAction="save"]',
     ) as HTMLElement;
     setTimeout(() => saveButton.click());
 

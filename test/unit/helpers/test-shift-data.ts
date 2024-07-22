@@ -32,7 +32,7 @@ export function buildPlayerTracker(player: LivePlayer): PlayerTimeTrackerData {
 export function buildPlayerTrackerMap(
   gameId: string,
   existingPlayers?: LivePlayer[],
-  keepExistingStatus?: boolean
+  keepExistingStatus?: boolean,
 ) {
   let players;
   if (existingPlayers) {
@@ -60,10 +60,10 @@ export function buildPlayerTrackerMap(
 
 export function addShiftTrackingMatchers() {
   addDurationAssertion<PlayerTimeTracker>('shiftTime', 'tracker shiftTime', (tracker) =>
-    tracker ? tracker.shiftTime : null
+    tracker ? tracker.shiftTime : null,
   );
   addDurationAssertion<PlayerTimeTracker>('totalTime', 'tracker totalTime', (tracker) =>
-    tracker ? tracker.totalOnTime : null
+    tracker ? tracker.totalOnTime : null,
   );
 
   Assertion.addMethod('shiftCount', function (this, expected: number) {
@@ -74,7 +74,7 @@ export function addShiftTrackingMatchers() {
       'expected tracker shiftCount #{act} to not be #{exp}',
       expected,
       tracker?.shiftCount,
-      /*showDiff=*/ false
+      /*showDiff=*/ false,
     );
   });
 
@@ -84,7 +84,7 @@ export function addShiftTrackingMatchers() {
       tracker && (tracker.isOn ? tracker.onTimer?.isRunning : tracker.offTimer?.isRunning),
       'expected #{this} to be running',
       'expected #{this} to not be running',
-      expected
+      expected,
     );
   });
 }

@@ -200,7 +200,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
             ${map(
               allPositions,
               (position) =>
-                html`<option value="${position.id}">${formatPosition(position)}</option>`
+                html`<option value="${position.id}">${formatPosition(position)}</option>`,
             )}
           </select>
         </span>

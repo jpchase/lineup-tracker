@@ -119,7 +119,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       const setupEvent = buildGameSetupEvent(startTime);
       expectedCollection.addEvent<SetupEvent>(setupEvent);
@@ -166,7 +166,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       const startEvent = buildPeriodStartEvent(startTime, /* currentPeriod= */ 1);
       expectedCollection.addEvent<PeriodStartEvent>(startEvent);
@@ -176,7 +176,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime)
+        startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime),
       );
 
       expect(newState).to.deep.include({
@@ -193,7 +193,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       const startEvent = buildPeriodStartEvent(startTime, /* currentPeriod= */ 2);
       expectedCollection.addEvent<PeriodStartEvent>(startEvent);
@@ -203,7 +203,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 2, startTime)
+        startPeriod(game.id, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 2, startTime),
       );
 
       expect(newState).to.deep.include({
@@ -354,7 +354,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       // There should be a pair of sub in/out events for each of
       // the three subs.
@@ -388,7 +388,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        applyPendingSubs(gameId, getPlayersByIds(game, getNextIds(subs)))
+        applyPendingSubs(gameId, getPlayersByIds(game, getNextIds(subs))),
       );
 
       expect(newState).to.deep.include({
@@ -408,7 +408,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       let eventIndex = 0;
       for (const swap of swaps) {
@@ -427,7 +427,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        applyPendingSubs(gameId, getPlayersByIds(game, getSwapNextIds(swaps)))
+        applyPendingSubs(gameId, getPlayersByIds(game, getSwapNextIds(swaps))),
       );
 
       expect(newState).to.deep.include({
@@ -484,14 +484,14 @@ describe('Events slice', () => {
 
       const pendingSubPlayers = getPlayersByIds(
         game,
-        getNextIds(subs).concat(getSwapNextIds(swaps))
+        getNextIds(subs).concat(getSwapNextIds(swaps)),
       );
 
       const expectedCollection = EventCollection.create<GameEvent>(
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       let eventIndex = 0;
       let groupIndex = 0;
@@ -562,7 +562,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       // There should be a pair of sub in/out events for each of
       // the selected subs.
@@ -599,7 +599,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        applyPendingSubs(gameId, getPlayersByIds(game, nowPlayingIds))
+        applyPendingSubs(gameId, getPlayersByIds(game, nowPlayingIds)),
       );
 
       expect(newState).to.deep.include({
@@ -625,7 +625,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       const nowSwappedIds = getNextIds(selectedSwaps);
       let eventIndex = 0;
@@ -648,7 +648,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        applyPendingSubs(gameId, getPlayersByIds(game, swappedNextIds))
+        applyPendingSubs(gameId, getPlayersByIds(game, swappedNextIds)),
       );
 
       expect(newState).to.deep.include({
@@ -712,7 +712,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       let eventIndex = 0;
       let groupIndex = 0;
@@ -795,7 +795,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       expectedCollection.addEvent<PeriodEndEvent>({
         id: 'endeventid',
@@ -813,7 +813,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus20Minutes)
+        endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, timeStartPlus20Minutes),
       );
 
       expect(newState).to.deep.include({
@@ -831,7 +831,7 @@ describe('Events slice', () => {
         {
           id: game.id,
         },
-        timeProvider
+        timeProvider,
       );
       expectedCollection.addEvent<PeriodEndEvent>({
         id: 'endeventid',
@@ -848,7 +848,7 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, timeStartPlus20Minutes)
+        endPeriod(game.id, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 2, timeStartPlus20Minutes),
       );
 
       expect(newState).to.deep.include({

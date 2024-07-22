@@ -30,7 +30,7 @@ Assertion.addMethod('time', function (this, expected: number) {
     actual && isTimeEqual(actual, expected),
     'expected #{this} to be #{exp}',
     'expected #{this} to not be #{exp}',
-    expected
+    expected,
   );
 });
 
@@ -260,12 +260,12 @@ describe('Timer', () => {
       `expected timer to be stopped, without start time, and duration [0,0]`,
       `expected timer to not be stopped, with a start time, or not duration [0,0]`,
       expected,
-      actual
+      actual,
     );
   });
 
   addDurationAssertion<Timer>('elapsed', 'timer elapsed', (timer) =>
-    timer ? timer.getElapsed() : null
+    timer ? timer.getElapsed() : null,
   );
 
   it('should not be running for new instance', () => {
@@ -424,7 +424,7 @@ describe('Timer', () => {
         startTime,
         timeStartPlus1Minute55,
         startTime,
-        timeStartPlus5
+        timeStartPlus5,
       );
       const timer = new Timer(undefined, provider);
       timer.start();
@@ -439,7 +439,7 @@ describe('Timer', () => {
         startTime,
         timeStartPlus1Minute55,
         startTime,
-        timeStartPlus10
+        timeStartPlus10,
       );
       const timer = new Timer(undefined, provider);
       timer.start();

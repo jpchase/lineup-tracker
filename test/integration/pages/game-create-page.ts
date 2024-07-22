@@ -16,14 +16,14 @@ export class GameCreatePage extends PageObject {
 
   override get openFunc(): PageOpenFunction | undefined {
     return async () => {
-      await this.page.waitForTimeout(500);
+      await this.waitForTimeout(500);
       const buttonHandle = await this.querySelectorInView('lineup-view-games', 'mwc-fab');
       if (!buttonHandle) {
         throw new Error('New game button not found');
       }
       await buttonHandle.click();
       // Brief wait for dialog to render.
-      await this.page.waitForTimeout(100);
+      await this.waitForTimeout(100);
     };
   }
 
@@ -44,12 +44,12 @@ export class GameCreatePage extends PageObject {
     const localDate = new Date(game.date);
     localDate.setUTCMinutes(localDate.getUTCMinutes() - emulatedOffset + thisOffset);
     const dateString = `${localDate.getFullYear()}-${pad0(localDate.getMonth() + 1)}-${pad0(
-      localDate.getDate()
+      localDate.getDate(),
     )}`;
     const timeString = localDate.toTimeString().substring(0, 5);
 
     this.log(
-      `Game date: original = ${game.date}, emulated offset = ${emulatedOffset}, this offset = ${thisOffset}, local = ${localDate}, ${dateString}, ${timeString}`
+      `Game date: original = ${game.date}, emulated offset = ${emulatedOffset}, this offset = ${thisOffset}, local = ${localDate}, ${dateString}, ${timeString}`,
     );
     const createHandle = existingCreateHandle ?? (await this.getCreateComponent());
 
@@ -66,7 +66,7 @@ export class GameCreatePage extends PageObject {
         nameField.value = name;
 
         const opponentField = createRoot.querySelector(
-          `#opponentField > input`
+          `#opponentField > input`,
         ) as HTMLInputElement;
         opponentField.value = opponent;
 
@@ -79,7 +79,7 @@ export class GameCreatePage extends PageObject {
       game.name,
       game.opponent,
       dateString,
-      timeString
+      timeString,
     );
   }
 
@@ -95,7 +95,7 @@ export class GameCreatePage extends PageObject {
       }
 
       const saveButton = createDialog.querySelector(
-        'mwc-button[dialogAction="save"]'
+        'mwc-button[dialogAction="save"]',
       ) as HTMLButtonElement;
       //saveButton.scrollIntoView();
       saveButton.click();
@@ -104,7 +104,7 @@ export class GameCreatePage extends PageObject {
     this.log(`game create button clicked`);
     // TODO: Use wait for view ready, once the page is waiting for game to be created.
     // Could do similar to the "roster copying" on the game roster page?
-    await this.page.waitForTimeout(3500);
+    await this.waitForTimeout(3500);
     this.log(`wait for game create finished`);
   }
 
@@ -130,7 +130,7 @@ export class GameCreatePage extends PageObject {
         return undefined;
       },
       game.name,
-      game.opponent
+      game.opponent,
     );
   }
 

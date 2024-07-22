@@ -20,7 +20,7 @@ export function mockGetState(
   gameState?: GameState,
   authState?: AuthState,
   teamState?: any,
-  liveState?: LiveState
+  liveState?: LiveState,
 ) {
   return sinon.fake(() => {
     const mockState = {
