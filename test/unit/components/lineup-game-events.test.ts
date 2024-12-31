@@ -1,6 +1,5 @@
 /** @format */
 
-import { GameResolver } from '@app/components/core/game-resolver.js';
 import '@app/components/lineup-game-events.js';
 import {
   EventSelectedEvent,
@@ -27,7 +26,6 @@ import { Select } from '@material/mwc-select';
 import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { addElementAssertions } from '../helpers/element-assertions.js';
-import { mockGameResolver } from '../helpers/mock-game-resolver.js';
 import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
 import {
   incrementingCallbackForTimeProvider,
@@ -49,7 +47,6 @@ describe('lineup-game-events tests', () => {
   let game: LiveGame;
   let fakeClock: sinon.SinonFakeTimers;
   let mockPlayerResolver: PlayerResolver;
-  let gameResolver: GameResolver;
   const timeFormatter = new TimeFormatter();
   const startTime = new Date(2016, 5, 1, 14, 0, 0).getTime();
   const periodEndTime = new Date(2016, 5, 1, 14, 46, 25).getTime();
@@ -66,18 +63,6 @@ describe('lineup-game-events tests', () => {
       },
     };
     const parentNode = buildPlayerResolverParentNode(mockPlayerResolver);
-
-    gameResolver = {
-      getCurrentGame: () => {
-        return {
-          id: game.id,
-          date: new Date(startTime),
-          name: 'foo',
-          opponent: 'bar',
-        };
-      },
-    };
-    mockGameResolver(parentNode, gameResolver);
 
     el = await fixture(html`<lineup-game-events></lineup-game-events>`, { parentNode });
   });
@@ -634,6 +619,7 @@ describe('lineup-game-events tests', () => {
       events = buildGameEvents(game, timeProvider);
       selectedEvent = events.eventsForTesting[0];
 
+      el.gameStartDate = startTime;
       el.eventData = events.toJSON();
       el.eventsSelectedIds = [selectedEvent.id!];
       await el.updateComplete;

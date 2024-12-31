@@ -233,15 +233,20 @@ export class GameLivePage extends GameDetailPage {
       customTimeField.value = startTime;
 
       // Save the change to the event.
-      // eslint-disable-next-line no-console
-      console.log('Click the save button to apply the edit');
       const saveButton = editDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
       if (!saveButton) {
         throw new Error('Save button not found');
       }
+      // eslint-disable-next-line no-console
+      console.log('Click the save button to apply the edit');
       saveButton.click();
+      // eslint-disable-next-line no-console
+      console.log(`Click done`);
       await Promise.resolve();
+      // eslint-disable-next-line no-console
+      console.log(`quick wait done for promise`);
     }, startTimeText);
+    await this.waitForTimeout(1000);
   }
 
   async getOnPlayers() {

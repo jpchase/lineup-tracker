@@ -86,6 +86,19 @@ export const startPeriodHandler = (
   clock.currentPeriod = period.currentPeriod!;
   clock.periodStartTime = clock.timer.startTime;
   clock.periodStatus = PeriodStatus.Running;
+  // Store the start "date" for the game, to have a persistent value, even
+  // if the events are later edited (including the start time).
+  //  - The date includes the hour of the start time, but not the minutes/seconds.
+  //  - The intent is to have the start date be reliable, even with time zones
+  //    or games that span midnight.
+  //  - Only need to store the value when starting the game for the first time.
+  if (period.currentPeriod === 1) {
+    const startDate = new Date(clock.timer.startTime!);
+    startDate.setMinutes(0);
+    startDate.setSeconds(0);
+    startDate.setMilliseconds(0);
+    clock.gameStartDate = startDate.getTime();
+  }
 };
 
 export const startPeriodPrepare = (

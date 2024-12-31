@@ -83,6 +83,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
                 this.trackerData!,
                 this.eventData!,
                 this.eventsSelectedIds,
+                this._game.clock?.gameStartDate,
               )}
             `
           : html` <p class="empty-list">Live game not set.</p> `}
@@ -95,6 +96,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     trackerData: PlayerTimeTrackerMapData,
     eventData: EventCollectionData,
     eventsSelectedIds: string[],
+    gameStartDate?: number,
   ) {
     return html` <div toolbar>
         <lineup-game-clock
@@ -171,6 +173,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         <lineup-game-events
           .eventData="${eventData}"
           .eventsSelectedIds="${eventsSelectedIds}"
+          .gameStartDate="${gameStartDate}"
           @event-selected="${this.toggleEventSelected}"
           @events-updated="${this.updateEvents}"
         >

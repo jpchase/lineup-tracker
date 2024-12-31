@@ -213,7 +213,12 @@ describe('Live functional tests', () => {
 
     // Edit the period start time.
     const clockData = (await livePage.getGameClock())!;
-    const newStartTime = clockData.startTime! - 30;
+    const newStartDate = new Date(clockData.startTime! - 30 * 1000);
+    newStartDate.setMilliseconds(0);
+    const newStartTime = newStartDate.getTime();
+    logWithTime(
+      `edit period start, new = ${newStartTime}, existing data = ${JSON.stringify(clockData)}`,
+    );
     await livePage.editPeriodStart(newStartTime);
     await expectClockStart(livePage, newStartTime);
   });

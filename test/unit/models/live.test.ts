@@ -1,7 +1,7 @@
 /** @format */
 
 import { Game, GameDetail, GameStatus } from '@app/models/game.js';
-import { LiveGame, LiveGameBuilder } from '@app/models/live.js';
+import { LiveGame, LiveGameBuilder, PeriodStatus } from '@app/models/live.js';
 import { expect } from '@open-wc/testing';
 import { buildClock } from '../helpers/live-state-setup.js';
 import {
@@ -75,7 +75,16 @@ describe('LiveGameBuilder', () => {
     const expected: LiveGame = {
       id: game.id,
       status: GameStatus.New,
-      clock: buildClock(),
+      clock: {
+        timer: undefined,
+        stoppageTimer: undefined,
+        gameStartDate: undefined,
+        currentPeriod: 0,
+        periodStartTime: undefined,
+        periodStatus: PeriodStatus.Pending,
+        totalPeriods: 2,
+        periodLength: 45,
+      },
     };
 
     const newLiveGame = LiveGameBuilder.create(game);

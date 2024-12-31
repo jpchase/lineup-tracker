@@ -22,6 +22,7 @@ import { buildPlayerTrackerMap } from './test-shift-data.js';
 
 const CLOCK_INITIAL_STATE: LiveClock = {
   timer: undefined,
+  gameStartDate: undefined,
   currentPeriod: 0,
   periodStartTime: undefined,
   periodStatus: PeriodStatus.Pending,

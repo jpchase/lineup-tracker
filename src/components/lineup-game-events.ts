@@ -2,7 +2,7 @@
  * @format
  */
 
-import { consume, ContextConsumer } from '@lit/context';
+import { consume } from '@lit/context';
 import '@material/mwc-button';
 import '@material/mwc-dialog';
 import { Dialog } from '@material/mwc-dialog';
@@ -21,7 +21,6 @@ import { repeat } from 'lit/directives/repeat.js';
 import { convertLocalTimeToSameInUTC, Duration, TimeFormatter } from '../models/clock.js';
 import { EventCollection } from '../models/events.js';
 import { GameEvent, GameEventCollectionData, GameEventType } from '../models/live.js';
-import { gameResolverContext } from './core/game-resolver.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 
@@ -303,10 +302,6 @@ export class LineupGameEvents extends LitElement {
   private eventItems: EventItem[] = [];
   private selectedItems: EventItem[] = [];
   private periods?: { periodNumber: number; startTime: number }[];
-  private gameResolver = new ContextConsumer(this, {
-    context: gameResolverContext,
-    subscribe: true,
-  });
 
   @consume({ context: playerResolverContext, subscribe: true })
   @property({ attribute: false })
@@ -317,6 +312,9 @@ export class LineupGameEvents extends LitElement {
 
   @property({ type: Array })
   public eventsSelectedIds: string[] = [];
+
+  @property({ type: Number })
+  public gameStartDate?: number;
 
   @state()
   private editTimeOption = EditTimeOptions.Custom;
@@ -462,8 +460,8 @@ export class LineupGameEvents extends LitElement {
       const customField = this.shadowRoot!.querySelector(
         '#custom-time-field > input',
       ) as HTMLInputElement;
-      // The field only provides the time, not the date. Copy the date from
-      // one of the selected events.
+      // The field only provides the time, not the date. Use the provided game
+      // start date.
       // NOTE: This is ignoring the edge case of a game that spans midnight.
       const enteredTime = customField.valueAsDate!;
       // eslint-disable-next-line no-console
@@ -473,7 +471,7 @@ export class LineupGameEvents extends LitElement {
         }], h = ${enteredTime.getHours()} [${enteredTime.getUTCHours()}], m = ${enteredTime.getMinutes()} [${enteredTime.getUTCMinutes()}], s = ${enteredTime.getSeconds()} [${enteredTime.getUTCSeconds()}]`,
       );
       // TODO: enteredTime will be null, if the field doesn't have a valid time
-      const gameDate = this.gameResolver.value?.getCurrentGame()?.date!;
+      const gameDate = new Date(this.gameStartDate!);
       customTime = new Date(
         gameDate.getFullYear(),
         gameDate.getMonth(),
