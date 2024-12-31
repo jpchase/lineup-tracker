@@ -975,6 +975,7 @@ describe('Events slice', () => {
     let game: LiveGame;
     let gameEvents: GameEventCollection;
     let updatedEvents: GameEventCollection;
+    let periodStartEventId: string;
 
     beforeEach(() => {
       game = testlive.getLiveGameWithPlayers();
@@ -984,13 +985,26 @@ describe('Events slice', () => {
       );
       gameEvents = buildGameEvents(game, timeProvider);
 
+      periodStartEventId = gameEvents.eventsForTesting.find((event: GameEvent) => {
+        return event.type === GameEventType.PeriodStart;
+      })?.id!;
+
+      currentState = buildEventState(gameEvents);
+
+      // Create a clone of the game events, which can be updated in tests.
+      // Deep copies are required, because the `gameEvents` will be marked as
+      // read-only by Redux in the state. The `data` property for each event is
+      // converted to/from JSON, to generically handle the different objects
+      // set for the different event types.
       updatedEvents = EventCollection.create({
         id: game.id,
       });
       for (const event of gameEvents.eventsForTesting) {
-        updatedEvents.addEvent({ ...event });
+        updatedEvents.addEvent({
+          ...event,
+          data: JSON.parse(JSON.stringify(event.data)),
+        });
       }
-      currentState = buildEventState(gameEvents);
     });
 
     it('applies custom time to single selected event', () => {
@@ -1023,30 +1037,63 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
-    it('applies custom time to multiple selected events', () => {
-      const selectedEvent = gameEvents.eventsForTesting[0];
-      const selectedEventId = selectedEvent.id!;
-      const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
-      currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+    it('applies custom time to game clock for selected period start event', () => {
+      const selectedEvent = gameEvents.get(periodStartEventId)!;
+      const selectedEventId = periodStartEventId;
+      currentState.eventsSelectedIds = [selectedEventId];
 
-      // Update the selected event to 15 seconds earlier
+      // Update the selected event to 35 seconds earlier
       const customTime = new Date(selectedEvent.timestamp!);
-      customTime.setSeconds(customTime.getSeconds() - 15);
+      customTime.setSeconds(customTime.getSeconds() - 35);
 
       const newState = eventsReducer(
         currentState,
         eventUpdateRequested(
           game.id,
-          [selectedEventId, anotherSelectedEventId],
+          [selectedEventId],
           /* useExistingTime= */ false,
           undefined,
           customTime.getTime(),
         ),
       );
 
-      for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+      const updatedStartEvent = updatedEvents.get(selectedEventId) as PeriodStartEvent;
+      updatedStartEvent.timestamp = customTime.getTime();
+      updatedStartEvent.data.clock.startTime = updatedStartEvent.timestamp;
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies custom time to multiple selected events', () => {
+      const selectedEvent = gameEvents.eventsForTesting[0];
+      const selectedEventId = selectedEvent.id!;
+      currentState.eventsSelectedIds = [selectedEventId, periodStartEventId];
+
+      // Update the selected event to 45 seconds earlier
+      const customTime = new Date(selectedEvent.timestamp!);
+      customTime.setSeconds(customTime.getSeconds() - 45);
+
+      const newState = eventsReducer(
+        currentState,
+        eventUpdateRequested(
+          game.id,
+          [selectedEventId, periodStartEventId],
+          /* useExistingTime= */ false,
+          undefined,
+          customTime.getTime(),
+        ),
+      );
+
+      for (const updatedId of [selectedEventId, periodStartEventId]) {
         const updatedEvent = updatedEvents.get(updatedId)!;
         updatedEvent.timestamp = customTime.getTime();
+        if (updatedEvent.type === GameEventType.PeriodStart) {
+          updatedEvent.data.clock.startTime = updatedEvent.timestamp!;
+        }
       }
 
       expect(newState).to.deep.include({
@@ -1083,10 +1130,43 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
+    it('applies existing event time to game clock for selected period start event', () => {
+      currentState.eventsSelectedIds = [periodStartEventId];
+
+      const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+      expect(
+        periodStartEventId,
+        'Period start event must be updated from a different event',
+      ).to.not.equal(existingEventId);
+
+      const newState = eventsReducer(
+        currentState,
+        eventUpdateRequested(
+          game.id,
+          [periodStartEventId],
+          /* useExistingTime= */ true,
+          existingEventId,
+          undefined,
+        ),
+      );
+
+      const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
+
+      const updatedStartEvent = updatedEvents.get(periodStartEventId) as PeriodStartEvent;
+      updatedStartEvent.timestamp = existingTime;
+      updatedStartEvent.data.clock.startTime = existingTime;
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
     it('applies existing event time to multiple selected events', () => {
       const selectedEventId = gameEvents.eventsForTesting[0].id!;
-      const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
-      currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+      currentState.eventsSelectedIds = [selectedEventId, periodStartEventId];
 
       const existingEventId = gameEvents.eventsForTesting[4].id!;
 
@@ -1094,16 +1174,20 @@ describe('Events slice', () => {
         currentState,
         eventUpdateRequested(
           game.id,
-          [selectedEventId, anotherSelectedEventId],
+          [selectedEventId, periodStartEventId],
           /* useExistingTime= */ true,
           existingEventId,
           undefined,
         ),
       );
 
-      for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+      const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
+      for (const updatedId of [selectedEventId, periodStartEventId]) {
         const updatedEvent = updatedEvents.get(updatedId)!;
-        updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp!;
+        updatedEvent.timestamp = existingTime;
+        if (updatedEvent.type === GameEventType.PeriodStart) {
+          updatedEvent.data.clock.startTime = existingTime;
+        }
       }
 
       expect(newState).to.deep.include({
@@ -1147,7 +1231,7 @@ describe('Events slice', () => {
         dispatchStub = sinon.spy(store, 'dispatch');
       }
 
-      it('updated action is dispatched for single updated event with custom time', async () => {
+      it('updated action is dispatched for single selected event with custom time', async () => {
         const selectedEvent = gameEvents.eventsForTesting[0];
         const selectedEventId = selectedEvent.id!;
         currentState.eventsSelectedIds = [selectedEventId];
@@ -1174,21 +1258,50 @@ describe('Events slice', () => {
         expect(actionLogger.lastAction()).to.deep.include(eventsUpdated(game.id, [updatedEvent]));
       });
 
-      it('updated action is dispatched for multiple selected events with custom time', async () => {
-        const selectedEvent = gameEvents.eventsForTesting[0];
+      it('updated action is dispatched for selected period start event with custom time', async () => {
+        const selectedEvent = gameEvents.get(periodStartEventId)!;
         const selectedEventId = selectedEvent.id!;
-        const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
-        currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+        currentState.eventsSelectedIds = [selectedEventId];
         setupTestStore();
 
-        // Update the selected event to 15 seconds earlier
+        // Update the selected event to 35 seconds earlier
         const customTime = new Date(selectedEvent.timestamp!);
-        customTime.setSeconds(customTime.getSeconds() - 15);
+        customTime.setSeconds(customTime.getSeconds() - 35);
 
         store.dispatch(
           eventUpdateRequested(
             game.id,
-            [selectedEventId, anotherSelectedEventId],
+            [selectedEventId],
+            /* useExistingTime= */ false,
+            undefined,
+            customTime.getTime(),
+          ),
+        );
+
+        const updatedStartEvent = updatedEvents.get(selectedEventId) as PeriodStartEvent;
+        updatedStartEvent.timestamp = customTime.getTime();
+        updatedStartEvent.data.clock.startTime = updatedStartEvent.timestamp;
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(
+          eventsUpdated(game.id, [updatedStartEvent]),
+        );
+      });
+
+      it('updated action is dispatched for multiple selected events with custom time', async () => {
+        const selectedEvent = gameEvents.eventsForTesting[0];
+        const selectedEventId = selectedEvent.id!;
+        currentState.eventsSelectedIds = [selectedEventId, periodStartEventId];
+        setupTestStore();
+
+        // Update the selected event to 55 seconds earlier
+        const customTime = new Date(selectedEvent.timestamp!);
+        customTime.setSeconds(customTime.getSeconds() - 55);
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [selectedEventId, periodStartEventId],
             /* useExistingTime= */ false,
             undefined,
             customTime.getTime(),
@@ -1196,9 +1309,12 @@ describe('Events slice', () => {
         );
 
         const expectedEvents = [];
-        for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+        for (const updatedId of [selectedEventId, periodStartEventId]) {
           const updatedEvent = updatedEvents.get(updatedId)!;
           updatedEvent.timestamp = customTime.getTime();
+          if (updatedEvent.type === GameEventType.PeriodStart) {
+            updatedEvent.data.clock.startTime = updatedEvent.timestamp!;
+          }
           expectedEvents.push(updatedEvent);
         }
 
@@ -1230,10 +1346,42 @@ describe('Events slice', () => {
         expect(actionLogger.lastAction()).to.deep.include(eventsUpdated(game.id, [updatedEvent]));
       });
 
+      it('updated action is dispatched for selected period start event with existing event time', () => {
+        currentState.eventsSelectedIds = [periodStartEventId];
+        setupTestStore();
+
+        const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+        expect(
+          periodStartEventId,
+          'Period start event must be updated from a different event',
+        ).to.not.equal(existingEventId);
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [periodStartEventId],
+            /* useExistingTime= */ true,
+            existingEventId,
+            undefined,
+          ),
+        );
+
+        const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
+
+        const updatedStartEvent = updatedEvents.get(periodStartEventId) as PeriodStartEvent;
+        updatedStartEvent.timestamp = existingTime;
+        updatedStartEvent.data.clock.startTime = existingTime;
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(
+          eventsUpdated(game.id, [updatedStartEvent]),
+        );
+      });
+
       it('updated action is dispatched for multiple selected events with existing event time', () => {
         const selectedEventId = gameEvents.eventsForTesting[0].id!;
-        const anotherSelectedEventId = gameEvents.eventsForTesting[1].id!;
-        currentState.eventsSelectedIds = [selectedEventId, anotherSelectedEventId];
+        currentState.eventsSelectedIds = [selectedEventId, periodStartEventId];
         setupTestStore();
 
         const existingEventId = gameEvents.eventsForTesting[4].id!;
@@ -1241,7 +1389,7 @@ describe('Events slice', () => {
         store.dispatch(
           eventUpdateRequested(
             game.id,
-            [selectedEventId, anotherSelectedEventId],
+            [selectedEventId, periodStartEventId],
             /* useExistingTime= */ true,
             existingEventId,
             undefined,
@@ -1250,9 +1398,12 @@ describe('Events slice', () => {
 
         const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
         const expectedEvents = [];
-        for (const updatedId of [selectedEventId, anotherSelectedEventId]) {
+        for (const updatedId of [selectedEventId, periodStartEventId]) {
           const updatedEvent = updatedEvents.get(updatedId)!;
           updatedEvent.timestamp = existingTime;
+          if (updatedEvent.type === GameEventType.PeriodStart) {
+            updatedEvent.data.clock.startTime = existingTime;
+          }
           expectedEvents.push(updatedEvent);
         }
 

@@ -110,7 +110,7 @@ const eventSlice = createSlice({
       reducer: (state: EventState, action: PayloadAction<EventUpdateRequestedPayload>) => {
         const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
 
-        // TODO: If the "period start" event is updated, the game clock needs to be updated
+        // TODO: If the "period end" event is updated, the game clock needs to be updated
         // as well
         let updatedEventTime: number;
         if (action.payload.useExistingTime) {
@@ -135,6 +135,9 @@ const eventSlice = createSlice({
             continue;
           }
           selectedEvent.timestamp = updatedEventTime;
+          if (selectedEvent.type === GameEventType.PeriodStart) {
+            selectedEvent.data.clock.startTime = updatedEventTime;
+          }
         }
 
         // Committing an update just clears all selected events, for simplicity.
