@@ -427,7 +427,7 @@ export class LineupGameEvents extends LitElement {
     customTime.setMilliseconds(0);
     // eslint-disable-next-line no-console
     console.log(
-      `ES: Default the custom time to ${customTime}, from first event time ${selectedEventTime}`,
+      `ES: Default the custom time to ${customTime}, from first event time ${selectedEventTime}, tz = ${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
     );
     customTimeField.valueAsDate = customTime;
     // TODO: Set min/max for time, based on game date.
@@ -468,7 +468,7 @@ export class LineupGameEvents extends LitElement {
       console.log(
         `applyEventUpdates: enteredTime = ${enteredTime} [${
           customField.value
-        }], h = ${enteredTime.getHours()} [${enteredTime.getUTCHours()}], m = ${enteredTime.getMinutes()} [${enteredTime.getUTCMinutes()}], s = ${enteredTime.getSeconds()} [${enteredTime.getUTCSeconds()}]`,
+        }], tzo = ${enteredTime.getTimezoneOffset()}, h = ${enteredTime.getHours()} [${enteredTime.getUTCHours()}], m = ${enteredTime.getMinutes()} [${enteredTime.getUTCMinutes()}], s = ${enteredTime.getSeconds()} [${enteredTime.getUTCSeconds()}]`,
       );
       // TODO: enteredTime will be null, if the field doesn't have a valid time
       const gameDate = new Date(this.gameStartDate!);
