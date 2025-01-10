@@ -18,7 +18,7 @@ import { Select } from '@material/mwc-select';
 import { html, LitElement, nothing, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { convertLocalTimeToSameInUTC, Duration, TimeFormatter } from '../models/clock.js';
+import { Duration, pad0, TimeFormatter } from '../models/clock.js';
 import { EventCollection } from '../models/events.js';
 import { GameEvent, GameEventCollectionData, GameEventType } from '../models/live.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
@@ -418,18 +418,22 @@ export class LineupGameEvents extends LitElement {
 
     // Default to the custom time option, with the time field set to the time
     // of the first selected event.
-    //  - The time field always uses UTC, and in 24 hour format.
-    //  - The input to the field is adjusted by the UTC offset, so it displays local time.
-    //  - e.g. A time of 2:00pm EST (7:00pm UTC) is adjusted to 2:00pm UTC, so the
-    //    resulting value in the field is "14:00:00";
+    //  - The time field `value` is always in 24 hour format (i.e. `hh:mm:ss`).
+    //  - To avoid time zone issues, use the string `value` property, not `valueAsDate`.
     const selectedEventTime = new Date(this.selectedItems[0].event.timestamp!);
-    const customTime = convertLocalTimeToSameInUTC(selectedEventTime);
-    customTime.setMilliseconds(0);
+    const options: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    };
+    const timeOnlyFormatter = new Intl.DateTimeFormat('default', options);
+    const customTime = timeOnlyFormatter.format(selectedEventTime);
     // eslint-disable-next-line no-console
     console.log(
       `ES: Default the custom time to ${customTime}, from first event time ${selectedEventTime}, tz = ${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
     );
-    customTimeField.valueAsDate = customTime;
+    customTimeField.value = customTime;
     // TODO: Set min/max for time, based on game date.
     this.editTimeOption = EditTimeOptions.Custom;
 
@@ -462,27 +466,19 @@ export class LineupGameEvents extends LitElement {
       ) as HTMLInputElement;
       // The field only provides the time, not the date. Use the provided game
       // start date.
+      //  - The time field `value` is always in 24 hour format (i.e. `hh:mm:ss`).
+      //  - To avoid time zone issues, use the string `value` property, not `valueAsDate`.
       // NOTE: This is ignoring the edge case of a game that spans midnight.
-      const enteredTime = customField.valueAsDate!;
+      const enteredTime = customField.value!;
       // eslint-disable-next-line no-console
-      console.log(
-        `applyEventUpdates: enteredTime = ${enteredTime} [${
-          customField.value
-        }], tzo = ${enteredTime.getTimezoneOffset()}, h = ${enteredTime.getHours()} [${enteredTime.getUTCHours()}], m = ${enteredTime.getMinutes()} [${enteredTime.getUTCMinutes()}], s = ${enteredTime.getSeconds()} [${enteredTime.getUTCSeconds()}]`,
-      );
+      console.log(`applyEventUpdates: enteredTime = ${enteredTime} [${customField.valueAsDate}]`);
       // TODO: enteredTime will be null, if the field doesn't have a valid time
       const gameDate = new Date(this.gameStartDate!);
-      customTime = new Date(
-        gameDate.getFullYear(),
-        gameDate.getMonth(),
-        gameDate.getDate(),
-        enteredTime.getUTCHours(),
-        enteredTime.getUTCMinutes(),
-        enteredTime.getUTCSeconds(),
-      ).getTime();
+      const customTimeString = `${pad0(gameDate.getFullYear(), 2)}-${pad0(gameDate.getMonth() + 1, 2)}-${pad0(gameDate.getDate(), 2)}T${enteredTime}`;
+      customTime = new Date(customTimeString).getTime();
       // eslint-disable-next-line no-console
       console.log(
-        `applyEventUpdates: combinedDate = ${new Date(customTime)}, from gameDate = ${gameDate}`,
+        `applyEventUpdates: combinedDate = ${new Date(customTime)}, from gameDate = ${gameDate}, string = ${customTimeString}`,
       );
     }
     // eslint-disable-next-line no-console
