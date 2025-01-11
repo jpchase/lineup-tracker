@@ -1,3 +1,5 @@
+/** @format */
+
 import { mochaStyleReporter } from '@blockquote/test-runner-mocha-style-reporter';
 import { defaultReporter } from '@web/test-runner';
 import { puppeteerLauncher } from '@web/test-runner-puppeteer';
@@ -22,7 +24,7 @@ function aliasResolverPlugin() {
       }
       const browserPath = `${'../'.repeat(depth - 1)}src/${source.substring(5)}${extension}`;
       return browserPath;
-    }
+    },
   };
 }
 
@@ -33,36 +35,37 @@ const unitTestFiles = 'test/unit/**/*.test.js';
 
 export default {
   nodeResolve: true,
+  debug: true,
   coverageConfig: {
     include: ['src/**/*.js'],
     reportDir: 'reports',
     threshold: {
       branches: 80,
-    }
+    },
   },
   groups: [
     {
       name: 'all',
-      files: [unitTestFiles, storageTestFiles]
+      files: [unitTestFiles, storageTestFiles],
     },
     {
       name: 'unit',
-      files: unitTestFiles
+      files: unitTestFiles,
     },
     {
       name: 'storage',
-      files: storageTestFiles
+      files: storageTestFiles,
     },
     {
       name: 'single',
-      files: 'test/unit/components/lineup-game-live.test.js'
+      files: 'test/unit/components/lineup-game-events.test.js',
       // files: 'test/unit/slices/live/substition-reducer-logic.test.js'
       // files: 'test/unit/slices/live/**.test.js'
-    }
+    },
   ],
   // Custom html as a workaround for setting root hooks or global initialization.
   // See https://github.com/modernweb-dev/web/issues/1462.
-  testRunnerHtml: testFramework =>
+  testRunnerHtml: (testFramework) =>
     `<html>
       <body>
         <script type="module" src="/test/unit/helpers/global-setup.js"></script>
@@ -70,6 +73,7 @@ export default {
       </body>
     </html>`,
   browsers: [
+    // Use the installed version of Puppeteer, to be consistent with integration tests.
     puppeteerLauncher({
       launchOptions: {
         executablePath: puppeteerExecutablePath,
@@ -77,11 +81,6 @@ export default {
       },
     }),
   ],
-  plugins: [
-    aliasResolverPlugin(),
-  ],
-  reporters: [
-    defaultReporter(),
-    mochaStyleReporter(),
-  ],
+  plugins: [aliasResolverPlugin()],
+  reporters: [defaultReporter(), mochaStyleReporter()],
 };
