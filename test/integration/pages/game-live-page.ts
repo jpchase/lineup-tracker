@@ -223,9 +223,7 @@ export class GameLivePage extends GameDetailPage {
       if (!editDialog) {
         throw new Error('Edit dialog not found');
       }
-      const customTimeField = editDialog.querySelector(
-        '#custom-time-field > input',
-      ) as HTMLInputElement;
+      const customTimeField = editDialog.querySelector('#custom-time-field') as HTMLInputElement;
       if (!customTimeField) {
         throw new Error('Custom time field not found');
       }

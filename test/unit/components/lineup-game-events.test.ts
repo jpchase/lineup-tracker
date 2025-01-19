@@ -134,7 +134,7 @@ describe('lineup-game-events tests', () => {
   }
 
   function getEditCustomTimeField(editDialog: Dialog) {
-    const element = editDialog.querySelector('#custom-time-field > input');
+    const element = editDialog.querySelector('#custom-time-field');
     expect(element, 'custom time field').to.exist;
     return element as HTMLInputElement;
   }

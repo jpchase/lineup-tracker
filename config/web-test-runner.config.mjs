@@ -35,7 +35,7 @@ const unitTestFiles = 'test/unit/**/*.test.js';
 
 export default {
   nodeResolve: true,
-  debug: true,
+  // debug: true,
   coverageConfig: {
     include: ['src/**/*.js'],
     reportDir: 'reports',

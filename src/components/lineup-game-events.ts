@@ -15,6 +15,8 @@ import '@material/mwc-radio';
 import { Radio } from '@material/mwc-radio';
 import '@material/mwc-select';
 import { Select } from '@material/mwc-select';
+import '@material/mwc-textfield';
+import { TextField } from '@material/mwc-textfield';
 import { html, LitElement, nothing, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
@@ -256,9 +258,13 @@ export class LineupGameEvents extends LitElement {
           </mwc-formfield>
         </li>
         <li>
-          <mwc-formfield id="custom-time-field" alignend label="Set event time">
-            <input type="time" step="1" ?required=${editTimeCustom} ?disabled=${!editTimeCustom} />
-          </mwc-formfield>
+          <mwc-textfield
+            id="custom-time-field"
+            label="Set event time"
+            ?required=${editTimeCustom}
+            ?disabled=${!editTimeCustom}
+            maxLength="8"
+          ></mwc-textfield>
         </li>
         <li>
           <mwc-formfield label="Existing">
@@ -412,9 +418,7 @@ export class LineupGameEvents extends LitElement {
 
   private async editSelection() {
     const dialog = this.shadowRoot!.querySelector<Dialog>('#edit-dialog');
-    const customTimeField = this.shadowRoot!.querySelector(
-      '#custom-time-field > input',
-    ) as HTMLInputElement;
+    const customTimeField = this.shadowRoot!.querySelector('#custom-time-field') as TextField;
 
     // Default to the custom time option, with the time field set to the time
     // of the first selected event.
@@ -461,9 +465,8 @@ export class LineupGameEvents extends LitElement {
       const existingField = this.shadowRoot!.querySelector('#existing-time-field') as Select;
       existingEventId = existingField.selected?.value;
     } else {
-      const customField = this.shadowRoot!.querySelector(
-        '#custom-time-field > input',
-      ) as HTMLInputElement;
+      const customField = this.shadowRoot!.querySelector('#custom-time-field') as TextField;
+
       // The field only provides the time, not the date. Use the provided game
       // start date.
       //  - The time field `value` is always in 24 hour format (i.e. `hh:mm:ss`).
@@ -471,7 +474,7 @@ export class LineupGameEvents extends LitElement {
       // NOTE: This is ignoring the edge case of a game that spans midnight.
       const enteredTime = customField.value!;
       // eslint-disable-next-line no-console
-      console.log(`applyEventUpdates: enteredTime = ${enteredTime} [${customField.valueAsDate}]`);
+      console.log(`applyEventUpdates: enteredTime = ${enteredTime}`);
       // TODO: enteredTime will be null, if the field doesn't have a valid time
       const gameDate = new Date(this.gameStartDate!);
       const customTimeString = `${pad0(gameDate.getFullYear(), 2)}-${pad0(gameDate.getMonth() + 1, 2)}-${pad0(gameDate.getDate(), 2)}T${enteredTime}`;

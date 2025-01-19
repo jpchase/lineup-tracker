@@ -287,18 +287,13 @@ snapshots["lineup-game-events tests event editing shows dialog when edit button 
       </mwc-formfield>
     </li>
     <li>
-      <mwc-formfield
-        alignend=""
+      <mwc-textfield
         id="custom-time-field"
         label="Set event time"
+        maxlength="8"
+        required=""
       >
-        <input
-          aria-label="Set event time"
-          required=""
-          step="1"
-          type="time"
-        >
-      </mwc-formfield>
+      </mwc-textfield>
     </li>
     <li>
       <mwc-formfield label="Existing">
@@ -390,18 +385,13 @@ snapshots["lineup-game-events tests event editing shows dialog with multiple eve
       </mwc-formfield>
     </li>
     <li>
-      <mwc-formfield
-        alignend=""
+      <mwc-textfield
         id="custom-time-field"
         label="Set event time"
+        maxlength="8"
+        required=""
       >
-        <input
-          aria-label="Set event time"
-          required=""
-          step="1"
-          type="time"
-        >
-      </mwc-formfield>
+      </mwc-textfield>
     </li>
     <li>
       <mwc-formfield label="Existing">
@@ -477,18 +467,13 @@ snapshots["lineup-game-events tests event selection shows dialog when edit butto
       </mwc-formfield>
     </li>
     <li>
-      <mwc-formfield
-        alignend=""
+      <mwc-textfield
         id="custom-time-field"
         label="Set event time"
+        maxlength="8"
+        required=""
       >
-        <input
-          aria-label="Set event time"
-          required=""
-          step="1"
-          type="time"
-        >
-      </mwc-formfield>
+      </mwc-textfield>
     </li>
     <li>
       <mwc-formfield label="Existing">
@@ -728,18 +713,13 @@ snapshots["lineup-game-events tests event selection shows dialog with multiple e
       </mwc-formfield>
     </li>
     <li>
-      <mwc-formfield
-        alignend=""
+      <mwc-textfield
         id="custom-time-field"
         label="Set event time"
+        maxlength="8"
+        required=""
       >
-        <input
-          aria-label="Set event time"
-          required=""
-          step="1"
-          type="time"
-        >
-      </mwc-formfield>
+      </mwc-textfield>
     </li>
     <li>
       <mwc-formfield label="Existing">
