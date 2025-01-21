@@ -111,6 +111,7 @@ describe('lineup-view-game-roster tests', () => {
     const state = buildRootState(buildGameStateWithCurrentGame(game));
     state.auth = getMockAuthState({ signedIn: false });
     await setupElement(state, game.id);
+    await el.updateComplete;
 
     const placeholder = el.shadowRoot!.querySelector('section p.unauthorized');
     expect(placeholder, 'Missing unauthorized placeholder element').to.be.ok;
