@@ -1,6 +1,5 @@
 /** @format */
 
-import { ContextProvider } from '@lit/context';
 import '@material/mwc-button';
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -9,7 +8,6 @@ import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { getGame, getGameSliceConfigurator, selectGameById } from '../slices/game/index.js';
 import { RootState } from '../store.js';
-import { gameResolverContext } from './core/game-resolver.js';
 import './lineup-game-complete.js';
 import './lineup-game-live.js';
 import './lineup-game-setup.js';
@@ -62,24 +60,6 @@ export class LineupViewGameDetail extends ConnectStoreMixin(AuthorizedViewElemen
   private game?: GameDetail;
 
   private gameLoaded = false;
-
-  // Protected as a workaround for "not read" TS error.
-  protected gameResolver = new ContextProvider(this, {
-    context: gameResolverContext,
-    initialValue: {
-      getCurrentGame: () => {
-        if (!this.game) {
-          return undefined;
-        }
-        return {
-          id: this.game.id,
-          date: this.game.date,
-          name: this.game.name,
-          opponent: this.game.opponent,
-        };
-      },
-    },
-  });
 
   constructor() {
     super();
