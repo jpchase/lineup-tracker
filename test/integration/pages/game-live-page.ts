@@ -218,7 +218,7 @@ export class GameLivePage extends GameDetailPage {
 
       // Enter the new time into the field in the dialog.
       // eslint-disable-next-line no-console
-      console.log(`Enter the time in the edit dialog`);
+      console.log(`Enter the time in the edit dialog: ${startTime}`);
       const editDialog = eventsRoot.querySelector('#edit-dialog');
       if (!editDialog) {
         throw new Error('Edit dialog not found');
@@ -295,14 +295,11 @@ export class GameLivePage extends GameDetailPage {
   }
 
   private formatTimeFieldValue(time: Date) {
-    //  - The time field always uses UTC, and in 24 hour format.
-    //  - The input to the field is adjusted by the UTC offset, so it displays local time.
-    //  - e.g. A time of 2:00pm EST (7:00pm UTC) is adjusted to 2:00pm UTC, so the
-    //    resulting value in the field is "14:00:00";
     const timeInputValue = `${pad0(time.getHours(), 2)}:${pad0(time.getMinutes(), 2)}:${pad0(
       time.getSeconds(),
       2,
     )}`;
+    this.log(`formatTimeFieldValue: in = ${time}, out = ${timeInputValue}`);
     return timeInputValue;
   }
 }
