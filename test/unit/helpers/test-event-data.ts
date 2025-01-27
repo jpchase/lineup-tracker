@@ -17,7 +17,6 @@ import {
   getPlayer,
 } from '@app/models/live.js';
 import * as testlive from './test-live-game-data.js';
-import { SubData } from './test-live-game-data.js';
 
 export function buildGameSetupEvent(
   startTime: number,
@@ -65,7 +64,7 @@ export function buildPeriodEndEvent(endTime: number, currentPeriod = 1): PeriodE
   };
 }
 
-export function buildSubEvents(eventTime: number, sub: SubData): GameEventGroup {
+export function buildSubEvents(eventTime: number, sub: testlive.SubData): GameEventGroup {
   const subGroup: GameEventGroup = {
     groupedEvents: [],
   };
@@ -93,7 +92,7 @@ export function buildSubEvents(eventTime: number, sub: SubData): GameEventGroup 
   return subGroup;
 }
 
-export function buildSwapEvent(eventTime: number, swap: SubData): PositionSwapEvent {
+export function buildSwapEvent(eventTime: number, swap: testlive.SubData): PositionSwapEvent {
   return {
     id: `swapeventid-${swap.nextId}`,
     type: GameEventType.Swap,
