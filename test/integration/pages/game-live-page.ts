@@ -162,7 +162,7 @@ export class GameLivePage extends GameDetailPage {
     });
   }
 
-  async editPeriodStart(newStartTime: number) {
+  async editPeriodStart(newStartTime: Date) {
     const eventsHandle = await this.getEventsComponent();
 
     // Select the event for period start.
@@ -200,7 +200,7 @@ export class GameLivePage extends GameDetailPage {
     // Edit the selected period start event.
     //  - In a separate evaluate() block to allow time for rendering updates
     //    to finish for event selection.
-    const startTimeText = this.formatTimeFieldValue(new Date(newStartTime));
+    const startTimeText = this.formatTimeFieldValue(newStartTime);
     await eventsHandle.evaluate(async (eventsNode, startTime) => {
       const eventsRoot = eventsNode.shadowRoot!;
 

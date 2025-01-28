@@ -217,9 +217,9 @@ describe('Live functional tests', () => {
     newStartDate.setMilliseconds(0);
     const newStartTime = newStartDate.getTime();
     logWithTime(
-      `edit period start, new = ${newStartTime}, existing data = ${JSON.stringify(clockData)}`,
+      `edit period start, new = ${newStartTime} [${newStartDate}], existing data = ${JSON.stringify(clockData)}`,
     );
-    await livePage.editPeriodStart(newStartTime);
+    await livePage.editPeriodStart(newStartDate);
     await expectClockStart(livePage, newStartTime);
   });
 
