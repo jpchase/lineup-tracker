@@ -31,8 +31,7 @@ describe('EventCollection', () => {
 
   Assertion.addMethod('initialized', function (this) {
     const collection = this._obj as EventCollection;
-    const pass =
-      collection && collection.id.length && (!collection.events || !collection.events.length);
+    const pass = collection && collection.id.length && !collection.size;
 
     let expected = '';
     let actual = '';
@@ -52,11 +51,11 @@ describe('EventCollection', () => {
 
   Assertion.addMethod('size', function (this, expected: number) {
     const collection = this._obj as EventCollection;
-    const pass = collection?.events?.length === expected;
+    const pass = collection?.size === expected;
 
     let actual = '';
     if (!pass && collection) {
-      actual = `events, length = ${collection.events.length}`;
+      actual = `events, size = ${collection.size}`;
     }
 
     this.assert(
@@ -94,7 +93,9 @@ describe('EventCollection', () => {
         timestamp: startTime,
       });
 
-      expect(collection.events, 'events should have stored event').to.include(storedEvent);
+      expect(collection.eventsForTesting, 'events should have stored event').to.include(
+        storedEvent,
+      );
     });
 
     it('should record event and add id when only that missing', () => {
@@ -122,7 +123,9 @@ describe('EventCollection', () => {
         id: 'anewid',
       });
 
-      expect(collection.events, 'events should have stored event').to.include(storedEvent);
+      expect(collection.eventsForTesting, 'events should have stored event').to.include(
+        storedEvent,
+      );
     });
 
     it('should record event and add timestamp when only that missing', () => {
@@ -149,7 +152,9 @@ describe('EventCollection', () => {
         timestamp: startTime,
       });
 
-      expect(collection.events, 'events should have stored event').to.include(storedEvent);
+      expect(collection.eventsForTesting, 'events should have stored event').to.include(
+        storedEvent,
+      );
     });
 
     it('should record event group and add group id', () => {
@@ -195,7 +200,7 @@ describe('EventCollection', () => {
       ]);
 
       expect(
-        collection.events,
+        collection.eventsForTesting,
         'events should have stored group events',
       ).to.have.deep.ordered.members(storedEvents);
     });

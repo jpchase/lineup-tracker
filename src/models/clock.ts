@@ -1,6 +1,6 @@
 /** @format */
 
-function pad0(value: number, count: number): string {
+export function pad0(value: number, count: number): string {
   return value.toString().padStart(count, '0');
 }
 

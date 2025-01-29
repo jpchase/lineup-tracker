@@ -3,7 +3,12 @@
 import { liveSlice } from './live-slice.js';
 
 export { getLiveSliceConfigurator } from './composed-reducer.js';
-export { selectGameEvents } from './events-slice.js';
+export {
+  eventSelected,
+  selectEventsSelected,
+  selectGameEvents,
+  eventUpdateRequested,
+} from './events-slice.js';
 export {
   endPeriodCreator,
   markPeriodOverdueCreator,
@@ -11,6 +16,7 @@ export {
   startPeriodCreator,
   startersCompletedCreator,
 } from './live-action-creators.js';
+export { eventsUpdated } from './live-action-types.js';
 export {
   LiveState,
   rosterCompleted,

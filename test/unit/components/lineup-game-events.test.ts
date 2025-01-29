@@ -1,28 +1,39 @@
 /** @format */
 
 import '@app/components/lineup-game-events.js';
-import { LineupGameEvents } from '@app/components/lineup-game-events.js';
+import {
+  EventSelectedEvent,
+  EventsUpdatedEvent,
+  LineupGameEvents,
+} from '@app/components/lineup-game-events.js';
 import { PlayerResolver } from '@app/components/player-resolver.js';
-import { CurrentTimeProvider, Duration, TimeFormatter } from '@app/models/clock';
-import { EventCollection } from '@app/models/events.js';
+import { Duration, TimeFormatter, pad0 } from '@app/models/clock';
+import { EventBase, EventCollection } from '@app/models/events.js';
 import { formatPosition } from '@app/models/formation.js';
 import {
   GameEvent,
+  GameEventCollection,
   GameEventGroup,
   GameEventType,
   LiveGame,
-  LivePlayer,
-  PeriodEndEvent,
   PeriodStartEvent,
-  PositionSwapEvent,
-  SetupEvent,
   getPlayer,
 } from '@app/models/live.js';
-import { expect, fixture, html } from '@open-wc/testing';
+import { Dialog } from '@material/mwc-dialog';
+import { IconButton } from '@material/mwc-icon-button';
+import { Radio } from '@material/mwc-radio';
+import { Select } from '@material/mwc-select';
+import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
+import { addElementAssertions } from '../helpers/element-assertions.js';
 import { buildPlayerResolverParentNode } from '../helpers/mock-player-resolver.js';
-import { mockTimeProvider, mockTimeProviderWithCallback } from '../helpers/test-clock-data.js';
 import {
+  incrementingCallbackForTimeProvider,
+  mockTimeProvider,
+  mockTimeProviderWithCallback,
+} from '../helpers/test-clock-data.js';
+import {
+  buildGameEvents,
   buildGameSetupEvent,
   buildPeriodEndEvent,
   buildPeriodStartEvent,
@@ -31,72 +42,18 @@ import {
 } from '../helpers/test-event-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 
-function buildGameEvents(game: LiveGame, timeProvider: CurrentTimeProvider) {
-  const events = EventCollection.create(
-    {
-      id: game.id,
-    },
-    timeProvider,
-  );
-  events.addEvent<SetupEvent>(buildGameSetupEvent(timeProvider.getCurrentTime()));
-  events.addEvent<PeriodStartEvent>(buildPeriodStartEvent(timeProvider.getCurrentTime()));
-
-  // First sub
-  const replacedPlayer1 = getPlayer(game, 'P4');
-  const sub1: testlive.SubData = {
-    nextId: 'P11',
-    replacedId: replacedPlayer1?.id,
-    finalPosition: { ...replacedPlayer1?.currentPosition! },
-  };
-  events.addEventGroup<GameEvent>(
-    buildSubEvents(timeProvider.getCurrentTime(), sub1).groupedEvents,
-  );
-
-  // Second sub, with swap.
-  //  - Swap player moves to the position of the player being replaced.
-  //  - Sub player takes position left by swap player.
-  const replacedPlayer2 = getPlayer(game, 'P5');
-  const swapPlayer = getPlayer(game, 'P8');
-  const sub2: testlive.SubData = {
-    nextId: 'P12',
-    replacedId: replacedPlayer2?.id,
-    positionOverride: { ...swapPlayer?.currentPosition! },
-    finalPosition: { ...swapPlayer?.currentPosition! },
-  };
-  const swap: testlive.SubData = {
-    nextId: swapPlayer?.id!,
-    initialPosition: { ...swapPlayer?.currentPosition! },
-    finalPosition: { ...replacedPlayer2?.currentPosition! },
-  };
-
-  const sub2Time = timeProvider.getCurrentTime();
-  events.addEventGroup<GameEvent>(buildSubEvents(sub2Time, sub2).groupedEvents);
-  events.addEvent<PositionSwapEvent>(buildSwapEvent(sub2Time, swap));
-
-  events.addEvent<PeriodEndEvent>(buildPeriodEndEvent(timeProvider.getCurrentTime()));
-
-  return events;
-}
-
-function mockCallbackForTimeProvider(startTime: number, incrementSeconds: number) {
-  let eventTime = startTime;
-
-  return () => {
-    const result = eventTime;
-    eventTime += incrementSeconds * 1000;
-    return result;
-  };
-}
-
 describe('lineup-game-events tests', () => {
   let el: LineupGameEvents;
   let game: LiveGame;
-  let players: LivePlayer[];
   let fakeClock: sinon.SinonFakeTimers;
   let mockPlayerResolver: PlayerResolver;
   const timeFormatter = new TimeFormatter();
-  const startTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
-  const periodEndTime = new Date(2016, 0, 1, 14, 46, 25).getTime();
+  const startTime = new Date(2016, 5, 1, 14, 0, 0).getTime();
+  const periodEndTime = new Date(2016, 5, 1, 14, 46, 25).getTime();
+
+  before(async () => {
+    addElementAssertions();
+  });
 
   beforeEach(async () => {
     // Wire up a node that will handle context requests for a PlayerResolver.
@@ -122,6 +79,72 @@ describe('lineup-game-events tests', () => {
     return items;
   }
 
+  function getEventItemHeader() {
+    const headerElement = el.shadowRoot!.querySelector<HTMLTableRowElement>('#events-header tr');
+    expect(headerElement, 'events header').to.exist;
+    return headerElement!;
+  }
+
+  function getSelectionCancelButton(headerElement: HTMLElement) {
+    const button = headerElement.querySelector('#cancel-selection-button');
+    expect(button, 'selection cancel button').to.exist;
+    return button as IconButton;
+  }
+
+  function getSelectionCountElement(headerElement: HTMLElement) {
+    const element = headerElement.querySelector('#selection-count');
+    expect(element, 'selection count element').to.exist;
+    return element as HTMLElement;
+  }
+
+  function getSelectionEditButton(headerElement: HTMLElement) {
+    const button = headerElement.querySelector('#edit-selection-button');
+    expect(button, 'selection edit button').to.exist;
+    return button as IconButton;
+  }
+
+  function getEditDialog() {
+    const element = el.shadowRoot!.querySelector('#edit-dialog');
+    expect(element, 'edit dialog').to.exist;
+    return element as Dialog;
+  }
+
+  function getEditSaveButton(editDialog: Dialog) {
+    const element = editDialog.querySelector('mwc-button[dialogAction="save"]');
+    expect(element, 'save button').to.exist;
+    return element as HTMLElement;
+  }
+
+  function getEditCancelButton(editDialog: Dialog) {
+    const element = editDialog.querySelector('mwc-button[dialogAction="close"]');
+    expect(element, 'cancel button').to.exist;
+    return element as HTMLElement;
+  }
+
+  function getEditCustomTimeOption(editDialog: Dialog) {
+    const element = editDialog.querySelector('#time-custom-radio');
+    expect(element, 'custom time option').to.exist;
+    return element as Radio;
+  }
+
+  function getEditExistingTimeOption(editDialog: Dialog) {
+    const element = editDialog.querySelector('#time-existing-radio');
+    expect(element, 'existing time option').to.exist;
+    return element as Radio;
+  }
+
+  function getEditCustomTimeField(editDialog: Dialog) {
+    const element = editDialog.querySelector('#custom-time-field');
+    expect(element, 'custom time field').to.exist;
+    return element as HTMLInputElement;
+  }
+
+  function getEditExistingTimeField(editDialog: Dialog) {
+    const element = editDialog.querySelector('#existing-time-field');
+    expect(element, 'existing time field').to.exist;
+    return element as Select;
+  }
+
   function expectEventAbsoluteTime(timeElement: HTMLElement, expectedTime: number) {
     const absoluteElement = timeElement.querySelector('.absolute');
     expect(absoluteElement, 'Missing absolute time element').to.exist;
@@ -138,58 +161,98 @@ describe('lineup-game-events tests', () => {
     );
   }
 
-  it('renders list of events', async () => {
-    game = testlive.getLiveGameWithPlayers();
-    players = game.players!;
-    // Create a collection of representative events, which occur 10 seconds apart.
-    const timeProvider = mockTimeProviderWithCallback(
-      mockCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10),
-    );
-    const events = buildGameEvents(game, timeProvider);
-
-    el.players = players;
-    el.eventData = events.toJSON();
-    await el.updateComplete;
-
-    // Sort in descending date order, and remove events that are not displayed.
-    const sortedEvents = events
-      .events!.sort((a, b) => b.timestamp! - a.timestamp!)
-      .filter((event) => event.type !== GameEventType.SubOut);
-
-    const items = getEventItems();
-    expect(items.length).to.equal(sortedEvents.length, 'Rendered event count');
-
-    let index = 0;
-    for (const event of sortedEvents) {
-      const item = items[index]!;
-      index += 1;
-
-      expect(item.dataset.eventId).to.equal(event.id, 'Item id should match player id');
-
-      const timeElement = item.cells[0];
-      expect(timeElement, 'Missing event time element').to.exist;
-      expectEventAbsoluteTime(timeElement, event.timestamp!);
-
-      const typeElement = item.cells[1];
-      expect(typeElement, 'Missing type element').to.exist;
-      // Only check that the type is shown, as the text varies by event type.
-      expect(typeElement!.textContent, 'Event type').not.to.be.empty;
-
-      const detailsElement = item.cells[2];
-      expect(detailsElement, 'Missing details element').to.exist;
-      // Only checks that details are provided, as they vary based on event type.
-      expect(detailsElement!.textContent, 'Details').not.to.be.empty;
-    }
-    await expect(el).shadowDom.to.equalSnapshot();
-    await expect(el).to.be.accessible();
-  });
-
-  describe('event types', () => {
-    let events: EventCollection;
+  describe('rendering', () => {
+    let events: GameEventCollection;
 
     beforeEach(() => {
       game = testlive.getLiveGameWithPlayers();
-      players = game.players!;
+
+      // Create a collection of representative events, which occur 10 seconds apart.
+      const timeProvider = mockTimeProviderWithCallback(
+        incrementingCallbackForTimeProvider(startTime, /* incrementSeconds= */ 10),
+      );
+      events = buildGameEvents(game, timeProvider);
+    });
+
+    it('shows list of events with common details', async () => {
+      el.eventData = events.toJSON();
+      await el.updateComplete;
+
+      // Sort in descending date order, and remove events that are not displayed.
+      const sortedEvents = events.eventsForTesting
+        .filter((event) => event.type !== GameEventType.SubOut)
+        .sort((a, b) => b.timestamp! - a.timestamp!);
+
+      const items = getEventItems();
+      expect(items.length).to.equal(sortedEvents.length, 'Rendered event count');
+
+      let index = 0;
+      for (const event of sortedEvents) {
+        const item = items[index]!;
+        index += 1;
+
+        expect(item.dataset.eventId).to.equal(event.id, 'Item id should match player id');
+
+        const timeElement = item.cells[0];
+        expect(timeElement, 'Missing event time element').to.exist;
+        expectEventAbsoluteTime(timeElement, event.timestamp!);
+
+        const typeElement = item.cells[1];
+        expect(typeElement, 'Missing type element').to.exist;
+        // Only check that the type is shown, as the text varies by event type.
+        expect(typeElement!.textContent, 'Event type').not.to.be.empty;
+
+        const detailsElement = item.cells[2];
+        expect(detailsElement, 'Missing details element').to.exist;
+        // Only checks that details are provided, as they vary based on event type.
+        expect(detailsElement!.textContent, 'Details').not.to.be.empty;
+      }
+      await expect(el).shadowDom.to.equalSnapshot();
+      await expect(el).to.be.accessible();
+    });
+
+    it('shows list with selected events highlighted', async () => {
+      // Randomly select 3 events.
+      const selectedIds = [];
+      let index = 0;
+      for (const event of events) {
+        switch (index) {
+          case 1:
+          case 2:
+          case 4:
+            selectedIds.push(event.id!);
+            break;
+          default:
+          // do nothing
+        }
+        index += 1;
+      }
+
+      el.eventsSelectedIds = selectedIds;
+      el.eventData = events.toJSON();
+      await el.updateComplete;
+
+      const items = getEventItems();
+      for (const item of Array.from(items)) {
+        const eventId = item.dataset.eventId!;
+        const expectSelected = selectedIds.includes(eventId);
+
+        if (expectSelected) {
+          expect(item, `event ${eventId}`).to.have.attribute('selected');
+        } else {
+          expect(item, `event ${eventId}`).to.not.have.attribute('selected');
+        }
+      }
+      await expect(el).shadowDom.to.equalSnapshot({ ignoreTags: ['mwc-dialog'] });
+      await expect(el).to.be.accessible();
+    });
+  }); // describe('rendering')
+
+  describe('event types', () => {
+    let events: GameEventCollection;
+
+    beforeEach(() => {
+      game = testlive.getLiveGameWithPlayers();
 
       const timeProvider = mockTimeProvider(startTime);
       events = EventCollection.create(
@@ -213,7 +276,6 @@ describe('lineup-game-events tests', () => {
         );
       }
 
-      el.players = players;
       el.eventData = events.toJSON();
       await el.updateComplete;
 
@@ -233,7 +295,6 @@ describe('lineup-game-events tests', () => {
         );
       }
 
-      el.players = players;
       el.eventData = events.toJSON();
       await el.updateComplete;
 
@@ -374,19 +435,411 @@ describe('lineup-game-events tests', () => {
     });
   }); // describe('event types')
 
-  it.skip('shows only the most recent events', async () => {
-    expect.fail('not implemented');
-  });
+  describe('event selection', () => {
+    let events: GameEventCollection;
 
-  it.skip('new events replace older events when only showing the most recent', async () => {
-    expect.fail('not implemented');
-  });
+    beforeEach(async () => {
+      game = testlive.getLiveGameWithPlayers();
 
-  it.skip('shows more events when explicitly requested', async () => {
-    expect.fail('not implemented');
-  });
+      const timeProvider = mockTimeProvider(startTime);
 
-  it.skip('old events remain when show all preference is enabled', async () => {
-    expect.fail('not implemented');
-  });
+      events = buildGameEvents(game, timeProvider);
+
+      el.eventData = events.toJSON();
+      await el.updateComplete;
+    });
+
+    it('fires selected event when list item is clicked', async () => {
+      const items = getEventItems();
+      const item = items[0];
+      const eventId = item.dataset.eventId!;
+
+      // Trigger the selection.
+      setTimeout(() => item.click());
+
+      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+
+      expect(detail.eventId).to.equal(eventId);
+      expect(detail.selected, 'Event item should now be selected').to.be.true;
+    });
+
+    it('fires selected event when list item is clicked with other items already selected', async () => {
+      const items = getEventItems();
+      const item = items[0];
+      const eventId = item.dataset.eventId!;
+
+      // Make another item already selected.
+      const alreadySelectedItem = items[1];
+      el.eventsSelectedIds = [alreadySelectedItem.dataset.eventId!];
+      await el.updateComplete;
+
+      expect(alreadySelectedItem, 'already selected item').to.have.attribute('selected');
+
+      // Trigger the selection.
+      setTimeout(() => item.click());
+
+      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+
+      expect(detail.eventId).to.equal(eventId);
+      expect(detail.selected, 'Event item should now be selected').to.be.true;
+
+      expect(alreadySelectedItem, 'should still be selected').to.have.attribute('selected');
+    });
+
+    it('fires de-selected event when selected list item is clicked', async () => {
+      const items = getEventItems();
+      const item = items[0];
+      const eventId = item.dataset.eventId!;
+
+      // Make the item selected.
+      el.eventsSelectedIds = [eventId];
+      await el.updateComplete;
+
+      expect(item, 'event item').to.have.attribute('selected');
+
+      // Trigger the selection.
+      setTimeout(() => item.click());
+
+      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+
+      expect(detail.eventId).to.equal(eventId);
+      expect(detail.selected, 'Event item should no longer be selected').to.be.false;
+    });
+
+    it('fires de-selected event when selected list item is clicked leaving other items selected', async () => {
+      const items = getEventItems();
+      const item = items[0];
+      const eventId = item.dataset.eventId!;
+
+      // Make the item and another item selected.
+      const alreadySelectedItem = items[1];
+      el.eventsSelectedIds = [eventId, alreadySelectedItem.dataset.eventId!];
+      await el.updateComplete;
+
+      expect(item, 'event item').to.have.attribute('selected');
+      expect(alreadySelectedItem, 'already selected item').to.have.attribute('selected');
+
+      // Trigger the selection.
+      setTimeout(() => item.click());
+
+      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+
+      expect(detail.eventId).to.equal(eventId);
+      expect(detail.selected, 'Event item should no longer be selected').to.be.false;
+
+      expect(alreadySelectedItem, 'should still be selected').to.have.attribute('selected');
+    });
+
+    it('shows selection toolbar when single event selected', async () => {
+      // Make one item selected.
+      const items = getEventItems();
+      el.eventsSelectedIds = [items[0].dataset.eventId!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+      expect(headerElement.cells, 'header should have a single cell').to.have.length(1);
+
+      const cancelButton = getSelectionCancelButton(headerElement.cells[0]);
+      expect(cancelButton.disabled, 'cancel button should exist and be enabled').to.be.false;
+
+      const countElement = getSelectionCountElement(headerElement.cells[0]);
+      expect(countElement.textContent?.trim()).to.equal('1 event');
+
+      const editButton = getSelectionEditButton(headerElement.cells[0]);
+      expect(editButton.disabled, 'edit button should exist and be enabled').to.be.false;
+    });
+
+    it('shows selection toolbar when multiple events selected', async () => {
+      // Make multiple items selected.
+      const items = getEventItems();
+      const item1 = items[0];
+      const item2 = items[1];
+      el.eventsSelectedIds = [item1.dataset.eventId!, item2.dataset.eventId!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+
+      const countElement = getSelectionCountElement(headerElement.cells[0]);
+      expect(countElement.textContent?.trim()).to.equal('2 events');
+
+      const editButton = getSelectionEditButton(headerElement.cells[0]);
+      expect(editButton.disabled, 'edit button should exist and be enabled').to.be.false;
+    });
+
+    it('shows dialog when edit button clicked', async () => {
+      // Make one item selected.
+      const items = getEventItems();
+      el.eventsSelectedIds = [items[0].dataset.eventId!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+      const editButton = getSelectionEditButton(headerElement.cells[0]);
+
+      setTimeout(() => editButton.click());
+      await oneEvent(editButton, 'click');
+
+      const editDialog = getEditDialog();
+      expect(editDialog, 'after edit clicked').to.be.open;
+
+      await expect(editDialog).to.equalSnapshot();
+    });
+
+    it('shows dialog with multiple events when edit button clicked', async () => {
+      // Make multiple items selected.
+      const items = getEventItems();
+      const item1 = items[0];
+      const item2 = items[1];
+      el.eventsSelectedIds = [item1.dataset.eventId!, item2.dataset.eventId!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+      const editButton = getSelectionEditButton(headerElement.cells[0]);
+
+      setTimeout(() => editButton.click());
+      await oneEvent(editButton, 'click');
+
+      const editDialog = getEditDialog();
+      expect(editDialog, 'after edit clicked').to.be.open;
+
+      await expect(editDialog).to.equalSnapshot();
+    });
+  }); // describe('event selection')
+
+  describe('event editing', () => {
+    let events: GameEventCollection;
+    let selectedEvent: EventBase;
+    let editDialog: Dialog;
+    let editButton: IconButton;
+
+    beforeEach(async () => {
+      game = testlive.getLiveGameWithPlayers();
+
+      const timeProvider = mockTimeProvider(startTime);
+
+      events = buildGameEvents(game, timeProvider);
+      selectedEvent = events.eventsForTesting[0];
+
+      el.gameStartDate = startTime;
+      el.eventData = events.toJSON();
+      el.eventsSelectedIds = [selectedEvent.id!];
+      await el.updateComplete;
+
+      const headerElement = getEventItemHeader();
+      editButton = getSelectionEditButton(headerElement.cells[0]);
+
+      setTimeout(() => editButton.click());
+      await oneEvent(editButton, 'click');
+
+      editDialog = getEditDialog();
+      expect(editDialog, 'after edit clicked').to.be.open;
+    });
+
+    function formatTimeFieldValue(time: Date) {
+      //  - The time field always uses UTC, and in 24 hour format.
+      //  - The input to the field is adjusted by the UTC offset, so it displays local time.
+      //  - e.g. A time of 2:00pm EST (7:00pm UTC) is adjusted to 2:00pm UTC, so the
+      //    resulting value in the field is "14:00:00";
+      const timeInputValue = `${pad0(time.getHours(), 2)}:${pad0(time.getMinutes(), 2)}:${pad0(
+        time.getSeconds(),
+        2,
+      )}`;
+      return timeInputValue;
+    }
+
+    it('defaults to custom time option', async () => {
+      // Check that the "custom time" option is the default.
+      const useCustom = getEditCustomTimeOption(editDialog);
+      expect(useCustom.checked, 'Custom option should be checked by default').to.be.true;
+
+      // Check that the time field defaults to first selected event.
+      const selectedEventTime = new Date(selectedEvent.timestamp!);
+      const expectedTimeString = formatTimeFieldValue(selectedEventTime);
+
+      const customTimeField = getEditCustomTimeField(editDialog);
+      expect(customTimeField.disabled, 'Custom time field should be enabled').to.be.false;
+
+      expect(
+        customTimeField.value,
+        'custom time should default to time of selected event displayed as local time zone',
+      ).to.deep.equal(expectedTimeString);
+
+      // The existing time fields are not initially set/available.
+      const useExisting = getEditExistingTimeOption(editDialog);
+      expect(useExisting.checked, 'Existing option should not be checked initially').to.be.false;
+
+      const existingTimeField = getEditExistingTimeField(editDialog);
+      expect(existingTimeField.disabled, 'Existing field should be disabled initially').to.be.true;
+    });
+
+    it('resets fields in dialog when shown again', async () => {
+      const useCustom = getEditCustomTimeOption(editDialog);
+      const customTimeField = getEditCustomTimeField(editDialog);
+      const useExisting = getEditExistingTimeOption(editDialog);
+      const existingTimeField = getEditExistingTimeField(editDialog);
+
+      // Set the custom time field to a different value.
+      const differentCustomTime = new Date(selectedEvent.timestamp! + 20000);
+      customTimeField.value = formatTimeFieldValue(differentCustomTime);
+
+      // Set the existing option.
+      setTimeout(() => useExisting.click());
+      await oneEvent(useExisting, 'click');
+      await el.updateComplete;
+
+      expect(useExisting.checked, 'Existing option should now be checked').to.be.true;
+      expect(existingTimeField.disabled, 'Existing time field should now be enabled').to.be.false;
+
+      expect(useCustom.checked, 'Custom option should now be unchecked').to.be.false;
+      expect(customTimeField.disabled, 'Custom time field should now be disabled').to.be.true;
+
+      const cancelButton = getEditCancelButton(editDialog);
+      setTimeout(() => cancelButton!.click());
+      await oneEvent(cancelButton!, 'click');
+
+      // Show the dialog again.
+      setTimeout(() => editButton.click());
+      await oneEvent(editButton, 'click');
+
+      // The custom time fields are reset back to checked/enabled.
+      expect(useCustom.checked, 'Custom option should be checked again').to.be.true;
+      expect(customTimeField.disabled, 'Custom time field should enabled again').to.be.false;
+
+      // The custom time field value is reset to first selected event.
+      const expectedTimeString = formatTimeFieldValue(new Date(selectedEvent.timestamp!));
+      expect(
+        customTimeField.value,
+        'custom time should be reset to time of selected event',
+      ).to.deep.equal(expectedTimeString);
+
+      // The existing time fields are reset back to unchecked/disabled.
+      expect(useExisting.checked, 'Existing option should not be checked initially').to.be.false;
+      expect(existingTimeField.disabled, 'Existing field should be disabled initially').to.be.true;
+    });
+
+    it('re-enables custom time field after changing back from existing option', async () => {
+      const useCustom = getEditCustomTimeOption(editDialog);
+      const customTimeField = getEditCustomTimeField(editDialog);
+      const useExisting = getEditExistingTimeOption(editDialog);
+      const existingTimeField = getEditExistingTimeField(editDialog);
+
+      // Set the existing option.
+      setTimeout(() => useExisting.click());
+      await oneEvent(useExisting, 'click');
+      await el.updateComplete;
+
+      expect(useExisting.checked, 'Existing option should now be checked').to.be.true;
+      expect(existingTimeField.disabled, 'Existing time field should now be enabled').to.be.false;
+
+      expect(useCustom.checked, 'Custom option should now be unchecked').to.be.false;
+      expect(customTimeField.disabled, 'Custom time field should now be disabled').to.be.true;
+
+      // Set back to the custom option.
+      setTimeout(() => useCustom.click());
+      await oneEvent(useCustom, 'click');
+      await el.updateComplete;
+
+      expect(useExisting.checked, 'Existing option should now be unchecked').to.be.false;
+      expect(existingTimeField.disabled, 'Existing time field should be disabled again').to.be.true;
+
+      expect(useCustom.checked, 'Custom option should now be checked').to.be.true;
+      expect(customTimeField.disabled, 'Custom time field should now be enabled again').to.be.false;
+    });
+
+    it.skip('validates fields when edit dialog saved', () => {
+      expect.fail('not implemented');
+    });
+
+    it.skip('prevents saving when custom time is outside min and max values', () => {
+      expect.fail('not implemented');
+    });
+
+    it('does not fire update event when dialog cancelled', async () => {
+      // Listen for update event
+      let eventFired = false;
+      const handler = function () {
+        eventFired = true;
+        el.removeEventListener(EventsUpdatedEvent.eventName, handler);
+      };
+      el.addEventListener(EventsUpdatedEvent.eventName, handler);
+
+      const cancelButton = getEditCancelButton(editDialog);
+      setTimeout(() => cancelButton!.click());
+      await oneEvent(cancelButton!, 'click');
+      await nextFrame();
+      await aTimeout(100);
+
+      expect(editDialog, 'after cancel click').not.to.be.open;
+      expect(eventFired, 'Update event should not be fired').to.be.false;
+    });
+
+    it('fires update event when dialog saved for custom time', async () => {
+      const customTimeField = getEditCustomTimeField(editDialog);
+
+      // Set time to 10 seconds earlier.
+      const expectedCustomTime = new Date(selectedEvent.timestamp! - 10000);
+      customTimeField.value = formatTimeFieldValue(expectedCustomTime);
+
+      const saveButton = getEditSaveButton(editDialog);
+      setTimeout(() => saveButton.click());
+
+      const { detail } = (await oneEvent(el, EventsUpdatedEvent.eventName)) as EventsUpdatedEvent;
+      expect(detail, 'Event detail should be set for custom time').to.deep.equal({
+        updatedEventIds: [selectedEvent.id!],
+        useExistingTime: false,
+        existingEventId: undefined,
+        customTime: expectedCustomTime.getTime(),
+      });
+      const expectedTimeString = timeFormatter.format(expectedCustomTime);
+      const actualTimeString = timeFormatter.format(new Date(detail.customTime!));
+      expect(actualTimeString, 'Custom time in event detail').to.equal(expectedTimeString);
+    });
+
+    it('fires update event with selected event id when dialog saved for existing time', async () => {
+      const useExisting = getEditExistingTimeOption(editDialog);
+      const existingTimeField = getEditExistingTimeField(editDialog);
+
+      // Set the existing option.
+      setTimeout(() => useExisting.click());
+      await oneEvent(useExisting, 'click');
+      await el.updateComplete;
+
+      // Select a different event to provide the time.
+      const existingEvent = events.eventsForTesting[1];
+      for (const item of existingTimeField.items) {
+        if (item.dataset.eventId === existingEvent.id) {
+          item.selected = true;
+          break;
+        }
+      }
+
+      const saveButton = getEditSaveButton(editDialog);
+      setTimeout(() => saveButton.click());
+
+      const { detail } = (await oneEvent(el, EventsUpdatedEvent.eventName)) as EventsUpdatedEvent;
+      expect(detail, 'Event detail should be set for existing time').to.deep.equal({
+        updatedEventIds: [selectedEvent.id!],
+        useExistingTime: true,
+        existingEventId: existingEvent.id!,
+        customTime: undefined,
+      });
+    });
+  }); // describe('event editing')
+
+  describe('pagination', () => {
+    it.skip('shows only the most recent events', async () => {
+      expect.fail('not implemented');
+    });
+
+    it.skip('new events replace older events when only showing the most recent', async () => {
+      expect.fail('not implemented');
+    });
+
+    it.skip('shows more events when explicitly requested', async () => {
+      expect.fail('not implemented');
+    });
+
+    it.skip('old events remain when show all preference is enabled', async () => {
+      expect.fail('not implemented');
+    });
+  }); // describe('pagination')
 });

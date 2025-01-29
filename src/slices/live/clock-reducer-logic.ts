@@ -3,10 +3,17 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { CurrentTimeProvider, Duration, Timer } from '../../models/clock.js';
 import { GameStatus } from '../../models/game.js';
-import { LiveGame, LiveGameBuilder, PeriodStatus, SetupSteps } from '../../models/live.js';
+import {
+  GameEventType,
+  LiveGame,
+  LiveGameBuilder,
+  PeriodStatus,
+  SetupSteps,
+} from '../../models/live.js';
 import {
   ConfigurePeriodsPayload,
   EndPeriodPayload,
+  EventsUpdatedPayload,
   LiveGamePayload,
   OverduePeriodPayload,
   StartPeriodPayload,
@@ -77,7 +84,21 @@ export const startPeriodHandler = (
   timer.start();
   clock.timer = timer.toJSON();
   clock.currentPeriod = period.currentPeriod!;
+  clock.periodStartTime = clock.timer.startTime;
   clock.periodStatus = PeriodStatus.Running;
+  // Store the start "date" for the game, to have a persistent value, even
+  // if the events are later edited (including the start time).
+  //  - The date includes the hour of the start time, but not the minutes/seconds.
+  //  - The intent is to have the start date be reliable, even with time zones
+  //    or games that span midnight.
+  //  - Only need to store the value when starting the game for the first time.
+  if (period.currentPeriod === 1) {
+    const startDate = new Date(clock.timer.startTime!);
+    startDate.setMinutes(0);
+    startDate.setSeconds(0);
+    startDate.setMilliseconds(0);
+    clock.gameStartDate = startDate.getTime();
+  }
 };
 
 export const startPeriodPrepare = (
@@ -209,6 +230,70 @@ export function isPeriodOverdue(game?: LiveGame, ignoreTimeForTesting?: boolean)
   }
   return false;
 }
+
+export const eventsUpdatedHandler = (
+  _state: LiveState,
+  game: LiveGame,
+  action: PayloadAction<EventsUpdatedPayload>,
+) => {
+  if (game.status === GameStatus.Done) {
+    // No updates when game is already completed.
+    return;
+  }
+  const { clock, timer } = getInitializedClock(game);
+
+  for (const updatedEvent of action.payload.events) {
+    switch (updatedEvent.type) {
+      case GameEventType.PeriodStart: {
+        if (clock.currentPeriod !== updatedEvent.data.clock.currentPeriod) {
+          // Only process updates for the current period.
+          break;
+        }
+        const updatedStartTime = updatedEvent.data.clock.startTime;
+        const updatedTimer = timer.toJSON();
+        if (timer.isRunning && timer.duration.getTotalSeconds() === 0) {
+          // Timer is running, and has not been stopped. This means the timer
+          // start time is the same as the period start time.
+          // Update only the start time.
+          updatedTimer.startTime = updatedStartTime;
+        } else {
+          // The timer is either:
+          // 1) Not running, so it has duration, but no start time.
+          // 2) Running and was previously stopped, so it has duration, but it's
+          //    start time is sometime after the period start time.
+          // Update only the duration, by the delta between the old and new period
+          // start times.
+          //  - If the time was updated to be earlier, the duration should become longer.
+          //  - Thus, the delta should be positive - added to the existing duration.
+          const timeDifferenceSeconds = (clock.periodStartTime! - updatedStartTime) / 1000;
+          const updatedDuration = Duration.add(
+            timer.duration,
+            Duration.create(timeDifferenceSeconds),
+          );
+          updatedTimer.duration = updatedDuration.toJSON();
+        }
+
+        clock.timer = updatedTimer;
+        clock.periodStartTime = updatedStartTime;
+        break;
+      }
+      // case GameEventType.PeriodEnd:
+      //   trackerMap.stopShiftTimers(event.data.clock.endTime);
+      //   break;
+
+      // case GameEventType.SubIn:
+      //   trackerMap.substitutePlayer(event.playerId, event.data.replaced, event.timestamp);
+      //   break;
+
+      // case GameEventType.Setup:
+      // case GameEventType.SubOut:
+      // case GameEventType.Swap:
+      default:
+      // No-op
+    }
+  }
+  // clock.timer = timer.toJSON();
+};
 
 export function gameCanStartPeriod(game: LiveGame): {
   allowsStart: boolean;

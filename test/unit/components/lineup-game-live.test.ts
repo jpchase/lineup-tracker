@@ -1,22 +1,35 @@
 /** @format */
 
 import { ClockEndPeriodEvent, LineupGameClock } from '@app/components/lineup-game-clock.js';
+import { EventsUpdatedEvent } from '@app/components/lineup-game-events.js';
 import '@app/components/lineup-game-live.js';
 import { LineupGameLive } from '@app/components/lineup-game-live.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
-import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { FormationType } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
-import { LiveGame, LivePlayer, PeriodStatus, getPlayer } from '@app/models/live.js';
+import {
+  GameEventCollection,
+  LiveGame,
+  LivePlayer,
+  PeriodStatus,
+  getPlayer,
+} from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
-import { endPeriodCreator, selectLiveGameById } from '@app/slices/live/index.js';
+import {
+  endPeriodCreator,
+  eventSelected,
+  eventUpdateRequested,
+  eventsUpdated,
+  selectLiveGameById,
+} from '@app/slices/live/index.js';
 import { actions as liveActions } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
-import { expect, fixture, html, oneEvent } from '@open-wc/testing';
+import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
+import { ActionLogger } from '../helpers/action-logger.js';
 import {
   getClockEndOverdueExtraMinutes,
   getClockEndOverdueRetroactiveOption,
@@ -28,11 +41,13 @@ import {
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import {
   buildClock,
+  buildEventState,
   buildLiveStateWithCurrentGame,
   buildShiftWithTrackersFromGame,
 } from '../helpers/live-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { buildRunningTimer } from '../helpers/test-clock-data.js';
+import { buildRunningTimer, manualTimeProvider } from '../helpers/test-clock-data.js';
+import { buildGameEvents } from '../helpers/test-event-data.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import { buildRoster, getNewGameDetail } from '../helpers/test_data.js';
 
@@ -53,12 +68,6 @@ const {
   toggleClock,
 } = liveActions;
 
-let actions: string[] = [];
-const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
-  actions.push(action);
-  return next(action);
-};
-
 function getGameDetail(): { game: GameDetail; live: LiveGame } {
   const live = testlive.getLiveGameWithPlayers();
   const game = getNewGameDetail(buildRoster(live.players));
@@ -73,16 +82,16 @@ function findPlayer(game: LiveGame, status: PlayerStatus) {
 describe('lineup-game-live tests', () => {
   let el: LineupGameLive;
   let dispatchStub: sinon.SinonSpy;
+  let actionLogger: ActionLogger;
   beforeEach(async () => {
-    actions = [];
-    addMiddleware(actionLoggerMiddleware);
+    actionLogger = new ActionLogger();
+    actionLogger.setup();
 
     await setupElement();
   });
 
   afterEach(async () => {
     sinon.restore();
-    // removeMiddleware(actionLoggerMiddleware);
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
@@ -90,7 +99,7 @@ describe('lineup-game-live tests', () => {
 
     const template = html`<lineup-game-live
       .gameId="${gameId}"
-      .store=${store}
+      .store="${store}"
     ></lineup-game-live>`;
     el = await fixture(template);
     dispatchStub = sinon.spy(el, 'dispatch');
@@ -213,6 +222,7 @@ describe('lineup-game-live tests', () => {
     expect(outPlayers.hidden, 'Section for out should be shown').to.be.false;
 
     await expect(el).shadowDom.to.equalSnapshot();
+    await expect(el).to.be.accessible();
   });
 
   describe('Subs', () => {
@@ -293,9 +303,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the confirm swap action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(confirmSwap(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(confirmSwap(gameId));
     }
 
     it('dispatches select player action when off player selected', async () => {
@@ -311,9 +319,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the select player action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         selectPlayer(gameId, player.id, /*selected =*/ true),
       );
     });
@@ -331,9 +337,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the select player action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         selectPlayer(gameId, player.id, /*selected =*/ true),
       );
     });
@@ -351,9 +355,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the select player action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         selectPlayer(gameId, player.id, /*selected =*/ true),
       );
     });
@@ -391,6 +393,11 @@ describe('lineup-game-live tests', () => {
       expect(confirmSection, 'Missing confirm sub div').to.be.ok;
 
       await expect(confirmSection).dom.to.equalSnapshot();
+      await expect(confirmSection).to.be.accessible({
+        // Disable label-title-only until UI revamped to use MWC components, instead of bare <select>.
+        // TODO: Remove this ignored rule after verifying accessibility with new UI
+        ignoredRules: ['label-title-only'],
+      });
     });
 
     it('dispatches confirm sub action when confirmed', async () => {
@@ -417,9 +424,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the confirm sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(confirmSub(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(confirmSub(gameId));
     });
 
     it('dispatches confirm sub action with new position when confirmed', async () => {
@@ -449,9 +454,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the confirm sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         confirmSub(gameId, otherPositionPlayer.currentPosition),
       );
     });
@@ -480,9 +483,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the cancel sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(cancelSub(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(cancelSub(gameId));
     });
 
     it('shows confirm swap UI when proposed swap exists', async () => {
@@ -498,6 +499,7 @@ describe('lineup-game-live tests', () => {
       expect(confirmSection, 'Missing confirm swap element').to.be.ok;
 
       await expect(confirmSection).dom.to.equalSnapshot();
+      await expect(confirmSection).to.be.accessible();
     });
 
     it('dispatches confirm swap action when confirmed', async () => {
@@ -519,9 +521,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the apply swap action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(confirmSwap(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(confirmSwap(gameId));
     });
 
     it('dispatches cancel swap action when cancelled', async () => {
@@ -543,9 +543,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the cancel sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(cancelSwap(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(cancelSwap(gameId));
     });
 
     it('shows errors when pending subs are invalid', async () => {
@@ -580,6 +578,11 @@ describe('lineup-game-live tests', () => {
       ).to.contain(expectedInvalidPositions);
 
       await expect(errorElement).dom.to.equalSnapshot();
+      await expect(errorElement).to.be.accessible({
+        // Disable color-contrast as colors depend on global styles, which are
+        // not available in standalone component.
+        ignoredRules: ['color-contrast'],
+      });
     });
 
     it('dispatches apply pending action for all subs when none are selected', async () => {
@@ -603,9 +606,7 @@ describe('lineup-game-live tests', () => {
       testlive.setupSub(expectedSub2, getPlayer(liveGame, ON_PLAYER2_ID)!);
 
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         applyPendingSubs(gameId, [expectedSub1, expectedSub2], /* selectedOnly */ false),
       );
     });
@@ -634,9 +635,7 @@ describe('lineup-game-live tests', () => {
       testlive.setupSub(selectedSub1, getPlayer(liveGame, ON_PLAYER_ID)!);
 
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         applyPendingSubs(gameId, [selectedSub1], /* selectedOnly */ true),
       );
     });
@@ -657,9 +656,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the discard sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         discardPendingSubs(gameId, /* selectedOnly */ false),
       );
     });
@@ -685,9 +682,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the discard sub action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         discardPendingSubs(gameId, /* selectedOnly */ true),
       );
     });
@@ -714,9 +709,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the mark player out action was dispatched.
       expect(dispatchStub).to.have.callCount(2);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(markPlayerOut(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(markPlayerOut(gameId));
 
       // Verifies the off player is now in the Out section.
       const outList = getOutList();
@@ -746,9 +739,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the return out player action was dispatched.
       expect(dispatchStub).to.have.callCount(2);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(returnOutPlayer(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(returnOutPlayer(gameId));
 
       // Verifies the out player is now back in the Off section.
       const subsList = getSubsList();
@@ -796,9 +787,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the start period action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         startPeriod(gameId, /*gameAllowsStart=*/ true, /*currentPeriod=*/ 1, startTime),
       );
     });
@@ -821,9 +810,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the end period action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         endPeriod(gameId, /*gameAllowsEnd=*/ true, /*currentPeriod=*/ 1, startTime),
       );
     });
@@ -858,9 +845,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the end period action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(endPeriodCreator(gameId, 3));
+      expect(actionLogger.lastAction()).to.deep.include(endPeriodCreator(gameId, 3));
     });
 
     it('dispatches toggle clock action when fired by clock component', async () => {
@@ -876,9 +861,7 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the toggle clock action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(toggleClock(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(toggleClock(gameId));
     });
   }); // describe('Clock')
 
@@ -932,9 +915,7 @@ describe('lineup-game-live tests', () => {
       // The action should now have been dispatched.
       //  - First action is the startPeriod
       expect(dispatchStub).to.be.called;
-
-      expect(actions).to.have.lengthOf.at.least(2);
-      expect(actions).to.deep.include(markPeriodOverdue(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(markPeriodOverdue(gameId));
     });
   }); // describe('Overdue periods');
 
@@ -986,13 +967,112 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the complete game action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(gameCompleted(liveGame.id));
+      expect(actionLogger.lastAction()).to.deep.include(gameCompleted(liveGame.id));
     });
   }); // describe('Complete Game')
 
-  it('a11y', async () => {
-    await expect(el).to.be.accessible();
-  });
+  describe('Events', () => {
+    const eventTime = new Date(2016, 0, 1, 14, 0, 0).getTime();
+    let liveGame: LiveGame;
+    let gameEvents: GameEventCollection;
+
+    beforeEach(async () => {
+      const { game, live } = getGameDetail();
+      gameEvents = buildGameEvents(live, manualTimeProvider(eventTime));
+
+      const gameState = buildGameStateWithCurrentGame(game);
+      const liveState = buildLiveStateWithCurrentGame(live, buildEventState(gameEvents));
+
+      await setupElement(buildRootState(gameState, liveState), live.id);
+      await el.updateComplete;
+      liveGame = selectLiveGameById(getStore().getState(), live.id)!;
+    });
+
+    function getEventsElement() {
+      const element = el.shadowRoot!.querySelector('lineup-game-events');
+      expect(element, 'game events element should be shown').to.be.ok;
+      return element!;
+    }
+
+    function getEventItems(eventsElement: Element) {
+      const items =
+        eventsElement.shadowRoot!.querySelectorAll<HTMLTableRowElement>('#events-list tr');
+      expect(items.length, 'event items rendered').to.be.at.least(0);
+      return items;
+    }
+
+    it('dispatches event selected action when event item selected', async () => {
+      const eventToSelect = gameEvents.eventsForTesting[0];
+
+      const eventsElement = getEventsElement();
+      const eventItems = getEventItems(eventsElement);
+
+      const eventItem = Array.from(eventItems).find(
+        (item) => item.dataset.eventId === eventToSelect.id,
+      );
+      expect(eventItem, `rendered item for event ${eventToSelect.id}`).to.be.ok;
+
+      // Simulates selection of an event item.
+      eventItem!.click();
+
+      // Verifies that the event selected action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+      expect(actionLogger.lastAction()).to.deep.include(
+        eventSelected(liveGame.id, eventToSelect.id!, /* selected= */ true),
+      );
+    });
+
+    it('marks event item selected when already selected', async () => {
+      const eventToSelect = gameEvents.eventsForTesting[0];
+
+      const store = getStore();
+      store.dispatch(eventSelected(liveGame.id, eventToSelect.id!, /* selected= */ true));
+      await el.updateComplete;
+
+      const eventsElement = getEventsElement();
+      const eventItems = getEventItems(eventsElement);
+
+      const eventItem = Array.from(eventItems).find(
+        (item) => item.dataset.eventId === eventToSelect.id,
+      );
+      expect(eventItem, `rendered item for event ${eventToSelect.id}`).to.be.ok;
+
+      expect(eventItem, 'already selected item').to.have.attribute('selected');
+    });
+
+    it('dispatches events updated action when event edits completed', async () => {
+      const eventToSelect = gameEvents.eventsForTesting[0];
+
+      const store = getStore();
+      store.dispatch(eventSelected(liveGame.id, eventToSelect.id!, /* selected= */ true));
+      await el.updateComplete;
+
+      const eventsElement = getEventsElement();
+
+      // Set the event time 1 minute earlier.
+      const customTime = eventToSelect.timestamp! - 60000;
+      eventsElement.dispatchEvent(
+        new EventsUpdatedEvent({
+          updatedEventIds: [eventToSelect.id!],
+          useExistingTime: false,
+          // existingEventId,
+          customTime,
+        }),
+      );
+
+      await nextFrame();
+
+      // Verifies that the event selected action was dispatched.
+      expect(dispatchStub).to.have.callCount(1);
+      expect(actionLogger.lastAction(eventsUpdated.type)).to.deep.include(
+        eventUpdateRequested(
+          liveGame.id,
+          [eventToSelect.id!],
+          /* useExistingTime= */ false,
+          /* existingEventId= */ undefined,
+          customTime,
+        ),
+      );
+    });
+  }); // describe('Events')
 });

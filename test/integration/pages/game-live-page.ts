@@ -1,14 +1,25 @@
 /** @format */
 
-import { LineupGameClock } from '@app/components/lineup-game-clock.js';
+import { ClockPeriodData, LineupGameClock } from '@app/components/lineup-game-clock.js';
+import { LineupGameEvents } from '@app/components/lineup-game-events.js';
 import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import { TimerData } from '@app/models/clock.js';
-import { LivePlayer } from '@app/models/live.js';
+import { LivePlayer, PeriodStartEvent } from '@app/models/live.js';
 import { ElementHandle } from 'puppeteer';
 import { Firestore, copyGame, createAdminApp, getFirestore } from '../server/firestore-access.js';
 import { GameDetailPage } from './game-detail-page.js';
 import { GameSetupPage } from './game-setup-page.js';
-import { PageOpenFunction, PageOptions } from './page-object.js';
+import { PageOpenFunction, PageOptions, pad0 } from './page-object.js';
+
+// TODO: Reuse src definitions
+export enum GameEventType {
+  PeriodStart = 'PERIODSTART',
+  PeriodEnd = 'PERIODEND',
+  Setup = 'SETUP',
+  SubIn = 'SUBIN',
+  SubOut = 'SUBOUT',
+  Swap = 'SWAP',
+}
 
 export class GameLivePage extends GameDetailPage {
   constructor(options: PageOptions = {}) {
@@ -144,6 +155,98 @@ export class GameLivePage extends GameDetailPage {
     });
   }
 
+  async getGamePeriod(): Promise<ClockPeriodData | undefined> {
+    const clockHandle = await this.getClockComponent();
+    return clockHandle.evaluate(async (clock) => {
+      return clock.periodData;
+    });
+  }
+
+  async editPeriodStart(newStartTime: Date) {
+    const eventsHandle = await this.getEventsComponent();
+
+    // Select the event for period start.
+    //  - Assumes there's only one period so far.
+    await eventsHandle.evaluate(async (eventsNode, startEventType) => {
+      const eventsRoot = eventsNode.shadowRoot!;
+
+      const eventData = eventsNode.eventData;
+      if (!eventData) {
+        throw new Error('Event data is missing');
+      }
+      let startEvent: PeriodStartEvent | null = null;
+      for (const gameEvent of eventData.events!) {
+        if (gameEvent.type === startEventType) {
+          startEvent = gameEvent as PeriodStartEvent;
+          break;
+        }
+      }
+      if (!startEvent) {
+        throw new Error('Period start event is missing');
+      }
+      const startEventItem = eventsRoot.querySelector(
+        `#events-list tr[data-event-id="${startEvent.id}"]`,
+      ) as HTMLElement;
+      if (!startEventItem) {
+        throw new Error(`Event item missing for id = {startEvent.id}`);
+      }
+      // Click the item for the start event to select, waiting a tick for updates to render.
+      // eslint-disable-next-line no-console
+      console.log(`Select the start event, by clicking`);
+      startEventItem.click();
+      await Promise.resolve();
+    }, GameEventType.PeriodStart);
+
+    // Edit the selected period start event.
+    //  - In a separate evaluate() block to allow time for rendering updates
+    //    to finish for event selection.
+    const startTimeText = this.formatTimeFieldValue(newStartTime);
+    await eventsHandle.evaluate(async (eventsNode, startTime) => {
+      const eventsRoot = eventsNode.shadowRoot!;
+
+      // Show the dialog, by clicking the edit button.
+      // eslint-disable-next-line no-console
+      console.log(`Click the edit button to show the dialog`);
+      const editButton = eventsRoot.querySelector(
+        '#events-header th #edit-selection-button',
+      ) as HTMLElement;
+      if (!editButton) {
+        throw new Error('Edit button not found');
+      }
+      editButton.click();
+      await Promise.resolve();
+
+      // Enter the new time into the field in the dialog.
+      // eslint-disable-next-line no-console
+      console.log(`Enter the time in the edit dialog: ${startTime}`);
+      const editDialog = eventsRoot.querySelector('#edit-dialog');
+      if (!editDialog) {
+        throw new Error('Edit dialog not found');
+      }
+      const customTimeField = editDialog.querySelector('#custom-time-field') as HTMLInputElement;
+      if (!customTimeField) {
+        throw new Error('Custom time field not found');
+      }
+
+      customTimeField.value = startTime;
+
+      // Save the change to the event.
+      const saveButton = editDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
+      if (!saveButton) {
+        throw new Error('Save button not found');
+      }
+      // eslint-disable-next-line no-console
+      console.log('Click the save button to apply the edit');
+      saveButton.click();
+      // eslint-disable-next-line no-console
+      console.log(`Click done`);
+      await Promise.resolve();
+      // eslint-disable-next-line no-console
+      console.log(`quick wait done for promise`);
+    }, startTimeText);
+    await this.waitForTimeout(1000);
+  }
+
   async getOnPlayers() {
     const liveHandle = await this.getLiveComponent();
     return liveHandle.evaluate(async (liveNode) => {
@@ -180,5 +283,23 @@ export class GameLivePage extends GameDetailPage {
       throw new Error('Clock component not found');
     }
     return clockHandle as ElementHandle<LineupGameClock>;
+  }
+
+  private async getEventsComponent(existingLiveHandle?: ElementHandle<Element>) {
+    const liveHandle = existingLiveHandle ?? (await this.getLiveComponent());
+    const eventsHandle = await liveHandle.$('pierce/lineup-game-events');
+    if (!eventsHandle) {
+      throw new Error('Events component not found');
+    }
+    return eventsHandle as ElementHandle<LineupGameEvents>;
+  }
+
+  private formatTimeFieldValue(time: Date) {
+    const timeInputValue = `${pad0(time.getHours(), 2)}:${pad0(time.getMinutes(), 2)}:${pad0(
+      time.getSeconds(),
+      2,
+    )}`;
+    this.log(`formatTimeFieldValue: in = ${time}, out = ${timeInputValue}`);
+    return timeInputValue;
   }
 }

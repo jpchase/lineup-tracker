@@ -4,7 +4,7 @@ import { createNextState } from '@reduxjs/toolkit';
 import { Reducer } from 'redux';
 import { PersistConfig } from 'redux-persist';
 import { SliceConfigurator, buildSliceConfigurator } from '../../middleware/slice-configurator.js';
-import { EVENTS_INITIAL_STATE, eventsReducer } from './events-slice.js';
+import { EVENTS_INITIAL_STATE, eventsReducer, setupEventsListeners } from './events-slice.js';
 import { LIVE_GAME_INITIAL_STATE, LiveState, liveSlice } from './live-slice.js';
 import { shift } from './shift-slice.js';
 
@@ -35,7 +35,12 @@ export function getLiveSliceConfigurator(): SliceConfigurator {
     whitelist: ['events', 'games', 'shift'],
   };
   return buildSliceConfigurator(
-    { name: liveSlice.name, reducerPath: liveSlice.reducerPath, reducer: live },
+    {
+      name: liveSlice.name,
+      reducerPath: liveSlice.reducerPath,
+      reducer: live,
+      setupListeners: setupEventsListeners,
+    },
     persistConfig,
   );
 }

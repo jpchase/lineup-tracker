@@ -479,3 +479,7 @@ export function currentTimeForLog(): string {
   };
   return new Intl.DateTimeFormat('default', options).format(Date.now());
 }
+
+export function pad0(value: number, count: number): string {
+  return value.toString().padStart(count, '0');
+}

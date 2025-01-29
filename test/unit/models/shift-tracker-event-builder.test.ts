@@ -108,12 +108,12 @@ describe('createShiftTrackerFromEvents', () => {
 
     // The order in which events are added should not matter, because
     // the times are already specified.
-    const events = EventCollection.create({ id: game.id });
+    const events = EventCollection.create<GameEvent>({ id: game.id });
     events.addEventGroup(buildSubEvents(timeStartPlus5, sub1).groupedEvents);
     events.addEventGroup(buildSubEvents(timeStartPlus20, sub2).groupedEvents);
     events.addEvent(buildPeriodStartEvent(startTime));
 
-    const map = createShiftTrackerFromEvents(game, events.events as GameEvent[], provider);
+    const map = createShiftTrackerFromEvents(game, events, provider);
 
     // First sub
     let onTracker = map.get(sub1.nextId);
@@ -149,12 +149,12 @@ describe('createShiftTrackerFromEvents', () => {
 
     // The order in which events are added should not matter, because
     // the times are already specified.
-    const events = EventCollection.create({ id: game.id });
+    const events = EventCollection.create<GameEvent>({ id: game.id });
     events.addEvent(buildSwapEvent(timeStartPlus5, swap1));
     events.addEvent(buildSwapEvent(timeStartPlus20, swap2));
     events.addEvent(buildPeriodStartEvent(startTime));
 
-    const map = createShiftTrackerFromEvents(game, events.events as GameEvent[], provider);
+    const map = createShiftTrackerFromEvents(game, events, provider);
 
     // First swap
     let swapTracker = map.get(swap1.nextId);
@@ -190,7 +190,7 @@ describe('createShiftTrackerFromEvents', () => {
 
     // The order in which events are added should not matter, because
     // the times are already specified.
-    const events = EventCollection.create({ id: game.id });
+    const events = EventCollection.create<GameEvent>({ id: game.id });
     events.addEventGroup(buildSubEvents(timeStartPlus5, sub1).groupedEvents);
     events.addEventGroup(buildSubEvents(timeStartPlus10, sub2).groupedEvents);
     events.addEvent(buildSwapEvent(timeStartPlus5, swap1));
@@ -200,7 +200,7 @@ describe('createShiftTrackerFromEvents', () => {
     events.addEvent(buildSwapEvent(timeStartPlus20, swap3withSub3));
     events.addEvent(buildPeriodStartEvent(startTime));
 
-    const map = createShiftTrackerFromEvents(game, events.events as GameEvent[], provider);
+    const map = createShiftTrackerFromEvents(game, events, provider);
 
     // First sub
     let onTracker = map.get(sub1.nextId);
@@ -312,7 +312,7 @@ describe('createShiftTrackerFromEvents', () => {
 
     // The order in which events are added should not matter, because
     // the times are already specified.
-    const events = EventCollection.create({ id: game.id });
+    const events = EventCollection.create<GameEvent>({ id: game.id });
     events.addEventGroup(buildSubEvents(timeStartPlus5, sub1).groupedEvents);
     events.addEventGroup(buildSubEvents(timeStartPlus10, sub2).groupedEvents);
     // Sub with corresponding swap.
@@ -321,7 +321,7 @@ describe('createShiftTrackerFromEvents', () => {
     events.addEvent(buildPeriodStartEvent(startTime));
     events.addEvent(buildPeriodEndEvent(timeStartPlus35));
 
-    const map = createShiftTrackerFromEvents(game, events.events as GameEvent[], provider);
+    const map = createShiftTrackerFromEvents(game, events, provider);
 
     expect(map.clockRunning, 'clock running').to.be.false;
 

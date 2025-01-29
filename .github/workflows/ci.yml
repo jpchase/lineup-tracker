@@ -18,10 +18,13 @@ env:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
+    - uses: szenius/set-timezone@v2.0
+      with:
+        timezoneLinux: 'America/Toronto'
+
     - uses: actions/checkout@v4.1.7
 
     - name: Cache node modules
@@ -77,6 +80,8 @@ jobs:
   lhci:
     name: Lighthouse
     runs-on: ubuntu-latest
+    # Disable the job as there's nowhere to upload the results
+    if: false
 
     steps:
     - uses: actions/checkout@v4.1.7

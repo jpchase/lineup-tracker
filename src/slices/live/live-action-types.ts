@@ -1,7 +1,8 @@
 /** @format */
 
+import { PrepareAction, createAction } from '@reduxjs/toolkit';
 import { FormationType, Position } from '../../models/formation.js';
-import { LiveGame, LivePlayer } from '../../models/live.js';
+import { GameEvent, LiveGame, LivePlayer } from '../../models/live.js';
 import { Roster } from '../../models/player.js';
 
 const SWAP_ID_SUFFIX = '_swap';
@@ -80,6 +81,35 @@ export interface PendingSubsDiscardedPayload extends LiveGamePayload {
 export interface StartersInvalidPayload extends LiveGamePayload {
   invalidStarters: string[];
 }
+
+// Event action payloads
+export interface EventSelectedPayload extends LiveGamePayload {
+  eventId: string;
+  selected: boolean;
+}
+
+export interface EventUpdateRequestedPayload extends LiveGamePayload {
+  updatedEventIds: string[];
+  useExistingTime: boolean;
+  existingEventId?: string;
+  customTime?: number;
+}
+
+export interface EventsUpdatedPayload extends LiveGamePayload {
+  events: GameEvent[];
+}
+
+export const eventsUpdated = createAction<PrepareAction<EventsUpdatedPayload>>(
+  'events/eventsUpdated',
+  (gameId: string, events: GameEvent[]) => {
+    return {
+      payload: {
+        gameId,
+        events,
+      },
+    };
+  },
+);
 
 export const prepareLiveGamePayload = (gameId: string) => {
   return {

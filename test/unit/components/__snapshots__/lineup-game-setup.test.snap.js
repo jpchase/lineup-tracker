@@ -172,6 +172,7 @@ snapshots["lineup-game-setup tests periods shows periods sections for new game"]
         label="Number of Periods"
       >
         <input
+          aria-label="Number of Periods"
           max="4"
           min="1"
           required=""
@@ -187,6 +188,7 @@ snapshots["lineup-game-setup tests periods shows periods sections for new game"]
         label="Period Length"
       >
         <input
+          aria-label="Period Length"
           max="60"
           min="10"
           required=""

@@ -27,12 +27,15 @@ import {
   confirmSwap,
   discardPendingSubs,
   endPeriodCreator,
+  eventSelected,
+  eventUpdateRequested,
   gameCompleted,
   getLiveSliceConfigurator,
   markPeriodOverdueCreator,
   markPlayerOut,
   pendingSubsAppliedCreator,
   returnOutPlayer,
+  selectEventsSelected,
   selectGameEvents,
   selectInvalidSubs,
   selectLiveGameById,
@@ -46,6 +49,7 @@ import { RootState } from '../store.js';
 import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-events.js';
+import { EventSelectedEvent, EventsUpdatedEvent } from './lineup-game-events.js';
 import './lineup-game-shifts.js';
 import './lineup-on-player-list.js';
 import { PlayerSelectedEvent } from './lineup-player-card.js';
@@ -78,6 +82,8 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
                 this._players!,
                 this.trackerData!,
                 this.eventData!,
+                this.eventsSelectedIds,
+                this._game.clock?.gameStartDate,
               )}
             `
           : html` <p class="empty-list">Live game not set.</p> `}
@@ -89,6 +95,8 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     players: LivePlayer[],
     trackerData: PlayerTimeTrackerMapData,
     eventData: EventCollectionData,
+    eventsSelectedIds: string[],
+    gameStartDate?: number,
   ) {
     return html` <div toolbar>
         <lineup-game-clock
@@ -123,13 +131,13 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         <div>
           <mwc-button id="sub-apply-btn" @click="${this._applySubs}">Sub</mwc-button>
           <mwc-button id="sub-discard-btn" @click="${this._discardSubs}">Discard</mwc-button>
-          ${this.getSubErrors()}
+          ${this.renderSubErrors()}
         </div>
         <lineup-player-list mode="next" .players="${players}" .trackerData="${trackerData}">
         </lineup-player-list>
       </div>
-      <div id="confirm-sub">${this.getConfirmSub()}</div>
-      <div id="confirm-swap">${this.getConfirmSwap()}</div>
+      <div id="confirm-sub">${this.renderConfirmSub()}</div>
+      <div id="confirm-swap">${this.renderConfirmSwap()}</div>
       <div id="live-off">
         <h3>Subs</h3>
         <div>
@@ -162,11 +170,18 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
       </div>
       <div id="events">
         <h3>History</h3>
-        <lineup-game-events .eventData="${eventData}" .players="${players}"> </lineup-game-events>
+        <lineup-game-events
+          .eventData="${eventData}"
+          .eventsSelectedIds="${eventsSelectedIds}"
+          .gameStartDate="${gameStartDate}"
+          @event-selected="${this.toggleEventSelected}"
+          @events-updated="${this.updateEvents}"
+        >
+        </lineup-game-events>
       </div>`;
   }
 
-  private getConfirmSub() {
+  private renderConfirmSub() {
     if (!this.proposedSub) {
       return nothing;
     }
@@ -183,7 +198,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
         <span class="replaced">${replaced.name}</span>
         <span class="override-position">
           <span>Position:</span>
-          <select id="new-position-select" value="">
+          <select id="new-position-select" value="" title="Override target position for sub">
             <option value="">[Keep existing]</option>
             ${map(
               allPositions,
@@ -199,7 +214,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     `;
   }
 
-  private getConfirmSwap() {
+  private renderConfirmSwap() {
     if (!this.proposedSwap) {
       return nothing;
     }
@@ -217,7 +232,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     `;
   }
 
-  private getSubErrors() {
+  private renderSubErrors() {
     if (!this.invalidSubs?.length) {
       return nothing;
     }
@@ -269,6 +284,9 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   @state()
   private eventData?: EventCollectionData;
 
+  @state()
+  private eventsSelectedIds: string[] = [];
+
   @query('lineup-player-list[mode="next"]')
   private nextPlayerList!: LineupPlayerList;
 
@@ -276,7 +294,10 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   private timerTrigger = new SynchronizedTriggerController(this, 10000);
   private timerNotifier = new SynchronizedTimerNotifier();
 
-  protected timerContext = new ContextProvider(this, synchronizedTimerContext, this.timerNotifier);
+  protected timerContext = new ContextProvider(this, {
+    context: synchronizedTimerContext,
+    initialValue: this.timerNotifier,
+  });
 
   public requestTimerUpdate() {
     this.timerNotifier.notifyTimers();
@@ -288,9 +309,12 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   }
 
   // Protected as a workaround for "not read" TS error.
-  protected playerResolver = new ContextProvider(this, playerResolverContext, {
-    getPlayer: (playerId) => {
-      return this._findPlayer(playerId);
+  protected playerResolver = new ContextProvider(this, {
+    context: playerResolverContext,
+    initialValue: {
+      getPlayer: (playerId) => {
+        return this._findPlayer(playerId);
+      },
     },
   });
 
@@ -322,6 +346,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     const clock = this._game.clock;
     if (clock) {
       this.clockData = clock.timer;
+      // TODO: This line causes multiple update warning
       this.clockPeriodData = {
         currentPeriod: clock.currentPeriod,
         periodLength: clock.periodLength,
@@ -339,6 +364,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
     const trackerMaps = state.live.shift?.trackerMaps;
     this.trackerData = trackerMaps ? trackerMaps[this._game.id] : undefined;
     this.eventData = selectGameEvents(state, this._game.id);
+    this.eventsSelectedIds = selectEventsSelected(state) ?? [];
     this.timerTrigger.isRunning = !!this.trackerData?.clockRunning;
   }
 
@@ -404,6 +430,22 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
 
   private completeGame() {
     this.dispatch(gameCompleted(this._game!.id));
+  }
+
+  private toggleEventSelected(e: EventSelectedEvent) {
+    this.dispatch(eventSelected(this._game!.id, e.detail.eventId, e.detail.selected));
+  }
+
+  private updateEvents(e: EventsUpdatedEvent) {
+    this.dispatch(
+      eventUpdateRequested(
+        this._game!.id,
+        e.detail.updatedEventIds,
+        e.detail.useExistingTime,
+        e.detail.existingEventId,
+        e.detail.customTime,
+      ),
+    );
   }
 
   private _findPlayer(playerId: string) {

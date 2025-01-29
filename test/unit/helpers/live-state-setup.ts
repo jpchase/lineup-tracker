@@ -4,6 +4,7 @@ import { TimerData } from '@app/models/clock.js';
 import { FormationType } from '@app/models/formation.js';
 import {
   AllSetupSteps,
+  GameEventCollection,
   LiveClock,
   LiveGame,
   LivePlayer,
@@ -12,7 +13,7 @@ import {
   SetupSteps,
   SetupTask,
 } from '@app/models/live.js';
-import { EVENTS_INITIAL_STATE } from '@app/slices/live/events-slice.js';
+import { EVENTS_INITIAL_STATE, EventState } from '@app/slices/live/events-slice.js';
 import { LIVE_GAME_INITIAL_STATE, LiveState } from '@app/slices/live/live-slice.js';
 import { SHIFT_INITIAL_STATE, ShiftState } from '@app/slices/live/shift-slice.js';
 import { buildRunningTimer, buildStoppedTimer } from './test-clock-data.js';
@@ -21,7 +22,9 @@ import { buildPlayerTrackerMap } from './test-shift-data.js';
 
 const CLOCK_INITIAL_STATE: LiveClock = {
   timer: undefined,
+  gameStartDate: undefined,
   currentPeriod: 0,
+  periodStartTime: undefined,
   periodStatus: PeriodStatus.Pending,
   totalPeriods: 2,
   periodLength: 45,
@@ -119,6 +122,17 @@ export function buildShiftWithTrackersFromGame(
   keepExistingStatus?: boolean,
 ): ShiftState {
   return buildShiftWithTrackers(game.id, game.players, keepExistingStatus);
+}
+
+export function buildEventState(
+  gameEvents: GameEventCollection,
+  eventsSelectedIds?: string[],
+): EventState {
+  return {
+    ...EVENTS_INITIAL_STATE,
+    events: { [gameEvents.id]: gameEvents.toJSON() },
+    eventsSelectedIds,
+  };
 }
 
 export function buildShiftWithTrackers(
