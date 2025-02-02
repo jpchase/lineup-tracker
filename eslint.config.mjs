@@ -1,6 +1,7 @@
 /** @format */
 
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import prettierConfig from 'eslint-config-prettier';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,6 +18,7 @@ const compat = new FlatCompat({
 
 export default [
   {
+    name: 'main-ignores',
     ignores: [
       '**/build/',
       '**/coverage/',
@@ -25,21 +27,27 @@ export default [
       '**/dist/',
       '**/reports/',
       '**/.tmp',
+      'src/**/*.js',
+      'test/**/*.js',
       // Temporary exclusions, to get linting working without errors
       '**/index.html',
       '**/local.index.html',
       'src/lineup-*.html',
+      'src/shared-styles.html',
     ],
   },
-  ...compat.extends('@open-wc', 'prettier').map((config) => ({
+  ...compat.extends('@open-wc').map((config) => ({
     ...config,
     files: ['**/*.ts', '**/*.html'],
   })),
+  // Turns off rules that conflict with Prettier
+  prettierConfig,
   {
+    name: 'main-config',
     files: ['**/*.ts', '**/*.html'],
 
     plugins: {
-      '@typescript-eslint': typescriptEslint,
+      '@typescript-eslint': tsPlugin,
     },
 
     linterOptions: {
@@ -114,6 +122,7 @@ export default [
       ],
 
       'prefer-destructuring': 'off',
+
       // Typescript overrides of built-in rules.
       'import/named': 'off',
       'no-shadow': 'off',
@@ -144,6 +153,7 @@ export default [
   },
   {
     // Only allow imports from the index of each slice, not internal files.
+    name: 'slice-imports',
     files: ['src/+(app|components|middleware|models|storage|util)/**/*.ts', 'src/*.ts'],
 
     rules: {
@@ -163,6 +173,7 @@ export default [
   },
   {
     // Components often need to import other components twice, once for the side-effect.
+    name: 'components-side-effect-imports',
     files: ['src/components/*.ts', 'test/unit/components/*.test.ts'],
 
     rules: {
@@ -170,6 +181,7 @@ export default [
     },
   },
   {
+    name: 'visual-integration-tests',
     files: ['test/integration/visual.ts'],
 
     rules: {
@@ -178,6 +190,7 @@ export default [
   },
   {
     // TODO: Refactor test loops/generation to avoid these lint rules
+    name: 'temp-player-card-tests',
     files: ['test/unit/components/lineup-player-card.test.ts'],
 
     rules: {
@@ -187,6 +200,7 @@ export default [
   },
   {
     // TODO: Remove after upgrading to new mwc form fields
+    name: 'temp-game-setup-component',
     files: ['src/components/lineup-game-setup.ts'],
 
     rules: {
@@ -194,6 +208,7 @@ export default [
     },
   },
   {
+    name: 'override-use-before-define',
     files: [
       'src/models/*.ts',
       'test/unit/models/*.ts',
