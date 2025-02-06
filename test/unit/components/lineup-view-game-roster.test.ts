@@ -3,7 +3,6 @@
 import { LineupRoster } from '@app/components/lineup-roster.js';
 import '@app/components/lineup-view-game-roster.js';
 import { LineupViewGameRoster } from '@app/components/lineup-view-game-roster.js';
-import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { Player } from '@app/models/player.js';
 import { actions as gameActions } from '@app/slices/game/game-slice.js';
@@ -11,9 +10,10 @@ import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { Fab } from '@material/mwc-fab';
-import { expect, fixture, html, nextFrame } from '@open-wc/testing';
+import { aTimeout, expect, fixture, html, nextFrame } from '@open-wc/testing';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import sinon from 'sinon';
+import { ActionLogger } from '../helpers/action-logger.js';
 import {
   buildGameStateWithCurrentGame,
   buildInitialGameState,
@@ -29,12 +29,6 @@ import {
 } from '../helpers/test_data.js';
 
 const { gamePlayerAdded } = gameActions;
-
-let actions: string[] = [];
-const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
-  actions.push(action);
-  return next(action);
-};
 
 function getGameWithRosterPlayers(): GameDetail {
   return getNewGameDetail(buildRoster([getStoredPlayer()]));
@@ -54,16 +48,15 @@ function buildSignedInState(game?: GameDetail): RootState {
 describe('lineup-view-game-roster tests', () => {
   let el: LineupViewGameRoster;
   let dispatchStub: sinon.SinonSpy;
+  let actionLogger: ActionLogger;
 
   beforeEach(async () => {
-    sinon.restore();
-    // readerStub = sinon.stub<typeof reader>(reader);
-    actions = [];
-    addMiddleware(actionLoggerMiddleware);
+    actionLogger = new ActionLogger();
+    actionLogger.setup();
   });
 
   afterEach(async () => {
-    // removeMiddleware(actionLoggerMiddleware);
+    sinon.restore();
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string) {
@@ -248,7 +241,7 @@ describe('lineup-view-game-roster tests', () => {
     saveButton.click();
 
     // Allow promises to resolve, in the persistence of the player.
-    await nextFrame();
+    await Promise.race([nextFrame(), aTimeout(10)]);
 
     // Verifies that the add player action was dispatched.
     expect(dispatchStub).to.have.been.called;
@@ -260,7 +253,6 @@ describe('lineup-view-game-roster tests', () => {
       status: playerData.status,
       positions: [],
     } as Player;
-    expect(actions).to.have.lengthOf.at.least(1);
-    expect(actions[actions.length - 1]).to.deep.include(gamePlayerAdded(game.id, expectedPlayer));
+    expect(actionLogger.lastAction()).to.deep.include(gamePlayerAdded(game.id, expectedPlayer));
   });
 });

@@ -227,8 +227,6 @@ export class LineupGameEvents extends LitElement {
   private renderEditDialog(timeFormatter: TimeFormatter) {
     const selectionCount = this.selectedItems.length;
     if (!selectionCount) {
-      // eslint-disable-next-line no-console
-      console.log(`RED: no selected items`);
       return nothing;
     }
 

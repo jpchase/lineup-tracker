@@ -9,7 +9,7 @@ import {
 import { Team } from '@app/models/team.js';
 import { Button } from '@material/mwc-button';
 import { ListItem } from '@material/mwc-list/mwc-list-item';
-import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
+import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import { buildTeams } from '../helpers/test_data.js';
 
 const TEAMS: Team[] = [
@@ -65,7 +65,7 @@ describe('lineup-team-selector-dialog tests', () => {
     }
     const teamListItem = teamElement as ListItem;
     teamListItem.selected = true;
-    await nextFrame();
+    await Promise.race([nextFrame(), aTimeout(10)]);
     return teamListItem;
   }
 
@@ -133,7 +133,7 @@ describe('lineup-team-selector-dialog tests', () => {
 
     setTimeout(() => teamElement.click());
     await oneEvent(teamElement, 'click');
-    await nextFrame();
+    await Promise.race([nextFrame(), aTimeout(10)]);
 
     expect(
       teamElement.hasAttribute('selected'),
@@ -187,7 +187,7 @@ describe('lineup-team-selector-dialog tests', () => {
     populateDialog(selectedTeamId);
     await el.show();
 
-    selectTeamItem(selectedTeamId);
+    await selectTeamItem(selectedTeamId);
 
     const selectButton = getSelectButton();
     expect(selectButton.disabled, 'Select button should be disabled').to.be.true;

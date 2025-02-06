@@ -2,7 +2,6 @@
 
 import { LineupViewRoster } from '@app/components/lineup-view-roster';
 import '@app/components/lineup-view-roster.js';
-import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { Player, Roster } from '@app/models/player.js';
 import { Team, Teams } from '@app/models/team.js';
 import { currentTeamChanged } from '@app/slices/app/index.js';
@@ -12,8 +11,9 @@ import { writer } from '@app/storage/firestore-writer.js';
 import { RootState, store } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { Fab } from '@material/mwc-fab';
-import { expect, fixture, html, nextFrame } from '@open-wc/testing';
+import { aTimeout, expect, fixture, html, nextFrame } from '@open-wc/testing';
 import sinon from 'sinon';
+import { ActionLogger } from '../helpers/action-logger.js';
 import { buildAppStateWithCurrentTeam } from '../helpers/app-state-setup.js';
 import { buildTeamStateWithTeams } from '../helpers/team-state-setup.js';
 import {
@@ -28,12 +28,6 @@ import {
 
 const { addPlayer } = teamActions;
 
-let actions: string[] = [];
-const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
-  actions.push(action);
-  return next(action);
-};
-
 function buildSignedInState(currentTeam?: Team, teams?: Teams, roster?: Roster): RootState {
   const state = {
     app: buildAppStateWithCurrentTeam(currentTeam!),
@@ -47,16 +41,16 @@ describe('lineup-view-roster tests', () => {
   let el: LineupViewRoster;
   let dispatchStub: sinon.SinonSpy;
   let readerStub: sinon.SinonStubbedInstance<typeof reader>;
+  let actionLogger: ActionLogger;
 
   beforeEach(async () => {
-    sinon.restore();
     readerStub = sinon.stub<typeof reader>(reader);
-    actions = [];
-    addMiddleware(actionLoggerMiddleware);
+    actionLogger = new ActionLogger();
+    actionLogger.setup();
   });
 
   afterEach(async () => {
-    // removeMiddleware(actionLoggerMiddleware);
+    sinon.restore();
   });
 
   async function setupElement(preloadedState?: RootState) {
@@ -191,7 +185,7 @@ describe('lineup-view-roster tests', () => {
     saveButton.click();
 
     // Allow promises to resolve, in the persistence of the player.
-    await nextFrame();
+    await Promise.race([nextFrame(), aTimeout(10)]);
 
     // Verifies that the add player action was dispatched.
     expect(dispatchStub).to.have.been.called;
@@ -203,7 +197,6 @@ describe('lineup-view-roster tests', () => {
       status: playerData.status,
       positions: [],
     } as Player;
-    expect(actions).to.have.lengthOf.at.least(1);
-    expect(actions[actions.length - 1]).to.deep.include(addPlayer(expectedPlayer));
+    expect(actionLogger.lastAction()).to.deep.include(addPlayer(expectedPlayer));
   });
 });

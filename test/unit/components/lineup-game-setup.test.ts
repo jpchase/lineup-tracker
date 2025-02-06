@@ -6,7 +6,6 @@ import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard, PositionSelectedEvent } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { PageRouter } from '@app/components/page-router.js';
-import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
 import { FormationBuilder, FormationType, getPositions } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import {
@@ -24,6 +23,7 @@ import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { aTimeout, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
+import { ActionLogger } from '../helpers/action-logger.js';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import { buildLiveStateWithCurrentGame, buildSetupTasks } from '../helpers/live-state-setup.js';
 import { mockPageRouter } from '../helpers/mock-page-router.js';
@@ -49,12 +49,6 @@ const {
   selectStarterPosition,
   startersCompleted,
 } = liveActions;
-
-let actions: string[] = [];
-const actionLoggerMiddleware = (/* api */) => (next: any) => (action: any) => {
-  actions.push(action);
-  return next(action);
-};
 
 interface TestSetupTask extends SetupTask {
   expectedName?: string;
@@ -111,16 +105,15 @@ function findPlayer(game: LiveGame, status: PlayerStatus) {
 describe('lineup-game-setup tests', () => {
   let el: LineupGameSetup;
   let dispatchStub: sinon.SinonSpy;
+  let actionLogger: ActionLogger;
 
   beforeEach(async () => {
-    sinon.restore();
-
-    actions = [];
-    addMiddleware(actionLoggerMiddleware);
+    actionLogger = new ActionLogger();
+    actionLogger.setup();
   });
 
   afterEach(async () => {
-    // removeMiddleware(actionLoggerMiddleware);
+    sinon.restore();
   });
 
   async function setupElement(preloadedState?: RootState, gameId?: string): Promise<PageRouter> {
@@ -486,8 +479,7 @@ describe('lineup-game-setup tests', () => {
       // Verifies that the start game action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
 
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(gameSetupCompleted(newGame.id, liveGame));
+      expect(actionLogger.lastAction()).to.deep.include(gameSetupCompleted(newGame.id, liveGame));
     });
   }); // describe('complete setup')
 
@@ -536,8 +528,7 @@ describe('lineup-game-setup tests', () => {
       // Verifies that the player selected action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
 
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(selectStarter(gameId, player.id, true));
+      expect(actionLogger.lastAction()).to.deep.include(selectStarter(gameId, player.id, true));
     });
 
     it('dispatches starter position selected action when card in formation selected', async () => {
@@ -550,8 +541,7 @@ describe('lineup-game-setup tests', () => {
       // Verifies that the position selected action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
 
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(
+      expect(actionLogger.lastAction()).to.deep.include(
         selectStarterPosition(gameId, playerElement.data!.position),
       );
     });
@@ -614,8 +604,7 @@ describe('lineup-game-setup tests', () => {
       // Verifies that the apply starter action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
 
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(applyStarter(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(applyStarter(gameId));
     });
 
     it('dispatches cancel starter action when cancelled', async () => {
@@ -639,8 +628,7 @@ describe('lineup-game-setup tests', () => {
       // Verifies that the cancel starter action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
 
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(cancelStarter(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(cancelStarter(gameId));
     });
 
     it('shows errors when all starter positions are empty', async () => {
@@ -724,8 +712,7 @@ describe('lineup-game-setup tests', () => {
       // Verifies that the configure periods action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
 
-      expect(actions).to.have.lengthOf.at.least(1);
-      expect(actions[actions.length - 1]).to.deep.include(configurePeriods(gameId, 3, 25));
+      expect(actionLogger.lastAction()).to.deep.include(configurePeriods(gameId, 3, 25));
     });
 
     it.skip('shows errors when period fields are invalid', async () => {
