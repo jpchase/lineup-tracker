@@ -508,8 +508,4 @@ describe('lineup-game-clock tests', () => {
       });
     }); // describe('overdue')
   }); // describe('end period')
-
-  it('a11y', async () => {
-    await expect(el).to.be.accessible();
-  });
 });

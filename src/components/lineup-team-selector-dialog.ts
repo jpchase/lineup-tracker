@@ -40,7 +40,7 @@ export class LineupTeamSelectorDialog extends LitElement {
           ${hasTeams
             ? html`
                 <mwc-list activatable @selected="${this.listSelected}">
-                  ${this.getTeamListItems(teamList)}
+                  ${this.renderTeamListItems(teamList)}
                 </mwc-list>
               `
             : html` <p class="empty-list">No teams created.</p> `}
@@ -53,7 +53,7 @@ export class LineupTeamSelectorDialog extends LitElement {
     `;
   }
 
-  private getTeamListItems(teamList: Team[]) {
+  private renderTeamListItems(teamList: Team[]) {
     teamList.sort((a, b) => a.name.localeCompare(b.name));
     return teamList.map((team) => {
       const isCurrentTeam = team.id === this.teamId;
@@ -86,7 +86,8 @@ export class LineupTeamSelectorDialog extends LitElement {
   async show() {
     this.clearSelection();
     this.dialog!.show();
-    await this.requestUpdate();
+    this.requestUpdate();
+    await this.updateComplete;
   }
 
   private dialogClosed(e: CustomEvent) {

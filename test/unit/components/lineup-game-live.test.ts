@@ -27,7 +27,7 @@ import {
 import { actions as liveActions } from '@app/slices/live/live-slice.js';
 import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
-import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
+import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
 import { ActionLogger } from '../helpers/action-logger.js';
 import {
@@ -223,7 +223,7 @@ describe('lineup-game-live tests', () => {
 
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();
-  });
+  }).timeout(3000); // The accessibility check often takes > 2s.
 
   describe('Subs', () => {
     const ON_PLAYER_ID = 'P0';
@@ -1060,7 +1060,7 @@ describe('lineup-game-live tests', () => {
         }),
       );
 
-      await nextFrame();
+      await Promise.race([nextFrame(), aTimeout(10)]);
 
       // Verifies that the event selected action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
