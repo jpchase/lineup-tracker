@@ -13,15 +13,15 @@ import {
   updateDoc,
   WithFieldValue,
 } from 'firebase/firestore';
-import { debug, debugError } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
 import { Model } from '../models/model.js';
 import { selectCurrentTeam } from '../slices/app/index.js';
 import { selectCurrentUserId } from '../slices/auth/index.js';
 import { RootState } from '../store.js';
+import { logger } from '../util/logger.js';
 import { ModelWriter } from './model-converter.js';
 
-const debugFirestore = debug('firestore');
+const debugFirestore = logger('firestore');
 
 export interface NewDocOptions {
   addTeamId?: boolean;
@@ -115,7 +115,7 @@ async function saveNewDocument<T extends Model>(
   try {
     await setDoc(document, model);
   } catch (reason: any) {
-    debugError(`saveNewDocument: failed - ${reason}`);
+    debugFirestore(`saveNewDocument: failed - ${reason}`);
   }
 
   debugFirestore(`saveNewDocument: after, document[${document.id}] = ${JSON.stringify(document)}`);

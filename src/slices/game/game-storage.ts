@@ -1,13 +1,13 @@
 /** @format */
 
 import { DocumentData } from 'firebase/firestore';
-import { debug } from '../../common/debug.js';
 import { Game, Games } from '../../models/game.js';
 import { Player, Roster } from '../../models/player.js';
 import { CollectionFilter, reader, whereFilter } from '../../storage/firestore-reader.js';
 import { NewDocOptions, writer } from '../../storage/firestore-writer.js';
 import { ModelReader } from '../../storage/model-converter.js';
 import { RootState } from '../../store.js';
+import { logger } from '../../util/logger.js';
 import { playerConverter } from '../player/player-storage.js';
 
 const FIELD_OWNER = 'owner_uid';
@@ -16,7 +16,7 @@ const FIELD_TEAMID = 'teamId';
 const KEY_GAMES = 'games';
 const KEY_ROSTER = 'roster';
 
-const debugStorage = debug('game-storage');
+const debugStorage = logger('game-storage');
 
 const gameConverter: ModelReader<Game> = {
   fromDocument: (id: string, data: DocumentData): Game => {

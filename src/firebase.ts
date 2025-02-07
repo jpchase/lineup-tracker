@@ -15,9 +15,9 @@ import {
   initializeFirestore,
 } from 'firebase/firestore';
 import { getEnv } from './app/environment.js';
-import { debug } from './common/debug.js';
+import { logger } from './util/logger.js';
 
-const debugFirebase = debug('firebase');
+const debugFirebase = logger('firebase');
 
 const env = getEnv();
 

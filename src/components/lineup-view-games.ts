@@ -3,12 +3,12 @@
 import '@material/mwc-fab';
 import { html } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
-import { debug } from '../common/debug.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { Game, Games } from '../models/game.js';
 import { selectCurrentTeam } from '../slices/app/index.js';
 import { addNewGame, getGameSliceConfigurator, getGames } from '../slices/game/index.js';
 import { RootState } from '../store.js';
+import { logger } from '../util/logger.js';
 import './lineup-game-create.js';
 import { GameCreatedEvent, LineupGameCreate } from './lineup-game-create.js';
 import './lineup-game-list.js';
@@ -16,7 +16,7 @@ import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 import { SignedInAuthController } from './util/auth-controller.js';
 
-const debugGames = debug('view-games');
+const debugGames = logger('view-games');
 
 @customElement('lineup-view-games')
 export class LineupViewGames extends ConnectStoreMixin(AuthorizedViewElement) {

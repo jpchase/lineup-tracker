@@ -2,16 +2,16 @@
 
 import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
+  User as FirebaseUser,
   GoogleAuthProvider,
   signInWithCredential,
-  User as FirebaseUser,
   UserCredential,
 } from 'firebase/auth';
 import { getEnv } from '../../app/environment.js';
-import { debug } from '../../common/debug.js';
 import { auth as authApi, firebaseRefs } from '../../firebase.js';
 import { User } from '../../models/auth.js';
 import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
+import { logger } from '../../util/logger.js';
 
 export interface AuthState {
   user?: User;
@@ -24,7 +24,7 @@ const INITIAL_STATE: AuthState = {
 };
 
 const env = getEnv();
-const debugAuth = debug('auth');
+const debugAuth = logger('auth');
 
 export const getUser = (): ThunkPromise<boolean> => (dispatch) => {
   // Return a promise that resolves once the auth state is known, via callback.

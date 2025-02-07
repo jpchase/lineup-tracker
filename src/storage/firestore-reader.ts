@@ -17,12 +17,12 @@ import {
   WhereFilterOp,
   WithFieldValue,
 } from 'firebase/firestore';
-import { debug } from '../common/debug.js';
 import { firebaseRefs } from '../firebase.js';
 import { Model, ModelCollection } from '../models/model.js';
+import { logger } from '../util/logger.js';
 import { ModelReader } from './model-converter.js';
 
-const debugFirestore = debug('firestore');
+const debugFirestore = logger('firestore');
 
 export interface CollectionFilter {
   field: string;

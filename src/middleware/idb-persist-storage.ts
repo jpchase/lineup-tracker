@@ -1,10 +1,10 @@
 /** @format */
 
 import { WebStorage } from 'redux-persist';
-import { debug } from '../common/debug.js';
 import { idb } from '../storage/idb-wrapper.js';
+import { logger } from '../util/logger.js';
 
-const debugPersist = debug('persist');
+const debugPersist = logger('persist');
 
 export class IdbPersistStorage implements WebStorage {
   getItem(key: string) {
