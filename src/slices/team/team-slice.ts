@@ -1,12 +1,12 @@
 /** @format */
 
 import { createAsyncThunk, createSlice, PayloadAction, type WithSlice } from '@reduxjs/toolkit';
-import { debug } from '../../common/debug.js';
 import { buildSliceConfigurator, SliceConfigurator } from '../../middleware/slice-configurator.js';
 import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
 import { CollectionFilter, whereFilter } from '../../storage/firestore-reader.js';
 import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
+import { logger } from '../../util/logger.js';
 import { selectCurrentTeam } from '../app/app-slice.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from './team-storage.js';
@@ -14,7 +14,7 @@ import { loadTeamRoster, loadTeams, persistTeam, savePlayerToTeamRoster } from '
 const FIELD_OWNER = 'owner_uid';
 const FIELD_PUBLIC = 'public';
 
-const debugTeam = debug('team');
+const debugTeam = logger('team');
 
 export const getTeams = createAsyncThunk<
   // Return type of the payload creator

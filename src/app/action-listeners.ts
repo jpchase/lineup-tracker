@@ -1,13 +1,13 @@
 /** @format */
 
 import { createListenerMiddleware, TypedStartListening, Unsubscribe } from '@reduxjs/toolkit';
-import { debug } from '../common/debug.js';
 import { currentTeamChanged } from '../slices/app/index.js';
 import { userSignedIn } from '../slices/auth/index.js';
 import type { AppDispatch, RootState } from '../store.js';
+import { logger } from '../util/logger.js';
 import { getEnv } from './environment.js';
 
-const debugListeners = debug('listeners');
+const debugListeners = logger('listeners');
 const env = getEnv();
 
 export type AppStartListening = TypedStartListening<RootState, AppDispatch>;

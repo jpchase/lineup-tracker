@@ -223,7 +223,7 @@ describe('lineup-game-live tests', () => {
 
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();
-  }).timeout(3000); // The accessibility check often takes > 2s.
+  }).timeout(4000); // The accessibility check often takes > 2s.
 
   describe('Subs', () => {
     const ON_PLAYER_ID = 'P0';

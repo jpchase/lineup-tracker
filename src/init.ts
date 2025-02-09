@@ -1,11 +1,11 @@
 /** @format */
 
 import { setupAuthListeners, startAppListening } from './app/action-listeners.js';
-import { debug } from './common/debug.js';
 import { getUser } from './slices/auth/index.js';
 import { store } from './store.js';
+import { logger } from './util/logger.js';
 
-const debugInit = debug('initApp');
+const debugInit = logger('initApp');
 let globalErrorHandler = false;
 let appInitialized = false;
 

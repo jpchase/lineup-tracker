@@ -1,10 +1,10 @@
 /** @format */
 
 import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { logger } from '@app/util/logger.js';
 import { Middleware, UnknownAction } from '@reduxjs/toolkit';
-import { debug } from '@app/common/debug.js';
 
-const debugActions = debug('ActionLogger');
+const debugActions = logger('ActionLogger');
 
 type LoggerMiddleware = Middleware<any, any, any>;
 

@@ -2,7 +2,6 @@
 
 import { PayloadAction, Unsubscribe, createSlice } from '@reduxjs/toolkit';
 import { AppStartListening } from '../../app/action-listeners.js';
-import { debug } from '../../common/debug.js';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
 import {
@@ -20,6 +19,7 @@ import {
   isGamePlayerEvent,
 } from '../../models/live.js';
 import { RootState } from '../../store.js';
+import { logger } from '../../util/logger.js';
 import {
   EventSelectedPayload,
   EventUpdateRequestedPayload,
@@ -31,7 +31,7 @@ import { actions } from './live-slice.js';
 
 const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
 
-const debugEvents = debug('events');
+const debugEvents = logger('events');
 
 export interface EventsMap {
   [index: string]: EventCollectionData<GameEvent>;

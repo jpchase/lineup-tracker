@@ -3,9 +3,9 @@
 import { Reducer, StoreEnhancer, Unsubscribe, nanoid } from '@reduxjs/toolkit';
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { AppStartListening, startAppListening } from '../app/action-listeners.js';
-import { debug } from '../common/debug.js';
 import { rootReducer } from '../slices/reducer.js';
 import { AppStore } from '../store.js';
+import { logger } from '../util/logger.js';
 import { IdbPersistStorage } from './idb-persist-storage.js';
 
 export interface SliceConfig {
@@ -46,7 +46,7 @@ export function buildSliceConfigurator<State>(
   slice: SliceLike<State>,
   persistConfig?: Partial<PersistConfig<State>>,
 ): SliceConfigurator {
-  const debugConfig = debug(`config[${slice.name}]`);
+  const debugConfig = logger(`config[${slice.name}]`);
 
   function initReducer(store: AppStore, hydrate: boolean) {
     let reducer;

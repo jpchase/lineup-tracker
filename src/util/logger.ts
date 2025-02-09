@@ -1,11 +1,8 @@
 /** @format */
 
-// import debug_package from 'debug';
-
 const isNode = !!(typeof process !== 'undefined' && process.version);
 
-export const debug = (prefix: string): ((...args: unknown[]) => void) => {
-  // return debug_package(`lineup:${prefix}`);
+export const logger = (prefix: string): ((...args: unknown[]) => void) => {
   if (isNode) {
     // eslint-disable-next-line global-require
     return require('debug')(`lineup:${prefix}`);
@@ -14,4 +11,4 @@ export const debug = (prefix: string): ((...args: unknown[]) => void) => {
   return (...logArgs: unknown[]): void => console.log(`lineup:${prefix}:`, ...logArgs);
 };
 
-export const debugError = debug('error');
+export const logError = logger('error');
