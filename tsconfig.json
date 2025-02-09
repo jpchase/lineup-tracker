@@ -4,12 +4,10 @@
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "lib": [
-      "es2017",
-      "dom"
-    ],
+    "lib": ["es2017", "dom"],
     "strict": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
@@ -21,9 +19,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@app/*": [
-        "src/*"
-      ]
+      "@app/*": ["src/*"]
     },
     "plugins": [
       {
@@ -31,10 +27,6 @@
       }
     ]
   },
-  "include": [
-    "config.json.d.ts",
-    "src/**/*.ts",
-    "test/**/*.ts"
-  ],
-  "exclude": [],
+  "include": ["config.json.d.ts", "src/**/*.ts", "test/**/*.ts"],
+  "exclude": []
 }

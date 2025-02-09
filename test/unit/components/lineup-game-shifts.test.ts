@@ -78,7 +78,7 @@ describe('lineup-game-shifts tests', () => {
     }
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();
-  });
+  }).timeout(4000); // The accessibility check may take > 2s.
 
   it('updates shift times when clock is running', async () => {
     mockCurrentTime(startTime);
