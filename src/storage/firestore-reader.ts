@@ -72,7 +72,7 @@ function loadCollection<T extends Model, C extends ModelCollection<T>>(
     const constraints = filters.map((filter) => {
       return where(filter.field, filter.operator as WhereFilterOp, filter.value);
     });
-    queryRef = query<T>(collectionRef, ...constraints);
+    queryRef = query<T, DocumentData>(collectionRef, ...constraints);
   }
 
   debugFirestore(`loadCollection for [${collectionPath}]: filter = ${JSON.stringify(filters)}`);
