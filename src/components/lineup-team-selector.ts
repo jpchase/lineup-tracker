@@ -5,6 +5,7 @@ import '@material/mwc-list';
 import '@material/mwc-list/mwc-list-item.js';
 import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { Team } from '../models/team.js';
 import { SharedStyles } from './shared-styles.js';
 
@@ -37,6 +38,7 @@ export class LineupTeamSelector extends LitElement {
       </style>
       <mwc-button
         id="team-switcher-button"
+        data-team-id="${ifDefined(this.currentTeam?.id)}"
         icon="arrow_drop_down"
         trailingicon
         aria-label="${this.getTeamLabel()}"

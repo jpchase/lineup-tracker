@@ -3,22 +3,18 @@
 import { consume } from '@lit/context';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { connect } from 'pwa-helpers/connect-mixin.js';
+import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { addNewTeam, getTeamSliceConfigurator } from '../slices/team/index.js';
-import { store } from '../store.js';
 import './lineup-team-create.js';
 import { NewTeamCreatedEvent } from './lineup-team-create.js';
 import { PageRouter, pageRouterContext } from './page-router.js';
-import { PageViewElement } from './page-view-element.js';
+import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
-
-// We are lazy loading its reducer.
-const teamConfigurator = getTeamSliceConfigurator();
-teamConfigurator(store);
+import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-team-create')
-export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
-  override render() {
+export class LineupViewTeamCreate extends ConnectStoreMixin(AuthorizedViewElement) {
+  override renderView() {
     return html`
       ${SharedStyles}
       <section>
@@ -32,8 +28,22 @@ export class LineupViewTeamCreate extends connect(store)(PageViewElement) {
   @property({ attribute: false })
   pageRouter!: PageRouter;
 
+  constructor() {
+    super();
+    this.registerSliceConfigurator(getTeamSliceConfigurator());
+    this.registerController(new SignedInAuthController(this));
+  }
+
+  protected override isReadyOnAuthorization(): boolean {
+    return true;
+  }
+
+  protected override getAuthorizedDescription(): string {
+    return 'create a new team';
+  }
+
   private newTeamCreated(e: NewTeamCreatedEvent) {
-    store.dispatch(addNewTeam(e.detail.team));
+    this.dispatch(addNewTeam(e.detail.team));
     // TODO: Pass page and params separately
     this.pageRouter.gotoPage(`/viewHome`);
   }

@@ -14,6 +14,7 @@ import { getEnv } from '../../../src/app/environment.js';
 import { Game, GameDetail } from '../../../src/models/game.js';
 import { Model, ModelCollection } from '../../../src/models/model.js';
 import { Player, PlayerStatus, Roster } from '../../../src/models/player.js';
+import { Team } from '../../../src/models/team.js';
 // import { gameConverter } from '../../../src/slices/game/game-storage.js'
 import { NewDocOptions } from '../../../src/storage/firestore-writer.js';
 import { ModelConverter, ModelReader, ModelWriter } from '../../../src/storage/model-converter.js';
@@ -23,6 +24,7 @@ export { Firestore, getFirestore } from 'firebase-admin/firestore';
 
 const KEY_GAMES = 'games';
 const KEY_ROSTER = 'roster';
+const KEY_TEAMS = 'teams';
 
 // import { buildGamePath, gameConverter } from '@app/slices/game/game-storage.js'
 function buildGamePath(gameId: string) {
@@ -31,6 +33,10 @@ function buildGamePath(gameId: string) {
 
 function buildGameRosterPath(gameId: string) {
   return `${buildGamePath(gameId)}/${KEY_ROSTER}`;
+}
+
+function buildTeamPath(teamId: string) {
+  return `${KEY_TEAMS}/${teamId}`;
 }
 
 class ReaderConverter<T extends Model> implements FirestoreDataConverter<T> {
@@ -124,6 +130,12 @@ const playerConverter: ModelConverter<Player> = {
   },
 };
 
+const teamConverter: ModelReader<Team> = {
+  fromDocument: (id: string, data: DocumentData) => {
+    return { id, name: data.name };
+  },
+};
+
 export function getFirestoreUrl(projectId: string, databaseName?: string) {
   const database = databaseName || '(default)';
   return `/projects/${projectId}/databases/${database}/documents/cities/LA`;
@@ -146,6 +158,10 @@ export function createAdminApp(): App {
     credential: applicationDefault(),
   });
   return adminApp;
+}
+
+export async function readTeam(firestore: Firestore, teamId: string): Promise<Team> {
+  return getDocument(firestore, buildTeamPath(teamId), teamConverter);
 }
 
 export async function readGame(firestore: Firestore, gameId: string): Promise<Game> {

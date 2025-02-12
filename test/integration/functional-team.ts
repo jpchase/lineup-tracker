@@ -2,12 +2,20 @@
 
 import { expect } from 'chai';
 import { integrationTestData } from './data/integration-data-constants.js';
+import { HomePage } from './pages/home-page.js';
 import { PageObject } from './pages/page-object.js';
 import { TeamCreatePage } from './pages/team-create-page.js';
+import { createAdminApp, Firestore, getFirestore, readTeam } from './server/firestore-access.js';
 // import { TeamRosterPage } from './pages/team-roster-page';
 
 describe('Team functional tests', () => {
+  let firestore: Firestore;
   let pageObject: PageObject;
+
+  before(async () => {
+    const firebaseApp = createAdminApp();
+    firestore = getFirestore(firebaseApp);
+  });
 
   afterEach(async () => {
     await pageObject?.close();
@@ -21,18 +29,22 @@ describe('Team functional tests', () => {
     await addTeamPage.init();
     await addTeamPage.open({ signIn: true });
 
-    await addTeamPage.fillTeamDetails('A functional team');
-    await addTeamPage.saveNewTeam();
+    const newTeamName = `A functional team [${Math.floor(Math.random() * 1000)}]`;
 
-    // Verifies that the new team is created and set as the current team.
+    const createComponent = await addTeamPage.getCreateComponent();
+    await addTeamPage.fillTeamDetails(newTeamName, createComponent);
+    await addTeamPage.saveNewTeam(createComponent);
+
+    // Verify that the new team is created and set as the current team.
     const currentTeam = await addTeamPage.getCurrentTeam();
-    expect(currentTeam?.name).to.equal('A functional team', 'Newly-created team name');
+    expect(currentTeam?.name, 'Newly-created team name').to.equal(newTeamName);
 
-    // Verifies that the new team was saved to storage.
-    // TODO: Implement check once Firebase writes are working
+    // Verify that the new team was saved to storage.
+    const storedTeam = await readTeam(firestore, currentTeam.id!);
+    expect(storedTeam, 'New team should be saved to storage').to.deep.include(currentTeam);
 
-    // Verifies that navigated to home page after creating team.
-    // expect(pageObject.currentRoute).to.equal(HomePage.defaultRoute, 'Should navigate to home page');
+    // Verify that navigated to home page after creating team.
+    expect(pageObject.currentRoute).to.equal(HomePage.defaultRoute, 'Should navigate to home page');
   });
 
   it.skip('change current team', async () => {

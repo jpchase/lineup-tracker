@@ -333,31 +333,21 @@ export class PageObject {
     });
   }
 
-  async getCurrentTeam() {
-    // this.exposeGetTeamSelectorFunc();
-    /*
-    return await this.page.evaluate(() => {
-      // @ts-ignore
-      const teamSelector = window.getTeamSelectorComponent();
-      if (!teamSelector) { return; }
-      const selectedItem = teamSelector.selectedItem;
+  async getCurrentTeam(): Promise<{ id?: string; name: string }> {
+    const teamSelector = (await this.querySelectorInView(
+      'lineup-team-selector',
+      '#team-switcher-button',
+    )) as ElementHandle<HTMLElement>;
+    if (!teamSelector) {
+      throw new Error('Team selector not found');
+    }
+
+    return teamSelector.evaluate((selector) => {
       return {
-        id: selectedItem.id,
-        name: teamSelector.value
-      }
+        id: selector.dataset.teamId,
+        name: selector.innerText,
+      };
     });
-    */
-    return (await this.page.evaluate(`(async () => {
-  // @ts-ignore
-  const teamSelector = document.querySelector('lineup-app').shadowRoot.querySelector('lineup-team-selector').shadowRoot.querySelector('#team-switcher-button');
-  if (!teamSelector) { return; }
-  /* const selectedItem = teamSelector.selectedItem; */
-  console.log('selected: ',teamSelector,'value: ',teamSelector.innerText);
-  return {
-    id: '', // teamSelector.contentElement.selected, /* selectedItem.id,*/
-    name: teamSelector.innerText
-  }
-})()`)) as { id: string; name: string };
   }
 
   async screenshot(directory?: string): Promise<string> {

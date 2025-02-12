@@ -48,6 +48,8 @@ export declare class AuthorizedView extends PageView {
   protected renderView(): HTMLTemplateResult;
   // Description of the authorized action/content, shown when not authorized.
   protected getAuthorizedDescription(): string;
+  // View is ready when authorized, and does not load other data.
+  protected isReadyOnAuthorization(): boolean;
   // -- END: view-inherited members
 }
 
@@ -133,6 +135,9 @@ export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructo
       super.willUpdate(changedProperties);
 
       if (changedProperties.has('authorized')) {
+        if (this.isReadyOnAuthorization()) {
+          return;
+        }
         this.resetData();
         this.maybeLoadData();
       }
@@ -148,6 +153,15 @@ export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructo
       if (this.authorized) {
         super.maybeSetReady();
       }
+    }
+
+    protected override isDataReady(): boolean {
+      // For elements that override isReadyOnAuthorization to true, they
+      // should not also have to override this method.
+      // For elements that do not override isReadyOnAuthorization, this will
+      // always return false. This works as those elements that do load other
+      // data will need to override isDataReady anyways.
+      return this.isReadyOnAuthorization();
     }
 
     override render() {
@@ -199,6 +213,10 @@ export const AuthorizedViewMixin = <T extends Constructor<PageView> & Constructo
 
     protected getAuthorizedDescription(): string {
       return 'view content';
+    }
+
+    protected isReadyOnAuthorization() {
+      return false;
     }
   }
 
