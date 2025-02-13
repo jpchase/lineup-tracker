@@ -16,6 +16,7 @@ snapshots["lineup-team-selector tests renders placeholder when no current team s
 snapshots["lineup-team-selector tests a11y"] = 
 `<mwc-button
   aria-label="You are currently working with team First team id - sorts last. Hit enter to switch teams."
+  data-team-id="t1"
   icon="arrow_drop_down"
   id="team-switcher-button"
   trailingicon=""
