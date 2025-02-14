@@ -1,8 +1,8 @@
 /** @format */
 
+import { SynchronizedTimerNotifier } from '@app/components/core/synchronized-timer.js';
 import '@app/components/lineup-game-shifts.js';
 import { LineupGameShifts } from '@app/components/lineup-game-shifts.js';
-import { SynchronizedTimerNotifier } from '@app/components/synchronized-timer.js';
 import { Duration } from '@app/models/clock.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import sinon from 'sinon';

@@ -8,10 +8,10 @@ import { classMap } from 'lit/directives/class-map.js';
 import { Position, formatPosition } from '../models/formation.js';
 import { LivePlayer } from '../models/live.js';
 import { PlayerTimeTracker } from '../models/shift.js';
+import { synchronizedTimerContext } from './core/synchronized-timer.js';
+import { SynchronizedTimerController } from './core/timer-controller.js';
 import { PlayerResolver, playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
-import { synchronizedTimerContext } from './synchronized-timer.js';
-import { SynchronizedTimerController } from './timer-controller.js';
 
 export interface PlayerCardData {
   id: string;

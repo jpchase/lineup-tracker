@@ -1,7 +1,7 @@
 /** @format */
 
 import { ReactiveController, ReactiveControllerHost } from 'lit';
-import { Duration, Timer } from '../models/clock.js';
+import { Duration, Timer } from '../../models/clock.js';
 
 export class TimerController implements ReactiveController {
   host: ReactiveControllerHost;

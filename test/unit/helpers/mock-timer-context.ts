@@ -3,7 +3,7 @@
 import {
   synchronizedTimerContext,
   SynchronizedTimerNotifier,
-} from '@app/components/synchronized-timer.js';
+} from '@app/components/core/synchronized-timer.js';
 
 export function mockTimerContext(parentNode: HTMLElement, notifier: SynchronizedTimerNotifier) {
   parentNode.addEventListener('context-request', (event) => {

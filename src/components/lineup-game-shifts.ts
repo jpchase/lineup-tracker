@@ -17,8 +17,8 @@ import {
   PlayerTimeTrackerMap,
   PlayerTimeTrackerMapData,
 } from '../models/shift.js';
+import { synchronizedTimerContext } from './core/synchronized-timer.js';
 import { SharedStyles } from './shared-styles.js';
-import { synchronizedTimerContext } from './synchronized-timer.js';
 
 interface ShiftRow {
   id: string;
