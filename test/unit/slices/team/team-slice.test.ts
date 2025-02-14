@@ -3,7 +3,6 @@
 import { Player } from '@app/models/player.js';
 import { Team, TeamData } from '@app/models/team.js';
 import {
-  TEAM_INITIAL_STATE,
   TeamState,
   actions,
   addNewPlayer,
@@ -12,12 +11,17 @@ import {
   getTeams,
   savePlayer,
   saveTeam,
+  selectTeamRoster,
+  selectTeamRosterLoaded,
+  selectTeamsLoaded,
   teamSlice,
 } from '@app/slices/team/team-slice.js';
 import { reader } from '@app/storage/firestore-reader.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
+import { buildRootState } from '../../helpers/root-state-setup.js';
+import { buildInitialTeamState, buildTeamStateWithTeams } from '../../helpers/team-state-setup.js';
 import {
   MockAuthStateOptions,
   TEST_USER_ID,
@@ -102,6 +106,27 @@ describe('Team slice', () => {
   }
 
   describe('getTeams', () => {
+    let currentState: TeamState;
+
+    it('should set loading flag for pending', () => {
+      currentState = buildInitialTeamState();
+
+      const newState = team(currentState, {
+        type: getTeams.pending.type,
+      });
+
+      const newRootState = buildRootState();
+      newRootState.team = newState;
+      expect(selectTeamsLoaded(newRootState), 'Teams loaded selector').to.be.false;
+
+      expect(newState).to.include({
+        teamsLoading: true,
+        teamsLoaded: false,
+      });
+
+      expect(newState).not.to.equal(currentState);
+    });
+
     it('should dispatch an action with owned teams returned from storage', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = mockGetState([], undefined, { signedIn: true, userId: TEST_USER_ID });
@@ -109,7 +134,14 @@ describe('Team slice', () => {
 
       await getTeams()(dispatchMock, getStateMock, undefined);
 
-      expect(dispatchMock).to.have.been.calledWith(
+      // Check that first dispatch was the request action
+      expect(dispatchMock.firstCall).to.have.been.calledWith(
+        sinon.match({
+          type: getTeams.pending.type,
+        }),
+      );
+
+      expect(dispatchMock.lastCall).to.have.been.calledWith(
         sinon.match({
           type: getTeams.fulfilled.type,
           payload: {
@@ -122,10 +154,11 @@ describe('Team slice', () => {
     });
 
     it('should set the teams state to the retrieved list', () => {
+      currentState = buildInitialTeamState();
       const expectedTeams = buildTeams([getStoredTeam()]);
 
       const newState = team(
-        TEAM_INITIAL_STATE,
+        currentState,
         getTeams.fulfilled(
           {
             teams: expectedTeams,
@@ -134,13 +167,17 @@ describe('Team slice', () => {
         ),
       );
 
+      const newRootState = buildRootState();
+      newRootState.team = newState;
+      expect(selectTeamsLoaded(newRootState), 'Teams loaded selector').to.be.true;
+
       expect(newState).to.deep.include({
         teams: expectedTeams,
         teamsLoading: false,
         teamsLoaded: true,
       });
 
-      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
+      expect(newState.teams).to.not.equal(currentState.teams);
     });
 
     it('should dispatch an action with public teams when not signed in', async () => {
@@ -273,40 +310,41 @@ describe('Team slice', () => {
       id: 'nt1',
       name: 'New team 1',
     };
+    let currentState: TeamState;
 
     it('should populate an empty teams list', () => {
+      currentState = buildInitialTeamState();
       const expectedTeams = buildTeams([newTeam]);
 
-      const newState = team(TEAM_INITIAL_STATE, addTeam(newTeam));
+      const newState = team(currentState, addTeam(newTeam));
 
       expect(newState).to.deep.include({
         teams: expectedTeams,
       });
 
-      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
-      expect(newState.teams).to.not.equal(TEAM_INITIAL_STATE.teams);
+      expect(newState).to.not.equal(currentState);
+      expect(newState.teams).to.not.equal(currentState.teams);
     });
 
     it('should add to existing teams list', () => {
-      const state: TeamState = {
-        ...TEAM_INITIAL_STATE,
-      };
-      state.teams = buildTeams([getStoredTeam()]);
+      currentState = buildTeamStateWithTeams(buildTeams([getStoredTeam()]));
 
       const expectedTeams = buildTeams([getStoredTeam(), newTeam]);
 
-      const newState = team(state, addTeam(newTeam));
+      const newState = team(currentState, addTeam(newTeam));
 
       expect(newState).to.deep.include({
         teams: expectedTeams,
       });
 
-      expect(newState).to.not.equal(state);
-      expect(newState.teams).to.not.equal(state.teams);
+      expect(newState).to.not.equal(currentState);
+      expect(newState.teams).to.not.equal(currentState.teams);
     });
   }); // describe('addTeam')
 
   describe('getRoster', () => {
+    let currentState: TeamState;
+
     it('should do nothing if team id is missing', async () => {
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
@@ -318,16 +356,50 @@ describe('Team slice', () => {
       expect(dispatchMock).to.not.have.been.called;
     });
 
+    it('should set loading flag for pending', () => {
+      currentState = buildInitialTeamState();
+      const teamId = getStoredTeam().id;
+
+      const newState = team(currentState, {
+        type: getRoster.pending.type,
+        meta: {
+          teamId,
+        },
+      });
+
+      const newRootState = buildRootState();
+      newRootState.team = newState;
+      expect(selectTeamRosterLoaded(newRootState), 'Roster loaded selector').to.be.false;
+
+      expect(newState).to.include({
+        rosterLoading: true,
+        rosterLoaded: false,
+      });
+
+      expect(newState).not.to.equal(currentState);
+    });
+
     it('should dispatch an action with the roster returned from storage', async () => {
+      const teamId = getStoredTeam().id;
       const dispatchMock = sinon.stub();
       const getStateMock = sinon.stub();
 
       readerStub.loadCollection.resolves(buildRoster([getStoredPlayer()]));
 
-      await getRoster(getStoredTeam().id)(dispatchMock, getStateMock, undefined);
+      await getRoster(teamId)(dispatchMock, getStateMock, undefined);
+
+      // Check that first dispatch was the request action
+      expect(dispatchMock.firstCall).to.have.been.calledWith(
+        sinon.match({
+          type: getRoster.pending.type,
+          meta: {
+            teamId: teamId,
+          },
+        }),
+      );
 
       const rosterData = buildRoster([getStoredPlayer()]);
-      expect(dispatchMock).to.have.been.calledWith(
+      expect(dispatchMock.lastCall).to.have.been.calledWith(
         sinon.match({
           type: getRoster.fulfilled.type,
           payload: rosterData,
@@ -336,19 +408,27 @@ describe('Team slice', () => {
     });
 
     it('should set the roster to the retrieved list', () => {
+      currentState = buildInitialTeamState();
       const expectedRoster = buildRoster([getStoredPlayer()]);
 
-      const newState = team(TEAM_INITIAL_STATE, {
+      const newState = team(currentState, {
         type: getRoster.fulfilled.type,
         payload: expectedRoster,
       });
 
+      const newRootState = buildRootState();
+      newRootState.team = newState;
+      expect(selectTeamRosterLoaded(newRootState), 'Roster loaded selector').to.be.true;
+      expect(selectTeamRoster(newRootState), 'Roster selector').to.deep.equal(expectedRoster);
+
       expect(newState).to.deep.include({
         roster: expectedRoster,
+        rosterLoaded: true,
+        rosterLoading: false,
       });
 
-      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
-      expect(newState.roster).to.not.equal(TEAM_INITIAL_STATE.roster);
+      expect(newState).to.not.equal(currentState);
+      expect(newState.roster).to.not.equal(currentState.roster);
     });
 
     it('should dispatch a rejected action when storage access fails', async () => {
@@ -465,6 +545,7 @@ describe('Team slice', () => {
   }); // describe('savePlayer')
 
   describe('addPlayer', () => {
+    let currentState: TeamState;
     let newPlayer: Player;
     let existingPlayer: Player;
 
@@ -474,30 +555,29 @@ describe('Team slice', () => {
     });
 
     it('should add new player to empty roster', () => {
-      const newState = team(TEAM_INITIAL_STATE, addPlayer(newPlayer));
+      currentState = buildInitialTeamState();
+
+      const newState = team(currentState, addPlayer(newPlayer));
 
       expect(newState).to.deep.include({
         roster: buildRoster([newPlayer]),
       });
 
-      expect(newState).to.not.equal(TEAM_INITIAL_STATE);
-      expect(newState.roster).to.not.equal(TEAM_INITIAL_STATE.roster);
+      expect(newState).to.not.equal(currentState);
+      expect(newState.roster).to.not.equal(currentState.roster);
     });
 
     it('should add new player to roster with existing players', () => {
-      const state: TeamState = {
-        ...TEAM_INITIAL_STATE,
-      };
-      state.roster = buildRoster([existingPlayer]);
+      currentState = buildTeamStateWithTeams(undefined, { roster: buildRoster([existingPlayer]) });
 
-      const newState = team(state, addPlayer(newPlayer));
+      const newState = team(currentState, addPlayer(newPlayer));
 
       expect(newState).to.deep.include({
         roster: buildRoster([existingPlayer, newPlayer]),
       });
 
-      expect(newState).to.not.equal(state);
-      expect(newState.roster).to.not.equal(state.roster);
+      expect(newState).to.not.equal(currentState);
+      expect(newState.roster).to.not.equal(currentState.roster);
     });
   }); // describe('addPlayer')
 }); // describe('Team slice')
