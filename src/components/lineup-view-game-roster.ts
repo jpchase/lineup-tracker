@@ -16,11 +16,11 @@ import {
   selectGameById,
   selectGameRosterLoading,
 } from '../slices/game/index.js';
+import { SignedInAuthController } from './core/auth-controller.js';
 import { ConnectStoreMixin } from './core/connect-mixin.js';
 import './lineup-roster.js';
 import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
-import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-game-roster')
 export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElement) {
