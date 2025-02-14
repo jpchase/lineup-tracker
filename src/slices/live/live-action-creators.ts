@@ -1,9 +1,9 @@
 /** @format */
 
+import { ThunkResult } from '../../app/store.js';
 import { FormationBuilder, getPositions } from '../../models/formation.js';
 import { LiveGame, LivePlayer, getPlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
-import { ThunkResult } from '../../store.js';
 import { gameCanEndPeriod, gameCanStartPeriod, isPeriodOverdue } from './clock-reducer-logic.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions, selectLiveGameById, selectPendingSubs } from './live-slice.js';

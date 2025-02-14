@@ -1,10 +1,10 @@
 /** @format */
 
-import { LineupViewGameDetail } from '@app/components/lineup-view-game-detail.js';
+import { RootState, setupStore } from '@app/app/store.js';
 import '@app/components/lineup-view-game-detail.js';
+import { LineupViewGameDetail } from '@app/components/lineup-view-game-detail.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame } from '@app/models/live.js';
-import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import {
@@ -18,10 +18,10 @@ import {
 import { buildRootState } from '../helpers/root-state-setup.js';
 import * as testlive from '../helpers/test-live-game-data.js';
 import {
+  TEST_USER_ID,
   buildRoster,
   getMockAuthState,
   getNewGameDetail,
-  TEST_USER_ID,
 } from '../helpers/test_data.js';
 
 function getGameDetail(): { game: GameDetail; live: LiveGame } {

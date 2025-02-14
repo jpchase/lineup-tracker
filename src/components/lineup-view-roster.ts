@@ -2,6 +2,7 @@
 
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { RootState } from '../app/store.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { Roster } from '../models/player.js';
 import { selectCurrentTeam } from '../slices/app/index.js';
@@ -12,7 +13,6 @@ import {
   selectTeamRoster,
   selectTeamRosterLoaded,
 } from '../slices/team/index.js';
-import { RootState } from '../store.js';
 import './lineup-roster.js';
 import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';

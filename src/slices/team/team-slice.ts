@@ -1,11 +1,11 @@
 /** @format */
 
 import { createAsyncThunk, createSlice, PayloadAction, type WithSlice } from '@reduxjs/toolkit';
+import { RootState, ThunkPromise, ThunkResult } from '../../app/store.js';
 import { buildSliceConfigurator, SliceConfigurator } from '../../middleware/slice-configurator.js';
 import { Player, Roster } from '../../models/player.js';
 import { Team, Teams } from '../../models/team.js';
 import { CollectionFilter, whereFilter } from '../../storage/firestore-reader.js';
-import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { logger } from '../../util/logger.js';
 import { selectCurrentTeam } from '../app/app-slice.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';

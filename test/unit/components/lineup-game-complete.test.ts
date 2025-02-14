@@ -1,10 +1,10 @@
 /** @format */
 
+import { RootState, setupStore } from '@app/app/store.js';
 import '@app/components/lineup-game-complete.js';
 import { LineupGameComplete } from '@app/components/lineup-game-complete.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import { LiveGame } from '@app/models/live.js';
-import { RootState, setupStore } from '@app/store.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import { buildGameStateWithCurrentGame } from '../helpers/game-state-setup.js';
 import {

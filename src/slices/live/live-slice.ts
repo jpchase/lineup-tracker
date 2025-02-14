@@ -1,6 +1,7 @@
 /** @format */
 
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { RootState, ThunkResult } from '../../app/store.js';
 import { Position } from '../../models/formation.js';
 import { Game, GameDetail, GameStatus } from '../../models/game.js';
 import {
@@ -12,7 +13,6 @@ import {
   getPlayer,
 } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
-import { RootState, ThunkResult } from '../../store.js';
 import { getGame, selectGameById } from '../game/game-slice.js';
 import {
   configurePeriodsHandler,

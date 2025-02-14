@@ -1,5 +1,6 @@
 /** @format */
 
+import { RootState, setupStore } from '@app/app/store.js';
 import '@app/components/lineup-game-setup.js';
 import { LineupGameSetup } from '@app/components/lineup-game-setup.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
@@ -19,7 +20,6 @@ import {
 import { PlayerStatus } from '@app/models/player.js';
 import { actions as liveActions, selectLiveGameById } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
-import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { aTimeout, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';

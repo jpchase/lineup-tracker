@@ -8,9 +8,9 @@ import {
   UserCredential,
 } from 'firebase/auth';
 import { getEnv } from '../../app/environment.js';
+import { RootState, ThunkPromise, ThunkResult } from '../../app/store.js';
 import { auth as authApi, firebaseRefs } from '../../firebase.js';
 import { User } from '../../models/auth.js';
-import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { logger } from '../../util/logger.js';
 
 export interface AuthState {

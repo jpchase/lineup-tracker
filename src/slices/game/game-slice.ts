@@ -1,9 +1,9 @@
 /** @format */
 
 import { createAsyncThunk, createSlice, PayloadAction, type WithSlice } from '@reduxjs/toolkit';
+import { RootState, ThunkPromise, ThunkResult } from '../../app/store.js';
 import { buildSliceConfigurator, SliceConfigurator } from '../../middleware/slice-configurator.js';
 import { Game, GameDetail, Games, GameStatus } from '../../models/game.js';
-import { RootState, ThunkPromise, ThunkResult } from '../../store.js';
 import { selectCurrentUserId } from '../auth/auth-slice.js';
 import { gameCompleted, gameSetupCompleted, selectLiveGameById } from '../live/live-slice.js';
 import { GamePayload } from './game-action-types.js';

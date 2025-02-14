@@ -3,11 +3,11 @@
 import '@material/mwc-fab';
 import { html } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
+import { RootState } from '../app/store.js';
 import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { Game, Games } from '../models/game.js';
 import { selectCurrentTeam } from '../slices/app/index.js';
 import { addNewGame, getGameSliceConfigurator, getGames } from '../slices/game/index.js';
-import { RootState } from '../store.js';
 import { logger } from '../util/logger.js';
 import './lineup-game-create.js';
 import { GameCreatedEvent, LineupGameCreate } from './lineup-game-create.js';

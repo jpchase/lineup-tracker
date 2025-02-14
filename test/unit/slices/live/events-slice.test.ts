@@ -1,6 +1,7 @@
 /** @format */
 
 import { listenerMiddleware, startAppListening } from '@app/app/action-listeners.js';
+import { AppStore, setupStore } from '@app/app/store.js';
 import { EventCollection } from '@app/models/events.js';
 import { FormationType, Position } from '@app/models/formation.js';
 import {
@@ -29,7 +30,6 @@ import {
 } from '@app/slices/live/events-slice.js';
 import { eventsUpdated } from '@app/slices/live/live-action-types.js';
 import { actions } from '@app/slices/live/live-slice.js';
-import { AppStore, setupStore } from '@app/store.js';
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import { ActionLogger } from '../../helpers/action-logger.js';

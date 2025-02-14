@@ -1,7 +1,7 @@
 /** @format */
 
-import { ContextProvider } from '@lit/context';
 import { BaseRouteConfig, RouteConfig, Router } from '@lit-labs/router';
+import { ContextProvider } from '@lit/context';
 import '@material/mwc-drawer';
 import '@material/mwc-icon-button';
 import '@material/mwc-top-app-bar';
@@ -13,6 +13,7 @@ import { connect } from 'pwa-helpers/connect-mixin.js';
 import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
+import { RootState, store } from '../app/store.js';
 import { User } from '../models/auth.js';
 import { Team, Teams } from '../models/team.js';
 import {
@@ -23,9 +24,7 @@ import {
   updatePage,
 } from '../slices/app/index.js';
 import { signIn } from '../slices/auth/index.js';
-import { getTeamSliceConfigurator } from '../slices/team/index.js';
-import { getTeams, selectTeamsLoaded } from '../slices/team/index.js';
-import { RootState, store } from '../store.js';
+import { getTeamSliceConfigurator, getTeams, selectTeamsLoaded } from '../slices/team/index.js';
 import { accountIcon } from './lineup-icons.js';
 import './lineup-team-selector-dialog.js';
 import { TeamChangedEvent } from './lineup-team-selector-dialog.js';

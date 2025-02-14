@@ -1,5 +1,6 @@
 /** @format */
 
+import { RootState, setupStore } from '@app/app/store.js';
 import { ClockEndPeriodEvent, LineupGameClock } from '@app/components/lineup-game-clock.js';
 import { EventsUpdatedEvent } from '@app/components/lineup-game-events.js';
 import '@app/components/lineup-game-live.js';
@@ -25,7 +26,6 @@ import {
   selectLiveGameById,
 } from '@app/slices/live/index.js';
 import { actions as liveActions } from '@app/slices/live/live-slice.js';
-import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
