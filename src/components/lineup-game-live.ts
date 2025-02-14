@@ -7,7 +7,6 @@ import { html, LitElement, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { RootState } from '../app/store.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { TimerData } from '../models/clock.js';
 import { EventCollectionData } from '../models/events.js';
 import {
@@ -46,6 +45,7 @@ import {
   startPeriodCreator,
   toggleClock,
 } from '../slices/live/index.js';
+import { ConnectStoreMixin } from './core/connect-mixin.js';
 import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-events.js';

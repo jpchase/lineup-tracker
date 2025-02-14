@@ -3,10 +3,10 @@
 import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { RootState } from '../app/store.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { LiveGame, LivePlayer } from '../models/live.js';
 import { PlayerTimeTrackerMapData } from '../models/shift.js';
 import { getLiveSliceConfigurator, selectLiveGameById } from '../slices/live/index.js';
+import { ConnectStoreMixin } from './core/connect-mixin.js';
 import './lineup-game-shifts.js';
 import { SharedStyles } from './shared-styles.js';
 

@@ -10,7 +10,6 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { RootState } from '../app/store.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import {
   FormationBuilder,
   FormationMetadata,
@@ -39,6 +38,7 @@ import {
   selectStarterPosition,
   startersCompletedCreator,
 } from '../slices/live/index.js';
+import { ConnectStoreMixin } from './core/connect-mixin.js';
 import './lineup-on-player-list.js';
 import { PlayerSelectedEvent, PositionSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';

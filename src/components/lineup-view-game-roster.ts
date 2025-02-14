@@ -6,7 +6,6 @@ import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { RootState } from '../app/store.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
 import {
@@ -17,6 +16,7 @@ import {
   selectGameById,
   selectGameRosterLoading,
 } from '../slices/game/index.js';
+import { ConnectStoreMixin } from './core/connect-mixin.js';
 import './lineup-roster.js';
 import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
