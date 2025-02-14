@@ -1,6 +1,6 @@
 /** @format */
 
-import { pageRouterContext, PageRouter } from '@app/components/page-router.js';
+import { PageRouter, pageRouterContext } from '@app/components/core/page-router.js';
 
 export function mockPageRouter(parentNode: HTMLElement, router: PageRouter) {
   parentNode.addEventListener('context-request', (event) => {

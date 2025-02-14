@@ -39,10 +39,10 @@ import {
   startersCompletedCreator,
 } from '../slices/live/index.js';
 import { ConnectStoreMixin } from './core/connect-mixin.js';
+import { PageRouter, pageRouterContext } from './core/page-router.js';
 import './lineup-on-player-list.js';
 import { PlayerSelectedEvent, PositionSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';
-import { PageRouter, pageRouterContext } from './page-router.js';
 import { SharedStyles } from './shared-styles.js';
 
 function getStepName(step: SetupSteps): string {

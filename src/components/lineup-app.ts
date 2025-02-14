@@ -25,11 +25,11 @@ import {
 } from '../slices/app/index.js';
 import { signIn } from '../slices/auth/index.js';
 import { getTeamSliceConfigurator, getTeams, selectTeamsLoaded } from '../slices/team/index.js';
+import { pageRouterContext } from './core/page-router.js';
 import { accountIcon } from './lineup-icons.js';
 import './lineup-team-selector-dialog.js';
 import { TeamChangedEvent } from './lineup-team-selector-dialog.js';
 import './lineup-team-selector.js';
-import { pageRouterContext } from './page-router.js';
 
 // Lazy load the reducers.
 const teamConfigurator = getTeamSliceConfigurator();
