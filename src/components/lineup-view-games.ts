@@ -7,13 +7,13 @@ import { RootState } from '../app/store.js';
 import { Game, Games } from '../models/game.js';
 import { selectCurrentTeam } from '../slices/app/index.js';
 import { addNewGame, getGameSliceConfigurator, getGames } from '../slices/game/index.js';
+import { logger } from '../util/logger.js';
 import { SignedInAuthController } from './core/auth-controller.js';
 import { ConnectStoreMixin } from './core/connect-mixin.js';
-import { logger } from '../util/logger.js';
+import { AuthorizedViewElement } from './core/page-view-element.js';
 import './lineup-game-create.js';
 import { GameCreatedEvent, LineupGameCreate } from './lineup-game-create.js';
 import './lineup-game-list.js';
-import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 const debugGames = logger('view-games');

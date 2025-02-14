@@ -13,8 +13,8 @@ import {
   selectTeamRoster,
   selectTeamRosterLoaded,
 } from '../slices/team/index.js';
+import { AuthorizedViewElement } from './core/page-view-element.js';
 import './lineup-roster.js';
-import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 import { SignedInAuthController } from './util/auth-controller.js';
 

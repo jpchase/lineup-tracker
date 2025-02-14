@@ -18,8 +18,8 @@ import {
 } from '../slices/game/index.js';
 import { SignedInAuthController } from './core/auth-controller.js';
 import { ConnectStoreMixin } from './core/connect-mixin.js';
+import { AuthorizedViewElement } from './core/page-view-element.js';
 import './lineup-roster.js';
-import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 @customElement('lineup-view-game-roster')
