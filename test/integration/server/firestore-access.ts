@@ -39,6 +39,10 @@ function buildTeamPath(teamId: string) {
   return `${KEY_TEAMS}/${teamId}`;
 }
 
+function buildTeamRosterPath(teamId: string) {
+  return `${buildTeamPath(teamId)}/${KEY_ROSTER}`;
+}
+
 class ReaderConverter<T extends Model> implements FirestoreDataConverter<T> {
   private readonly converter: ModelReader<T>;
 
@@ -164,6 +168,10 @@ export async function readTeam(firestore: Firestore, teamId: string): Promise<Te
   return getDocument(firestore, buildTeamPath(teamId), teamConverter);
 }
 
+export async function readTeamRoster(firestore: Firestore, teamId: string): Promise<Roster> {
+  return loadCollection(firestore, buildTeamRosterPath(teamId), playerConverter);
+}
+
 export async function readGame(firestore: Firestore, gameId: string): Promise<Game> {
   return getDocument(firestore, buildGamePath(gameId), gameConverter);
 }
@@ -212,6 +220,46 @@ export async function copyGame(
   copiedGame.hasDetail = true;
   copiedGame.roster = roster;
   return copiedGame;
+}
+
+export async function copyTeam(
+  firestore: Firestore,
+  teamId: string,
+  userId: string,
+): Promise<{ team: Team; roster: Roster }> {
+  const existingTeam = await readTeam(firestore, teamId);
+  const existingRoster = await readTeamRoster(firestore, teamId);
+
+  const copiedTeam = {
+    ...existingTeam,
+    name: `Copied Team [${Math.floor(Math.random() * 1000)}]`,
+  } as Team;
+  await writeDocument(firestore, copiedTeam, KEY_TEAMS, undefined, {
+    addUserId: true,
+    currentUserId: userId,
+  });
+
+  if (copiedTeam.id === existingTeam.id) {
+    throw new Error('Copied team not saved successfully');
+  }
+
+  const roster: Roster = {};
+  const rosterPath = buildTeamRosterPath(copiedTeam.id);
+  const options: NewDocOptions = { keepExistingId: false };
+  await Promise.all(
+    Object.keys(existingRoster).map((key) => {
+      // Copies the player to a new player object.
+      const teamPlayer: Player = {
+        ...existingRoster[key],
+      };
+      // Saves player to team roster storage, with an new id.
+      return writeDocument(firestore, teamPlayer, rosterPath, playerConverter, options).then(() => {
+        roster[teamPlayer.id] = teamPlayer;
+      });
+    }),
+  );
+
+  return { team: copiedTeam, roster };
 }
 
 async function getDocument<T extends Model>(

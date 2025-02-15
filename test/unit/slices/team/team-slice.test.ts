@@ -393,7 +393,7 @@ describe('Team slice', () => {
         sinon.match({
           type: getRoster.pending.type,
           meta: {
-            teamId: teamId,
+            teamId,
           },
         }),
       );

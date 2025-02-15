@@ -76,7 +76,7 @@ describe('Game functional tests', () => {
     await gameRosterPage.open({ signIn: true });
 
     // Verify that the game roster is initially empty.
-    const emptyPlayers = await gameRosterPage.getPlayers();
+    const emptyPlayers = await gameRosterPage.getPlayers(/*allowEmpty=*/ true);
     expect(emptyPlayers, 'Game should not have any players').to.be.empty;
 
     await gameRosterPage.copyTeamRoster();

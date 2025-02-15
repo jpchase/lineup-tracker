@@ -182,6 +182,18 @@ export const teamSlice = createSlice({
       state.roster = action.payload!;
     });
   },
+  // TODO: Can use this once can use `slice.injectInto`, to obtain selectors
+  // from the injected slice. e.g.
+  // export const { selectTeamsLoaded, selectTeamRoster, selectTeamRosterLoaded } = injectedTeamSlice.selectors;
+  // This doesn't work when using rootReducer.inject() because the selectors below
+  // expect the team state to be non-optional (causes type errors)
+  /*
+  selectors: {
+    selectTeamsLoaded: (state) => state.teamsLoaded,
+    selectTeamRoster: (state) => state.roster,
+    selectTeamRosterLoaded: (state) => state.rosterLoaded,
+  },
+  */
 });
 
 // Extend the root state typings with this slice.

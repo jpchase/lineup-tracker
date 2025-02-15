@@ -1,37 +1,15 @@
 /** @format */
 
-import { Player } from '@app/models/player.js';
-import { PageObject, PageOptions } from './page-object.js';
+import { PageOptions } from './page-object.js';
+import { RosterPageObject } from './roster-page-object.js';
 
-export class GameRosterPage extends PageObject {
+export class GameRosterPage extends RosterPageObject {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
       scenarioName: options.scenarioName ?? 'viewGameRoster',
       route: `gameroster/${options.gameId}`,
       componentName: 'lineup-view-game-roster',
-    });
-  }
-
-  async getPlayers() {
-    return this.page.evaluate(async () => {
-      const app = document.querySelector('lineup-app');
-      const view = app!.shadowRoot!.querySelector('lineup-view-game-roster');
-      const roster = view!.shadowRoot!.querySelector('lineup-roster');
-      if (!roster) {
-        return [];
-      }
-      const items = roster.shadowRoot!.querySelectorAll('mwc-list mwc-list-item');
-
-      const players = [];
-      for (const item of Array.from(items)) {
-        const nameElement = item.querySelector('span.name');
-        players.push({
-          id: item.id,
-          name: nameElement?.textContent,
-        } as Player);
-      }
-      return players;
     });
   }
 
