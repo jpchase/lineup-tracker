@@ -3,35 +3,31 @@
 import { LineupViewRoster } from '@app/components/lineup-view-roster';
 import '@app/components/lineup-view-roster.js';
 import { Player, Roster } from '@app/models/player.js';
-import { Team, Teams } from '@app/models/team.js';
-import { currentTeamChanged } from '@app/slices/app/index.js';
-import { getRoster, getTeams, actions as teamActions } from '@app/slices/team/team-slice.js';
-import { reader } from '@app/storage/firestore-reader.js';
+import { Team } from '@app/models/team.js';
+import { actions as teamActions } from '@app/slices/team/team-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
-import { RootState, store } from '@app/store.js';
+import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { Fab } from '@material/mwc-fab';
 import { aTimeout, expect, fixture, html, nextFrame } from '@open-wc/testing';
 import sinon from 'sinon';
 import { ActionLogger } from '../helpers/action-logger.js';
 import { buildAppStateWithCurrentTeam } from '../helpers/app-state-setup.js';
+import { buildRootState } from '../helpers/root-state-setup.js';
 import { buildTeamStateWithTeams } from '../helpers/team-state-setup.js';
 import {
   TEST_USER_ID,
-  buildRoster,
-  buildTeams,
   getMockAuthState,
   getNewPlayerData,
-  getStoredPlayer,
   getStoredTeam,
 } from '../helpers/test_data.js';
 
 const { addPlayer } = teamActions;
 
-function buildSignedInState(currentTeam?: Team, teams?: Teams, roster?: Roster): RootState {
+function buildSignedInState(currentTeam?: Team, roster?: Roster): RootState {
   const state = {
     app: buildAppStateWithCurrentTeam(currentTeam!),
-    team: buildTeamStateWithTeams(teams!, { roster }),
+    team: buildTeamStateWithTeams(undefined, { roster }),
   } as RootState;
   state.auth = getMockAuthState({ signedIn: true, userId: TEST_USER_ID });
   return state;
@@ -40,11 +36,9 @@ function buildSignedInState(currentTeam?: Team, teams?: Teams, roster?: Roster):
 describe('lineup-view-roster tests', () => {
   let el: LineupViewRoster;
   let dispatchStub: sinon.SinonSpy;
-  let readerStub: sinon.SinonStubbedInstance<typeof reader>;
   let actionLogger: ActionLogger;
 
   beforeEach(async () => {
-    readerStub = sinon.stub<typeof reader>(reader);
     actionLogger = new ActionLogger();
     actionLogger.setup();
   });
@@ -54,43 +48,11 @@ describe('lineup-view-roster tests', () => {
   });
 
   async function setupElement(preloadedState?: RootState) {
-    // const store = setupStore(preloadedState, /*hydrate=*/ false);
+    const store = setupStore(preloadedState, /*hydrate=*/ false);
 
-    // const template = html`<lineup-view-roster
-    //   active
-    //   .store=${store}
-    //   .storeConfigurator=${getTeamStoreConfigurator(/*hydrate=*/ false)}
-    // >
-    // </lineup-view-roster>`;
-    const template = html`<lineup-view-roster active> </lineup-view-roster>`;
+    const template = html`<lineup-view-roster active .store=${store}></lineup-view-roster>`;
     el = await fixture(template);
-    // dispatchStub = sinon.spy(el, 'dispatch');
-    dispatchStub = sinon.spy(store, 'dispatch');
-
-    const appState = preloadedState?.app;
-    const teamState = preloadedState?.team;
-    if (!appState && !teamState) {
-      return;
-    }
-
-    if (appState?.teamId) {
-      // Mock the load of the roster, which is triggered by setting the current team.
-      mockLoadCollectionWithRoster(appState.teamId, teamState?.roster);
-
-      store.dispatch(currentTeamChanged(appState.teamId, appState.teamName));
-    }
-    if (teamState) {
-      if (teamState.teams) {
-        store.dispatch(getTeams.fulfilled({ teams: teamState.teams }, 'unused'));
-      }
-      store.dispatch(getRoster.fulfilled(teamState.roster ?? {}, 'unused', 'unused'));
-    }
-  }
-
-  function mockLoadCollectionWithRoster(teamId: string, roster?: Roster) {
-    return readerStub.loadCollection
-      .withArgs(`teams/${teamId}/roster`, sinon.match.object)
-      .resolves(roster ?? {});
+    dispatchStub = sinon.spy(el, 'dispatch');
   }
 
   function getRosterElement() {
@@ -120,28 +82,24 @@ describe('lineup-view-roster tests', () => {
     return button as Button;
   }
 
-  it('shows roster placeholder when team roster is empty', async () => {
-    const team = getStoredTeam();
+  it('shows signin placeholder when not signed in', async () => {
+    const state = buildRootState();
+    state.auth = getMockAuthState({ signedIn: false });
 
-    await setupElement(buildSignedInState(team, buildTeams([team])));
-    await el.updateComplete;
+    await setupElement(state);
 
-    // TODO: Figure out how/if should detect empty roster component
-    // const placeholder = el.shadowRoot!.querySelector('section div.empty-list');
-    // expect(placeholder, 'Missing empty placeholder element').to.be.ok;
-
-    // const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
-    // expect(rosterElement, 'Roster element should not be shown').to.not.be.ok;
+    const placeholder = el.shadowRoot!.querySelector('section p.unauthorized') as HTMLElement;
+    expect(placeholder, 'Missing unauthorized placeholder element').to.be.ok;
+    expect(placeholder.innerText.trim()).to.equal('Sign in to view team roster.');
 
     await expect(el).shadowDom.to.equalSnapshot();
     await expect(el).to.be.accessible();
   });
 
-  it('shows player list when team roster is not empty', async () => {
+  it('shows roster component when signed in', async () => {
     const team = getStoredTeam();
-    const roster = buildRoster([getStoredPlayer()]);
 
-    await setupElement(buildSignedInState(team, buildTeams([team]), roster));
+    await setupElement(buildSignedInState(team, /*roster=*/ {}));
     await el.updateComplete;
 
     const rosterElement = el.shadowRoot!.querySelector('section lineup-roster');
@@ -163,7 +121,7 @@ describe('lineup-view-roster tests', () => {
 
     const team = getStoredTeam();
 
-    await setupElement(buildSignedInState(team, buildTeams([team])));
+    await setupElement(buildSignedInState(team, /*roster=*/ {}));
     await el.updateComplete;
 
     // Click the "add player" button, then fill in fields in the resulting dialog, and save.
