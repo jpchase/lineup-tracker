@@ -1,5 +1,6 @@
 /** @format */
 
+import { Firestore, copyGame, createAdminApp, getFirestore } from '../server/firestore-access.js';
 import { PageOptions } from './page-object.js';
 import { RosterPageObject } from './roster-page-object.js';
 
@@ -11,6 +12,25 @@ export class GameRosterPage extends RosterPageObject {
       route: `gameroster/${options.gameId}`,
       componentName: 'lineup-view-game-roster',
     });
+  }
+
+  static async createRosterPage(options: PageOptions, existingFirestore?: Firestore) {
+    // Create a new game, with roster, by copying the existing game.
+    const firestore = existingFirestore ?? getFirestore(createAdminApp());
+    const game = await copyGame(firestore, options.gameId!, options.userId!);
+
+    // Open the page *after* creating the game.
+    const rosterPage = new GameRosterPage({
+      ...options,
+      gameId: game.id,
+    });
+    try {
+      await rosterPage.init();
+      await rosterPage.open({ signIn: true });
+    } catch {
+      rosterPage.close();
+    }
+    return { rosterPage, game };
   }
 
   async copyTeamRoster() {
