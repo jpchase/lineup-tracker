@@ -46,6 +46,7 @@ import {
   toggleClock,
 } from '../slices/live/index.js';
 import { ConnectStoreMixin } from './core/connect-mixin.js';
+import { playerResolverContext } from './core/player-resolver.js';
 import { synchronizedTimerContext, SynchronizedTimerNotifier } from './core/synchronized-timer.js';
 import { SynchronizedTriggerController } from './core/timer-controller.js';
 import './lineup-game-clock.js';
@@ -57,7 +58,6 @@ import './lineup-on-player-list.js';
 import { PlayerSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';
 import { LineupPlayerList } from './lineup-player-list.js';
-import { playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 
 // This element is connected to the Redux store.
