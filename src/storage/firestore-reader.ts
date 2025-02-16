@@ -17,7 +17,7 @@ import {
   WhereFilterOp,
   WithFieldValue,
 } from 'firebase/firestore';
-import { firebaseRefs } from '../firebase.js';
+import { firebaseRefs } from '../app/firebase.js';
 import { Model, ModelCollection } from '../models/model.js';
 import { logger } from '../util/logger.js';
 import { ModelReader } from './model-converter.js';
