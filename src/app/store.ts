@@ -2,9 +2,9 @@
 
 import { AnyAction, configureStore, ThunkAction } from '@reduxjs/toolkit';
 import { middleware as dynamicMiddlewares } from '../middleware/dynamic-middlewares.js';
-import { buildSliceConfigStoreEnhancer, SliceConfig } from '../middleware/slice-configurator.js';
 import { getAppSliceConfigurator } from '../slices/app/index.js';
 import { rootReducer, type RootState } from '../slices/reducer.js';
+import { buildSliceConfigStoreEnhancer, SliceConfig } from '../slices/slice-configurator.js';
 import { listenerMiddleware } from './action-listeners.js';
 
 export { RootState } from '../slices/reducer.js';

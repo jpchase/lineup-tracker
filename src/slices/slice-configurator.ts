@@ -4,9 +4,9 @@ import { Reducer, StoreEnhancer, Unsubscribe, nanoid } from '@reduxjs/toolkit';
 import { PersistConfig, persistReducer, persistStore } from 'redux-persist';
 import { AppStartListening, startAppListening } from '../app/action-listeners.js';
 import { AppStore } from '../app/store.js';
-import { rootReducer } from '../slices/reducer.js';
+import { IdbPersistStorage } from '../middleware/idb-persist-storage.js';
 import { logger } from '../util/logger.js';
-import { IdbPersistStorage } from './idb-persist-storage.js';
+import { rootReducer } from './reducer.js';
 
 export interface SliceConfig {
   // Turn off hydration, which is enabled by default (if supported by the slice).

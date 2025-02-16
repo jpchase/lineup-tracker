@@ -3,7 +3,7 @@
 import { AnyAction, ThunkAction, Unsubscribe } from '@reduxjs/toolkit';
 import { property } from 'lit/decorators.js';
 import { AppStore, RootState, store as globalStore } from '../../app/store.js';
-import { SliceConfigurator } from '../../middleware/slice-configurator.js';
+import { SliceConfigurator } from '../../slices/slice-configurator.js';
 import { Constructor } from '../../util/shared-types.js';
 
 interface CustomElement {
