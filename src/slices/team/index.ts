@@ -9,6 +9,8 @@ export {
   getRoster,
   getTeamSliceConfigurator,
   getTeams,
+  selectTeamRoster,
+  selectTeamRosterLoaded,
   selectTeamsLoaded,
 } from './team-slice.js';
 

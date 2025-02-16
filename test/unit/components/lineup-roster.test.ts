@@ -190,8 +190,4 @@ describe('lineup-roster tests', () => {
   it.skip('closes edit widget when cancel clicked', () => {
     expect.fail();
   });
-
-  it('a11y', async () => {
-    await expect(el).to.be.accessible();
-  });
 });

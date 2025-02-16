@@ -112,7 +112,7 @@ describe('lineup-game-clock tests', () => {
 
       await expect(el).shadowDom.to.equalSnapshot(CORE_CONTENT);
       await expect(el).to.be.accessible();
-    });
+    }).timeout(4000); // The accessibility check may take > 2s.
 
     it('only Start button shown during break before next period (at halftime)', async () => {
       el.timerData = {

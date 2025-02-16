@@ -65,33 +65,78 @@ describe('Game functional tests', () => {
   });
 
   it('copy roster from team', async () => {
-    const gameId = integrationTestData.TEAM2.games.NEW.ID;
-    const gameRosterPage = new GameRosterPage({
-      userId: integrationTestData.TEAM2.OWNER_ID,
-      team: { teamId: integrationTestData.TEAM2.ID },
-      gameId,
-    });
-    pageObject = gameRosterPage;
-    await gameRosterPage.init();
-    await gameRosterPage.open({ signIn: true });
+    // Create roster page, populated from newly-created game with empty roster.
+    const { rosterPage, game } = await GameRosterPage.createRosterPage(
+      {
+        userId: integrationTestData.TEAM2.OWNER_ID,
+        team: { teamId: integrationTestData.TEAM2.ID },
+        gameId: integrationTestData.TEAM2.games.NEW.ID,
+      },
+      firestore,
+    );
+    pageObject = rosterPage;
 
     // Verify that the game roster is initially empty.
-    const emptyPlayers = await gameRosterPage.getPlayers();
+    const emptyPlayers = await rosterPage.getPlayers(/*allowEmpty=*/ true);
     expect(emptyPlayers, 'Game should not have any players').to.be.empty;
 
-    await gameRosterPage.copyTeamRoster();
+    await rosterPage.copyTeamRoster();
 
     // Verify that the game roster now contains all the players from the team.
-    const players = await gameRosterPage.getPlayers();
+    const players = await rosterPage.getPlayers();
     expect(players.length, 'All players should be copied from team roster').to.equal(16);
 
     // Verify that the players are stored for the game roster.
-    const roster = await readGameRoster(firestore, gameId);
+    const roster = await readGameRoster(firestore, game.id);
     expect(Object.keys(roster).length, 'Copied players should be saved to storage').to.equal(16);
   });
 
-  it.skip('add player to game roster', async () => {
-    // TODO: Implement test for adding a new player to game roster,
-    // including asserting that player is persisted to storage correctly.
+  it('add player to game roster', async () => {
+    // Create roster page, populated from newly-created game with roster.
+    const { rosterPage, game } = await GameRosterPage.createRosterPage(
+      {
+        userId: integrationTestData.TEAM2.OWNER_ID,
+        team: { teamId: integrationTestData.TEAM2.ID },
+        gameId: integrationTestData.TEAM2.games.NEW_WITH_ROSTER.ID,
+      },
+      firestore,
+    );
+    pageObject = rosterPage;
+
+    const originalPlayers = Object.values(game.roster);
+
+    // Ensure unique name and uniform number for the new player.
+    //  - The number is set to <max uniform number from existing players> + 1.
+    const newPlayerName = `A functional player [${Math.floor(Math.random() * 1000)}]`;
+    const uniformNumber =
+      originalPlayers.reduce(
+        (previousMax, player) => Math.max(previousMax, player.uniformNumber),
+        0,
+      ) + 1;
+
+    await rosterPage.addPlayer(newPlayerName, uniformNumber);
+
+    // Verify that the new player is added to the roster.
+    const existingPlayers = await rosterPage.getPlayers();
+    expect(existingPlayers.length, 'Roster in page should have 1 player added').to.equal(
+      originalPlayers.length + 1,
+    );
+    const newPlayer = existingPlayers.find(
+      (player) => player.name === newPlayerName && player.uniformNumber === uniformNumber,
+    );
+    expect(newPlayer?.uniformNumber, 'Newly-created player should be shown in roster').to.equal(
+      uniformNumber,
+    );
+
+    // Verify that the new player was saved to storage.
+    const storedRoster = await readGameRoster(firestore, game.id!);
+    const storedPlayers = Object.values(storedRoster);
+    expect(storedPlayers.length, 'Stored roster should have 1 player added').to.equal(
+      originalPlayers.length + 1,
+    );
+    const storedNewPlayer = storedPlayers.find(
+      (player) => player.name === newPlayerName && player.uniformNumber === uniformNumber,
+    );
+    expect(storedNewPlayer, 'New player should be in stored roster').to.be.ok;
   });
 });

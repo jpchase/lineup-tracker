@@ -2,61 +2,94 @@
 
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { connect } from 'pwa-helpers/connect-mixin.js';
+import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { Roster } from '../models/player.js';
 import { selectCurrentTeam } from '../slices/app/index.js';
-import { addNewPlayer, getRoster, getTeamSliceConfigurator } from '../slices/team/index.js';
-import { RootState, store } from '../store.js';
+import {
+  addNewPlayer,
+  getRoster,
+  getTeamSliceConfigurator,
+  selectTeamRoster,
+  selectTeamRosterLoaded,
+} from '../slices/team/index.js';
+import { RootState } from '../store.js';
 import './lineup-roster.js';
-import { PageViewElement } from './page-view-element.js';
+import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
-
-// We are lazy loading its reducer.
-const teamConfigurator = getTeamSliceConfigurator();
-teamConfigurator(store);
+import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-roster')
-export class LineupViewRoster extends connect(store)(PageViewElement) {
-  override render() {
+export class LineupViewRoster extends ConnectStoreMixin(AuthorizedViewElement) {
+  override renderView() {
     return html`
       ${SharedStyles}
       <section>
-        <h2>Team: ${this._teamName}</h2>
-        <lineup-roster .roster="${this._roster}" @new-player-created="${this.newPlayerCreated}">
+        <h2>Team: ${this.teamName}</h2>
+        <lineup-roster .roster="${this.roster}" @new-player-created="${this.newPlayerCreated}">
         </lineup-roster>
       </section>
     `;
   }
 
   @state()
-  private _teamId = '';
+  private teamId = '';
 
   @state()
-  private _teamName: string = '';
+  private teamName = '';
 
   @state()
-  private _roster: Roster = {};
+  private roster: Roster = {};
 
-  // This is called every time something is updated in the store.
+  @state()
+  private isLoaded = false;
+
+  constructor() {
+    super();
+    this.registerSliceConfigurator(getTeamSliceConfigurator());
+    this.registerController(new SignedInAuthController(this));
+  }
+
   override stateChanged(state: RootState) {
+    if (!this.authorized) {
+      return;
+    }
     const currentTeam = selectCurrentTeam(state);
     if (!currentTeam) {
       return;
     }
-    if (!state.team) {
+    if (this.teamId !== currentTeam.id) {
+      this.teamId = currentTeam.id;
       return;
     }
-    const teamState = state.team!;
-    if (this._teamId !== currentTeam.id) {
-      this._teamId = currentTeam.id;
-      store.dispatch(getRoster(this._teamId));
-      return;
+    this.teamName = currentTeam.name;
+    this.roster = selectTeamRoster(state) || {};
+    this.isLoaded = !!selectTeamRosterLoaded(state);
+  }
+
+  // AuthorizedView overrides
+  protected override keyPropertyName = 'teamId';
+
+  protected override loadData() {
+    if (this.teamId) {
+      this.dispatch(getRoster(this.teamId));
     }
-    this._teamName = currentTeam.name;
-    this._roster = teamState.roster;
+  }
+
+  protected override resetDataProperties() {
+    this.teamName = '';
+    this.roster = {};
+    this.isLoaded = false;
+  }
+
+  protected override isDataReady() {
+    return this.isLoaded;
+  }
+
+  protected override getAuthorizedDescription(): string {
+    return 'view team roster';
   }
 
   private newPlayerCreated(e: CustomEvent) {
-    store.dispatch(addNewPlayer(e.detail.player));
+    this.dispatch(addNewPlayer(e.detail.player));
   }
 }

@@ -13,7 +13,7 @@ export function buildInitialTeamState(): TeamState {
   };
 }
 
-export function buildTeamStateWithTeams(teams: Teams, rest?: Partial<TeamState>): TeamState {
+export function buildTeamStateWithTeams(teams?: Teams, rest?: Partial<TeamState>): TeamState {
   const state: TeamState = {
     ...buildInitialTeamState(),
     ...rest,

@@ -75,7 +75,18 @@ export const saveTeam =
     dispatch(teamSlice.actions.addTeam(newTeam));
   };
 
-export const getRoster = createAsyncThunk(
+export const getRoster = createAsyncThunk<
+  // Return type of the payload creator.
+  Roster,
+  // The teamId is the first argument to the payload creator.
+  string,
+  {
+    // Optional fields for defining thunkApi field types
+    state: RootState;
+    // The team id is added to the meta for the pending action.
+    pendingMeta: { teamId: string };
+  }
+>(
   'team/getRoster',
   async (teamId: string, _thunkAPI) => {
     return loadTeamRoster(teamId);
@@ -86,6 +97,9 @@ export const getRoster = createAsyncThunk(
         return false;
       }
       return true;
+    },
+    getPendingMeta: (base) => {
+      return { teamId: base.arg };
     },
   },
 );
@@ -119,6 +133,8 @@ export interface TeamState {
   teamsLoaded: boolean;
   teamsLoading: boolean;
   roster: Roster;
+  rosterLoaded: boolean;
+  rosterLoading: boolean;
   error?: string;
 }
 
@@ -127,6 +143,8 @@ export const TEAM_INITIAL_STATE: TeamState = {
   teamsLoaded: false,
   teamsLoading: false,
   roster: {},
+  rosterLoaded: false,
+  rosterLoading: false,
   error: '',
 };
 
@@ -154,10 +172,28 @@ export const teamSlice = createSlice({
       state.teamsLoaded = true;
       state.teams = action.payload.teams;
     });
+    builder.addCase(getRoster.pending, (state) => {
+      state.rosterLoading = true;
+      state.rosterLoaded = false;
+    });
     builder.addCase(getRoster.fulfilled, (state, action) => {
+      state.rosterLoading = false;
+      state.rosterLoaded = true;
       state.roster = action.payload!;
     });
   },
+  // TODO: Can use this once can use `slice.injectInto`, to obtain selectors
+  // from the injected slice. e.g.
+  // export const { selectTeamsLoaded, selectTeamRoster, selectTeamRosterLoaded } = injectedTeamSlice.selectors;
+  // This doesn't work when using rootReducer.inject() because the selectors below
+  // expect the team state to be non-optional (causes type errors)
+  /*
+  selectors: {
+    selectTeamsLoaded: (state) => state.teamsLoaded,
+    selectTeamRoster: (state) => state.roster,
+    selectTeamRosterLoaded: (state) => state.rosterLoaded,
+  },
+  */
 });
 
 // Extend the root state typings with this slice.
@@ -174,3 +210,7 @@ export const { actions } = teamSlice;
 export const { addTeam } = teamSlice.actions;
 
 export const selectTeamsLoaded = (state: RootState) => state.team?.teamsLoaded;
+
+export const selectTeamRoster = (state: RootState) => state.team?.roster;
+
+export const selectTeamRosterLoaded = (state: RootState) => state.team?.rosterLoaded;

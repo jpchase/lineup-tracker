@@ -1,18 +1,16 @@
 /* @web/test-runner snapshot v1 */
 export const snapshots = {};
 
-snapshots["lineup-view-roster tests shows player list when team roster is not empty"] = 
+snapshots["lineup-view-roster tests shows signin placeholder when not signed in"] = 
 `<section>
-  <h2>
-    Team: Stored team 1
-  </h2>
-  <lineup-roster>
-  </lineup-roster>
+  <p class="unauthorized">
+    Sign in to view team roster.
+  </p>
 </section>
 `;
-/* end snapshot lineup-view-roster tests shows player list when team roster is not empty */
+/* end snapshot lineup-view-roster tests shows signin placeholder when not signed in */
 
-snapshots["lineup-view-roster tests shows roster placeholder when team roster is empty"] = 
+snapshots["lineup-view-roster tests shows roster component when signed in"] = 
 `<section>
   <h2>
     Team: Stored team 1
@@ -21,5 +19,5 @@ snapshots["lineup-view-roster tests shows roster placeholder when team roster is
   </lineup-roster>
 </section>
 `;
-/* end snapshot lineup-view-roster tests shows roster placeholder when team roster is empty */
+/* end snapshot lineup-view-roster tests shows roster component when signed in */
 

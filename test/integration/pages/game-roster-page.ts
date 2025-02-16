@@ -1,9 +1,10 @@
 /** @format */
 
-import { Player } from '@app/models/player.js';
-import { PageObject, PageOptions } from './page-object.js';
+import { Firestore, copyGame, createAdminApp, getFirestore } from '../server/firestore-access.js';
+import { PageOptions } from './page-object.js';
+import { RosterPageObject } from './roster-page-object.js';
 
-export class GameRosterPage extends PageObject {
+export class GameRosterPage extends RosterPageObject {
   constructor(options: PageOptions = {}) {
     super({
       ...options,
@@ -13,26 +14,23 @@ export class GameRosterPage extends PageObject {
     });
   }
 
-  async getPlayers() {
-    return this.page.evaluate(async () => {
-      const app = document.querySelector('lineup-app');
-      const view = app!.shadowRoot!.querySelector('lineup-view-game-roster');
-      const roster = view!.shadowRoot!.querySelector('lineup-roster');
-      if (!roster) {
-        return [];
-      }
-      const items = roster.shadowRoot!.querySelectorAll('mwc-list mwc-list-item');
+  static async createRosterPage(options: PageOptions, existingFirestore?: Firestore) {
+    // Create a new game, with roster, by copying the existing game.
+    const firestore = existingFirestore ?? getFirestore(createAdminApp());
+    const game = await copyGame(firestore, options.gameId!, options.userId!);
 
-      const players = [];
-      for (const item of Array.from(items)) {
-        const nameElement = item.querySelector('span.name');
-        players.push({
-          id: item.id,
-          name: nameElement?.textContent,
-        } as Player);
-      }
-      return players;
+    // Open the page *after* creating the game.
+    const rosterPage = new GameRosterPage({
+      ...options,
+      gameId: game.id,
     });
+    try {
+      await rosterPage.init();
+      await rosterPage.open({ signIn: true });
+    } catch {
+      rosterPage.close();
+    }
+    return { rosterPage, game };
   }
 
   async copyTeamRoster() {

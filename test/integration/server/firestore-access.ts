@@ -14,6 +14,7 @@ import { getEnv } from '../../../src/app/environment.js';
 import { Game, GameDetail } from '../../../src/models/game.js';
 import { Model, ModelCollection } from '../../../src/models/model.js';
 import { Player, PlayerStatus, Roster } from '../../../src/models/player.js';
+import { Team } from '../../../src/models/team.js';
 // import { gameConverter } from '../../../src/slices/game/game-storage.js'
 import { NewDocOptions } from '../../../src/storage/firestore-writer.js';
 import { ModelConverter, ModelReader, ModelWriter } from '../../../src/storage/model-converter.js';
@@ -23,6 +24,7 @@ export { Firestore, getFirestore } from 'firebase-admin/firestore';
 
 const KEY_GAMES = 'games';
 const KEY_ROSTER = 'roster';
+const KEY_TEAMS = 'teams';
 
 // import { buildGamePath, gameConverter } from '@app/slices/game/game-storage.js'
 function buildGamePath(gameId: string) {
@@ -31,6 +33,14 @@ function buildGamePath(gameId: string) {
 
 function buildGameRosterPath(gameId: string) {
   return `${buildGamePath(gameId)}/${KEY_ROSTER}`;
+}
+
+function buildTeamPath(teamId: string) {
+  return `${KEY_TEAMS}/${teamId}`;
+}
+
+function buildTeamRosterPath(teamId: string) {
+  return `${buildTeamPath(teamId)}/${KEY_ROSTER}`;
 }
 
 class ReaderConverter<T extends Model> implements FirestoreDataConverter<T> {
@@ -124,6 +134,12 @@ const playerConverter: ModelConverter<Player> = {
   },
 };
 
+const teamConverter: ModelReader<Team> = {
+  fromDocument: (id: string, data: DocumentData) => {
+    return { id, name: data.name };
+  },
+};
+
 export function getFirestoreUrl(projectId: string, databaseName?: string) {
   const database = databaseName || '(default)';
   return `/projects/${projectId}/databases/${database}/documents/cities/LA`;
@@ -146,6 +162,14 @@ export function createAdminApp(): App {
     credential: applicationDefault(),
   });
   return adminApp;
+}
+
+export async function readTeam(firestore: Firestore, teamId: string): Promise<Team> {
+  return getDocument(firestore, buildTeamPath(teamId), teamConverter);
+}
+
+export async function readTeamRoster(firestore: Firestore, teamId: string): Promise<Roster> {
+  return loadCollection(firestore, buildTeamRosterPath(teamId), playerConverter);
 }
 
 export async function readGame(firestore: Firestore, gameId: string): Promise<Game> {
@@ -196,6 +220,46 @@ export async function copyGame(
   copiedGame.hasDetail = true;
   copiedGame.roster = roster;
   return copiedGame;
+}
+
+export async function copyTeam(
+  firestore: Firestore,
+  teamId: string,
+  userId: string,
+): Promise<{ team: Team; roster: Roster }> {
+  const existingTeam = await readTeam(firestore, teamId);
+  const existingRoster = await readTeamRoster(firestore, teamId);
+
+  const copiedTeam = {
+    ...existingTeam,
+    name: `Copied Team [${Math.floor(Math.random() * 1000)}]`,
+  } as Team;
+  await writeDocument(firestore, copiedTeam, KEY_TEAMS, undefined, {
+    addUserId: true,
+    currentUserId: userId,
+  });
+
+  if (copiedTeam.id === existingTeam.id) {
+    throw new Error('Copied team not saved successfully');
+  }
+
+  const roster: Roster = {};
+  const rosterPath = buildTeamRosterPath(copiedTeam.id);
+  const options: NewDocOptions = { keepExistingId: false };
+  await Promise.all(
+    Object.keys(existingRoster).map((key) => {
+      // Copies the player to a new player object.
+      const teamPlayer: Player = {
+        ...existingRoster[key],
+      };
+      // Saves player to team roster storage, with an new id.
+      return writeDocument(firestore, teamPlayer, rosterPath, playerConverter, options).then(() => {
+        roster[teamPlayer.id] = teamPlayer;
+      });
+    }),
+  );
+
+  return { team: copiedTeam, roster };
 }
 
 async function getDocument<T extends Model>(

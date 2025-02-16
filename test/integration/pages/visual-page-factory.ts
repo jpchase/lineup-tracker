@@ -114,6 +114,11 @@ export function* getAllVisualPages(
     page: new TeamRosterPage(pageOptions),
     openOptions: { signIn: true },
   };
+  yield {
+    name: '/viewRoster (signed out)',
+    page: new TeamRosterPage({ ...pageOptions, scenarioName: 'viewRoster-signedout' }),
+    openOptions: { signIn: false, skipWaitForReady: true },
+  };
 
   // Add new team: triggered by UI interaction (not a route)
   yield {
