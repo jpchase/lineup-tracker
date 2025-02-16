@@ -1,17 +1,17 @@
 /** @format */
 
+import { RootState, setupStore } from '@app/app/store.js';
 import '@app/components/lineup-view-team-create.js';
 import { LineupViewTeamCreate } from '@app/components/lineup-view-team-create.js';
 import { Team } from '@app/models/team.js';
 import { addNewTeam } from '@app/slices/team/index.js';
 import { writer } from '@app/storage/firestore-writer.js';
-import { RootState, setupStore } from '@app/store.js';
 import { aTimeout, expect, fixture, html, nextFrame } from '@open-wc/testing';
 import sinon from 'sinon';
 import { ActionLogger } from '../helpers/action-logger.js';
 import { mockPageRouter } from '../helpers/mock-page-router.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
-import { getMockAuthState, TEST_USER_ID } from '../helpers/test_data.js';
+import { TEST_USER_ID, getMockAuthState } from '../helpers/test_data.js';
 
 function buildSignedInState(): RootState {
   const state = buildRootState();

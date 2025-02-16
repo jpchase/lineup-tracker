@@ -3,7 +3,6 @@
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { RootState } from '../app/store.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { Roster } from '../models/player.js';
 import { selectCurrentTeam } from '../slices/app/index.js';
 import {
@@ -13,10 +12,11 @@ import {
   selectTeamRoster,
   selectTeamRosterLoaded,
 } from '../slices/team/index.js';
+import { SignedInAuthController } from './core/auth-controller.js';
+import { ConnectStoreMixin } from './core/connect-mixin.js';
 import { AuthorizedViewElement } from './core/page-view-element.js';
 import './lineup-roster.js';
 import { SharedStyles } from './shared-styles.js';
-import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-roster')
 export class LineupViewRoster extends ConnectStoreMixin(AuthorizedViewElement) {
