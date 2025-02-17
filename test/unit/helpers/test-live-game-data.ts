@@ -1,8 +1,8 @@
 /** @format */
 
-import { Position } from '@app/models/formation.js';
+import { FormationType, Position } from '@app/models/formation.js';
 import { GameStatus } from '@app/models/game.js';
-import { LiveGame, LiveGames, LivePlayer } from '@app/models/live.js';
+import { getPlayer, LiveGame, LiveGames, LivePlayer } from '@app/models/live.js';
 import { Player, PlayerStatus } from '@app/models/player.js';
 import { STORED_GAME_ID } from './test_data.js';
 
@@ -41,6 +41,19 @@ export function getLiveGame(players?: Player[], status?: GameStatus): LiveGame {
 
 export function getLiveGameWithPlayers(): LiveGame {
   return getLiveGame(getLivePlayers(18));
+}
+
+export function getLiveGameWithStarters(): LiveGame {
+  const game = getLiveGameWithPlayers();
+  game.formation = { type: FormationType.F4_3_3 };
+
+  // Ensure the first 11 players are on.
+  for (let i = 0; i < 11; i++) {
+    const player = getPlayer(game, `P${i}`)!;
+    player.status = PlayerStatus.On;
+  }
+
+  return game;
 }
 
 export function buildLivePlayers(players?: Player[]): LivePlayer[] {

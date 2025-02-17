@@ -15,10 +15,12 @@ import {
   PeriodStartEvent,
   PositionSwapEvent,
   SetupEvent,
+  SetupEventData,
   SubInEvent,
   SubOutEvent,
   isGamePlayerEvent,
 } from '../../models/live.js';
+import { PlayerStatus } from '../../models/player.js';
 import { logger } from '../../util/logger.js';
 import {
   EventSelectedPayload,
@@ -64,6 +66,7 @@ export const selectEventsSelected = (state: RootState) => {
 };
 
 type EventOrGroup = GameEvent | GameEventGroup;
+type SetupEventStarters = SetupEventData['starters'];
 
 const eventSlice = createSlice({
   name: 'events',
@@ -180,6 +183,12 @@ const eventSlice = createSlice({
               periodLength: game.clock?.periodLength!,
               totalPeriods: game.clock?.totalPeriods!,
             },
+            starters: game.players.reduce((result, player) => {
+              if (player.status === PlayerStatus.On) {
+                result.push({ id: player.id, position: player.currentPosition?.id! });
+              }
+              return result;
+            }, [] as SetupEventStarters),
           });
         }),
       )

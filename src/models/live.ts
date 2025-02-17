@@ -100,6 +100,10 @@ export interface SetupEventData extends Record<string, unknown> {
     periodLength: number;
     totalPeriods: number;
   };
+  starters: {
+    id: string;
+    position: string;
+  }[];
 }
 export interface SetupEvent extends GameEventBase<GameEventType.Setup, SetupEventData> {}
 

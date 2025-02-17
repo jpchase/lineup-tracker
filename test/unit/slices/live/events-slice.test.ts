@@ -3,7 +3,7 @@
 import { listenerMiddleware, startAppListening } from '@app/app/action-listeners.js';
 import { AppStore, setupStore } from '@app/app/store.js';
 import { EventCollection } from '@app/models/events.js';
-import { FormationType, Position } from '@app/models/formation.js';
+import { Position } from '@app/models/formation.js';
 import {
   GameEvent,
   GameEventCollection,
@@ -18,7 +18,6 @@ import {
   SubOutEvent,
   getPlayer,
 } from '@app/models/live.js';
-import { PlayerStatus } from '@app/models/player.js';
 import { getLiveSliceConfigurator } from '@app/slices/live/composed-reducer.js';
 import {
   EVENTS_INITIAL_STATE,
@@ -109,7 +108,7 @@ describe('Events slice', () => {
       fakeClock = mockCurrentTime(startTime);
       const timeProvider = mockTimeProvider(startTime);
 
-      const game = testlive.getLiveGameWithPlayers();
+      const game = testlive.getLiveGameWithStarters();
       game.clock = buildClock();
       currentState = buildLiveStateWithCurrentGame(game, {
         ...EVENTS_INITIAL_STATE,
@@ -121,7 +120,7 @@ describe('Events slice', () => {
         },
         timeProvider,
       );
-      const setupEvent = buildGameSetupEvent(startTime);
+      const setupEvent = buildGameSetupEvent(startTime, game.players!);
       expectedCollection.addEvent<SetupEvent>(setupEvent);
       mockIdGenerator(setupEvent.id!);
 
@@ -286,14 +285,7 @@ describe('Events slice', () => {
     });
 
     function setupSubState(subs: SubData[], inputGame?: LiveGame) {
-      const game = inputGame ?? testlive.getLiveGameWithPlayers();
-      game.formation = { type: FormationType.F4_3_3 };
-
-      // Ensure the first 11 players are on.
-      for (let i = 0; i < 11; i++) {
-        const player = getPlayer(game, `P${i}`)!;
-        player.status = PlayerStatus.On;
-      }
+      const game = inputGame ?? testlive.getLiveGameWithStarters();
 
       for (const sub of subs) {
         if (sub.isSwap) {
@@ -447,7 +439,7 @@ describe('Events slice', () => {
       // B = player to be replaced from |sub1|
       // C = player to be swapped from |swap1|
       // D = player to be swapped from |swap2|
-      const game = testlive.getLiveGameWithPlayers();
+      const game = testlive.getLiveGameWithStarters();
       const sub1ReplacedPlayer = getPlayer(game, sub1.replacedId!)!;
       const swap1Player = getPlayer(game, swap1.nextId!)!;
       const swap2Player = getPlayer(game, swap2.nextId!)!;
@@ -668,7 +660,7 @@ describe('Events slice', () => {
       // B = player to be replaced from |sub1|
       // C = player to be swapped from |swap1|
       // D = player to be swapped from |swap2|
-      const game = testlive.getLiveGameWithPlayers();
+      const game = testlive.getLiveGameWithStarters();
       const sub1ReplacedPlayer = getPlayer(game, sub1.replacedId!)!;
       const swap1Player = getPlayer(game, swap1.nextId!)!;
       const swap2Player = getPlayer(game, swap2.nextId!)!;

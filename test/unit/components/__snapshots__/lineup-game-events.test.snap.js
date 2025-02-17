@@ -108,7 +108,7 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
         Setup completed
       </td>
       <td class="details">
-        {"clock":{"totalPeriods":2,"periodLength":45}}
+        {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
       </td>
     </tr>
   </tbody>
@@ -240,7 +240,7 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
         Setup completed
       </td>
       <td class="details">
-        {"clock":{"totalPeriods":2,"periodLength":45}}
+        {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
       </td>
     </tr>
   </tbody>
@@ -269,7 +269,7 @@ snapshots["lineup-game-events tests event editing shows dialog when edit button 
           Setup completed
         </td>
         <td class="details">
-          {"clock":{"totalPeriods":2,"periodLength":45}}
+          {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
         </td>
       </tr>
     </tbody>
@@ -351,7 +351,7 @@ snapshots["lineup-game-events tests event editing shows dialog with multiple eve
           Setup completed
         </td>
         <td class="details">
-          {"clock":{"totalPeriods":2,"periodLength":45}}
+          {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
         </td>
       </tr>
       <tr data-event-id="starteventid-1">
@@ -449,7 +449,7 @@ snapshots["lineup-game-events tests event selection shows dialog when edit butto
           Setup completed
         </td>
         <td class="details">
-          {"clock":{"totalPeriods":2,"periodLength":45}}
+          {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
         </td>
       </tr>
     </tbody>
@@ -509,7 +509,7 @@ snapshots["lineup-game-events tests event selection shows dialog when edit butto
               Setup completed
             </span>
             <span class="details">
-              {"clock":{"totalPeriods":2,"periodLength":45}}
+              {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
             </span>
           </span>
         </mwc-list-item>
@@ -679,7 +679,7 @@ snapshots["lineup-game-events tests event selection shows dialog with multiple e
           Setup completed
         </td>
         <td class="details">
-          {"clock":{"totalPeriods":2,"periodLength":45}}
+          {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
         </td>
       </tr>
       <tr data-event-id="starteventid-1">
@@ -755,7 +755,7 @@ snapshots["lineup-game-events tests event selection shows dialog with multiple e
               Setup completed
             </span>
             <span class="details">
-              {"clock":{"totalPeriods":2,"periodLength":45}}
+              {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
             </span>
           </span>
         </mwc-list-item>

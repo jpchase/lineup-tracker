@@ -8,18 +8,24 @@ import {
   GameEventGroup,
   GameEventType,
   LiveGame,
+  LivePlayer,
   PeriodEndEvent,
   PeriodStartEvent,
   PositionSwapEvent,
   SetupEvent,
+  SetupEventData,
   SubInEvent,
   SubOutEvent,
   getPlayer,
 } from '@app/models/live.js';
+import { PlayerStatus } from '@app/models/player.js';
 import * as testlive from './test-live-game-data.js';
+
+type SetupEventStarters = SetupEventData['starters'];
 
 export function buildGameSetupEvent(
   startTime: number,
+  players: LivePlayer[],
   totalPeriods = 2,
   periodLength = 45,
 ): SetupEvent {
@@ -32,6 +38,12 @@ export function buildGameSetupEvent(
         totalPeriods,
         periodLength,
       },
+      starters: players.reduce((result, player) => {
+        if (player.status === PlayerStatus.On) {
+          result.push({ id: player.id, position: player.currentPosition?.id! });
+        }
+        return result;
+      }, [] as SetupEventStarters),
     },
   };
 }
@@ -115,7 +127,7 @@ export function buildGameEvents(
     },
     timeProvider,
   );
-  events.addEvent(buildGameSetupEvent(timeProvider.getCurrentTime()));
+  events.addEvent(buildGameSetupEvent(timeProvider.getCurrentTime(), game.players!));
   events.addEvent(buildPeriodStartEvent(timeProvider.getCurrentTime()));
 
   // First sub
