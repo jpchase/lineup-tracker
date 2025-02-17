@@ -1,6 +1,6 @@
 /** @format */
 
-import { addMiddleware } from '@app/middleware/dynamic-middlewares.js';
+import { addMiddleware } from '@app/app/store.js';
 import { logger } from '@app/util/logger.js';
 import { Middleware, UnknownAction } from '@reduxjs/toolkit';
 

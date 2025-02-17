@@ -2,7 +2,7 @@
 
 import { html, HTMLTemplateResult, LitElement, PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import { Constructor } from '../util/shared-types.js';
+import { Constructor } from '../../util/shared-types.js';
 
 // The type and interface is required to get the typing to work.
 // See https://lit.dev/docs/composition/mixins/#mixins-in-typescript.

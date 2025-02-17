@@ -9,7 +9,7 @@ import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
+import { RootState } from '../app/store.js';
 import {
   FormationBuilder,
   FormationMetadata,
@@ -38,11 +38,11 @@ import {
   selectStarterPosition,
   startersCompletedCreator,
 } from '../slices/live/index.js';
-import { RootState } from '../store.js';
+import { ConnectStoreMixin } from './core/connect-mixin.js';
+import { PageRouter, pageRouterContext } from './core/page-router.js';
 import './lineup-on-player-list.js';
 import { PlayerSelectedEvent, PositionSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';
-import { PageRouter, pageRouterContext } from './page-router.js';
 import { SharedStyles } from './shared-styles.js';
 
 function getStepName(step: SetupSteps): string {

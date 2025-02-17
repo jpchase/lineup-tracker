@@ -1,5 +1,6 @@
 /** @format */
 
+import { SynchronizedTimerNotifier } from '@app/components/core/synchronized-timer.js';
 import {
   LineupPlayerCard,
   PlayerCardData,
@@ -7,7 +8,6 @@ import {
   PositionSelectedEvent,
 } from '@app/components/lineup-player-card';
 import '@app/components/lineup-player-card.js';
-import { SynchronizedTimerNotifier } from '@app/components/synchronized-timer.js';
 import { Duration } from '@app/models/clock.js';
 import { Position, formatPosition } from '@app/models/formation.js';
 import { LivePlayer } from '@app/models/live.js';

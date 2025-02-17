@@ -1,11 +1,12 @@
 /** @format */
 
+import { RootState, setupStore } from '@app/app/store.js';
+import { PageRouter } from '@app/components/core/page-router.js';
 import '@app/components/lineup-game-setup.js';
 import { LineupGameSetup } from '@app/components/lineup-game-setup.js';
 import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
 import { LineupPlayerCard, PositionSelectedEvent } from '@app/components/lineup-player-card.js';
 import { LineupPlayerList } from '@app/components/lineup-player-list.js';
-import { PageRouter } from '@app/components/page-router.js';
 import { FormationBuilder, FormationType, getPositions } from '@app/models/formation.js';
 import { GameDetail, GameStatus } from '@app/models/game.js';
 import {
@@ -19,7 +20,6 @@ import {
 import { PlayerStatus } from '@app/models/player.js';
 import { actions as liveActions, selectLiveGameById } from '@app/slices/live/live-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
-import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { aTimeout, expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';

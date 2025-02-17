@@ -2,13 +2,13 @@
 
 import { LitElement, PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
-import { LivePlayer } from '../models/live.js';
+import { LivePlayer } from '../../models/live.js';
 import {
   PlayerTimeTracker,
   PlayerTimeTrackerMap,
   PlayerTimeTrackerMapData,
-} from '../models/shift.js';
-import { Constructor } from '../util/shared-types.js';
+} from '../../models/shift.js';
+import { Constructor } from '../../util/shared-types.js';
 
 // The type and interface is required to get the typing to work.
 // See https://lit.dev/docs/composition/mixins/#mixins-in-typescript.

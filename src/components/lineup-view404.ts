@@ -2,7 +2,7 @@
 
 import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { PageViewElement } from './page-view-element.js';
+import { PageViewElement } from './core/page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 @customElement('lineup-view404')

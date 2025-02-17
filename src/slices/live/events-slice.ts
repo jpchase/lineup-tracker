@@ -2,6 +2,7 @@
 
 import { PayloadAction, Unsubscribe, createSlice } from '@reduxjs/toolkit';
 import { AppStartListening } from '../../app/action-listeners.js';
+import { RootState } from '../../app/store.js';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
 import {
@@ -18,7 +19,6 @@ import {
   SubOutEvent,
   isGamePlayerEvent,
 } from '../../models/live.js';
-import { RootState } from '../../store.js';
 import { logger } from '../../util/logger.js';
 import {
   EventSelectedPayload,

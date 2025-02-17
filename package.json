@@ -8,7 +8,7 @@
     "env:copy_test": "npm run env:copy --envname=test",
     "env:copy_staging": "npm run env:copy --envname=staging",
     "lint": "eslint . && prettier \"**/*.ts\" --check --require-pragma",
-    "format": "eslint --ext .ts,.html . --fix && prettier \"**/*.ts\" --write --insert-pragma",
+    "format": "eslint . --fix && prettier \"**/*.ts\" --write --insert-pragma",
     "start": "npm run start:webds",
     "start:webds": "npm run env:copy_dev && tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"web-dev-server\"",
     "start:offline": "npm run env:copy_dev && tsc && web-dev-server --offline",

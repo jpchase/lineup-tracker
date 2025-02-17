@@ -1,21 +1,21 @@
 /** @format */
 
+import { RootState, setupStore } from '@app/app/store.js';
 import '@app/components/lineup-view-games.js';
 import { LineupViewGames } from '@app/components/lineup-view-games.js';
 import { Games } from '@app/models/game.js';
-import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
+import { addElementAssertions } from '../helpers/element-assertions.js';
 import { buildGameStateWithGames } from '../helpers/game-state-setup.js';
 import { buildRootState } from '../helpers/root-state-setup.js';
 import {
+  TEST_USER_ID,
   buildGames,
   getMockAuthState,
   getNewGame,
   getStoredGame,
-  TEST_USER_ID,
 } from '../helpers/test_data.js';
-import { addElementAssertions } from '../helpers/element-assertions.js';
 
 function getExistingGames(): Games {
   return buildGames([getStoredGame(), getNewGame()]);

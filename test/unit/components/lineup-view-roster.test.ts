@@ -1,12 +1,12 @@
 /** @format */
 
+import { RootState, setupStore } from '@app/app/store.js';
 import { LineupViewRoster } from '@app/components/lineup-view-roster';
 import '@app/components/lineup-view-roster.js';
 import { Player, Roster } from '@app/models/player.js';
 import { Team } from '@app/models/team.js';
 import { actions as teamActions } from '@app/slices/team/team-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
-import { RootState, setupStore } from '@app/store.js';
 import { Button } from '@material/mwc-button';
 import { Fab } from '@material/mwc-fab';
 import { aTimeout, expect, fixture, html, nextFrame } from '@open-wc/testing';

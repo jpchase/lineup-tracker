@@ -1,10 +1,10 @@
 /** @format */
 
 import { ReactiveController, ReactiveControllerHost } from 'lit';
-import { StateSubscribedController } from '../../middleware/connect-mixin.js';
+import { RootState } from '../../app/store.js';
 import { selectCurrentUserId } from '../../slices/auth/index.js';
-import { RootState } from '../../store.js';
-import { AuthorizedView } from '../page-view-element.js';
+import { AuthorizedView } from './page-view-element.js';
+import { StateSubscribedController } from './connect-mixin.js';
 
 type AuthorizedViewHost = ReactiveControllerHost & AuthorizedView;
 

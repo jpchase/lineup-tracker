@@ -1,12 +1,12 @@
 /** @format */
 
+import { PlayerResolver } from '@app/components/core/player-resolver.js';
 import '@app/components/lineup-game-events.js';
 import {
   EventSelectedEvent,
   EventsUpdatedEvent,
   LineupGameEvents,
 } from '@app/components/lineup-game-events.js';
-import { PlayerResolver } from '@app/components/player-resolver.js';
 import { Duration, TimeFormatter, pad0 } from '@app/models/clock';
 import { EventBase, EventCollection } from '@app/models/events.js';
 import { formatPosition } from '@app/models/formation.js';

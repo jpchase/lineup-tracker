@@ -16,8 +16,8 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
 } from 'firebase/firestore';
-import { getEnv } from './app/environment.js';
-import { logger } from './util/logger.js';
+import { logger } from '../util/logger.js';
+import { getEnv } from './environment.js';
 
 const debugFirebase = logger('firebase');
 

@@ -6,7 +6,7 @@ import '@material/mwc-icon';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
+import { RootState } from '../app/store.js';
 import { TimerData } from '../models/clock.js';
 import { EventCollectionData } from '../models/events.js';
 import {
@@ -45,7 +45,10 @@ import {
   startPeriodCreator,
   toggleClock,
 } from '../slices/live/index.js';
-import { RootState } from '../store.js';
+import { ConnectStoreMixin } from './core/connect-mixin.js';
+import { playerResolverContext } from './core/player-resolver.js';
+import { synchronizedTimerContext, SynchronizedTimerNotifier } from './core/synchronized-timer.js';
+import { SynchronizedTriggerController } from './core/timer-controller.js';
 import './lineup-game-clock.js';
 import { ClockEndPeriodEvent, ClockPeriodData } from './lineup-game-clock.js';
 import './lineup-game-events.js';
@@ -55,10 +58,7 @@ import './lineup-on-player-list.js';
 import { PlayerSelectedEvent } from './lineup-player-card.js';
 import './lineup-player-list.js';
 import { LineupPlayerList } from './lineup-player-list.js';
-import { playerResolverContext } from './player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
-import { synchronizedTimerContext, SynchronizedTimerNotifier } from './synchronized-timer.js';
-import { SynchronizedTriggerController } from './timer-controller.js';
 
 // This element is connected to the Redux store.
 @customElement('lineup-game-live')

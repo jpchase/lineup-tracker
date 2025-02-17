@@ -3,9 +3,9 @@
 import { createSlice, PayloadAction, type WithSlice } from '@reduxjs/toolkit';
 import { PersistConfig } from 'redux-persist';
 import { getEnv } from '../../app/environment.js';
-import { buildSliceConfigurator, SliceConfigurator } from '../../middleware/slice-configurator.js';
+import type { RootState, ThunkResult } from '../../app/store.js';
 import { Team } from '../../models/team.js';
-import type { RootState, ThunkResult } from '../../store.js';
+import { buildSliceConfigurator, SliceConfigurator } from '../slice-configurator.js';
 import { addTeam } from '../team/team-slice.js';
 
 const env = getEnv();

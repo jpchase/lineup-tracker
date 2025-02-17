@@ -5,7 +5,7 @@ import '@material/mwc-circular-progress';
 import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
+import { RootState } from '../app/store.js';
 import { GameDetail, GameStatus } from '../models/game.js';
 import { Roster } from '../models/player.js';
 import {
@@ -16,11 +16,11 @@ import {
   selectGameById,
   selectGameRosterLoading,
 } from '../slices/game/index.js';
-import { RootState } from '../store.js';
+import { SignedInAuthController } from './core/auth-controller.js';
+import { ConnectStoreMixin } from './core/connect-mixin.js';
+import { AuthorizedViewElement } from './core/page-view-element.js';
 import './lineup-roster.js';
-import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
-import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-game-roster')
 export class LineupViewGameRoster extends ConnectStoreMixin(AuthorizedViewElement) {

@@ -13,11 +13,11 @@ import {
   updateDoc,
   WithFieldValue,
 } from 'firebase/firestore';
-import { firebaseRefs } from '../firebase.js';
+import { firebaseRefs } from '../app/firebase.js';
+import { RootState } from '../app/store.js';
 import { Model } from '../models/model.js';
 import { selectCurrentTeam } from '../slices/app/index.js';
 import { selectCurrentUserId } from '../slices/auth/index.js';
-import { RootState } from '../store.js';
 import { logger } from '../util/logger.js';
 import { ModelWriter } from './model-converter.js';
 

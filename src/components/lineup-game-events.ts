@@ -23,7 +23,7 @@ import { repeat } from 'lit/directives/repeat.js';
 import { Duration, pad0, TimeFormatter } from '../models/clock.js';
 import { EventCollection } from '../models/events.js';
 import { GameEvent, GameEventCollectionData, GameEventType } from '../models/live.js';
-import { PlayerResolver, playerResolverContext } from './player-resolver.js';
+import { PlayerResolver, playerResolverContext } from './core/player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 
 interface EventItem {

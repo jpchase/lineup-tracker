@@ -1,9 +1,9 @@
 /** @format */
 
 import { createListenerMiddleware, TypedStartListening, Unsubscribe } from '@reduxjs/toolkit';
+import type { AppDispatch, RootState } from './store.js';
 import { currentTeamChanged } from '../slices/app/index.js';
 import { userSignedIn } from '../slices/auth/index.js';
-import type { AppDispatch, RootState } from '../store.js';
 import { logger } from '../util/logger.js';
 import { getEnv } from './environment.js';
 

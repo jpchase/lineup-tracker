@@ -1,8 +1,8 @@
 /** @format */
 
 import { setupAuthListeners, startAppListening } from './app/action-listeners.js';
+import { store } from './app/store.js';
 import { getUser } from './slices/auth/index.js';
-import { store } from './store.js';
 import { logger } from './util/logger.js';
 
 const debugInit = logger('initApp');

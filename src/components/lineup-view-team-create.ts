@@ -3,14 +3,14 @@
 import { consume } from '@lit/context';
 import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { ConnectStoreMixin } from '../middleware/connect-mixin.js';
 import { addNewTeam, getTeamSliceConfigurator } from '../slices/team/index.js';
+import { SignedInAuthController } from './core/auth-controller.js';
+import { ConnectStoreMixin } from './core/connect-mixin.js';
+import { PageRouter, pageRouterContext } from './core/page-router.js';
+import { AuthorizedViewElement } from './core/page-view-element.js';
 import './lineup-team-create.js';
 import { NewTeamCreatedEvent } from './lineup-team-create.js';
-import { PageRouter, pageRouterContext } from './page-router.js';
-import { AuthorizedViewElement } from './page-view-element.js';
 import { SharedStyles } from './shared-styles.js';
-import { SignedInAuthController } from './util/auth-controller.js';
 
 @customElement('lineup-view-team-create')
 export class LineupViewTeamCreate extends ConnectStoreMixin(AuthorizedViewElement) {

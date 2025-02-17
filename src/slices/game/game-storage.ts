@@ -1,12 +1,12 @@
 /** @format */
 
 import { DocumentData } from 'firebase/firestore';
+import { RootState } from '../../app/store.js';
 import { Game, Games } from '../../models/game.js';
 import { Player, Roster } from '../../models/player.js';
 import { CollectionFilter, reader, whereFilter } from '../../storage/firestore-reader.js';
 import { NewDocOptions, writer } from '../../storage/firestore-writer.js';
 import { ModelReader } from '../../storage/model-converter.js';
-import { RootState } from '../../store.js';
 import { logger } from '../../util/logger.js';
 import { playerConverter } from '../player/player-storage.js';
 

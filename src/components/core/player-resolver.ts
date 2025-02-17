@@ -1,7 +1,7 @@
 /** @format */
 
 import { createContext } from '@lit/context';
-import { LivePlayer } from '../models/live.js';
+import { LivePlayer } from '../../models/live.js';
 
 export interface PlayerResolver {
   getPlayer(playerId: string): LivePlayer | undefined;

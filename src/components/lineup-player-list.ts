@@ -7,8 +7,8 @@ import { classMap } from 'lit/directives/class-map.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { LivePlayer } from '../models/live.js';
 import { PlayerStatus } from '../models/player.js';
+import { PlayerListElement } from './core/player-list-element.js';
 import './lineup-player-card.js';
-import { PlayerListElement } from './player-list-element.js';
 import { SharedStyles } from './shared-styles.js';
 
 interface PlayerFilterFunc {

@@ -14,8 +14,8 @@ import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { Timer, TimerData } from '../models/clock.js';
 import { PeriodStatus } from '../models/live.js';
+import { TimerController } from './core/timer-controller.js';
 import { SharedStyles } from './shared-styles.js';
-import { TimerController } from './timer-controller.js';
 
 export interface ClockToggleDetail {
   isStarted: boolean;
