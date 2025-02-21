@@ -109,6 +109,22 @@ export class PlayerTimeTracker {
     return dataToSerialize;
   }
 
+  // Public, but should only be used by PlayerTimeTrackerMap
+  resetToOn() {
+    if (this.isOn) {
+      throw new Error('player must be off to reset to on');
+    }
+    this.isOn = true;
+  }
+
+  // Public, but should only be used by PlayerTimeTrackerMap
+  resetToOff() {
+    if (!this.isOn) {
+      throw new Error('player must be on to reset to off');
+    }
+    this.isOn = false;
+  }
+
   resetShiftTimes() {
     this.onTimer = undefined;
     this.offTimer = undefined;
@@ -254,6 +270,33 @@ export class PlayerTimeTrackerMap {
   reset() {
     this.trackers = [];
     this.clockRunning = false;
+  }
+
+  setStarters(starters: { id: string }[]) {
+    if (!this.trackers?.length) {
+      throw new Error('Map is empty');
+    }
+    if (
+      this.clockRunning ||
+      this.trackers.find((tracker) => tracker.totalOnTime.getTotalSeconds() > 0)
+    ) {
+      throw new Error('Clock was started, cannot set starters');
+    }
+    this.trackers.forEach((tracker) => {
+      if (starters.find((player) => player.id === tracker.id)) {
+        if (tracker.isOn) {
+          // Already on, no change required.
+          return;
+        }
+        tracker.resetToOn();
+      } else {
+        if (!tracker.isOn) {
+          // Already off, no change required.
+          return;
+        }
+        tracker.resetToOff();
+      }
+    });
   }
 
   get(id: string) {

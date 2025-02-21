@@ -45,15 +45,35 @@ export function getLiveGameWithPlayers(): LiveGame {
 
 export function getLiveGameWithStarters(): LiveGame {
   const game = getLiveGameWithPlayers();
-  game.formation = { type: FormationType.F4_3_3 };
+  setGameStarting11(game);
+  return game;
+}
 
-  // Ensure the first 11 players are on.
-  for (let i = 0; i < 11; i++) {
-    const player = getPlayer(game, `P${i}`)!;
-    player.status = PlayerStatus.On;
+export function setGameStarting11(game: LiveGame) {
+  if (!game.formation) {
+    game.formation = { type: FormationType.F4_3_3 };
   }
 
-  return game;
+  setPlayersStatus(
+    game,
+    { status: PlayerStatus.On, range: [0, 10] },
+    { status: PlayerStatus.Off, range: [11, 17] },
+  );
+}
+
+export function setPlayersStatus(
+  game: LiveGame,
+  ...statusRanges: { status: PlayerStatus; range: [number, number] }[]
+) {
+  for (const { status, range } of statusRanges) {
+    for (let i = range[0]; i <= range[1]; i++) {
+      const player = getPlayer(game, `P${i}`);
+      if (!player) {
+        continue;
+      }
+      player.status = status;
+    }
+  }
 }
 
 export function buildLivePlayers(players?: Player[]): LivePlayer[] {

@@ -1,12 +1,13 @@
 /** @format */
 
 import { EventCollection } from '@app/models/events.js';
-import { GameEvent, LiveGame, getPlayer } from '@app/models/live.js';
+import { GameEvent, LiveGame } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { createShiftTrackerFromEvents } from '@app/models/shift-tracker-event-builder.js';
 import { expect } from '@open-wc/testing';
 import { manualTimeProvider } from '../helpers/test-clock-data.js';
 import {
+  buildGameSetupEvent,
   buildPeriodEndEvent,
   buildPeriodStartEvent,
   buildSubEvents,
@@ -73,10 +74,7 @@ describe('createShiftTrackerFromEvents', () => {
     game = testlive.getLiveGameWithPlayers();
 
     // Ensure the first 11 players are on.
-    for (let i = 0; i < 11; i++) {
-      const player = getPlayer(game, `P${i}`)!;
-      player.status = PlayerStatus.On;
-    }
+    testlive.setGameStarting11(game);
   });
 
   it('map should be running with correct times after period start event', () => {
@@ -101,6 +99,52 @@ describe('createShiftTrackerFromEvents', () => {
     expect(offTracker, 'off player').to.have.shiftTime([0, 5]);
     expect(offTracker, 'off player').to.have.shiftCount(0);
     expect(offTracker, 'off player').to.have.totalTime([0, 0]);
+  });
+
+  it('map should be running with correct players on/off after setup event', () => {
+    const provider = manualTimeProvider(timeStartPlus35);
+
+    // The `game` will have the first 11 players set to on. Create a separate game
+    // instance, with different starters, to populate the setup event.
+    const startersGame = testlive.getLiveGameWithPlayers();
+    testlive.setPlayersStatus(
+      startersGame,
+      { status: PlayerStatus.On, range: [0, 7] },
+      { status: PlayerStatus.Off, range: [8, 11] },
+      { status: PlayerStatus.On, range: [12, 14] },
+      { status: PlayerStatus.Off, range: [15, 17] },
+    );
+
+    const setupEvent = buildGameSetupEvent(startTime, startersGame.players!);
+    const startEvent = buildPeriodStartEvent(timeStartPlus5);
+
+    const map = createShiftTrackerFromEvents(game, [startEvent, setupEvent], provider);
+
+    expect(map.clockRunning, 'clock running').to.be.true;
+
+    const starterIds = ['P0', 'P12', 'P13', 'P14'];
+    const benchIds = ['P8', 'P9', 'P11', 'P15'];
+
+    // Check that the starters are on, both from the initial game players and the setup event.
+    for (const id of starterIds) {
+      const onTracker = map.get(id);
+
+      expect(onTracker, `on player ${id}`).to.be.on(id);
+      expect(onTracker, `on player ${id}`).to.be.running();
+      expect(onTracker, `on player ${id}`).to.have.shiftTime([0, 30]);
+      expect(onTracker, `on player ${id}`).to.have.shiftCount(1);
+      expect(onTracker, `on player ${id}`).to.have.totalTime([0, 30]);
+    }
+
+    for (const id of benchIds) {
+      const offTracker = map.get(id);
+
+      expect(offTracker, `off player ${id}`).to.be.off(id);
+      expect(offTracker, `off player ${id}`).to.be.running();
+      expect(offTracker, `off player ${id}`).to.have.shiftTime([0, 30]);
+      expect(offTracker, `off player ${id}`).to.have.shiftCount(0);
+      expect(offTracker, `off player ${id}`).to.have.totalTime([0, 0]);
+    }
   });
 
   it('map should be running with correct shifts after sub events', () => {

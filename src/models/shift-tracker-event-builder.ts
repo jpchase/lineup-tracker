@@ -23,6 +23,10 @@ export function createShiftTrackerFromEvents(
 
 function evolve(trackerMap: PlayerTimeTrackerMap, event: GameEvent) {
   switch (event.type) {
+    case GameEventType.Setup:
+      trackerMap.setStarters(event.data.starters);
+      break;
+
     case GameEventType.PeriodStart:
       trackerMap.startShiftTimers(event.data.clock.startTime);
       break;
@@ -35,11 +39,10 @@ function evolve(trackerMap: PlayerTimeTrackerMap, event: GameEvent) {
       trackerMap.substitutePlayer(event.playerId, event.data.replaced, event.timestamp);
       break;
 
-    case GameEventType.Setup:
     case GameEventType.SubOut:
     case GameEventType.Swap:
     default:
-    // No-op
+    // No-op, these events do not affect shift timing.
     /*
     case 'ShoppingCartOpened':
       if (currentState.status != 'Empty') return currentState;
