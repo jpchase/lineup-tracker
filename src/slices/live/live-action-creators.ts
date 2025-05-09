@@ -27,6 +27,9 @@ export const startPeriodCreator =
       return;
     }
     const period = gameCanStartPeriod(game);
+    // TODO: Should this not dispatch the action if allowsStart = false? Throw error?
+    // really need to figure out overall validation approach. Too much like the check above
+    // where there are silent failures.
     dispatch(startPeriod(game.id, period.allowsStart, period.currentPeriod, period.startTime));
   };
 

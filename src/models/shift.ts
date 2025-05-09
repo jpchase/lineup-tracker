@@ -82,7 +82,7 @@ export class PlayerTimeTracker {
   }
 
   get shiftTime() {
-    return this.currentTimer?.getElapsed() || Duration.zero();
+    return this.currentTimer?.getElapsed() ?? Duration.zero();
   }
 
   get totalOnTime() {
@@ -143,14 +143,14 @@ export class PlayerTimeTracker {
 
   startShift(startTime?: number) {
     if (this.isOn) {
-      this.onTimer = this.onTimer || new Timer(undefined, this.timeProvider);
+      this.onTimer = this.onTimer ?? new Timer(undefined, this.timeProvider);
       this.onTimer.start(startTime);
       if (!this.alreadyOn) {
         this.alreadyOn = true;
         this.shiftCount += 1;
       }
     } else {
-      this.offTimer = this.offTimer || new Timer(undefined, this.timeProvider);
+      this.offTimer = this.offTimer ?? new Timer(undefined, this.timeProvider);
       this.offTimer.start(startTime);
     }
   }
@@ -206,10 +206,10 @@ export class PlayerTimeTrackerMap {
   trackers: PlayerTimeTracker[];
 
   private constructor(data: PlayerTimeTrackerMapData, timeProvider?: CurrentTimeProvider) {
-    this.timeProvider = timeProvider || new CurrentTimeProvider();
+    this.timeProvider = timeProvider ?? new CurrentTimeProvider();
     this.id = data.id;
     this.trackers = [];
-    this.clockRunning = data.clockRunning || false;
+    this.clockRunning = data.clockRunning ?? false;
     if (data.trackers?.length) {
       this.initialize(data.trackers);
     }
@@ -256,7 +256,7 @@ export class PlayerTimeTrackerMap {
       let data: PlayerTimeTrackerData;
       if ('status' in player) {
         data = {
-          id: player.id || player.name,
+          id: player.id ?? player.name,
           isOn: player.status === PlayerStatus.On,
         };
       } else {

@@ -3,6 +3,7 @@
 import { CurrentTimeProvider } from '@app/models/clock.js';
 import { EventCollection } from '@app/models/events.js';
 import {
+  ClockToggleEvent,
   GameEvent,
   GameEventCollection,
   GameEventGroup,
@@ -24,7 +25,7 @@ import * as testlive from './test-live-game-data.js';
 type SetupEventStarters = SetupEventData['starters'];
 
 export function buildGameSetupEvent(
-  startTime: number,
+  eventTime: number,
   players: LivePlayer[],
   totalPeriods = 2,
   periodLength = 45,
@@ -32,7 +33,7 @@ export function buildGameSetupEvent(
   return {
     id: 'setupeventid',
     type: GameEventType.Setup,
-    timestamp: startTime,
+    timestamp: eventTime,
     data: {
       clock: {
         totalPeriods,
@@ -73,6 +74,15 @@ export function buildPeriodEndEvent(endTime: number, currentPeriod = 1): PeriodE
         endTime,
       },
     },
+  };
+}
+
+export function buildClockToggleEvent(eventTime: number, count: number): ClockToggleEvent {
+  return {
+    id: `toggleeventid-${count}`,
+    type: GameEventType.ClockToggle,
+    timestamp: eventTime,
+    data: {},
   };
 }
 

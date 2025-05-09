@@ -35,6 +35,15 @@ function evolve(trackerMap: PlayerTimeTrackerMap, event: GameEvent) {
       trackerMap.stopShiftTimers(event.data.clock.endTime);
       break;
 
+    case GameEventType.ClockToggle:
+      // TODO: Should the state of the clock be captured in the event?
+      if (trackerMap.clockRunning) {
+        trackerMap.stopShiftTimers(event.timestamp);
+      } else {
+        trackerMap.startShiftTimers(event.timestamp);
+      }
+      break;
+
     case GameEventType.SubIn:
       trackerMap.substitutePlayer(event.playerId, event.data.replaced, event.timestamp);
       break;

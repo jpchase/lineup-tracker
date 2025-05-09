@@ -78,6 +78,7 @@ export enum GameEventType {
   SubIn = 'SUBIN',
   SubOut = 'SUBOUT',
   Swap = 'SWAP',
+  ClockToggle = 'CLOCKTOGGLE',
 }
 
 // Base game event types
@@ -125,6 +126,12 @@ export interface PeriodEndEventData extends Record<string, unknown> {
 export interface PeriodEndEvent
   extends GameEventBase<GameEventType.PeriodEnd, PeriodEndEventData> {}
 
+export interface ClockToggleEventData extends Record<string, unknown> {
+  // Data is empty
+}
+export interface ClockToggleEvent
+  extends GameEventBase<GameEventType.ClockToggle, ClockToggleEventData> {}
+
 export interface SubInEventData extends Record<string, unknown> {
   replaced: string;
   position: string;
@@ -145,7 +152,12 @@ export interface PositionSwapEvent
 
 export type GamePlayerEvent = SubInEvent | SubOutEvent | PositionSwapEvent;
 
-export type GameEvent = PeriodStartEvent | PeriodEndEvent | SetupEvent | GamePlayerEvent;
+export type GameEvent =
+  | ClockToggleEvent
+  | PeriodStartEvent
+  | PeriodEndEvent
+  | SetupEvent
+  | GamePlayerEvent;
 
 export interface GameEventGroup {
   groupedEvents: GameEvent[];
@@ -160,6 +172,7 @@ export function isGamePlayerEvent(event: GameEvent): event is GamePlayerEvent {
     case GameEventType.SubOut:
     case GameEventType.Swap:
       return true;
+    case GameEventType.ClockToggle:
     case GameEventType.PeriodEnd:
     case GameEventType.PeriodStart:
     case GameEventType.Setup:

@@ -802,7 +802,7 @@ describe('PlayerTimeTrackerMap', () => {
     });
 
     it('should have shift times at zero after sub with clock stopped', () => {
-      const { map, provider } = initMapWithTime(startTime, time1, time2);
+      const { map, provider } = initMapWithTime(startTime, timeStartPlus5, timeStartPlus10);
 
       const onTracker = map.get(playerOnId);
       const offTracker = map.get(playerOffId);
@@ -823,6 +823,33 @@ describe('PlayerTimeTrackerMap', () => {
 
       // Verify substitution after starting and stopping the clock
       map.substitutePlayer(playerOnId, playerOffId);
+
+      expect(onTracker).to.have.shiftTime([0, 0]);
+      expect(offTracker).to.have.shiftTime([0, 0]);
+    });
+
+    it('should have shift times at zero after sub with clock stopped and explicit sub times', () => {
+      const { map, provider } = initMapWithTime(startTime, timeStartPlus35, timeStartPlus1Minute55);
+
+      const onTracker = map.get(playerOnId);
+      const offTracker = map.get(playerOffId);
+
+      // Verify substitution before starting the clock
+      map.substitutePlayer(playerOffId, playerOnId, startTime);
+
+      expect(onTracker).to.have.shiftTime([0, 0]);
+      expect(offTracker).to.have.shiftTime([0, 0]);
+
+      map.startShiftTimers(timeStartPlus5);
+      map.stopShiftTimers(timeStartPlus20);
+
+      provider.freeze();
+      expect(onTracker).to.have.shiftTime([0, 15]);
+      expect(offTracker).to.have.shiftTime([0, 15]);
+      provider.unfreeze();
+
+      // Verify substitution after starting and stopping the clock
+      map.substitutePlayer(playerOnId, playerOffId, timeStartPlus1Minute55);
 
       expect(onTracker).to.have.shiftTime([0, 0]);
       expect(offTracker).to.have.shiftTime([0, 0]);
