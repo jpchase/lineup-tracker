@@ -861,7 +861,9 @@ describe('lineup-game-live tests', () => {
 
       // Verifies that the toggle clock action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
-      expect(actionLogger.lastAction()).to.deep.include(toggleClock(gameId));
+      expect(actionLogger.lastAction()).to.deep.include(
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+      );
     });
   }); // describe('Clock')
 

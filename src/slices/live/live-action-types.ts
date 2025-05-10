@@ -51,6 +51,11 @@ export interface EndPeriodPayload extends LiveGamePayload {
   stopTime?: number;
 }
 
+export interface ToggleClockPayload extends LiveGamePayload {
+  gameAllowsToggle: boolean;
+  isRunning?: boolean;
+}
+
 export interface OverduePeriodPayload extends LiveGamePayload {
   ignoreTimeForTesting?: boolean;
 }

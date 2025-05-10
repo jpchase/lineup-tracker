@@ -5,6 +5,7 @@ import { AppStore, setupStore } from '@app/app/store.js';
 import { EventCollection } from '@app/models/events.js';
 import { Position } from '@app/models/formation.js';
 import {
+  ClockToggleEvent,
   GameEvent,
   GameEventCollection,
   GameEventType,
@@ -53,7 +54,7 @@ import {
 } from '../../helpers/test-event-data.js';
 import * as testlive from '../../helpers/test-live-game-data.js';
 
-const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
+const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod, toggleClock } = actions;
 
 function makeEventId(eventIndex: number) {
   return `ev-id-${eventIndex}`;
@@ -859,6 +860,104 @@ describe('Events slice', () => {
       expect(newState).to.equal(currentState);
     });
   }); // describe('live/endPeriod')
+
+  describe('live/toggleClock', () => {
+    let currentState: EventState = EVENTS_INITIAL_STATE;
+    let rosterPlayers: LivePlayer[];
+    const gameId = 'somegameid';
+
+    before(() => {
+      rosterPlayers = testlive.getLivePlayers(18);
+    });
+
+    beforeEach(() => {
+      currentState = {
+        ...EVENTS_INITIAL_STATE,
+      };
+    });
+
+    it('should store clock toggle event after stopping clock', () => {
+      mockIdGenerator('toggleeventid');
+      fakeClock = mockCurrentTime(timeStartPlus20Minutes);
+      const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
+      const game = testlive.getLiveGame(rosterPlayers);
+      const expectedCollection = EventCollection.create<GameEvent>(
+        {
+          id: game.id,
+        },
+        timeProvider,
+      );
+      expectedCollection.addEvent<ClockToggleEvent>({
+        id: 'toggleeventid',
+        type: GameEventType.ClockToggle,
+        timestamp: timeStartPlus20Minutes,
+        data: {
+          clock: {
+            isRunning: false,
+          },
+        },
+      });
+
+      expect(currentState.events, 'events should be empty').to.not.be.ok;
+
+      const newState = eventsReducer(
+        currentState,
+        toggleClock(game.id, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+      );
+
+      expect(newState).to.deep.include({
+        events: { [expectedCollection.id]: expectedCollection.toJSON() },
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should store clock toggle event after restarting clock', () => {
+      mockIdGenerator('toggleeventid');
+      fakeClock = mockCurrentTime(timeStartPlus20Minutes);
+      const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
+      const game = testlive.getLiveGame(rosterPlayers);
+      const expectedCollection = EventCollection.create<GameEvent>(
+        {
+          id: game.id,
+        },
+        timeProvider,
+      );
+      expectedCollection.addEvent<ClockToggleEvent>({
+        id: 'toggleeventid',
+        type: GameEventType.ClockToggle,
+        timestamp: timeStartPlus20Minutes,
+        data: {
+          clock: {
+            isRunning: true,
+          },
+        },
+      });
+      expect(currentState.events, 'events should be empty').to.not.be.ok;
+
+      const newState = eventsReducer(
+        currentState,
+        toggleClock(game.id, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+      );
+
+      expect(newState).to.deep.include({
+        events: { [expectedCollection.id]: expectedCollection.toJSON() },
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should do nothing if game does not allow clock to be toggled', () => {
+      mockCurrentTime(timeStartPlus20Minutes);
+
+      const newState = eventsReducer(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ false),
+      );
+
+      expect(newState.events, 'events should be empty').to.not.be.ok;
+
+      expect(newState).to.equal(currentState);
+    });
+  }); // describe('live/toggleClock')
 
   describe('event selection', () => {
     let currentState: EventState;

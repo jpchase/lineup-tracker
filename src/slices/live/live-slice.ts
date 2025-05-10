@@ -24,7 +24,8 @@ import {
   markPeriodOverduePrepare,
   startPeriodHandler,
   startPeriodPrepare,
-  toggleHandler,
+  toggleClockHandler,
+  toggleClockPrepare,
 } from './clock-reducer-logic.js';
 import { EventState } from './events-slice.js';
 import { LiveGamePayload, eventsUpdated, prepareLiveGamePayload } from './live-action-types.js';
@@ -294,8 +295,8 @@ export const liveSlice = createSlice({
     },
 
     toggleClock: {
-      reducer: buildActionHandler(toggleHandler),
-      prepare: prepareLiveGamePayload,
+      reducer: buildActionHandler(toggleClockHandler),
+      prepare: toggleClockPrepare,
     },
 
     markPeriodOverdue: {

@@ -15,6 +15,7 @@ export {
   pendingSubsAppliedCreator,
   startPeriodCreator,
   startersCompletedCreator,
+  toggleClockCreator,
 } from './live-action-creators.js';
 export { eventsUpdated } from './live-action-types.js';
 export {
@@ -41,7 +42,6 @@ export const {
   cancelStarter,
   // Clock-related actions
   configurePeriods,
-  toggleClock,
   // Sub-related actions
   selectPlayer,
   cancelSub,

@@ -43,7 +43,7 @@ import {
   selectProposedSub,
   selectProposedSwap,
   startPeriodCreator,
-  toggleClock,
+  toggleClockCreator,
 } from '../slices/live/index.js';
 import { ConnectStoreMixin } from './core/connect-mixin.js';
 import { playerResolverContext } from './core/player-resolver.js';
@@ -417,7 +417,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   }
 
   private toggleClock() {
-    this.dispatch(toggleClock(this._game!.id));
+    this.dispatch(toggleClockCreator(this._game!.id));
   }
 
   private startClockPeriod() {

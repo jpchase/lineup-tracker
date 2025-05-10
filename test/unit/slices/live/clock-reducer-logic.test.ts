@@ -1112,11 +1112,12 @@ describe('Live slice: Clock actions', () => {
 
     beforeEach(() => {
       const game = testlive.getLiveGameWithPlayers();
+      game.status = GameStatus.Live;
       currentState = buildLiveStateWithCurrentGame(game);
       gameId = game.id;
     });
 
-    it('should start when no timer data exists', () => {
+    it('should do nothing when no timer data exists', () => {
       mockTimeProvider(timeStartPlus1Minute55);
       const currentGame = getGame(currentState, gameId)!;
       currentGame.clock = buildClock(/* timer= */ undefined, {
@@ -1124,20 +1125,13 @@ describe('Live slice: Clock actions', () => {
         periodStatus: PeriodStatus.Running,
       });
 
-      const newState = live(currentState, toggleClock(gameId));
+      const newState = live(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+      );
 
       const newGame = getGame(newState, gameId);
-      expect(newGame?.clock).to.deep.include({
-        periodStartTime: timeStartPlus10,
-        periodStatus: PeriodStatus.Running,
-        timer: {
-          isRunning: true,
-          startTime: timeStartPlus1Minute55,
-          duration: Duration.zero().toJSON(),
-        },
-      });
-
-      expect(newState).not.to.equal(currentState);
+      expect(newGame?.clock).to.equal(currentGame.clock);
     });
 
     it('should start when timer is set to not running', () => {
@@ -1145,9 +1139,13 @@ describe('Live slice: Clock actions', () => {
       const currentGame = getGame(currentState, gameId)!;
       currentGame.clock = buildClock(buildStoppedTimer(), {
         periodStartTime: timeStartPlus10,
+        periodStatus: PeriodStatus.Running,
       });
 
-      const newState = live(currentState, toggleClock(gameId));
+      const newState = live(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -1169,11 +1167,15 @@ describe('Live slice: Clock actions', () => {
         buildStoppedTimer(),
         {
           periodStartTime: startTime,
+          periodStatus: PeriodStatus.Running,
         },
         buildRunningTimer(startTime),
       );
 
-      const newState = live(currentState, toggleClock(gameId));
+      const newState = live(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -1200,7 +1202,10 @@ describe('Live slice: Clock actions', () => {
         periodStatus: PeriodStatus.Running,
       });
 
-      const newState = live(currentState, toggleClock(gameId));
+      const newState = live(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -1226,9 +1231,13 @@ describe('Live slice: Clock actions', () => {
       const currentGame = getGame(currentState, gameId)!;
       currentGame.clock = buildClock(buildRunningTimer(startTime, /*elapsedSeconds=*/ 20), {
         periodStartTime: originalPeriodStartTime,
+        periodStatus: PeriodStatus.Running,
       });
 
-      const newState = live(currentState, toggleClock(gameId));
+      const newState = live(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -1251,11 +1260,15 @@ describe('Live slice: Clock actions', () => {
         buildRunningTimer(startTime, /*elapsedSeconds=*/ 20),
         {
           periodStartTime: originalPeriodStartTime,
+          periodStatus: PeriodStatus.Running,
         },
         buildStoppedTimer(15),
       );
 
-      const newState = live(currentState, toggleClock(gameId));
+      const newState = live(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -1284,7 +1297,10 @@ describe('Live slice: Clock actions', () => {
         periodStatus: PeriodStatus.Running,
       });
 
-      const newState = live(currentState, toggleClock(gameId));
+      const newState = live(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({
@@ -1308,7 +1324,10 @@ describe('Live slice: Clock actions', () => {
         periodStatus: PeriodStatus.Running,
       });
 
-      const newState = live(currentState, toggleClock(gameId));
+      const newState = live(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+      );
 
       const newGame = getGame(newState, gameId);
       expect(newGame?.clock).to.deep.include({

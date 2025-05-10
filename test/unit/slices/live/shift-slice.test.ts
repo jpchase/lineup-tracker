@@ -154,7 +154,10 @@ describe('Shift slice', () => {
       }
       mockCurrentTime(timeStartPlus10Minutes);
 
-      const newState = shift(currentState, toggleClock(gameId));
+      const newState = shift(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+      );
 
       // Only need to check the first on and off player trackers.
       const expectedOnTracker = buildPlayerTracker(rosterPlayers[0]);
@@ -205,7 +208,10 @@ describe('Shift slice', () => {
       // the shifts by the reducer.
       mockCurrentTime(timeStartPlus5);
 
-      const newState = shift(currentState, toggleClock(gameId));
+      const newState = shift(
+        currentState,
+        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+      );
 
       // Only need to check the first on and off player trackers.
       const expectedOnTracker = buildPlayerTracker(rosterPlayers[0]);

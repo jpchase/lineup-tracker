@@ -127,7 +127,10 @@ export interface PeriodEndEvent
   extends GameEventBase<GameEventType.PeriodEnd, PeriodEndEventData> {}
 
 export interface ClockToggleEventData extends Record<string, unknown> {
-  // Data is empty
+  clock: {
+    // Whether the clock is running after it was toggled.
+    isRunning: boolean;
+  };
 }
 export interface ClockToggleEvent
   extends GameEventBase<GameEventType.ClockToggle, ClockToggleEventData> {}
