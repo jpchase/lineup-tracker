@@ -2,10 +2,11 @@
 
 import '@app/components/lineup-game-clock.js';
 import {
+  ClockEndPeriodDetail,
   ClockEndPeriodEvent,
   ClockStartPeriodEvent,
-  ClockToggleDetail,
-  ClockToggleEvent,
+  ClockToggledDetail,
+  ClockToggledEvent,
   LineupGameClock,
 } from '@app/components/lineup-game-clock.js';
 import { Duration } from '@app/models/clock.js';
@@ -14,7 +15,6 @@ import { Dialog } from '@material/mwc-dialog';
 import { Radio } from '@material/mwc-radio';
 import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';
-import { ClockEndPeriodDetail } from '../../../src/components/lineup-game-clock.js';
 import {
   getClockEndOverdueDialog,
   getClockEndOverdueExtraMinutes,
@@ -243,9 +243,9 @@ describe('lineup-game-clock tests', () => {
       expect(toggle.on, 'Restart/pause button should be in stopped state').to.be.false;
 
       setTimeout(() => toggle.click());
-      const { detail } = await oneEvent(el, ClockToggleEvent.eventName);
+      const { detail } = await oneEvent(el, ClockToggledEvent.eventName);
 
-      expect((detail as ClockToggleDetail).isStarted, 'Clock should be started').to.be.true;
+      expect((detail as ClockToggledDetail).isStarted, 'Clock should be started').to.be.true;
     });
 
     it('starts running when timer data is running', async () => {
@@ -283,9 +283,9 @@ describe('lineup-game-clock tests', () => {
       const toggle = getToggleButton();
 
       setTimeout(() => toggle.click());
-      const { detail } = await oneEvent(el, ClockToggleEvent.eventName);
+      const { detail } = await oneEvent(el, ClockToggledEvent.eventName);
 
-      expect((detail as ClockToggleDetail).isStarted, 'Clock should be stopped').to.be.false;
+      expect((detail as ClockToggledDetail).isStarted, 'Clock should be stopped').to.be.false;
 
       expect(toggle.on, 'Restart/pause button should be in stopped state').to.be.false;
     });

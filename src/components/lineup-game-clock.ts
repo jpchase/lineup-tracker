@@ -17,7 +17,7 @@ import { PeriodStatus } from '../models/live.js';
 import { TimerController } from './core/timer-controller.js';
 import { SharedStyles } from './shared-styles.js';
 
-export interface ClockToggleDetail {
+export interface ClockToggledDetail {
   isStarted: boolean;
 }
 
@@ -58,11 +58,11 @@ export class ClockEndPeriodEvent extends CustomEvent<ClockEndPeriodDetail> {
 }
 
 const TOGGLE_EVENT_NAME = 'clock-toggled';
-export class ClockToggleEvent extends CustomEvent<ClockToggleDetail> {
+export class ClockToggledEvent extends CustomEvent<ClockToggledDetail> {
   static eventName = TOGGLE_EVENT_NAME;
 
-  constructor(detail: ClockToggleDetail) {
-    super(ClockToggleEvent.eventName, {
+  constructor(detail: ClockToggledDetail) {
+    super(ClockToggledEvent.eventName, {
       detail,
       bubbles: true,
       composed: true,
@@ -200,7 +200,7 @@ export class LineupGameClock extends LitElement {
   }
 
   private toggleClock(e: CustomEvent) {
-    this.dispatchEvent(new ClockToggleEvent({ isStarted: e.detail.isOn }));
+    this.dispatchEvent(new ClockToggledEvent({ isStarted: e.detail.isOn }));
   }
 
   private startPeriod() {
@@ -248,6 +248,6 @@ declare global {
   interface HTMLElementEventMap {
     [END_PERIOD_EVENT_NAME]: ClockEndPeriodEvent;
     [START_PERIOD_EVENT_NAME]: ClockStartPeriodEvent;
-    [TOGGLE_EVENT_NAME]: ClockToggleEvent;
+    [TOGGLE_EVENT_NAME]: ClockToggledEvent;
   }
 }
