@@ -1,5 +1,6 @@
 /** @format */
 
+import { exhaustiveGuard } from '../util/shared-types.js';
 import { TimerData } from './clock.js';
 import { EventBase, EventCollection, EventCollectionData } from './events.js';
 import { FormationMetadata, Position } from './formation.js';
@@ -72,13 +73,13 @@ export interface LiveGames {
 
 // Game events
 export enum GameEventType {
+  ClockToggle = 'CLOCKTOGGLE',
   PeriodStart = 'PERIODSTART',
   PeriodEnd = 'PERIODEND',
   Setup = 'SETUP',
   SubIn = 'SUBIN',
   SubOut = 'SUBOUT',
   Swap = 'SWAP',
-  ClockToggle = 'CLOCKTOGGLE',
 }
 
 // Base game event types
@@ -181,8 +182,7 @@ export function isGamePlayerEvent(event: GameEvent): event is GamePlayerEvent {
     case GameEventType.Setup:
       return false;
     default: {
-      const _exhaustiveCheck: never = event;
-      return _exhaustiveCheck;
+      return exhaustiveGuard(event);
     }
   }
 }

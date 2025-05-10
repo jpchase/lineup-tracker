@@ -1,5 +1,6 @@
 /** @format */
 
+import { exhaustiveGuard } from '../util/shared-types.js';
 import { CurrentTimeProvider } from './clock.js';
 import { GameEvent, GameEventType, LiveGame } from './live.js';
 import { PlayerTimeTrackerMap } from './shift.js';
@@ -36,11 +37,11 @@ function evolve(trackerMap: PlayerTimeTrackerMap, event: GameEvent) {
       break;
 
     case GameEventType.ClockToggle:
-      // TODO: Should the state of the clock be captured in the event?
-      if (trackerMap.clockRunning) {
-        trackerMap.stopShiftTimers(event.timestamp);
-      } else {
+      // The event has the state of the clock *after* the toggle happened.
+      if (event.data.clock.isRunning) {
         trackerMap.startShiftTimers(event.timestamp);
+      } else {
+        trackerMap.stopShiftTimers(event.timestamp);
       }
       break;
 
@@ -50,52 +51,10 @@ function evolve(trackerMap: PlayerTimeTrackerMap, event: GameEvent) {
 
     case GameEventType.SubOut:
     case GameEventType.Swap:
+      // No-op, these events do not affect shift timing.
+      break;
+
     default:
-    // No-op, these events do not affect shift timing.
-    /*
-    case 'ShoppingCartOpened':
-      if (currentState.status != 'Empty') return currentState;
-
-      return {
-        id: event.data.shoppingCartId,
-        clientId: event.data.clientId,
-        productItems: [],
-        status: 'Pending',
-      };
-    case 'ProductItemAddedToShoppingCart':
-      if (currentState.status != 'Pending') return currentState;
-
-      return {
-        ...currentState,
-        productItems: addProductItem(currentState.productItems, event.data.productItem),
-      };
-    case 'ProductItemRemovedFromShoppingCart':
-      if (currentState.status != 'Pending') return currentState;
-
-      return {
-        ...currentState,
-        productItems: removeProductItem(currentState.productItems, event.data.productItem),
-      };
-    case 'ShoppingCartConfirmed':
-      if (currentState.status != 'Pending') return currentState;
-
-      return {
-        ...currentState,
-        status: 'Confirmed',
-        confirmedAt: new Date(event.data.confirmedAt),
-      };
-    case 'ShoppingCartCanceled':
-      if (currentState.status != 'Pending') return currentState;
-
-      return {
-        ...currentState,
-        status: 'Canceled',
-        canceledAt: new Date(event.data.canceledAt),
-      };
-    default: {
-      const _: never = event;
-      return currentState;
-    }
-    */
+      exhaustiveGuard(event);
   }
 }
