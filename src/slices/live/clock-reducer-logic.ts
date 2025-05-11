@@ -206,12 +206,16 @@ export const toggleClockHandler = (
 export const toggleClockPrepare = (
   gameId: string,
   gameAllowsToggle: boolean,
+  currentPeriod?: number,
+  toggleTime?: number,
   isRunning?: boolean,
 ) => {
   return {
     payload: {
       gameId,
       gameAllowsToggle,
+      currentPeriod,
+      toggleTime,
       isRunning,
     },
   };
@@ -408,6 +412,8 @@ export function gameCanEndPeriod(
 
 export function gameCanToggleClock(game: LiveGame): {
   allowsToggle: boolean;
+  currentPeriod?: number;
+  toggleTime?: number;
   isRunning?: boolean;
 } {
   let allowsToggle = false;
@@ -422,7 +428,12 @@ export function gameCanToggleClock(game: LiveGame): {
   // Toggle the current timer state, to provide what the updated state will be.
   const isRunning = !game.clock?.timer?.isRunning;
 
-  return { allowsToggle, isRunning };
+  return {
+    allowsToggle,
+    currentPeriod: period.currentPeriod!,
+    toggleTime: new CurrentTimeProvider().getCurrentTime(),
+    isRunning,
+  };
 }
 
 function getInitializedClock(game: LiveGame) {

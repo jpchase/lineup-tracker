@@ -1127,7 +1127,13 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus1Minute55,
+          /*isRunning =*/ true,
+        ),
       );
 
       const newGame = getGame(newState, gameId);
@@ -1144,7 +1150,13 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus1Minute55,
+          /*isRunning =*/ true,
+        ),
       );
 
       const newGame = getGame(newState, gameId);
@@ -1174,7 +1186,13 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus10,
+          /*isRunning =*/ true,
+        ),
       );
 
       const newGame = getGame(newState, gameId);
@@ -1204,7 +1222,13 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus10,
+          /*isRunning =*/ false,
+        ),
       );
 
       const newGame = getGame(newState, gameId);
@@ -1236,7 +1260,13 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus10,
+          /*isRunning =*/ false,
+        ),
       );
 
       const newGame = getGame(newState, gameId);
@@ -1267,7 +1297,13 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus10,
+          /*isRunning =*/ false,
+        ),
       );
 
       const newGame = getGame(newState, gameId);
@@ -1299,7 +1335,13 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus10,
+          /*isRunning =*/ false,
+        ),
       );
 
       const newGame = getGame(newState, gameId);
@@ -1326,7 +1368,13 @@ describe('Live slice: Clock actions', () => {
 
       const newState = live(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus10,
+          /*isRunning =*/ false,
+        ),
       );
 
       const newGame = getGame(newState, gameId);

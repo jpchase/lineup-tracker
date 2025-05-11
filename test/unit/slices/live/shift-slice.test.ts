@@ -156,7 +156,13 @@ describe('Shift slice', () => {
 
       const newState = shift(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus10Minutes,
+          /*isRunning =*/ true,
+        ),
       );
 
       // Only need to check the first on and off player trackers.
@@ -210,7 +216,13 @@ describe('Shift slice', () => {
 
       const newState = shift(
         currentState,
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus5,
+          /*isRunning =*/ false,
+        ),
       );
 
       // Only need to check the first on and off player trackers.

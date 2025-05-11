@@ -129,6 +129,8 @@ export interface PeriodEndEvent
 
 export interface ClockToggleEventData extends Record<string, unknown> {
   clock: {
+    currentPeriod: number;
+    toggleTime: number;
     // Whether the clock is running after it was toggled.
     isRunning: boolean;
   };

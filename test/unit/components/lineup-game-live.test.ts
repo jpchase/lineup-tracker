@@ -849,6 +849,11 @@ describe('lineup-game-live tests', () => {
     });
 
     it('dispatches toggle clock action when fired by clock component', async () => {
+      fakeClock = sinon.useFakeTimers({
+        now: startTime,
+        shouldAdvanceTime: false,
+      });
+
       // Get the clock component into a state that allows the toggle.
       getStore().dispatch(startPeriod(gameId, /*gameAllowsStart =*/ true));
       await el.updateComplete;
@@ -862,7 +867,13 @@ describe('lineup-game-live tests', () => {
       // Verifies that the toggle clock action was dispatched.
       expect(dispatchStub).to.have.callCount(1);
       expect(actionLogger.lastAction()).to.deep.include(
-        toggleClock(gameId, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+        toggleClock(
+          gameId,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          startTime,
+          /*isRunning =*/ false,
+        ),
       );
     });
   }); // describe('Clock')

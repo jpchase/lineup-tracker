@@ -78,16 +78,19 @@ export function buildPeriodEndEvent(endTime: number, currentPeriod = 1): PeriodE
 }
 
 export function buildClockToggleEvent(
-  eventTime: number,
+  toggleTime: number,
   isRunning: boolean,
+  currentPeriod = 1,
   count = 1,
 ): ClockToggleEvent {
   return {
-    id: `toggleeventid-${isRunning ? 'running' : 'stopped'}-${count}`,
+    id: `toggleeventid-${currentPeriod}-${isRunning ? 'running' : 'stopped'}-${count}`,
     type: GameEventType.ClockToggle,
-    timestamp: eventTime,
+    timestamp: toggleTime,
     data: {
       clock: {
+        currentPeriod,
+        toggleTime,
         isRunning,
       },
     },

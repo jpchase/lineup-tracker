@@ -241,11 +241,19 @@ const eventSlice = createSlice({
           if (!action.payload.gameAllowsToggle) {
             return undefined;
           }
-          return buildGameEvent<ClockToggleEvent>(GameEventType.ClockToggle, {
-            clock: {
-              isRunning: action.payload.isRunning!,
+          const toggleTime = action.payload.toggleTime!;
+          return buildGameEvent<ClockToggleEvent>(
+            GameEventType.ClockToggle,
+            {
+              clock: {
+                currentPeriod: action.payload.currentPeriod!,
+                toggleTime,
+                isRunning: action.payload.isRunning!,
+              },
             },
-          });
+            undefined,
+            /*timestamp =*/ toggleTime,
+          );
         }),
       )
       .addCase(

@@ -53,6 +53,8 @@ export interface EndPeriodPayload extends LiveGamePayload {
 
 export interface ToggleClockPayload extends LiveGamePayload {
   gameAllowsToggle: boolean;
+  currentPeriod?: number;
+  toggleTime?: number;
   isRunning?: boolean;
 }
 

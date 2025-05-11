@@ -70,7 +70,15 @@ export const toggleClockCreator =
       return;
     }
     const toggle = gameCanToggleClock(game);
-    dispatch(toggleClock(game.id, toggle.allowsToggle, toggle.isRunning));
+    dispatch(
+      toggleClock(
+        game.id,
+        toggle.allowsToggle,
+        toggle.currentPeriod,
+        toggle.toggleTime,
+        toggle.isRunning,
+      ),
+    );
   };
 
 export const pendingSubsAppliedCreator =

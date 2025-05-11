@@ -876,7 +876,7 @@ describe('Events slice', () => {
       };
     });
 
-    it('should store clock toggle event after stopping clock', () => {
+    it('should store clock toggle event after stopping clock in first period', () => {
       mockIdGenerator('toggleeventid');
       fakeClock = mockCurrentTime(timeStartPlus20Minutes);
       const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
@@ -893,6 +893,8 @@ describe('Events slice', () => {
         timestamp: timeStartPlus20Minutes,
         data: {
           clock: {
+            currentPeriod: 1,
+            toggleTime: timeStartPlus20Minutes,
             isRunning: false,
           },
         },
@@ -902,7 +904,56 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        toggleClock(game.id, /*gameAllowsToggle =*/ true, /*isRunning =*/ false),
+        toggleClock(
+          game.id,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus20Minutes,
+          /*isRunning =*/ false,
+        ),
+      );
+
+      expect(newState).to.deep.include({
+        events: { [expectedCollection.id]: expectedCollection.toJSON() },
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('should store clock toggle event after stopping clock in last period', () => {
+      mockIdGenerator('toggleeventid');
+      fakeClock = mockCurrentTime(timeStartPlus20Minutes);
+      const timeProvider = mockTimeProvider(timeStartPlus20Minutes);
+      const game = testlive.getLiveGame(rosterPlayers);
+      const expectedCollection = EventCollection.create<GameEvent>(
+        {
+          id: game.id,
+        },
+        timeProvider,
+      );
+      expectedCollection.addEvent<ClockToggleEvent>({
+        id: 'toggleeventid',
+        type: GameEventType.ClockToggle,
+        timestamp: timeStartPlus20Minutes,
+        data: {
+          clock: {
+            currentPeriod: 2,
+            toggleTime: timeStartPlus20Minutes,
+            isRunning: false,
+          },
+        },
+      });
+
+      expect(currentState.events, 'events should be empty').to.not.be.ok;
+
+      const newState = eventsReducer(
+        currentState,
+        toggleClock(
+          game.id,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 2,
+          timeStartPlus20Minutes,
+          /*isRunning =*/ false,
+        ),
       );
 
       expect(newState).to.deep.include({
@@ -928,6 +979,8 @@ describe('Events slice', () => {
         timestamp: timeStartPlus20Minutes,
         data: {
           clock: {
+            currentPeriod: 1,
+            toggleTime: timeStartPlus20Minutes,
             isRunning: true,
           },
         },
@@ -936,7 +989,13 @@ describe('Events slice', () => {
 
       const newState = eventsReducer(
         currentState,
-        toggleClock(game.id, /*gameAllowsToggle =*/ true, /*isRunning =*/ true),
+        toggleClock(
+          game.id,
+          /*gameAllowsToggle =*/ true,
+          /*currentPeriod =*/ 1,
+          timeStartPlus20Minutes,
+          /*isRunning =*/ true,
+        ),
       );
 
       expect(newState).to.deep.include({
