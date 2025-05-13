@@ -181,6 +181,9 @@ export function buildGameEvents(
   events.addEventGroup(buildSubEvents(sub2Time, sub2).groupedEvents);
   events.addEvent(buildSwapEvent(sub2Time, swap));
 
+  events.addEvent(buildClockToggleEvent(timeProvider.getCurrentTime(), /*isRunning =*/ false));
+  events.addEvent(buildClockToggleEvent(timeProvider.getCurrentTime(), /*isRunning =*/ true));
+
   events.addEvent(buildPeriodEndEvent(timeProvider.getCurrentTime()));
 
   return events;
