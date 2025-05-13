@@ -439,9 +439,9 @@ describe('createShiftTrackerFromEvents', () => {
     // The shift times are checked at 1:55, with 1:30 of elapsed game time, because the clock was stopped for 25s.
     const events = EventCollection.create<GameEvent>({ id: game.id });
     events.addEventGroup(buildSubEvents(timeStartPlus5, sub1).groupedEvents);
-    events.addEvent(buildClockToggleEvent(timeStartPlus10, /*isRunning =*/ false, 1));
+    events.addEvent(buildClockToggleEvent(timeStartPlus10, /*isRunning =*/ false));
     events.addEventGroup(buildSubEvents(timeStartPlus20, sub2).groupedEvents);
-    events.addEvent(buildClockToggleEvent(timeStartPlus35, /*isRunning =*/ true, 2));
+    events.addEvent(buildClockToggleEvent(timeStartPlus35, /*isRunning =*/ true));
     events.addEventGroup(buildSubEvents(timeStartPlus55, sub3).groupedEvents);
     events.addEvent(buildPeriodStartEvent(startTime));
 

@@ -114,10 +114,6 @@ const eventSlice = createSlice({
       reducer: (state: EventState, action: PayloadAction<EventUpdateRequestedPayload>) => {
         const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
 
-        // TODO: If the "period end" event is updated, the game clock needs to be updated
-        // as well
-        // TODO: If the "clock toggle" event is updated, the game clock needs to be updated
-        // as well
         let updatedEventTime: number;
         if (action.payload.useExistingTime) {
           const existingEvent = gameEvents.get(action.payload.existingEventId!);
@@ -143,6 +139,10 @@ const eventSlice = createSlice({
           selectedEvent.timestamp = updatedEventTime;
           if (selectedEvent.type === GameEventType.PeriodStart) {
             selectedEvent.data.clock.startTime = updatedEventTime;
+          } else if (selectedEvent.type === GameEventType.PeriodEnd) {
+            selectedEvent.data.clock.endTime = updatedEventTime;
+          } else if (selectedEvent.type === GameEventType.ClockToggle) {
+            selectedEvent.data.clock.toggleTime = updatedEventTime;
           }
         }
 

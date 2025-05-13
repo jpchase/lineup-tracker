@@ -1126,6 +1126,8 @@ describe('Events slice', () => {
     let gameEvents: GameEventCollection;
     let updatedEvents: GameEventCollection;
     let periodStartEventId: string;
+    let periodEndEventId: string;
+    let clockToggleEventId: string;
 
     beforeEach(() => {
       game = testlive.getLiveGameWithPlayers();
@@ -1137,6 +1139,12 @@ describe('Events slice', () => {
 
       periodStartEventId = gameEvents.eventsForTesting.find((event: GameEvent) => {
         return event.type === GameEventType.PeriodStart;
+      })?.id!;
+      periodEndEventId = gameEvents.eventsForTesting.find((event: GameEvent) => {
+        return event.type === GameEventType.PeriodEnd;
+      })?.id!;
+      clockToggleEventId = gameEvents.eventsForTesting.find((event: GameEvent) => {
+        return event.type === GameEventType.ClockToggle;
       })?.id!;
 
       currentState = buildEventState(gameEvents);
@@ -1218,12 +1226,73 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
+    it('applies custom time to game clock for selected period end event', () => {
+      const selectedEvent = gameEvents.get(periodEndEventId)!;
+      currentState.eventsSelectedIds = [periodEndEventId];
+
+      // Update the selected event to 32 seconds earlier
+      const customTime = new Date(selectedEvent.timestamp!);
+      customTime.setSeconds(customTime.getSeconds() - 32);
+
+      const newState = eventsReducer(
+        currentState,
+        eventUpdateRequested(
+          game.id,
+          [periodEndEventId],
+          /* useExistingTime= */ false,
+          undefined,
+          customTime.getTime(),
+        ),
+      );
+
+      const updatedEndEvent = updatedEvents.get(periodEndEventId) as PeriodEndEvent;
+      updatedEndEvent.timestamp = customTime.getTime();
+      updatedEndEvent.data.clock.endTime = updatedEndEvent.timestamp;
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies custom time to game clock for selected clock toggle event', () => {
+      const selectedEvent = gameEvents.get(clockToggleEventId)!;
+      currentState.eventsSelectedIds = [clockToggleEventId];
+
+      // Update the selected event to 37 seconds earlier
+      const customTime = new Date(selectedEvent.timestamp!);
+      customTime.setSeconds(customTime.getSeconds() - 37);
+
+      const newState = eventsReducer(
+        currentState,
+        eventUpdateRequested(
+          game.id,
+          [clockToggleEventId],
+          /* useExistingTime= */ false,
+          undefined,
+          customTime.getTime(),
+        ),
+      );
+
+      const updatedToggleEvent = updatedEvents.get(clockToggleEventId) as ClockToggleEvent;
+      updatedToggleEvent.timestamp = customTime.getTime();
+      updatedToggleEvent.data.clock.toggleTime = updatedToggleEvent.timestamp;
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
     it('applies custom time to multiple selected events', () => {
       const selectedEvent = gameEvents.eventsForTesting[0];
       const selectedEventId = selectedEvent.id!;
-      currentState.eventsSelectedIds = [selectedEventId, periodStartEventId];
+      const updatedEventIds = [selectedEventId, periodStartEventId, clockToggleEventId];
+      currentState.eventsSelectedIds = updatedEventIds.slice();
 
-      // Update the selected event to 45 seconds earlier
+      // Update the selected events to 45 seconds earlier
       const customTime = new Date(selectedEvent.timestamp!);
       customTime.setSeconds(customTime.getSeconds() - 45);
 
@@ -1231,18 +1300,22 @@ describe('Events slice', () => {
         currentState,
         eventUpdateRequested(
           game.id,
-          [selectedEventId, periodStartEventId],
+          updatedEventIds,
           /* useExistingTime= */ false,
           undefined,
           customTime.getTime(),
         ),
       );
 
-      for (const updatedId of [selectedEventId, periodStartEventId]) {
+      for (const updatedId of updatedEventIds) {
         const updatedEvent = updatedEvents.get(updatedId)!;
         updatedEvent.timestamp = customTime.getTime();
         if (updatedEvent.type === GameEventType.PeriodStart) {
           updatedEvent.data.clock.startTime = updatedEvent.timestamp!;
+        } else if (updatedEvent.type === GameEventType.PeriodEnd) {
+          updatedEvent.data.clock.endTime = updatedEvent.timestamp!;
+        } else if (updatedEvent.type === GameEventType.ClockToggle) {
+          updatedEvent.data.clock.toggleTime = updatedEvent.timestamp!;
         }
       }
 
@@ -1314,17 +1387,21 @@ describe('Events slice', () => {
       expect(newState).not.to.equal(currentState);
     });
 
-    it('applies existing event time to multiple selected events', () => {
-      const selectedEventId = gameEvents.eventsForTesting[0].id!;
-      currentState.eventsSelectedIds = [selectedEventId, periodStartEventId];
+    it('applies existing event time to game clock for selected period end event', () => {
+      currentState.eventsSelectedIds = [periodEndEventId];
 
       const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+      expect(
+        periodEndEventId,
+        'Period end event must be updated from a different event',
+      ).to.not.equal(existingEventId);
 
       const newState = eventsReducer(
         currentState,
         eventUpdateRequested(
           game.id,
-          [selectedEventId, periodStartEventId],
+          [periodEndEventId],
           /* useExistingTime= */ true,
           existingEventId,
           undefined,
@@ -1332,11 +1409,80 @@ describe('Events slice', () => {
       );
 
       const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
-      for (const updatedId of [selectedEventId, periodStartEventId]) {
+
+      const updatedEndEvent = updatedEvents.get(periodEndEventId) as PeriodEndEvent;
+      updatedEndEvent.timestamp = existingTime;
+      updatedEndEvent.data.clock.endTime = existingTime;
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies existing event time to game clock for selected clock toggle event', () => {
+      currentState.eventsSelectedIds = [clockToggleEventId];
+
+      const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+      expect(
+        clockToggleEventId,
+        'Clock toggle event must be updated from a different event',
+      ).to.not.equal(existingEventId);
+
+      const newState = eventsReducer(
+        currentState,
+        eventUpdateRequested(
+          game.id,
+          [clockToggleEventId],
+          /* useExistingTime= */ true,
+          existingEventId,
+          undefined,
+        ),
+      );
+
+      const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
+
+      const updatedToggleEvent = updatedEvents.get(clockToggleEventId) as ClockToggleEvent;
+      updatedToggleEvent.timestamp = existingTime;
+      updatedToggleEvent.data.clock.toggleTime = existingTime;
+
+      expect(newState).to.deep.include({
+        events: { [updatedEvents.id]: updatedEvents.toJSON() },
+        eventsSelectedIds: [],
+      });
+      expect(newState).not.to.equal(currentState);
+    });
+
+    it('applies existing event time to multiple selected events', () => {
+      const selectedEventId = gameEvents.eventsForTesting[0].id!;
+      const updatedEventIds = [selectedEventId, periodStartEventId, periodEndEventId];
+      currentState.eventsSelectedIds = updatedEventIds.slice();
+
+      const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+      const newState = eventsReducer(
+        currentState,
+        eventUpdateRequested(
+          game.id,
+          updatedEventIds,
+          /* useExistingTime= */ true,
+          existingEventId,
+          undefined,
+        ),
+      );
+
+      const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
+      for (const updatedId of updatedEventIds) {
         const updatedEvent = updatedEvents.get(updatedId)!;
         updatedEvent.timestamp = existingTime;
         if (updatedEvent.type === GameEventType.PeriodStart) {
           updatedEvent.data.clock.startTime = existingTime;
+        } else if (updatedEvent.type === GameEventType.PeriodEnd) {
+          updatedEvent.data.clock.endTime = existingTime;
+        } else if (updatedEvent.type === GameEventType.ClockToggle) {
+          updatedEvent.data.clock.toggleTime = existingTime;
         }
       }
 
@@ -1410,8 +1556,7 @@ describe('Events slice', () => {
 
       it('updated action is dispatched for selected period start event with custom time', async () => {
         const selectedEvent = gameEvents.get(periodStartEventId)!;
-        const selectedEventId = selectedEvent.id!;
-        currentState.eventsSelectedIds = [selectedEventId];
+        currentState.eventsSelectedIds = [periodStartEventId];
         setupTestStore();
 
         // Update the selected event to 35 seconds earlier
@@ -1421,14 +1566,14 @@ describe('Events slice', () => {
         store.dispatch(
           eventUpdateRequested(
             game.id,
-            [selectedEventId],
+            [periodStartEventId],
             /* useExistingTime= */ false,
             undefined,
             customTime.getTime(),
           ),
         );
 
-        const updatedStartEvent = updatedEvents.get(selectedEventId) as PeriodStartEvent;
+        const updatedStartEvent = updatedEvents.get(periodStartEventId) as PeriodStartEvent;
         updatedStartEvent.timestamp = customTime.getTime();
         updatedStartEvent.data.clock.startTime = updatedStartEvent.timestamp;
 
@@ -1438,10 +1583,69 @@ describe('Events slice', () => {
         );
       });
 
+      it('updated action is dispatched for selected period end event with custom time', async () => {
+        const selectedEvent = gameEvents.get(periodEndEventId)!;
+        currentState.eventsSelectedIds = [periodEndEventId];
+        setupTestStore();
+
+        // Update the selected event to 36 seconds earlier
+        const customTime = new Date(selectedEvent.timestamp!);
+        customTime.setSeconds(customTime.getSeconds() - 36);
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [periodEndEventId],
+            /* useExistingTime= */ false,
+            undefined,
+            customTime.getTime(),
+          ),
+        );
+
+        const updatedEndEvent = updatedEvents.get(periodEndEventId) as PeriodEndEvent;
+        updatedEndEvent.timestamp = customTime.getTime();
+        updatedEndEvent.data.clock.endTime = updatedEndEvent.timestamp;
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(
+          eventsUpdated(game.id, [updatedEndEvent]),
+        );
+      });
+
+      it('updated action is dispatched for selected clock toggle event with custom time', async () => {
+        const selectedEvent = gameEvents.get(clockToggleEventId)!;
+        currentState.eventsSelectedIds = [clockToggleEventId];
+        setupTestStore();
+
+        // Update the selected event to 37 seconds earlier
+        const customTime = new Date(selectedEvent.timestamp!);
+        customTime.setSeconds(customTime.getSeconds() - 37);
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [clockToggleEventId],
+            /* useExistingTime= */ false,
+            undefined,
+            customTime.getTime(),
+          ),
+        );
+
+        const updatedToggleEvent = updatedEvents.get(clockToggleEventId) as ClockToggleEvent;
+        updatedToggleEvent.timestamp = customTime.getTime();
+        updatedToggleEvent.data.clock.toggleTime = updatedToggleEvent.timestamp;
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(
+          eventsUpdated(game.id, [updatedToggleEvent]),
+        );
+      });
+
       it('updated action is dispatched for multiple selected events with custom time', async () => {
         const selectedEvent = gameEvents.eventsForTesting[0];
         const selectedEventId = selectedEvent.id!;
-        currentState.eventsSelectedIds = [selectedEventId, periodStartEventId];
+        const updatedEventIds = [selectedEventId, periodStartEventId, clockToggleEventId];
+        currentState.eventsSelectedIds = updatedEventIds.slice();
         setupTestStore();
 
         // Update the selected event to 55 seconds earlier
@@ -1451,7 +1655,7 @@ describe('Events slice', () => {
         store.dispatch(
           eventUpdateRequested(
             game.id,
-            [selectedEventId, periodStartEventId],
+            updatedEventIds,
             /* useExistingTime= */ false,
             undefined,
             customTime.getTime(),
@@ -1459,15 +1663,18 @@ describe('Events slice', () => {
         );
 
         const expectedEvents = [];
-        for (const updatedId of [selectedEventId, periodStartEventId]) {
+        for (const updatedId of updatedEventIds) {
           const updatedEvent = updatedEvents.get(updatedId)!;
           updatedEvent.timestamp = customTime.getTime();
           if (updatedEvent.type === GameEventType.PeriodStart) {
             updatedEvent.data.clock.startTime = updatedEvent.timestamp!;
+          } else if (updatedEvent.type === GameEventType.PeriodEnd) {
+            updatedEvent.data.clock.endTime = updatedEvent.timestamp!;
+          } else if (updatedEvent.type === GameEventType.ClockToggle) {
+            updatedEvent.data.clock.toggleTime = updatedEvent.timestamp!;
           }
           expectedEvents.push(updatedEvent);
         }
-
         expect(dispatchStub).to.have.callCount(1);
         expect(actionLogger.lastAction()).to.deep.include(eventsUpdated(game.id, expectedEvents));
       });
@@ -1529,9 +1736,76 @@ describe('Events slice', () => {
         );
       });
 
+      it('updated action is dispatched for selected period end event with existing event time', () => {
+        currentState.eventsSelectedIds = [periodEndEventId];
+        setupTestStore();
+
+        const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+        expect(
+          periodEndEventId,
+          'Period end event must be updated from a different event',
+        ).to.not.equal(existingEventId);
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [periodEndEventId],
+            /* useExistingTime= */ true,
+            existingEventId,
+            undefined,
+          ),
+        );
+
+        const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
+
+        const updatedEndEvent = updatedEvents.get(periodEndEventId) as PeriodEndEvent;
+        updatedEndEvent.timestamp = existingTime;
+        updatedEndEvent.data.clock.endTime = existingTime;
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(
+          eventsUpdated(game.id, [updatedEndEvent]),
+        );
+      });
+
+      it('updated action is dispatched for selected clock toggle event with existing event time', () => {
+        currentState.eventsSelectedIds = [clockToggleEventId];
+        setupTestStore();
+
+        const existingEventId = gameEvents.eventsForTesting[4].id!;
+
+        expect(
+          clockToggleEventId,
+          'Clock toggle event must be updated from a different event',
+        ).to.not.equal(existingEventId);
+
+        store.dispatch(
+          eventUpdateRequested(
+            game.id,
+            [clockToggleEventId],
+            /* useExistingTime= */ true,
+            existingEventId,
+            undefined,
+          ),
+        );
+
+        const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
+
+        const updatedToggleEvent = updatedEvents.get(clockToggleEventId) as ClockToggleEvent;
+        updatedToggleEvent.timestamp = existingTime;
+        updatedToggleEvent.data.clock.toggleTime = existingTime;
+
+        expect(dispatchStub).to.have.callCount(1);
+        expect(actionLogger.lastAction()).to.deep.include(
+          eventsUpdated(game.id, [updatedToggleEvent]),
+        );
+      });
+
       it('updated action is dispatched for multiple selected events with existing event time', () => {
         const selectedEventId = gameEvents.eventsForTesting[0].id!;
-        currentState.eventsSelectedIds = [selectedEventId, periodStartEventId];
+        const updatedEventIds = [selectedEventId, periodStartEventId, periodEndEventId];
+        currentState.eventsSelectedIds = updatedEventIds.slice();
         setupTestStore();
 
         const existingEventId = gameEvents.eventsForTesting[4].id!;
@@ -1539,7 +1813,7 @@ describe('Events slice', () => {
         store.dispatch(
           eventUpdateRequested(
             game.id,
-            [selectedEventId, periodStartEventId],
+            updatedEventIds,
             /* useExistingTime= */ true,
             existingEventId,
             undefined,
@@ -1548,11 +1822,15 @@ describe('Events slice', () => {
 
         const existingTime = updatedEvents.get(existingEventId)?.timestamp!;
         const expectedEvents = [];
-        for (const updatedId of [selectedEventId, periodStartEventId]) {
+        for (const updatedId of updatedEventIds) {
           const updatedEvent = updatedEvents.get(updatedId)!;
           updatedEvent.timestamp = existingTime;
           if (updatedEvent.type === GameEventType.PeriodStart) {
             updatedEvent.data.clock.startTime = existingTime;
+          } else if (updatedEvent.type === GameEventType.PeriodEnd) {
+            updatedEvent.data.clock.endTime = updatedEvent.timestamp!;
+          } else if (updatedEvent.type === GameEventType.ClockToggle) {
+            updatedEvent.data.clock.toggleTime = updatedEvent.timestamp!;
           }
           expectedEvents.push(updatedEvent);
         }
