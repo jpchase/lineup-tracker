@@ -23,6 +23,7 @@ import { repeat } from 'lit/directives/repeat.js';
 import { Duration, pad0, TimeFormatter } from '../models/clock.js';
 import { EventCollection } from '../models/events.js';
 import { GameEvent, GameEventCollectionData, GameEventType } from '../models/live.js';
+import { exhaustiveGuard } from '../util/shared-types.js';
 import { PlayerResolver, playerResolverContext } from './core/player-resolver.js';
 import { SharedStyles } from './shared-styles.js';
 
@@ -39,6 +40,8 @@ enum EditTimeOptions {
 
 function getEventTypeText(eventType: GameEventType): string {
   switch (eventType) {
+    case GameEventType.ClockToggle:
+      return 'Clock';
     case GameEventType.PeriodEnd:
       return 'Period completed';
     case GameEventType.PeriodStart:
@@ -50,12 +53,12 @@ function getEventTypeText(eventType: GameEventType): string {
     case GameEventType.Swap:
       return 'Position changed';
 
-    // TODO: Add formatted text for these event types.
+    // These event types are not displayed.
     case GameEventType.SubOut:
       return eventType;
 
     default:
-      throw new TypeError(`Unknown event type: ${eventType}`);
+      return exhaustiveGuard(eventType);
   }
 }
 
@@ -166,6 +169,7 @@ export class LineupGameEvents extends LitElement {
   private renderEventTime(event: GameEvent, formatter: TimeFormatter) {
     let showRelativeTime = false;
     switch (event.type) {
+      case GameEventType.ClockToggle:
       case GameEventType.PeriodStart:
       case GameEventType.PeriodEnd:
       case GameEventType.SubIn:
@@ -198,13 +202,23 @@ export class LineupGameEvents extends LitElement {
 
   private renderEventDetails(event: GameEvent) {
     switch (event.type) {
+      case GameEventType.ClockToggle: {
+        return html`Clock ${event.data.clock.isRunning ? 'started' : 'stopped'}`;
+      }
+
       case GameEventType.PeriodStart: {
         // TODO: Show "First half" or "game started", "Second half"?
         return html`Start of period ${event.data.clock.currentPeriod}`;
       }
+
       case GameEventType.PeriodEnd: {
         // TODO: Period end, show "halftime", or "final whistle" or <something else>
         return html`End of period ${event.data.clock.currentPeriod}`;
+      }
+
+      case GameEventType.Setup: {
+        // TODO: Format details for setup
+        return html`${JSON.stringify(event.data)}`;
       }
 
       case GameEventType.SubIn: {
@@ -213,6 +227,10 @@ export class LineupGameEvents extends LitElement {
         return html`${inPlayer?.name} replaced ${outPlayer?.name}, at ${event.data.position}`;
       }
 
+      case GameEventType.SubOut:
+        // Sub out events are not displayed.
+        return nothing;
+
       case GameEventType.Swap: {
         const player = this.lookupPlayer(event.playerId);
         return html`${player?.name} moved to ${event.data.position} (from
@@ -220,7 +238,7 @@ export class LineupGameEvents extends LitElement {
       }
 
       default:
-        return html`${JSON.stringify(event.data)}`;
+        return exhaustiveGuard(event);
     }
   }
 

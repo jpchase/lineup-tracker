@@ -14,9 +14,9 @@ import {
   ConfigurePeriodsPayload,
   EndPeriodPayload,
   EventsUpdatedPayload,
-  LiveGamePayload,
   OverduePeriodPayload,
   StartPeriodPayload,
+  ToggleClockPayload,
 } from './live-action-types.js';
 import { LiveState } from './live-slice.js';
 import { completeSetupStepForAction } from './setup-reducer-logic.js';
@@ -167,27 +167,58 @@ export const endPeriodPrepare = (
   };
 };
 
-export const toggleHandler = (
+export const toggleClockHandler = (
   _state: LiveState,
   game: LiveGame,
-  _action: PayloadAction<LiveGamePayload>,
+  action: PayloadAction<ToggleClockPayload>,
 ) => {
-  if (!game.clock) {
+  if (!action.payload.gameAllowsToggle) {
     return;
   }
+  const toggle = gameCanToggleClock(game);
+  if (!toggle.allowsToggle) {
+    return;
+  }
+
   const { clock, timer, stoppageTimer } = getInitializedClock(game);
 
+  let updatedRunning = false;
   timer.provider.freeze();
   if (timer.isRunning) {
     timer.stop();
     stoppageTimer.start();
+    updatedRunning = false;
   } else {
     timer.start();
     stoppageTimer.stop();
+    updatedRunning = true;
   }
   timer.provider.unfreeze();
+  if (toggle.isRunning !== updatedRunning) {
+    throw new Error(
+      `Inconsistent state for toggle clock: predicted = ${toggle.isRunning}, updated = ${updatedRunning}, for ${JSON.stringify(game.clock?.timer)}`,
+    );
+  }
   clock.timer = timer.toJSON();
   clock.stoppageTimer = stoppageTimer.toJSON();
+};
+
+export const toggleClockPrepare = (
+  gameId: string,
+  gameAllowsToggle: boolean,
+  currentPeriod?: number,
+  toggleTime?: number,
+  isRunning?: boolean,
+) => {
+  return {
+    payload: {
+      gameId,
+      gameAllowsToggle,
+      currentPeriod,
+      toggleTime,
+      isRunning,
+    },
+  };
 };
 
 export const markPeriodOverdueHandler = (
@@ -377,6 +408,32 @@ export function gameCanEndPeriod(
   }
 
   return { allowsEnd, currentPeriod, stopTime };
+}
+
+export function gameCanToggleClock(game: LiveGame): {
+  allowsToggle: boolean;
+  currentPeriod?: number;
+  toggleTime?: number;
+  isRunning?: boolean;
+} {
+  let allowsToggle = false;
+  const period = gameCanEndPeriod(game);
+  if (period.allowsEnd && game.clock?.timer) {
+    allowsToggle = true;
+  }
+  if (!allowsToggle) {
+    return { allowsToggle };
+  }
+
+  // Toggle the current timer state, to provide what the updated state will be.
+  const isRunning = !game.clock?.timer?.isRunning;
+
+  return {
+    allowsToggle,
+    currentPeriod: period.currentPeriod!,
+    toggleTime: new CurrentTimeProvider().getCurrentTime(),
+    isRunning,
+  };
 }
 
 function getInitializedClock(game: LiveGame) {

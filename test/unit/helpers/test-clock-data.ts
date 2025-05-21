@@ -104,7 +104,7 @@ export function addDurationAssertion<ActualType>(
       `expected ${actualDesc} #{act} to not be #{exp}`,
       expected,
       actual,
-      /*showDiff=*/ false,
+      /*showDiff=*/ true,
     );
   });
 }

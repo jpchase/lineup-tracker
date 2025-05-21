@@ -6,6 +6,7 @@ import { RootState } from '../../app/store.js';
 import { CurrentTimeProvider } from '../../models/clock.js';
 import { EventCollection, EventCollectionData } from '../../models/events.js';
 import {
+  ClockToggleEvent,
   GameEvent,
   GameEventCollection,
   GameEventCollectionData,
@@ -15,10 +16,12 @@ import {
   PeriodStartEvent,
   PositionSwapEvent,
   SetupEvent,
+  SetupEventData,
   SubInEvent,
   SubOutEvent,
   isGamePlayerEvent,
 } from '../../models/live.js';
+import { PlayerStatus } from '../../models/player.js';
 import { logger } from '../../util/logger.js';
 import {
   EventSelectedPayload,
@@ -29,7 +32,7 @@ import {
 } from './live-action-types.js';
 import { actions } from './live-slice.js';
 
-const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod } = actions;
+const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod, toggleClock } = actions;
 
 const debugEvents = logger('events');
 
@@ -64,6 +67,7 @@ export const selectEventsSelected = (state: RootState) => {
 };
 
 type EventOrGroup = GameEvent | GameEventGroup;
+type SetupEventStarters = SetupEventData['starters'];
 
 const eventSlice = createSlice({
   name: 'events',
@@ -110,8 +114,6 @@ const eventSlice = createSlice({
       reducer: (state: EventState, action: PayloadAction<EventUpdateRequestedPayload>) => {
         const gameEvents = getOrCreateGameEvents(state, action.payload.gameId);
 
-        // TODO: If the "period end" event is updated, the game clock needs to be updated
-        // as well
         let updatedEventTime: number;
         if (action.payload.useExistingTime) {
           const existingEvent = gameEvents.get(action.payload.existingEventId!);
@@ -137,6 +139,10 @@ const eventSlice = createSlice({
           selectedEvent.timestamp = updatedEventTime;
           if (selectedEvent.type === GameEventType.PeriodStart) {
             selectedEvent.data.clock.startTime = updatedEventTime;
+          } else if (selectedEvent.type === GameEventType.PeriodEnd) {
+            selectedEvent.data.clock.endTime = updatedEventTime;
+          } else if (selectedEvent.type === GameEventType.ClockToggle) {
+            selectedEvent.data.clock.toggleTime = updatedEventTime;
           }
         }
 
@@ -180,6 +186,12 @@ const eventSlice = createSlice({
               periodLength: game.clock?.periodLength!,
               totalPeriods: game.clock?.totalPeriods!,
             },
+            starters: game.players.reduce((result, player) => {
+              if (player.status === PlayerStatus.On) {
+                result.push({ id: player.id, position: player.currentPosition?.id! });
+              }
+              return result;
+            }, [] as SetupEventStarters),
           });
         }),
       )
@@ -220,6 +232,27 @@ const eventSlice = createSlice({
             },
             undefined,
             /* timestamp= */ endTime,
+          );
+        }),
+      )
+      .addCase(
+        toggleClock,
+        buildActionHandler((action) => {
+          if (!action.payload.gameAllowsToggle) {
+            return undefined;
+          }
+          const toggleTime = action.payload.toggleTime!;
+          return buildGameEvent<ClockToggleEvent>(
+            GameEventType.ClockToggle,
+            {
+              clock: {
+                currentPeriod: action.payload.currentPeriod!,
+                toggleTime,
+                isRunning: action.payload.isRunning!,
+              },
+            },
+            undefined,
+            /*timestamp =*/ toggleTime,
           );
         }),
       )

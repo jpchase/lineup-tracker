@@ -4,7 +4,12 @@ import { ThunkResult } from '../../app/store.js';
 import { FormationBuilder, getPositions } from '../../models/formation.js';
 import { LiveGame, LivePlayer, getPlayer } from '../../models/live.js';
 import { PlayerStatus } from '../../models/player.js';
-import { gameCanEndPeriod, gameCanStartPeriod, isPeriodOverdue } from './clock-reducer-logic.js';
+import {
+  gameCanEndPeriod,
+  gameCanStartPeriod,
+  gameCanToggleClock,
+  isPeriodOverdue,
+} from './clock-reducer-logic.js';
 import { extractIdFromSwapPlayerId } from './live-action-types.js';
 import { actions, selectLiveGameById, selectPendingSubs } from './live-slice.js';
 
@@ -16,6 +21,7 @@ const {
   markPeriodOverdue,
   startersCompleted,
   startPeriod,
+  toggleClock,
 } = actions;
 
 export const startPeriodCreator =
@@ -27,6 +33,9 @@ export const startPeriodCreator =
       return;
     }
     const period = gameCanStartPeriod(game);
+    // TODO: Should this not dispatch the action if allowsStart = false? Throw error?
+    // really need to figure out overall validation approach. Too much like the check above
+    // where there are silent failures.
     dispatch(startPeriod(game.id, period.allowsStart, period.currentPeriod, period.startTime));
   };
 
@@ -50,6 +59,26 @@ export const endPeriodCreator =
     }
     const period = gameCanEndPeriod(game, extraMinutes);
     dispatch(endPeriod(game.id, period.allowsEnd, period.currentPeriod, period.stopTime));
+  };
+
+export const toggleClockCreator =
+  (gameId: string): ThunkResult =>
+  (dispatch, getState) => {
+    const state = getState();
+    const game = selectLiveGameById(state, gameId);
+    if (!game) {
+      return;
+    }
+    const toggle = gameCanToggleClock(game);
+    dispatch(
+      toggleClock(
+        game.id,
+        toggle.allowsToggle,
+        toggle.currentPeriod,
+        toggle.toggleTime,
+        toggle.isRunning,
+      ),
+    );
   };
 
 export const pendingSubsAppliedCreator =

@@ -82,7 +82,7 @@ export class PlayerTimeTracker {
   }
 
   get shiftTime() {
-    return this.currentTimer?.getElapsed() || Duration.zero();
+    return this.currentTimer?.getElapsed() ?? Duration.zero();
   }
 
   get totalOnTime() {
@@ -109,6 +109,22 @@ export class PlayerTimeTracker {
     return dataToSerialize;
   }
 
+  // Public, but should only be used by PlayerTimeTrackerMap
+  resetToOn() {
+    if (this.isOn) {
+      throw new Error('player must be off to reset to on');
+    }
+    this.isOn = true;
+  }
+
+  // Public, but should only be used by PlayerTimeTrackerMap
+  resetToOff() {
+    if (!this.isOn) {
+      throw new Error('player must be on to reset to off');
+    }
+    this.isOn = false;
+  }
+
   resetShiftTimes() {
     this.onTimer = undefined;
     this.offTimer = undefined;
@@ -127,14 +143,14 @@ export class PlayerTimeTracker {
 
   startShift(startTime?: number) {
     if (this.isOn) {
-      this.onTimer = this.onTimer || new Timer(undefined, this.timeProvider);
+      this.onTimer = this.onTimer ?? new Timer(undefined, this.timeProvider);
       this.onTimer.start(startTime);
       if (!this.alreadyOn) {
         this.alreadyOn = true;
         this.shiftCount += 1;
       }
     } else {
-      this.offTimer = this.offTimer || new Timer(undefined, this.timeProvider);
+      this.offTimer = this.offTimer ?? new Timer(undefined, this.timeProvider);
       this.offTimer.start(startTime);
     }
   }
@@ -190,10 +206,10 @@ export class PlayerTimeTrackerMap {
   trackers: PlayerTimeTracker[];
 
   private constructor(data: PlayerTimeTrackerMapData, timeProvider?: CurrentTimeProvider) {
-    this.timeProvider = timeProvider || new CurrentTimeProvider();
+    this.timeProvider = timeProvider ?? new CurrentTimeProvider();
     this.id = data.id;
     this.trackers = [];
-    this.clockRunning = data.clockRunning || false;
+    this.clockRunning = data.clockRunning ?? false;
     if (data.trackers?.length) {
       this.initialize(data.trackers);
     }
@@ -240,7 +256,7 @@ export class PlayerTimeTrackerMap {
       let data: PlayerTimeTrackerData;
       if ('status' in player) {
         data = {
-          id: player.id || player.name,
+          id: player.id ?? player.name,
           isOn: player.status === PlayerStatus.On,
         };
       } else {
@@ -254,6 +270,33 @@ export class PlayerTimeTrackerMap {
   reset() {
     this.trackers = [];
     this.clockRunning = false;
+  }
+
+  setStarters(starters: { id: string }[]) {
+    if (!this.trackers?.length) {
+      throw new Error('Map is empty');
+    }
+    if (
+      this.clockRunning ||
+      this.trackers.find((tracker) => tracker.totalOnTime.getTotalSeconds() > 0)
+    ) {
+      throw new Error('Clock was started, cannot set starters');
+    }
+    this.trackers.forEach((tracker) => {
+      if (starters.find((player) => player.id === tracker.id)) {
+        if (tracker.isOn) {
+          // Already on, no change required.
+          return;
+        }
+        tracker.resetToOn();
+      } else {
+        if (!tracker.isOn) {
+          // Already off, no change required.
+          return;
+        }
+        tracker.resetToOff();
+      }
+    });
   }
 
   get(id: string) {

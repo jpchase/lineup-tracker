@@ -17,6 +17,7 @@ import {
   GameEventType,
   LiveGame,
   PeriodStartEvent,
+  SetupEvent,
   getPlayer,
 } from '@app/models/live.js';
 import { Dialog } from '@material/mwc-dialog';
@@ -45,7 +46,6 @@ import * as testlive from '../helpers/test-live-game-data.js';
 describe('lineup-game-events tests', () => {
   let el: LineupGameEvents;
   let game: LiveGame;
-  let fakeClock: sinon.SinonFakeTimers;
   let mockPlayerResolver: PlayerResolver;
   const timeFormatter = new TimeFormatter();
   const startTime = new Date(2016, 5, 1, 14, 0, 0).getTime();
@@ -68,9 +68,6 @@ describe('lineup-game-events tests', () => {
   });
 
   afterEach(async () => {
-    if (fakeClock) {
-      fakeClock.restore();
-    }
     sinon.restore();
   });
 
@@ -252,7 +249,7 @@ describe('lineup-game-events tests', () => {
     let events: GameEventCollection;
 
     beforeEach(() => {
-      game = testlive.getLiveGameWithPlayers();
+      game = testlive.getLiveGameWithStarters();
 
       const timeProvider = mockTimeProvider(startTime);
       events = EventCollection.create(
@@ -332,14 +329,17 @@ describe('lineup-game-events tests', () => {
     }
 
     it(`renders ${GameEventType.Setup} event details`, async () => {
-      const event = await setupEvent(buildGameSetupEvent(startTime));
+      const event = await setupEvent(buildGameSetupEvent(startTime, game.players!));
 
       const { typeElement, detailsElement } = getEventElements(event);
 
       expectEventType(typeElement, 'Setup completed');
 
       // TODO: Assert formatted details
-      expect(detailsElement.textContent).to.equal('{"clock":{"totalPeriods":2,"periodLength":45}}');
+      const starterDetails = JSON.stringify((event as SetupEvent).data.starters);
+      expect(detailsElement.textContent).to.equal(
+        `{"clock":{"totalPeriods":2,"periodLength":45},"starters":${starterDetails}}`,
+      );
     });
 
     it(`renders ${GameEventType.PeriodStart} event details`, async () => {

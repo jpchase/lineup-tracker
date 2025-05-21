@@ -1,8 +1,8 @@
 /** @format */
 
-import { Position } from '@app/models/formation.js';
+import { FormationType, Position } from '@app/models/formation.js';
 import { GameStatus } from '@app/models/game.js';
-import { LiveGame, LiveGames, LivePlayer } from '@app/models/live.js';
+import { getPlayer, LiveGame, LiveGames, LivePlayer } from '@app/models/live.js';
 import { Player, PlayerStatus } from '@app/models/player.js';
 import { STORED_GAME_ID } from './test_data.js';
 
@@ -41,6 +41,39 @@ export function getLiveGame(players?: Player[], status?: GameStatus): LiveGame {
 
 export function getLiveGameWithPlayers(): LiveGame {
   return getLiveGame(getLivePlayers(18));
+}
+
+export function getLiveGameWithStarters(): LiveGame {
+  const game = getLiveGameWithPlayers();
+  setGameStarting11(game);
+  return game;
+}
+
+export function setGameStarting11(game: LiveGame) {
+  if (!game.formation) {
+    game.formation = { type: FormationType.F4_3_3 };
+  }
+
+  setPlayersStatus(
+    game,
+    { status: PlayerStatus.On, range: [0, 10] },
+    { status: PlayerStatus.Off, range: [11, 17] },
+  );
+}
+
+export function setPlayersStatus(
+  game: LiveGame,
+  ...statusRanges: { status: PlayerStatus; range: [number, number] }[]
+) {
+  for (const { status, range } of statusRanges) {
+    for (let i = range[0]; i <= range[1]; i++) {
+      const player = getPlayer(game, `P${i}`);
+      if (!player) {
+        continue;
+      }
+      player.status = status;
+    }
+  }
 }
 
 export function buildLivePlayers(players?: Player[]): LivePlayer[] {

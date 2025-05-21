@@ -3,35 +3,48 @@
 import { CurrentTimeProvider } from '@app/models/clock.js';
 import { EventCollection } from '@app/models/events.js';
 import {
+  ClockToggleEvent,
   GameEvent,
   GameEventCollection,
   GameEventGroup,
   GameEventType,
   LiveGame,
+  LivePlayer,
   PeriodEndEvent,
   PeriodStartEvent,
   PositionSwapEvent,
   SetupEvent,
+  SetupEventData,
   SubInEvent,
   SubOutEvent,
   getPlayer,
 } from '@app/models/live.js';
+import { PlayerStatus } from '@app/models/player.js';
 import * as testlive from './test-live-game-data.js';
 
+type SetupEventStarters = SetupEventData['starters'];
+
 export function buildGameSetupEvent(
-  startTime: number,
+  eventTime: number,
+  players: LivePlayer[],
   totalPeriods = 2,
   periodLength = 45,
 ): SetupEvent {
   return {
     id: 'setupeventid',
     type: GameEventType.Setup,
-    timestamp: startTime,
+    timestamp: eventTime,
     data: {
       clock: {
         totalPeriods,
         periodLength,
       },
+      starters: players.reduce((result, player) => {
+        if (player.status === PlayerStatus.On) {
+          result.push({ id: player.id, position: player.currentPosition?.id! });
+        }
+        return result;
+      }, [] as SetupEventStarters),
     },
   };
 }
@@ -59,6 +72,26 @@ export function buildPeriodEndEvent(endTime: number, currentPeriod = 1): PeriodE
       clock: {
         currentPeriod,
         endTime,
+      },
+    },
+  };
+}
+
+export function buildClockToggleEvent(
+  toggleTime: number,
+  isRunning: boolean,
+  currentPeriod = 1,
+  count = 1,
+): ClockToggleEvent {
+  return {
+    id: `toggleeventid-${currentPeriod}-${isRunning ? 'running' : 'stopped'}-${count}`,
+    type: GameEventType.ClockToggle,
+    timestamp: toggleTime,
+    data: {
+      clock: {
+        currentPeriod,
+        toggleTime,
+        isRunning,
       },
     },
   };
@@ -115,7 +148,7 @@ export function buildGameEvents(
     },
     timeProvider,
   );
-  events.addEvent(buildGameSetupEvent(timeProvider.getCurrentTime()));
+  events.addEvent(buildGameSetupEvent(timeProvider.getCurrentTime(), game.players!));
   events.addEvent(buildPeriodStartEvent(timeProvider.getCurrentTime()));
 
   // First sub
@@ -147,6 +180,9 @@ export function buildGameEvents(
   const sub2Time = timeProvider.getCurrentTime();
   events.addEventGroup(buildSubEvents(sub2Time, sub2).groupedEvents);
   events.addEvent(buildSwapEvent(sub2Time, swap));
+
+  events.addEvent(buildClockToggleEvent(timeProvider.getCurrentTime(), /*isRunning =*/ false));
+  events.addEvent(buildClockToggleEvent(timeProvider.getCurrentTime(), /*isRunning =*/ true));
 
   events.addEvent(buildPeriodEndEvent(timeProvider.getCurrentTime()));
 

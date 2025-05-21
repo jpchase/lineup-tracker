@@ -66,6 +66,36 @@ export function addShiftTrackingMatchers() {
     tracker ? tracker.totalOnTime : null,
   );
 
+  Assertion.addMethod('on', function (this, expected: string) {
+    const tracker = this._obj as PlayerTimeTracker;
+    this.assert(
+      tracker && tracker.id === expected && tracker.isOn,
+      'expected #{this} with id = #{exp} to be on',
+      'expected #{this} with id = #{exp} to not be on',
+      expected,
+    );
+  });
+
+  Assertion.addMethod('alreadyOn', function (this, expected: string) {
+    const tracker = this._obj as PlayerTimeTracker;
+    this.assert(
+      tracker && tracker.isOn && tracker.alreadyOn,
+      'expected #{this} to be already on',
+      'expected #{this} to not be already on',
+      expected,
+    );
+  });
+
+  Assertion.addMethod('off', function (this, expected: string) {
+    const tracker = this._obj as PlayerTimeTracker;
+    this.assert(
+      tracker && tracker.id === expected && !tracker.isOn && !tracker.alreadyOn,
+      'expected #{this} with id = #{exp} to be off',
+      'expected #{this} with id = #{exp} to not be off',
+      expected,
+    );
+  });
+
   Assertion.addMethod('shiftCount', function (this, expected: number) {
     const tracker = this._obj as PlayerTimeTracker;
     this.assert(

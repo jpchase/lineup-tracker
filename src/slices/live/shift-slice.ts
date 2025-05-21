@@ -63,6 +63,12 @@ const shiftSlice = createSlice({
           // TODO: Error or message to distinguish failure cases?
           return;
         }
+        // The isRunning flag in the action provides the final state, so it should be opposite to the current clock state of the tracker.
+        if (action.payload.isRunning === trackerMap.clockRunning) {
+          throw new Error(
+            `Inconsistent state for toggle clock: intended = ${action.payload.isRunning}, but already current = ${trackerMap.clockRunning}, for ${JSON.stringify(trackerMap.toJSON())}`,
+          );
+        }
         if (trackerMap.clockRunning) {
           trackerMap.stopShiftTimers();
         } else {

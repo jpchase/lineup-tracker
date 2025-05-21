@@ -20,10 +20,10 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
     <tr data-event-id="endeventid-1">
       <td class="mdl-data-table__cell--non-numeric">
         <span class="absolute">
-          2:00:40 PM
+          2:01:00 PM
         </span>
         <span class="relative">
-          [00:30]
+          [00:50]
         </span>
       </td>
       <td class="eventType mdl-data-table__cell--non-numeric">
@@ -31,6 +31,38 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
       </td>
       <td class="details">
         End of period 1
+      </td>
+    </tr>
+    <tr data-event-id="toggleeventid-1-running-1">
+      <td class="mdl-data-table__cell--non-numeric">
+        <span class="absolute">
+          2:00:50 PM
+        </span>
+        <span class="relative">
+          [00:40]
+        </span>
+      </td>
+      <td class="eventType mdl-data-table__cell--non-numeric">
+        Clock
+      </td>
+      <td class="details">
+        Clock started
+      </td>
+    </tr>
+    <tr data-event-id="toggleeventid-1-stopped-1">
+      <td class="mdl-data-table__cell--non-numeric">
+        <span class="absolute">
+          2:00:40 PM
+        </span>
+        <span class="relative">
+          [00:30]
+        </span>
+      </td>
+      <td class="eventType mdl-data-table__cell--non-numeric">
+        Clock
+      </td>
+      <td class="details">
+        Clock stopped
       </td>
     </tr>
     <tr data-event-id="subeventid-P12">
@@ -108,7 +140,7 @@ snapshots["lineup-game-events tests rendering shows list of events with common d
         Setup completed
       </td>
       <td class="details">
-        {"clock":{"totalPeriods":2,"periodLength":45}}
+        {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
       </td>
     </tr>
   </tbody>
@@ -143,10 +175,10 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
     <tr data-event-id="endeventid-1">
       <td class="mdl-data-table__cell--non-numeric">
         <span class="absolute">
-          2:00:40 PM
+          2:01:00 PM
         </span>
         <span class="relative">
-          [00:30]
+          [00:50]
         </span>
       </td>
       <td class="eventType mdl-data-table__cell--non-numeric">
@@ -154,6 +186,38 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
       </td>
       <td class="details">
         End of period 1
+      </td>
+    </tr>
+    <tr data-event-id="toggleeventid-1-running-1">
+      <td class="mdl-data-table__cell--non-numeric">
+        <span class="absolute">
+          2:00:50 PM
+        </span>
+        <span class="relative">
+          [00:40]
+        </span>
+      </td>
+      <td class="eventType mdl-data-table__cell--non-numeric">
+        Clock
+      </td>
+      <td class="details">
+        Clock started
+      </td>
+    </tr>
+    <tr data-event-id="toggleeventid-1-stopped-1">
+      <td class="mdl-data-table__cell--non-numeric">
+        <span class="absolute">
+          2:00:40 PM
+        </span>
+        <span class="relative">
+          [00:30]
+        </span>
+      </td>
+      <td class="eventType mdl-data-table__cell--non-numeric">
+        Clock
+      </td>
+      <td class="details">
+        Clock stopped
       </td>
     </tr>
     <tr
@@ -240,7 +304,7 @@ snapshots["lineup-game-events tests rendering shows list with selected events hi
         Setup completed
       </td>
       <td class="details">
-        {"clock":{"totalPeriods":2,"periodLength":45}}
+        {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
       </td>
     </tr>
   </tbody>
@@ -269,7 +333,7 @@ snapshots["lineup-game-events tests event editing shows dialog when edit button 
           Setup completed
         </td>
         <td class="details">
-          {"clock":{"totalPeriods":2,"periodLength":45}}
+          {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
         </td>
       </tr>
     </tbody>
@@ -351,7 +415,7 @@ snapshots["lineup-game-events tests event editing shows dialog with multiple eve
           Setup completed
         </td>
         <td class="details">
-          {"clock":{"totalPeriods":2,"periodLength":45}}
+          {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
         </td>
       </tr>
       <tr data-event-id="starteventid-1">
@@ -449,7 +513,7 @@ snapshots["lineup-game-events tests event selection shows dialog when edit butto
           Setup completed
         </td>
         <td class="details">
-          {"clock":{"totalPeriods":2,"periodLength":45}}
+          {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
         </td>
       </tr>
     </tbody>
@@ -509,7 +573,7 @@ snapshots["lineup-game-events tests event selection shows dialog when edit butto
               Setup completed
             </span>
             <span class="details">
-              {"clock":{"totalPeriods":2,"periodLength":45}}
+              {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
             </span>
           </span>
         </mwc-list-item>
@@ -616,6 +680,56 @@ snapshots["lineup-game-events tests event selection shows dialog when edit butto
         </mwc-list-item>
         <mwc-list-item
           aria-disabled="false"
+          data-event-id="toggleeventid-1-stopped-1"
+          mwc-list-item=""
+          role="option"
+          tabindex="-1"
+          value="toggleeventid-1-stopped-1"
+        >
+          <span>
+            <span>
+              <span class="absolute">
+                2:00:00 PM
+              </span>
+              <span class="relative">
+                [00:00]
+              </span>
+            </span>
+            <span class="eventType">
+              Clock
+            </span>
+            <span class="details">
+              Clock stopped
+            </span>
+          </span>
+        </mwc-list-item>
+        <mwc-list-item
+          aria-disabled="false"
+          data-event-id="toggleeventid-1-running-1"
+          mwc-list-item=""
+          role="option"
+          tabindex="-1"
+          value="toggleeventid-1-running-1"
+        >
+          <span>
+            <span>
+              <span class="absolute">
+                2:00:00 PM
+              </span>
+              <span class="relative">
+                [00:00]
+              </span>
+            </span>
+            <span class="eventType">
+              Clock
+            </span>
+            <span class="details">
+              Clock started
+            </span>
+          </span>
+        </mwc-list-item>
+        <mwc-list-item
+          aria-disabled="false"
           data-event-id="endeventid-1"
           mwc-list-item=""
           role="option"
@@ -679,7 +793,7 @@ snapshots["lineup-game-events tests event selection shows dialog with multiple e
           Setup completed
         </td>
         <td class="details">
-          {"clock":{"totalPeriods":2,"periodLength":45}}
+          {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
         </td>
       </tr>
       <tr data-event-id="starteventid-1">
@@ -755,7 +869,7 @@ snapshots["lineup-game-events tests event selection shows dialog with multiple e
               Setup completed
             </span>
             <span class="details">
-              {"clock":{"totalPeriods":2,"periodLength":45}}
+              {"clock":{"totalPeriods":2,"periodLength":45},"starters":[]}
             </span>
           </span>
         </mwc-list-item>
@@ -857,6 +971,56 @@ snapshots["lineup-game-events tests event selection shows dialog with multiple e
             <span class="details">
               Player 8 moved to RFB (from
         LFB)
+            </span>
+          </span>
+        </mwc-list-item>
+        <mwc-list-item
+          aria-disabled="false"
+          data-event-id="toggleeventid-1-stopped-1"
+          mwc-list-item=""
+          role="option"
+          tabindex="-1"
+          value="toggleeventid-1-stopped-1"
+        >
+          <span>
+            <span>
+              <span class="absolute">
+                2:00:00 PM
+              </span>
+              <span class="relative">
+                [00:00]
+              </span>
+            </span>
+            <span class="eventType">
+              Clock
+            </span>
+            <span class="details">
+              Clock stopped
+            </span>
+          </span>
+        </mwc-list-item>
+        <mwc-list-item
+          aria-disabled="false"
+          data-event-id="toggleeventid-1-running-1"
+          mwc-list-item=""
+          role="option"
+          tabindex="-1"
+          value="toggleeventid-1-running-1"
+        >
+          <span>
+            <span>
+              <span class="absolute">
+                2:00:00 PM
+              </span>
+              <span class="relative">
+                [00:00]
+              </span>
+            </span>
+            <span class="eventType">
+              Clock
+            </span>
+            <span class="details">
+              Clock started
             </span>
           </span>
         </mwc-list-item>

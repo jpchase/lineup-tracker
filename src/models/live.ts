@@ -1,5 +1,6 @@
 /** @format */
 
+import { exhaustiveGuard } from '../util/shared-types.js';
 import { TimerData } from './clock.js';
 import { EventBase, EventCollection, EventCollectionData } from './events.js';
 import { FormationMetadata, Position } from './formation.js';
@@ -72,6 +73,7 @@ export interface LiveGames {
 
 // Game events
 export enum GameEventType {
+  ClockToggle = 'CLOCKTOGGLE',
   PeriodStart = 'PERIODSTART',
   PeriodEnd = 'PERIODEND',
   Setup = 'SETUP',
@@ -100,6 +102,10 @@ export interface SetupEventData extends Record<string, unknown> {
     periodLength: number;
     totalPeriods: number;
   };
+  starters: {
+    id: string;
+    position: string;
+  }[];
 }
 export interface SetupEvent extends GameEventBase<GameEventType.Setup, SetupEventData> {}
 
@@ -121,6 +127,17 @@ export interface PeriodEndEventData extends Record<string, unknown> {
 export interface PeriodEndEvent
   extends GameEventBase<GameEventType.PeriodEnd, PeriodEndEventData> {}
 
+export interface ClockToggleEventData extends Record<string, unknown> {
+  clock: {
+    currentPeriod: number;
+    toggleTime: number;
+    // Whether the clock is running after it was toggled.
+    isRunning: boolean;
+  };
+}
+export interface ClockToggleEvent
+  extends GameEventBase<GameEventType.ClockToggle, ClockToggleEventData> {}
+
 export interface SubInEventData extends Record<string, unknown> {
   replaced: string;
   position: string;
@@ -141,7 +158,12 @@ export interface PositionSwapEvent
 
 export type GamePlayerEvent = SubInEvent | SubOutEvent | PositionSwapEvent;
 
-export type GameEvent = PeriodStartEvent | PeriodEndEvent | SetupEvent | GamePlayerEvent;
+export type GameEvent =
+  | ClockToggleEvent
+  | PeriodStartEvent
+  | PeriodEndEvent
+  | SetupEvent
+  | GamePlayerEvent;
 
 export interface GameEventGroup {
   groupedEvents: GameEvent[];
@@ -156,13 +178,13 @@ export function isGamePlayerEvent(event: GameEvent): event is GamePlayerEvent {
     case GameEventType.SubOut:
     case GameEventType.Swap:
       return true;
+    case GameEventType.ClockToggle:
     case GameEventType.PeriodEnd:
     case GameEventType.PeriodStart:
     case GameEventType.Setup:
       return false;
     default: {
-      const _exhaustiveCheck: never = event;
-      return _exhaustiveCheck;
+      return exhaustiveGuard(event);
     }
   }
 }
