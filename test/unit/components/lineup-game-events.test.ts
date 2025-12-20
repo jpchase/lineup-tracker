@@ -7,7 +7,7 @@ import {
   EventsUpdatedEvent,
   LineupGameEvents,
 } from '@app/components/lineup-game-events.js';
-import { Duration, TimeFormatter, pad0 } from '@app/models/clock';
+import { Duration, TimeFormatter, pad0 } from '@app/models/clock.js';
 import { EventBase, EventCollection } from '@app/models/events.js';
 import { formatPosition } from '@app/models/formation.js';
 import {

@@ -15,7 +15,13 @@ function aliasResolverPlugin() {
         return undefined;
       }
       const requestedFile = context.path.endsWith('/') ? `${context.path}index.html` : context.path;
-      const depth = requestedFile.split('/').length - 1;
+      // Compute depth of file containing the import, based on path separators.
+      //  - e.g. file path = "/out-tsc/test/unit/..."
+      //  - Subtract 3 from separator count =
+      //     1 for leading slash +
+      //     1 for "out-tsc" (out dir for .js files compiled from .ts) +
+      //     1 for the dir containing the file (i.e. <leaf dir>/<file>)
+      const depth = requestedFile.split('/').length - 3;
       let extension = path.extname(source);
       if (!extension || extension.length === 0) {
         // Default the extension, otherwise it won't resolve.
@@ -24,7 +30,7 @@ function aliasResolverPlugin() {
         // Has an extension, which will already be included in the result.
         extension = '';
       }
-      const browserPath = `${'../'.repeat(depth - 1)}src/${source.substring(5)}${extension}`;
+      const browserPath = `${'../'.repeat(depth)}src/${source.substring(5)}${extension}`;
       return browserPath;
     },
   };
@@ -122,9 +128,10 @@ export function testFailureSummaryReporter() {
 
 const puppeteerExecutablePath = puppeteer.executablePath();
 
-const storageTestFiles = 'test/storage/**/*.test.js';
-const unitTestFiles = 'test/unit/**/*.test.js';
+const storageTestFiles = 'out-tsc/test/storage/**/*.test.js';
+const unitTestFiles = 'out-tsc/test/unit/**/*.test.js';
 
+/** @type {import("@web/test-runner").TestRunnerConfig} */
 export default {
   nodeResolve: true,
   // debug: true,
@@ -150,9 +157,9 @@ export default {
     },
     {
       name: 'single',
-      files: 'test/unit/components/lineup-game-events.test.js',
-      // files: 'test/unit/slices/live/substition-reducer-logic.test.js'
-      // files: 'test/unit/slices/live/**.test.js'
+      files: 'out-tsc/test/unit/components/lineup-game-events.test.js',
+      // files: 'out-tsc/test/unit/slices/live/substition-reducer-logic.test.js',
+      // files: 'out-tsc/test/unit/slices/live/**.test.js'
     },
   ],
   // Custom html as a workaround for setting root hooks or global initialization.
@@ -160,7 +167,7 @@ export default {
   testRunnerHtml: (testFramework) =>
     `<html>
       <body>
-        <script type="module" src="/test/unit/helpers/global-setup.js"></script>
+        <script type="module" src="out-tsc/test/unit/helpers/global-setup.js"></script>
         <script type="module" src="${testFramework}"></script>
       </body>
     </html>`,
