@@ -27,10 +27,6 @@ module.exports = {
         }
       },
       { test: /\.json$/, exclude: /(node_modules)/, type: 'json' },
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader'
-      }
     ]
   },
   resolve: {
