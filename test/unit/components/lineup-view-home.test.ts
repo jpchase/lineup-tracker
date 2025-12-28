@@ -1,7 +1,7 @@
 /** @format */
 
-import { LineupViewHome } from '@app/components/lineup-view-home';
 import '@app/components/lineup-view-home.js';
+import { LineupViewHome } from '@app/components/lineup-view-home.js';
 import { expect, fixture, html } from '@open-wc/testing';
 
 describe('lineup-view-home tests', () => {

@@ -8,7 +8,7 @@ import {
 } from '@app/components/lineup-team-selector-dialog.js';
 import { Team } from '@app/models/team.js';
 import { Button } from '@material/mwc-button';
-import { ListItem } from '@material/mwc-list/mwc-list-item';
+import { ListItem } from '@material/mwc-list/mwc-list-item.js';
 import { aTimeout, expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 import { buildTeams } from '../helpers/test_data.js';
 

@@ -1,6 +1,6 @@
 /** @format */
 
-import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game';
+import { Game, GameDetail, GameMetadata, GameStatus } from '@app/models/game.js';
 import { LiveGameBuilder } from '@app/models/live.js';
 import { Roster } from '@app/models/player.js';
 import { AuthState } from '@app/slices/auth/auth-slice.js';

@@ -1,7 +1,7 @@
 /** @format */
 
+import { Formation, FormationBuilder, FormationType } from '@app/models/formation.js';
 import { expect } from '@open-wc/testing';
-import { Formation, FormationBuilder, FormationType } from '@app/models/formation';
 
 describe('FormationBuilder', () => {
   it('create should throw for unknown formation type', () => {

@@ -1,8 +1,8 @@
 /** @format */
 
-import { LineupRosterModify, NewPlayerCreatedEvent } from '@app/components/lineup-roster-modify';
 import '@app/components/lineup-roster-modify.js';
-import { PlayerStatus } from '@app/models/player';
+import { LineupRosterModify, NewPlayerCreatedEvent } from '@app/components/lineup-roster-modify.js';
+import { PlayerStatus } from '@app/models/player.js';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 
 describe('lineup-roster-modify tests', () => {

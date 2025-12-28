@@ -1,10 +1,10 @@
 /** @format */
 
-import { LineupPlayerCard } from '@app/components/lineup-player-card';
-import { LineupPlayerList } from '@app/components/lineup-player-list';
+import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
 import '@app/components/lineup-player-list.js';
+import { LineupPlayerList } from '@app/components/lineup-player-list.js';
 import { LivePlayer } from '@app/models/live.js';
-import { PlayerStatus } from '@app/models/player';
+import { PlayerStatus } from '@app/models/player.js';
 import { assert, expect, fixture, html } from '@open-wc/testing';
 
 function getPlayers(

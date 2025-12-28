@@ -1,6 +1,6 @@
 /** @format */
 
-import { CurrentTimeProvider, Duration, ManualTimeProvider, TimerData } from '@app/models/clock';
+import { CurrentTimeProvider, Duration, ManualTimeProvider, TimerData } from '@app/models/clock.js';
 import { Assertion } from '@esm-bundle/chai';
 import sinon from 'sinon';
 

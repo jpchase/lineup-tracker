@@ -1,9 +1,9 @@
 /** @format */
 
-import { LineupRoster } from '@app/components/lineup-roster';
 import '@app/components/lineup-roster.js';
-import { PlayerStatus, Roster } from '@app/models/player';
-import { ListItem } from '@material/mwc-list/mwc-list-item';
+import { LineupRoster } from '@app/components/lineup-roster.js';
+import { PlayerStatus, Roster } from '@app/models/player.js';
+import { ListItem } from '@material/mwc-list/mwc-list-item.js';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 
 function getRoster(numPlayers: number): Roster {

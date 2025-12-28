@@ -1,6 +1,6 @@
 /** @format */
 
-import { CurrentTimeProvider, Duration, ManualTimeProvider, Timer } from '@app/models/clock';
+import { CurrentTimeProvider, Duration, ManualTimeProvider, Timer } from '@app/models/clock.js';
 import { Assertion } from '@esm-bundle/chai';
 import { expect } from '@open-wc/testing';
 import {

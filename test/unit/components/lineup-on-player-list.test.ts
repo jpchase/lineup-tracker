@@ -1,11 +1,11 @@
 /** @format */
 
-import { LineupOnPlayerList } from '@app/components/lineup-on-player-list';
 import '@app/components/lineup-on-player-list.js';
-import { LineupPlayerCard } from '@app/components/lineup-player-card';
-import { FormationBuilder, FormationType } from '@app/models/formation';
+import { LineupOnPlayerList } from '@app/components/lineup-on-player-list.js';
+import { LineupPlayerCard } from '@app/components/lineup-player-card.js';
+import { FormationBuilder, FormationType } from '@app/models/formation.js';
 import { LivePlayer } from '@app/models/live.js';
-import { PlayerStatus } from '@app/models/player';
+import { PlayerStatus } from '@app/models/player.js';
 import { assert, expect, fixture, html } from '@open-wc/testing';
 
 interface PositionCounter {
