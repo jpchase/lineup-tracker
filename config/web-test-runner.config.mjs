@@ -8,6 +8,10 @@ import * as path from 'path';
 import puppeteer from 'puppeteer';
 import { SESSION_STATUS } from '@web/test-runner-core';
 
+const OUT_DIR = 'out-tsc';
+
+const filteredLogs = ['Running in dev mode', 'Lit is in dev mode'];
+
 function aliasResolverPlugin() {
   return {
     async resolveImport({ source, context }) {
@@ -31,6 +35,7 @@ function aliasResolverPlugin() {
         extension = '';
       }
       const browserPath = `${'../'.repeat(depth)}src/${source.substring(5)}${extension}`;
+      console.log(`mapped [${source}] to [${browserPath}] in [${requestedFile}]`);
       return browserPath;
     },
   };
@@ -128,15 +133,16 @@ export function testFailureSummaryReporter() {
 
 const puppeteerExecutablePath = puppeteer.executablePath();
 
-const storageTestFiles = 'out-tsc/test/storage/**/*.test.js';
-const unitTestFiles = 'out-tsc/test/unit/**/*.test.js';
+const TEST_DIR = `${OUT_DIR}/test`;
+const storageTestFiles = `${TEST_DIR}/storage/**/*.test.js`;
+const unitTestFiles = `${TEST_DIR}/unit/**/*.test.js`;
 
 /** @type {import("@web/test-runner").TestRunnerConfig} */
 export default {
   nodeResolve: true,
   // debug: true,
   coverageConfig: {
-    include: ['src/**/*.js'],
+    include: [`${OUT_DIR}/src/**/*.js`],
     reportDir: 'reports',
     threshold: {
       branches: 80,
@@ -157,9 +163,13 @@ export default {
     },
     {
       name: 'single',
-      files: 'out-tsc/test/unit/components/lineup-game-events.test.js',
-      // files: 'out-tsc/test/unit/slices/live/substition-reducer-logic.test.js',
-      // files: 'out-tsc/test/unit/slices/live/**.test.js'
+      files: `${TEST_DIR}/unit/components/lineup-game-events.test.js`,
+      // files: `${TEST_DIR}/unit/models/shift-tracker-event-builder.test.js`,
+      // files: `${TEST_DIR}/unit/models/shift.test.js`,
+      // files: `${TEST_DIR}/unit/slices/live/events-slice.test.js`,
+      // files: `${TEST_DIR}/unit/slices/live/clock-reducer-logic.test.js`,
+      // files: `${TEST_DIR}/unit/slices/live/substition-reducer-logic.test.js`,
+      // files: `${TEST_DIR}/unit/slices/live/**.test.js`
     },
   ],
   // Custom html as a workaround for setting root hooks or global initialization.
@@ -167,7 +177,7 @@ export default {
   testRunnerHtml: (testFramework) =>
     `<html>
       <body>
-        <script type="module" src="out-tsc/test/unit/helpers/global-setup.js"></script>
+        <script type="module" src="${TEST_DIR}/unit/helpers/global-setup.js"></script>
         <script type="module" src="${testFramework}"></script>
       </body>
     </html>`,
