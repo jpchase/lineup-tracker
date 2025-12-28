@@ -111,7 +111,7 @@ export const appSlice = createSlice({
 
 // Extend the root state typings with this slice.
 //  - The module "name" is actually the relative path to interface definition.
-declare module '../reducer' {
+declare module '../reducer.js' {
   export interface LazyLoadedSlices extends WithSlice<typeof appSlice> {}
 }
 
