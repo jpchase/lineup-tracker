@@ -2,6 +2,7 @@
   "name": "lineup-tracker",
   "private": true,
   "repository": "github:jpchase/lineup-tracker",
+  "type": "module",
   "scripts": {
     "env:copy": "cp src/env-config.$npm_config_envname.json src/env-config.json",
     "env:copy_dev": "npm run env:copy --envname=dev",
@@ -13,8 +14,7 @@
     "start:webds": "npm run env:copy_dev && tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"web-dev-server\"",
     "start:offline": "npm run env:copy_dev && tsc && web-dev-server --offline",
     "build:deploy": "tsc && npm run env:copy_staging && npm run build:webpack",
-    "build:copy_test": "cp test/integration/package.json out-tsc/test/integration/",
-    "build:test": "npm run env:copy_test && tsc && npm run build:copy_test && npm run build:rollup",
+    "build:test": "npm run env:copy_test && tsc && npm run build:rollup",
     "build:rollup": "rm -rf dist && tsc && rollup -c rollup.config.mjs",
     "build:webpack": "tsc && rm -rf dist && webpack --config webpack.config.js",
     "serve:test": "firebase emulators:start --import test/integration/data/firebase/",
