@@ -8,7 +8,9 @@ import { HTTPRequest, ResponseForRequest } from 'puppeteer';
 const CONTENT_TYPE_CSS = 'text/css; charset=utf-8';
 const CONTENT_TYPE_WOFF2 = 'font/woff2';
 
+export const FONT_APIS_HOSTNAME = 'fonts.googleapis.com';
 export const FONT_APIS_PLACEHOLDER = '/fonts-apis/';
+export const FONT_STATIC_HOSTNAME = 'fonts.gstatic.com';
 export const FONT_STATIC_PLACEHOLDER = '/fonts-static/';
 
 const FONT_CSS_FILES: Record<string, string> = {
@@ -31,7 +33,7 @@ interface RequestAdapter {
 type ServeResult =
   | void
   | string
-  | { body: string; type?: string; headers?: Record<string, string> };
+  | { body: string; status?: number; type?: string; headers?: Record<string, string> };
 
 export function serveHermeticFontPuppeteer(
   request: HTTPRequest,
@@ -62,6 +64,7 @@ export function serveHermeticFontDevServer(context: Context, dataDir: string): S
     body: response.body as string,
     type: response.contentType,
     headers: response.headers as unknown as Record<string, string>,
+    status: response.status,
   };
 }
 
@@ -72,9 +75,9 @@ function serveHermeticFont(
   const requestUrl = new URL(request.url());
   const isFontApis =
     requestUrl.pathname.startsWith(FONT_APIS_PLACEHOLDER) ||
-    requestUrl.hostname === 'fonts.googleapis.com';
+    requestUrl.hostname === FONT_APIS_HOSTNAME;
   const hasStaticPlaceholder = requestUrl.pathname.startsWith(FONT_STATIC_PLACEHOLDER);
-  const isFontStatic = hasStaticPlaceholder || requestUrl.hostname === 'fonts.gstatic.com';
+  const isFontStatic = hasStaticPlaceholder || requestUrl.hostname === FONT_STATIC_HOSTNAME;
 
   if (!isFontApis && !isFontStatic) {
     return undefined;
