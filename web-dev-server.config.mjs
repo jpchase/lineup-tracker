@@ -35,37 +35,32 @@ function hermeticFontsPlugins(dataDir) {
    */
   const fontPlugins = [];
 
-  fontPlugins.push(
-    {
-      name: 'replace-fonts-urls',
-      transform(context) {
-        if (context.response.is('html')) {
-          return {
-            body: context.body.replace(`https://${FONT_APIS_HOSTNAME}/`, FONT_APIS_PLACEHOLDER),
-          };
-        }
-        if (context.response.is('css') && context.request.path.startsWith(FONT_APIS_PLACEHOLDER)) {
-          return {
-            body: context.body.replace(`https://${FONT_STATIC_HOSTNAME}/`, FONT_STATIC_PLACEHOLDER),
-          };
-        }
-      },
+  fontPlugins.push({
+    name: 'hermetic-fonts',
+    transform(context) {
+      if (context.response.is('html')) {
+        return {
+          body: context.body.replace(`https://${FONT_APIS_HOSTNAME}/`, FONT_APIS_PLACEHOLDER),
+        };
+      }
+      if (context.response.is('css') && context.request.path.startsWith(FONT_APIS_PLACEHOLDER)) {
+        return {
+          body: context.body.replace(`https://${FONT_STATIC_HOSTNAME}/`, FONT_STATIC_PLACEHOLDER),
+        };
+      }
     },
-    {
-      name: 'hermetic-fonts',
-      serve(context) {
-        if (
-          context.url.startsWith('/node_modules/') ||
-          context.url.startsWith('/src/') ||
-          context.url.startsWith('/out-tsc/src/')
-        ) {
-          return;
-        }
-        // console.log(`\nhermetic-fonts[${serveCounter}]: attempt to serve for URL = ${context.url}`);
-        return serveHermeticFontDevServer(context, dataDir);
-      },
+    serve(context) {
+      if (
+        context.url.startsWith('/node_modules/') ||
+        context.url.startsWith('/src/') ||
+        context.url.startsWith('/out-tsc/src/')
+      ) {
+        return;
+      }
+      // console.log(`\nhermetic-fonts[${serveCounter}]: attempt to serve for URL = ${context.url}`);
+      return serveHermeticFontDevServer(context, dataDir);
     },
-  );
+  });
 
   return {
     /**
