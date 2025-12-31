@@ -79,6 +79,9 @@ function serveHermeticFont(
   const hasStaticPlaceholder = requestUrl.pathname.startsWith(FONT_STATIC_PLACEHOLDER);
   const isFontStatic = hasStaticPlaceholder || requestUrl.hostname === FONT_STATIC_HOSTNAME;
 
+  // console.log(
+  //   `\nserveHermeticFont: url = ${requestUrl}, isFontApis = ${isFontApis}, isFontStatic = ${isFontStatic}`,
+  // );
   if (!isFontApis && !isFontStatic) {
     return undefined;
   }

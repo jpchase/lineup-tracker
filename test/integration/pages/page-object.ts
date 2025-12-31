@@ -12,8 +12,8 @@ import puppeteer, {
   ScreenshotOptions,
   Viewport,
 } from 'puppeteer';
+import { serveHermeticFontPuppeteer } from '../../common/hermetic-fonts.js';
 import { integrationTestData } from '../data/integration-data-constants.js';
-import { serveHermeticFontPuppeteer } from '../server/hermetic-fonts.js';
 import { config } from '../server/test-server.js';
 
 const APP_COMPONENT_NAME = 'lineup-app';

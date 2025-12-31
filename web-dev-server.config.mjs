@@ -6,7 +6,7 @@ import {
   FONT_APIS_PLACEHOLDER,
   FONT_STATIC_PLACEHOLDER,
   serveHermeticFontDevServer,
-} from './out-tsc/test/integration/server/hermetic-fonts.js';
+} from './out-tsc/test/common/hermetic-fonts.js';
 import { config } from './out-tsc/test/integration/server/test-server.js';
 
 const offline = !!process.argv.find((value) => value === '--offline');
