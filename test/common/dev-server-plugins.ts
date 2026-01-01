@@ -1,8 +1,6 @@
 /** @format */
 
 import { Context, Plugin } from '@web/dev-server-core';
-import { Middleware } from 'koa';
-import * as path from 'path';
 import {
   FONT_APIS_HOSTNAME,
   FONT_APIS_PLACEHOLDER,
@@ -44,68 +42,39 @@ function serveHermeticFontDevServer(context: Context, dataDir: string): ServeRes
   };
 }
 
-export function hermeticFontsPlugins(dataDir: string): {
-  plugin: Plugin;
-  middleware: Middleware;
-} {
+export function hermeticFontsPlugin(dataDir: string): Plugin {
   return {
-    plugin: {
-      name: 'hermetic-fonts',
-      transform(context: Context) {
-        const body = context.body as string;
-        if (context.response.is('html')) {
-          return {
-            body: body.replace(`https://${FONT_APIS_HOSTNAME}/`, FONT_APIS_PLACEHOLDER),
-          };
-        }
-        if (context.response.is('css') && context.request.path.startsWith(FONT_APIS_PLACEHOLDER)) {
-          return {
-            body: body.replace(`https://${FONT_STATIC_HOSTNAME}/`, FONT_STATIC_PLACEHOLDER),
-          };
-        }
-        return undefined;
-      },
-      serve(context: Context) {
-        if (
-          context.url.startsWith('/node_modules/') ||
-          context.url.startsWith('/src/') ||
-          context.url.startsWith('/out-tsc/src/')
-        ) {
-          return undefined;
-        }
-        // console.log(`\nhermetic-fonts[${serveCounter}]: attempt to serve for URL = ${context.url}`);
-        return serveHermeticFontDevServer(context, dataDir);
-      },
-    },
-    middleware: (context: Context, next) => {
-      // Using `appIndex` in the WDS config causes it to intercept *all* non-file
-      // requests, including the CSS requests. This middleware is needed to run
-      // before that interception and serve the CSS correctly.
-      if (context.method !== 'GET' || path.extname(context.path)) {
-        // not a GET, or a direct file request
-        return next();
+    name: 'hermetic-fonts',
+    transform(context: Context) {
+      const body = context.body as string;
+      if (context.response.is('html')) {
+        // Using `appIndex` in the WDS config causes it to intercept *all* non-file
+        // requests, including the CSS requests. In addition to replacing the host
+        // name, add a file extension so the request is handled by the serve() below.
+        return {
+          body: body.replace(
+            `https://${FONT_APIS_HOSTNAME}/css?`,
+            `${FONT_APIS_PLACEHOLDER}css.css?`,
+          ),
+        };
       }
-
-      if (!context.path.startsWith(FONT_APIS_PLACEHOLDER)) {
-        return next();
+      if (context.response.is('css') && context.request.path.startsWith(FONT_APIS_PLACEHOLDER)) {
+        return {
+          body: body.replace(`https://${FONT_STATIC_HOSTNAME}/`, FONT_STATIC_PLACEHOLDER),
+        };
       }
-
-      const response = serveHermeticFontDevServer(context, dataDir);
-      if (!response) {
-        return next();
-      }
-      if (response.headers) {
-        for (const [k, v] of Object.entries(response.headers)) {
-          context.response.set(k, v);
-        }
-      }
-      /* eslint-disable no-param-reassign */
-      // The middleware API requires setting properties on the `context` param.
-      context.response.body = response.body;
-      context.response.status = response.status!;
-      context.response.type = response.type!;
-      /* eslint-enable no-param-reassign */
       return undefined;
+    },
+    serve(context: Context) {
+      if (
+        context.url.startsWith('/node_modules/') ||
+        context.url.startsWith('/src/') ||
+        context.url.startsWith('/out-tsc/src/')
+      ) {
+        return undefined;
+      }
+      // console.log(`\nhermetic-fonts[${serveCounter}]: attempt to serve for URL = ${context.url}`);
+      return serveHermeticFontDevServer(context, dataDir);
     },
   };
 }
