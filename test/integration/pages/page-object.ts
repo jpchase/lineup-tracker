@@ -12,7 +12,7 @@ import puppeteer, {
   ScreenshotOptions,
   Viewport,
 } from 'puppeteer';
-import { serveHermeticFontPuppeteer } from '../../common/hermetic-fonts.js';
+import { serveHermeticFont } from '../../common/hermetic-fonts.js';
 import { integrationTestData } from '../data/integration-data-constants.js';
 import { config } from '../server/test-server.js';
 
@@ -123,7 +123,7 @@ export class PageObject {
 
     page.setRequestInterception(true);
     page.on('request', async (request: HTTPRequest) => {
-      const fontResponse = serveHermeticFontPuppeteer(request, config.dataDir);
+      const fontResponse = serveHermeticFont(request, config.dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
       } else {
