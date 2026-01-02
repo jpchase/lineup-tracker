@@ -1,7 +1,7 @@
 /** @format */
 
-import { GameCreatedEvent, LineupGameCreate } from '@app/components/lineup-game-create';
 import '@app/components/lineup-game-create.js';
+import { GameCreatedEvent, LineupGameCreate } from '@app/components/lineup-game-create.js';
 import { expect, fixture, html, nextFrame, oneEvent } from '@open-wc/testing';
 
 describe('lineup-game-create tests', () => {

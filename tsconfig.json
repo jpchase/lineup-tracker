@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "target": "es2021",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
-    "lib": ["es2017", "dom"],
+    "lib": ["es2021", "dom", "DOM.Iterable"],
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -14,8 +14,10 @@
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "experimentalDecorators": true,
+    "outDir": "out-tsc",
+    "sourceMap": false,
+    "inlineSources": false,
     "incremental": true,
-    "tsBuildInfoFile": "./build/tscache",
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {

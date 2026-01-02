@@ -1,17 +1,17 @@
 /** @format */
 
 import { SynchronizedTimerNotifier } from '@app/components/core/synchronized-timer.js';
+import '@app/components/lineup-player-card.js';
 import {
   LineupPlayerCard,
   PlayerCardData,
   PlayerSelectedEvent,
   PositionSelectedEvent,
-} from '@app/components/lineup-player-card';
-import '@app/components/lineup-player-card.js';
+} from '@app/components/lineup-player-card.js';
 import { Duration } from '@app/models/clock.js';
 import { Position, formatPosition } from '@app/models/formation.js';
 import { LivePlayer } from '@app/models/live.js';
-import { PlayerStatus } from '@app/models/player';
+import { PlayerStatus } from '@app/models/player.js';
 import { PlayerTimeTracker } from '@app/models/shift.js';
 import { expect, fixture, html, oneEvent } from '@open-wc/testing';
 import sinon from 'sinon';

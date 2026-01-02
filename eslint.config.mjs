@@ -27,8 +27,7 @@ export default [
       '**/dist/',
       '**/reports/',
       '**/.tmp',
-      'src/**/*.js',
-      'test/**/*.js',
+      'out-tsc/',
       // Temporary exclusions, to get linting working without errors
       '**/index.html',
       '**/local.index.html',

@@ -1,7 +1,7 @@
 /** @format */
 
-import { auth } from '@app/app/firebase';
-import { User } from '@app/models/auth';
+import { auth } from '@app/app/firebase.js';
+import { User } from '@app/models/auth.js';
 import { actions, getUser, signIn } from '@app/slices/auth/auth-slice.js';
 import { expect } from '@open-wc/testing';
 import {

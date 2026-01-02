@@ -1,6 +1,8 @@
+/** @format */
+
 module.exports = {
   extension: ['js'],
-  spec: ['test/integration'],
+  spec: ['out-tsc/test/integration'],
   timeout: '40000',
   reporter: 'mochawesome',
   'reporter-option': [

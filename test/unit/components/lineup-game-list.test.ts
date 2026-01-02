@@ -1,10 +1,10 @@
 /** @format */
 
-import { LineupGameList } from '@app/components/lineup-game-list';
 import '@app/components/lineup-game-list.js';
-import { Games, GameStatus } from '@app/models/game';
+import { LineupGameList } from '@app/components/lineup-game-list.js';
+import { DateFormatter } from '@app/models/clock.js';
+import { Games, GameStatus } from '@app/models/game.js';
 import { assert, expect, fixture, html } from '@open-wc/testing';
-import { DateFormatter } from '@app/models/clock';
 
 function getGames(numGames: number): Games {
   const size = numGames || 6;

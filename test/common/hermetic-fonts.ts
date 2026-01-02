@@ -1,14 +1,14 @@
 /** @format */
 
 import * as fs from 'fs';
-import { Context } from 'koa';
 import * as path from 'path';
-import { HTTPRequest, ResponseForRequest } from 'puppeteer';
 
 const CONTENT_TYPE_CSS = 'text/css; charset=utf-8';
 const CONTENT_TYPE_WOFF2 = 'font/woff2';
 
+export const FONT_APIS_HOSTNAME = 'fonts.googleapis.com';
 export const FONT_APIS_PLACEHOLDER = '/fonts-apis/';
+export const FONT_STATIC_HOSTNAME = 'fonts.gstatic.com';
 export const FONT_STATIC_PLACEHOLDER = '/fonts-static/';
 
 const FONT_CSS_FILES: Record<string, string> = {
@@ -24,58 +24,41 @@ const FONT_WOFF_FILES: Record<string, string> = {
   '/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxK.woff2': 'roboto-regular.woff2',
 };
 
-interface RequestAdapter {
+export interface RequestAdapter {
   url(): string;
 }
 
-type ServeResult =
-  | void
-  | string
-  | { body: string; type?: string; headers?: Record<string, string> };
-
-export function serveHermeticFontPuppeteer(
-  request: HTTPRequest,
-  dataDir: string,
-): ResponseForRequest | undefined {
-  return serveHermeticFont(request, dataDir);
+// Wrapper for ResponseForRequest from puppeteer
+export interface ResponseAdapter {
+  status: number;
+  /**
+   * Optional response headers.
+   *
+   * The record values will be converted to string following:
+   * Arrays' values will be mapped to String
+   * (Used when you need multiple headers with the same name).
+   * Non-arrays will be converted to String.
+   */
+  headers: Record<string, string | string[] | unknown>;
+  contentType: string;
+  type: string;
+  body: string | Uint8Array;
 }
 
-export function serveHermeticFontDevServer(context: Context, dataDir: string): ServeResult {
-  const adapter = {
-    url() {
-      if (context.req.url?.startsWith('/')) {
-        return `http://${context.req.headers.host}${context.req.url}`;
-      }
-      return context.req.url!;
-    },
-  };
-  const response = serveHermeticFont(adapter, dataDir);
-  if (!response) {
-    return undefined;
-  }
-  // Convert the response to the expected type.
-  //  - The body may be a Buffer, for binary files. Pretend the body is always a string,
-  //    rather than explicitly converting to string. The web-dev-server has logic to
-  //    correctly convert a buffer for serving.
-  //  - The headers values are converted to strings, but typed as Record<string, unknown>
-  return {
-    body: response.body as string,
-    type: response.contentType,
-    headers: response.headers as unknown as Record<string, string>,
-  };
-}
-
-function serveHermeticFont(
+export function serveHermeticFont(
   request: RequestAdapter,
   dataDir: string,
-): ResponseForRequest | undefined {
+): ResponseAdapter | undefined {
   const requestUrl = new URL(request.url());
   const isFontApis =
     requestUrl.pathname.startsWith(FONT_APIS_PLACEHOLDER) ||
-    requestUrl.hostname === 'fonts.googleapis.com';
+    requestUrl.hostname === FONT_APIS_HOSTNAME;
   const hasStaticPlaceholder = requestUrl.pathname.startsWith(FONT_STATIC_PLACEHOLDER);
-  const isFontStatic = hasStaticPlaceholder || requestUrl.hostname === 'fonts.gstatic.com';
+  const isFontStatic = hasStaticPlaceholder || requestUrl.hostname === FONT_STATIC_HOSTNAME;
 
+  // console.log(
+  //   `\nserveHermeticFont: url = ${requestUrl}, isFontApis = ${isFontApis}, isFontStatic = ${isFontStatic}`,
+  // );
   if (!isFontApis && !isFontStatic) {
     return undefined;
   }
@@ -106,17 +89,22 @@ function buildResponse(
   dataDir: string,
   bodyFileName: string,
   contentType: string,
-): ResponseForRequest {
+): ResponseAdapter {
   const bodyData = fs.readFileSync(path.join(dataDir, bodyFileName));
   if (!bodyData) {
     throw new Error(`Problem reading file: ${bodyFileName}`);
   }
+  // The content type for CSS includes a charset, split out just the mime
+  // type if necessary.
+  const typeParts = contentType.split(';');
+  const type = typeParts.length > 1 ? typeParts[0] : contentType;
   return {
     status: 200,
     headers: {
       'access-control-allow-origin': '*',
     },
     contentType,
+    type,
     body: bodyData,
   };
 }

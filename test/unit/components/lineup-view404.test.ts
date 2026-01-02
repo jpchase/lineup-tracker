@@ -1,7 +1,7 @@
 /** @format */
 
-import { LineupView404 } from '@app/components/lineup-view404';
 import '@app/components/lineup-view404.js';
+import { LineupView404 } from '@app/components/lineup-view404.js';
 import { expect, fixture, html } from '@open-wc/testing';
 
 describe('lineup-view404 tests', () => {

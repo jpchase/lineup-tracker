@@ -12,8 +12,8 @@ import puppeteer, {
   ScreenshotOptions,
   Viewport,
 } from 'puppeteer';
+import { serveHermeticFont } from '../../common/hermetic-fonts.js';
 import { integrationTestData } from '../data/integration-data-constants.js';
-import { serveHermeticFontPuppeteer } from '../server/hermetic-fonts.js';
 import { config } from '../server/test-server.js';
 
 const APP_COMPONENT_NAME = 'lineup-app';
@@ -123,7 +123,7 @@ export class PageObject {
 
     page.setRequestInterception(true);
     page.on('request', async (request: HTTPRequest) => {
-      const fontResponse = serveHermeticFontPuppeteer(request, config.dataDir);
+      const fontResponse = serveHermeticFont(request, config.dataDir);
       if (fontResponse) {
         request.respond(fontResponse);
       } else {
