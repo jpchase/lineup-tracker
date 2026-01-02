@@ -116,7 +116,7 @@
     "sinon": "^19.0.2",
     "sinon-chai": "^4.0.0",
     "typescript": "^5.3.3",
-    "urlpattern-polyfill": "^8.0.2"
+    "urlpattern-polyfill": "^10.1.0"
   },
   "prettier": {
     "insertPragma": true,
