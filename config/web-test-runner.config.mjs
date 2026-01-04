@@ -35,7 +35,7 @@ function aliasResolverPlugin() {
         extension = '';
       }
       const browserPath = `${'../'.repeat(depth)}src/${source.substring(5)}${extension}`;
-      console.log(`mapped [${source}] to [${browserPath}] in [${requestedFile}]`);
+      // console.log(`mapped [${source}] to [${browserPath}] in [${requestedFile}]`);
       return browserPath;
     },
   };
@@ -186,7 +186,7 @@ export default {
     puppeteerLauncher({
       launchOptions: {
         executablePath: puppeteerExecutablePath,
-        // args: ['--some-flag'],
+        args: ['--no-sandbox'],
       },
     }),
   ],
