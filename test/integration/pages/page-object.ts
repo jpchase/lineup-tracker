@@ -110,7 +110,7 @@ export class PageObject {
 
     page.on('console', (msg: ConsoleMessage) => logWithTime(msg.text(), 'PAGE LOG'));
 
-    page.on('pageerror', (error: Error) => logWithTime(`${error}`, 'PAGE ERROR'));
+    page.on('pageerror', (error: Error | unknown) => logWithTime(`${error}`, 'PAGE ERROR'));
 
     page.on('requestfailed', (request: HTTPRequest) => {
       const response = request.response();

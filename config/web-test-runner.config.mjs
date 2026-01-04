@@ -35,7 +35,7 @@ function aliasResolverPlugin() {
         extension = '';
       }
       const browserPath = `${'../'.repeat(depth)}src/${source.substring(5)}${extension}`;
-      console.log(`mapped [${source}] to [${browserPath}] in [${requestedFile}]`);
+      // console.log(`mapped [${source}] to [${browserPath}] in [${requestedFile}]`);
       return browserPath;
     },
   };
@@ -140,7 +140,7 @@ const unitTestFiles = `${TEST_DIR}/unit/**/*.test.js`;
 /** @type {import("@web/test-runner").TestRunnerConfig} */
 export default {
   nodeResolve: true,
-  debug: true,
+  // debug: true,
   coverageConfig: {
     include: [`${OUT_DIR}/src/**/*.js`],
     reportDir: 'reports',
