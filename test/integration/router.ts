@@ -9,7 +9,7 @@ describe('routing tests', () => {
   let page: Page;
 
   beforeEach(async () => {
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({ args: ['--no-sandbox'] });
     page = await browser.newPage();
   });
 

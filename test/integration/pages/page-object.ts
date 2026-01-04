@@ -99,7 +99,7 @@ export class PageObject {
 
   async init() {
     const browser = await puppeteer.launch({
-      args: ['--disable-gpu', '--font-render-hinting=none'],
+      args: ['--disable-gpu', '--font-render-hinting=none', '--no-sandbox'],
       // headless: false,
       // devtools: true,
     });

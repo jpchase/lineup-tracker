@@ -186,7 +186,7 @@ export default {
     puppeteerLauncher({
       launchOptions: {
         executablePath: puppeteerExecutablePath,
-        // args: ['--some-flag'],
+        args: ['--no-sandbox'],
       },
     }),
   ],
