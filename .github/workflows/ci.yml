@@ -27,7 +27,7 @@ jobs:
         with:
           timezoneLinux: 'America/Toronto'
 
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v6.0.1
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -91,7 +91,7 @@ jobs:
     if: false
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v6.0.1
 
       - name: npm install, build
         run: |
