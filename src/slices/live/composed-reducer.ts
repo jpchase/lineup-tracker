@@ -1,7 +1,6 @@
 /** @format */
 
-import { createNextState } from '@reduxjs/toolkit';
-import { Reducer } from 'redux';
+import { Reducer, createNextState } from '@reduxjs/toolkit';
 import { PersistConfig } from 'redux-persist';
 import { SliceConfigurator, buildSliceConfigurator } from '../slice-configurator.js';
 import { EVENTS_INITIAL_STATE, eventsReducer, setupEventsListeners } from './events-slice.js';

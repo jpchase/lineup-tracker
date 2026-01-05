@@ -1,22 +1,23 @@
 /** @format */
 
-import prettierConfig from 'eslint-config-prettier';
+import js from '@eslint/js';
+import openwcConfigs from '@open-wc/eslint-config';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
+import prettierConfig from 'eslint-config-prettier';
+import { defineConfig } from 'eslint/config';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
+const sourceFilesToLint = ['**/*.ts', '**/*.html'];
 
-export default [
+// Apply the target files for linting to the open-wc configs.
+// Only set for the config entries that don't already have files.
+// import('eslint/config').Config
+const filteredConfigs = openwcConfigs.map((config) => ({
+  ...config,
+  files: config.files ?? sourceFilesToLint,
+}));
+
+export default defineConfig([
   {
     name: 'main-ignores',
     ignores: [
@@ -29,21 +30,27 @@ export default [
       '**/.tmp',
       'out-tsc/',
       // Temporary exclusions, to get linting working without errors
+      'config/',
       '**/index.html',
       '**/local.index.html',
       'src/lineup-*.html',
       'src/shared-styles.html',
     ],
   },
-  ...compat.extends('@open-wc').map((config) => ({
-    ...config,
-    files: ['**/*.ts', '**/*.html'],
-  })),
+  {
+    name: 'js-recommended-extends',
+    extends: [js.configs.recommended],
+    files: sourceFilesToLint,
+  },
+  {
+    name: 'open-wc-extends',
+    extends: [...filteredConfigs],
+  },
   // Turns off rules that conflict with Prettier
-  prettierConfig,
+  { name: 'prettier-extends', extends: [prettierConfig] },
   {
     name: 'main-config',
-    files: ['**/*.ts', '**/*.html'],
+    files: sourceFilesToLint,
 
     plugins: {
       '@typescript-eslint': tsPlugin,
@@ -75,16 +82,7 @@ export default [
         },
       ],
 
-      'import/no-extraneous-dependencies': 'off', // Too many false positives, as it does not handle references to @types
-      'import/no-unresolved': 'off',
-
-      'import/extensions': [
-        'error',
-        'always',
-        {
-          ignorePackages: true,
-        },
-      ],
+      'import-x/no-unresolved': 'off', // Too many false positives, as it does not handle references to @app/
 
       'lines-between-class-members': 'off',
       'max-classes-per-file': 'off',
@@ -156,7 +154,7 @@ export default [
     files: ['src/+(app|components|middleware|models|storage|util)/**/*.ts', 'src/*.ts'],
 
     rules: {
-      'import/no-internal-modules': [
+      'import-x/no-internal-modules': [
         'error',
         {
           forbid: [
@@ -225,4 +223,4 @@ export default [
       ],
     },
   },
-];
+]);

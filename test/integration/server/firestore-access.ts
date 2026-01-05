@@ -1,4 +1,5 @@
 /** @format */
+/* global process */
 
 import { App, applicationDefault, initializeApp } from 'firebase-admin/app';
 import {
