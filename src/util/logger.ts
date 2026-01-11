@@ -5,7 +5,7 @@ const isNode = !!(typeof process !== 'undefined' && process.version);
 
 export const logger = (prefix: string): ((...args: unknown[]) => void) => {
   if (isNode) {
-    // eslint-disable-next-line no-undef
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require('debug')(`lineup:${prefix}`);
   }
   // eslint-disable-next-line no-console

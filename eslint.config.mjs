@@ -2,10 +2,10 @@
 
 import js from '@eslint/js';
 import openwcConfigs from '@open-wc/eslint-config';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
 import prettierConfig from 'eslint-config-prettier';
+import chaiFriendlyPlugin from 'eslint-plugin-chai-friendly';
 import { defineConfig } from 'eslint/config';
+import ts from 'typescript-eslint';
 
 const sourceFilesToLint = ['**/*.ts', '**/*.html'];
 
@@ -70,6 +70,17 @@ export default defineConfig([
     name: 'open-wc-extends',
     extends: [...filteredConfigs],
   },
+  {
+    // TODO: Use the strict config instead
+    name: 'ts-recommended-extends',
+    extends: [ts.configs.recommended],
+    files: sourceFilesToLint,
+  },
+  {
+    name: 'ts-stylistic-extends',
+    extends: [ts.configs.stylistic],
+    files: sourceFilesToLint,
+  },
   // Turns off rules that conflict with Prettier
   { name: 'prettier-extends', extends: [prettierConfig] },
   {
@@ -77,7 +88,7 @@ export default defineConfig([
     files: sourceFilesToLint,
 
     plugins: {
-      '@typescript-eslint': tsPlugin,
+      'chai-friendly': chaiFriendlyPlugin,
     },
 
     linterOptions: {
@@ -88,8 +99,6 @@ export default defineConfig([
       globals: {
         URLPattern: 'readonly',
       },
-
-      parser: tsParser,
     },
 
     rules: {
@@ -106,16 +115,12 @@ export default defineConfig([
         },
       ],
 
-      // Typescript overrides of built-in rules.
-      'no-unused-vars': 'off',
+      // Use chai-friendly version of 'no-unused-expressions'.
+      'no-unused-expressions': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      'chai-friendly/no-unused-expressions': 'error',
 
-      '@typescript-eslint/no-shadow': [
-        'error',
-        {
-          allow: ['state'],
-        },
-      ],
-
+      // Allow unused vars only if explicitly marked with '_' prefix.
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
