@@ -73,12 +73,12 @@ export default defineConfig([
   {
     // TODO: Use the strict config instead
     name: 'ts-recommended-extends',
-    extends: [ts.configs.recommended],
+    extends: [ts.configs.recommendedTypeChecked],
     files: sourceFilesToLint,
   },
   {
     name: 'ts-stylistic-extends',
-    extends: [ts.configs.stylistic],
+    extends: [ts.configs.stylisticTypeChecked],
     files: sourceFilesToLint,
   },
   // Turns off rules that conflict with Prettier
@@ -98,6 +98,9 @@ export default defineConfig([
     languageOptions: {
       globals: {
         URLPattern: 'readonly',
+      },
+      parserOptions: {
+        projectService: true,
       },
     },
 
