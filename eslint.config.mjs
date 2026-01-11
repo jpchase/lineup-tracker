@@ -161,4 +161,25 @@ export default defineConfig([
       'lit/no-value-attribute': 'off',
     },
   },
+  {
+    name: 'temp-chai-assertion-promise',
+    files: ['test/**/*.test.ts'],
+
+    rules: {
+      // The typings of `expect` from open-wc/testing cause every call to be
+      // detected as a floating promise. See https://github.com/open-wc/open-wc/issues/2675.
+      '@typescript-eslint/no-floating-promises': [
+        'off',
+        {
+          // allowForKnownSafeCalls: [
+          //   { from: 'package', name: 'expect', package: '@open-wc/testing' },
+          // ],
+          // allowForKnownSafePromises: [
+          //   { from: 'package', name: 'Promise<Chai.Assertion>', package: '@open-wc/testing' },
+          // ],
+          ignoreVoid: true,
+        },
+      ],
+    },
+  },
 ]);

@@ -844,9 +844,6 @@
     "@typescript-eslint/await-thenable": {
       "count": 8
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 6
-    },
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 6
     },
@@ -869,9 +866,6 @@
     "@typescript-eslint/await-thenable": {
       "count": 1
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 6
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 1
     },
@@ -885,9 +879,6 @@
   "test/unit/components/lineup-game-events.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 4
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 21
     },
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
       "count": 6
@@ -926,9 +917,6 @@
     "@typescript-eslint/no-explicit-any": {
       "count": 2
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 14
-    },
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 3
     },
@@ -949,9 +937,6 @@
     "@typescript-eslint/await-thenable": {
       "count": 1
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 7
-    },
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 7
     },
@@ -966,9 +951,6 @@
     "@typescript-eslint/consistent-indexed-object-style": {
       "count": 1
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 1
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
     }
@@ -976,9 +958,6 @@
   "test/unit/components/lineup-player-card.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 3
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 19
     },
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 8
@@ -996,9 +975,6 @@
     }
   },
   "test/unit/components/lineup-roster-modify.test.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 2
-    },
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -1009,9 +985,6 @@
   "test/unit/components/lineup-roster.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 3
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 10
     },
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 1
@@ -1024,9 +997,6 @@
     "@typescript-eslint/await-thenable": {
       "count": 1
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 2
-    },
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -1038,9 +1008,6 @@
     "@typescript-eslint/await-thenable": {
       "count": 3
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 5
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 2
     },
@@ -1050,9 +1017,6 @@
   },
   "test/unit/components/lineup-team-selector.test.ts": {
     "@typescript-eslint/await-thenable": {
-      "count": 2
-    },
-    "@typescript-eslint/no-floating-promises": {
       "count": 2
     },
     "@typescript-eslint/no-unsafe-assignment": {
@@ -1102,9 +1066,6 @@
     "@typescript-eslint/await-thenable": {
       "count": 2
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 1
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 2
     },
@@ -1118,9 +1079,6 @@
   "test/unit/components/lineup-view-team-create.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 2
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 1
     },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 2
@@ -1229,9 +1187,6 @@
     }
   },
   "test/unit/models/clock.test.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 28
-    },
     "@typescript-eslint/no-namespace": {
       "count": 1
     },
@@ -1255,9 +1210,6 @@
     "@typescript-eslint/no-empty-object-type": {
       "count": 1
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 14
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 1
     },
@@ -1277,23 +1229,14 @@
   "test/unit/models/formation.test.ts": {
     "@typescript-eslint/consistent-type-assertions": {
       "count": 1
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 3
     }
   },
   "test/unit/models/live.test.ts": {
     "@typescript-eslint/ban-ts-comment": {
       "count": 1
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 4
     }
   },
   "test/unit/models/shift-tracker-event-builder.test.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 2
-    },
     "@typescript-eslint/require-await": {
       "count": 1
     }
@@ -1301,9 +1244,6 @@
   "test/unit/models/shift.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 8
     },
     "@typescript-eslint/no-namespace": {
       "count": 1
@@ -1324,11 +1264,6 @@
       "count": 2
     }
   },
-  "test/unit/slices/app/app-slice.test.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 5
-    }
-  },
   "test/unit/slices/auth/auth-slice.test.ts": {
     "@typescript-eslint/no-empty-function": {
       "count": 1
@@ -1336,17 +1271,11 @@
     "@typescript-eslint/no-explicit-any": {
       "count": 1
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 2
-    },
     "@typescript-eslint/require-await": {
       "count": 1
     }
   },
   "test/unit/slices/game/game-slice.test.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 12
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 2
     },
@@ -1354,26 +1283,15 @@
       "count": 1
     }
   },
-  "test/unit/slices/game/roster-logic.test.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 4
-    }
-  },
   "test/unit/slices/live/clock-reducer-logic.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 6
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 39
     },
     "@typescript-eslint/require-await": {
       "count": 6
     }
   },
   "test/unit/slices/live/events-slice.test.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 49
-    },
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
       "count": 25
     },
@@ -1394,9 +1312,6 @@
     "@typescript-eslint/await-thenable": {
       "count": 3
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 27
-    },
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -1414,9 +1329,6 @@
     "@typescript-eslint/no-explicit-any": {
       "count": 1
     },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 6
-    },
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
       "count": 1
     },
@@ -1431,9 +1343,6 @@
     }
   },
   "test/unit/slices/live/shift-slice.test.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 19
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
     },
@@ -1444,9 +1353,6 @@
   "test/unit/slices/live/substition-reducer-logic.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 8
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 6
     },
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 9
@@ -1462,9 +1368,6 @@
     }
   },
   "test/unit/slices/team/team-slice.test.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 16
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 1
     }
