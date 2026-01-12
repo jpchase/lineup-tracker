@@ -164,7 +164,6 @@ describe('Live slice', () => {
     });
 
     for (const status of trackedStatuses) {
-      // eslint-disable-next-line no-loop-func
       describe(`Status: ${status}`, () => {
         beforeEach(async () => {
           setPlayerStatus(getGame(currentState, gameId)!, selectedPlayer.id, status);
@@ -199,7 +198,6 @@ describe('Live slice', () => {
     } // for (const status of trackedStatuses)
 
     for (const status of flagOnlyStatuses) {
-      // eslint-disable-next-line no-loop-func
       describe(`Status: ${status}`, () => {
         beforeEach(async () => {
           setPlayerStatus(getGame(currentState, gameId)!, selectedPlayer.id, status);
@@ -363,7 +361,7 @@ describe('Live slice', () => {
       it('should set off player to Next with overridden position', () => {
         const newState: LiveState = live(
           currentState,
-          confirmSub(gameId, otherPositionPlayer.currentPosition!),
+          confirmSub(gameId, otherPositionPlayer.currentPosition),
         );
         const newGame = getGame(newState, gameId)!;
 
@@ -580,7 +578,6 @@ describe('Live slice', () => {
 
     describe('live/startPeriod', () => {
       for (const status of startAllowedStatuses) {
-        // eslint-disable-next-line no-loop-func
         it(`should dispatch action allow start = true when game is in ${status} status`, async () => {
           getGame(currentState, gameId)!.status = status;
 
@@ -597,7 +594,6 @@ describe('Live slice', () => {
           );
         });
 
-        // eslint-disable-next-line no-loop-func
         it(`should change game status from ${status} to Live`, () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
@@ -614,7 +610,6 @@ describe('Live slice', () => {
           expect(newTrackerMap?.clockRunning).to.be.true;
         });
 
-        // eslint-disable-next-line no-loop-func
         it(`should dispatch action allow start = false when already at last period in ${status} status`, async () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
@@ -638,7 +633,6 @@ describe('Live slice', () => {
       const startInvalidStatuses = endAllowedStatuses.concat(otherStatuses);
 
       for (const status of startInvalidStatuses) {
-        // eslint-disable-next-line no-loop-func
         it(`should dispatch action allow start = false when game is in ${status} status`, async () => {
           getGame(currentState, gameId)!.status = status;
 
@@ -655,7 +649,6 @@ describe('Live slice', () => {
           );
         });
 
-        // eslint-disable-next-line no-loop-func
         it(`should do nothing when game is in ${status} status`, () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
@@ -724,7 +717,6 @@ describe('Live slice', () => {
       const endInvalidStatuses = startAllowedStatuses.concat(otherStatuses);
 
       for (const status of endInvalidStatuses) {
-        // eslint-disable-next-line no-loop-func
         it(`should do nothing if game is in ${status} status`, () => {
           const currentGame = getGame(currentState, gameId)!;
           currentGame.status = status;
@@ -777,7 +769,6 @@ describe('Live slice', () => {
     });
 
     for (const status of otherStatuses) {
-      // eslint-disable-next-line no-loop-func
       it(`should do nothing when game is in ${status} status`, () => {
         const currentGame = getGame(currentState, gameId)!;
         currentGame.status = status;

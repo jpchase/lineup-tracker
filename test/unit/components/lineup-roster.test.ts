@@ -53,7 +53,7 @@ describe('lineup-roster tests', () => {
 
   function getCreateElement() {
     const element = el.shadowRoot!.querySelector('lineup-roster-modify');
-    return element as Element;
+    return element!;
   }
 
   function getVisibility(element: Element) {
@@ -75,7 +75,7 @@ describe('lineup-roster tests', () => {
 
   for (const numPlayers of [1, 6]) {
     const testName = numPlayers === 1 ? 'single player' : 'multiple players';
-    // eslint-disable-next-line no-loop-func
+
     it(`renders list with ${testName}`, async () => {
       const roster = getRoster(numPlayers);
       el.roster = roster;
@@ -89,7 +89,7 @@ describe('lineup-roster tests', () => {
         .map((key) => roster[key])
         .sort((a, b) => a.name.localeCompare(b.name));
       for (const player of sortedPlayers) {
-        const rosterItem = (items[index] as ListItem)!;
+        const rosterItem = items[index] as ListItem;
         index += 1;
 
         const avatar = rosterItem.querySelector('.avatar');

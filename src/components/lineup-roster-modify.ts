@@ -62,7 +62,7 @@ export class LineupRosterModify extends LitElement {
   }
 
   private getFormInput(fieldId: string): HTMLInputElement {
-    return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
+    return this.shadowRoot!.querySelector(`#${fieldId} > input`)!;
   }
 
   private savePlayer(/* e: CustomEvent */) {
@@ -71,8 +71,8 @@ export class LineupRosterModify extends LitElement {
 
     const newPlayer: Player = {
       id: '',
-      name: nameField.value!.trim(),
-      uniformNumber: Number(uniformNumberField.value!.trim()),
+      name: nameField.value.trim(),
+      uniformNumber: Number(uniformNumberField.value.trim()),
       positions: [], // TODO: Positions
       status: PlayerStatus.Off,
     };

@@ -1,5 +1,7 @@
 /** @format */
-
+/* eslint-disable class-methods-use-this --
+ * many of the methods are no-op placeholders to be overridden
+ **/
 import { html, HTMLTemplateResult, LitElement, PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { Constructor } from '../../util/shared-types.js';

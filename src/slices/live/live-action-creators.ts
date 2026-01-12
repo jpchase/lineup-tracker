@@ -130,10 +130,10 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
         invalidSubs.set(sub.id, 'missing next position for swap');
         continue;
       }
-      if (!filledPositions.has(sub.nextPosition!.id)) {
+      if (!filledPositions.has(sub.nextPosition.id)) {
         invalidSubs.set(
           sub.id,
-          `swap into position that doesn't exist in formation: ${sub.nextPosition!.id}`,
+          `swap into position that doesn't exist in formation: ${sub.nextPosition.id}`,
         );
         continue;
       }
@@ -142,7 +142,7 @@ function validatePendingSubs(game: LiveGame, subs: LivePlayer[]) {
       //  - Removing the filled position for the swap player's current position.
       //  - Adding to the filled position for the new position.
       filledPositions.removePlayer(sub.currentPosition!.id, sub.id);
-      filledPositions.addPlayer(sub.nextPosition!.id, sub.id);
+      filledPositions.addPlayer(sub.nextPosition.id, sub.id);
       continue;
     }
     if (!sub.replaces) {
@@ -261,7 +261,7 @@ export class FilledPositionMap {
     if (playerIdIndex < 0) {
       idsInPosition = idsInPosition || [];
       idsInPosition.push(playerId);
-      this.filled.set(positionId, idsInPosition!);
+      this.filled.set(positionId, idsInPosition);
     }
   }
 

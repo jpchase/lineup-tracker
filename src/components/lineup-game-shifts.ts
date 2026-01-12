@@ -105,7 +105,7 @@ export class LineupGameShifts extends LitElement {
       return [];
     }
 
-    const trackerMap = this.trackerMap!;
+    const trackerMap = this.trackerMap;
 
     return trackerMap.trackers
       ?.map((tracker) => {

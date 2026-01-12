@@ -103,7 +103,7 @@ export const selectLiveGameById = (state: RootState, gameId: string) => {
   return findGame(state.live, gameId);
 };
 
-export const selectProposedSub = (state: RootState) => state.live && state.live!.proposedSub;
+export const selectProposedSub = (state: RootState) => state.live?.proposedSub;
 export const selectProposedSwap = (state: RootState) => state.live?.proposedSwap;
 export const selectInvalidSubs = (state: RootState) => state.live?.invalidSubs;
 export const selectInvalidStarters = (state: RootState) => state.live?.invalidStarters;

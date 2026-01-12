@@ -18,13 +18,9 @@ export interface SliceConfigStore {
   sliceConfig: SliceConfig;
 }
 
-export interface SliceConfigurator {
-  (storeInstance: AppStore /*, config?: SliceConfig*/): void;
-}
+export type SliceConfigurator = (storeInstance: AppStore /*, config?: SliceConfig*/) => void;
 
-export interface SliceSetupListeners {
-  (startListening: AppStartListening): Unsubscribe;
-}
+export type SliceSetupListeners = (startListening: AppStartListening) => Unsubscribe;
 
 export interface SliceConfigurator2 {
   name: string;

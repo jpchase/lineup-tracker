@@ -117,7 +117,7 @@ describe('lineup-player-card tests', () => {
   function verifySelected() {
     const playerElement = getPlayerElement();
 
-    expect(playerElement!.hasAttribute('selected'), 'Should have selected attribute').to.be.true;
+    expect(playerElement.hasAttribute('selected'), 'Should have selected attribute').to.be.true;
   }
 
   function mockCurrentTime(t0: number) {
@@ -211,7 +211,7 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = (await oneEvent(el, PlayerSelectedEvent.eventName)) as PlayerSelectedEvent;
+    const { detail } = await oneEvent(el, PlayerSelectedEvent.eventName);
 
     expect(detail.player).to.deep.equal(player);
     expect(detail.selected, 'Card should now be selected').to.be.true;
@@ -226,7 +226,7 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = (await oneEvent(el, PlayerSelectedEvent.eventName)) as PlayerSelectedEvent;
+    const { detail } = await oneEvent(el, PlayerSelectedEvent.eventName);
 
     expect(detail.player).to.deep.equal(player);
     expect(detail.selected, 'Card should no longer be selected').to.be.false;
@@ -240,10 +240,7 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = (await oneEvent(
-      el,
-      PositionSelectedEvent.eventName,
-    )) as PositionSelectedEvent;
+    const { detail } = await oneEvent(el, PositionSelectedEvent.eventName);
 
     expect(detail.player, 'Event should not provide a player').not.to.be.ok;
     expect(detail.position, 'Event should provide position').to.equal(data.position);
@@ -259,10 +256,7 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = (await oneEvent(
-      el,
-      PositionSelectedEvent.eventName,
-    )) as PositionSelectedEvent;
+    const { detail } = await oneEvent(el, PositionSelectedEvent.eventName);
 
     expect(detail.player, 'Event should not provide a player').not.to.be.ok;
     expect(detail.position).to.equal(data.position, 'Event should provide position');
@@ -279,10 +273,7 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = (await oneEvent(
-      el,
-      PositionSelectedEvent.eventName,
-    )) as PositionSelectedEvent;
+    const { detail } = await oneEvent(el, PositionSelectedEvent.eventName);
 
     expect(detail.player, 'Event should provide player').to.equal(data.player);
     expect(detail.position, 'Event should provide position').to.equal(data.position);
@@ -300,10 +291,7 @@ describe('lineup-player-card tests', () => {
     const playerElement = getPlayerElement();
     setTimeout(() => playerElement.click());
 
-    const { detail } = (await oneEvent(
-      el,
-      PositionSelectedEvent.eventName,
-    )) as PositionSelectedEvent;
+    const { detail } = await oneEvent(el, PositionSelectedEvent.eventName);
 
     expect(detail.player, 'Event should provide player').to.equal(data.player);
     expect(detail.position, 'Event should provide position').to.equal(data.position);
@@ -420,7 +408,7 @@ describe('lineup-player-card tests', () => {
         expect(positionsElement, 'positions').not.to.be.shown;
       }
 
-      const shiftElement = playerElement.querySelector('.shiftTime') as HTMLElement;
+      const shiftElement = playerElement.querySelector<HTMLElement>('.shiftTime')!;
       if (modeTest.shiftVisible) {
         expect(shiftElement, 'shiftTime').to.be.shown;
 
@@ -493,7 +481,7 @@ describe('lineup-player-card tests', () => {
         await el.updateComplete;
 
         const playerElement = verifyPlayerElements(player);
-        const shiftElement = playerElement.querySelector('.shiftTime') as HTMLElement;
+        const shiftElement = playerElement.querySelector<HTMLElement>('.shiftTime')!;
         expect(getShiftTimeText(shiftElement)).to.equal(
           Duration.format(Duration.create(elapsedSeconds)),
           'shiftTime element',
@@ -526,7 +514,7 @@ describe('lineup-player-card tests', () => {
         const currentPositionElement = playerElement.querySelector('.currentPosition');
         expect(currentPositionElement, 'currentPosition element').to.be.shown;
         expect(currentPositionElement!.textContent).to.equal(
-          formatPosition(player.nextPosition!),
+          formatPosition(player.nextPosition),
           'currentPosition element',
         );
 

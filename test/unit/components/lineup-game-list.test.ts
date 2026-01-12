@@ -51,7 +51,7 @@ describe('lineup-game-list tests', () => {
 
   for (const numGames of [1, 6]) {
     const testName = numGames === 1 ? 'single game' : `multiple games`;
-    // eslint-disable-next-line no-loop-func
+
     it(`renders list with ${testName}`, async () => {
       const games = getGames(numGames);
       el.games = games;

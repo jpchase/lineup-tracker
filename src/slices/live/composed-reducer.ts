@@ -1,7 +1,6 @@
 /** @format */
 
-import { createNextState } from '@reduxjs/toolkit';
-import { Reducer } from 'redux';
+import { Reducer, createNextState } from '@reduxjs/toolkit';
 import { PersistConfig } from 'redux-persist';
 import { SliceConfigurator, buildSliceConfigurator } from '../slice-configurator.js';
 import { EVENTS_INITIAL_STATE, eventsReducer, setupEventsListeners } from './events-slice.js';
@@ -24,10 +23,10 @@ export const live: Reducer<LiveState> = function reduce(state, action) {
   //   the inner reducers.
   return createNextState(state || LIVE_INITIAL_STATE, (draft) => {
     Object.assign(draft, liveSlice.reducer(draft, action));
-    // eslint-disable-next-line no-param-reassign
-    draft!.shift = shift(draft?.shift, action);
+
+    draft.shift = shift(draft?.shift, action);
     Object.assign(draft, eventsReducer(draft, action));
-  }) as LiveState;
+  });
 };
 
 export function getLiveSliceConfigurator(): SliceConfigurator {

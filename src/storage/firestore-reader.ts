@@ -51,7 +51,7 @@ class ReaderConverter<T extends Model> implements FirestoreDataConverter<T> {
   }
 
   fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T {
-    const data = snapshot.data(options)!;
+    const data = snapshot.data(options);
     return this.converter.fromDocument(snapshot.id, data);
   }
 }

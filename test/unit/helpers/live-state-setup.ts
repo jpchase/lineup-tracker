@@ -55,7 +55,7 @@ export function buildLiveStateWithCurrentGame(
     if (!state.games) {
       state.games = {};
     }
-    state.games![game.id] = game;
+    state.games[game.id] = game;
   }
   return state;
 }

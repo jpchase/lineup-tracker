@@ -9,7 +9,6 @@ import { Player } from '@app/models/player.js';
 import { actions as gameActions } from '@app/slices/game/game-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { Button } from '@material/mwc-button';
-import { Fab } from '@material/mwc-fab';
 import { aTimeout, expect, fixture, html, nextFrame } from '@open-wc/testing';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import sinon from 'sinon';
@@ -75,17 +74,17 @@ describe('lineup-view-game-roster tests', () => {
   function getRosterElement() {
     const element = el.shadowRoot!.querySelector('section lineup-roster');
     expect(element, 'Roster element should be shown').to.be.ok;
-    return element as Element;
+    return element!;
   }
 
   function getAddPlayerButton(rosterElement: Element) {
-    return rosterElement.shadowRoot!.querySelector('mwc-fab') as Fab;
+    return rosterElement.shadowRoot!.querySelector('mwc-fab')!;
   }
 
   function getPlayerModifyDialog(rosterElement: Element) {
     const modifyElement = rosterElement.shadowRoot!.querySelector('lineup-roster-modify');
     expect(modifyElement, 'Missing roster modify element').to.exist;
-    return modifyElement!.shadowRoot!.querySelector('#modify-dialog') as Element;
+    return modifyElement!.shadowRoot!.querySelector('#modify-dialog')!;
   }
 
   function getPlayerInputField(dialog: Element, fieldId: string): HTMLInputElement {

@@ -11,7 +11,7 @@ export { RootState } from '../slices/reducer.js';
 const dynamicMiddlewareInstance = createDynamicMiddleware();
 export const { addMiddleware } = dynamicMiddlewareInstance;
 
-export function setupStore(preloadedState?: RootState, hydrate: boolean = true) {
+export function setupStore(preloadedState?: RootState, hydrate = true) {
   const sliceConfig: SliceConfig = { disableHydration: !hydrate };
 
   const store = configureStore({

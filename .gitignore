@@ -1,19 +1,23 @@
 .firebase/
-## build
-build/
-/out-tsc/
-
 node_modules/*
 !node_modules/.hooks/
+
+## build
+build/
+dist/
+/out-tsc/
+src/env-config.json
+
+## test outputs
 reports/
 test/integration/screenshots-current/
-dist/
-.DS_Store
-.tmp
 .lighthouseci/
-app.yaml
+
+## misc
+.DS_Store
+**/*.bak
+.tmp
 *.sublime-workspace
-src/env-config.json
 
 ## logs
 firebase-debug.log

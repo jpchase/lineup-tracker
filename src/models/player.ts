@@ -15,6 +15,4 @@ export interface Player {
   status: PlayerStatus;
 }
 
-export interface Roster {
-  [index: string]: Player;
-}
+export type Roster = Record<string, Player>;

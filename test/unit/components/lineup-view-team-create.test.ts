@@ -55,7 +55,7 @@ describe('lineup-view-team-create tests', () => {
   function getCreateElement() {
     const element = el.shadowRoot!.querySelector('section lineup-team-create');
     expect(element, 'Create element should be shown').to.be.ok;
-    return element as Element;
+    return element!;
   }
 
   it('shows signin placeholder when not signed in', async () => {
@@ -64,7 +64,7 @@ describe('lineup-view-team-create tests', () => {
 
     await setupElement(state);
 
-    const placeholder = el.shadowRoot!.querySelector('section p.unauthorized') as HTMLElement;
+    const placeholder = el.shadowRoot!.querySelector<HTMLElement>('section p.unauthorized')!;
     expect(placeholder, 'Missing unauthorized placeholder element').to.be.ok;
     expect(placeholder.innerText.trim()).to.equal('Sign in to create a new team.');
 
@@ -95,10 +95,10 @@ describe('lineup-view-team-create tests', () => {
     const createElement = getCreateElement();
 
     const newName = 'A created team';
-    const nameField = createElement.shadowRoot!.querySelector('#team-name') as HTMLInputElement;
+    const nameField = createElement.shadowRoot!.querySelector<HTMLInputElement>('#team-name')!;
     nameField.value = newName;
 
-    const saveButton = createElement.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
+    const saveButton = createElement.shadowRoot!.querySelector<HTMLElement>('mwc-button.save')!;
     saveButton.click();
 
     // Allow promises to resolve, in the persistence of the team.

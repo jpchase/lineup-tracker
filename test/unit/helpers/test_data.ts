@@ -16,7 +16,7 @@ export interface MockAuthStateOptions {
 
 export function getMockAuthState(options?: MockAuthStateOptions) {
   const mockAuth: any = { user: undefined };
-  if (options && options.signedIn) {
+  if (options?.signedIn) {
     mockAuth.user = {
       id: options.userId,
       name: 'Some user',

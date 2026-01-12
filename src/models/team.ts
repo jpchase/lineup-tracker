@@ -8,6 +8,4 @@ export interface Team extends TeamData {
   id: string;
 }
 
-export interface Teams {
-  [index: string]: Team;
-}
+export type Teams = Record<string, Team>;

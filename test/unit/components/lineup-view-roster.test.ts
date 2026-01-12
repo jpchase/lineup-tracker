@@ -8,7 +8,6 @@ import { Team } from '@app/models/team.js';
 import { actions as teamActions } from '@app/slices/team/team-slice.js';
 import { writer } from '@app/storage/firestore-writer.js';
 import { Button } from '@material/mwc-button';
-import { Fab } from '@material/mwc-fab';
 import { aTimeout, expect, fixture, html, nextFrame } from '@open-wc/testing';
 import sinon from 'sinon';
 import { ActionLogger } from '../helpers/action-logger.js';
@@ -58,17 +57,17 @@ describe('lineup-view-roster tests', () => {
   function getRosterElement() {
     const element = el.shadowRoot!.querySelector('section lineup-roster');
     expect(element, 'Roster element should be shown').to.be.ok;
-    return element as Element;
+    return element!;
   }
 
   function getAddPlayerButton(rosterElement: Element) {
-    return rosterElement.shadowRoot!.querySelector('mwc-fab') as Fab;
+    return rosterElement.shadowRoot!.querySelector('mwc-fab')!;
   }
 
   function getPlayerModifyDialog(rosterElement: Element) {
     const modifyElement = rosterElement.shadowRoot!.querySelector('lineup-roster-modify');
     expect(modifyElement, 'Missing roster modify element').to.exist;
-    return modifyElement!.shadowRoot!.querySelector('#modify-dialog') as Element;
+    return modifyElement!.shadowRoot!.querySelector('#modify-dialog')!;
   }
 
   function getPlayerInputField(dialog: Element, fieldId: string): HTMLInputElement {
@@ -88,7 +87,7 @@ describe('lineup-view-roster tests', () => {
 
     await setupElement(state);
 
-    const placeholder = el.shadowRoot!.querySelector('section p.unauthorized') as HTMLElement;
+    const placeholder = el.shadowRoot!.querySelector<HTMLElement>('section p.unauthorized')!;
     expect(placeholder, 'Missing unauthorized placeholder element').to.be.ok;
     expect(placeholder.innerText.trim()).to.equal('Sign in to view team roster.');
 

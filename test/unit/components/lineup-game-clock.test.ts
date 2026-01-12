@@ -396,8 +396,8 @@ describe('lineup-game-clock tests', () => {
       await el.updateComplete;
 
       const endButton = getEndPeriodButton();
-      setTimeout(() => endButton!.click());
-      await oneEvent(endButton!, 'click');
+      setTimeout(() => endButton.click());
+      await oneEvent(endButton, 'click');
 
       const overdueDialog = getEndOverdueDialog();
       expect(overdueDialog, 'after end period clicked').to.be.open;
@@ -424,8 +424,8 @@ describe('lineup-game-clock tests', () => {
         await el.updateComplete;
 
         const endButton = getEndPeriodButton();
-        setTimeout(() => endButton!.click());
-        await oneEvent(endButton!, 'click');
+        setTimeout(() => endButton.click());
+        await oneEvent(endButton, 'click');
 
         overdueDialog = getEndOverdueDialog();
         expect(overdueDialog, 'after end click').to.be.open;
@@ -448,11 +448,11 @@ describe('lineup-game-clock tests', () => {
         };
         el.addEventListener(ClockEndPeriodEvent.eventName, handler);
 
-        const cancelButton = overdueDialog.querySelector(
+        const cancelButton = overdueDialog.querySelector<HTMLElement>(
           'mwc-button[dialogAction="close"]',
-        ) as HTMLElement;
-        setTimeout(() => cancelButton!.click());
-        await oneEvent(cancelButton!, 'click');
+        )!;
+        setTimeout(() => cancelButton.click());
+        await oneEvent(cancelButton, 'click');
         await nextFrame();
         await aTimeout(100);
 
@@ -462,13 +462,13 @@ describe('lineup-game-clock tests', () => {
 
       it('fires end event for overdue period when dialog saved for current time', async () => {
         // Check that the "current time" option is the default.
-        const useCurrent = el.shadowRoot!.querySelector('#overdue-current-radio') as Radio;
+        const useCurrent = el.shadowRoot!.querySelector<Radio>('#overdue-current-radio')!;
         expect(useCurrent, 'Missing current overdue option').to.be.ok;
         expect(useCurrent.checked, 'Current option should be checked by default').to.be.true;
 
-        const saveButton = overdueDialog.querySelector(
+        const saveButton = overdueDialog.querySelector<HTMLElement>(
           'mwc-button[dialogAction="save"]',
-        ) as HTMLElement;
+        )!;
         setTimeout(() => saveButton.click());
 
         const { detail } = await oneEvent(el, ClockEndPeriodEvent.eventName);

@@ -24,7 +24,7 @@ export function buildGameStateWithCurrentGame(
     if (!state.games) {
       state.games = {};
     }
-    state.games![game.id] = game;
+    state.games[game.id] = game;
   }
   return state;
 }

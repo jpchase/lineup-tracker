@@ -176,9 +176,9 @@ export function formatPosition(position: Position): string {
   if (position.id !== position.type) {
     let prefix = '';
     let addition = '';
-    if (position.id[0] === 'L') {
+    if (position.id.startsWith('L')) {
       prefix = 'L';
-    } else if (position.id[0] === 'R') {
+    } else if (position.id.startsWith('R')) {
       prefix = 'R';
     } else if (position.id.length > position.type.length) {
       addition = position.id.substring(position.type.length);

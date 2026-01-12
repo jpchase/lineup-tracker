@@ -6,7 +6,7 @@ import { expect } from '@open-wc/testing';
 describe('FormationBuilder', () => {
   it('create should throw for unknown formation type', () => {
     expect(() => {
-      FormationBuilder.create(<FormationType>'no such formation');
+      FormationBuilder.create('no such formation' as FormationType);
     }).to.throw();
   });
 

@@ -92,7 +92,7 @@ export const ConnectStoreMixin = <T extends Constructor<CustomElement>>(superCla
     dispatch<R>(action: AnyAction | ThunkAction<R, RootState, any, AnyAction>): AnyAction | R {
       // The type cast is required to avoid compile errors trying to match dispatch() overloads.
       if ('type' in action) {
-        return this.store!.dispatch(action as AnyAction);
+        return this.store!.dispatch(action);
       }
       return this.store!.dispatch(action);
     }

@@ -166,7 +166,6 @@ describe('lineup-player-list tests', () => {
   for (const modeTest of modeTests) {
     const testPrefix = `mode [${modeTest.listMode}]`;
 
-    // eslint-disable-next-line no-loop-func
     it(`${testPrefix}: shows no players placeholder when input list has no matching players`, async () => {
       const players = getPlayers(2, modeTest.nonMatchingStatus);
 
@@ -181,7 +180,6 @@ describe('lineup-player-list tests', () => {
     for (const numPlayers of [1, 6]) {
       const playersDesc = numPlayers === 1 ? 'single player' : `multiple players`;
 
-      // eslint-disable-next-line no-loop-func
       it(`${testPrefix}: renders list with ${playersDesc} all matching mode`, async () => {
         const players = getPlayers(numPlayers, modeTest.playerStatus);
 
@@ -192,7 +190,6 @@ describe('lineup-player-list tests', () => {
         verifyPlayerCards(numPlayers);
       });
 
-      // eslint-disable-next-line no-loop-func
       it(`${testPrefix}: renders list with ${playersDesc} mixed with other status`, async () => {
         const players = getPlayers(numPlayers, modeTest.playerStatus, modeTest.nonMatchingStatus);
 

@@ -17,7 +17,7 @@ export class TeamCreatePage extends PageObject {
     const createHandle = existingCreateHandle ?? (await this.getCreateComponent());
 
     await createHandle.evaluate(async (createNode, name) => {
-      const createRoot = createNode!.shadowRoot!;
+      const createRoot = createNode.shadowRoot!;
 
       const nameField = createRoot.querySelector(`#team-name`);
       (nameField as any).value = name;
@@ -28,9 +28,9 @@ export class TeamCreatePage extends PageObject {
     const createHandle = existingCreateHandle ?? (await this.getCreateComponent());
 
     await createHandle.evaluate(async (createNode) => {
-      const createRoot = createNode!.shadowRoot!;
+      const createRoot = createNode.shadowRoot!;
 
-      const saveButton = createRoot.querySelector('mwc-button.save') as HTMLButtonElement;
+      const saveButton = createRoot.querySelector<HTMLButtonElement>('mwc-button.save')!;
       saveButton.click();
     });
     this.log(`team create button clicked`);

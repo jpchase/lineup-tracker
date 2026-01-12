@@ -40,7 +40,7 @@ export class LineupTeamCreate extends LitElement {
   }
 
   private _saveNewTeam(/*e: CustomEvent*/) {
-    const nameField = this.shadowRoot!.querySelector('#team-name') as TextField;
+    const nameField = this.shadowRoot!.querySelector<TextField>('#team-name')!;
     const newTeam: Team = {
       id: '',
       name: nameField.value.trim(),

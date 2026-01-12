@@ -20,6 +20,8 @@ export class CurrentTimeProvider {
     this._isFrozen = value;
   }
 
+  // Public to allow tests to mock.
+  // eslint-disable-next-line class-methods-use-this
   getTimeInternal(): number {
     return Date.now();
   }

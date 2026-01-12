@@ -245,7 +245,7 @@ export class PlayerTimeTrackerMap {
   }
 
   private initialize(players: PlayerTimeTrackerData[] | LivePlayer[]): PlayerTimeTrackerMap {
-    if (!players || !players.length) {
+    if (!players?.length) {
       throw new Error('Players must be provided to initialize');
     }
 

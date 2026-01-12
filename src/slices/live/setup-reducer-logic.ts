@@ -164,7 +164,7 @@ export const cancelStarterHandler = (
     return;
   }
   const selectedPlayer = getPlayer(game, state.selectedStarterPlayer!);
-  if (selectedPlayer && selectedPlayer.selected) {
+  if (selectedPlayer?.selected) {
     selectedPlayer.selected = false;
   }
   clearProposedStarter(state);

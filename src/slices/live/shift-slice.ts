@@ -14,9 +14,7 @@ export interface ShiftState {
   trackerMaps?: TrackerMaps;
 }
 
-export interface TrackerMaps {
-  [index: string]: PlayerTimeTrackerMapData;
-}
+export type TrackerMaps = Record<string, PlayerTimeTrackerMapData>;
 
 export const SHIFT_INITIAL_STATE: ShiftState = {
   trackerMaps: undefined,
@@ -50,7 +48,7 @@ const shiftSlice = createSlice({
       })
       .addCase(endPeriod, (state, action) => {
         const trackerMap = getTrackerMap(state, action.payload.gameId);
-        if (!trackerMap || !trackerMap.clockRunning) {
+        if (!trackerMap?.clockRunning) {
           // TODO: Error or message to distinguish failure cases?
           return;
         }

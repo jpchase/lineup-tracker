@@ -77,7 +77,7 @@ export class GameSetupPage extends GameDetailPage {
   async getStarters(existingSetupHandle?: ElementHandle<Element>) {
     const setupHandle = existingSetupHandle ?? (await this.getSetupComponent());
     return setupHandle.evaluate(async (setupNode) => {
-      const starterList = setupNode!.shadowRoot!.querySelector('lineup-on-player-list');
+      const starterList = setupNode.shadowRoot!.querySelector('lineup-on-player-list');
       if (!starterList) {
         return [];
       }
@@ -123,7 +123,7 @@ export class GameSetupPage extends GameDetailPage {
 
     // Populate the starters.
     await setupHandle.evaluate(async (setupNode, starterIds) => {
-      const setupRoot = setupNode!.shadowRoot!;
+      const setupRoot = setupNode.shadowRoot!;
       const startersList = setupRoot.querySelector('lineup-on-player-list');
       const subsList = setupRoot.querySelector('lineup-player-list');
       if (!startersList || !subsList) {
@@ -148,9 +148,7 @@ export class GameSetupPage extends GameDetailPage {
         subCard.click();
 
         // Confirm the starter.
-        /* eslint-disable-next-line no-await-in-loop --
-         * The await allows the UI to update, and loop iterations must be sequential.
-         */
+
         await Promise.resolve();
         const confirmSection = setupRoot.querySelector('#confirm-starter');
         if (!confirmSection) {
@@ -183,25 +181,23 @@ export class GameSetupPage extends GameDetailPage {
     await this.waitForTimeout(100);
 
     await setupHandle.evaluate(
-      // eslint-disable-next-line @typescript-eslint/no-shadow
       async (setupNode, totalPeriods, periodLength) => {
-        const setupRoot = setupNode!.shadowRoot!;
+        const setupRoot = setupNode.shadowRoot!;
 
         const periodsDialog = setupRoot.querySelector('#periods-dialog');
         if (!periodsDialog) {
           throw new Error(`Periods dialog not found`);
         }
-        const numPeriodsField = setupRoot.querySelector(`#num-periods > input`) as HTMLInputElement;
+        const numPeriodsField = setupRoot.querySelector<HTMLInputElement>(`#num-periods > input`)!;
         numPeriodsField.value = `${totalPeriods}`;
 
-        const periodLengthField = setupRoot.querySelector(
-          `#period-length > input`,
-        ) as HTMLInputElement;
+        const periodLengthField =
+          setupRoot.querySelector<HTMLInputElement>(`#period-length > input`)!;
         periodLengthField.valueAsNumber = periodLength;
 
-        const saveButton = periodsDialog.querySelector(
+        const saveButton = periodsDialog.querySelector<HTMLElement>(
           'mwc-button[dialogAction="save"]',
-        ) as HTMLButtonElement;
+        )!;
         saveButton.click();
       },
       totalPeriods,

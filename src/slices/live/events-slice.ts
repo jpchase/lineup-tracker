@@ -36,9 +36,7 @@ const { applyPendingSubs, gameSetupCompleted, startPeriod, endPeriod, toggleCloc
 
 const debugEvents = logger('events');
 
-export interface EventsMap {
-  [index: string]: EventCollectionData<GameEvent>;
-}
+export type EventsMap = Record<string, EventCollectionData<GameEvent>>;
 
 export interface EventState {
   events?: EventsMap;

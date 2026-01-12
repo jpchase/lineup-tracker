@@ -54,7 +54,7 @@ export class RosterPageObject extends PageObject {
         uniformField.value = `${number}`;
 
         // Save the new player, waiting a tick for updates to render.
-        const saveButton = modifyRoot.querySelector('mwc-button.save') as HTMLElement;
+        const saveButton = modifyRoot.querySelector<HTMLElement>('mwc-button.save')!;
         // eslint-disable-next-line no-console
         console.log(`Save the new player`);
         saveButton.click();

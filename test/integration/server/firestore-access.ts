@@ -1,4 +1,5 @@
 /** @format */
+/* global process */
 
 import { App, applicationDefault, initializeApp } from 'firebase-admin/app';
 import {
@@ -56,7 +57,7 @@ class ReaderConverter<T extends Model> implements FirestoreDataConverter<T> {
   }
 
   fromFirestore(snapshot: QueryDocumentSnapshot): T {
-    const data = snapshot.data()!;
+    const data = snapshot.data();
     return this.converter.fromDocument(snapshot.id, data);
   }
 }

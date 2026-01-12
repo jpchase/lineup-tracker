@@ -113,7 +113,7 @@ describe('lineup-game-live tests', () => {
     const element = el.shadowRoot!.querySelector('lineup-game-clock');
     expect(element, 'Missing clock element').to.be.ok;
 
-    return element as LineupGameClock;
+    return element!;
   }
 
   function getCompleteButton() {
@@ -127,9 +127,9 @@ describe('lineup-game-live tests', () => {
 
     let playerElement: LineupPlayerCard | undefined;
     for (const element of Array.from(items)) {
-      const playerCard = element as LineupPlayerCard;
+      const playerCard = element;
 
-      if (playerCard.player && playerCard.player.id === player.id) {
+      if (playerCard.player?.id === player.id) {
         playerElement = playerCard;
         break;
       }
@@ -144,9 +144,9 @@ describe('lineup-game-live tests', () => {
 
     let playerElement: LineupPlayerCard | undefined;
     for (const element of Array.from(items)) {
-      const playerCard = element as LineupPlayerCard;
+      const playerCard = element;
 
-      if (playerCard.data && playerCard.data.player && playerCard.data.player.id === player.id) {
+      if (playerCard.data?.player?.id === player.id) {
         playerElement = playerCard;
         break;
       }
@@ -270,7 +270,7 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
       expect(confirmSection, 'Missing confirm sub div').to.be.ok;
 
-      const confirmButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      const confirmButton = confirmSection!.querySelector<Button>('mwc-button.ok')!;
       expect(confirmButton, 'Missing confirm button').to.be.ok;
 
       return confirmButton;
@@ -296,7 +296,7 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
       expect(confirmSection, 'Missing confirm swap element').to.be.ok;
 
-      const confirmButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      const confirmButton = confirmSection!.querySelector<Button>('mwc-button.ok')!;
       expect(confirmButton, 'Missing confirm button').to.be.ok;
 
       confirmButton.click();
@@ -417,7 +417,7 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
       expect(confirmSection, 'Missing confirm sub div').to.be.ok;
 
-      const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      const applyButton = confirmSection!.querySelector<Button>('mwc-button.ok')!;
       expect(applyButton, 'Missing apply button').to.be.ok;
 
       applyButton.click();
@@ -440,15 +440,14 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
       expect(confirmSection, 'Missing confirm sub div').to.be.ok;
 
-      const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      const applyButton = confirmSection!.querySelector<Button>('mwc-button.ok')!;
       expect(applyButton, 'Missing apply button').to.be.ok;
 
-      const positionSelect = confirmSection?.querySelector(
-        '#new-position-select',
-      ) as HTMLSelectElement;
+      const positionSelect =
+        confirmSection!.querySelector<HTMLSelectElement>('#new-position-select');
       expect(positionSelect, 'Missing position select').to.be.ok;
 
-      positionSelect.value = otherPositionPlayer.currentPosition!.id;
+      positionSelect!.value = otherPositionPlayer.currentPosition!.id;
 
       applyButton.click();
 
@@ -476,7 +475,7 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-sub');
       expect(confirmSection, 'Missing confirm sub div').to.be.ok;
 
-      const cancelButton = confirmSection!.querySelector('mwc-button.cancel') as Button;
+      const cancelButton = confirmSection!.querySelector<Button>('mwc-button.cancel')!;
       expect(cancelButton, 'Missing cancel button').to.be.ok;
 
       cancelButton.click();
@@ -498,7 +497,7 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
       expect(confirmSection, 'Missing confirm swap element').to.be.ok;
 
-      await expect(confirmSection).dom.to.equalSnapshot();
+      expect(confirmSection).dom.to.equalSnapshot();
       await expect(confirmSection).to.be.accessible();
     });
 
@@ -514,7 +513,7 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
       expect(confirmSection, 'Missing confirm swap element').to.be.ok;
 
-      const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      const applyButton = confirmSection!.querySelector<Button>('mwc-button.ok')!;
       expect(applyButton, 'Missing apply button').to.be.ok;
 
       applyButton.click();
@@ -536,7 +535,7 @@ describe('lineup-game-live tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-swap');
       expect(confirmSection, 'Missing confirm swap element').to.be.ok;
 
-      const cancelButton = confirmSection!.querySelector('mwc-button.cancel') as Button;
+      const cancelButton = confirmSection!.querySelector<Button>('mwc-button.cancel')!;
       expect(cancelButton, 'Missing cancel button').to.be.ok;
 
       cancelButton.click();
@@ -557,7 +556,7 @@ describe('lineup-game-live tests', () => {
       store.dispatch(selectPlayer(gameId, onPlayer2.id, /*selected =*/ true));
       await el.updateComplete;
 
-      const applyButton = el.shadowRoot!.querySelector('#sub-apply-btn') as Button;
+      const applyButton = el.shadowRoot!.querySelector<Button>('#sub-apply-btn')!;
       expect(applyButton, 'Missing apply button').to.be.ok;
 
       applyButton.click();
@@ -593,7 +592,7 @@ describe('lineup-game-live tests', () => {
       expect(nextList.hasSelected(), 'Next list should not have any players selected').to.be.false;
 
       // Apply the pending subs.
-      const applyButton = el.shadowRoot!.querySelector('#sub-apply-btn') as Button;
+      const applyButton = el.shadowRoot!.querySelector<Button>('#sub-apply-btn')!;
       expect(applyButton, 'Missing apply button').to.be.ok;
 
       applyButton.click();
@@ -624,7 +623,7 @@ describe('lineup-game-live tests', () => {
       expect(nextList.hasSelected(), 'Next list should now have one player selected').to.be.true;
 
       // Apply the pending subs.
-      const applyButton = el.shadowRoot!.querySelector('#sub-apply-btn') as Button;
+      const applyButton = el.shadowRoot!.querySelector<Button>('#sub-apply-btn')!;
       expect(applyButton, 'Missing apply button').to.be.ok;
 
       applyButton.click();
@@ -648,7 +647,7 @@ describe('lineup-game-live tests', () => {
       expect(nextList.hasSelected(), 'Next list should not have any players selected').to.be.false;
 
       // Discard the pending subs.
-      const discardButton = el.shadowRoot!.querySelector('#sub-discard-btn') as Button;
+      const discardButton = el.shadowRoot!.querySelector<Button>('#sub-discard-btn')!;
       expect(discardButton, 'Missing discard button').to.be.ok;
 
       discardButton.click();
@@ -674,7 +673,7 @@ describe('lineup-game-live tests', () => {
       expect(nextList.hasSelected(), 'Next list should now have one player selected').to.be.true;
 
       // Discard the pending subs.
-      const discardButton = el.shadowRoot!.querySelector('#sub-discard-btn') as Button;
+      const discardButton = el.shadowRoot!.querySelector<Button>('#sub-discard-btn')!;
       expect(discardButton, 'Missing discard button').to.be.ok;
 
       discardButton.click();
@@ -701,7 +700,7 @@ describe('lineup-game-live tests', () => {
       subElement.click();
       await el.updateComplete;
 
-      const outButton = el.shadowRoot!.querySelector('#out-mark-btn') as Button;
+      const outButton = el.shadowRoot!.querySelector<Button>('#out-mark-btn')!;
       expect(outButton, 'Missing out button').to.be.ok;
 
       outButton.click();
@@ -731,7 +730,7 @@ describe('lineup-game-live tests', () => {
       outElement.click();
       await el.updateComplete;
 
-      const returnButton = el.shadowRoot!.querySelector('#out-return-btn') as Button;
+      const returnButton = el.shadowRoot!.querySelector<Button>('#out-return-btn')!;
       expect(returnButton, 'Missing out return button').to.be.ok;
 
       returnButton.click();
@@ -826,8 +825,8 @@ describe('lineup-game-live tests', () => {
       const clockElement = getClockElement();
       const endButton = getClockEndPeriodButton(clockElement);
 
-      setTimeout(() => endButton!.click());
-      await oneEvent(endButton!, 'click');
+      setTimeout(() => endButton.click());
+      await oneEvent(endButton, 'click');
       await el.updateComplete;
 
       // Fill the extra minutes and save in the overdue dialog.

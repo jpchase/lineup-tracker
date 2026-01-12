@@ -434,7 +434,7 @@ export class LineupGameEvents extends LitElement {
 
   private async editSelection() {
     const dialog = this.shadowRoot!.querySelector<Dialog>('#edit-dialog');
-    const customTimeField = this.shadowRoot!.querySelector('#custom-time-field') as TextField;
+    const customTimeField = this.shadowRoot!.querySelector<TextField>('#custom-time-field')!;
 
     // Default to the custom time option, with the time field set to the time
     // of the first selected event.
@@ -478,17 +478,17 @@ export class LineupGameEvents extends LitElement {
     let customTime: number | undefined;
 
     if (useExistingTime) {
-      const existingField = this.shadowRoot!.querySelector('#existing-time-field') as Select;
+      const existingField = this.shadowRoot!.querySelector<Select>('#existing-time-field')!;
       existingEventId = existingField.selected?.value;
     } else {
-      const customField = this.shadowRoot!.querySelector('#custom-time-field') as TextField;
+      const customField = this.shadowRoot!.querySelector<TextField>('#custom-time-field')!;
 
       // The field only provides the time, not the date. Use the provided game
       // start date.
       //  - The time field `value` is always in 24 hour format (i.e. `hh:mm:ss`).
       //  - To avoid time zone issues, use the string `value` property, not `valueAsDate`.
       // NOTE: This is ignoring the edge case of a game that spans midnight.
-      const enteredTime = customField.value!;
+      const enteredTime = customField.value;
       // eslint-disable-next-line no-console
       console.log(`applyEventUpdates: enteredTime = ${enteredTime}`);
       // TODO: enteredTime will be null, if the field doesn't have a valid time

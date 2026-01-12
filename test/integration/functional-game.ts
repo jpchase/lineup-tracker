@@ -129,7 +129,7 @@ describe('Game functional tests', () => {
     );
 
     // Verify that the new player was saved to storage.
-    const storedRoster = await readGameRoster(firestore, game.id!);
+    const storedRoster = await readGameRoster(firestore, game.id);
     const storedPlayers = Object.values(storedRoster);
     expect(storedPlayers.length, 'Stored roster should have 1 player added').to.equal(
       originalPlayers.length + 1,

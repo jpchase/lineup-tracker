@@ -26,10 +26,10 @@ describe('lineup-team-create tests', () => {
     const nameField = getInputField('team-name');
     nameField.value = ' Club team 01 ';
 
-    const saveButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
+    const saveButton = el.shadowRoot!.querySelector<HTMLElement>('mwc-button.save')!;
     setTimeout(() => saveButton.click());
 
-    const { detail } = (await oneEvent(el, NewTeamCreatedEvent.eventName)) as NewTeamCreatedEvent;
+    const { detail } = await oneEvent(el, NewTeamCreatedEvent.eventName);
 
     expect(detail.team).to.deep.equal({
       id: '',
@@ -43,7 +43,7 @@ describe('lineup-team-create tests', () => {
     const nameField = getInputField('team-name');
     nameField.value = 'Temp team name';
 
-    const cancelButton = el.shadowRoot!.querySelector('mwc-button.cancel') as HTMLElement;
+    const cancelButton = el.shadowRoot!.querySelector<HTMLElement>('mwc-button.cancel')!;
     setTimeout(() => cancelButton.click());
 
     await oneEvent(el, NewTeamCreatedEvent.eventName);

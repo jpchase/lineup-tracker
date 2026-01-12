@@ -107,12 +107,12 @@ describe('lineup-game-setup tests', () => {
   let dispatchStub: sinon.SinonSpy;
   let actionLogger: ActionLogger;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     actionLogger = new ActionLogger();
     actionLogger.setup();
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     sinon.restore();
   });
 
@@ -151,9 +151,9 @@ describe('lineup-game-setup tests', () => {
 
     let playerElement: LineupPlayerCard | undefined;
     for (const element of Array.from(items)) {
-      const playerCard = element as LineupPlayerCard;
+      const playerCard = element;
 
-      if (playerCard.player && playerCard.player.id === player.id) {
+      if (playerCard.player?.id === player.id) {
         playerElement = playerCard;
         break;
       }
@@ -168,9 +168,9 @@ describe('lineup-game-setup tests', () => {
 
     let playerElement: LineupPlayerCard | undefined;
     for (const element of Array.from(items)) {
-      const playerCard = element as LineupPlayerCard;
+      const playerCard = element;
 
-      if (playerCard.data && playerCard.data.position && playerCard.data.position.id === position) {
+      if (playerCard.data?.position?.id === position) {
         playerElement = playerCard;
         break;
       }
@@ -244,7 +244,7 @@ describe('lineup-game-setup tests', () => {
     const items = getTaskElements();
     expect(items.length).to.equal(0, 'Should be no rendered tasks');
 
-    await expect(el).shadowDom.to.equalSnapshot();
+    expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('renders all the tasks', async () => {
@@ -277,7 +277,7 @@ describe('lineup-game-setup tests', () => {
       // TODO: Verify elements/content in status div
     }
 
-    await expect(el).shadowDom.to.equalSnapshot();
+    expect(el).shadowDom.to.equalSnapshot();
   });
 
   it('task links are disabled unless task is active', async () => {
@@ -296,13 +296,13 @@ describe('lineup-game-setup tests', () => {
 
     const items = getTaskElements();
 
-    const activeTaskAnchor = items[0].querySelector('.name a') as HTMLAnchorElement;
+    const activeTaskAnchor = items[0].querySelector<HTMLAnchorElement>('.name a')!;
     expect(activeTaskAnchor, 'Missing anchor for active task').to.be.ok;
     expect(activeTaskAnchor.href).to.not.be.empty;
     const lastCharIndex = activeTaskAnchor.href.length - 1;
     expect(activeTaskAnchor.href[lastCharIndex]).to.equal('#');
 
-    const pendingTaskAnchor = items[1].querySelector('.name a') as HTMLAnchorElement;
+    const pendingTaskAnchor = items[1].querySelector<HTMLAnchorElement>('.name a')!;
     expect(pendingTaskAnchor, 'Missing anchor for pending task').to.be.ok;
     expect(pendingTaskAnchor.href).to.equal('');
   });
@@ -336,7 +336,7 @@ describe('lineup-game-setup tests', () => {
 
     for (const stepTest of stepTests) {
       const stepName = SetupSteps[stepTest.step];
-      // eslint-disable-next-line no-loop-func
+
       describe(stepName, () => {
         let pageRouterSpy: sinon.SinonSpy;
         let gameId: string;
@@ -365,10 +365,10 @@ describe('lineup-game-setup tests', () => {
           const taskElement = getTaskElement(stepTest.step, stepTest.step);
 
           // Spies on the handler, because we want it to execute to verify other behaviour.
-          const performSpy = sinon.spy(el, <any>'performStep');
+          const performSpy = sinon.spy(el, 'performStep' as keyof LineupGameSetup);
 
           // Simulates a click on the step link.
-          const stepLink = taskElement.querySelector('a.step') as HTMLAnchorElement;
+          const stepLink = taskElement.querySelector<HTMLAnchorElement>('a.step')!;
           expect(stepLink, 'Missing perform link for task').to.be.ok;
           stepLink.click();
 
@@ -399,9 +399,9 @@ describe('lineup-game-setup tests', () => {
         });
 
         if (stepTest.hasDoneButton) {
-          it('done handler dispatches action', async () => {
+          it('done handler dispatches action', () => {
             // Spies on the handler, because we want it to execute to verify dispatch of actions.
-            const doneSpy = sinon.spy(el, <any>'finishStep');
+            const doneSpy = sinon.spy(el, 'finishStep' as keyof LineupGameSetup);
 
             // Simulates a click on the done button.
             const doneButton = getTaskDoneButton(stepTest.step);
@@ -502,7 +502,7 @@ describe('lineup-game-setup tests', () => {
       gameId = liveGame.id;
     });
 
-    it('shows starter player sections for new game', async () => {
+    it('shows starter player sections for new game', () => {
       const starters = getPlayerSection('on');
       const onHeader = starters.querySelector('h3');
       expect(onHeader, 'Missing starters header').to.be.ok;
@@ -514,7 +514,7 @@ describe('lineup-game-setup tests', () => {
       expect(offHeader!.textContent!.trim()).to.equal('Subs');
     });
 
-    it('dispatches starter selected action when sub selected', async () => {
+    it('dispatches starter selected action when sub selected', () => {
       const foundPlayer = findPlayer(liveGame, PlayerStatus.Off);
       expect(foundPlayer, 'Missing player with off status').to.be.ok;
       const player = foundPlayer!;
@@ -553,10 +553,7 @@ describe('lineup-game-setup tests', () => {
       // Simulates selection of the position.
       setTimeout(() => playerElement.click());
 
-      const { detail } = (await oneEvent(
-        el,
-        PositionSelectedEvent.eventName,
-      )) as PositionSelectedEvent;
+      const { detail } = await oneEvent<PositionSelectedEvent>(el, PositionSelectedEvent.eventName);
       await el.updateComplete;
 
       expect(startersList.selectedPosition, 'selectedPosition').to.equal(detail.position);
@@ -580,7 +577,7 @@ describe('lineup-game-setup tests', () => {
       expect(positionElement, 'Missing proposed position element').to.be.ok;
       expect(positionElement!.textContent!.trim()).to.equal('AM1');
 
-      await expect(confirmSection).dom.to.equalSnapshot();
+      expect(confirmSection).dom.to.equalSnapshot();
     });
 
     it('dispatches apply starter action when confirmed', async () => {
@@ -596,7 +593,7 @@ describe('lineup-game-setup tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
       expect(confirmSection, 'Missing confirm starter div').to.be.ok;
 
-      const applyButton = confirmSection!.querySelector('mwc-button.ok') as Button;
+      const applyButton = confirmSection!.querySelector<Button>('mwc-button.ok')!;
       expect(applyButton, 'Missing apply button').to.be.ok;
 
       applyButton.click();
@@ -620,7 +617,7 @@ describe('lineup-game-setup tests', () => {
       const confirmSection = el.shadowRoot!.querySelector('#confirm-starter');
       expect(confirmSection, 'Missing confirm starter div').to.be.ok;
 
-      const cancelButton = confirmSection!.querySelector('mwc-button.cancel') as Button;
+      const cancelButton = confirmSection!.querySelector<Button>('mwc-button.cancel')!;
       expect(cancelButton, 'Missing cancel button').to.be.ok;
 
       cancelButton.click();
@@ -655,7 +652,7 @@ describe('lineup-game-setup tests', () => {
         'Starter error text should contain invalid positions',
       ).to.contain(expectedInvalidPositions);
 
-      await expect(errorElement).dom.to.equalSnapshot();
+      expect(errorElement).dom.to.equalSnapshot();
     });
   }); // describe('Starters')
 
@@ -679,7 +676,7 @@ describe('lineup-game-setup tests', () => {
 
       // Click on the Periods step, to show the dialog.
       const taskElement = getTaskElement(SetupSteps.Periods, SetupSteps.Periods);
-      const stepLink = taskElement.querySelector('a.step') as HTMLAnchorElement;
+      const stepLink = taskElement.querySelector<HTMLAnchorElement>('a.step')!;
       stepLink.click();
       await el.updateComplete;
     });
@@ -688,7 +685,7 @@ describe('lineup-game-setup tests', () => {
       const periodsDialog = el.shadowRoot!.querySelector('#periods-dialog');
       expect(periodsDialog, 'Missing periods dialog').to.be.ok;
 
-      await expect(periodsDialog).dom.to.equalSnapshot();
+      expect(periodsDialog).dom.to.equalSnapshot();
       // TODO: Address accessibility errors
       // await expect(periodsDialog).to.be.accessible();
     });
@@ -703,7 +700,7 @@ describe('lineup-game-setup tests', () => {
       const periodLengthField = getInputField('period-length');
       periodLengthField.valueAsNumber = 25;
 
-      const saveButton = periodsDialog!.querySelector('mwc-button[dialogAction="save"]') as Button;
+      const saveButton = periodsDialog!.querySelector<Button>('mwc-button[dialogAction="save"]')!;
       expect(saveButton, 'Missing save button').to.be.ok;
 
       saveButton.click();
@@ -722,7 +719,7 @@ describe('lineup-game-setup tests', () => {
       const numPeriodsField = getInputField('num-periods');
       numPeriodsField.value = 'xxx';
 
-      const saveButton = periodsDialog!.querySelector('mwc-button[dialogAction="save"]') as Button;
+      const saveButton = periodsDialog!.querySelector<Button>('mwc-button[dialogAction="save"]')!;
       expect(saveButton, 'Missing save button').to.be.ok;
 
       saveButton.click();
@@ -737,7 +734,7 @@ describe('lineup-game-setup tests', () => {
       const expectedError = 'invalid periods and stuff';
       expect(errorText!.textContent, 'Periods error text').to.contain(expectedError);
 
-      await expect(errorElement).dom.to.equalSnapshot();
+      expect(errorElement).dom.to.equalSnapshot();
     });
   }); // describe('periods')
 
