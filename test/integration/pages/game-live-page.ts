@@ -92,7 +92,7 @@ export class GameLivePage extends GameDetailPage {
     const liveHandle = await this.getLiveComponent();
     await liveHandle.evaluate(
       async (liveNode, onId, nextId) => {
-        const liveRoot = liveNode!.shadowRoot!;
+        const liveRoot = liveNode.shadowRoot!;
         const onList = liveRoot.querySelector('lineup-on-player-list');
         const subsList = liveRoot.querySelector('#live-off lineup-player-list');
         if (!onList || !subsList) {
@@ -184,9 +184,9 @@ export class GameLivePage extends GameDetailPage {
       if (!startEvent) {
         throw new Error('Period start event is missing');
       }
-      const startEventItem = eventsRoot.querySelector(
+      const startEventItem = eventsRoot.querySelector<HTMLElement>(
         `#events-list tr[data-event-id="${startEvent.id}"]`,
-      ) as HTMLElement;
+      )!;
       if (!startEventItem) {
         throw new Error(`Event item missing for id = {startEvent.id}`);
       }
@@ -207,9 +207,9 @@ export class GameLivePage extends GameDetailPage {
       // Show the dialog, by clicking the edit button.
       // eslint-disable-next-line no-console
       console.log(`Click the edit button to show the dialog`);
-      const editButton = eventsRoot.querySelector(
+      const editButton = eventsRoot.querySelector<HTMLElement>(
         '#events-header th #edit-selection-button',
-      ) as HTMLElement;
+      )!;
       if (!editButton) {
         throw new Error('Edit button not found');
       }
@@ -223,7 +223,7 @@ export class GameLivePage extends GameDetailPage {
       if (!editDialog) {
         throw new Error('Edit dialog not found');
       }
-      const customTimeField = editDialog.querySelector('#custom-time-field') as HTMLInputElement;
+      const customTimeField = editDialog.querySelector<HTMLInputElement>('#custom-time-field')!;
       if (!customTimeField) {
         throw new Error('Custom time field not found');
       }
@@ -231,7 +231,7 @@ export class GameLivePage extends GameDetailPage {
       customTimeField.value = startTime;
 
       // Save the change to the event.
-      const saveButton = editDialog.querySelector('mwc-button[dialogAction="save"]') as HTMLElement;
+      const saveButton = editDialog.querySelector<HTMLElement>('mwc-button[dialogAction="save"]')!;
       if (!saveButton) {
         throw new Error('Save button not found');
       }
@@ -250,7 +250,7 @@ export class GameLivePage extends GameDetailPage {
   async getOnPlayers() {
     const liveHandle = await this.getLiveComponent();
     return liveHandle.evaluate(async (liveNode) => {
-      const onList = liveNode!.shadowRoot!.querySelector('lineup-on-player-list');
+      const onList = liveNode.shadowRoot!.querySelector('lineup-on-player-list');
       if (!onList) {
         return [];
       }

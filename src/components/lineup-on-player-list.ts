@@ -124,7 +124,7 @@ export class LineupOnPlayerList extends PlayerListElement {
       const line = {
         id: formationLine.id,
         positions: formationLine.positions,
-        playerPositions: <PlayerCardData[]>[],
+        playerPositions: [] as PlayerCardData[],
       };
       // Creates placeholders for each position in the formation.
       formationLine.positions.forEach((position) => {

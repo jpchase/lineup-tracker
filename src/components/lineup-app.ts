@@ -40,9 +40,7 @@ interface Page {
   label: string;
 }
 
-interface Pages {
-  [index: string]: Page;
-}
+type Pages = Record<string, Page>;
 
 // This element is connected to the Redux store.
 @customElement('lineup-app')
@@ -270,7 +268,7 @@ export class LineupApp extends connect(store)(LitElement) {
                 ?visible="${this._authInitialized}"
                 @click="${this._signinButtonClicked}"
               >
-                ${this._user && this._user.imageUrl
+                ${this._user?.imageUrl
                   ? html`<img src="${this._user.imageUrl}" alt="Logged in as ${this._user.name}" />`
                   : accountIcon}
               </button>
@@ -420,7 +418,6 @@ export class LineupApp extends connect(store)(LitElement) {
   });
 
   private navigateToPage(page: string) {
-    // eslint-disable-next-line no-restricted-globals
     const currentLocation = location.href;
     // eslint-disable-next-line no-console
     console.log(
@@ -479,7 +476,7 @@ export class LineupApp extends connect(store)(LitElement) {
   }
 
   private _signinButtonClicked() {
-    if (!(this._user && this._user.imageUrl)) {
+    if (!this._user?.imageUrl) {
       store.dispatch(signIn());
     }
     // store.dispatch(this._user && this._user.imageUrl ? signOut() : signIn());

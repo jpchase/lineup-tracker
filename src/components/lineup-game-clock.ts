@@ -219,7 +219,7 @@ export class LineupGameClock extends LitElement {
   }
 
   private overdueRetroChanged() {
-    const retroRadio = this.shadowRoot!.querySelector('#overdue-retro-radio') as Radio;
+    const retroRadio = this.shadowRoot!.querySelector<Radio>('#overdue-retro-radio')!;
     this.endOverdueRetroactive = retroRadio.checked;
   }
 
@@ -229,9 +229,9 @@ export class LineupGameClock extends LitElement {
     }
     let extraMinutes: number | undefined;
     if (this.endOverdueRetroactive) {
-      const minutesField = this.shadowRoot!.querySelector(
+      const minutesField = this.shadowRoot!.querySelector<HTMLInputElement>(
         '#overdue-minutes-field > input',
-      ) as HTMLInputElement;
+      )!;
       extraMinutes = minutesField.valueAsNumber;
     }
     this.dispatchEvent(new ClockEndPeriodEvent({ extraMinutes }));

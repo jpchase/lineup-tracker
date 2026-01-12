@@ -281,7 +281,7 @@ describe('Live slice: Setup actions', () => {
           currentPosition: { ...selectedPosition },
         };
         const currentGame = getGame(currentState, gameId)!;
-        currentGame!.players!.push(existingStarter);
+        currentGame.players!.push(existingStarter);
 
         const newState: LiveState = live(currentState, applyStarter(gameId));
         const newGame = getGame(newState, gameId)!;

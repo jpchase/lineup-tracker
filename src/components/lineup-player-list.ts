@@ -11,9 +11,7 @@ import { PlayerListElement } from './core/player-list-element.js';
 import './lineup-player-card.js';
 import { SharedStyles } from './shared-styles.js';
 
-interface PlayerFilterFunc {
-  (player: LivePlayer): boolean;
-}
+type PlayerFilterFunc = (player: LivePlayer) => boolean;
 
 @customElement('lineup-player-list')
 export class LineupPlayerList extends PlayerListElement {

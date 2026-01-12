@@ -35,13 +35,10 @@ describe('lineup-roster-modify tests', () => {
     const uniformField = getInputField('uniformNumberField');
     uniformField.value = '2';
 
-    const saveButton = el.shadowRoot!.querySelector('mwc-button.save') as HTMLElement;
+    const saveButton = el.shadowRoot!.querySelector<HTMLElement>('mwc-button.save')!;
     setTimeout(() => saveButton.click());
 
-    const { detail } = (await oneEvent(
-      el,
-      NewPlayerCreatedEvent.eventName,
-    )) as NewPlayerCreatedEvent;
+    const { detail } = await oneEvent(el, NewPlayerCreatedEvent.eventName);
 
     expect(detail.player).to.deep.equal({
       id: '',

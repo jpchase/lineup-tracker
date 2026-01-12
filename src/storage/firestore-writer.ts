@@ -90,7 +90,6 @@ async function saveNewDocument<T extends Model>(
       }
     }
     if (options.addUserId && !options.currentUserId) {
-      // eslint-disable-next-line no-param-reassign
       options.currentUserId = selectCurrentUserId(state);
       debugFirestore(`saveNewDocument: currentUserId = ${options.currentUserId}`);
       if (!options.currentUserId) {

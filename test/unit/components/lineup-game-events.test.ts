@@ -185,7 +185,7 @@ describe('lineup-game-events tests', () => {
 
       let index = 0;
       for (const event of sortedEvents) {
-        const item = items[index]!;
+        const item = items[index];
         index += 1;
 
         expect(item.dataset.eventId).to.equal(event.id, 'Item id should match player id');
@@ -197,12 +197,12 @@ describe('lineup-game-events tests', () => {
         const typeElement = item.cells[1];
         expect(typeElement, 'Missing type element').to.exist;
         // Only check that the type is shown, as the text varies by event type.
-        expect(typeElement!.textContent, 'Event type').not.to.be.empty;
+        expect(typeElement.textContent, 'Event type').not.to.be.empty;
 
         const detailsElement = item.cells[2];
         expect(detailsElement, 'Missing details element').to.exist;
         // Only checks that details are provided, as they vary based on event type.
-        expect(detailsElement!.textContent, 'Details').not.to.be.empty;
+        expect(detailsElement.textContent, 'Details').not.to.be.empty;
       }
       await expect(el).shadowDom.to.equalSnapshot();
       await expect(el).to.be.accessible();
@@ -276,7 +276,7 @@ describe('lineup-game-events tests', () => {
       el.eventData = events.toJSON();
       await el.updateComplete;
 
-      return addedEvent as GameEvent;
+      return addedEvent;
     }
 
     async function setupEventGroup(
@@ -295,7 +295,7 @@ describe('lineup-game-events tests', () => {
       el.eventData = events.toJSON();
       await el.updateComplete;
 
-      return addedEvents[0] as GameEvent;
+      return addedEvents[0];
     }
 
     function getEventElements(event: GameEvent) {
@@ -312,13 +312,13 @@ describe('lineup-game-events tests', () => {
 
       const item = matchedItem!;
 
-      const timeElement = item.cells[0]!;
+      const timeElement = item.cells[0];
       expect(timeElement, 'Missing event time element').to.exist;
 
-      const typeElement = item.cells[1]!;
+      const typeElement = item.cells[1];
       expect(typeElement, 'Missing type element').to.exist;
 
-      const detailsElement = item.cells[2]!;
+      const detailsElement = item.cells[2];
       expect(detailsElement, 'Missing details element').to.exist;
 
       return { typeElement, detailsElement, timeElement };
@@ -457,7 +457,7 @@ describe('lineup-game-events tests', () => {
       // Trigger the selection.
       setTimeout(() => item.click());
 
-      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+      const { detail } = await oneEvent(el, EventSelectedEvent.eventName);
 
       expect(detail.eventId).to.equal(eventId);
       expect(detail.selected, 'Event item should now be selected').to.be.true;
@@ -478,7 +478,7 @@ describe('lineup-game-events tests', () => {
       // Trigger the selection.
       setTimeout(() => item.click());
 
-      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+      const { detail } = await oneEvent(el, EventSelectedEvent.eventName);
 
       expect(detail.eventId).to.equal(eventId);
       expect(detail.selected, 'Event item should now be selected').to.be.true;
@@ -500,7 +500,7 @@ describe('lineup-game-events tests', () => {
       // Trigger the selection.
       setTimeout(() => item.click());
 
-      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+      const { detail } = await oneEvent(el, EventSelectedEvent.eventName);
 
       expect(detail.eventId).to.equal(eventId);
       expect(detail.selected, 'Event item should no longer be selected').to.be.false;
@@ -522,7 +522,7 @@ describe('lineup-game-events tests', () => {
       // Trigger the selection.
       setTimeout(() => item.click());
 
-      const { detail } = (await oneEvent(el, EventSelectedEvent.eventName)) as EventSelectedEvent;
+      const { detail } = await oneEvent(el, EventSelectedEvent.eventName);
 
       expect(detail.eventId).to.equal(eventId);
       expect(detail.selected, 'Event item should no longer be selected').to.be.false;
@@ -693,8 +693,8 @@ describe('lineup-game-events tests', () => {
       expect(customTimeField.disabled, 'Custom time field should now be disabled').to.be.true;
 
       const cancelButton = getEditCancelButton(editDialog);
-      setTimeout(() => cancelButton!.click());
-      await oneEvent(cancelButton!, 'click');
+      setTimeout(() => cancelButton.click());
+      await oneEvent(cancelButton, 'click');
 
       // Show the dialog again.
       setTimeout(() => editButton.click());
@@ -763,8 +763,8 @@ describe('lineup-game-events tests', () => {
       el.addEventListener(EventsUpdatedEvent.eventName, handler);
 
       const cancelButton = getEditCancelButton(editDialog);
-      setTimeout(() => cancelButton!.click());
-      await oneEvent(cancelButton!, 'click');
+      setTimeout(() => cancelButton.click());
+      await oneEvent(cancelButton, 'click');
       await nextFrame();
       await aTimeout(100);
 
@@ -782,7 +782,7 @@ describe('lineup-game-events tests', () => {
       const saveButton = getEditSaveButton(editDialog);
       setTimeout(() => saveButton.click());
 
-      const { detail } = (await oneEvent(el, EventsUpdatedEvent.eventName)) as EventsUpdatedEvent;
+      const { detail } = await oneEvent(el, EventsUpdatedEvent.eventName);
       expect(detail, 'Event detail should be set for custom time').to.deep.equal({
         updatedEventIds: [selectedEvent.id!],
         useExistingTime: false,
@@ -790,7 +790,7 @@ describe('lineup-game-events tests', () => {
         customTime: expectedCustomTime.getTime(),
       });
       const expectedTimeString = timeFormatter.format(expectedCustomTime);
-      const actualTimeString = timeFormatter.format(new Date(detail.customTime!));
+      const actualTimeString = timeFormatter.format(new Date(detail.customTime));
       expect(actualTimeString, 'Custom time in event detail').to.equal(expectedTimeString);
     });
 
@@ -815,7 +815,7 @@ describe('lineup-game-events tests', () => {
       const saveButton = getEditSaveButton(editDialog);
       setTimeout(() => saveButton.click());
 
-      const { detail } = (await oneEvent(el, EventsUpdatedEvent.eventName)) as EventsUpdatedEvent;
+      const { detail } = await oneEvent(el, EventsUpdatedEvent.eventName);
       expect(detail, 'Event detail should be set for existing time').to.deep.equal({
         updatedEventIds: [selectedEvent.id!],
         useExistingTime: true,

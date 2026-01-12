@@ -9,11 +9,6 @@
       "count": 1
     }
   },
-  "src/app/store.ts": {
-    "@typescript-eslint/no-inferrable-types": {
-      "count": 1
-    }
-  },
   "src/components/core/auth-controller.ts": {
     "@typescript-eslint/no-empty-function": {
       "count": 2
@@ -25,9 +20,6 @@
     },
     "@typescript-eslint/no-explicit-any": {
       "count": 3
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
     },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
@@ -55,23 +47,14 @@
   "src/components/core/timer-controller.ts": {
     "@typescript-eslint/no-empty-function": {
       "count": 1
-    },
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 2
     }
   },
   "src/components/lineup-app.ts": {
-    "@typescript-eslint/consistent-indexed-object-style": {
-      "count": 1
-    },
     "@typescript-eslint/no-floating-promises": {
       "count": 3
     },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
-    },
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 2
     },
     "@typescript-eslint/unbound-method": {
       "count": 6
@@ -89,9 +72,6 @@
     },
     "@typescript-eslint/no-unsafe-member-access": {
       "count": 1
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 2
     },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
@@ -112,17 +92,8 @@
     }
   },
   "src/components/lineup-game-create.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 4
-    },
     "@typescript-eslint/no-unsafe-member-access": {
       "count": 1
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 1
-    },
-    "@typescript-eslint/prefer-regexp-exec": {
-      "count": 2
     },
     "@typescript-eslint/unbound-method": {
       "count": 1
@@ -132,12 +103,6 @@
     }
   },
   "src/components/lineup-game-events.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 3
-    },
     "@typescript-eslint/restrict-template-expressions": {
       "count": 3
     },
@@ -149,9 +114,6 @@
     }
   },
   "src/components/lineup-game-live.ts": {
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 1
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
     },
@@ -172,11 +134,8 @@
     "@typescript-eslint/no-unsafe-member-access": {
       "count": 1
     },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 1
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
-      "count": 2
+      "count": 1
     },
     "@typescript-eslint/unbound-method": {
       "count": 7
@@ -189,26 +148,12 @@
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
       "count": 1
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "class-methods-use-this": {
       "count": 1
     }
   },
-  "src/components/lineup-on-player-list.ts": {
-    "@typescript-eslint/consistent-type-assertions": {
-      "count": 1
-    }
-  },
   "src/components/lineup-player-card.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
-      "count": 1
-    },
-    "@typescript-eslint/prefer-optional-chain": {
       "count": 1
     },
     "@typescript-eslint/unbound-method": {
@@ -225,9 +170,6 @@
     "@typescript-eslint/prefer-for-of": {
       "count": 1
     },
-    "@typescript-eslint/prefer-function-type": {
-      "count": 1
-    },
     "@typescript-eslint/unbound-method": {
       "count": 1
     },
@@ -237,12 +179,6 @@
   },
   "src/components/lineup-roster-modify.ts": {
     "@typescript-eslint/no-empty-object-type": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 2
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
       "count": 1
     },
     "@typescript-eslint/unbound-method": {
@@ -256,9 +192,6 @@
   },
   "src/components/lineup-team-create.ts": {
     "@typescript-eslint/no-empty-function": {
-      "count": 1
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
       "count": 1
     },
     "@typescript-eslint/unbound-method": {
@@ -359,13 +292,7 @@
     }
   },
   "src/models/events.ts": {
-    "@typescript-eslint/consistent-type-definitions": {
-      "count": 1
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
-      "count": 1
-    },
-    "@typescript-eslint/prefer-optional-chain": {
       "count": 1
     }
   },
@@ -373,47 +300,13 @@
     "@typescript-eslint/no-duplicate-enum-values": {
       "count": 1
     },
-    "@typescript-eslint/prefer-string-starts-ends-with": {
-      "count": 2
-    },
     "@typescript-eslint/restrict-template-expressions": {
       "count": 1
     }
   },
-  "src/models/game.ts": {
-    "@typescript-eslint/consistent-indexed-object-style": {
-      "count": 1
-    }
-  },
   "src/models/live.ts": {
-    "@typescript-eslint/consistent-indexed-object-style": {
-      "count": 1
-    },
     "@typescript-eslint/no-empty-object-type": {
       "count": 9
-    },
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 1
-    }
-  },
-  "src/models/model.ts": {
-    "@typescript-eslint/consistent-indexed-object-style": {
-      "count": 1
-    }
-  },
-  "src/models/player.ts": {
-    "@typescript-eslint/consistent-indexed-object-style": {
-      "count": 1
-    }
-  },
-  "src/models/shift.ts": {
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 1
-    }
-  },
-  "src/models/team.ts": {
-    "@typescript-eslint/consistent-indexed-object-style": {
-      "count": 1
     }
   },
   "src/slices/app/app-slice.ts": {
@@ -468,18 +361,12 @@
     }
   },
   "src/slices/live/composed-reducer.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 2
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
     }
   },
   "src/slices/live/events-slice.ts": {
     "@typescript-eslint/await-thenable": {
-      "count": 1
-    },
-    "@typescript-eslint/consistent-indexed-object-style": {
       "count": 1
     },
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
@@ -493,49 +380,28 @@
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
       "count": 1
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 4
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 2
     }
   },
   "src/slices/live/live-slice.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
-      "count": 1
-    },
-    "@typescript-eslint/prefer-optional-chain": {
       "count": 1
     }
   },
   "src/slices/live/setup-reducer-logic.ts": {
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
-    },
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 1
     }
   },
   "src/slices/live/shift-slice.ts": {
-    "@typescript-eslint/consistent-indexed-object-style": {
-      "count": 1
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
-      "count": 1
-    },
-    "@typescript-eslint/prefer-optional-chain": {
       "count": 1
     }
   },
   "src/slices/live/substitution-reducer-logic.ts": {
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
-    },
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 2
     }
   },
   "src/slices/player/player-storage.ts": {
@@ -549,11 +415,6 @@
   "src/slices/reducer.ts": {
     "@typescript-eslint/no-empty-object-type": {
       "count": 1
-    }
-  },
-  "src/slices/slice-configurator.ts": {
-    "@typescript-eslint/prefer-function-type": {
-      "count": 2
     }
   },
   "src/slices/team/team-slice.ts": {
@@ -572,11 +433,6 @@
   },
   "src/slices/team/team-storage.ts": {
     "@typescript-eslint/no-unsafe-assignment": {
-      "count": 1
-    }
-  },
-  "src/storage/firestore-reader.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 1
     }
   },
@@ -618,9 +474,6 @@
     "@typescript-eslint/no-floating-promises": {
       "count": 5
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "@typescript-eslint/require-await": {
       "count": 1
     }
@@ -640,20 +493,11 @@
     "@typescript-eslint/no-floating-promises": {
       "count": 5
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "@typescript-eslint/require-await": {
       "count": 1
     }
   },
   "test/integration/pages/game-create-page.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 2
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 6
-    },
     "@typescript-eslint/require-await": {
       "count": 3
     },
@@ -665,14 +509,8 @@
     "@typescript-eslint/no-floating-promises": {
       "count": 1
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 2
-    },
     "@typescript-eslint/no-unsafe-enum-comparison": {
       "count": 1
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 4
     },
     "@typescript-eslint/require-await": {
       "count": 4
@@ -689,12 +527,6 @@
   "test/integration/pages/game-setup-page.ts": {
     "@typescript-eslint/no-floating-promises": {
       "count": 2
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 3
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 3
     },
     "@typescript-eslint/require-await": {
       "count": 2
@@ -724,9 +556,6 @@
     "@typescript-eslint/no-redundant-type-constituents": {
       "count": 1
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "@typescript-eslint/no-unsafe-argument": {
       "count": 1
     },
@@ -747,9 +576,6 @@
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
       "count": 1
     },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 1
-    },
     "@typescript-eslint/require-await": {
       "count": 1
     }
@@ -758,17 +584,11 @@
     "@typescript-eslint/no-explicit-any": {
       "count": 2
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 2
-    },
     "@typescript-eslint/no-unsafe-call": {
       "count": 1
     },
     "@typescript-eslint/no-unsafe-member-access": {
       "count": 2
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 1
     },
     "@typescript-eslint/require-await": {
       "count": 3
@@ -816,9 +636,6 @@
     "@typescript-eslint/no-explicit-any": {
       "count": 1
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 10
     },
@@ -844,14 +661,8 @@
     "@typescript-eslint/await-thenable": {
       "count": 8
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 6
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 4
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 3
     },
     "@typescript-eslint/require-await": {
       "count": 2
@@ -871,9 +682,6 @@
     },
     "@typescript-eslint/no-unsafe-member-access": {
       "count": 1
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 2
     }
   },
   "test/unit/components/lineup-game-events.test.ts": {
@@ -883,8 +691,14 @@
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
       "count": 6
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 18
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unsafe-assignment": {
+      "count": 6
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 9
     },
     "@typescript-eslint/require-await": {
       "count": 7
@@ -892,42 +706,15 @@
   },
   "test/unit/components/lineup-game-live.test.ts": {
     "@typescript-eslint/await-thenable": {
-      "count": 5
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 4
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 16
-    },
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 2
     },
     "@typescript-eslint/require-await": {
       "count": 9
     }
   },
   "test/unit/components/lineup-game-setup.test.ts": {
-    "@typescript-eslint/await-thenable": {
-      "count": 6
-    },
-    "@typescript-eslint/consistent-type-assertions": {
-      "count": 2
-    },
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 3
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 8
-    },
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 2
-    },
     "@typescript-eslint/require-await": {
-      "count": 6
+      "count": 2
     },
     "@typescript-eslint/restrict-template-expressions": {
       "count": 1
@@ -937,9 +724,6 @@
     "@typescript-eslint/await-thenable": {
       "count": 1
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 7
-    },
     "@typescript-eslint/prefer-for-of": {
       "count": 1
     },
@@ -948,9 +732,6 @@
     }
   },
   "test/unit/components/lineup-on-player-list.test.ts": {
-    "@typescript-eslint/consistent-indexed-object-style": {
-      "count": 1
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
     }
@@ -959,11 +740,11 @@
     "@typescript-eslint/await-thenable": {
       "count": 3
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 8
+    "@typescript-eslint/no-unsafe-assignment": {
+      "count": 6
     },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 2
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 16
     },
     "@typescript-eslint/require-await": {
       "count": 2
@@ -975,33 +756,27 @@
     }
   },
   "test/unit/components/lineup-roster-modify.test.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
+    "@typescript-eslint/no-unsafe-assignment": {
       "count": 1
     },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
+    "@typescript-eslint/no-unsafe-member-access": {
       "count": 1
     }
   },
   "test/unit/components/lineup-roster.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 3
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 1
     }
   },
   "test/unit/components/lineup-team-create.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 1
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
+    "@typescript-eslint/no-unsafe-assignment": {
       "count": 1
     },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 2
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 1
     }
   },
   "test/unit/components/lineup-team-selector-dialog.test.ts": {
@@ -1038,9 +813,6 @@
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 2
     },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 3
-    },
     "@typescript-eslint/require-await": {
       "count": 2
     }
@@ -1049,14 +821,8 @@
     "@typescript-eslint/await-thenable": {
       "count": 3
     },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 6
-    },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 2
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 1
     },
     "@typescript-eslint/require-await": {
       "count": 1
@@ -1069,9 +835,6 @@
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 2
     },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 4
-    },
     "@typescript-eslint/require-await": {
       "count": 2
     }
@@ -1082,9 +845,6 @@
     },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 2
-    },
-    "@typescript-eslint/non-nullable-type-assertion-style": {
-      "count": 4
     },
     "@typescript-eslint/require-await": {
       "count": 2
@@ -1109,23 +869,12 @@
       "count": 1
     }
   },
-  "test/unit/helpers/game-state-setup.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "test/unit/helpers/global-setup.ts": {
-    "@typescript-eslint/consistent-type-assertions": {
-      "count": 1
-    },
     "@typescript-eslint/no-explicit-any": {
       "count": 1
     }
   },
   "test/unit/helpers/live-state-setup.ts": {
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
     }
@@ -1164,11 +913,6 @@
       "count": 2
     }
   },
-  "test/unit/helpers/test-shift-data.ts": {
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 2
-    }
-  },
   "test/unit/helpers/test_data.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
@@ -1180,9 +924,6 @@
       "count": 3
     },
     "@typescript-eslint/prefer-nullish-coalescing": {
-      "count": 1
-    },
-    "@typescript-eslint/prefer-optional-chain": {
       "count": 1
     }
   },
@@ -1200,10 +941,7 @@
       "count": 1
     },
     "@typescript-eslint/no-unsafe-member-access": {
-      "count": 9
-    },
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 1
+      "count": 8
     }
   },
   "test/unit/models/events.test.ts": {
@@ -1223,11 +961,6 @@
       "count": 1
     },
     "@typescript-eslint/require-await": {
-      "count": 1
-    }
-  },
-  "test/unit/models/formation.test.ts": {
-    "@typescript-eslint/consistent-type-assertions": {
       "count": 1
     }
   },
@@ -1261,7 +994,7 @@
       "count": 1
     },
     "@typescript-eslint/prefer-optional-chain": {
-      "count": 2
+      "count": 1
     }
   },
   "test/unit/slices/auth/auth-slice.test.ts": {
@@ -1293,10 +1026,7 @@
   },
   "test/unit/slices/live/events-slice.test.ts": {
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
-      "count": 25
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 8
+      "count": 23
     },
     "@typescript-eslint/no-unsafe-assignment": {
       "count": 1
@@ -1311,9 +1041,6 @@
   "test/unit/slices/live/live-slice.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 3
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
     },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 1
@@ -1330,9 +1057,6 @@
       "count": 1
     },
     "@typescript-eslint/no-non-null-asserted-optional-chain": {
-      "count": 1
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 1
     },
     "@typescript-eslint/no-unsafe-argument": {
@@ -1353,9 +1077,6 @@
   "test/unit/slices/live/substition-reducer-logic.test.ts": {
     "@typescript-eslint/await-thenable": {
       "count": 8
-    },
-    "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 9
     },
     "@typescript-eslint/prefer-for-of": {
       "count": 1

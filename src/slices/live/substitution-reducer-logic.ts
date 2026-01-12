@@ -118,7 +118,7 @@ export const cancelSubHandler = (
   const cancelIds = [state.selectedOffPlayer!, state.selectedOnPlayer!];
   for (const playerId of cancelIds) {
     const selectedPlayer = getPlayer(game, playerId);
-    if (selectedPlayer && selectedPlayer.selected) {
+    if (selectedPlayer?.selected) {
       selectedPlayer.selected = false;
     }
   }
@@ -183,7 +183,7 @@ export const pendingSubsAppliedHandler = (
       return;
     }
     const replacedPlayer = getPlayer(game, player.replaces!);
-    if (!(replacedPlayer && replacedPlayer.status === PlayerStatus.On)) {
+    if (!(replacedPlayer?.status === PlayerStatus.On)) {
       return;
     }
 

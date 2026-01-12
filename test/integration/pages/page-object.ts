@@ -140,7 +140,6 @@ export class PageObject {
   // After the swap, this page object will no longer be valid or connected to
   // puppeteer.
   swap<T extends PageObject>(targetPageType: PageConstructor<T>, options: PageOptions = {}): T {
-    // eslint-disable-next-line new-cap -- The `targetPageType` is a parameter, not a known type.
     const newPage = new targetPageType(options);
     newPage._browser = this._browser;
     newPage._page = this._page;
@@ -220,7 +219,7 @@ export class PageObject {
     if (!mainHandle) {
       throw new Error('Main element not found');
     }
-    return mainHandle!;
+    return mainHandle;
   }
 
   private async getMainElementDataset() {
@@ -244,7 +243,6 @@ export class PageObject {
     let attempts = 0;
     const maxAttempts = 15;
     for (; attempts < maxAttempts; attempts++) {
-      // eslint-disable-next-line no-await-in-loop -- This loop is for async retries.
       const mainDataset = await this.getMainElementDataset();
       if (mainDataset) {
         const teamsLoadedValue = mainDataset.teamsLoaded;
@@ -257,7 +255,7 @@ export class PageObject {
       }
       if (attempts < maxAttempts - 1) {
         console.timeLog('wait for teams-loaded');
-        // eslint-disable-next-line no-await-in-loop -- This loop is for async retries.
+
         await this.waitForTimeout(200);
       }
     }

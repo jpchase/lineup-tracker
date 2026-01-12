@@ -16,7 +16,6 @@ export async function initApp() {
   }
   debugInit(`starting`);
   // enableAllPlugins();
-  // eslint-disable-next-line no-restricted-globals
   const urlParams = new URLSearchParams(location.search);
 
   // Initialize action listeners to handle changes in auth state.

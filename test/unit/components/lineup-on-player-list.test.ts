@@ -8,9 +8,7 @@ import { LivePlayer } from '@app/models/live.js';
 import { PlayerStatus } from '@app/models/player.js';
 import { assert, expect, fixture, html } from '@open-wc/testing';
 
-interface PositionCounter {
-  [index: string]: number;
-}
+type PositionCounter = Record<string, number>;
 
 function getFormation(formationType: FormationType) {
   return FormationBuilder.create(formationType);
@@ -267,7 +265,7 @@ describe('lineup-on-player-list tests', () => {
 
   for (const numPlayers of [1, 6]) {
     const testName = numPlayers === 1 ? 'single player' : `multiple players`;
-    // eslint-disable-next-line no-loop-func
+
     it(`puts players in matching position with ${testName}`, async () => {
       const players = getPlayers(numPlayers);
       el.formation = getFormation(FormationType.F4_3_3);
@@ -277,7 +275,6 @@ describe('lineup-on-player-list tests', () => {
       verifyPlayerCards(players);
     });
 
-    // eslint-disable-next-line no-loop-func
     it(`puts players in matching position with ${testName} mixed with other status`, async () => {
       // Generates a list with two players at each position, the first off, the second on.
       // Ensures that if status is not filtered correctly, the non-matching 'OFF' player is

@@ -27,6 +27,4 @@ export interface GameDetail extends Game {
   roster: Roster;
 }
 
-export interface Games {
-  [index: string]: Game;
-}
+export type Games = Record<string, Game>;

@@ -51,27 +51,27 @@ describe('lineup-game-shifts tests', () => {
     expect(items.length).to.equal(players.length, 'Rendered player count');
 
     let index = 0;
-    const sortedPlayers = players!.sort((a, b) => a.name.localeCompare(b.name));
+    const sortedPlayers = players.sort((a, b) => a.name.localeCompare(b.name));
     for (const player of sortedPlayers) {
       const tracker = trackerMap.get(player.id)!;
       expect(tracker).to.exist;
 
-      const row = (items[index] as HTMLTableRowElement)!;
+      const row = items[index] as HTMLTableRowElement;
       index += 1;
 
       expect(row.dataset.rowId).to.equal(player.id, 'Row id should match player id');
 
       const nameElement = row.cells[0];
       expect(nameElement, 'Missing name element').to.exist;
-      expect(nameElement!.textContent).to.equal(player.name, 'Player name');
+      expect(nameElement.textContent).to.equal(player.name, 'Player name');
 
       const shiftCountElement = row.cells[1];
       expect(shiftCountElement, 'Missing shift count element').to.exist;
-      expect(shiftCountElement!.textContent).to.equal(`${tracker.shiftCount}`, 'Shift count');
+      expect(shiftCountElement.textContent).to.equal(`${tracker.shiftCount}`, 'Shift count');
 
       const totalTimeElement = row.cells[2];
       expect(totalTimeElement, 'Missing total time element').to.exist;
-      expect(totalTimeElement!.textContent?.trim()).to.equal(
+      expect(totalTimeElement.textContent?.trim()).to.equal(
         Duration.format(tracker.totalOnTime),
         'Total time',
       );
@@ -104,7 +104,7 @@ describe('lineup-game-shifts tests', () => {
     expect(items.length).to.equal(players.length, 'Rendered player count');
 
     for (let index = 0; index < items.length; index++) {
-      const row = (items[index] as HTMLTableRowElement)!;
+      const row = items[index] as HTMLTableRowElement;
 
       const tracker = trackerMap.get(row.dataset.rowId!)!;
       expect(tracker).to.exist;
@@ -114,7 +114,7 @@ describe('lineup-game-shifts tests', () => {
 
       const totalTimeElement = row.cells[2];
       expect(totalTimeElement, 'Missing total time element').to.exist;
-      expect(totalTimeElement!.textContent?.trim()).to.equal(
+      expect(totalTimeElement.textContent?.trim()).to.equal(
         Duration.format(expectedTotalTime),
         `Total time for ${tracker.id}`,
       );

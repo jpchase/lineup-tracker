@@ -55,25 +55,23 @@ export class GameCreatePage extends PageObject {
 
     await createHandle.evaluate(
       async (createNode, name, opponent, gameDate, gameTime) => {
-        const createRoot = createNode!.shadowRoot!;
+        const createRoot = createNode.shadowRoot!;
 
         const createDialog = createRoot.querySelector('#create-dialog');
         if (!createDialog) {
           throw new Error(`Create game dialog not found`);
         }
 
-        const nameField = createRoot.querySelector(`#nameField > input`) as HTMLInputElement;
+        const nameField = createRoot.querySelector<HTMLInputElement>(`#nameField > input`)!;
         nameField.value = name;
 
-        const opponentField = createRoot.querySelector(
-          `#opponentField > input`,
-        ) as HTMLInputElement;
+        const opponentField = createRoot.querySelector<HTMLInputElement>(`#opponentField > input`)!;
         opponentField.value = opponent;
 
-        const dateField = createRoot.querySelector(`#dateField > input`) as HTMLInputElement;
+        const dateField = createRoot.querySelector<HTMLInputElement>(`#dateField > input`)!;
         dateField.value = gameDate;
 
-        const timeField = createRoot.querySelector(`#timeField > input`) as HTMLInputElement;
+        const timeField = createRoot.querySelector<HTMLInputElement>(`#timeField > input`)!;
         timeField.value = gameTime;
       },
       game.name,
@@ -87,16 +85,16 @@ export class GameCreatePage extends PageObject {
     const createHandle = existingCreateHandle ?? (await this.getCreateComponent());
 
     await createHandle.evaluate(async (createNode) => {
-      const createRoot = createNode!.shadowRoot!;
+      const createRoot = createNode.shadowRoot!;
 
       const createDialog = createRoot.querySelector('#create-dialog');
       if (!createDialog) {
         throw new Error(`Create game dialog not found`);
       }
 
-      const saveButton = createDialog.querySelector(
+      const saveButton = createDialog.querySelector<HTMLButtonElement>(
         'mwc-button[dialogAction="save"]',
-      ) as HTMLButtonElement;
+      )!;
       //saveButton.scrollIntoView();
       saveButton.click();
     });
@@ -123,7 +121,7 @@ export class GameCreatePage extends PageObject {
             continue;
           }
           const listItem = nameElement.parentElement!;
-          const link = listItem.querySelector('a[title="View game"]') as HTMLLinkElement;
+          const link = listItem.querySelector<HTMLLinkElement>('a[title="View game"]')!;
           const parts = link.href.split('/');
           return parts[parts.length - 1];
         }

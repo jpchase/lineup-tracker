@@ -69,7 +69,7 @@ export function addShiftTrackingMatchers() {
   Assertion.addMethod('on', function (this, expected: string) {
     const tracker = this._obj as PlayerTimeTracker;
     this.assert(
-      tracker && tracker.id === expected && tracker.isOn,
+      tracker?.id === expected && tracker.isOn,
       'expected #{this} with id = #{exp} to be on',
       'expected #{this} with id = #{exp} to not be on',
       expected,
@@ -89,7 +89,7 @@ export function addShiftTrackingMatchers() {
   Assertion.addMethod('off', function (this, expected: string) {
     const tracker = this._obj as PlayerTimeTracker;
     this.assert(
-      tracker && tracker.id === expected && !tracker.isOn && !tracker.alreadyOn,
+      tracker?.id === expected && !tracker.isOn && !tracker.alreadyOn,
       'expected #{this} with id = #{exp} to be off',
       'expected #{this} with id = #{exp} to not be off',
       expected,

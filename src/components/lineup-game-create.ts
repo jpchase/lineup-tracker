@@ -59,17 +59,17 @@ export class LineupGameCreate extends LitElement {
   protected dialog?: Dialog;
 
   private getFormInput(fieldId: string): HTMLInputElement {
-    return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
+    return this.shadowRoot!.querySelector(`#${fieldId} > input`)!;
   }
 
   private buildDate(dateString: string, timeString: string): { valid: boolean; date: Date } {
     // Parse the date and time values, to get date parts separately
-    const dateParts = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
+    const dateParts = /(\d{4})-(\d{2})-(\d{2})/.exec(dateString);
     if (!dateParts) {
       return { valid: false, date: new Date() };
     }
 
-    const timeParts = timeString.match(/(\d{2}):(\d{2})/);
+    const timeParts = /(\d{2}):(\d{2})/.exec(timeString);
     if (!timeParts) {
       return { valid: false, date: new Date() };
     }
@@ -96,16 +96,16 @@ export class LineupGameCreate extends LitElement {
     const timeField = this.getFormInput('timeField');
     const opponentField = this.getFormInput('opponentField');
 
-    const dateResult = this.buildDate(dateField.value!.trim(), timeField.value!.trim());
+    const dateResult = this.buildDate(dateField.value.trim(), timeField.value.trim());
     if (!dateResult.valid) {
       // TODO: Some error handling?
       return;
     }
 
     const newGame: GameMetadata = {
-      name: nameField.value!.trim(),
+      name: nameField.value.trim(),
       date: dateResult.date,
-      opponent: opponentField.value!.trim(),
+      opponent: opponentField.value.trim(),
     };
 
     // This event will be handled by lineup-view-games.

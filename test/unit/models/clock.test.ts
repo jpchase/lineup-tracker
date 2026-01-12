@@ -241,12 +241,7 @@ describe('Timer', () => {
 
   Assertion.addMethod('initialized', function (this) {
     const timer = this._obj;
-    const pass =
-      timer &&
-      !timer.isRunning &&
-      !timer.startTime &&
-      timer.duration &&
-      timer.duration._elapsed === 0;
+    const pass = timer && !timer.isRunning && !timer.startTime && timer.duration?._elapsed === 0;
 
     let expected = '';
     let actual = '';

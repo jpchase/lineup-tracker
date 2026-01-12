@@ -4,17 +4,17 @@ import { idGenerator } from '../util/id-generator.js';
 import { CurrentTimeProvider } from './clock.js';
 import { Model } from './model.js';
 
-export type EventBase<
+export interface EventBase<
   EventType extends string = string,
   EventData extends Record<string, unknown> = Record<string, unknown>,
-> = {
+> {
   id?: string;
   groupId?: string;
   type: EventType;
   timestamp?: number;
   model?: Model;
   data: EventData;
-};
+}
 
 export interface EventCollectionData<Event extends EventBase = EventBase> {
   id: string;
@@ -53,7 +53,7 @@ export class EventCollection<Event extends EventBase = EventBase> {
   }
 
   private initialize(events?: Event[]) {
-    if (!events || !events.length) {
+    if (!events?.length) {
       throw new Error('events must be provided to initialize');
     }
 

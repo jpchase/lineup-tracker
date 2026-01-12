@@ -67,9 +67,7 @@ export interface LiveGame {
   setupTasks?: SetupTask[];
 }
 
-export interface LiveGames {
-  [index: string]: LiveGame;
-}
+export type LiveGames = Record<string, LiveGame>;
 
 // Game events
 export enum GameEventType {
@@ -254,7 +252,7 @@ export function findPlayersByStatus(
 }
 
 export function getPlayer(game: LiveGame, playerId: string) {
-  if (!game || !game.players) {
+  if (!game?.players) {
     return undefined;
   }
   return game.players.find((p) => p.id === playerId);

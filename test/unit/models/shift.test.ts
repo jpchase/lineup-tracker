@@ -145,8 +145,7 @@ describe('PlayerTimeTrackerMap', () => {
 
   Assertion.addMethod('initialized', function (this) {
     const map = this._obj as PlayerTimeTrackerMap;
-    const pass =
-      map && map.id.length && !map.clockRunning && (!map.trackers || !map.trackers.length);
+    const pass = map && map.id.length && !map.clockRunning && !map.trackers?.length;
 
     let expected = '';
     let actual = '';

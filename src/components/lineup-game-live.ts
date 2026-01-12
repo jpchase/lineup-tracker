@@ -373,7 +373,7 @@ export class LineupGameLive extends ConnectStoreMixin(LitElement) {
   }
 
   private getPositionSelect() {
-    return this.shadowRoot!.querySelector('#new-position-select') as HTMLSelectElement;
+    return this.shadowRoot!.querySelector<HTMLSelectElement>('#new-position-select')!;
   }
 
   private confirmSubClicked() {

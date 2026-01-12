@@ -95,7 +95,7 @@ describe('Team functional tests', () => {
     );
 
     // Verify that the new player was saved to storage.
-    const storedRoster = await readTeamRoster(firestore, team.id!);
+    const storedRoster = await readTeamRoster(firestore, team.id);
     const storedPlayers = Object.values(storedRoster);
     expect(storedPlayers.length, 'Stored roster should have 1 player added').to.equal(
       originalPlayers.length + 1,

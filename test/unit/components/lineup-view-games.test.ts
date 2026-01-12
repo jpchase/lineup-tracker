@@ -119,8 +119,8 @@ describe('lineup-view-games tests', () => {
     expect(createDialog, 'before add click').not.to.be.open;
 
     const addButton = getAddButton();
-    setTimeout(() => addButton!.click());
-    await oneEvent(addButton!, 'click');
+    setTimeout(() => addButton.click());
+    await oneEvent(addButton, 'click');
 
     expect(createDialog, 'after add click').to.be.open;
   });
@@ -134,15 +134,15 @@ describe('lineup-view-games tests', () => {
     expect(createDialog, 'before add click').not.to.be.open;
 
     const addButton = getAddButton();
-    setTimeout(() => addButton!.click());
-    await oneEvent(addButton!, 'click');
+    setTimeout(() => addButton.click());
+    await oneEvent(addButton, 'click');
 
-    const cancelButton = createElement.shadowRoot!.querySelector(
+    const cancelButton = createElement.shadowRoot!.querySelector<HTMLElement>(
       'mwc-button[dialogAction="close"]',
-    ) as HTMLElement;
+    )!;
 
-    setTimeout(() => cancelButton!.click());
-    await oneEvent(cancelButton!, 'click');
+    setTimeout(() => cancelButton.click());
+    await oneEvent(cancelButton, 'click');
     await nextFrame();
 
     expect(createDialog, 'after cancel').not.to.be.open;

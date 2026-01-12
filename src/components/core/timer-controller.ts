@@ -29,7 +29,7 @@ export class TimerController implements ReactiveController {
   hostDisconnected() {}
 
   protected refresh() {
-    if (!this.timer || !this.timer.isRunning) {
+    if (!this.timer?.isRunning) {
       return;
     }
     this.updateTimerText();
@@ -49,7 +49,7 @@ export class TimerController implements ReactiveController {
 
 export class SynchronizedTimerController extends TimerController {
   override refresh() {
-    if (!this.timer || !this.timer.isRunning) {
+    if (!this.timer?.isRunning) {
       return;
     }
     this.updateTimerText();

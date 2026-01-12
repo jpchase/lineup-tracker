@@ -69,7 +69,7 @@ export class LineupPlayerCard extends LitElement {
     } else {
       player = this.player!;
     }
-    if (player && player.currentPosition) {
+    if (player?.currentPosition) {
       displayPosition = player.currentPosition;
     }
     if (player?.isSwap) {
@@ -241,7 +241,7 @@ export class LineupPlayerCard extends LitElement {
   private _selected = false;
 
   private _getPlayer() {
-    return this.data ? this.data!.player : this.player;
+    return this.data ? this.data.player : this.player;
   }
 
   override willUpdate(changedProperties: PropertyValues<this>) {

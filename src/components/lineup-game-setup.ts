@@ -352,7 +352,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
     this.tasksComplete = !anyIncomplete;
 
     this.formation = liveGame.formation;
-    this.players = liveGame.players || [];
+    this.players = liveGame.players ?? [];
     this.selectedStarterPosition = state.live.selectedStarterPosition;
     this.proposedStarter = state.live.proposedStarter;
     this.invalidStarters = selectInvalidStarters(state);
@@ -450,7 +450,7 @@ export class LineupGameSetup extends ConnectStoreMixin(LitElement) {
   }
 
   private getFormInput(fieldId: string): HTMLInputElement {
-    return this.shadowRoot!.querySelector(`#${fieldId} > input`) as HTMLInputElement;
+    return this.shadowRoot!.querySelector(`#${fieldId} > input`)!;
   }
 
   private savePeriods() {

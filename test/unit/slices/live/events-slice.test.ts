@@ -442,8 +442,8 @@ describe('Events slice', () => {
       // D = player to be swapped from |swap2|
       const game = testlive.getLiveGameWithStarters();
       const sub1ReplacedPlayer = getPlayer(game, sub1.replacedId!)!;
-      const swap1Player = getPlayer(game, swap1.nextId!)!;
-      const swap2Player = getPlayer(game, swap2.nextId!)!;
+      const swap1Player = getPlayer(game, swap1.nextId)!;
+      const swap2Player = getPlayer(game, swap2.nextId)!;
 
       const subs = [
         // Set A to go into C's position, instead of taking B's position by default.
@@ -460,7 +460,7 @@ describe('Events slice', () => {
         // Set C to swap to D's position.
         {
           ...swap1,
-          replacedId: swap2.nextId!,
+          replacedId: swap2.nextId,
           expectedFinalPosition: { ...swap2Player.currentPosition! },
         },
         // Set D to swap to B's position.
@@ -663,8 +663,8 @@ describe('Events slice', () => {
       // D = player to be swapped from |swap2|
       const game = testlive.getLiveGameWithStarters();
       const sub1ReplacedPlayer = getPlayer(game, sub1.replacedId!)!;
-      const swap1Player = getPlayer(game, swap1.nextId!)!;
-      const swap2Player = getPlayer(game, swap2.nextId!)!;
+      const swap1Player = getPlayer(game, swap1.nextId)!;
+      const swap2Player = getPlayer(game, swap2.nextId)!;
 
       const selectedSubs = [
         // Set A to go into C's position, instead of taking B's position by default.
@@ -676,7 +676,7 @@ describe('Events slice', () => {
         // Set C to swap to D's position.
         {
           ...swap1,
-          replacedId: swap2.nextId!,
+          replacedId: swap2.nextId,
           expectedFinalPosition: { ...swap2Player.currentPosition! },
         },
         // Set D to swap to B's position.
@@ -1344,7 +1344,7 @@ describe('Events slice', () => {
       );
 
       const updatedEvent = updatedEvents.get(selectedEventId)!;
-      updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp!;
+      updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp;
 
       expect(newState).to.deep.include({
         events: { [updatedEvents.id]: updatedEvents.toJSON() },
@@ -1697,7 +1697,7 @@ describe('Events slice', () => {
         );
 
         const updatedEvent = updatedEvents.get(selectedEventId)!;
-        updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp!;
+        updatedEvent.timestamp = updatedEvents.get(existingEventId)?.timestamp;
 
         expect(dispatchStub).to.have.callCount(1);
         expect(actionLogger.lastAction()).to.deep.include(eventsUpdated(game.id, [updatedEvent]));

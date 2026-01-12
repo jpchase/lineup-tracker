@@ -5,6 +5,4 @@ export interface Model {
   teamId?: string;
 }
 
-export interface ModelCollection<T extends Model> {
-  [index: string]: T;
-}
+export type ModelCollection<T extends Model> = Record<string, T>;

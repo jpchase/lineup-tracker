@@ -20,7 +20,6 @@ export function setupAuthListeners(startListening: AppStartListening): Unsubscri
     startListening({
       actionCreator: userSignedIn,
       effect: async (_action, listenerApi) => {
-        // eslint-disable-next-line no-restricted-globals
         const urlParams = new URLSearchParams(location.search);
         const team = urlParams.get('team');
         debugListeners(`Signed in, set team = ${team}`);
