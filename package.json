@@ -108,7 +108,7 @@
     "pngjs": "^7.0.0",
     "prettier": "^3.4.2",
     "puppeteer": "^24.34.0",
-    "rollup": "^4.18.1",
+    "rollup": "^4.59.0",
     "rollup-plugin-esbuild": "^6.1.1",
     "sinon": "^19.0.2",
     "sinon-chai": "^4.0.0",
